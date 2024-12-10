@@ -4,6 +4,7 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import Menu from 'components/widgets/menu/menu';
@@ -43,6 +44,7 @@ const ToggleInfo = ({show, channel, rhsOpen, actions}: Props) => {
             show={show}
             onClick={toggleRHS}
             text={text}
+            icon={<InformationOutlineIcon color='#808080'/>}
         />
     );
 };

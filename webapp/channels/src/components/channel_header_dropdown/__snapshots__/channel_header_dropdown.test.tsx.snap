@@ -24,7 +24,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     }
     show={true}
   />
-  <Memo(ChannelMoveToSubMenuOld)
+  <Connect(MenuItemToggleMuteChannel)
     channel={
       Object {
         "create_at": 0,
@@ -44,8 +44,152 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         "update_at": 0,
       }
     }
-    inHeaderDropdown={true}
-    openUp={false}
+    id="channelToggleMuteChannel"
+    isMuted={false}
+    user={
+      Object {
+        "auth_service": "",
+        "bot_description": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "email": "",
+        "first_name": "",
+        "id": "test-user-id",
+        "is_bot": false,
+        "last_activity_at": 0,
+        "last_name": "",
+        "last_password_update": 0,
+        "last_picture_update": 0,
+        "locale": "",
+        "mfa_active": false,
+        "nickname": "",
+        "notify_props": Object {
+          "calls_desktop_sound": "true",
+          "channel": "false",
+          "comments": "never",
+          "desktop": "default",
+          "desktop_sound": "false",
+          "email": "false",
+          "first_name": "false",
+          "highlight_keys": "",
+          "mark_unread": "mention",
+          "mention_keys": "",
+          "push": "none",
+          "push_status": "offline",
+        },
+        "password": "",
+        "position": "",
+        "props": Object {},
+        "roles": "",
+        "terms_of_service_create_at": 0,
+        "terms_of_service_id": "",
+        "update_at": 0,
+        "username": "some-user",
+      }
+    }
+  />
+  <MenuItemToggleModalRedux
+    dialogProps={
+      Object {
+        "channel": Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        },
+        "currentUser": Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "test-user-id",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "calls_desktop_sound": "true",
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "highlight_keys": "",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some-user",
+        },
+      }
+    }
+    dialogType={
+      Object {
+        "$$typeof": Symbol(react.memo),
+        "WrappedComponent": [Function],
+        "compare": null,
+        "type": [Function],
+      }
+    }
+    icon={
+      <BellOutlineIcon
+        color="#808080"
+      />
+    }
+    id="channelNotificationPreferences"
+    modalId="channel_notifications"
+    show={true}
+    text="Notification Preferences"
+  />
+  <ChannelActionsMenu
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
+        "id": "test-channel-id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    isArchived={false}
+    isDefault={false}
+    isReadonly={false}
   />
   <Memo(MenuGroup)>
     <Connect(Component)
@@ -93,210 +237,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       }
       show={false}
     />
-    <MenuItemToggleModalRedux
-      dialogProps={
-        Object {
-          "channel": Object {
-            "create_at": 0,
-            "creator_id": "id",
-            "delete_at": 0,
-            "display_name": "name",
-            "group_constrained": false,
-            "header": "header",
-            "id": "test-channel-id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "DN",
-            "purpose": "purpose",
-            "scheme_id": "id",
-            "team_id": "team_id",
-            "type": "O",
-            "update_at": 0,
-          },
-          "currentUser": Object {
-            "auth_service": "",
-            "bot_description": "",
-            "create_at": 0,
-            "delete_at": 0,
-            "email": "",
-            "first_name": "",
-            "id": "test-user-id",
-            "is_bot": false,
-            "last_activity_at": 0,
-            "last_name": "",
-            "last_password_update": 0,
-            "last_picture_update": 0,
-            "locale": "",
-            "mfa_active": false,
-            "nickname": "",
-            "notify_props": Object {
-              "calls_desktop_sound": "true",
-              "channel": "false",
-              "comments": "never",
-              "desktop": "default",
-              "desktop_sound": "false",
-              "email": "false",
-              "first_name": "false",
-              "highlight_keys": "",
-              "mark_unread": "mention",
-              "mention_keys": "",
-              "push": "none",
-              "push_status": "offline",
-            },
-            "password": "",
-            "position": "",
-            "props": Object {},
-            "roles": "",
-            "terms_of_service_create_at": 0,
-            "terms_of_service_id": "",
-            "update_at": 0,
-            "username": "some-user",
-          },
-        }
-      }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="channelNotificationPreferences"
-      modalId="channel_notifications"
-      show={true}
-      text="Notification Preferences"
-    />
-    <Connect(MenuItemToggleMuteChannel)
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "test-channel-id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      id="channelToggleMuteChannel"
-      isMuted={false}
-      user={
-        Object {
-          "auth_service": "",
-          "bot_description": "",
-          "create_at": 0,
-          "delete_at": 0,
-          "email": "",
-          "first_name": "",
-          "id": "test-user-id",
-          "is_bot": false,
-          "last_activity_at": 0,
-          "last_name": "",
-          "last_password_update": 0,
-          "last_picture_update": 0,
-          "locale": "",
-          "mfa_active": false,
-          "nickname": "",
-          "notify_props": Object {
-            "calls_desktop_sound": "true",
-            "channel": "false",
-            "comments": "never",
-            "desktop": "default",
-            "desktop_sound": "false",
-            "email": "false",
-            "first_name": "false",
-            "highlight_keys": "",
-            "mark_unread": "mention",
-            "mention_keys": "",
-            "push": "none",
-            "push_status": "offline",
-          },
-          "password": "",
-          "position": "",
-          "props": Object {},
-          "roles": "",
-          "terms_of_service_create_at": 0,
-          "terms_of_service_id": "",
-          "update_at": 0,
-          "username": "some-user",
-        }
-      }
-    />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
-      channelId="test-channel-id"
-      permissions={
-        Array [
-          "manage_public_channel_members",
-        ]
-      }
-      teamId="team_id"
-    >
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channel": Object {
-              "create_at": 0,
-              "creator_id": "id",
-              "delete_at": 0,
-              "display_name": "name",
-              "group_constrained": false,
-              "header": "header",
-              "id": "test-channel-id",
-              "last_post_at": 0,
-              "last_root_post_at": 0,
-              "name": "DN",
-              "purpose": "purpose",
-              "scheme_id": "id",
-              "team_id": "team_id",
-              "type": "O",
-              "update_at": 0,
-            },
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelAddMembers"
-        modalId="channel_invite"
-        show={true}
-        text="Add Members"
-      />
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "isExistingChannel": true,
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelAddMembers"
-        modalId="create_dm_channel"
-        show={false}
-        text="Add Members"
-      />
-    </Memo(ChannelPermissionGate)>
     <Connect(ToggleChannelMembersRHS)
       channel={
         Object {
@@ -319,76 +261,32 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       }
       id="channelViewMembers"
       show={false}
-      text="View Members"
+      text="Members"
     />
-    <Memo(ChannelPermissionGate)
-      channelId="test-channel-id"
-      permissions={
-        Array [
-          "manage_public_channel_members",
-        ]
+    <Connect(ToggleChannelMembersRHS)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
       }
-      teamId="team_id"
-    >
-      <MenuItemToggleModalRedux
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelAddGroups"
-        modalId="add_groups_to_channel"
-        show={false}
-        text="Add Groups"
-      />
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channelID": "test-channel-id",
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelManageGroups"
-        modalId="manage_channel_groups"
-        show={false}
-        text="Manage Groups"
-      />
-      <Connect(ToggleChannelMembersRHS)
-        channel={
-          Object {
-            "create_at": 0,
-            "creator_id": "id",
-            "delete_at": 0,
-            "display_name": "name",
-            "group_constrained": false,
-            "header": "header",
-            "id": "test-channel-id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "DN",
-            "purpose": "purpose",
-            "scheme_id": "id",
-            "team_id": "team_id",
-            "type": "O",
-            "update_at": 0,
-          }
-        }
-        editMembers={true}
-        id="channelManageMembers"
-        show={true}
-        text="Manage Members"
-      />
-    </Memo(ChannelPermissionGate)>
+      id="channelViewMembers"
+      show={false}
+      text="Members"
+    />
     <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       invert={true}
@@ -421,228 +319,50 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         }
         id="channelViewMembers"
         show={true}
-        text="View Members"
+        text="Members"
       />
     </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <MenuItemToggleModalRedux
-      dialogProps={
+    <Memo(ChannelMoveToSubMenuOld)
+      channel={
         Object {
-          "channel": Object {
-            "create_at": 0,
-            "creator_id": "id",
-            "delete_at": 0,
-            "display_name": "name",
-            "group_constrained": false,
-            "header": "header",
-            "id": "test-channel-id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "DN",
-            "purpose": "purpose",
-            "scheme_id": "id",
-            "team_id": "team_id",
-            "type": "O",
-            "update_at": 0,
-          },
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="channelEditHeader"
-      modalId="edit_channel_header"
-      show={false}
-      text="Edit Conversation Header"
+      inHeaderDropdown={true}
+      openUp={false}
     />
-    <MenuItemToggleModalRedux
-      dialogProps={
-        Object {
-          "channel": Object {
-            "create_at": 0,
-            "creator_id": "id",
-            "delete_at": 0,
-            "display_name": "name",
-            "group_constrained": false,
-            "header": "header",
-            "id": "test-channel-id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "DN",
-            "purpose": "purpose",
-            "scheme_id": "id",
-            "team_id": "team_id",
-            "type": "O",
-            "update_at": 0,
-          },
-        }
+    <SubMenuItem
+      direction="right"
+      icon={
+        <AppsIcon
+          color="#808080"
+        />
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="convertGMPrivateChannel"
-      modalId="convert_gm_to_channel"
-      show={false}
-      text="Convert to Private Channel"
+      id="pluginItems-submenu"
+      renderSelected={true}
+      show={true}
+      subMenu={Array []}
+      subMenuClass="pl-4"
+      text="More Actions"
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
-      channelId="test-channel-id"
-      permissions={
-        Array [
-          "manage_public_channel_properties",
-        ]
-      }
-      teamId="team_id"
-    >
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channel": Object {
-              "create_at": 0,
-              "creator_id": "id",
-              "delete_at": 0,
-              "display_name": "name",
-              "group_constrained": false,
-              "header": "header",
-              "id": "test-channel-id",
-              "last_post_at": 0,
-              "last_root_post_at": 0,
-              "name": "DN",
-              "purpose": "purpose",
-              "scheme_id": "id",
-              "team_id": "team_id",
-              "type": "O",
-              "update_at": 0,
-            },
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelEditHeader"
-        modalId="edit_channel_header"
-        show={true}
-        text="Edit Channel Header"
-      />
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channel": Object {
-              "create_at": 0,
-              "creator_id": "id",
-              "delete_at": 0,
-              "display_name": "name",
-              "group_constrained": false,
-              "header": "header",
-              "id": "test-channel-id",
-              "last_post_at": 0,
-              "last_root_post_at": 0,
-              "name": "DN",
-              "purpose": "purpose",
-              "scheme_id": "id",
-              "team_id": "team_id",
-              "type": "O",
-              "update_at": 0,
-            },
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelEditPurpose"
-        modalId="edit_channel_purpose"
-        show={true}
-        text="Edit Channel Purpose"
-      />
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channel": Object {
-              "create_at": 0,
-              "creator_id": "id",
-              "delete_at": 0,
-              "display_name": "name",
-              "group_constrained": false,
-              "header": "header",
-              "id": "test-channel-id",
-              "last_post_at": 0,
-              "last_root_post_at": 0,
-              "name": "DN",
-              "purpose": "purpose",
-              "scheme_id": "id",
-              "team_id": "team_id",
-              "type": "O",
-              "update_at": 0,
-            },
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelRename"
-        modalId="rename_channel"
-        show={true}
-        text="Rename Channel"
-      />
-    </Memo(ChannelPermissionGate)>
-    <Memo(ChannelPermissionGate)
-      channelId="test-channel-id"
-      permissions={
-        Array [
-          "convert_public_channel_to_private",
-        ]
-      }
-      teamId="team_id"
-    >
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channelDisplayName": "name",
-            "channelId": "test-channel-id",
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelConvertToPrivate"
-        modalId="convert_channel"
-        show={true}
-        text="Convert to Private Channel"
-      />
-    </Memo(ChannelPermissionGate)>
     <Connect(Component)
       channel={
         Object {
@@ -708,6 +428,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "type": [Function],
           }
         }
+        icon={<ArchiveOutlineIcon />}
         id="channelArchiveChannel"
         modalId="delete_channel"
         show={true}
@@ -781,7 +502,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       isArchived={false}
     />
   </Memo(MenuGroup)>
-  <Memo(MenuGroup) />
   <Memo(MenuGroup)>
     <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
@@ -856,7 +576,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     }
     show={true}
   />
-  <Memo(ChannelMoveToSubMenuOld)
+  <Connect(MenuItemToggleMuteChannel)
     channel={
       Object {
         "create_at": 0,
@@ -876,8 +596,152 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         "update_at": 0,
       }
     }
-    inHeaderDropdown={true}
-    openUp={false}
+    id="channelToggleMuteChannel"
+    isMuted={false}
+    user={
+      Object {
+        "auth_service": "",
+        "bot_description": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "email": "",
+        "first_name": "",
+        "id": "test-user-id",
+        "is_bot": false,
+        "last_activity_at": 0,
+        "last_name": "",
+        "last_password_update": 0,
+        "last_picture_update": 0,
+        "locale": "",
+        "mfa_active": false,
+        "nickname": "",
+        "notify_props": Object {
+          "calls_desktop_sound": "true",
+          "channel": "false",
+          "comments": "never",
+          "desktop": "default",
+          "desktop_sound": "false",
+          "email": "false",
+          "first_name": "false",
+          "highlight_keys": "",
+          "mark_unread": "mention",
+          "mention_keys": "",
+          "push": "none",
+          "push_status": "offline",
+        },
+        "password": "",
+        "position": "",
+        "props": Object {},
+        "roles": "",
+        "terms_of_service_create_at": 0,
+        "terms_of_service_id": "",
+        "update_at": 0,
+        "username": "some-user",
+      }
+    }
+  />
+  <MenuItemToggleModalRedux
+    dialogProps={
+      Object {
+        "channel": Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        },
+        "currentUser": Object {
+          "auth_service": "",
+          "bot_description": "",
+          "create_at": 0,
+          "delete_at": 0,
+          "email": "",
+          "first_name": "",
+          "id": "test-user-id",
+          "is_bot": false,
+          "last_activity_at": 0,
+          "last_name": "",
+          "last_password_update": 0,
+          "last_picture_update": 0,
+          "locale": "",
+          "mfa_active": false,
+          "nickname": "",
+          "notify_props": Object {
+            "calls_desktop_sound": "true",
+            "channel": "false",
+            "comments": "never",
+            "desktop": "default",
+            "desktop_sound": "false",
+            "email": "false",
+            "first_name": "false",
+            "highlight_keys": "",
+            "mark_unread": "mention",
+            "mention_keys": "",
+            "push": "none",
+            "push_status": "offline",
+          },
+          "password": "",
+          "position": "",
+          "props": Object {},
+          "roles": "",
+          "terms_of_service_create_at": 0,
+          "terms_of_service_id": "",
+          "update_at": 0,
+          "username": "some-user",
+        },
+      }
+    }
+    dialogType={
+      Object {
+        "$$typeof": Symbol(react.memo),
+        "WrappedComponent": [Function],
+        "compare": null,
+        "type": [Function],
+      }
+    }
+    icon={
+      <BellOutlineIcon
+        color="#808080"
+      />
+    }
+    id="channelNotificationPreferences"
+    modalId="channel_notifications"
+    show={true}
+    text="Notification Preferences"
+  />
+  <ChannelActionsMenu
+    channel={
+      Object {
+        "create_at": 0,
+        "creator_id": "id",
+        "delete_at": 0,
+        "display_name": "name",
+        "group_constrained": false,
+        "header": "header",
+        "id": "test-channel-id",
+        "last_post_at": 0,
+        "last_root_post_at": 0,
+        "name": "DN",
+        "purpose": "purpose",
+        "scheme_id": "id",
+        "team_id": "team_id",
+        "type": "O",
+        "update_at": 0,
+      }
+    }
+    isArchived={false}
+    isDefault={false}
+    isReadonly={false}
   />
   <Memo(MenuGroup)>
     <Connect(Component)
@@ -925,210 +789,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       }
       show={false}
     />
-    <MenuItemToggleModalRedux
-      dialogProps={
-        Object {
-          "channel": Object {
-            "create_at": 0,
-            "creator_id": "id",
-            "delete_at": 0,
-            "display_name": "name",
-            "group_constrained": false,
-            "header": "header",
-            "id": "test-channel-id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "DN",
-            "purpose": "purpose",
-            "scheme_id": "id",
-            "team_id": "team_id",
-            "type": "O",
-            "update_at": 0,
-          },
-          "currentUser": Object {
-            "auth_service": "",
-            "bot_description": "",
-            "create_at": 0,
-            "delete_at": 0,
-            "email": "",
-            "first_name": "",
-            "id": "test-user-id",
-            "is_bot": false,
-            "last_activity_at": 0,
-            "last_name": "",
-            "last_password_update": 0,
-            "last_picture_update": 0,
-            "locale": "",
-            "mfa_active": false,
-            "nickname": "",
-            "notify_props": Object {
-              "calls_desktop_sound": "true",
-              "channel": "false",
-              "comments": "never",
-              "desktop": "default",
-              "desktop_sound": "false",
-              "email": "false",
-              "first_name": "false",
-              "highlight_keys": "",
-              "mark_unread": "mention",
-              "mention_keys": "",
-              "push": "none",
-              "push_status": "offline",
-            },
-            "password": "",
-            "position": "",
-            "props": Object {},
-            "roles": "",
-            "terms_of_service_create_at": 0,
-            "terms_of_service_id": "",
-            "update_at": 0,
-            "username": "some-user",
-          },
-        }
-      }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="channelNotificationPreferences"
-      modalId="channel_notifications"
-      show={true}
-      text="Notification Preferences"
-    />
-    <Connect(MenuItemToggleMuteChannel)
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "test-channel-id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      id="channelToggleMuteChannel"
-      isMuted={false}
-      user={
-        Object {
-          "auth_service": "",
-          "bot_description": "",
-          "create_at": 0,
-          "delete_at": 0,
-          "email": "",
-          "first_name": "",
-          "id": "test-user-id",
-          "is_bot": false,
-          "last_activity_at": 0,
-          "last_name": "",
-          "last_password_update": 0,
-          "last_picture_update": 0,
-          "locale": "",
-          "mfa_active": false,
-          "nickname": "",
-          "notify_props": Object {
-            "calls_desktop_sound": "true",
-            "channel": "false",
-            "comments": "never",
-            "desktop": "default",
-            "desktop_sound": "false",
-            "email": "false",
-            "first_name": "false",
-            "highlight_keys": "",
-            "mark_unread": "mention",
-            "mention_keys": "",
-            "push": "none",
-            "push_status": "offline",
-          },
-          "password": "",
-          "position": "",
-          "props": Object {},
-          "roles": "",
-          "terms_of_service_create_at": 0,
-          "terms_of_service_id": "",
-          "update_at": 0,
-          "username": "some-user",
-        }
-      }
-    />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
-      channelId="test-channel-id"
-      permissions={
-        Array [
-          "manage_public_channel_members",
-        ]
-      }
-      teamId="team_id"
-    >
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channel": Object {
-              "create_at": 0,
-              "creator_id": "id",
-              "delete_at": 0,
-              "display_name": "name",
-              "group_constrained": false,
-              "header": "header",
-              "id": "test-channel-id",
-              "last_post_at": 0,
-              "last_root_post_at": 0,
-              "name": "DN",
-              "purpose": "purpose",
-              "scheme_id": "id",
-              "team_id": "team_id",
-              "type": "O",
-              "update_at": 0,
-            },
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelAddMembers"
-        modalId="channel_invite"
-        show={true}
-        text="Add Members"
-      />
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "isExistingChannel": true,
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelAddMembers"
-        modalId="create_dm_channel"
-        show={false}
-        text="Add Members"
-      />
-    </Memo(ChannelPermissionGate)>
     <Connect(ToggleChannelMembersRHS)
       channel={
         Object {
@@ -1151,76 +813,32 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       }
       id="channelViewMembers"
       show={false}
-      text="View Members"
+      text="Members"
     />
-    <Memo(ChannelPermissionGate)
-      channelId="test-channel-id"
-      permissions={
-        Array [
-          "manage_public_channel_members",
-        ]
+    <Connect(ToggleChannelMembersRHS)
+      channel={
+        Object {
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
+        }
       }
-      teamId="team_id"
-    >
-      <MenuItemToggleModalRedux
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelAddGroups"
-        modalId="add_groups_to_channel"
-        show={false}
-        text="Add Groups"
-      />
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channelID": "test-channel-id",
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelManageGroups"
-        modalId="manage_channel_groups"
-        show={false}
-        text="Manage Groups"
-      />
-      <Connect(ToggleChannelMembersRHS)
-        channel={
-          Object {
-            "create_at": 0,
-            "creator_id": "id",
-            "delete_at": 0,
-            "display_name": "name",
-            "group_constrained": false,
-            "header": "header",
-            "id": "test-channel-id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "DN",
-            "purpose": "purpose",
-            "scheme_id": "id",
-            "team_id": "team_id",
-            "type": "O",
-            "update_at": 0,
-          }
-        }
-        editMembers={true}
-        id="channelManageMembers"
-        show={true}
-        text="Manage Members"
-      />
-    </Memo(ChannelPermissionGate)>
+      id="channelViewMembers"
+      show={false}
+      text="Members"
+    />
     <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       invert={true}
@@ -1253,228 +871,65 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         }
         id="channelViewMembers"
         show={true}
-        text="View Members"
+        text="Members"
       />
     </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <MenuItemToggleModalRedux
-      dialogProps={
+    <Memo(ChannelMoveToSubMenuOld)
+      channel={
         Object {
-          "channel": Object {
-            "create_at": 0,
-            "creator_id": "id",
-            "delete_at": 0,
-            "display_name": "name",
-            "group_constrained": false,
-            "header": "header",
-            "id": "test-channel-id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "DN",
-            "purpose": "purpose",
-            "scheme_id": "id",
-            "team_id": "team_id",
-            "type": "O",
-            "update_at": 0,
-          },
+          "create_at": 0,
+          "creator_id": "id",
+          "delete_at": 0,
+          "display_name": "name",
+          "group_constrained": false,
+          "header": "header",
+          "id": "test-channel-id",
+          "last_post_at": 0,
+          "last_root_post_at": 0,
+          "name": "DN",
+          "purpose": "purpose",
+          "scheme_id": "id",
+          "team_id": "team_id",
+          "type": "O",
+          "update_at": 0,
         }
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="channelEditHeader"
-      modalId="edit_channel_header"
-      show={false}
-      text="Edit Conversation Header"
+      inHeaderDropdown={true}
+      openUp={false}
     />
-    <MenuItemToggleModalRedux
-      dialogProps={
-        Object {
-          "channel": Object {
-            "create_at": 0,
-            "creator_id": "id",
-            "delete_at": 0,
-            "display_name": "name",
-            "group_constrained": false,
-            "header": "header",
-            "id": "test-channel-id",
-            "last_post_at": 0,
-            "last_root_post_at": 0,
-            "name": "DN",
-            "purpose": "purpose",
-            "scheme_id": "id",
-            "team_id": "team_id",
-            "type": "O",
-            "update_at": 0,
+    <SubMenuItem
+      direction="right"
+      icon={
+        <AppsIcon
+          color="#808080"
+        />
+      }
+      id="pluginItems-submenu"
+      renderSelected={true}
+      show={true}
+      subMenu={
+        Array [
+          Object {
+            "action": [MockFunction],
+            "icon": undefined,
+            "id": "plugin-1",
+            "text": "plugin-1-text",
           },
-        }
+          Object {
+            "action": [MockFunction],
+            "icon": undefined,
+            "id": "plugin-2",
+            "text": "plugin-2-text",
+          },
+        ]
       }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      id="convertGMPrivateChannel"
-      modalId="convert_gm_to_channel"
-      show={false}
-      text="Convert to Private Channel"
+      subMenuClass="pl-4"
+      text="More Actions"
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Memo(ChannelPermissionGate)
-      channelId="test-channel-id"
-      permissions={
-        Array [
-          "manage_public_channel_properties",
-        ]
-      }
-      teamId="team_id"
-    >
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channel": Object {
-              "create_at": 0,
-              "creator_id": "id",
-              "delete_at": 0,
-              "display_name": "name",
-              "group_constrained": false,
-              "header": "header",
-              "id": "test-channel-id",
-              "last_post_at": 0,
-              "last_root_post_at": 0,
-              "name": "DN",
-              "purpose": "purpose",
-              "scheme_id": "id",
-              "team_id": "team_id",
-              "type": "O",
-              "update_at": 0,
-            },
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelEditHeader"
-        modalId="edit_channel_header"
-        show={true}
-        text="Edit Channel Header"
-      />
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channel": Object {
-              "create_at": 0,
-              "creator_id": "id",
-              "delete_at": 0,
-              "display_name": "name",
-              "group_constrained": false,
-              "header": "header",
-              "id": "test-channel-id",
-              "last_post_at": 0,
-              "last_root_post_at": 0,
-              "name": "DN",
-              "purpose": "purpose",
-              "scheme_id": "id",
-              "team_id": "team_id",
-              "type": "O",
-              "update_at": 0,
-            },
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelEditPurpose"
-        modalId="edit_channel_purpose"
-        show={true}
-        text="Edit Channel Purpose"
-      />
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channel": Object {
-              "create_at": 0,
-              "creator_id": "id",
-              "delete_at": 0,
-              "display_name": "name",
-              "group_constrained": false,
-              "header": "header",
-              "id": "test-channel-id",
-              "last_post_at": 0,
-              "last_root_post_at": 0,
-              "name": "DN",
-              "purpose": "purpose",
-              "scheme_id": "id",
-              "team_id": "team_id",
-              "type": "O",
-              "update_at": 0,
-            },
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelRename"
-        modalId="rename_channel"
-        show={true}
-        text="Rename Channel"
-      />
-    </Memo(ChannelPermissionGate)>
-    <Memo(ChannelPermissionGate)
-      channelId="test-channel-id"
-      permissions={
-        Array [
-          "convert_public_channel_to_private",
-        ]
-      }
-      teamId="team_id"
-    >
-      <MenuItemToggleModalRedux
-        dialogProps={
-          Object {
-            "channelDisplayName": "name",
-            "channelId": "test-channel-id",
-          }
-        }
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="channelConvertToPrivate"
-        modalId="convert_channel"
-        show={true}
-        text="Convert to Private Channel"
-      />
-    </Memo(ChannelPermissionGate)>
     <Connect(Component)
       channel={
         Object {
@@ -1540,6 +995,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "type": [Function],
           }
         }
+        icon={<ArchiveOutlineIcon />}
         id="channelArchiveChannel"
         modalId="delete_channel"
         show={true}
@@ -1611,22 +1067,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     />
     <Connect(Component)
       isArchived={false}
-    />
-  </Memo(MenuGroup)>
-  <Memo(MenuGroup)>
-    <MenuItemAction
-      id="plugin-1_pluginmenuitem"
-      key="plugin-1_pluginmenuitem"
-      onClick={[Function]}
-      show={true}
-      text="plugin-1-text"
-    />
-    <MenuItemAction
-      id="plugin-2_pluginmenuitem"
-      key="plugin-2_pluginmenuitem"
-      onClick={[Function]}
-      show={true}
-      text="plugin-2-text"
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>

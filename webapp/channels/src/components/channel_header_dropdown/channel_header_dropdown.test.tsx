@@ -22,6 +22,15 @@ describe('components/ChannelHeaderDropdown', () => {
         penultimateViewedChannelName: 'test-channel',
         pluginMenuItems: [],
         isLicensedForLDAPGroups: false,
+        onExited: jest.fn(),
+        actions: {
+            closeModal: jest.fn(),
+            convertGroupMessageToPrivateChannel: jest.fn(),
+            moveChannelsInSidebar: jest.fn(),
+        },
+        profilesInChannel: [],
+        teammateNameDisplaySetting: 'username',
+        currentUserId: 'test user-id',
     };
     test('should match snapshot with no plugin items', () => {
         const wrapper = shallow(<ChannelHeaderDropdown {...defaultProps}/>);
