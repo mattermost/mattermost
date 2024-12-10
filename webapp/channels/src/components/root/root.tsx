@@ -19,7 +19,6 @@ import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, tra
 import BrowserStore from 'stores/browser_store';
 
 import {makeAsyncComponent} from 'components/async_load';
-import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
@@ -294,7 +293,7 @@ export default class Root extends React.PureComponent<Props, State> {
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
                 DesktopApp.reactAppInitialized();
-                InitialLoadingScreen.stop();
+                InitialLoadingScreen.stop('root');
             }
         }
     }
@@ -359,9 +358,6 @@ export default class Root extends React.PureComponent<Props, State> {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
         this.initiateMeRequests();
-
-        // See figma design on issue https://mattermost.atlassian.net/browse/MM-43649
-        this.props.actions.registerCustomPostRenderer('custom_pl_notification', OpenPluginInstallPost, 'plugin_install_post_message_renderer');
 
         measurePageLoadTelemetry();
         trackSelectorMetrics();
