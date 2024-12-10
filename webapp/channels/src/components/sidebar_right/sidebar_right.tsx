@@ -21,7 +21,8 @@ import RhsThread from 'components/rhs_thread';
 import Search from 'components/search/index';
 
 import RhsPlugin from 'plugins/rhs_plugin';
-import Constants from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {isMac} from 'utils/user_agent';
 
@@ -68,6 +69,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     sidebarRightWidthHolder: React.RefObject<HTMLDivElement>;
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
+    private previousActiveElement: HTMLElement | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -147,6 +149,38 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         if (!wasOpen && isOpen) {
             trackEvent('ui', 'ui_rhs_opened');
+        }
+
+        if (!prevProps.isOpen && this.props.isOpen) {
+            this.previousActiveElement = document.activeElement as HTMLElement;
+            requestAnimationFrame(() => {
+                if (this.sidebarRight.current) {
+                    document.dispatchEvent(
+                        new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
+                            detail: {
+                                target: this.sidebarRight.current,
+                                keyboardOnly: false,
+                            },
+                        }),
+                    );
+                }
+            });
+        }
+
+        if (prevProps.isOpen && !this.props.isOpen) {
+            requestAnimationFrame(() => {
+                if (this.previousActiveElement) {
+                    document.dispatchEvent(
+                        new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
+                            detail: {
+                                target: this.previousActiveElement,
+                                keyboardOnly: false,
+                            },
+                        }),
+                    );
+                    this.previousActiveElement = null;
+                }
+            });
         }
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
@@ -275,6 +309,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                     rightWidthHolderRef={this.sidebarRightWidthHolder}
                 >
                     <div
+                        tabIndex={-1}
                         className='sidebar-right-container'
                         ref={this.sidebarRight}
                     >
