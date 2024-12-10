@@ -6,6 +6,8 @@ package model
 import (
 	"fmt"
 	"strings"
+
+	"github.com/mattermost/mattermost/server/v8/channels/utils/timeutils"
 )
 
 // SysconsoleAncillaryPermissions maps the non-sysconsole permissions required by each sysconsole view.
@@ -436,6 +438,32 @@ func (r *Role) Auditable() map[string]interface{} {
 		"scheme_managed": r.SchemeManaged,
 		"built_in":       r.BuiltIn,
 	}
+}
+
+func (r *Role) MarshalYAML() (any, error) {
+	return struct {
+		Id            string   `yaml:"id"`
+		Name          string   `yaml:"name"`
+		DisplayName   string   `yaml:"display_name"`
+		Description   string   `yaml:"description"`
+		CreateAt      string   `yaml:"create_at"`
+		UpdateAt      string   `yaml:"update_at"`
+		DeleteAt      string   `yaml:"delete_at"`
+		Permissions   []string `yaml:"permissions"`
+		SchemeManaged bool     `yaml:"scheme_managed"`
+		BuiltIn       bool     `yaml:"built_in"`
+	}{
+		Id:            r.Id,
+		Name:          r.Name,
+		DisplayName:   r.DisplayName,
+		Description:   r.Description,
+		CreateAt:      timeutils.FormatMillis(r.CreateAt),
+		UpdateAt:      timeutils.FormatMillis(r.UpdateAt),
+		DeleteAt:      timeutils.FormatDeleteAt(r.DeleteAt),
+		Permissions:   r.Permissions,
+		SchemeManaged: r.SchemeManaged,
+		BuiltIn:       r.BuiltIn,
+	}, nil
 }
 
 type RolePatch struct {
