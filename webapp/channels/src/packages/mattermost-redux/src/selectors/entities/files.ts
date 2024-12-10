@@ -47,11 +47,15 @@ export function makeGetFilesForPost(): (state: GlobalState, postId: string) => F
     );
 }
 
-export function getFilesForEditHistory(state: GlobalState, editHistoryPost: Post): FileInfo[] {
-    const useLocal = getCurrentUserLocale(state);
-    const fileInfos = editHistoryPost?.metadata?.files ? [...editHistoryPost.metadata.files] : [];
-    return sortFileInfos(fileInfos, useLocal);
-}
+export const getFilesForEditHistory: (state: GlobalState, editHistoryPost: Post) => FileInfo[] = createSelector(
+    'getFilesForEditHistory',
+    (state) => getCurrentUserLocale(state),
+    (state: GlobalState, editHistoryPost: Post) => editHistoryPost,
+    (userLocal, editHistoryPost) => {
+        const fileInfos = editHistoryPost?.metadata?.files ? [...editHistoryPost.metadata.files] : [];
+        return sortFileInfos(fileInfos, userLocal);
+    },
+);
 
 export const getSearchFilesResults: (state: GlobalState) => FileSearchResultItem[] = createSelector(
     'getSearchFilesResults',
