@@ -410,12 +410,13 @@ const AdvancedTextEditor = ({
         }
     }, [showPreview]);
 
-    // Add useEffect to focus textbox when selectedPostFocussedAt changes
+    // Focus textbox when selectedPostFocussedAt changes
     useEffect(() => {
         if (selectedPostFocussedAt) {
             focusTextbox();
         }
-    }, [selectedPostFocussedAt, focusTextbox]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedPostFocussedAt]);
 
     // Remove show preview when we switch channels or posts
     useEffect(() => {
