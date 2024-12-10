@@ -162,8 +162,6 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                 </>
             )}
 
-            
-
             <Menu.Separator/>
             <ChannelMoveToSubMenu channel={channel}/>
             <MenuItemPluginItems pluginItems={pluginItems}/>
