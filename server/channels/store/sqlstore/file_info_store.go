@@ -455,6 +455,27 @@ func (fs SqlFileInfoStore) DeleteForPost(rctx request.CTX, postId string) (strin
 	return postId, nil
 }
 
+func (fs SqlFileInfoStore) DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	query := fs.getQueryBuilder().
+		Update("FileInfo").
+		Set("DeleteAt", model.GetMillis()).
+		Where(sq.Eq{
+			"PostId": postId,
+			"Id":     fileIDs,
+		})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "SqlFileInfoStore.DeleteForPostByIds: failed to generate sql from query")
+	}
+
+	if _, err := fs.GetMasterX().Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "SqlFileInfoStore.DeleteForPostByIds: failed to soft delete FileInfo from database")
+	}
+
+	return nil
+}
+
 func (fs SqlFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
 	if _, err := fs.GetMasterX().Exec(`DELETE FROM FileInfo WHERE PostId = ?`, postID); err != nil {
 		return errors.Wrapf(err, "failed to delete FileInfo with PostId=%s", postID)

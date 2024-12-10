@@ -859,8 +859,11 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
-	// Updating the file_ids of a post is not a supported operation and will be ignored
-	post.FileIds = originalPost.FileIds
+	// passing a nil fileIds should not have any effect on a post's file IDs
+	// so, we restore the original file IDs in this case
+	if post.FileIds == nil {
+		post.FileIds = originalPost.FileIds
+	}
 
 	if c.AppContext.Session().UserId != originalPost.UserId {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts) {
@@ -913,9 +916,6 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	// Updating the file_ids of a post is not a supported operation and will be ignored
-	post.FileIds = nil
 
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
