@@ -5131,6 +5131,10 @@
     "translation": "Can not fetch the file as it is past the cloud plan's limit."
   },
   {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Failed to remove the requested files from database"
+  },
+  {
     "id": "app.file_info.get.app_error",
     "translation": "Unable to get the file info."
   },
@@ -9281,8 +9285,8 @@
     "translation": "Invalid file ids."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Invalid message."
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Draft Message property is longer than the maximum permitted length."
   },
   {
     "id": "model.draft.is_valid.priority.app_error",
@@ -9733,8 +9737,8 @@
     "translation": "Invalid Id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Post Message property is longer than the maximum permitted length."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
