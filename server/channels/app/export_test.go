@@ -347,6 +347,50 @@ func TestExportDMChannel(t *testing.T) {
 		require.NoError(t, nErr)
 		assert.Empty(t, channels)
 	})
+
+	t.Run("Should not export DM channel if other user is permanently deleted", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		// Create a DM Channel with another user
+		dmc1 := th1.CreateDmChannel(th1.BasicUser2)
+		th1.CreatePost(dmc1)
+
+		// Create a DM Channel with self
+		dmc2 := th1.CreateDmChannel(th1.BasicUser)
+		th1.CreatePost(dmc2)
+
+		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
+		require.NoError(t, nErr)
+		assert.Equal(t, 2, len(channels))
+
+		// Permanentley delete other user
+		th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
+
+		var b bytes.Buffer
+		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, err)
+
+		th2 := Setup(t).InitBasic()
+		defer th2.TearDown()
+
+		// import the exported channel
+		err, _ = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+		require.Nil(t, err)
+
+		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
+		require.NoError(t, nErr)
+		assert.Equal(t, 1, len(channels))
+
+		// Ensure the posts of the deleted DM channel do not leak to the self-DM channel
+		posts, nErr := th2.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{
+			ChannelId:      channels[0].Id,
+			PerPage:        1000,
+			IncludeDeleted: true,
+		}, false, nil)
+		require.NoError(t, nErr)
+		assert.Equal(t, 1, len(posts.Posts))
+	})
 }
 
 func TestExportDMChannelToSelf(t *testing.T) {

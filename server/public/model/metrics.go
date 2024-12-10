@@ -40,11 +40,11 @@ const (
 
 var (
 	performanceReportVersion = semver.MustParse("0.1.0")
-	acceptedPlatforms        = sliceToMapKey("linux", "macos", "ios", "android", "windows", "other")
-	acceptedAgents           = sliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "other")
+	acceptedPlatforms        = SliceToMapKey("linux", "macos", "ios", "android", "windows", "other")
+	acceptedAgents           = SliceToMapKey("desktop", "firefox", "chrome", "safari", "edge", "other")
 
-	AcceptedInteractions = sliceToMapKey("keyboard", "pointer", "other")
-	AcceptedLCPRegions   = sliceToMapKey(
+	AcceptedInteractions = SliceToMapKey("keyboard", "pointer", "other")
+	AcceptedLCPRegions   = SliceToMapKey(
 		"post",
 		"post_textbox",
 		"channel_sidebar",
@@ -56,8 +56,8 @@ var (
 		"modal_content",
 		"other",
 	)
-	AcceptedTrueFalseLabels     = sliceToMapKey("true", "false")
-	AcceptedSplashScreenOrigins = sliceToMapKey("root", "team_controller")
+	AcceptedTrueFalseLabels     = SliceToMapKey("true", "false")
+	AcceptedSplashScreenOrigins = SliceToMapKey("root", "team_controller")
 )
 
 type MetricSample struct {
