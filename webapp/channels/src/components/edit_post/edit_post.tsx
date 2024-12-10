@@ -545,6 +545,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         textboxRef.current?.focus();
     };
 
+    const handleMouseUpKeyUp = (e: React.MouseEvent | React.KeyboardEvent) => {
+        setCaretPosition((e.target as HTMLInputElement).selectionStart ?? 0);
+    };
+
     const handleGifClick = (gif: string) => {
         let newMessage = gif;
 
@@ -635,6 +639,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 ref={textboxRef}
                 characterLimit={rest.maxPostSize}
                 useChannelMentions={rest.useChannelMentions}
+                onMouseUp={handleMouseUpKeyUp}
             />
             <div className='post-body__actions'>
                 {emojiPicker}
