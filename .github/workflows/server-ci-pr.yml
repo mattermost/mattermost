@@ -5,6 +5,9 @@ on:
       - "server/**"
       - "e2e-tests/**"
       - ".github/**"
+  push:
+    branches:
+      - MM-61475
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
