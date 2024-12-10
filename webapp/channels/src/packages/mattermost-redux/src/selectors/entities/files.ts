@@ -49,7 +49,7 @@ export function makeGetFilesForPost(): (state: GlobalState, postId: string) => F
 
 export function getFilesForEditHistory(state: GlobalState, editHistoryPost: Post): FileInfo[] {
     const useLocal = getCurrentUserLocale(state);
-    const fileInfos = editHistoryPost?.metadata?.files ?[...editHistoryPost.metadata.files] : [];
+    const fileInfos = editHistoryPost?.metadata?.files ? [...editHistoryPost.metadata.files] : [];
     return sortFileInfos(fileInfos, useLocal);
 }
 

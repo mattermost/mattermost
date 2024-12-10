@@ -114,4 +114,44 @@ describe('FileAttachmentList', () => {
         expect(wrapper.find(SingleImageView).exists()).toBe(false);
         expect(wrapper.find(FileAttachment).exists()).toBe(true);
     });
+
+    test('should match snapshot for deleted files', () => {
+        const props = {
+            ...baseProps,
+            fileInfos: [
+                TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3, delete_at: 4}),
+                TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, delete_at: 4}),
+                TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, delete_at: 4}),
+            ],
+        };
+        const wrapper = shallow(
+            <FileAttachmentList {...props}/>,
+        );
+
+        expect(wrapper.find(FileAttachment)).toHaveLength(3);
+        expect(wrapper.find(FileAttachment).first().prop('fileInfo').id).toBe('file_id_1');
+        expect(wrapper.find(FileAttachment).last().prop('fileInfo').id).toBe('file_id_3');
+    });
+
+    test('should match snapshot for file list in edit history RHS', () => {
+        // in edit history RHS, files are deleted and download and context menus are disabled
+        const props = {
+            ...baseProps,
+            isEditHistory: true,
+            disableDownload: true,
+            disableActions: true,
+            fileInfos: [
+                TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3, delete_at: 4}),
+                TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, delete_at: 4}),
+                TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, delete_at: 4}),
+            ],
+        };
+        const wrapper = shallow(
+            <FileAttachmentList {...props}/>,
+        );
+
+        expect(wrapper.find(FileAttachment)).toHaveLength(3);
+        expect(wrapper.find(FileAttachment).first().prop('fileInfo').id).toBe('file_id_1');
+        expect(wrapper.find(FileAttachment).last().prop('fileInfo').id).toBe('file_id_3');
+    });
 });
