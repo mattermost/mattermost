@@ -33,7 +33,6 @@ export default function EditPost() {
                 location={location}
                 channelId={channelId}
                 postId={rootId}
-                isThreadView={false}
                 isInEditMode={true}
                 storageKey={storageKey}
                 placeholder={formatMessage({id: 'edit_post.editPost', defaultMessage: 'Edit the post...'})}

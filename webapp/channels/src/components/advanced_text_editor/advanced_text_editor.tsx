@@ -279,7 +279,7 @@ const AdvancedTextEditor = ({
         toggleEmojiPicker,
     } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
     const {
-        labels,
+        labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
@@ -322,6 +322,10 @@ const AdvancedTextEditor = ({
     );
 
     const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
+    const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
+        e.preventDefault();
+        handleSubmit();
+    }, [handleSubmit]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -455,9 +459,7 @@ const AdvancedTextEditor = ({
 
     // Register listener to store the draft when the page unloads
     useEffect(() => {
-        const callback = () => {
-            handleDraftChange(draft, {instant: true, show: true});
-        };
+        const callback = () => handleDraftChange(draft, {instant: true, show: true});
         window.addEventListener('beforeunload', callback);
         return () => {
             window.removeEventListener('beforeunload', callback);
@@ -484,11 +486,6 @@ const AdvancedTextEditor = ({
             }
         };
     }, [channelId, postId]);
-
-    const handleHtmlFormSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        handleSubmitPostAndScheduledMessage();
-    }, [handleSubmitPostAndScheduledMessage]);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
@@ -576,12 +573,10 @@ const AdvancedTextEditor = ({
 
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
 
-    const additionalControls = useMemo(() =>
-        [
-            priorityAdditionalControl,
-            ...(pluginItems || []),
-        ].filter(Boolean),
-    [pluginItems, priorityAdditionalControl]);
+    const additionalControls = useMemo(() => [
+        !isInEditMode && priorityAdditionalControl,
+        ...(pluginItems || []),
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -607,13 +602,13 @@ const AdvancedTextEditor = ({
             id={postId ? undefined : 'create_post'}
             data-testid={postId ? undefined : 'create-post'}
             className={(!postId && !fullWidthTextBox) ? 'center' : undefined}
-            onSubmit={handleHtmlFormSubmit}
+            onSubmit={handleSubmitWithEvent}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
                 <FileLimitStickyBanner/>
             )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
-            {isInEditMode && (
+            {!isInEditMode && (
                 <PostBoxIndicator
                     channelId={channelId}
                     teammateDisplayName={teammateDisplayName}
@@ -652,9 +647,9 @@ const AdvancedTextEditor = ({
                         tabIndex={-1}
                         className='AdvancedTextEditor__cell a11y__region'
                     >
-                        {labels}
+                        {!isInEditMode && priorityLabels}
                         <Textbox
-                            hasLabels={Boolean(labels)}
+                            hasLabels={isInEditMode ? false : Boolean(priorityLabels)}
                             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
@@ -679,6 +674,7 @@ const AdvancedTextEditor = ({
                             useChannelMentions={useChannelMentions}
                             rootId={postId}
                             onWidthChange={handleWidthChange}
+                            isInEditMode={isInEditMode}
                         />
                         {attachmentPreview}
                         {!isDisabled && (showFormattingBar || showPreview) && (
