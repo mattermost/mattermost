@@ -36,7 +36,7 @@ func truncateTable(t *testing.T, table string) {
 
 	switch *sqlSetting.DriverName {
 	case model.DatabaseDriverMysql:
-		_, err := sqlStore.GetMasterX().Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+		_, err := sqlStore.GetMaster().Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
 			if driverErr, ok := err.(*mysql.MySQLError); ok {
 				// Ignore if the Configurations table does not exist.
@@ -48,7 +48,7 @@ func truncateTable(t *testing.T, table string) {
 		require.NoError(t, err)
 
 	case model.DatabaseDriverPostgres:
-		_, err := sqlStore.GetMasterX().Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+		_, err := sqlStore.GetMaster().Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
 			if driverErr, ok := err.(*pq.Error); ok {
 				// Ignore if the Configurations table does not exist.

@@ -751,7 +751,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 
 		// Confirm that they're not in the Channels category in the DB
 		var count int64
-		countErr := s.GetMasterX().Get(&count, `
+		countErr := s.GetMaster().Get(&count, `
 			SELECT
 				COUNT(*)
 			FROM
@@ -2021,11 +2021,11 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 
 		// Confirm that we start with the right number of categories and SidebarChannels entries
 		var count int64
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		require.Equal(t, int64(4), count)
 
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), count)
 
@@ -2034,11 +2034,11 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		assert.NoError(t, err)
 
 		// Confirm that all the categories and SidebarChannel entries have been deleted
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
 
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
 	})
@@ -2070,11 +2070,11 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 
 		// Confirm that we start with the right number of categories and SidebarChannels entries
 		var count int64
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		require.Equal(t, int64(4), count)
 
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), count)
 
@@ -2083,11 +2083,11 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		assert.NoError(t, err)
 
 		// Confirm that nothing has been deleted
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(4), count)
 
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(2), count)
 	})
@@ -2148,11 +2148,11 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 
 		// Confirm that we start with the right number of categories and SidebarChannels entries
 		var count int64
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		require.Equal(t, int64(8), count)
 
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		require.Equal(t, int64(4), count)
 
@@ -2161,11 +2161,11 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		assert.NoError(t, err)
 
 		// Confirm that we have the correct number of categories and SidebarChannels entries left over
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarCategories WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(4), count)
 
-		err = s.GetMasterX().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
+		err = s.GetMaster().Get(&count, "SELECT COUNT(*) FROM SidebarChannels WHERE UserId = ?", userID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(2), count)
 
@@ -2259,7 +2259,7 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 
 		// ...and that the corresponding SidebarChannel entries were deleted
 		var count int64
-		countErr := s.GetMasterX().Get(&count, `
+		countErr := s.GetMaster().Get(&count, `
 			SELECT
 				COUNT(*)
 			FROM

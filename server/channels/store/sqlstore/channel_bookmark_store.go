@@ -75,7 +75,7 @@ func (s *SqlChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId 
 		})
 
 	var attached int64
-	err := s.GetReplicaX().GetBuilder(&attached, alreadyAttachedQuery)
+	err := s.GetReplica().GetBuilder(&attached, alreadyAttachedQuery)
 	if err != nil {
 		return errors.Wrap(err, "unable_to_save_channel_bookmark")
 	}
@@ -105,7 +105,7 @@ func (s *SqlChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.Ch
 
 	bookmark := model.ChannelBookmarkAndFileInfo{}
 
-	if err := s.GetReplicaX().Get(&bookmark, queryString, args...); err != nil {
+	if err := s.GetReplica().Get(&bookmark, queryString, args...); err != nil {
 		return nil, store.NewErrNotFound("ChannelBookmark", Id)
 	}
 
@@ -118,7 +118,7 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 		return nil, err
 	}
 
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +216,7 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 		return errors.Wrap(err, "channel_bookmark_update_tosql")
 	}
 
-	res, err := s.GetMasterX().Exec(query, args...)
+	res, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update channel bookmark with id=%s", bookmark.Id)
 	}
@@ -232,7 +232,7 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 
 func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, newIndex int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
 	now := model.GetMillis()
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, 
 
 func (s *SqlChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error {
 	now := model.GetMillis()
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return err
 	}
@@ -368,7 +368,7 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, 
 	bookmarkRows := []model.ChannelBookmarkAndFileInfo{}
 	bookmarks := []*model.ChannelBookmarkWithFileInfo{}
 
-	if err := s.GetReplicaX().Select(&bookmarkRows, queryString, args...); err != nil {
+	if err := s.GetReplica().Select(&bookmarkRows, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find bookmarks")
 	}
 

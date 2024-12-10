@@ -34,7 +34,7 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 		return nil, err
 	}
 
-	if _, err := es.GetMasterX().NamedExec(`INSERT INTO Emoji
+	if _, err := es.GetMaster().NamedExec(`INSERT INTO Emoji
 		(Id, CreateAt, UpdateAt, DeleteAt, CreatorId, Name)
 		VALUES
 		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :CreatorId, :Name)`, emoji); err != nil {
@@ -82,14 +82,14 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji,
 
 	query += " LIMIT ? OFFSET ?"
 
-	if err := es.GetReplicaX().Select(&emojis, query, limit, offset); err != nil {
+	if err := es.GetReplica().Select(&emojis, query, limit, offset); err != nil {
 		return nil, errors.Wrap(err, "could not get list of emojis")
 	}
 	return emojis, nil
 }
 
 func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
-	if sqlResult, err := es.GetMasterX().Exec(
+	if sqlResult, err := es.GetMaster().Exec(
 		`UPDATE
 			Emoji
 		SET
@@ -118,7 +118,7 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 
 	term += name + "%"
 
-	if err := es.GetReplicaX().Select(&emojis,
+	if err := es.GetReplica().Select(&emojis,
 		`SELECT
 			*
 		FROM

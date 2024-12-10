@@ -458,7 +458,7 @@ func testDeleteInvalidVisibleDmsGms(t *testing.T, rctx request.CTX, ss store.Sto
 	}
 
 	// Can't insert with Save methods because the values are invalid
-	_, execerr := s.GetMasterX().NamedExec(`
+	_, execerr := s.GetMaster().NamedExec(`
 		INSERT INTO
 		    Preferences(UserId, Category, Name, Value)
 		VALUES
