@@ -216,7 +216,7 @@ export function createFileFromClipboardDataItem(item: DataTransferItem, fileName
     }
 
     let name = '';
-    if (file.name && file.name != 'image.png') {
+    if (file.name && file.name !== 'image.png') {
         name = file.name;
     } else {
         const now = new Date();
