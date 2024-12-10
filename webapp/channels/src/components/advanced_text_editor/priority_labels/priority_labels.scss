@@ -1,8 +1,8 @@
 .priorityLabelsContainer {
-    align-items: center;
     display: flex;
-    gap: 6px;
+    align-items: center;
     padding: 14px 16px 0;
+    gap: 6px;
 
     &:hover {
         .priorityLabelsClose {
@@ -11,12 +11,12 @@
     }
 
     .priorityLabelsClose {
-        align-items: center;
-        color: rgb(var(--center-channel-color));
         display: flex;
-        font-size: 17px;
+        align-items: center;
         justify-content: center;
         margin-top: -1px;
+        color: rgb(var(--center-channel-color));
+        font-size: 17px;
         opacity: 0.73;
         visibility: hidden;
     }

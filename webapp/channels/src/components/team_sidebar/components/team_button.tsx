@@ -225,6 +225,10 @@ function WithTeamTooltip({
         };
     }, [order]);
 
+    if (!React.isValidElement(children)) {
+        return null;
+    }
+
     return (
         <WithTooltip
             title={tip || intl.formatMessage(messages.nameUndefined)}

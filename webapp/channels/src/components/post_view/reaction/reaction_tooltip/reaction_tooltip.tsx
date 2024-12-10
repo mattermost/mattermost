@@ -124,6 +124,10 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         });
     }
 
+    if (!React.isValidElement(children)) {
+        return null;
+    }
+
     return (
         <WithTooltip
             title={tooltipTitle}
