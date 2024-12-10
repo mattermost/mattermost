@@ -52,8 +52,8 @@ type Props = PropsFromRedux & {
     compactDisplay?: boolean;
     disablePreview?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
-
     disableThumbnail?: boolean;
+    disableActions?: boolean;
 };
 
 export default function FileAttachment(props: Props) {
@@ -324,7 +324,7 @@ export default function FileAttachment(props: Props) {
             </div>
         );
 
-        if (!fileInfo.archived) {
+        if (!fileInfo.archived && !props.disableActions) {
             fileActions = renderFileMenuItems();
         }
     }

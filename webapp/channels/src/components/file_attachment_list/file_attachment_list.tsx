@@ -72,7 +72,8 @@ export default function FileAttachmentList(props: Props) {
                     handleImageClick={handleImageClick}
                     compactDisplay={compactDisplay}
                     handleFileDropdownOpened={props.handleFileDropdownOpened}
-                    preventDownload={props.preventDownload}
+                    preventDownload={props.disableDownload}
+                    disableActions={props.disableActions}
                     disableThumbnail={isDeleted}
                     disablePreview={isDeleted}
                 />,

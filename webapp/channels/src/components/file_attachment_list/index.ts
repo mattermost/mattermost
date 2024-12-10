@@ -26,7 +26,8 @@ export type OwnProps = {
     isInPermalink?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
     isEditHistory?: boolean;
-    preventDownload?: boolean;
+    disableDownload?: boolean;
+    disableActions?: boolean;
 }
 
 function makeMapStateToProps() {
