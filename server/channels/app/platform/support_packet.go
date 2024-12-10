@@ -94,6 +94,10 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Server */
 	d.Server.OS = runtime.GOOS
 	d.Server.Architecture = runtime.GOARCH
+	d.Server.Hostname, err = os.Hostname()
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting hostname"))
+	}
 	d.Server.Version = model.CurrentVersion
 	d.Server.BuildHash = model.BuildHash
 	installationType := os.Getenv(envVarInstallType)

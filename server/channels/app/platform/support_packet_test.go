@@ -206,6 +206,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		/* Server information */
 		assert.NotEmpty(t, d.Server.OS)
 		assert.NotEmpty(t, d.Server.Architecture)
+		assert.NotEmpty(t, d.Server.Hostname)
 		assert.Equal(t, model.CurrentVersion, d.Server.Version)
 		// BuildHash is not present in tests
 		assert.Equal(t, "docker", d.Server.InstallationType)

@@ -26,6 +26,7 @@ type SupportPacketDiagnostics struct {
 	Server struct {
 		OS               string `yaml:"os"`
 		Architecture     string `yaml:"architecture"`
+		Hostname         string `yaml:"hostname"`
 		Version          string `yaml:"version"`
 		BuildHash        string `yaml:"build_hash"`
 		InstallationType string `yaml:"installation_type"`
