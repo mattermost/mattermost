@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,24 +15,14 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/spf13/cobra"
 )
 
 const enterpriseKeyPrefix = "ent."
 const untranslatedKey = "<untranslated>"
-
-type Translation struct {
-	Id          string      `json:"id"`
-	Translation interface{} `json:"translation"`
-}
-
-type Item struct {
-	ID          string          `json:"id"`
-	Translation json.RawMessage `json:"translation"`
-}
 
 var I18nCmd = &cobra.Command{
 	Use:   "i18n",
@@ -107,14 +96,18 @@ func init() {
 	RootCmd.AddCommand(I18nCmd)
 }
 
-func getBaseFileSrcStrings(mattermostDir string) ([]Translation, error) {
-	jsonFile, err := os.ReadFile(path.Join(mattermostDir, "i18n", "en.json"))
+func parseMessageFile(path string) ([]*i18n.Message, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	var translations []Translation
-	err = json.Unmarshal(jsonFile, &translations)
-	return translations, err
+
+	file, err := i18n.ParseMessageFileBytes(data, path, map[string]i18n.UnmarshalFunc{"json": json.Unmarshal})
+	if err != nil {
+		return nil, err
+	}
+
+	return file.Messages, nil
 }
 
 func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir string) map[string]bool {
@@ -185,24 +178,24 @@ func extractCmdF(command *cobra.Command, args []string) error {
 	}
 	sort.Strings(i18nStringsList)
 
-	sourceStrings, err := getBaseFileSrcStrings(translationDir)
+	sourceMessages, err := parseMessageFile(path.Join(translationDir, "i18n", "en.json"))
 	if err != nil {
 		return err
 	}
 
 	var baseFileList []string
 	idx := map[string]bool{}
-	resultMap := map[string]Translation{}
-	for _, t := range sourceStrings {
-		idx[t.Id] = true
-		baseFileList = append(baseFileList, t.Id)
-		resultMap[t.Id] = t
+	resultMap := map[string]i18n.Message{}
+	for _, t := range sourceMessages {
+		idx[t.ID] = true
+		baseFileList = append(baseFileList, t.ID)
+		resultMap[t.ID] = *t
 	}
 	sort.Strings(baseFileList)
 
 	for _, translationKey := range i18nStringsList {
 		if _, hasKey := idx[translationKey]; !hasKey {
-			resultMap[translationKey] = Translation{Id: translationKey, Translation: ""}
+			resultMap[translationKey] = i18n.Message{ID: translationKey, Other: ""}
 		}
 	}
 
@@ -215,27 +208,13 @@ func extractCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	var result []Translation
+	var result []i18n.Message
 	for _, t := range resultMap {
 		result = append(result, t)
 	}
-	sort.Slice(result, func(i, j int) bool { return result[i].Id < result[j].Id })
+	sort.Slice(result, func(i, j int) bool { return result[i].ID < result[j].ID })
 
-	f, err := os.Create(path.Join(mattermostDir, "i18n", "en.json"))
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	encoder := json.NewEncoder(f)
-	encoder.SetIndent("", "  ")
-	encoder.SetEscapeHTML(false)
-	err = encoder.Encode(result)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return writeMessageFile(path.Join(mattermostDir, "i18n", "en.json"), result)
 }
 
 func checkCmdF(command *cobra.Command, args []string) error {
@@ -283,16 +262,16 @@ func checkCmdF(command *cobra.Command, args []string) error {
 	}
 	sort.Strings(extractedList)
 
-	srcStrings, err := getBaseFileSrcStrings(translationDir)
+	srcMessages, err := parseMessageFile(path.Join(translationDir, "i18n", "en.json"))
 	if err != nil {
 		return err
 	}
 
 	var baseFileList []string
 	idx := map[string]bool{}
-	for _, t := range srcStrings {
-		idx[t.Id] = true
-		baseFileList = append(baseFileList, t.Id)
+	for _, t := range srcMessages {
+		idx[t.ID] = true
+		baseFileList = append(baseFileList, t.ID)
 	}
 	sort.Strings(baseFileList)
 
@@ -581,33 +560,32 @@ func checkEmptySrcCmdF(command *cobra.Command, args []string) error {
 		}
 		translationDir = portalDir
 	}
-	srcJSON, err := os.ReadFile(path.Join(translationDir, "en.json"))
+
+	messages, err := parseMessageFile(path.Join(translationDir, "en.json"))
 	if err != nil {
 		return err
 	}
-	var items []Item
-	if err = json.Unmarshal(srcJSON, &items); err != nil {
-		return err
-	}
-	err = countEmptyItems(items)
+	err = countEmptyMessages(messages)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func countEmptyItems(items []Item) error {
+func isMessageEmpty(t *i18n.Message) bool {
+	forms := []string{t.Zero, t.One, t.Two, t.Few, t.Many, t.Other}
+	for _, v := range forms {
+		if strings.TrimSpace(v) != "" {
+			return false
+		}
+	}
+	return true
+}
+
+func countEmptyMessages(items []*i18n.Message) error {
 	hasError := false
 	for _, t := range items {
-		str := string(t.Translation)
-		if !strings.HasPrefix(str, "\"") {
-			continue
-		}
-		unquoted, err := strconv.Unquote(str)
-		if err != nil {
-			return fmt.Errorf("error unquoting translation for %s, %v", t.ID, err)
-		}
-		if strings.TrimSpace(unquoted) == "" {
+		if isMessageEmpty(t) {
 			log.Printf("Empty translation for %s. Please fix it.\n", t.ID)
 			hasError = true
 		}
@@ -677,51 +655,38 @@ func cleanEmptyCmdF(command *cobra.Command, args []string) error {
 }
 
 func clean(translationDir string, file string, dryRun bool, check bool) (*string, error) {
-	oldJSON, err := os.ReadFile(path.Join(translationDir, file))
+	oldList, err := parseMessageFile(path.Join(translationDir, file))
 	if err != nil {
 		return nil, err
 	}
 
-	if strings.TrimSpace(string(oldJSON)) == "{}" {
+	if len(oldList) == 0 {
 		noIssue := ""
-		return &noIssue, err
+		return &noIssue, nil
 	}
 
-	var oldList []Item
-	if err = json.Unmarshal(oldJSON, &oldList); err != nil {
-		return nil, err
-	}
 	newList, count := removeEmptyTranslations(oldList)
 	result := ""
-	if count == 0 {
-		return &result, nil
+	if count != 0 {
+		result = fmt.Sprintf("%v has %v empty translations\n", file, count)
 	}
-	result = fmt.Sprintf("%v has %v empty translations\n", file, count)
 	if dryRun || check {
 		return &result, nil
 	}
 
-	newJSON, err := JSONMarshal(newList)
+	err = writeMessageFile(path.Join(translationDir, file), newList)
 	if err != nil {
-		return nil, err
-	}
-	filename := path.Join(translationDir, file)
-	fileInfo, err := os.Lstat(filename)
-	if err != nil {
-		return nil, err
-	}
-	if err = os.WriteFile(filename, newJSON, fileInfo.Mode().Perm()); err != nil {
 		return nil, err
 	}
 	return &result, nil
 }
 
-func removeEmptyTranslations(oldList []Item) ([]Item, int) {
+func removeEmptyTranslations(oldList []*i18n.Message) ([]i18n.Message, int) {
 	var count int
-	var newList []Item
+	var newList []i18n.Message
 	for i, t := range oldList {
-		if string(t.Translation) != "\"\"" {
-			newList = append(newList, oldList[i])
+		if !isMessageEmpty(t) {
+			newList = append(newList, *oldList[i])
 		} else {
 			count++
 		}
@@ -730,11 +695,48 @@ func removeEmptyTranslations(oldList []Item) ([]Item, int) {
 	return newList, count
 }
 
-func JSONMarshal(t interface{}) ([]byte, error) {
-	buffer := &bytes.Buffer{}
-	encoder := json.NewEncoder(buffer)
+func toSimplifiedJSONMessage(t i18n.Message) interface{} {
+	type JSON struct {
+		ID          string `json:"-"`
+		Hash        string `json:"-"`
+		Description string `json:"description,omitempty"`
+		LeftDelim   string `json:"-"`
+		RightDelim  string `json:"-"`
+		Zero        string `json:"zero,omitempty"`
+		One         string `json:"one,omitempty"`
+		Two         string `json:"two,omitempty"`
+		Few         string `json:"few,omitempty"`
+		Many        string `json:"many,omitempty"`
+		Other       string `json:"other,omitempty"`
+	}
+
+	// If anything except Other is set return full format
+	forms := []string{t.Zero, t.One, t.Two, t.Few, t.Many}
+	for _, v := range forms {
+		if v != "" {
+			return JSON(t)
+		}
+	}
+
+	// Otherwise return simple format
+	return t.Other
+}
+
+func writeMessageFile(path string, input []i18n.Message) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	output := map[string]interface{}{}
+	for _, msg := range input {
+		output[msg.ID] = toSimplifiedJSONMessage(msg)
+	}
+
+	encoder := json.NewEncoder(f)
 	encoder.SetEscapeHTML(false)
-	encoder.SetIndent("", "    ")
-	err := encoder.Encode(t)
-	return buffer.Bytes(), err
+	encoder.SetIndent("", "  ")
+
+	return encoder.Encode(&output)
 }
