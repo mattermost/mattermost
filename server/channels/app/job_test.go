@@ -27,8 +27,8 @@ func TestGetJob(t *testing.T) {
 	require.NoError(t, err)
 
 	defer func() {
-		_, deleteErr := th.App.Srv().Store().Job().Delete(status.Id)
-		require.NoError(t, deleteErr)
+		_, err = th.App.Srv().Store().Job().Delete(status.Id)
+		require.NoError(t, err)
 	}()
 
 	received, appErr := th.App.GetJob(th.Context, status.Id)
