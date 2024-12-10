@@ -389,7 +389,14 @@ func addAttachmentToChannelExport(channelExport *ChannelExport, post shared.Post
 			SenderEmail:    *post.UserEmail,
 		}
 
-		if fileInfo.DeleteAt != 0 {
+		// if the file was deleted, this could be the initial upload of the file.
+		// If the post is not marked deleted, it's the initial upload -- we're finished.
+		// If the post is marked deleted, it's the deleted upload -- update it to be deleted.
+		//
+		// NOTE: there's an edge case here: if a file is deleted via the API, and the post it is attached to is not
+		//  deleted, we have no way of knowing whether this should be an upload file message or a deleted file message
+		// Need to look at this to see how we can export both even in the edge case. MM-62059
+		if fileInfo.DeleteAt != 0 && post.UpdatedType == shared.Deleted {
 			uploadElement.SentTime = fileInfo.DeleteAt
 			uploadElement.Message = fmt.Sprintf("Deleted file %s", fileInfo.Name)
 		}
