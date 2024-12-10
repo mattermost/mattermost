@@ -57,6 +57,7 @@ type Validator struct { //nolint:govet
 	attachments     map[string]*zip.File
 	attachmentsUsed map[string]uint64
 	allFileNames    []string
+	dataPath        string
 
 	roles          map[string]ImportFileInfo
 	schemes        map[string]ImportFileInfo
@@ -100,6 +101,7 @@ func NewValidator(
 	serverUsers map[string]*model.User,
 	serverEmails map[string]*model.User,
 	maxPostSize int,
+	dataPath string,
 ) *Validator {
 	v := &Validator{
 		archiveName:           name,
@@ -115,6 +117,7 @@ func NewValidator(
 
 		attachments:     make(map[string]*zip.File),
 		attachmentsUsed: make(map[string]uint64),
+		dataPath:        dataPath,
 
 		roles:    map[string]ImportFileInfo{},
 		schemes:  map[string]ImportFileInfo{},
@@ -283,6 +286,7 @@ func (v *Validator) Validate() error {
 		Source:     filepath.Base(v.archiveName),
 		FileName:   jsonlZip.Name,
 		TotalLines: v.lines,
+		DataPath:   "data",
 	}
 
 	err = v.validateLines(info, jsonlZip)
@@ -688,7 +692,7 @@ func (v *Validator) checkDuplicateUser(info ImportFileInfo, username, email stri
 
 func (v *Validator) validateUser(info ImportFileInfo, line imports.LineImportData) (err error) {
 	ivErr := validateNotNil(info, "user", line.User, func(data imports.UserImportData) *ImportValidationError {
-		appErr := imports.ValidateUserImportData(&data)
+		appErr := imports.ValidateUserImportData(&data, info.DataPath)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,

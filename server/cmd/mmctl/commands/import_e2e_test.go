@@ -381,6 +381,7 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 		cmd.Flags().Bool("check-missing-teams", false, "")
 		cmd.Flags().Bool("ignore-attachments", false, "")
 		cmd.Flags().Bool("check-server-duplicates", true, "")
+		cmd.Flags().String("data-path", "data", "")
 
 		err := importValidateCmdF(c, cmd, []string{importFilePath})
 		s.Require().Nil(err)
@@ -413,6 +414,7 @@ func (s *MmctlE2ETestSuite) TestImportValidateCmdF() {
 		cmd.Flags().Bool("check-missing-teams", false, "")
 		cmd.Flags().Bool("ignore-attachments", true, "")
 		cmd.Flags().Bool("check-server-duplicates", true, "")
+		cmd.Flags().String("data-path", "data", "")
 
 		err := importValidateCmdF(c, cmd, []string{importFilePath})
 		s.Require().Nil(err)

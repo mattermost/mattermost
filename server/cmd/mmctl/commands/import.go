@@ -112,6 +112,7 @@ func init() {
 	ImportValidateCmd.Flags().Bool("check-missing-teams", false, "Check for teams that are not defined but referenced in the archive")
 	ImportValidateCmd.Flags().Bool("ignore-attachments", false, "Don't check if the attached files are present in the archive")
 	ImportValidateCmd.Flags().Bool("check-server-duplicates", true, "Set to false to ignore teams, channels, and users already present on the server")
+	ImportValidateCmd.Flags().String("data-path", "", "The base path for files attached to the export")
 
 	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
 	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
@@ -455,6 +456,11 @@ func importValidateCmdF(c client.Client, command *cobra.Command, args []string) 
 		return err
 	}
 
+	dataPath, err := command.Flags().GetString("data-path")
+	if err != nil {
+		return err
+	}
+
 	if maxPostSize == 0 {
 		maxPostSize = model.PostMessageMaxRunesV2
 	}
@@ -470,6 +476,7 @@ func importValidateCmdF(c client.Client, command *cobra.Command, args []string) 
 		serverUsers,           // map of users by name
 		serverEmails,          // map of users by email
 		maxPostSize,
+		dataPath,
 	)
 
 	var errors []*importer.ImportValidationError

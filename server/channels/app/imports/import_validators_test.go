@@ -472,61 +472,62 @@ func TestImportValidateUserImportData(t *testing.T) {
 		Username: model.NewPointer("bob"),
 		Email:    model.NewPointer("bob@example.com"),
 	}
-	err := ValidateUserImportData(&data)
+	basePath := ""
+	err := ValidateUserImportData(&data, basePath)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	// Invalid Usernames.
 	data.Username = nil
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to nil Username.")
 
 	data.Username = model.NewPointer("")
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to 0 length Username.")
 
 	data.Username = model.NewPointer(strings.Repeat("abcdefghij", 7))
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to too long Username.")
 
 	data.Username = model.NewPointer("i am a username with spaces and !!!")
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to invalid characters in Username.")
 
 	data.Username = model.NewPointer("bob")
 
 	// Unexisting Picture Image
 	data.ProfileImage = model.NewPointer("not-existing-file")
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to not existing profile image file.")
 
 	data.ProfileImage = nil
 
 	// Invalid Emails
 	data.Email = nil
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to nil Email.")
 
 	data.Email = model.NewPointer("")
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to 0 length Email.")
 
 	data.Email = model.NewPointer(strings.Repeat("abcdefghij", 13))
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to too long Email.")
 
 	data.Email = model.NewPointer("bob@example.com")
 
 	// Empty AuthService indicates user/password auth.
 	data.AuthService = model.NewPointer("")
-	checkNoError(t, ValidateUserImportData(&data))
+	checkNoError(t, ValidateUserImportData(&data, basePath))
 
 	data.AuthService = model.NewPointer("saml")
 	data.AuthData = model.NewPointer(strings.Repeat("abcdefghij", 15))
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to too long auth data.")
 
 	data.AuthData = model.NewPointer("bobbytables")
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.Nil(t, err, "Validation should have succeeded with valid auth service and auth data.")
 
 	// Test a valid User with all fields populated.
@@ -546,40 +547,40 @@ func TestImportValidateUserImportData(t *testing.T) {
 		Roles:       model.NewPointer("system_user"),
 		Locale:      model.NewPointer("en"),
 	}
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	// Test various invalid optional field values.
 	data.Nickname = model.NewPointer(strings.Repeat("abcdefghij", 7))
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to too long Nickname.")
 
 	data.Nickname = model.NewPointer("BobNick")
 
 	data.FirstName = model.NewPointer(strings.Repeat("abcdefghij", 7))
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to too long First Name.")
 
 	data.FirstName = model.NewPointer("Bob")
 
 	data.LastName = model.NewPointer(strings.Repeat("abcdefghij", 7))
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to too long Last name.")
 
 	data.LastName = model.NewPointer("Blob")
 
 	data.Position = model.NewPointer(strings.Repeat("abcdefghij", 13))
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.NotNil(t, err, "Validation should have failed due to too long Position.")
 
 	data.Position = model.NewPointer("The Boss")
 
 	data.Roles = nil
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	data.Roles = model.NewPointer("")
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	data.Roles = model.NewPointer("system_user")
@@ -588,53 +589,53 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps = &UserNotifyPropsImportData{}
 
 	data.NotifyProps.Desktop = model.NewPointer("invalid")
-	checkError(t, ValidateUserImportData(&data))
+	checkError(t, ValidateUserImportData(&data, basePath))
 
 	data.NotifyProps.Desktop = model.NewPointer(model.UserNotifyAll)
 	data.NotifyProps.DesktopSound = model.NewPointer("invalid")
-	checkError(t, ValidateUserImportData(&data))
+	checkError(t, ValidateUserImportData(&data, basePath))
 
 	data.NotifyProps.DesktopSound = model.NewPointer("true")
 	data.NotifyProps.Email = model.NewPointer("invalid")
-	checkError(t, ValidateUserImportData(&data))
+	checkError(t, ValidateUserImportData(&data, basePath))
 
 	data.NotifyProps.Email = model.NewPointer("true")
 	data.NotifyProps.Mobile = model.NewPointer("invalid")
-	checkError(t, ValidateUserImportData(&data))
+	checkError(t, ValidateUserImportData(&data, basePath))
 
 	data.NotifyProps.Mobile = model.NewPointer(model.UserNotifyAll)
 	data.NotifyProps.MobilePushStatus = model.NewPointer("invalid")
-	checkError(t, ValidateUserImportData(&data))
+	checkError(t, ValidateUserImportData(&data, basePath))
 
 	data.NotifyProps.MobilePushStatus = model.NewPointer(model.StatusOnline)
 	data.NotifyProps.ChannelTrigger = model.NewPointer("invalid")
-	checkError(t, ValidateUserImportData(&data))
+	checkError(t, ValidateUserImportData(&data, basePath))
 
 	data.NotifyProps.ChannelTrigger = model.NewPointer("true")
 	data.NotifyProps.CommentsTrigger = model.NewPointer("invalid")
-	checkError(t, ValidateUserImportData(&data))
+	checkError(t, ValidateUserImportData(&data, basePath))
 
 	data.NotifyProps.CommentsTrigger = model.NewPointer(model.CommentsNotifyRoot)
 	data.NotifyProps.MentionKeys = model.NewPointer("valid")
-	checkNoError(t, ValidateUserImportData(&data))
+	checkNoError(t, ValidateUserImportData(&data, basePath))
 
 	//Test the email batching interval validators
 	//Happy paths
 	data.EmailInterval = model.NewPointer("immediately")
-	checkNoError(t, ValidateUserImportData(&data))
+	checkNoError(t, ValidateUserImportData(&data, basePath))
 
 	data.EmailInterval = model.NewPointer("fifteen")
-	checkNoError(t, ValidateUserImportData(&data))
+	checkNoError(t, ValidateUserImportData(&data, basePath))
 
 	data.EmailInterval = model.NewPointer("hour")
-	checkNoError(t, ValidateUserImportData(&data))
+	checkNoError(t, ValidateUserImportData(&data, basePath))
 
 	//Invalid values
 	data.EmailInterval = model.NewPointer("invalid")
-	checkError(t, ValidateUserImportData(&data))
+	checkError(t, ValidateUserImportData(&data, basePath))
 
 	data.EmailInterval = model.NewPointer("")
-	checkError(t, ValidateUserImportData(&data))
+	checkError(t, ValidateUserImportData(&data, basePath))
 }
 
 func TestImportValidateUserAuth(t *testing.T) {
@@ -663,7 +664,7 @@ func TestImportValidateUserAuth(t *testing.T) {
 			AuthService: test.authService,
 			AuthData:    test.authData,
 		}
-		err := ValidateUserImportData(&data)
+		err := ValidateUserImportData(&data, "data")
 
 		if test.isValid {
 			require.Nil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
