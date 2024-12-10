@@ -609,29 +609,29 @@ func (th *TestHelper) ConfigureInbucketMail() {
 
 func (th *TestHelper) ResetRoleMigration() {
 	sqlStore := mainHelper.GetSQLStore()
-	_, err := sqlStore.GetMasterX().Exec("DELETE from Roles")
+	_, err := sqlStore.GetMaster().Exec("DELETE from Roles")
 	require.NoError(th.TB, err)
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	_, err = sqlStore.GetMasterX().Exec("DELETE from Systems where Name = ?", model.AdvancedPermissionsMigrationKey)
+	_, err = sqlStore.GetMaster().Exec("DELETE from Systems where Name = ?", model.AdvancedPermissionsMigrationKey)
 	require.NoError(th.TB, err)
 }
 
 func (th *TestHelper) ResetEmojisMigration() {
 	sqlStore := mainHelper.GetSQLStore()
-	_, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True")
+	_, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True")
 	require.NoError(th.TB, err)
 
-	_, err = sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True")
+	_, err = sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True")
 	require.NoError(th.TB, err)
 
-	_, err = sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True")
+	_, err = sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True")
 	require.NoError(th.TB, err)
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	_, err = sqlStore.GetMasterX().Exec("DELETE from Systems where Name = ?", EmojisPermissionsMigrationKey)
+	_, err = sqlStore.GetMaster().Exec("DELETE from Systems where Name = ?", EmojisPermissionsMigrationKey)
 	require.NoError(th.TB, err)
 }
 
