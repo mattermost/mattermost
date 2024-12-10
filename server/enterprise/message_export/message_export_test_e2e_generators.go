@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
+	st "github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -220,8 +221,8 @@ func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir
 	_, _ = attachmentBackend.WriteFile(bytes.NewBufferString(contents[0]), attachmentPath001)
 	post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
-		UserId:    model.NewId(),
-		Message:   model.NewId(),
+		UserId:    st.NewTestID(),
+		Message:   st.NewTestID(),
 		CreateAt:  now,
 		UpdateAt:  now,
 		FileIds:   []string{"test1"},
@@ -229,7 +230,7 @@ func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir
 	require.NoError(t, err)
 
 	attachment, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
-		Id:        model.NewId(),
+		Id:        st.NewTestID(),
 		CreatorId: post.UserId,
 		PostId:    post.Id,
 		CreateAt:  now,
@@ -242,8 +243,8 @@ func generateActianceBatchTest1(t *testing.T, th *api4.TestHelper, attachmentDir
 	for i := 0; i < 10; i++ {
 		_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
-			UserId:    model.NewId(),
-			Message:   model.NewId(),
+			UserId:    st.NewTestID(),
+			Message:   st.NewTestID(),
 			CreateAt:  now + int64(i),
 			UpdateAt:  now + int64(i),
 		})
@@ -299,8 +300,8 @@ func generateActianceBatchTest2(t *testing.T, th *api4.TestHelper, attachmentDir
 	for i := 0; i < 10; i++ {
 		_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
-			UserId:    model.NewId(),
-			Message:   model.NewId(),
+			UserId:    st.NewTestID(),
+			Message:   st.NewTestID(),
 			CreateAt:  now + int64(i),
 			UpdateAt:  now + int64(i),
 		})
@@ -532,7 +533,7 @@ func generateE2ETestType1Results(t *testing.T, th *api4.TestHelper, exportType, 
 		require.NoError(t, err)
 
 		info, err2 := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
-			Id:        model.NewId(),
+			Id:        st.NewTestID(),
 			CreatorId: post.UserId,
 			PostId:    post.Id,
 			CreateAt:  updateAt,
@@ -928,7 +929,7 @@ func generateE2ETestType3Results(t *testing.T, th *api4.TestHelper, exportType, 
 	_, err = attachmentBackend.WriteFile(bytes.NewBufferString(attachmentContent), attachmentPath)
 	require.NoError(t, err)
 	info, err2 := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
-		Id:        model.NewId(),
+		Id:        st.NewTestID(),
 		CreatorId: post.UserId,
 		PostId:    post.Id,
 		CreateAt:  post.CreateAt,

@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	st "github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/actiance_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/global_relay_export"
 	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
@@ -224,7 +225,7 @@ func testRunExportByType(t *testing.T, exportBackend filestore.FileBackend, expo
 				PostMessage:        model.NewPointer("message"),
 				UserEmail:          model.NewPointer("test@example.com"),
 				Username:           model.NewPointer("Mr. Test"),
-				UserId:             model.NewPointer(model.NewId()),
+				UserId:             model.NewPointer(st.NewTestID()),
 				ChannelType:        &chanTypeDirect,
 				PostFileIds:        []string{},
 			},
@@ -354,8 +355,8 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		for i := 0; i < 3; i++ {
 			_, err2 := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 				ChannelId: th.BasicChannel.Id,
-				UserId:    model.NewId(),
-				Message:   model.NewId(),
+				UserId:    st.NewTestID(),
+				Message:   st.NewTestID(),
 				CreateAt:  now,
 			})
 			require.NoError(t, err2)
@@ -1999,8 +2000,8 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		_, _ = attachmentBackend.WriteFile(bytes.NewBufferString(attachmentContent), attachmentPath001)
 		post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
-			UserId:    model.NewId(),
-			Message:   model.NewId(),
+			UserId:    st.NewTestID(),
+			Message:   st.NewTestID(),
 			CreateAt:  now,
 			UpdateAt:  now,
 			FileIds:   []string{"test1"},
@@ -2008,7 +2009,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		require.NoError(t, err)
 
 		attachment, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
-			Id:        model.NewId(),
+			Id:        st.NewTestID(),
 			CreatorId: post.UserId,
 			PostId:    post.Id,
 			CreateAt:  now,
@@ -2020,8 +2021,8 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		for i := 0; i < 10; i++ {
 			_, e := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 				ChannelId: th.BasicChannel.Id,
-				UserId:    model.NewId(),
-				Message:   model.NewId(),
+				UserId:    st.NewTestID(),
+				Message:   st.NewTestID(),
 				CreateAt:  now + int64(i),
 				UpdateAt:  now + int64(i),
 			})

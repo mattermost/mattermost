@@ -13,8 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
-
 	"github.com/stretchr/testify/assert"
 	tmock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -26,8 +24,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	st "github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 )
 
 func TestInitJobDataNoJobData(t *testing.T) {
@@ -36,7 +36,7 @@ func TestInitJobDataNoJobData(t *testing.T) {
 	defer mockStore.AssertExpectations(t)
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
@@ -82,7 +82,7 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 	defer mockStore.AssertExpectations(t)
 
 	previousJob := &model.Job{
-		Id:             model.NewId(),
+		Id:             st.NewTestID(),
 		CreateAt:       model.GetMillis(),
 		Status:         model.JobStatusSuccess,
 		Type:           model.JobTypeMessageExport,
@@ -91,7 +91,7 @@ func TestInitJobDataPreviousJobNoJobData(t *testing.T) {
 	}
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
@@ -137,7 +137,7 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 	defer mockStore.AssertExpectations(t)
 
 	previousJob := &model.Job{
-		Id:             model.NewId(),
+		Id:             st.NewTestID(),
 		CreateAt:       model.GetMillis(),
 		Status:         model.JobStatusSuccess,
 		Type:           model.JobTypeMessageExport,
@@ -147,7 +147,7 @@ func TestInitJobDataPreviousJobWithJobData(t *testing.T) {
 	}
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
@@ -198,7 +198,7 @@ func TestDoJobNoPostsToExport(t *testing.T) {
 	defer mockMetrics.AssertExpectations(t)
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
@@ -277,7 +277,7 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	defer mockMetrics.AssertExpectations(t)
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
@@ -290,23 +290,23 @@ func TestDoJobWithDedicatedExportBackend(t *testing.T) {
 	// no previous job, data will be loaded from config
 	mockStore.JobStore.On("GetNewestJobByStatusesAndType", []string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport).Return(nil, errors.New("test"))
 
-	channelId := model.NewId()
-	channelName := model.NewId()
-	channelDisplayName := model.NewId()
+	channelId := st.NewTestID()
+	channelName := st.NewTestID()
+	channelDisplayName := st.NewTestID()
 	channelType := model.ChannelTypeOpen
 	messages := []*model.MessageExport{
 		{
-			TeamId:       model.NewPointer(model.NewId()),
+			TeamId:       model.NewPointer(st.NewTestID()),
 			ChannelId:    model.NewPointer(channelId),
 			ChannelName:  model.NewPointer(channelName),
-			UserId:       model.NewPointer(model.NewId()),
-			UserEmail:    model.NewPointer(model.NewId()),
-			Username:     model.NewPointer(model.NewId()),
-			PostId:       model.NewPointer(model.NewId()),
+			UserId:       model.NewPointer(st.NewTestID()),
+			UserEmail:    model.NewPointer(st.NewTestID()),
+			Username:     model.NewPointer(st.NewTestID()),
+			PostId:       model.NewPointer(st.NewTestID()),
 			PostCreateAt: model.NewPointer[int64](123),
 			PostUpdateAt: model.NewPointer[int64](123),
 			PostDeleteAt: model.NewPointer[int64](123),
-			PostMessage:  model.NewPointer(model.NewId()),
+			PostMessage:  model.NewPointer(st.NewTestID()),
 		},
 	}
 
@@ -403,7 +403,7 @@ func TestDoJobCancel(t *testing.T) {
 	t.Cleanup(func() { mockMetrics.AssertExpectations(t) })
 
 	job := &model.Job{
-		Id:       model.NewId(),
+		Id:       st.NewTestID(),
 		CreateAt: model.GetMillis(),
 		Status:   model.JobStatusPending,
 		Type:     model.JobTypeMessageExport,
