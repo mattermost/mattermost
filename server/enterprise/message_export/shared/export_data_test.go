@@ -181,6 +181,7 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 		expectedStops              []*FileUploadStopExport
 		expectedFileInfos          []*model.FileInfo
 		expectedDeleteFileMessages []PostExport
+		ignoreDeleted              bool
 		expectError                bool
 	}{
 		{
@@ -288,14 +289,8 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 			attachments: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
 			},
-			expectedStarts: []*FileUploadStartExport{
-				{UserEmail: "test@test.com", UploadStartTime: 1,
-					FileInfo: &model.FileInfo{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2}},
-			},
-			expectedStops: []*FileUploadStopExport{
-				{UserEmail: "test@test.com", UploadStopTime: 1,
-					FileInfo: &model.FileInfo{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2}, Status: "Completed"},
-			},
+			expectedStarts: nil,
+			expectedStops:  nil,
 			expectedFileInfos: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
 			},
@@ -310,6 +305,39 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 			},
 			expectError: false,
 		},
+		{
+			name: "one-attachment-deleted, ignore it (only record the creation)",
+			post: model.MessageExport{
+				PostId:             model.NewPointer("test"),
+				ChannelId:          model.NewPointer("Test"),
+				ChannelDisplayName: model.NewPointer("Test"),
+				PostCreateAt:       model.NewPointer(int64(1)),
+				PostDeleteAt:       model.NewPointer(int64(2)),
+				PostMessage:        model.NewPointer("Some message"),
+				UserEmail:          model.NewPointer("test@test.com"),
+				UserId:             model.NewPointer("test"),
+				Username:           model.NewPointer("test"),
+				ChannelType:        &chanTypeDirect,
+				PostFileIds:        []string{"12345", "54321"},
+			},
+			attachments: []*model.FileInfo{
+				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
+			},
+			expectedStarts: []*FileUploadStartExport{
+				{UserEmail: "test@test.com", UploadStartTime: 1,
+					FileInfo: &model.FileInfo{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2}},
+			},
+			expectedStops: []*FileUploadStopExport{
+				{UserEmail: "test@test.com", UploadStopTime: 1,
+					FileInfo: &model.FileInfo{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2}, Status: "Completed"},
+			},
+			expectedFileInfos: []*model.FileInfo{
+				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
+			},
+			expectedDeleteFileMessages: nil,
+			ignoreDeleted:              true,
+			expectError:                false,
+		},
 	}
 
 	for _, tc := range tt {
@@ -323,7 +351,7 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 					call.Return(tc.attachments, nil)
 				})
 			}
-			files, uploadStarts, uploadStops, deleteFileMessages, err := postToAttachmentsEntries(&tc.post, NewMessageExportStore(mockStore))
+			files, uploadStarts, uploadStops, deleteFileMessages, err := postToAttachmentsEntries(&tc.post, NewMessageExportStore(mockStore), tc.ignoreDeleted)
 			if tc.expectError {
 				assert.Error(t, err)
 			} else {

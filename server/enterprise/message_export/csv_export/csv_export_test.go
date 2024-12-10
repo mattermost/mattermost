@@ -38,6 +38,7 @@ func TestPostToRow(t *testing.T) {
 		ChannelName:        model.NewPointer("channel-name"),
 		ChannelDisplayName: model.NewPointer("channel-display-name"),
 		PostCreateAt:       model.NewPointer(int64(1)),
+		PostUpdateAt:       model.NewPointer(int64(1)),
 		PostMessage:        model.NewPointer("message"),
 		UserEmail:          model.NewPointer("test@test.com"),
 		UserId:             model.NewPointer("user-id"),
@@ -53,6 +54,7 @@ func TestPostToRow(t *testing.T) {
 		ChannelName:        model.NewPointer("channel-name"),
 		ChannelDisplayName: model.NewPointer("channel-display-name"),
 		PostCreateAt:       model.NewPointer(int64(1)),
+		PostUpdateAt:       model.NewPointer(int64(1)),
 		PostMessage:        model.NewPointer("message"),
 		UserEmail:          model.NewPointer("test@test.com"),
 		UserId:             model.NewPointer("user-id"),
@@ -71,6 +73,7 @@ func TestPostToRow(t *testing.T) {
 		ChannelName:        model.NewPointer("channel-name"),
 		ChannelDisplayName: model.NewPointer("channel-display-name"),
 		PostCreateAt:       model.NewPointer(int64(1)),
+		PostUpdateAt:       model.NewPointer(int64(1)),
 		PostMessage:        model.NewPointer("message"),
 		UserEmail:          model.NewPointer("test@test.com"),
 		UserId:             model.NewPointer("user-id"),
@@ -90,6 +93,7 @@ func TestPostToRow(t *testing.T) {
 		ChannelName:        model.NewPointer("channel-name"),
 		ChannelDisplayName: model.NewPointer("channel-display-name"),
 		PostCreateAt:       model.NewPointer(int64(1)),
+		PostUpdateAt:       model.NewPointer(int64(1)),
 		PostMessage:        model.NewPointer("message"),
 		UserEmail:          model.NewPointer("test@test.com"),
 		UserId:             model.NewPointer("user-id"),
@@ -110,6 +114,7 @@ func TestPostToRow(t *testing.T) {
 		ChannelName:        model.NewPointer("channel-name"),
 		ChannelDisplayName: model.NewPointer("channel-display-name"),
 		PostCreateAt:       model.NewPointer(int64(1)),
+		PostUpdateAt:       model.NewPointer(int64(1)),
 		PostMessage:        model.NewPointer("message"),
 		UserEmail:          model.NewPointer("test@test.com"),
 		UserId:             model.NewPointer("user-id"),
@@ -125,27 +130,27 @@ func TestPostToRow(t *testing.T) {
 		{
 			"simple row",
 			post,
-			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "message", "user", ""},
+			Row{1, 1, "", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "message", "user", ""},
 		},
 		{
 			"without team data",
 			post_without_team,
-			Row{1, "", "", "", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "message", "user", ""},
+			Row{1, 1, "", "", "", "", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "message", "user", ""},
 		},
 		{
 			"with special post type",
 			post_with_other_type,
-			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "other", "user", ""},
+			Row{1, 1, "", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "other", "user", ""},
 		},
 		{
 			"with special post type from bot",
 			post_with_other_type_bot,
-			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "other", "bot", ""},
+			Row{1, 1, "", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "other", "bot", ""},
 		},
 		{
 			"with permalink preview",
 			post_with_permalink_preview,
-			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "message", "user", "n4w39mc1ff8y5fite4b8hacy1w"},
+			Row{1, 1, "", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "message", "message", "user", "n4w39mc1ff8y5fite4b8hacy1w"},
 		},
 	}
 
@@ -155,7 +160,10 @@ func TestPostToRow(t *testing.T) {
 			if postType == "" {
 				postType = "message"
 			}
-			assert.Equal(t, tt.out, postToRow(tt.in, postType, tt.in.PostCreateAt, *tt.in.PostMessage))
+			in := shared.PostExport{
+				MessageExport: tt.in,
+			}
+			assert.Equal(t, tt.out, postToRow(in, postType, tt.in.PostCreateAt, *tt.in.PostMessage))
 		})
 	}
 }
@@ -174,6 +182,7 @@ func TestAttachmentToRow(t *testing.T) {
 			ChannelName:        model.NewPointer("channel-name"),
 			ChannelDisplayName: model.NewPointer("channel-display-name"),
 			PostCreateAt:       model.NewPointer(int64(1)),
+			PostUpdateAt:       model.NewPointer(int64(1)),
 			PostMessage:        model.NewPointer("message"),
 			UserEmail:          model.NewPointer("test@test.com"),
 			UserId:             model.NewPointer("user-id"),
@@ -199,6 +208,7 @@ func TestAttachmentToRow(t *testing.T) {
 			ChannelName:        model.NewPointer("channel-name"),
 			ChannelDisplayName: model.NewPointer("channel-display-name"),
 			PostCreateAt:       model.NewPointer(int64(1)),
+			PostUpdateAt:       model.NewPointer(int64(10)),
 			PostDeleteAt:       model.NewPointer(int64(10)),
 			PostMessage:        model.NewPointer("message"),
 			UserEmail:          model.NewPointer("test@test.com"),
@@ -224,12 +234,12 @@ func TestAttachmentToRow(t *testing.T) {
 		{
 			"simple attachment",
 			post,
-			Row{1, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "test1 (files/post-id/12345-filename.txt)", "attachment", "user", ""},
+			Row{1, 1, "", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "test1 (files/post-id/12345-filename.txt)", "attachment", "user", ""},
 		},
 		{
 			"simple deleted attachment",
 			postDeleted,
-			Row{10, "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "test2 (files/post-id/12346-filename.txt)", "deleted attachment", "user", ""},
+			Row{1, 10, "FileDeleted", "team-id", "team-name", "team-display-name", "channel-id", "channel-name", "channel-display-name", "direct", "user-id", "test@test.com", "username", "post-id", "", "post-root-id", "test2 (files/post-id/12346-filename.txt)", "deleted attachment", "user", ""},
 		},
 	}
 
@@ -336,7 +346,7 @@ func TestCsvExport(t *testing.T) {
 func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filestore.FileBackend, attachmentBackend filestore.FileBackend) {
 	rctx := request.TestContext(t)
 
-	header := "Post Creation Time,Team Id,Team Name,Team Display Name,Channel Id,Channel Name,Channel Display Name,Channel Type,User Id,User Email,Username,Post Id,Edited By Post Id,Replied to Post Id,Post Message,Post Type,User Type,Previews Post Id\n"
+	header := "Post Creation Time,Post Update Time,Post Update Type,Team Id,Team Name,Team Display Name,Channel Id,Channel Name,Channel Display Name,Channel Type,User Id,User Email,Username,Post Id,Edited By Post Id,Replied to Post Id,Post Message,Post Type,User Type,Previews Post Id\n"
 
 	chanTypeDirect := model.ChannelTypeDirect
 	csvExportTests := []struct {
@@ -453,13 +463,13 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			attachments: map[string][]*model.FileInfo{},
 			expectedPosts: strings.Join([]string{
 				header,
-				"0,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test,test,test,,,,User test (test) was already in the channel,previously-joined,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,,,,User username (test@test.com) was already in the channel,previously-joined,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,message,message,user,\n",
-				"8,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) joined the channel,enter,user,\n",
-				"80,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) left the channel,leave,user,\n",
-				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,post-root-id,message,message,user,\n",
-				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,post-root-id,message,message,user,o4w39mc1ff8y5fite4b8hacy1x\n",
+				"0,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test,test,test,,,,User test (test) was already in the channel,previously-joined,user,\n",
+				"1,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,,,,User username (test@test.com) was already in the channel,previously-joined,user,\n",
+				"1,1,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,message,message,user,\n",
+				"8,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) joined the channel,enter,user,\n",
+				"80,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) left the channel,leave,user,\n",
+				"100,100,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,post-root-id,message,message,user,\n",
+				"100,100,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,post-root-id,message,message,user,o4w39mc1ff8y5fite4b8hacy1x\n",
 			}, ""),
 			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 3,\n      \"AttachmentsCount\": 0\n    }\n  },\n  \"MessagesCount\": 3,\n  \"AttachmentsCount\": 0,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
 			expectedFiles:    2,
@@ -532,13 +542,13 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			attachments: map[string][]*model.FileInfo{},
 			expectedPosts: strings.Join([]string{
 				header,
-				"0,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test,test,test,,,,User test (test) was already in the channel,previously-joined,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,,,,User username (test@test.com) was already in the channel,previously-joined,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,message,message,user,\n",
-				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,message,message,user,\n",
-				"101,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,delete message,message,user,\n",
+				"0,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test,test,test,,,,User test (test) was already in the channel,previously-joined,user,\n",
+				"1,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,,,,User username (test@test.com) was already in the channel,previously-joined,user,\n",
+				"1,1,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,message,message,user,\n",
+				"100,101,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,message,message,user,\n",
+				"100,101,Deleted,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id,,,delete message,message,user,\n",
 			}, ""),
-			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 2,\n      \"AttachmentsCount\": 0\n    }\n  },\n  \"MessagesCount\": 2,\n  \"AttachmentsCount\": 0,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
+			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 3,\n      \"AttachmentsCount\": 0\n    }\n  },\n  \"MessagesCount\": 3,\n  \"AttachmentsCount\": 0,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
 			expectedFiles:    2,
 		},
 		{
@@ -650,19 +660,19 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			},
 			expectedPosts: strings.Join([]string{
 				header,
-				"0,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test,test,test,,,,User test (test) was already in the channel,previously-joined,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,,,,User username (test@test.com) was already in the channel,previously-joined,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-1,,,message 1,message,user,\n",
-				"1,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-1,,,test1 (files/post-id-1/test1-test1),attachment,user,\n",
-				"2,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,message 3,message,user,\n",
-				"2,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,test2 (files/post-id-3/test2-test2),attachment,user,\n",
-				"3,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,delete message 3,message,user,\n",
-				"3,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,test2 (files/post-id-3/test2-test2),deleted attachment,user,\n",
-				"8,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) joined the channel,enter,user,\n",
-				"80,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) left the channel,leave,user,\n",
-				"100,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-2,,post-id-1,message 2,message,user,\n",
+				"0,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test,test,test,,,,User test (test) was already in the channel,previously-joined,user,\n",
+				"1,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,,,,User username (test@test.com) was already in the channel,previously-joined,user,\n",
+				"1,1,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-1,,,message 1,message,user,\n",
+				"1,1,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-1,,,test1 (files/post-id-1/test1-test1),attachment,user,\n",
+				"2,3,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,message 3,message,user,\n",
+				"2,3,Deleted,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,delete message 3,message,user,\n",
+				"2,3,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,test2 (files/post-id-3/test2-test2),attachment,user,\n",
+				"2,3,FileDeleted,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-3,,,test2 (files/post-id-3/test2-test2),deleted attachment,user,\n",
+				"8,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) joined the channel,enter,user,\n",
+				"80,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) left the channel,leave,user,\n",
+				"100,100,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-2,,post-id-1,message 2,message,user,\n",
 			}, ""),
-			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 3,\n      \"AttachmentsCount\": 2\n    }\n  },\n  \"MessagesCount\": 3,\n  \"AttachmentsCount\": 2,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
+			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 4,\n      \"AttachmentsCount\": 3\n    }\n  },\n  \"MessagesCount\": 4,\n  \"AttachmentsCount\": 3,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
 			expectedFiles:    4,
 		},
 	}
@@ -674,7 +684,11 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 
 			if len(tt.attachments) > 0 {
 				for post_id, attachments := range tt.attachments {
-					call := mockStore.FileInfoStore.On("GetForPost", post_id, true, true, false).Times(2)
+					numCallsGetPost := 2
+					if attachments[0].DeleteAt > 0 {
+						numCallsGetPost = 3
+					}
+					call := mockStore.FileInfoStore.On("GetForPost", post_id, true, true, false).Times(numCallsGetPost)
 					call.Run(func(args mock.Arguments) {
 						call.Return(tt.attachments[args.Get(0).(string)], nil)
 					})

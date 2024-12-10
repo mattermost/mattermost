@@ -33,6 +33,8 @@ const (
 
 type Row struct {
 	CreateAt           int64
+	UpdateAt           int64
+	UpdateType         shared.PostUpdatedType
 	TeamId             string
 	TeamName           string
 	TeamDisplayName    string
@@ -66,11 +68,7 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 	for _, channel := range exportData.Exports {
 		rows = append(rows, getJoinLeavePosts(channel)...)
 		for _, p := range channel.Posts {
-			createAt := p.PostCreateAt
-			if p.UpdatedType == shared.Deleted {
-				createAt = p.PostDeleteAt
-			}
-			rows = append(rows, postToRow(p.MessageExport, "message", createAt, p.Message))
+			rows = append(rows, postToRow(p, "message", p.PostCreateAt, p.Message))
 		}
 
 		for _, u := range channel.UploadStarts {
@@ -109,6 +107,8 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 	csvWriter := csv.NewWriter(csvFile)
 	err = csvWriter.Write([]string{
 		"Post Creation Time",
+		"Post Update Time",
+		"Post Update Type",
 		"Team Id",
 		"Team Name",
 		"Team Display Name",
@@ -231,24 +231,26 @@ func getJoinLeavePosts(channel shared.ChannelExport) []Row {
 		}
 		joinLeavePosts = append(
 			joinLeavePosts,
-			postToRow(model.MessageExport{
-				TeamId:             &channel.TeamId,
-				TeamName:           &channel.TeamName,
-				TeamDisplayName:    &channel.TeamDisplayName,
-				ChannelId:          &channel.ChannelId,
-				ChannelName:        &channel.ChannelName,
-				ChannelDisplayName: &channel.DisplayName,
-				ChannelType:        &channel.ChannelType,
-				UserId:             &join.UserId,
-				UserEmail:          &join.UserEmail,
-				Username:           &join.Username,
-				IsBot:              join.UserType == shared.Bot,
-				PostId:             model.NewPointer(""),
-				PostCreateAt:       &join.JoinTime,
-				PostMessage:        &enterMessage,
-				PostType:           &enterPostType,
-				PostOriginalId:     model.NewPointer(""),
-				PostFileIds:        []string{},
+			postToRow(shared.PostExport{
+				MessageExport: model.MessageExport{
+					TeamId:             &channel.TeamId,
+					TeamName:           &channel.TeamName,
+					TeamDisplayName:    &channel.TeamDisplayName,
+					ChannelId:          &channel.ChannelId,
+					ChannelName:        &channel.ChannelName,
+					ChannelDisplayName: &channel.DisplayName,
+					ChannelType:        &channel.ChannelType,
+					UserId:             &join.UserId,
+					UserEmail:          &join.UserEmail,
+					Username:           &join.Username,
+					IsBot:              join.UserType == shared.Bot,
+					PostId:             model.NewPointer(""),
+					PostCreateAt:       &join.JoinTime,
+					PostMessage:        &enterMessage,
+					PostType:           &enterPostType,
+					PostOriginalId:     model.NewPointer(""),
+					PostFileIds:        []string{},
+				},
 			}, enterPostType, &join.JoinTime, enterMessage),
 		)
 	}
@@ -262,24 +264,26 @@ func getJoinLeavePosts(channel shared.ChannelExport) []Row {
 
 		joinLeavePosts = append(
 			joinLeavePosts,
-			postToRow(model.MessageExport{
-				TeamId:             &channel.TeamId,
-				TeamName:           &channel.TeamName,
-				TeamDisplayName:    &channel.TeamDisplayName,
-				ChannelId:          &channel.ChannelId,
-				ChannelName:        &channel.ChannelName,
-				ChannelDisplayName: &channel.DisplayName,
-				ChannelType:        &channel.ChannelType,
-				UserId:             &leave.UserId,
-				UserEmail:          &leave.UserEmail,
-				Username:           &leave.Username,
-				IsBot:              leave.UserType == shared.Bot,
-				PostId:             model.NewPointer(""),
-				PostCreateAt:       &leave.LeaveTime,
-				PostMessage:        &leaveMessage,
-				PostType:           &leavePostType,
-				PostOriginalId:     model.NewPointer(""),
-				PostFileIds:        []string{},
+			postToRow(shared.PostExport{
+				MessageExport: model.MessageExport{
+					TeamId:             &channel.TeamId,
+					TeamName:           &channel.TeamName,
+					TeamDisplayName:    &channel.TeamDisplayName,
+					ChannelId:          &channel.ChannelId,
+					ChannelName:        &channel.ChannelName,
+					ChannelDisplayName: &channel.DisplayName,
+					ChannelType:        &channel.ChannelType,
+					UserId:             &leave.UserId,
+					UserEmail:          &leave.UserEmail,
+					Username:           &leave.Username,
+					IsBot:              leave.UserType == shared.Bot,
+					PostId:             model.NewPointer(""),
+					PostCreateAt:       &leave.LeaveTime,
+					PostMessage:        &leaveMessage,
+					PostType:           &leavePostType,
+					PostOriginalId:     model.NewPointer(""),
+					PostFileIds:        []string{},
+				},
 			}, leavePostType, &leave.LeaveTime, leaveMessage),
 		)
 	}
@@ -287,13 +291,15 @@ func getJoinLeavePosts(channel shared.ChannelExport) []Row {
 	return joinLeavePosts
 }
 
-func postToRow(p model.MessageExport, postType string, createTime *int64, message string) Row {
+func postToRow(p shared.PostExport, postType string, createTime *int64, message string) Row {
 	userType := "user"
 	if p.IsBot {
 		userType = "bot"
 	}
 	return Row{
 		CreateAt:           model.SafeDereference(createTime),
+		UpdateAt:           model.SafeDereference(p.PostUpdateAt),
+		UpdateType:         p.UpdatedType,
 		TeamId:             model.SafeDereference(p.TeamId),
 		TeamName:           model.SafeDereference(p.TeamName),
 		TeamDisplayName:    model.SafeDereference(p.TeamDisplayName),
@@ -305,7 +311,7 @@ func postToRow(p model.MessageExport, postType string, createTime *int64, messag
 		UserEmail:          model.SafeDereference(p.UserEmail),
 		Username:           model.SafeDereference(p.Username),
 		PostId:             model.SafeDereference(p.PostId),
-		EditedByPostId:     model.SafeDereference(p.PostOriginalId),
+		EditedByPostId:     p.EditedNewMsgId,
 		RepliedToPostId:    model.SafeDereference(p.PostRootId),
 		PostMessage:        message,
 		PostType:           postType,
@@ -317,6 +323,8 @@ func postToRow(p model.MessageExport, postType string, createTime *int64, messag
 func rowToStringSlice(r Row) []string {
 	return []string{
 		strconv.FormatInt(r.CreateAt, 10),
+		strconv.FormatInt(r.UpdateAt, 10),
+		string(r.UpdateType),
 		r.TeamId,
 		r.TeamName,
 		r.TeamDisplayName,
@@ -339,12 +347,10 @@ func rowToStringSlice(r Row) []string {
 
 func attachmentToRow(post shared.PostExport) Row {
 	message := strings.TrimSpace(fmt.Sprintf("%s (files/%s/%s-%s)", post.FileInfo.Name, *post.PostId, post.FileInfo.Id, path.Base(post.FileInfo.Path)))
-	createAt := post.PostCreateAt
 	postType := "attachment"
 	if post.UpdatedType == shared.FileDeleted {
-		createAt = &post.FileInfo.DeleteAt
 		postType = "deleted attachment"
 	}
 
-	return postToRow(post.MessageExport, postType, createAt, message)
+	return postToRow(post, postType, post.PostCreateAt, message)
 }
