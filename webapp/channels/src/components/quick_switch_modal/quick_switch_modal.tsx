@@ -203,7 +203,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 onHide={this.hideOnCancel}
                 enforceFocus={false}
                 restoreFocus={false}
-                role='dialog'
+                role='none'
                 aria-labelledby='quickSwitchHeader'
                 aria-describedby='quickSwitchHeaderWithHint'
                 animation={false}

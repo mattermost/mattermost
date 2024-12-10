@@ -30,7 +30,7 @@ function AirGappedModal({onClose}: Props) {
             dialogClassName={'AirGappedModal__dialog'}
             show={true}
             id='airGappedModal'
-            role='dialog'
+            role='none'
             onHide={() => onClose?.()}
         >
             <Modal.Header closeButton={true}>

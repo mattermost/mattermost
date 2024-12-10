@@ -115,7 +115,7 @@ export default class ActivityLogModal extends React.PureComponent<Props, State> 
                 onHide={this.onHide}
                 onExited={this.props.onHide}
                 bsSize='large'
-                role='dialog'
+                role='none'
                 aria-labelledby='activityLogModalLabel'
             >
                 <Modal.Header closeButton={true}>

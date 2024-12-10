@@ -63,7 +63,7 @@ export default function AboutBuildModalCloud(props: Props) {
             show={props.show}
             onHide={props.doHide}
             onExited={props.onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='aboutModalLabel'
         >
             <Modal.Header closeButton={true}>
