@@ -124,5 +124,5 @@ function verifyUsername(username) {
     cy.uiOpenUserMenu().findByText(`@${username}`);
 
     // # Close the user menu
-    cy.uiGetSetStatusButton().click();
+    cy.get('body').type('{esc}');
 }

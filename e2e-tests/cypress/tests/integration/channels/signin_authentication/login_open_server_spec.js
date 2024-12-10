@@ -186,7 +186,7 @@ describe('Login page with open server', () => {
         cy.url().should('include', '/channels/town-square');
 
         // # Click logout via user menu
-        cy.uiOpenUserMenu('Log Out');
+        cy.uiOpenUserMenu('Log out');
 
         // * Check that it logout successfully and it redirects into the login page
         cy.url().should('include', '/login');
@@ -209,7 +209,7 @@ describe('Login page with open server', () => {
         cy.url().should('include', '/channels/town-square');
 
         // # Click logout via user menu
-        cy.uiOpenUserMenu('Log Out');
+        cy.uiOpenUserMenu('Log out');
 
         // * Check that it logout successfully and it redirects into the login page
         cy.url().should('include', '/login');

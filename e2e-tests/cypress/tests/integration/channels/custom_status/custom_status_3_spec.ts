@@ -27,7 +27,7 @@ describe('Custom Status - Setting Your Own Custom Status', () => {
 
     it('MM-T3846_1 should change the emoji to speech balloon when typed in the input', () => {
         // # Open the custom status modal
-        cy.uiOpenUserMenu('Set a custom status');
+        cy.uiOpenUserMenu('Set custom status');
 
         // * Default emoji is currently visible in the custom status input
         cy.get('#custom_status_modal .StatusModal__emoji-button span').should('have.class', 'icon--emoji');
@@ -72,20 +72,26 @@ describe('Custom Status - Setting Your Own Custom Status', () => {
         cy.uiGetProfileHeader().
             find('.emoticon').
             should('have.attr', 'data-emoticon', customStatus.emoji);
+
+        cy.get('body').type('{esc}');
     });
 
     it('MM-T3846_5 should show custom status with emoji in the status dropdown', () => {
         // # Open user menu
-        cy.uiOpenUserMenu();
+        cy.uiOpenUserMenu().within(() => {
+            // * Correct custom status text and emoji should be displayed in the status dropdown
+            cy.findByText(customStatus.text).should('exist');
+            cy.get(`span[data-emoticon="${customStatus.emoji}"]`).should('exist');
+        });
 
-        // * Correct custom status text and emoji should be displayed in the status dropdown
-        cy.get('.status-dropdown-menu .custom_status__container').should('have.text', customStatus.text);
-        cy.get('.status-dropdown-menu .custom_status__row span.emoticon').invoke('attr', 'data-emoticon').should('contain', customStatus.emoji);
+        cy.get('body').type('{esc}');
     });
 
-    it('MM-T3846_6 should show previosly set status in the first position in Recents list', () => {
+    it('MM-T3846_6 should show previously set status in the first position in Recents list', () => {
         // # Click on the "Set a Custom Status" option in the status dropdown
-        cy.get('.status-dropdown-menu li#status-menu-custom-status').click();
+        cy.uiOpenUserMenu().within(() => {
+            cy.findByText(customStatus.text).should('exist').click({force: true});
+        });
 
         // * Custom status modal should open
         cy.get('#custom_status_modal').should('exist');
@@ -118,9 +124,9 @@ describe('Custom Status - Setting Your Own Custom Status', () => {
         cy.findByText('Clear Status').click();
 
         // # Open user menu
-        cy.uiOpenUserMenu();
-
-        // * Custom status text should not be displayed in the status dropdown
-        cy.get('.status-dropdown-menu .custom_status__row').should('not.have.text', customStatus.text);
+        cy.uiOpenUserMenu().within(() => {
+            // * Custom status text should not be displayed in the status dropdown
+            cy.findByText(customStatus.text).should('not.exist');
+        });
     });
 });
