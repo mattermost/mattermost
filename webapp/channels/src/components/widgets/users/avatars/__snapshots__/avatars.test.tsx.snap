@@ -46,7 +46,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           <Memo(WithTooltip)
             title="first.last1"
           >
-            <Memo(Avatar)
+            <Avatar
               onBlur={[Function]}
               onFocus={[Function]}
               onKeyDown={[Function]}
@@ -83,7 +83,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
                 }
                 tabIndex={-1}
               />
-            </Memo(Avatar)>
+            </Avatar>
           </Memo(WithTooltip)>
         </button>
       </ProfilePopoverController>
@@ -117,7 +117,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           <Memo(WithTooltip)
             title="Someone"
           >
-            <Memo(Avatar)
+            <Avatar
               onBlur={[Function]}
               onFocus={[Function]}
               onKeyDown={[Function]}
@@ -154,7 +154,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
                 }
                 tabIndex={-1}
               />
-            </Memo(Avatar)>
+            </Avatar>
           </Memo(WithTooltip)>
         </button>
       </ProfilePopoverController>
@@ -188,7 +188,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           <Memo(WithTooltip)
             title="Someone"
           >
-            <Memo(Avatar)
+            <Avatar
               onBlur={[Function]}
               onFocus={[Function]}
               onKeyDown={[Function]}
@@ -225,7 +225,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
                 }
                 tabIndex={-1}
               />
-            </Memo(Avatar)>
+            </Avatar>
           </Memo(WithTooltip)>
         </button>
       </ProfilePopoverController>
@@ -233,7 +233,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
     <Memo(WithTooltip)
       title="first.last2, Someone, Someone"
     >
-      <Memo(Avatar)
+      <Avatar
         onBlur={[Function]}
         onFocus={[Function]}
         onKeyDown={[Function]}
@@ -267,7 +267,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
           }
           tabIndex={0}
         />
-      </Memo(Avatar)>
+      </Avatar>
     </Memo(WithTooltip)>
   </div>
 </Memo(Avatars)>
@@ -318,7 +318,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           <Memo(WithTooltip)
             title="first.last1"
           >
-            <Memo(Avatar)
+            <Avatar
               onBlur={[Function]}
               onFocus={[Function]}
               onKeyDown={[Function]}
@@ -355,7 +355,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
                 }
                 tabIndex={-1}
               />
-            </Memo(Avatar)>
+            </Avatar>
           </Memo(WithTooltip)>
         </button>
       </ProfilePopoverController>
@@ -389,7 +389,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           <Memo(WithTooltip)
             title="first.last2"
           >
-            <Memo(Avatar)
+            <Avatar
               onBlur={[Function]}
               onFocus={[Function]}
               onKeyDown={[Function]}
@@ -426,7 +426,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
                 }
                 tabIndex={-1}
               />
-            </Memo(Avatar)>
+            </Avatar>
           </Memo(WithTooltip)>
         </button>
       </ProfilePopoverController>
@@ -460,7 +460,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           <Memo(WithTooltip)
             title="first.last3"
           >
-            <Memo(Avatar)
+            <Avatar
               onBlur={[Function]}
               onFocus={[Function]}
               onKeyDown={[Function]}
@@ -497,7 +497,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
                 }
                 tabIndex={-1}
               />
-            </Memo(Avatar)>
+            </Avatar>
           </Memo(WithTooltip)>
         </button>
       </ProfilePopoverController>
@@ -505,7 +505,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
     <Memo(WithTooltip)
       title="first.last4, first.last5"
     >
-      <Memo(Avatar)
+      <Avatar
         onBlur={[Function]}
         onFocus={[Function]}
         onKeyDown={[Function]}
@@ -539,7 +539,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
           }
           tabIndex={0}
         />
-      </Memo(Avatar)>
+      </Avatar>
     </Memo(WithTooltip)>
   </div>
 </Memo(Avatars)>
@@ -588,7 +588,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
           <Memo(WithTooltip)
             title="first.last1"
           >
-            <Memo(Avatar)
+            <Avatar
               onBlur={[Function]}
               onFocus={[Function]}
               onKeyDown={[Function]}
@@ -625,7 +625,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
                 }
                 tabIndex={-1}
               />
-            </Memo(Avatar)>
+            </Avatar>
           </Memo(WithTooltip)>
         </button>
       </ProfilePopoverController>
@@ -659,7 +659,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
           <Memo(WithTooltip)
             title="first.last2"
           >
-            <Memo(Avatar)
+            <Avatar
               onBlur={[Function]}
               onFocus={[Function]}
               onKeyDown={[Function]}
@@ -696,7 +696,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
                 }
                 tabIndex={-1}
               />
-            </Memo(Avatar)>
+            </Avatar>
           </Memo(WithTooltip)>
         </button>
       </ProfilePopoverController>
@@ -730,7 +730,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
           <Memo(WithTooltip)
             title="first.last3"
           >
-            <Memo(Avatar)
+            <Avatar
               onBlur={[Function]}
               onFocus={[Function]}
               onKeyDown={[Function]}
@@ -767,7 +767,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
                 }
                 tabIndex={-1}
               />
-            </Memo(Avatar)>
+            </Avatar>
           </Memo(WithTooltip)>
         </button>
       </ProfilePopoverController>

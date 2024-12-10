@@ -92,7 +92,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               <Memo(WithTooltip)
                 title="first.last5"
               >
-                <Memo(Avatar)
+                <Avatar
                   onBlur={[Function]}
                   onFocus={[Function]}
                   onKeyDown={[Function]}
@@ -129,7 +129,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                     }
                     tabIndex={-1}
                   />
-                </Memo(Avatar)>
+                </Avatar>
               </Memo(WithTooltip)>
             </button>
           </ProfilePopoverController>
@@ -163,7 +163,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               <Memo(WithTooltip)
                 title="first.last4"
               >
-                <Memo(Avatar)
+                <Avatar
                   onBlur={[Function]}
                   onFocus={[Function]}
                   onKeyDown={[Function]}
@@ -200,7 +200,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                     }
                     tabIndex={-1}
                   />
-                </Memo(Avatar)>
+                </Avatar>
               </Memo(WithTooltip)>
             </button>
           </ProfilePopoverController>
@@ -234,7 +234,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               <Memo(WithTooltip)
                 title="first.last3"
               >
-                <Memo(Avatar)
+                <Avatar
                   onBlur={[Function]}
                   onFocus={[Function]}
                   onKeyDown={[Function]}
@@ -271,7 +271,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                     }
                     tabIndex={-1}
                   />
-                </Memo(Avatar)>
+                </Avatar>
               </Memo(WithTooltip)>
             </button>
           </ProfilePopoverController>
@@ -279,7 +279,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
         <Memo(WithTooltip)
           title="first.last2, first.last1"
         >
-          <Memo(Avatar)
+          <Avatar
             onBlur={[Function]}
             onFocus={[Function]}
             onKeyDown={[Function]}
@@ -313,7 +313,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               }
               tabIndex={0}
             />
-          </Memo(Avatar)>
+          </Avatar>
         </Memo(WithTooltip)>
       </div>
     </Memo(Avatars)>
@@ -603,7 +603,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               <Memo(WithTooltip)
                 title="first.last5"
               >
-                <Memo(Avatar)
+                <Avatar
                   onBlur={[Function]}
                   onFocus={[Function]}
                   onKeyDown={[Function]}
@@ -640,7 +640,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                     }
                     tabIndex={-1}
                   />
-                </Memo(Avatar)>
+                </Avatar>
               </Memo(WithTooltip)>
             </button>
           </ProfilePopoverController>
@@ -674,7 +674,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               <Memo(WithTooltip)
                 title="first.last4"
               >
-                <Memo(Avatar)
+                <Avatar
                   onBlur={[Function]}
                   onFocus={[Function]}
                   onKeyDown={[Function]}
@@ -711,7 +711,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                     }
                     tabIndex={-1}
                   />
-                </Memo(Avatar)>
+                </Avatar>
               </Memo(WithTooltip)>
             </button>
           </ProfilePopoverController>
@@ -745,7 +745,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               <Memo(WithTooltip)
                 title="first.last3"
               >
-                <Memo(Avatar)
+                <Avatar
                   onBlur={[Function]}
                   onFocus={[Function]}
                   onKeyDown={[Function]}
@@ -782,7 +782,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                     }
                     tabIndex={-1}
                   />
-                </Memo(Avatar)>
+                </Avatar>
               </Memo(WithTooltip)>
             </button>
           </ProfilePopoverController>
@@ -790,7 +790,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         <Memo(WithTooltip)
           title="first.last2, first.last1"
         >
-          <Memo(Avatar)
+          <Avatar
             onBlur={[Function]}
             onFocus={[Function]}
             onKeyDown={[Function]}
@@ -824,7 +824,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               }
               tabIndex={0}
             />
-          </Memo(Avatar)>
+          </Avatar>
         </Memo(WithTooltip)>
       </div>
     </Memo(Avatars)>

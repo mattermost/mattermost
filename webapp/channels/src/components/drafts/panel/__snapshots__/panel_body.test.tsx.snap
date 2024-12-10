@@ -64,7 +64,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                   <span
                     className="profile-icon "
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       size="md"
                       url="/api/v4/users/user_id/image?_=0"
                       username="username"
@@ -76,7 +76,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </span>
                 </button>
               </RoundButton>
@@ -290,7 +290,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                   <span
                     className="profile-icon "
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       size="md"
                       url="/api/v4/users/user_id/image?_=0"
                       username="username"
@@ -302,7 +302,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </span>
                 </button>
               </RoundButton>
@@ -522,7 +522,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                   <span
                     className="profile-icon "
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       size="md"
                       url="/api/v4/users/user_id/image?_=0"
                       username="username"
@@ -534,7 +534,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </span>
                 </button>
               </RoundButton>
@@ -816,7 +816,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                   <span
                     className="profile-icon "
                   >
-                    <Memo(Avatar)
+                    <Avatar
                       size="md"
                       url="/api/v4/users/user_id/image?_=0"
                       username="username"
@@ -828,7 +828,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                         onError={[Function]}
                         src="/api/v4/users/user_id/image?_=0"
                       />
-                    </Memo(Avatar)>
+                    </Avatar>
                   </span>
                 </button>
               </RoundButton>
