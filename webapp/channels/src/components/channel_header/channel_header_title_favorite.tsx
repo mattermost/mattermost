@@ -73,7 +73,6 @@ const ChannelHeaderTitleFavorite = () => {
 
     return (
         <WithTooltip
-            key={`isFavorite-${isFavorite}`}
             title={title}
         >
             <button
