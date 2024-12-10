@@ -3558,6 +3558,22 @@ func (s *TimerLayerFileInfoStore) DeleteForPost(c request.CTX, postID string) (s
 	return result, err
 }
 
+func (s *TimerLayerFileInfoStore) DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	start := time.Now()
+
+	err := s.FileInfoStore.DeleteForPostByIds(rctx, postId, fileIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.DeleteForPostByIds", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	start := time.Now()
 
