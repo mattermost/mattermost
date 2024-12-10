@@ -186,7 +186,7 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	nErr := ps.Store.License().Save(record)
 	if nErr != nil {
 		if err := ps.RemoveLicense(); err != nil {
-			ps.logger.Error("Failed to remove license from store", mlog.Err(err))
+			ps.logger.Error("Failed to remove license after saving it to the license store failed", mlog.Err(err))
 		}
 		var appErr *model.AppError
 		switch {
