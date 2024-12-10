@@ -1,4 +1,3 @@
-version: '2.4'
 services:
   mysql:
     image: "mysql/mysql-server:8.0.32"
@@ -145,10 +144,12 @@ services:
     image: "prom/prometheus:v2.46.0"
     user: root
     volumes:
-      - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
+      - "./docker/prometheus.yml:/etc/prometheus/prometheus.yml"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - mm-test
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   grafana:
     image: "grafana/grafana:10.4.2"
     volumes:
