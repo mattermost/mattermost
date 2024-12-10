@@ -33,7 +33,7 @@ type Props = {
     active?: boolean;
     areAllSectionsInactive: boolean;
     updateSection: (section: string) => void;
-    userAccessTokens: {[tokenId: string]: {description: string; id: string; is_active: boolean}};
+    userAccessTokens: {[tokenId: string]: {description: string; id: string; is_active: boolean; expires_at?: number}};
     setRequireConfirm: (isRequiredConfirm: boolean, confirmCopyToken: (confirmAction: () => void) => void) => void;
     actions: {
         getUserAccessTokensForUser: (userId: string, page: number, perPage: number) => void;
@@ -188,6 +188,20 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             {state.newToken!.token}
                         </strong>
                     )}
+                    <br/>
+                    <br/>
+                    <strong>
+                        <FormattedMessage
+                            id='user.settings.tokens.expires'
+                            defaultMessage='Expires: '
+                        />
+                        {state.newToken!.expires_at ? new Date(state.newToken!.expires_at).toLocaleString() : (
+                            <FormattedMessage
+                                id='user.settings.tokens.never'
+                                defaultMessage='Never'
+                            />
+                        )}
+                    </strong>
                 </div>
             ),
             confirmButton: (
@@ -423,7 +437,19 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         />
                         {token.id}
                     </div>
-                    <div>
+                    <div className='whitespace--nowrap overflow--ellipsis'>
+                        <FormattedMessage
+                            id='user.settings.tokens.expires'
+                            defaultMessage='Expires: '
+                        />
+                        {token.expires_at ? new Date(token.expires_at).toLocaleString() : (
+                            <FormattedMessage
+                                id='user.settings.tokens.never'
+                                defaultMessage='Never'
+                            />
+                        )}
+                    </div>
+                    <div className='setting-box__token-action'>
                         {activeLink}
                         {' - '}
                         <a
@@ -526,6 +552,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         </label>
                         <div className='col-sm-5'>
                             <input
+                                id='newTokenDescription'
                                 autoFocus={true}
                                 ref={this.newtokendescriptionRef}
                                 className='form-control'
@@ -601,6 +628,18 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                             defaultMessage='Token ID: '
                         />
                         {this.state.newToken!.id}
+                    </div>
+                    <div className='whitespace--nowrap overflow--ellipsis'>
+                        <FormattedMessage
+                            id='user.settings.tokens.expires'
+                            defaultMessage='Expires: '
+                        />
+                        {this.state.newToken!.expires_at ? new Date(this.state.newToken!.expires_at).toLocaleString() : (
+                            <FormattedMessage
+                                id='user.settings.tokens.never'
+                                defaultMessage='Never'
+                            />
+                        )}
                     </div>
                     <strong className='word-break--all'>
                         <FormattedMessage
