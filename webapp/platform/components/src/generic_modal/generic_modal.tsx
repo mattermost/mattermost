@@ -179,7 +179,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
         return (
             <Modal
                 id={this.props.id}
-                role='dialog'
+                role='none'
                 aria-label={this.props.ariaLabel}
                 aria-labelledby={this.props.ariaLabel ? undefined : 'genericModalLabel'}
                 dialogClassName={classNames(

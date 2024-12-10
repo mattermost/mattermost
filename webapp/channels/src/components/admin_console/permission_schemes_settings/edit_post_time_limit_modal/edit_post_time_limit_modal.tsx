@@ -69,7 +69,7 @@ export default function EditPostTimeLimitModal(props: Props) {
         <Modal
             dialogClassName='a11y__modal admin-modal edit-post-time-limit-modal'
             show={props.show}
-            role='dialog'
+            role='none'
             aria-labelledby='editPostTimeModalLabel'
             onHide={props.onClose}
         >

@@ -28,7 +28,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

@@ -27,7 +27,7 @@ exports[`ManageTeamsModal should match snapshot init 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

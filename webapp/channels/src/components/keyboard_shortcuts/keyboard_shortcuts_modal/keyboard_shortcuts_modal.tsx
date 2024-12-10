@@ -115,7 +115,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
             show={show}
             onHide={handleHide}
             onExited={onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='shortcutsModalLabel'
         >
             <div className='shortcuts-content'>
