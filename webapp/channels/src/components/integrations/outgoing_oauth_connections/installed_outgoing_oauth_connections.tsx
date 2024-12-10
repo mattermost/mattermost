@@ -31,7 +31,7 @@ type Props = {
 
 const InstalledOutgoingOAuthConnections = (props: Props) => {
     const [loading, setLoading] = useState(true);
-    const canManageOutgoingOAuthConnections = useSelector((state) => haveITeamPermission(state as GlobalState, props.team.id, Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS));
+    const canManageOutgoingOAuthConnections = useSelector((state: GlobalState) => haveITeamPermission(state, props.team.id, Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS));
     const enableOutgoingOAuthConnections = (useSelector(getConfig).EnableOutgoingOAuthConnections === 'true');
     const connections = useSelector(getOutgoingOAuthConnections);
 
