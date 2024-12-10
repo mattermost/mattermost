@@ -305,15 +305,15 @@ func TestExportDMChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var b bytes.Buffer
-		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
-		require.Nil(t, err)
+		appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
 
 		th2 := Setup(t).InitBasic()
 		defer th2.TearDown()
 
 		// import the exported channel
-		err, _ = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
-		require.Nil(t, err)
+		appErr, _ = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
+		require.Nil(t, appErr)
 
 		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
