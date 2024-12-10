@@ -250,7 +250,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// Step 5: Initialize channels.
 	// Depends on s.httpService, and depends on the hub to be initialized.
 	// Otherwise we run into race conditions.
-	channels, err := NewChannels(s)
+	channels, err := newChannels(s)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize channels")
 	}
@@ -1366,7 +1366,6 @@ func (s *Server) doReportUserCountForCloudSubscriptionJob() {
 	appInstance := New(ServerConnector(s.Channels()))
 
 	_, err := appInstance.SendSubscriptionHistoryEvent("")
-
 	if err != nil {
 		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
 	}
@@ -1415,7 +1414,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	//send email to admin(s)
+	// send email to admin(s)
 	for _, user := range users {
 		user := user
 		if user.Email == "" {
@@ -1435,7 +1434,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		})
 	}
 
-	//remove the license
+	// remove the license
 	s.RemoveLicense()
 }
 
@@ -1461,7 +1460,7 @@ func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
 }
 
-func (s *Server) ClusterHealthScore() int {
+func (s *Server) clusterHealthScore() int {
 	return s.platform.Cluster().HealthScore()
 }
 
@@ -1700,17 +1699,17 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 	return s.platform.Metrics()
 }
 
-// SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
+// setRemoteClusterService sets the `RemoteClusterService` to be used by the server.
 // For testing only.
-func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
+func (s *Server) setRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
 	s.serviceMux.Lock()
 	defer s.serviceMux.Unlock()
 	s.remoteClusterService = remoteClusterService
 }
 
-// SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
-func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+func (s *Server) setSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
 	s.serviceMux.Lock()
 	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService

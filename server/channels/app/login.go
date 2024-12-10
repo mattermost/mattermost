@@ -55,7 +55,7 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 		}
 	}()
 
-	if password == "" && !IsCWSLogin(a, cwsToken) {
+	if password == "" && !isCWSLogin(a, cwsToken) {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -66,7 +66,7 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
-	if IsCWSLogin(a, cwsToken) {
+	if isCWSLogin(a, cwsToken) {
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
 		}
@@ -349,6 +349,6 @@ func GetProtocol(r *http.Request) string {
 	return "http"
 }
 
-func IsCWSLogin(a *App, token string) bool {
+func isCWSLogin(a *App, token string) bool {
 	return a.License().IsCloud() && token != ""
 }
