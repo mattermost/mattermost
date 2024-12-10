@@ -50,6 +50,8 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
+type PostOptions func(*model.Post)
+
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
 	updateConfig func(*model.Config), options []Option, tb testing.TB) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
@@ -445,7 +447,7 @@ func (th *TestHelper) CreateGroupChannel(c request.CTX, user1 *model.User, user2
 	return channel
 }
 
-func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
+func (th *TestHelper) CreatePost(channel *model.Channel, postOptions ...PostOptions) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
@@ -453,6 +455,10 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 		ChannelId: channel.Id,
 		Message:   "message_" + id,
 		CreateAt:  model.GetMillis() - 10000,
+	}
+
+	for _, option := range postOptions {
+		option(post)
 	}
 
 	var err *model.AppError
