@@ -4,6 +4,10 @@
 package sqlstore
 
 import (
+	"context"
+	"fmt"
+	"strings"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -543,4 +547,53 @@ func CheckRelationalIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckR
 	checkUsersIntegrity(ss, results)
 	mlog.Info("Done with relational integrity checks")
 	close(results)
+}
+
+func GetAllValidUserIDsFromDMChannels(ss *SqlStore) ([]*model.User, error) {
+	records := []model.OrphanedRecord{}
+	dirtyIDs := []string{}
+
+	err := ss.GetMasterX().SelectBuilder(&records, ss.getQueryBuilder().
+		Select().
+		Column("CT.name AS ParentId").
+		From("Channels AS CT").
+		Where(sq.Eq{"CT.Type": []model.ChannelType{model.ChannelTypeDirect}}))
+	if err != nil {
+		return nil, err
+	}
+
+	for k := range records {
+		if records[k].ParentId != nil {
+			dirtyIDs = append(dirtyIDs, *records[k].ParentId)
+			fmt.Println("ID: ", records[k].ParentId)
+		}
+	}
+
+	userIDs := []string{}
+	for _, v := range dirtyIDs {
+		temp := strings.Split(v, "__")
+		userIDs = append(userIDs, temp[1])
+	}
+
+	users, err := ss.User().GetProfileByIds(context.Background(), userIDs, nil, false)
+	if err != nil {
+		mlog.Error("There is an issue with fetching valid users IDs")
+		return nil, err
+	}
+
+	invalidIDs := make([]string, 0)
+	validIDSet := make(map[string]bool)
+	for _, v := range users {
+		validIDSet[v.Id] = true
+	}
+
+	for _, v := range userIDs {
+		if ok := validIDSet[v]; !ok {
+			invalidIDs = append(invalidIDs, v)
+		}
+	}
+	if len(invalidIDs) > 0 {
+		fmt.Println("Here are the invalid channel names:", invalidIDs)
+	}
+	return users, nil
 }
