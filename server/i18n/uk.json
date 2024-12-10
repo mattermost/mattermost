@@ -385,15 +385,15 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Встановити статус на \"Відсутній\""
+    "translation": "Встановити статус на \"Не на місці\""
   },
   {
     "id": "api.command_away.name",
-    "translation": "відсутній"
+    "translation": "не на місці"
   },
   {
     "id": "api.command_away.success",
-    "translation": "Зараз ваш статус \"Відсутній\""
+    "translation": "Зараз ваш статус \"Не на місці\""
   },
   {
     "id": "api.command_channel_header.channel.app_error",
