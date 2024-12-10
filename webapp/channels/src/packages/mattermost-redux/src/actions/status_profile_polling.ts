@@ -15,7 +15,7 @@ import {
     maxUserIdsPerStatusesRequest,
 } from 'mattermost-redux/actions/users';
 import {getCurrentUser, getCurrentUserId, getIsUserStatusesConfigEnabled, getUsers} from 'mattermost-redux/selectors/entities/common';
-import {getUsersStatusAndProfileFetchingPollInterval} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, getUsersStatusAndProfileFetchingPollInterval} from 'mattermost-redux/selectors/entities/general';
 import {getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {BackgroundDataLoader} from 'mattermost-redux/utils/data_loader';
@@ -171,7 +171,7 @@ export function batchFetchStatusesProfilesGroupsFromPosts(postsArrayOrMap: Post[
             }
         });
 
-        if (mentionedUsernamesAndGroupsInPosts.size > 0) {
+        if (mentionedUsernamesAndGroupsInPosts.size > 0 && getLicense(state).IsLicensed === 'true') {
             dispatch(getUsersFromMentionedUsernamesAndGroups(Array.from(mentionedUsernamesAndGroupsInPosts)));
         }
 
