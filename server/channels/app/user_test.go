@@ -47,7 +47,8 @@ func TestCreateOAuthUser(t *testing.T) {
 
 		require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
 
-		th.App.PermanentDeleteUser(th.Context, user)
+		appErr := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, appErr)
 	})
 
 	t.Run("user exists, update authdata successfully", func(t *testing.T) {
@@ -137,7 +138,10 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	defer th.TearDown()
 
 	user := th.CreateUser()
-	defer th.App.PermanentDeleteUser(th.Context, user)
+	defer func() {
+		appErr := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, appErr)
+	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
@@ -152,7 +156,10 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 
 	t.Run("Restricted Domains must be ignored for guest users", func(t *testing.T) {
 		guest := th.CreateGuest()
-		defer th.App.PermanentDeleteUser(th.Context, guest)
+		defer func() {
+			appErr := th.App.PermanentDeleteUser(th.Context, guest)
+			require.Nil(t, appErr)
+		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
@@ -166,7 +173,10 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 
 	t.Run("Guest users should be affected by guest restricted domains", func(t *testing.T) {
 		guest := th.CreateGuest()
-		defer th.App.PermanentDeleteUser(th.Context, guest)
+		defer func() {
+			appErr := th.App.PermanentDeleteUser(th.Context, guest)
+			require.Nil(t, appErr)
+		}()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GuestAccountsSettings.RestrictCreationToDomains = "foo.com"
@@ -231,7 +241,10 @@ func TestUpdateUserMissingFields(t *testing.T) {
 	defer th.TearDown()
 
 	user := th.CreateUser()
-	defer th.App.PermanentDeleteUser(th.Context, user)
+	defer func() {
+		appErr := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, appErr)
+	}()
 
 	tests := map[string]struct {
 		input  *model.User
@@ -353,14 +366,18 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		require.Nil(t, appErr)
+	}()
 
 	// Automatic deactivation disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
 	})
 
-	th.App.UpdateActive(th.Context, th.BasicUser, false)
+	_, appErr := th.App.UpdateActive(th.Context, th.BasicUser, false)
+	require.Nil(t, appErr)
 
 	retbot1, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
@@ -369,14 +386,16 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	require.Nil(t, err)
 	require.Zero(t, user1.DeleteAt)
 
-	th.App.UpdateActive(th.Context, th.BasicUser, true)
+	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser, true)
+	require.Nil(t, appErr)
 
 	// Automatic deactivation enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true
 	})
 
-	th.App.UpdateActive(th.Context, th.BasicUser, false)
+	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser, false)
+	require.Nil(t, appErr)
 
 	retbot2, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
@@ -385,7 +404,8 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	require.Nil(t, err)
 	require.NotZero(t, user2.DeleteAt)
 
-	th.App.UpdateActive(th.Context, th.BasicUser, true)
+	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser, true)
+	require.Nil(t, appErr)
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
@@ -417,7 +437,8 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+			require.Nil(t, appErr)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Username, user.Username, "user's username is not updated")
@@ -430,7 +451,8 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+			require.Nil(t, appErr)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Username, user.Username, "user's username is updated though there already exists another user with the same username")
@@ -444,7 +466,8 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+			require.Nil(t, appErr)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Email, user.Email, "user's email is not updated")
@@ -459,7 +482,8 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+			require.Nil(t, appErr)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Email, user.Email, "user's email is updated though there already exists another user with the same email")
@@ -472,7 +496,8 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		data := bytes.NewReader(gitlabUser)
 
 		user = getUserFromDB(th.App, user.Id, t)
-		th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+		appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+		require.Nil(t, appErr)
 		user = getUserFromDB(th.App, user.Id, t)
 
 		require.Equal(t, "Updated", user.FirstName, "user's first name is not updated")
@@ -484,7 +509,8 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		data := bytes.NewReader(gitlabUser)
 
 		user = getUserFromDB(th.App, user.Id, t)
-		th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+		appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
+		require.Nil(t, appErr)
 		user = getUserFromDB(th.App, user.Id, t)
 
 		require.Equal(t, "Lastname", user.LastName, "user's last name is not updated")
@@ -886,7 +912,10 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJSON(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
-		defer th.App.DeleteToken(token)
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
 		_, err := th.App.CreateUserWithToken(th.Context, &user, token)
 		require.NotNil(t, err, "Should fail on bad token type")
 	})
@@ -910,7 +939,10 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
-		defer th.App.DeleteToken(token)
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
 		_, err := th.App.CreateUserWithToken(th.Context, &user, token)
 		require.NotNil(t, err, "Should fail on expired token")
 	})
@@ -921,7 +953,10 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJSON(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
-		defer th.App.DeleteToken(token)
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
 		_, err := th.App.CreateUserWithToken(th.Context, &user, token)
 		require.NotNil(t, err, "Should fail on bad team id")
 	})
@@ -1081,7 +1116,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	bots2 := []*model.Bot{}
 
 	sqlStore := mainHelper.GetSQLStore()
-	err1 := sqlStore.GetMasterX().Select(&bots1, "SELECT * FROM Bots")
+	err1 := sqlStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
 	assert.NoError(t, err1)
 	assert.Equal(t, 1, len(bots1))
 
@@ -1092,7 +1127,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err = th.App.PermanentDeleteUser(th.Context, retUser1)
 	assert.Nil(t, err)
 
-	err1 = sqlStore.GetMasterX().Select(&bots2, "SELECT * FROM Bots")
+	err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
 	assert.NoError(t, err1)
 	assert.Equal(t, 0, len(bots2))
 
@@ -1403,7 +1438,8 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	th.LinkUserToTeam(user1, team1)
 	th.LinkUserToTeam(user1, team2)
 
-	th.App.UpdateTeamMemberRoles(th.Context, team1.Id, user1.Id, "team_user team_admin")
+	_, appErr := th.App.UpdateTeamMemberRoles(th.Context, team1.Id, user1.Id, "team_user team_admin")
+	require.Nil(t, appErr)
 
 	team1channel1 := th.CreateChannel(th.Context, team1)
 	team1channel2 := th.CreateChannel(th.Context, team1)
@@ -1420,9 +1456,12 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	team2townsquare, err := th.App.GetChannelByName(th.Context, "town-square", team2.Id, false)
 	require.Nil(t, err)
 
-	th.App.AddUserToChannel(th.Context, user1, team1channel1, false)
-	th.App.AddUserToChannel(th.Context, user1, team1channel2, false)
-	th.App.AddUserToChannel(th.Context, user1, team2channel1, false)
+	_, appErr = th.App.AddUserToChannel(th.Context, user1, team1channel1, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, user1, team1channel2, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, user1, team2channel1, false)
+	require.Nil(t, appErr)
 
 	addPermission := func(role *model.Role, permission string) *model.AppError {
 		newPermissions := append(role.Permissions, permission)
@@ -1455,9 +1494,15 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PermissionViewMembers.Id))
-		defer addPermission(systemUserRole, model.PermissionViewMembers.Id)
+		defer func() {
+			appErr := addPermission(systemUserRole, model.PermissionViewMembers.Id)
+			require.Nil(t, appErr)
+		}()
 		require.Nil(t, addPermission(teamUserRole, model.PermissionViewMembers.Id))
-		defer removePermission(teamUserRole, model.PermissionViewMembers.Id)
+		defer func() {
+			appErr := removePermission(teamUserRole, model.PermissionViewMembers.Id)
+			require.Nil(t, appErr)
+		}()
 
 		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
@@ -1473,7 +1518,10 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
 		require.Nil(t, err)
 		require.Nil(t, removePermission(systemUserRole, model.PermissionViewMembers.Id))
-		defer addPermission(systemUserRole, model.PermissionViewMembers.Id)
+		defer func() {
+			appErr := addPermission(systemUserRole, model.PermissionViewMembers.Id)
+			require.Nil(t, appErr)
+		}()
 
 		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
@@ -1491,9 +1539,15 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PermissionViewMembers.Id))
-		defer addPermission(systemUserRole, model.PermissionViewMembers.Id)
+		defer func() {
+			appErr := addPermission(systemUserRole, model.PermissionViewMembers.Id)
+			require.Nil(t, appErr)
+		}()
 		require.Nil(t, addPermission(teamAdminRole, model.PermissionViewMembers.Id))
-		defer removePermission(teamAdminRole, model.PermissionViewMembers.Id)
+		defer func() {
+			appErr := removePermission(teamAdminRole, model.PermissionViewMembers.Id)
+			require.Nil(t, appErr)
+		}()
 
 		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
@@ -1785,7 +1839,8 @@ func TestDemoteUserToGuest(t *testing.T) {
 		team := th.CreateTeam()
 
 		th.LinkUserToTeam(user, team)
-		th.App.UpdateTeamMemberRoles(th.Context, team.Id, user.Id, "team_user team_admin")
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, team.Id, user.Id, "team_user team_admin")
+		require.Nil(t, appErr)
 
 		teamMember, err := th.App.GetTeamMember(th.Context, team.Id, user.Id)
 		require.Nil(t, err)
@@ -1796,7 +1851,8 @@ func TestDemoteUserToGuest(t *testing.T) {
 		channel := th.CreateChannel(th.Context, team)
 
 		th.AddUserToChannel(user, channel)
-		th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, user.Id, false, true, true)
+		_, appErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, user.Id, false, true, true)
+		require.Nil(t, appErr)
 
 		channelMember, err := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 		assert.Nil(t, err)
@@ -1932,7 +1988,10 @@ func TestPatchUser(t *testing.T) {
 	defer th.TearDown()
 
 	testUser := th.CreateUser()
-	defer th.App.PermanentDeleteUser(th.Context, testUser)
+	defer func() {
+		appErr := th.App.PermanentDeleteUser(th.Context, testUser)
+		require.Nil(t, appErr)
+	}()
 
 	t.Run("Patch with a username already exists", func(t *testing.T) {
 		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
@@ -1999,7 +2058,10 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		defer th.ConfigStore.SetReadOnlyFF(true)
 
 		testUser := th.CreateUser()
-		defer th.App.PermanentDeleteUser(th.Context, testUser)
+		defer func() {
+			appErr := th.App.PermanentDeleteUser(th.Context, testUser)
+			require.Nil(t, appErr)
+		}()
 
 		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)
@@ -2021,7 +2083,10 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		th.Server.platform.SetConfigReadOnlyFF(false)
 		defer th.Server.platform.SetConfigReadOnlyFF(true)
 		testUser := th.CreateGuest()
-		defer th.App.PermanentDeleteUser(th.Context, testUser)
+		defer func() {
+			appErr := th.App.PermanentDeleteUser(th.Context, testUser)
+			require.Nil(t, appErr)
+		}()
 
 		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)

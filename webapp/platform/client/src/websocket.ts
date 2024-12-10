@@ -68,6 +68,7 @@ export default class WebSocketClient {
     private closeListeners = new Set<CloseListener>();
 
     private connectionId: string | null;
+    private serverHostname: string | null;
     private postedAck: boolean;
 
     constructor() {
@@ -78,6 +79,7 @@ export default class WebSocketClient {
         this.connectFailCount = 0;
         this.responseCallbacks = {};
         this.connectionId = '';
+        this.serverHostname = '';
         this.postedAck = false;
     }
 
@@ -210,6 +212,9 @@ export default class WebSocketClient {
                     // If it's a fresh connection, we have to set the connectionId regardless.
                     // And if it's an existing connection, setting it again is harmless, and keeps the code simple.
                     this.connectionId = msg.data.connection_id;
+
+                    // Also update the server hostname
+                    this.serverHostname = msg.data.server_hostname;
                 }
 
                 // Now we check for sequence number, and if it does not match,
