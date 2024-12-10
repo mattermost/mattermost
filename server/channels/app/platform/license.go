@@ -202,7 +202,7 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	sysVar.Value = license.Id
 	if err := ps.Store.System().SaveOrUpdate(sysVar); err != nil {
 		if err := ps.RemoveLicense(); err != nil {
-			ps.logger.Error("Failed to remove license from store", mlog.Err(err))
+			ps.logger.Error("Failed to remove license after saving it to the system store failed", mlog.Err(err))
 		}
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError)
 	}
