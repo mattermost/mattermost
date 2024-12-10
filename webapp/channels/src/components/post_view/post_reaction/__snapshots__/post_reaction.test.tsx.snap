@@ -17,9 +17,7 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
     target={[MockFunction]}
     topOffset={-7}
   />
-  <WithTooltip
-    id="reaction-icon-tooltip"
-    placement="top"
+  <Memo(WithTooltip)
     title={
       Object {
         "defaultMessage": "Add Reaction",
@@ -38,6 +36,6 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
         className="icon icon--small"
       />
     </button>
-  </WithTooltip>
+  </Memo(WithTooltip)>
 </Memo(ChannelPermissionGate)>
 `;
