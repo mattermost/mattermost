@@ -50,7 +50,7 @@ type Attrs = HTMLAttributes<HTMLElement>;
 const isURLForUser = (url: string) => url.startsWith(Client4.getUsersRoute());
 const replaceURLWithDefaultImageURL = (url: string) => url.replace(/\?_=(\w+)/, '/default');
 
-const Avatar = forwardRef<HTMLImageElement | HTMLDivElement, Props & Attrs>(({
+const Avatar = forwardRef<HTMLElement, Props & Attrs>(({
     url,
     username,
     size = 'md',
