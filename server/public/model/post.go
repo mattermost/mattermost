@@ -936,6 +936,10 @@ func (o *Post) IsUrgent() bool {
 		return false
 	}
 
+	if postPriority.Priority == nil {
+		return false
+	}
+
 	return *postPriority.Priority == PostPriorityUrgent
 }
 

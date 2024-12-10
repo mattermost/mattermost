@@ -2300,10 +2300,6 @@
     "translation": "Należy uzupełnić trigger_words lub channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nie można odszyfrować wieloczęściowego ładunku wchodzącego webhooka."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Nie można zaktualizować webhooków pomiędzy zespołami."
   },
@@ -3069,31 +3065,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Pracownik agregatora Elasticsearch nie utworzył zadania indeksowania"
+    "translation": "{{.Backend}} pracownik agregatora nie mógł utworzyć zadania indeksowania"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Pracownik agregatora Elasticsearch nie usunął indeksów"
+    "translation": "{{.Backend}} pracownik agregatora nie usunął indeksów"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Pracownik agregatora Elasticsearch nie uzyskał indeksów"
+    "translation": "{{.Backend}} pracownik agregatora nie mógł pobrać indeksów"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Uruchomienie agregatora Elasticsearch nie powiodło się z powodu niepowodzenia zadania indeksowania"
+    "translation": "{{.Backend}} worker agregatora nie powiódł się z powodu niepowodzenia zadania indeksowania"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Konfigurowanie Klienta Elasticsearch Nie Powiodło się"
+    "translation": "Konfiguracja klienta {{.Backend}} nie powiodła się"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Nie udało się utworzyć indeksu Elasticsearch"
+    "translation": "Nie udało się usunąć indeksu {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Nie udało się pobrać indeksu ElasticSearch"
+    "translation": "Nie udało się pobrać indeksów {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -4617,11 +4613,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Nie można znaleźć polecenia."
+    "translation": "Nie można znaleźć polecenia {{.command_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Nie można przeanalizować danych przychodzących."
+    "translation": "Nie można przeanalizować danych przychodzących dla webhooka {{.hook_id}}."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4633,7 +4629,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Ten webhook nie może publikować na żądanym kanale."
+    "translation": "Ten webhook nie może wysyłać wiadomości na żądany kanał {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4649,7 +4645,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Niewłaściwe uprawnienia do kanału."
+    "translation": "Użytkownik {{.user}} nie ma odpowiednich uprawnień do kanału {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4661,7 +4657,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Nie odnaleziono użytkownika."
+    "translation": "Nie można znaleźć użytkownika {{.user}}"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -4997,15 +4993,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla użytkowników"
+    "translation": "Nie udało się utworzyć szablonu {{.Backend}} dla użytkowników"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla wiadomości"
+    "translation": "Nie udało się utworzyć szablonu {{.Backend}} dla postów"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla kanałów"
+    "translation": "Nie udało się utworzyć szablonu {{.Backend}} dla kanałów"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -5377,11 +5373,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Napotkaliśmy błąd podczas wyszukiwania kanału."
+    "translation": "Napotkaliśmy błąd podczas wyszukiwania kanału {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Nie można znaleźć istniejącego kanału."
+    "translation": "Nie można znaleźć istniejącego kanału {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -7985,7 +7981,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla plików"
+    "translation": "Nie udało się utworzyć szablonu {{.Backend}} dla plików"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -8949,19 +8945,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Nie można otworzyć pliku klucza klienta dla Elasticsearch"
+    "translation": "Nie można otworzyć pliku klucza klienta dla {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Nie można otworzyć pliku z certyfikatem klienta dla Elasticsearch"
+    "translation": "Nie można otworzyć pliku certyfikatu klienta dla {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Dekodowanie certyfikatu klienta dla Elasticsearch nie powiodło się"
+    "translation": "Dekodowanie certyfikatu klienta dla {{.Backend}} nie powiodło się"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Nie można otworzyć pliku CA dla Elasticsearch"
+    "translation": "Nie można otworzyć pliku CA dla {{.Backend}}"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -10338,5 +10334,105 @@
   {
     "id": "app.notifications.send_test_message.errors.no_user",
     "translation": "Nie można uzyskać użytkownika"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Nie można wyszukać początku danych GIF."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanał jest zarchiwizowany"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Nie znaleziono kanału"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Nieprawidłowa treść posta"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Nie jesteś członkiem kanału"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Brak uprawnień do publikowania w kanale"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Wątek został usunięty"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Nie można wysłać wiadomości"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Nieznany błąd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Konto użytkownika zostało usunięte"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Użytkownik nie istnieje"
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Nie można usunąć zaplanowanych postów dla użytkownika."
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "few": "Nie udało się wysłać {{.Count}} zaplanowanych postów.",
+      "many": "Nie udało się wysłać {{.Count}} zaplanowanych postów.",
+      "one": "Nie udało się wysłać {{.Count}} zaplanowanego posta."
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Kanał prywatny"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Nieznany Kanał"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "- {{.Count}} w kanałach {{.ChannelName}}. Powód: {{.ErrorReason}}",
+      "many": "- {{.Count}} w kanałach {{.ChannelName}}. Powód: {{.ErrorReason}}",
+      "one": "- {{.Count}} w kanale {{.ChannelName}}. Powód: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Nieprawidłowa klasa pamięci {{.Value}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Nie udało się zbuforować postu po deduplikacji klienta powtarzającego to samo żądanie."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Nie można zresetować pozycji odczytu do początku pakietu wtyczek."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Nie udało się obsłużyć polecenia webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Nie udało się zdekodować ładunku mediów typu {{.media_type}} dla przychodzącego webhooka {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Nie udało się obsłużyć ładunku mediów typu {{.media_type}} dla przychodzącego webhooka {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Nie udało się przeanalizować przychodzącego webhooka {{.hook_id}}."
   }
 ]
