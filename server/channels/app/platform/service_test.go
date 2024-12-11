@@ -34,7 +34,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Read Replicas with no License", func(t *testing.T) {
 		configStore := config.NewTestMemoryStore()
-		configStore.Set(&cfg)
+		_, _, err := configStore.Set(&cfg)
+		require.NoError(t, err)
 		ps, err := New(
 			ServiceConfig{},
 			ConfigStore(configStore),
@@ -46,7 +47,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Read Replicas With License", func(t *testing.T) {
 		configStore := config.NewTestMemoryStore()
-		configStore.Set(&cfg)
+		_, _, err := configStore.Set(&cfg)
+		require.NoError(t, err)
 		ps, err := New(
 			ServiceConfig{},
 			ConfigStore(configStore),
@@ -62,7 +64,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Search Replicas with no License", func(t *testing.T) {
 		configStore := config.NewTestMemoryStore()
-		configStore.Set(&cfg)
+		_, _, err := configStore.Set(&cfg)
+		require.NoError(t, err)
 		ps, err := New(
 			ServiceConfig{},
 			ConfigStore(configStore),
@@ -74,7 +77,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Search Replicas With License", func(t *testing.T) {
 		configStore := config.NewTestMemoryStore()
-		configStore.Set(&cfg)
+		_, _, err := configStore.Set(&cfg)
+		require.NoError(t, err)
 		ps, err := New(
 			ServiceConfig{},
 			ConfigStore(configStore),
@@ -105,7 +109,8 @@ func TestMetrics(t *testing.T) {
 		// we handle it on config save step
 		cfg := th.Service.Config().Clone()
 		cfg.MetricsSettings.Enable = model.NewPointer(true)
-		th.Service.SaveConfig(cfg, false)
+		_, _, appErr := th.Service.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
 
 		require.NotNil(t, th.Service.metrics)
 		metricsAddr := strings.Replace(th.Service.metrics.listenAddr, "[::]", "http://localhost", 1)
@@ -116,7 +121,8 @@ func TestMetrics(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		cfg.MetricsSettings.Enable = model.NewPointer(false)
-		th.Service.SaveConfig(cfg, false)
+		_, _, appErr = th.Service.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
 
 		_, err = http.Get(metricsAddr)
 		require.Error(t, err)
