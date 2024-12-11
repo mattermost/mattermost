@@ -11,6 +11,8 @@ import Observable from 'zen-observable';
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import configureServiceStore from 'mattermost-redux/store';
 
+import {DeepPartial} from '@mattermost/types/utilities';
+
 import {cleanLocalStorage} from 'actions/storage';
 import {clearUserCookie} from 'actions/views/cookie';
 import appReducers from 'reducers';
@@ -27,10 +29,6 @@ declare global {
         Observable: typeof Observable;
     }
 }
-
-type DeepPartial<T> = T extends object ? {
-    [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
 
 window.Observable = Observable;
 
