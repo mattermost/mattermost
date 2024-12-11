@@ -15,6 +15,8 @@ import {getHistory} from 'utils/browser_history';
 
 import type {GlobalState} from 'types/store';
 
+const getState = jest.mocked(reduxStore.getState)
+
 jest.mock('actions/views/rhs', () => ({
     closeMenu: jest.fn(),
     closeRightHandSide: jest.fn(),
@@ -31,7 +33,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 jest.mock('stores/redux_store', () => {
     return {
         dispatch: jest.fn(),
-        getState: jest.fn() as jest.MockedFunction<() => GlobalState>,
+        getState: jest.fn(),
     };
 });
 
@@ -66,7 +68,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            (reduxStore.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/select_team');
@@ -140,7 +142,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            (reduxStore.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team2/channels/channel-in-team-2');
@@ -213,7 +215,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            (reduxStore.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team2/channels/channel-in-team-2');
@@ -285,7 +287,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            (reduxStore.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/select_team');
@@ -317,7 +319,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            (reduxStore.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).not.toHaveBeenCalled();
@@ -410,7 +412,7 @@ describe('actions/global_actions', () => {
                     },
                 },
             });
-            (reduxStore.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
             LocalStorageStore.setPreviousTeamId(userId, teamId);
             LocalStorageStore.setPreviousChannelName(userId, teamId, directChannelId);
 
@@ -507,7 +509,7 @@ describe('actions/global_actions', () => {
                     },
                 },
             });
-            (reduxStore.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
             LocalStorageStore.setPreviousTeamId(userId, teamId);
             LocalStorageStore.setPreviousChannelName(userId, teamId, groupChannelId);
 
@@ -569,7 +571,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            (reduxStore.getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+            getState.mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team1/channels/channel-in-team-1');
