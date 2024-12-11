@@ -92,7 +92,7 @@ describe('SuggestionBox', () => {
         );
 
         // Start with no suggestions rendered
-        expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
         // Typing some text should cause a suggestion to be shown
         userEvent.click(screen.getByPlaceholderText('test input'));
@@ -103,9 +103,9 @@ describe('SuggestionBox', () => {
             expect(providerSpy).toHaveBeenCalledTimes(1);
         });
 
-        expect(screen.queryByRole('list')).toBeVisible();
+        expect(screen.queryByRole('listbox')).toBeVisible();
 
-        expect(screen.queryByRole('list')).toBeVisible();
+        expect(screen.queryByRole('listbox')).toBeVisible();
         expect(screen.getByText('Suggestion: testtest')).toBeVisible();
 
         // Typing more text should cause the suggestion to be updaetd
@@ -115,13 +115,13 @@ describe('SuggestionBox', () => {
             expect(providerSpy).toHaveBeenCalledTimes(2);
         });
 
-        expect(screen.queryByRole('list')).toBeVisible();
+        expect(screen.queryByRole('listbox')).toBeVisible();
         expect(screen.getByText('Suggestion: testwordstestwords')).toBeVisible();
 
         // Clearing the textbox hides all suggestions
         await userEvent.clear(screen.getByPlaceholderText('test input'));
 
-        expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
     test('should hide suggestions on pressing escape', async () => {
@@ -135,20 +135,20 @@ describe('SuggestionBox', () => {
         );
 
         // Start with no suggestions rendered
-        expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
         // Typing some text should cause a suggestion to be shown
         userEvent.click(screen.getByPlaceholderText('test input'));
         await userEvent.keyboard('test');
 
         await waitFor(() => {
-            expect(screen.getByRole('list')).toBeVisible();
+            expect(screen.getByRole('listbox')).toBeVisible();
         });
 
         // Pressing escape hides all suggestions
         await userEvent.keyboard('{escape}');
 
-        expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
     test('should autocomplete suggestions by pressing enter', async () => {
@@ -166,7 +166,7 @@ describe('SuggestionBox', () => {
         await userEvent.keyboard('test');
 
         await waitFor(() => {
-            expect(screen.queryByRole('list')).toBeVisible();
+            expect(screen.queryByRole('listbox')).toBeVisible();
             expect(screen.getByText('Suggestion: testtest')).toBeVisible();
         });
 
@@ -177,7 +177,7 @@ describe('SuggestionBox', () => {
             expect(screen.getByPlaceholderText('test input')).toHaveValue('testtest ');
         });
 
-        expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
     test('MM-57320 completing text with enter and calling resultCallback twice should not erase text following caret', async () => {
@@ -203,14 +203,14 @@ describe('SuggestionBox', () => {
         onSuggestionsReceived.mockClear();
 
         expect(screen.getByPlaceholderText('test input')).toHaveValue('This is important');
-        expect(screen.getByRole('list')).toBeVisible();
+        expect(screen.getByRole('listbox')).toBeVisible();
         expect(screen.getByText('Suggestion: This is importantThis is important')).toBeVisible();
 
         // Move the caret back to the start of the textbox and then use escape to clear the suggestions because
         // we don't support moving the caret with the autocomplete open yet
         await userEvent.keyboard('{home}{escape}');
 
-        expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
         // Type a space and then start typing something again to show results
         onSuggestionsReceived.mockClear();
@@ -221,7 +221,7 @@ describe('SuggestionBox', () => {
             expect(onSuggestionsReceived).toHaveBeenCalledTimes(2);
         });
 
-        expect(screen.getByRole('list')).toBeVisible();
+        expect(screen.getByRole('listbox')).toBeVisible();
         expect(screen.getByText('Suggestion: @us@us')).toBeVisible();
 
         onSuggestionsReceived.mockClear();
