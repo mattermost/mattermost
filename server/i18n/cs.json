@@ -8166,5 +8166,13 @@
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
     "translation": "Chyba nebylo poskytnuto jméno organizace pro svépomocné nasazení."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Nelze vytvořit skupinový kanál se vzdálenými uživateli"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Nelze vytvořit přímý kanál se vzdáleným uživatelem"
   }
 ]

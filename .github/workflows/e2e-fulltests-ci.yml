@@ -242,7 +242,7 @@ jobs:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
-      testcase_failure_fatal: false
+      testcase_failure_fatal: true
       run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
@@ -275,7 +275,7 @@ jobs:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
       workers_number: "1"
-      testcase_failure_fatal: false # NB: do not enable until Playwright test stability is reached
+      testcase_failure_fatal: true
       run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
