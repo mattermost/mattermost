@@ -202,6 +202,12 @@ describe('custom plugin sections and settings', () => {
                                                 type: 'bool' as const,
                                                 help_text: 'Custom Section Bool Setting Help Text',
                                             },
+                                            {
+                                                key: 'customsection2customsetting',
+                                                label: 'Custom Section Custom Setting',
+                                                type: 'custom' as const,
+                                                help_text: 'Custom Section Custom Setting Help Text',
+                                            },
                                         ],
                                         custom: true,
                                         fallback: true,
@@ -240,6 +246,8 @@ describe('custom plugin sections and settings', () => {
         expect(screen.queryByText('Custom Section 2')).toBeInTheDocument();
         expect(screen.getByText('Custom Section Number Setting Help Text')).toBeInTheDocument();
         expect(screen.getByText('Custom Section Bool Setting Help Text')).toBeInTheDocument();
+        expect(screen.queryByText('Custom Section Custom Setting Help Text')).not.toBeInTheDocument();
+        expect(screen.getByText('In order to view this setting, enable the plugin and click Save.')).toBeInTheDocument();
     });
 
     it('custom sections with plugin enabled should render as expected', () => {
