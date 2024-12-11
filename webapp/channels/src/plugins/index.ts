@@ -9,7 +9,6 @@ import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
 import {trackPluginInitialization} from 'actions/telemetry_actions';
@@ -21,7 +20,7 @@ import PluginRegistry from 'plugins/registry';
 import {ActionTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
-import type {GlobalState} from 'types/store';
+import type {GlobalState, ActionFuncAsync} from 'types/store';
 
 import {removeWebappPlugin} from './actions';
 

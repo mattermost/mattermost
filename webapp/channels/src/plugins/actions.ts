@@ -3,14 +3,12 @@
 
 import type {PluginManifest} from '@mattermost/types/plugins';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import {hideRHSPlugin as hideRHSPluginAction} from 'actions/views/rhs';
 import {getPluggableId} from 'selectors/rhs';
 
 import {ActionTypes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {GlobalState, ActionFunc} from 'types/store';
 
 export const removeWebappPlugin = (manifest: PluginManifest): ActionFunc<boolean, GlobalState> => {
     return (dispatch) => {
