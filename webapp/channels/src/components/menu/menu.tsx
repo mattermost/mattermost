@@ -272,7 +272,7 @@ export function Menu(props: Props) {
                     {props.menuHeader}
                     <MuiMenuList
                         id={props.menu.id}
-                        aria-label={props.menu?.['aria-label'] ?? ''}
+                        aria-label={props.menu?.['aria-label']}
                         autoFocusItem={true}
                         style={{
                             width: props.menu.width || 'inherit',

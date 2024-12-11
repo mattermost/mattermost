@@ -43,11 +43,11 @@ const usePriority = (
     });
 
     const hasPrioritySet = isPostPriorityEnabled &&
-        draft.metadata?.priority &&
-        (
-            draft.metadata.priority.priority ||
-            draft.metadata.priority.requested_ack
-        );
+    draft.metadata?.priority &&
+    (
+        draft.metadata.priority.priority ||
+        draft.metadata.priority.requested_ack
+    );
 
     const specialMentions = useMemo(() => {
         return specialMentionsInText(draft.message);
@@ -109,7 +109,7 @@ const usePriority = (
         handlePostPriorityApply();
     }, [handlePostPriorityApply]);
 
-    const showPersistNotificationModal = useCallback((message: string, specialMentions: { [key: string]: boolean }, channelType: Channel['type'], onConfirm: () => void) => {
+    const showPersistNotificationModal = useCallback((message: string, specialMentions: {[key: string]: boolean}, channelType: Channel['type'], onConfirm: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.PERSIST_NOTIFICATION_CONFIRM_MODAL,
             dialogType: PersistNotificationConfirmModal,

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MenuProps as MuiMenuProps} from '@mui/material/Menu';
 import MuiMenu from '@mui/material/Menu';
+import type {MenuProps as MuiMenuProps} from '@mui/material/Menu';
 import Popover from '@mui/material/Popover';
 import type {PopoverProps as MuiPopoverProps} from '@mui/material/Popover';
 import {styled} from '@mui/material/styles';

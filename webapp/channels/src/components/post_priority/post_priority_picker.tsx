@@ -39,12 +39,13 @@ function PostPriorityPicker({
     disabled,
 }: Props) {
     const { formatMessage } = useIntl();
-    const theme = useSelector(getTheme);
+
     const [pickerOpen, setPickerOpen] = useState(false);
     const [priority, setPriority] = useState<PostPriority | ''>(settings?.priority || '');
     const [requestedAck, setRequestedAck] = useState<boolean>(settings?.requested_ack || false);
     const [persistentNotifications, setPersistentNotifications] = useState<boolean>(settings?.persistent_notifications || false);
 
+    const theme = useSelector(getTheme);
     const postAcknowledgementsEnabled = useSelector(isPostAcknowledgementsEnabled);
     const persistentNotificationsEnabled = useSelector(isPersistentNotificationsEnabled) && postAcknowledgementsEnabled;
     const interval = useSelector(getPersistentNotificationIntervalMinutes);
@@ -254,7 +255,6 @@ function PostPriorityPicker({
             }}
             menuButtonTooltip={{
                 text: messagePriority,
-
             }}
             menuHeader={
                 <div>
