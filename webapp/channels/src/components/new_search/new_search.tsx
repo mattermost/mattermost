@@ -168,6 +168,10 @@ const NewSearch = (): JSX.Element => {
 
     const openSearchBoxOnKeyPress = useCallback(
         (e: React.KeyboardEvent) => {
+            if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta') {
+                return;
+            }
+
             if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
                 return;
             }
@@ -214,7 +218,7 @@ const NewSearch = (): JSX.Element => {
             onKeyDown={openSearchBoxOnKeyPress}
             onClick={openSearchBox}
             id='searchFormContainer'
-            role='search'
+            role='button'
             className='a11y__region'
         >
             <i className='icon icon-magnify'/>

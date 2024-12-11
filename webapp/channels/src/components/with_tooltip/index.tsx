@@ -4,12 +4,11 @@
 import React, {useMemo} from 'react';
 import type {ComponentProps} from 'react';
 
-import OverlayTrigger from 'components/overlay_trigger';
-
 import Constants from 'utils/constants';
 
 import type {CommonTooltipProps} from './create_tooltip';
 import {createTooltip} from './create_tooltip';
+import OverlayTrigger from './overlay_trigger';
 
 type OverlayTriggerProps = ComponentProps<typeof OverlayTrigger>;
 
@@ -20,6 +19,7 @@ type WithTooltipProps = {
     delayHide?: number;
     disabled?: boolean;
 } & CommonTooltipProps;
+
 const WithTooltip = ({
     id,
     title,
