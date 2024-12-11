@@ -5143,6 +5143,10 @@
     "translation": "Could not decode gif."
   },
   {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Unable to get the file infos by ids for post edit history."
+  },
+  {
     "id": "app.file_info.get_by_post_id.app_error",
     "translation": "Failed to find files for post."
   },

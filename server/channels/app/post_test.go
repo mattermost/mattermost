@@ -3459,7 +3459,6 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 }
 
 func TestGetEditHistoryForPost(t *testing.T) {
-	t.Skip("This needs fixing, OriginalId seems to be empty for all posts")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3487,11 +3486,10 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	_, err2 := th.App.PatchPost(th.Context, rpost.Id, patch)
 	require.Nil(t, err2)
 
-	// get the edit history
-	edits, err := th.App.GetEditHistoryForPost(post.Id)
-	require.Nil(t, err)
-
 	t.Run("should return the edit history", func(t *testing.T) {
+		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, err)
+
 		require.Len(t, edits, 2)
 		require.Equal(t, "new message edited", edits[0].Message)
 		require.Equal(t, "new message", edits[1].Message)
@@ -3501,6 +3499,103 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		edits, err := th.App.GetEditHistoryForPost("invalid-post-id")
 		require.NotNil(t, err)
 		require.Empty(t, edits)
+	})
+
+	t.Run("edit history should contain file metadata", func(t *testing.T) {
+		fileBytes := []byte("file contents")
+		fileInfo, err := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
+		require.Nil(t, err)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "new message",
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{fileInfo.Id},
+		}
+
+		_, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		patch := &model.PostPatch{
+			Message: model.NewPointer("new message edited"),
+		}
+		_, appErr := th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message edited 2"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message edited 3"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, err)
+
+		require.Len(t, edits, 3)
+
+		for _, edit := range edits {
+			require.Len(t, edit.FileIds, 1)
+			require.Equal(t, fileInfo.Id, edit.FileIds[0])
+			require.Len(t, edit.Metadata.Files, 1)
+			require.Equal(t, fileInfo.Id, edit.Metadata.Files[0].Id)
+		}
+	})
+
+	t.Run("edit history should contain file metadata even if the file info is deleted", func(t *testing.T) {
+		fileBytes := []byte("file contents")
+		fileInfo, appErr := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
+		require.Nil(t, appErr)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "new message",
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{fileInfo.Id},
+		}
+
+		_, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		patch := &model.PostPatch{
+			Message: model.NewPointer("new message edited"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message edited 2"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message edited 3"),
+		}
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		require.Nil(t, appErr)
+
+		// now delete the file info, and it should still be include in edit history metadata
+		_, err := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+		require.NoError(t, err)
+
+		edits, appErr := th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, appErr)
+
+		require.Len(t, edits, 3)
+
+		for _, edit := range edits {
+			require.Len(t, edit.FileIds, 1)
+			require.Equal(t, fileInfo.Id, edit.FileIds[0])
+			require.Len(t, edit.Metadata.Files, 1)
+			require.Equal(t, fileInfo.Id, edit.Metadata.Files[0].Id)
+			require.Greater(t, edit.Metadata.Files[0].DeleteAt, int64(0))
+		}
 	})
 }
 
@@ -3778,5 +3873,123 @@ func TestSendTestMessage(t *testing.T) {
 		post, result := th.App.SendTestMessage(th.Context, th.BasicUser.Id)
 		assert.Nil(t, result)
 		assert.NotEmpty(t, post.GetProp(model.PostPropsForceNotification))
+	})
+}
+
+func TestPopulateEditHistoryFileMetadata(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should populate file metadata for all posts", func(t *testing.T) {
+		fileInfo1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		fileInfo2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		post1 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+			post.FileIds = model.StringArray{fileInfo1.Id}
+		})
+
+		post2 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+			post.FileIds = model.StringArray{fileInfo2.Id}
+		})
+
+		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		require.Nil(t, appErr)
+
+		require.Len(t, post1.Metadata.Files, 1)
+		require.Equal(t, fileInfo1.Id, post1.Metadata.Files[0].Id)
+
+		require.Len(t, post2.Metadata.Files, 1)
+		require.Equal(t, fileInfo2.Id, post2.Metadata.Files[0].Id)
+	})
+
+	t.Run("should populate file metadata even for deleted posts", func(t *testing.T) {
+		fileInfo1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		fileInfo2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		post1 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+			post.FileIds = model.StringArray{fileInfo1.Id}
+		})
+
+		post2 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+			post.FileIds = model.StringArray{fileInfo2.Id}
+		})
+
+		_, appErr := th.App.DeletePost(th.Context, post1.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.DeletePost(th.Context, post2.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		require.Nil(t, appErr)
+
+		require.Len(t, post1.Metadata.Files, 1)
+		require.Equal(t, fileInfo1.Id, post1.Metadata.Files[0].Id)
+
+		require.Len(t, post2.Metadata.Files, 1)
+		require.Equal(t, fileInfo2.Id, post2.Metadata.Files[0].Id)
+	})
+
+	t.Run("should populate file metadata even for deleted fileInfos", func(t *testing.T) {
+		fileInfo1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		fileInfo2, err := th.App.Srv().Store().FileInfo().Save(th.Context,
+			&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				Path:      "path.txt",
+			})
+		require.NoError(t, err)
+
+		post1 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+			post.FileIds = model.StringArray{fileInfo1.Id}
+		})
+
+		post2 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+			post.FileIds = model.StringArray{fileInfo2.Id}
+		})
+
+		_, err = th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post1.Id)
+		require.NoError(t, err)
+
+		_, err = th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post2.Id)
+		require.NoError(t, err)
+
+		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		require.Nil(t, appErr)
+
+		require.Len(t, post1.Metadata.Files, 1)
+		require.Equal(t, fileInfo1.Id, post1.Metadata.Files[0].Id)
+		require.Greater(t, post1.Metadata.Files[0].DeleteAt, int64(0))
+
+		require.Len(t, post2.Metadata.Files, 1)
+		require.Equal(t, fileInfo2.Id, post2.Metadata.Files[0].Id)
+		require.Greater(t, post2.Metadata.Files[0].DeleteAt, int64(0))
 	})
 }

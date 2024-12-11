@@ -142,9 +142,9 @@ func (_m *FileInfoStore) Get(id string) (*model.FileInfo, error) {
 	return r0, r1
 }
 
-// GetByIds provides a mock function with given fields: ids
-func (_m *FileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
-	ret := _m.Called(ids)
+// GetByIds provides a mock function with given fields: ids, includeDeleted, allowFromCache
+func (_m *FileInfoStore) GetByIds(ids []string, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
+	ret := _m.Called(ids, includeDeleted, allowFromCache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByIds")
@@ -152,19 +152,19 @@ func (_m *FileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
 
 	var r0 []*model.FileInfo
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string) ([]*model.FileInfo, error)); ok {
-		return rf(ids)
+	if rf, ok := ret.Get(0).(func([]string, bool, bool) ([]*model.FileInfo, error)); ok {
+		return rf(ids, includeDeleted, allowFromCache)
 	}
-	if rf, ok := ret.Get(0).(func([]string) []*model.FileInfo); ok {
-		r0 = rf(ids)
+	if rf, ok := ret.Get(0).(func([]string, bool, bool) []*model.FileInfo); ok {
+		r0 = rf(ids, includeDeleted, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.FileInfo)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string) error); ok {
-		r1 = rf(ids)
+	if rf, ok := ret.Get(1).(func([]string, bool, bool) error); ok {
+		r1 = rf(ids, includeDeleted, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
