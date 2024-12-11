@@ -448,7 +448,7 @@ func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string
 	if err != nil {
 		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
 	}
-	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
+	if s.cluster != nil && cache.GetInvalidateClusterEvent() != model.ClusterEventNone {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
@@ -466,7 +466,7 @@ func (s *LocalCacheStore) doMultiInvalidateCacheCluster(cache cache.Cache, keys 
 	if err != nil {
 		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", cache.Name()))
 	}
-	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
+	if s.cluster != nil && cache.GetInvalidateClusterEvent() != model.ClusterEventNone {
 		for _, key := range keys {
 			msg := &model.ClusterMessage{
 				Event:    cache.GetInvalidateClusterEvent(),
@@ -538,7 +538,7 @@ func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
 	if err != nil {
 		s.logger.Warn("Error while purging cache", mlog.Err(err), mlog.String("cache_name", cache.Name()))
 	}
-	if s.cluster != nil && s.cacheType == model.CacheTypeLRU {
+	if s.cluster != nil && cache.GetInvalidateClusterEvent() != model.ClusterEventNone {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,

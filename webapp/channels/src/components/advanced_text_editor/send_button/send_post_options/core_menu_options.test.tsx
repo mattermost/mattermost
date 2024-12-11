@@ -5,22 +5,11 @@ import {DateTime} from 'luxon';
 import React from 'react';
 
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
+import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
 
 import CoreMenuOptions from './core_menu_options';
-
-jest.mock('components/menu', () => ({
-    __esModule: true,
-    Item: jest.fn(({labels, trailingElements, children, ...props}) => (
-        <div {...props}>
-            {labels}
-            {children}
-            {trailingElements}
-        </div>
-    )),
-    Separator: jest.fn(() => <div className='menu-separator'/>),
-}));
 
 jest.mock('components/advanced_text_editor/use_post_box_indicator');
 const mockedUseTimePostBoxIndicator = jest.mocked(useTimePostBoxIndicator);
@@ -75,10 +64,12 @@ describe('CoreMenuOptions Component', () => {
 
     function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
         renderWithContext(
-            <CoreMenuOptions
-                handleOnSelect={handleOnSelectOverride}
-                channelId='channelId'
-            />,
+            <WithTestMenuContext>
+                <CoreMenuOptions
+                    handleOnSelect={handleOnSelectOverride}
+                    channelId='channelId'
+                />
+            </WithTestMenuContext>,
             state,
         );
     }
