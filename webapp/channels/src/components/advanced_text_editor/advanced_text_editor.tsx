@@ -21,7 +21,7 @@ import * as GlobalActions from 'actions/global_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
-import {makeGetDraft} from 'selectors/rhs';
+import {getSelectedPostFocussedAt, makeGetDraft} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -122,6 +122,7 @@ const AdvancedTextEditor = ({
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
+    const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
 
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -408,6 +409,14 @@ const AdvancedTextEditor = ({
             focusTextbox();
         }
     }, [showPreview]);
+
+    // Focus textbox when selectedPostFocussedAt changes
+    useEffect(() => {
+        if (selectedPostFocussedAt) {
+            focusTextbox();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedPostFocussedAt]);
 
     // Remove show preview when we switch channels or posts
     useEffect(() => {
