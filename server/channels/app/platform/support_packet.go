@@ -87,6 +87,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	if license := ps.License(); license != nil {
 		d.License.Company = license.Customer.Company
 		d.License.Users = model.SafeDereference(license.Features.Users)
+		d.License.SkuShortName = license.SkuShortName
 		d.License.IsTrial = license.IsTrial
 		d.License.IsGovSKU = license.IsGovSku
 	}

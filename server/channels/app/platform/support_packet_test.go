@@ -174,6 +174,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	licenseUsers := 100
 	license := model.NewTestLicense("ldap")
+	license.SkuShortName = model.LicenseShortSkuEnterprise
 	license.Features.Users = model.NewPointer(licenseUsers)
 	ok := th.Service.SetLicense(license)
 	require.True(t, ok)
@@ -200,6 +201,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		/* License */
 		assert.Equal(t, "My awesome Company", d.License.Company)
 		assert.Equal(t, licenseUsers, d.License.Users)
+		assert.Equal(t, model.LicenseShortSkuEnterprise, d.License.SkuShortName)
 		assert.Equal(t, false, d.License.IsTrial)
 		assert.Equal(t, false, d.License.IsGovSKU)
 
