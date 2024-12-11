@@ -48,7 +48,7 @@ type TestHelper struct {
 
 	TestLogger *mlog.Logger
 
-	t *testing.TB
+	t testing.TB
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
@@ -104,7 +104,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
-  }
+	}
 
 	a := app.New(app.ServerConnector(s.Channels()))
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
