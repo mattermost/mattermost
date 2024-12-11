@@ -4,7 +4,6 @@
 package platform
 
 import (
-	"bytes"
 	"fmt"
 	"hash/maphash"
 	"runtime"
@@ -291,19 +290,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 		// parse the activeq
 		aq := make(chan model.WebSocketMessage, sendQueueSize)
 		for _, aqItem := range queues.ActiveQ {
-			var item model.WebSocketMessage
-			var err error
-			if aqItem.Type == model.WebSocketMsgTypeEvent {
-				item, err = model.WebSocketEventFromJSON(bytes.NewReader(aqItem.Buf))
-			} else if aqItem.Type == model.WebSocketMsgTypeResponse {
-				item, err = model.WebSocketResponseFromJSON(bytes.NewReader(aqItem.Buf))
-			} else {
-				ps.Log().Warn("Unknown websocket message type",
-					mlog.String("connection_id", connectionID),
-					mlog.String("user_id", userID),
-					mlog.String("msg_type", aqItem.Type))
-				continue
-			}
+			item, err := ps.UnmarshalAQItem(aqItem)
 			if err != nil {
 				ps.Log().Error("Error while unmarshalling websocket message from active queue",
 					mlog.String("connection_id", connectionID),
@@ -323,22 +310,13 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 
 		// parse the dq, wc.addToDeadQ()
 		if queues.DeadQ != nil {
-			dqPtr := 0
-			dq := make([]*model.WebSocketEvent, deadQueueSize)
-			for _, dqItem := range queues.DeadQ {
-				item, err := model.WebSocketEventFromJSON(bytes.NewReader(dqItem))
-				if err != nil {
-					ps.Log().Error("Error while unmarshalling websocket message from dead queue",
-						mlog.String("connection_id", connectionID),
-						mlog.String("user_id", userID),
-						mlog.Err(err))
-					return nil
-				}
-
-				// Same as active queue, this can never be out of bounds because all dead queues
-				// are of deadQueueSize.
-				dq[dqPtr] = item
-				dqPtr++
+			dq, dqPtr, err := ps.unmarshalDQ(queues.DeadQ)
+			if err != nil {
+				ps.Log().Error("Error while unmarshalling websocket message from dead queue",
+					mlog.String("connection_id", connectionID),
+					mlog.String("user_id", userID),
+					mlog.Err(err))
+				return nil
 			}
 
 			if dqPtr > 0 {

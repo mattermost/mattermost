@@ -91,10 +91,23 @@ func (ps *PlatformService) marshalAQ(aq <-chan model.WebSocketMessage, connID, u
 	}
 }
 
+func (ps *PlatformService) UnmarshalAQItem(aqItem model.ActiveQueueItem) (model.WebSocketMessage, error) {
+	var item model.WebSocketMessage
+	var err error
+	if aqItem.Type == model.WebSocketMsgTypeEvent {
+		item, err = model.WebSocketEventFromJSON(bytes.NewReader(aqItem.Buf))
+	} else if aqItem.Type == model.WebSocketMsgTypeResponse {
+		item, err = model.WebSocketResponseFromJSON(bytes.NewReader(aqItem.Buf))
+	} else {
+		return nil, fmt.Errorf("unknown websocket message type: %q", aqItem.Type)
+	}
+	return item, err
+}
+
 // marshalDQ is the same as drainDeadQueue, except it writes to a byte slice
 // instead of the network. To be refactored into a single method.
 func (ps *PlatformService) marshalDQ(dq []*model.WebSocketEvent, index, dqPtr int) ([][]byte, error) {
-	if dq[0] == nil {
+	if len(dq) == 0 || dq[0] == nil {
 		return nil, nil
 	}
 
@@ -133,4 +146,21 @@ func (ps *PlatformService) marshalDQ(dq []*model.WebSocketEvent, index, dqPtr in
 		}
 	}
 	return dqSlice, nil
+}
+
+func (ps *PlatformService) unmarshalDQ(buf [][]byte) ([]*model.WebSocketEvent, int, error) {
+	dqPtr := 0
+	dq := make([]*model.WebSocketEvent, deadQueueSize)
+	for _, dqItem := range buf {
+		item, err := model.WebSocketEventFromJSON(bytes.NewReader(dqItem))
+		if err != nil {
+			return nil, 0, err
+		}
+
+		// Same as active queue, this can never be out of bounds because all dead queues
+		// are of deadQueueSize.
+		dq[dqPtr] = item
+		dqPtr++
+	}
+	return dq, dqPtr, nil
 }
