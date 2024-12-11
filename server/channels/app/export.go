@@ -1171,7 +1171,7 @@ func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		wr, err := os.Create(filePath)
+		wr, err = os.Create(filePath)
 		if err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.create_file.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)
