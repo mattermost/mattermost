@@ -72,7 +72,7 @@ exports[`GenericModal should match snapshot for base case 1`] = `
                   </h1>
                 </div>
                 <div
-                  class="GenericModal__body padding"
+                  class="GenericModal__body padding paddingBottom"
                 />
               </div>
             </div>
