@@ -203,6 +203,12 @@
     background-color: variables.$white;
 }
 
+.backstage-list__hint {
+    display: block;
+    margin: 1em 0;
+    color: $dark-gray;
+}
+
 .backstage-list__help {
     display: block;
     margin: 1em 0;
@@ -244,6 +250,7 @@
     .item-details__trigger-words,
     .item-details__trigger-when,
     .item-details__url,
+    .item-details__channel_name,
     .item-details__creation {
         display: inline-block;
         margin-top: 10px;
