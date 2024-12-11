@@ -82,7 +82,7 @@ type Channels struct {
 	loginAttemptsMut  sync.Mutex
 }
 
-func newChannels(s *Server) (*Channels, error) {
+func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
 		srv:             s,
 		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),

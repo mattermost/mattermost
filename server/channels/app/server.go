@@ -250,7 +250,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// Step 5: Initialize channels.
 	// Depends on s.httpService, and depends on the hub to be initialized.
 	// Otherwise we run into race conditions.
-	channels, err := newChannels(s)
+	channels, err := NewChannels(s)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize channels")
 	}
@@ -1460,10 +1460,6 @@ func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
 }
 
-func (s *Server) clusterHealthScore() int {
-	return s.platform.Cluster().HealthScore()
-}
-
 func (ch *Channels) ClientConfigHash() string {
 	return ch.srv.Platform().ClientConfigHash()
 }
@@ -1699,17 +1695,9 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 	return s.platform.Metrics()
 }
 
-// setRemoteClusterService sets the `RemoteClusterService` to be used by the server.
-// For testing only.
-func (s *Server) setRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
-	s.serviceMux.Lock()
-	defer s.serviceMux.Unlock()
-	s.remoteClusterService = remoteClusterService
-}
-
 // setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
-func (s *Server) setSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
+func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
 	s.serviceMux.Lock()
 	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService
