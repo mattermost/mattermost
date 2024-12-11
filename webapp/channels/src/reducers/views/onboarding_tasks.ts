@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {ActionTypes} from 'utils/constants';
 
-export function isShowOnboardingTaskCompletion(state = false, action: AnyAction) {
+import type {MMAction} from 'types/store';
+
+export function isShowOnboardingTaskCompletion(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SHOW_ONBOARDING_TASK_COMPLETION:
         return action.open;
@@ -15,7 +16,7 @@ export function isShowOnboardingTaskCompletion(state = false, action: AnyAction)
     }
 }
 
-export function isShowOnboardingCompleteProfileTour(state = false, action: AnyAction) {
+export function isShowOnboardingCompleteProfileTour(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SHOW_ONBOARDING_COMPLETE_PROFILE_TOUR:
         return action.open;
@@ -24,7 +25,7 @@ export function isShowOnboardingCompleteProfileTour(state = false, action: AnyAc
     }
 }
 
-export function isShowOnboardingVisitConsoleTour(state = false, action: AnyAction) {
+export function isShowOnboardingVisitConsoleTour(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SHOW_ONBOARDING_VISIT_CONSOLE_TOUR:
         return action.open;

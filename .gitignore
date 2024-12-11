@@ -157,3 +157,5 @@ docker-compose.override.yaml
 ## Notice Folders
 .notice/
 .notice-work/
+.aider*
+.env
