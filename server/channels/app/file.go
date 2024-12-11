@@ -735,8 +735,7 @@ func (t *UploadFileTask) init(a *App) {
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader,
-	opts ...func(*UploadFileTask),
-) (*model.FileInfo, *model.AppError) {
+	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
 	c = c.WithLogger(c.Logger().With(
 		mlog.String("file_name", name),
 	))
