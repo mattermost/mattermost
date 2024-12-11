@@ -227,12 +227,19 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                 </Modal.Header>
                 <Modal.Body bsClass='modal-body edit-modal-body'>
                     <div>
-                        <p>
+                        <label
+                            htmlFor='edit_textbox'
+                            id='edit_textbox_label'
+                            style={{
+                                fontWeight: '400',
+                                marginBottom: '10px',
+                            }}
+                        >
                             <FormattedMessage
                                 id='edit_channel_header_modal.description'
                                 defaultMessage='Edit the text appearing next to the channel name in the header.'
                             />
-                        </p>
+                        </label>
                         <div className='textarea-wrapper'>
                             <Textbox
                                 value={this.state.header!}

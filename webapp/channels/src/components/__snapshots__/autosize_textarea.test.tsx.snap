@@ -20,6 +20,7 @@ exports[`components/AutosizeTextarea should match snapshot, init 1`] = `
   />
   <textarea
     aria-label=""
+    aria-labelledby="autosize_textarea_label"
     data-testid="autosize_textarea"
     dir="auto"
     height={0}
