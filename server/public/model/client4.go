@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net"
 	"net/http"
@@ -4758,18 +4759,19 @@ func (c *Client4) GetFileInfosForPostIncludeDeleted(ctx context.Context, postId 
 // General/System Section
 
 // GenerateSupportPacket generates and downloads a Support Packet.
-func (c *Client4) GenerateSupportPacket(ctx context.Context) ([]byte, *Response, error) {
+// It returns a ReadCloser to the packet and the filename. The caller needs to close the ReadCloser.
+func (c *Client4) GenerateSupportPacket(ctx context.Context) (io.ReadCloser, string, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/support_packet", "")
 	if err != nil {
-		return nil, BuildResponse(r), err
+		return nil, "", BuildResponse(r), err
 	}
-	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
+	_, params, err := mime.ParseMediaType(r.Header.Get("Content-Disposition"))
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, "", r.StatusCode).Wrap(err)
+		return nil, "", BuildResponse(r), fmt.Errorf("could not parse Content-Disposition header: %w", err)
 	}
-	return data, BuildResponse(r), nil
+
+	return r.Body, params["filename"], BuildResponse(r), nil
 }
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.

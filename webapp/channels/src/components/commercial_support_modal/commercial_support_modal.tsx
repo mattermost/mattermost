@@ -92,8 +92,8 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
 
     extractFilename = (input: string | null): string => {
         // construct the expected filename in case of an error in the header
-        const formattedDate = (moment(new Date())).format('YYYY-MM-DD-HH-mm');
-        const presumedFileName = `mattermost_support_packet_${formattedDate}.zip`;
+        const formattedDate = (moment(new Date())).format('YYYY-MM-DDTHH-mm');
+        const presumedFileName = `mm_support_packet_${formattedDate}.zip`;
 
         if (input === null) {
             return presumedFileName;
