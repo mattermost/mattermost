@@ -214,7 +214,10 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     const showSeparators = wideMode === 'wide';
 
     return (
-        <FormattingBarContainer ref={formattingBarRef}>
+        <FormattingBarContainer
+            ref={formattingBarRef}
+            data-testid='formattingBarContainer'
+        >
             {controls.map((mode) => {
                 return (
                     <React.Fragment key={mode}>

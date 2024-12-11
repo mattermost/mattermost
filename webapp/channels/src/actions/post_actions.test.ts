@@ -200,6 +200,9 @@ describe('Actions.Posts', () => {
                 filesSearchExtFilter: [],
             },
         },
+        storage: {
+            storage: {},
+        },
     } as unknown as GlobalState;
 
     test('handleNewPost', async () => {
@@ -276,8 +279,8 @@ describe('Actions.Posts', () => {
         expect(dataSet).toEqual(true);
 
         // matches the action to set editingPost
-        expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         // clear actions
@@ -285,11 +288,11 @@ describe('Actions.Posts', () => {
 
         // dispatch action to unset the editingPost
         const {data: dataUnset} = testStore.dispatch(Actions.unsetEditingPost());
-        expect(dataUnset).toEqual({show: false});
+        expect(dataUnset).toEqual(true);
 
         // matches the action to unset editingPost
-        expect(testStore.getActions()).toEqual(
-            [{data: {show: false}, type: ActionTypes.TOGGLE_EDITING_POST}],
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {show: false}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         // editingPost value is empty object, as it should
@@ -302,8 +305,8 @@ describe('Actions.Posts', () => {
         const {data} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(data).toEqual(true);
 
-        expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         const general = {
@@ -321,8 +324,9 @@ describe('Actions.Posts', () => {
 
         const {data: withLicenseData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(withLicenseData).toEqual(true);
-        expect(testStore.getActions()).toEqual(
-            [{data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST}],
+
+        expect(testStore.getActions()[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
 
         // should not allow edit for pending post

@@ -8,6 +8,7 @@ import type {MMReduxAction} from 'mattermost-redux/action_types';
 import type * as MMReduxTypes from 'mattermost-redux/types/actions';
 
 import type {PluginsState} from './plugins';
+import type {StorageState} from './storage';
 import type {ViewsState} from './views';
 
 export type DraggingState = {
@@ -18,10 +19,7 @@ export type DraggingState = {
 
 export type GlobalState = BaseGlobalState & {
     plugins: PluginsState;
-    storage: {
-        storage: Record<string, any>;
-        initialized: boolean;
-    };
+    storage: StorageState;
     views: ViewsState;
 };
 

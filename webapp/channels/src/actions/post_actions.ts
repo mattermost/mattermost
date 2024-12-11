@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+import {batchActions} from 'redux-batched-actions';
+
 import type {FileInfo} from '@mattermost/types/files';
 import type {GroupChannel} from '@mattermost/types/groups';
 import type {Post} from '@mattermost/types/posts';
@@ -20,6 +23,7 @@ import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selec
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
+import {setGlobalItem} from 'actions/storage';
 import * as StorageActions from 'actions/storage';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions';
 import {removeDraft} from 'actions/views/drafts';
@@ -44,12 +48,14 @@ import {matchEmoticons} from 'utils/emoticons';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
 
 import type {
+    GlobalState,
     DispatchFunc,
     ActionFunc,
     ActionFuncAsync,
     ThunkActionFunc,
-    GlobalState,
 } from 'types/store';
+import type {PostDraft} from 'types/store/draft';
+import type {StorageItem} from 'types/store/storage';
 
 import type {NewPostMessageProps} from './new_post';
 import {completePostReceive} from './new_post';
@@ -316,7 +322,7 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean> {
     };
 }
 
-export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean> {
+export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const state = getState();
         const post = PostSelectors.getPost(state, postId);
@@ -331,27 +337,58 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
         const channel = getChannel(state, post.channel_id);
         const teamId = channel?.team_id || '';
 
-        const canEditNow = canEditPost(state, config, license, teamId, post.channel_id, userId, post);
+        const canEdit = canEditPost(state, config, license, teamId, post.channel_id, userId, post);
 
-        // Only show the modal if we can edit the post now, but allow it to be hidden at any time
-
-        if (canEditNow) {
-            dispatch({
-                type: ActionTypes.TOGGLE_EDITING_POST,
-                data: {postId, refocusId, isRHS, show: true},
-            });
+        if (!canEdit) {
+            return {data: false};
         }
 
-        return {data: canEditNow};
+        const storageKey = `${StoragePrefixes.EDIT_DRAFT}${post.id}`;
+
+        const actions: AnyAction[] = [{
+            type: ActionTypes.TOGGLE_EDITING_POST,
+            data: {postId, refocusId, isRHS, show: true},
+        }];
+
+        // We need to see if post's draft is already in store, if it is, we don't need to set it again
+        const editDraftInStore = getGlobalItem(state, storageKey, null) as StorageItem<PostDraft>['value'] | null;
+
+        if (
+            !editDraftInStore ||
+                (editDraftInStore &&
+                    editDraftInStore?.message?.length === 0 &&
+                    editDraftInStore?.fileInfos?.length === 0 &&
+                    editDraftInStore?.uploadsInProgress?.length === 0
+                )
+        ) {
+            actions.push(setGlobalItem(storageKey, post));
+        }
+
+        dispatch(batchActions(actions));
+
+        return {data: true};
     };
 }
 
-export function unsetEditingPost() {
-    return {
-        type: ActionTypes.TOGGLE_EDITING_POST,
-        data: {
-            show: false,
-        },
+export function unsetEditingPost(): ActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
+        const editingPostId = getState().views.posts.editingPost.postId;
+
+        const actions: AnyAction[] = [{
+            type: ActionTypes.TOGGLE_EDITING_POST,
+            data: {
+                show: false,
+            },
+        }];
+
+        if (editingPostId) {
+            const storageKey = `${StoragePrefixes.EDIT_DRAFT}${editingPostId}`;
+            actions.push(StorageActions.removeGlobalItem(storageKey));
+        }
+
+        dispatch(batchActions(actions));
+
+        return {data: true};
     };
 }
 
