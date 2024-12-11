@@ -19,7 +19,7 @@ import {
     useMergeRefs,
 } from '@floating-ui/react';
 import classNames from 'classnames';
-import React, {useRef, useState, memo, useMemo, cloneElement, isValidElement} from 'react';
+import React, {useRef, useState, useMemo, cloneElement, isValidElement} from 'react';
 import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
@@ -208,4 +208,4 @@ function WithTooltip({
     );
 }
 
-export default memo(WithTooltip);
+export default WithTooltip;

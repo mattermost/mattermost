@@ -189,7 +189,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -199,7 +199,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -394,7 +394,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -404,7 +404,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -599,7 +599,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -609,7 +609,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -804,7 +804,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -814,7 +814,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>

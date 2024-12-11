@@ -426,7 +426,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
               Monokai
             </option>
           </select>
-          <Memo(WithTooltip)
+          <WithTooltip
             title={
               <div
                 className="code-popover"
@@ -447,7 +447,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
                 src=""
               />
             </span>
-          </Memo(WithTooltip)>
+          </WithTooltip>
         </div>
       </div>
     </div>

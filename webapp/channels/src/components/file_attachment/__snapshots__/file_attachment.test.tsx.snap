@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`FileAttachment should match snapshot, after change from file to image 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={true}
   title={<ArchivedTooltip />}
 >
@@ -91,11 +91,11 @@ exports[`FileAttachment should match snapshot, after change from file to image 1
       </FilenameOverlay>
     </div>
   </div>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;
 
 exports[`FileAttachment should match snapshot, regular file 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={true}
   title={<ArchivedTooltip />}
 >
@@ -185,11 +185,11 @@ exports[`FileAttachment should match snapshot, regular file 1`] = `
       </FilenameOverlay>
     </div>
   </div>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;
 
 exports[`FileAttachment should match snapshot, regular image 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={true}
   title={<ArchivedTooltip />}
 >
@@ -262,11 +262,11 @@ exports[`FileAttachment should match snapshot, regular image 1`] = `
       </FilenameOverlay>
     </div>
   </div>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;
 
 exports[`FileAttachment should match snapshot, small image 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={true}
   title={<ArchivedTooltip />}
 >
@@ -339,11 +339,11 @@ exports[`FileAttachment should match snapshot, small image 1`] = `
       </FilenameOverlay>
     </div>
   </div>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;
 
 exports[`FileAttachment should match snapshot, svg image 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={true}
   title={<ArchivedTooltip />}
 >
@@ -433,11 +433,11 @@ exports[`FileAttachment should match snapshot, svg image 1`] = `
       </FilenameOverlay>
     </div>
   </div>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;
 
 exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={true}
   title={<ArchivedTooltip />}
 >
@@ -510,11 +510,11 @@ exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
       </FilenameOverlay>
     </div>
   </div>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;
 
 exports[`FileAttachment should match snapshot, with compact display 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={true}
   title={<ArchivedTooltip />}
 >
@@ -554,11 +554,11 @@ exports[`FileAttachment should match snapshot, with compact display 1`] = `
       </FilenameOverlay>
     </div>
   </div>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;
 
 exports[`FileAttachment should match snapshot, without compact display and without can download 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={true}
   title={<ArchivedTooltip />}
 >
@@ -621,5 +621,5 @@ exports[`FileAttachment should match snapshot, without compact display and witho
       </div>
     </div>
   </div>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;

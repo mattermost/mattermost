@@ -912,7 +912,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                           <div
                             className="priorityLabelsAcknowledgements"
                           >
-                            <Memo(WithTooltip)
+                            <WithTooltip
                               title="Acknowledgement will be requested"
                             >
                               <span
@@ -925,7 +925,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                                 onPointerDown={[Function]}
                                 onPointerEnter={[Function]}
                               />
-                            </Memo(WithTooltip)>
+                            </WithTooltip>
                             <FormattedMessage
                               defaultMessage="Request acknowledgement"
                               id="post_priority.request_acknowledgement"

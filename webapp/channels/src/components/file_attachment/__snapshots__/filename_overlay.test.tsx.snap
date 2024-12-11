@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/file_attachment/FilenameOverlay should match snapshot, compact display 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   title="test_filename"
 >
   <a
@@ -15,7 +15,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, compa
     />
     test_filename
   </a>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;
 
 exports[`components/file_attachment/FilenameOverlay should match snapshot, standard but not downloadable 1`] = `
@@ -30,7 +30,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
 <div
   className="post-image__name"
 >
-  <Memo(WithTooltip)
+  <WithTooltip
     title={
       Object {
         "defaultMessage": "Download",
@@ -46,7 +46,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
     >
       test_filename
     </ForwardRef>
-  </Memo(WithTooltip)>
+  </WithTooltip>
 </div>
 `;
 
@@ -54,7 +54,7 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
 <div
   className="post-image__name"
 >
-  <Memo(WithTooltip)
+  <WithTooltip
     title={
       Object {
         "defaultMessage": "Download",
@@ -70,6 +70,6 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
     >
       <AttachmentIcon />
     </ForwardRef>
-  </Memo(WithTooltip)>
+  </WithTooltip>
 </div>
 `;

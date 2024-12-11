@@ -185,7 +185,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -195,7 +195,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -384,7 +384,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -394,7 +394,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>

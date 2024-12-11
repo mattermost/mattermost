@@ -146,7 +146,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -156,7 +156,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -422,7 +422,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -432,7 +432,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -584,7 +584,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -594,7 +594,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -860,7 +860,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -870,7 +870,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>

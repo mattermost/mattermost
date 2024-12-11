@@ -46,7 +46,7 @@ exports[`components/threading/global_threads/thread_pane should match snapshot 1
           threadId="1y8hpek81byspd4enyk9mp1ncw"
           unreadTimestamp={1611786714912}
         >
-          <Memo(WithTooltip)
+          <WithTooltip
             title="More Actions"
           >
             <Memo(Button)
@@ -56,7 +56,7 @@ exports[`components/threading/global_threads/thread_pane should match snapshot 1
                 size={18}
               />
             </Memo(Button)>
-          </Memo(WithTooltip)>
+          </WithTooltip>
         </Memo(ThreadMenu)>
       </React.Fragment>
     }

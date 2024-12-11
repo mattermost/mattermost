@@ -674,7 +674,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       saving={false}
       savingMessage="Saving Config..."
     />
-    <Memo(WithTooltip)
+    <WithTooltip
       title=""
     >
       <div
@@ -690,7 +690,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
           error={null}
         />
       </div>
-    </Memo(WithTooltip)>
+    </WithTooltip>
   </div>
 </div>
 `;

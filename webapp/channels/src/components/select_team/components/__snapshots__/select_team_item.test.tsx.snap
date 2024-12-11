@@ -117,13 +117,13 @@ exports[`components/select_team/components/SelectTeamItem should match snapshot,
 <div
   className="signup-team-dir"
 >
-  <Memo(WithTooltip)
+  <WithTooltip
     title="description"
   >
     <TeamInfoIcon
       className="icon icon--info"
     />
-  </Memo(WithTooltip)>
+  </WithTooltip>
   <a
     className=""
     href="#"

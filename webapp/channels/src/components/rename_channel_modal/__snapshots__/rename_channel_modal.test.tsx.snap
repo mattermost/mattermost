@@ -87,7 +87,7 @@ exports[`components/RenameChannelModal should match snapshot 1`] = `
         <div
           className="input-group input-group--limit"
         >
-          <Memo(WithTooltip)
+          <WithTooltip
             title="fake-channel/channels"
           >
             <span
@@ -95,7 +95,7 @@ exports[`components/RenameChannelModal should match snapshot 1`] = `
             >
               fake-channel/channels/
             </span>
-          </Memo(WithTooltip)>
+          </WithTooltip>
           <input
             aria-label="rename channel"
             className="form-control"

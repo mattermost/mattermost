@@ -459,7 +459,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             mentionName="user-0"
           />,
           " and ",
-          <Memo(WithTooltip)
+          <WithTooltip
             title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
           >
             <span
@@ -475,7 +475,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                 }
               />
             </span>
-          </Memo(WithTooltip)>,
+          </WithTooltip>,
           " are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.",
         ]
       }
@@ -559,7 +559,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               />
             </Connect(Component)>
              and 
-            <Memo(WithTooltip)
+            <WithTooltip
               key=".2"
               title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
             >
@@ -587,7 +587,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                   </span>
                 </FormattedMessage>
               </span>
-            </Memo(WithTooltip)>
+            </WithTooltip>
              are guest users and need to first be invited to the team before you can add them to the channel. Once they've joined the team, you can add them to this channel.
           </div>
         </div>
@@ -705,7 +705,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
             mentionName="user-0"
           />,
           " and ",
-          <Memo(WithTooltip)
+          <WithTooltip
             title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
           >
             <span
@@ -721,7 +721,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                 }
               />
             </span>
-          </Memo(WithTooltip)>,
+          </WithTooltip>,
           " to this channel once they are members of the ",
           <strong>
             Team Name Display
@@ -808,7 +808,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
               />
             </Connect(Component)>
              and 
-            <Memo(WithTooltip)
+            <WithTooltip
               key=".3"
               title="@user-1, @user-2, @user-3, @user-4, @user-5, @user-6, @user-7, @user-8, @user-9, @user-10"
             >
@@ -836,7 +836,7 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
                   </span>
                 </FormattedMessage>
               </span>
-            </Memo(WithTooltip)>
+            </WithTooltip>
              to this channel once they are members of the 
             <strong
               key=".5"

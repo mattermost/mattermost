@@ -5,7 +5,7 @@ exports[`components/FileUpload should match snapshot 1`] = `
   className="style--none"
 >
   <div>
-    <Memo(WithTooltip)
+    <WithTooltip
       title={
         <Memo(KeyboardShortcutSequence)
           hoistDescription={true}
@@ -39,7 +39,7 @@ exports[`components/FileUpload should match snapshot 1`] = `
           size={18}
         />
       </button>
-    </Memo(WithTooltip)>
+    </WithTooltip>
     <input
       accept=""
       aria-label="Upload files"

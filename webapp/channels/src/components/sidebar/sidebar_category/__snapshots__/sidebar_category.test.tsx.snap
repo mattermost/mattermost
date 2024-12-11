@@ -297,7 +297,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       }
       handleOpenDirectMessagesModal={[Function]}
     />
-    <Memo(WithTooltip)
+    <WithTooltip
       title={
         <React.Fragment>
           Create new direct message
@@ -329,7 +329,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
           className="icon-plus"
         />
       </button>
-    </Memo(WithTooltip)>
+    </WithTooltip>
   </SidebarCategoryHeader>
   <div
     className="SidebarChannelGroup_content"
@@ -408,7 +408,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       }
       handleOpenDirectMessagesModal={[Function]}
     />
-    <Memo(WithTooltip)
+    <WithTooltip
       title={
         <React.Fragment>
           Create new direct message
@@ -440,7 +440,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
           className="icon-plus"
         />
       </button>
-    </Memo(WithTooltip)>
+    </WithTooltip>
   </SidebarCategoryHeader>
   <div
     className="SidebarChannelGroup_content"

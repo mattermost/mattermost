@@ -8,7 +8,7 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
   <div
     className="modal-column"
   >
-    <Memo(WithTooltip)
+    <WithTooltip
       key="zoomOut"
       title={
         <Memo(MemoizedFormattedMessage)
@@ -24,8 +24,8 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
           className="icon icon-minus"
         />
       </span>
-    </Memo(WithTooltip)>
-    <Memo(WithTooltip)
+    </WithTooltip>
+    <WithTooltip
       key="zoomReset"
       title={
         <Memo(MemoizedFormattedMessage)
@@ -41,8 +41,8 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
           className="icon icon-magnify-minus"
         />
       </span>
-    </Memo(WithTooltip)>
-    <Memo(WithTooltip)
+    </WithTooltip>
+    <WithTooltip
       key="zoomIn"
       title={
         <Memo(MemoizedFormattedMessage)
@@ -58,7 +58,7 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
           className="icon icon-plus"
         />
       </span>
-    </Memo(WithTooltip)>
+    </WithTooltip>
   </div>
 </div>
 `;

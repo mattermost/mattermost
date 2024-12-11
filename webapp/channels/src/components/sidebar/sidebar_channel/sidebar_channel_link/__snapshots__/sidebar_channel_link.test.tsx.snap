@@ -180,7 +180,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
   <div
     className="SidebarChannelLinkLabel_wrapper"
   >
-    <Memo(WithTooltip)
+    <WithTooltip
       title="channel_label"
     >
       <span
@@ -188,7 +188,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
       >
         channel_label
       </span>
-    </Memo(WithTooltip)>
+    </WithTooltip>
     <Connect(Pluggable)
       channel={
         Object {

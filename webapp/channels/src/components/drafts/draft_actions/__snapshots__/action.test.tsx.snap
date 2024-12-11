@@ -4,7 +4,7 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
 <div
   className="DraftAction"
 >
-  <Memo(WithTooltip)
+  <WithTooltip
     title=""
   >
     <button
@@ -16,6 +16,6 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
         className="icon"
       />
     </button>
-  </Memo(WithTooltip)>
+  </WithTooltip>
 </div>
 `;

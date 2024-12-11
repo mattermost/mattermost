@@ -89,7 +89,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               onMouseDown={[Function]}
               onPointerDown={[Function]}
             >
-              <Memo(WithTooltip)
+              <WithTooltip
                 title="first.last5"
               >
                 <Avatar
@@ -130,7 +130,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                     tabIndex={-1}
                   />
                 </Avatar>
-              </Memo(WithTooltip)>
+              </WithTooltip>
             </button>
           </ProfilePopoverController>
         </UserAvatar>
@@ -160,7 +160,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               onMouseDown={[Function]}
               onPointerDown={[Function]}
             >
-              <Memo(WithTooltip)
+              <WithTooltip
                 title="first.last4"
               >
                 <Avatar
@@ -201,7 +201,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                     tabIndex={-1}
                   />
                 </Avatar>
-              </Memo(WithTooltip)>
+              </WithTooltip>
             </button>
           </ProfilePopoverController>
         </UserAvatar>
@@ -231,7 +231,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               onMouseDown={[Function]}
               onPointerDown={[Function]}
             >
-              <Memo(WithTooltip)
+              <WithTooltip
                 title="first.last3"
               >
                 <Avatar
@@ -272,11 +272,11 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                     tabIndex={-1}
                   />
                 </Avatar>
-              </Memo(WithTooltip)>
+              </WithTooltip>
             </button>
           </ProfilePopoverController>
         </UserAvatar>
-        <Memo(WithTooltip)
+        <WithTooltip
           title="first.last2, first.last1"
         >
           <Avatar
@@ -314,7 +314,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               tabIndex={0}
             />
           </Avatar>
-        </Memo(WithTooltip)>
+        </WithTooltip>
       </div>
     </Memo(Avatars)>
     <Memo(Button)
@@ -530,7 +530,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
   <div
     className="ThreadFooter"
   >
-    <Memo(WithTooltip)
+    <WithTooltip
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}"
@@ -558,7 +558,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           className="dot-unreads"
         />
       </div>
-    </Memo(WithTooltip)>
+    </WithTooltip>
     <Memo(Avatars)
       size="sm"
       userIds={
@@ -600,7 +600,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               onMouseDown={[Function]}
               onPointerDown={[Function]}
             >
-              <Memo(WithTooltip)
+              <WithTooltip
                 title="first.last5"
               >
                 <Avatar
@@ -641,7 +641,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                     tabIndex={-1}
                   />
                 </Avatar>
-              </Memo(WithTooltip)>
+              </WithTooltip>
             </button>
           </ProfilePopoverController>
         </UserAvatar>
@@ -671,7 +671,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               onMouseDown={[Function]}
               onPointerDown={[Function]}
             >
-              <Memo(WithTooltip)
+              <WithTooltip
                 title="first.last4"
               >
                 <Avatar
@@ -712,7 +712,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                     tabIndex={-1}
                   />
                 </Avatar>
-              </Memo(WithTooltip)>
+              </WithTooltip>
             </button>
           </ProfilePopoverController>
         </UserAvatar>
@@ -742,7 +742,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               onMouseDown={[Function]}
               onPointerDown={[Function]}
             >
-              <Memo(WithTooltip)
+              <WithTooltip
                 title="first.last3"
               >
                 <Avatar
@@ -783,11 +783,11 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                     tabIndex={-1}
                   />
                 </Avatar>
-              </Memo(WithTooltip)>
+              </WithTooltip>
             </button>
           </ProfilePopoverController>
         </UserAvatar>
-        <Memo(WithTooltip)
+        <WithTooltip
           title="first.last2, first.last1"
         >
           <Avatar
@@ -825,7 +825,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               tabIndex={0}
             />
           </Avatar>
-        </Memo(WithTooltip)>
+        </WithTooltip>
       </div>
     </Memo(Avatars)>
     <Memo(Button)

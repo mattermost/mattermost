@@ -4,7 +4,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
 <div
   className="file_preview_modal_main_nav"
 >
-  <Memo(WithTooltip)
+  <WithTooltip
     key="previewArrowLeft"
     title={
       <Memo(MemoizedFormattedMessage)
@@ -22,7 +22,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
         className="icon icon-chevron-left"
       />
     </button>
-  </Memo(WithTooltip)>
+  </WithTooltip>
   <span
     className="modal-bar-file-count"
   >
@@ -37,7 +37,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
       }
     />
   </span>
-  <Memo(WithTooltip)
+  <WithTooltip
     key="publicLink"
     title={
       <Memo(MemoizedFormattedMessage)
@@ -55,6 +55,6 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
         className="icon icon-chevron-right"
       />
     </button>
-  </Memo(WithTooltip)>
+  </WithTooltip>
 </div>
 `;

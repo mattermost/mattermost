@@ -71,7 +71,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
         }
         teamId="teamId"
       >
-        <Memo(WithTooltip)
+        <WithTooltip
           title={
             Object {
               "defaultMessage": "Add a reaction",
@@ -91,7 +91,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
               <AddReactionIcon />
             </span>
           </button>
-        </Memo(WithTooltip)>
+        </WithTooltip>
       </Memo(ChannelPermissionGate)>
     </span>
   </div>

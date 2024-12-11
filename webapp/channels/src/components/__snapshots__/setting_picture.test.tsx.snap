@@ -761,7 +761,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
               src="http://localhost:8065/api/v4/users/src_id"
             />
           </div>
-          <Memo(WithTooltip)
+          <WithTooltip
             disabled={false}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -789,7 +789,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
                 />
               </span>
             </button>
-          </Memo(WithTooltip)>
+          </WithTooltip>
         </div>
       </li>
       <div
@@ -918,7 +918,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
               src="http://localhost:8065/api/v4/users/src_id"
             />
           </div>
-          <Memo(WithTooltip)
+          <WithTooltip
             disabled={false}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -946,7 +946,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
                 />
               </span>
             </button>
-          </Memo(WithTooltip)>
+          </WithTooltip>
         </div>
       </li>
       <div

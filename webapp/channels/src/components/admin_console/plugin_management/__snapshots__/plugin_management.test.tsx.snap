@@ -258,7 +258,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -268,7 +268,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -532,7 +532,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -542,7 +542,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -615,7 +615,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -625,7 +625,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -889,7 +889,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -899,7 +899,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -1165,7 +1165,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -1175,7 +1175,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -1443,7 +1443,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -1453,7 +1453,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -1717,7 +1717,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -1727,7 +1727,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -1968,7 +1968,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -1978,7 +1978,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -2242,7 +2242,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -2252,7 +2252,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -2523,7 +2523,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -2533,7 +2533,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -2860,7 +2860,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -2870,7 +2870,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -3165,7 +3165,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -3175,7 +3175,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -3470,7 +3470,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -3480,7 +3480,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -3775,7 +3775,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -3785,7 +3785,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -4112,7 +4112,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -4122,7 +4122,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>

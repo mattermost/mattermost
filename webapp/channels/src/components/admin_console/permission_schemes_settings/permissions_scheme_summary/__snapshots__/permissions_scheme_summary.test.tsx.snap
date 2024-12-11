@@ -272,7 +272,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     >
       Team 8
     </span>
-    <Memo(WithTooltip)
+    <WithTooltip
       title="Team 9, Team 10"
     >
       <span
@@ -289,7 +289,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           }
         />
       </span>
-    </Memo(WithTooltip)>
+    </WithTooltip>
   </div>
 </div>
 `;

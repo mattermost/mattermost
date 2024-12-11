@@ -23,7 +23,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
     }
     selectRow={[MockFunction]}
   >
-    <Memo(WithTooltip)
+    <WithTooltip
       disabled={false}
       title={
         <span
@@ -78,7 +78,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
           </FormattedMessage>
         </span>
       </span>
-    </Memo(WithTooltip)>
+    </WithTooltip>
   </PermissionDescription>
 </Provider>
 `;
@@ -129,7 +129,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
 `;
 
 exports[`components/admin_console/permission_schemes_settings/permission_description should match snapshot with clickable link 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={false}
   title={
     <span>
@@ -145,11 +145,11 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
       This is a clickable description
     </span>
   </span>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;
 
 exports[`components/admin_console/permission_schemes_settings/permission_description should match snapshot with default Props 1`] = `
-<Memo(WithTooltip)
+<WithTooltip
   disabled={false}
   title="This is the description"
 >
@@ -159,5 +159,5 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
   >
     This is the description
   </span>
-</Memo(WithTooltip)>
+</WithTooltip>
 `;

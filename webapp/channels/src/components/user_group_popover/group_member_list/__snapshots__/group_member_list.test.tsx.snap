@@ -481,7 +481,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               <div
                                 className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                               >
-                                <Memo(WithTooltip)
+                                <WithTooltip
                                   title="Send message"
                                 >
                                   <DMButton
@@ -513,7 +513,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       />
                                     </button>
                                   </DMButton>
-                                </Memo(WithTooltip)>
+                                </WithTooltip>
                               </div>
                             </DMContainer>
                           </div>
@@ -660,7 +660,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               <div
                                 className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                               >
-                                <Memo(WithTooltip)
+                                <WithTooltip
                                   title="Send message"
                                 >
                                   <DMButton
@@ -692,7 +692,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       />
                                     </button>
                                   </DMButton>
-                                </Memo(WithTooltip)>
+                                </WithTooltip>
                               </div>
                             </DMContainer>
                           </div>
@@ -839,7 +839,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               <div
                                 className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                               >
-                                <Memo(WithTooltip)
+                                <WithTooltip
                                   title="Send message"
                                 >
                                   <DMButton
@@ -871,7 +871,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       />
                                     </button>
                                   </DMButton>
-                                </Memo(WithTooltip)>
+                                </WithTooltip>
                               </div>
                             </DMContainer>
                           </div>
@@ -1018,7 +1018,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               <div
                                 className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                               >
-                                <Memo(WithTooltip)
+                                <WithTooltip
                                   title="Send message"
                                 >
                                   <DMButton
@@ -1050,7 +1050,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       />
                                     </button>
                                   </DMButton>
-                                </Memo(WithTooltip)>
+                                </WithTooltip>
                               </div>
                             </DMContainer>
                           </div>
@@ -1197,7 +1197,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                               <div
                                 className="DMContainer-ilPVMc Cnskx group-member-list_dm-button"
                               >
-                                <Memo(WithTooltip)
+                                <WithTooltip
                                   title="Send message"
                                 >
                                   <DMButton
@@ -1229,7 +1229,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                                       />
                                     </button>
                                   </DMButton>
-                                </Memo(WithTooltip)>
+                                </WithTooltip>
                               </div>
                             </DMContainer>
                           </div>

@@ -171,7 +171,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -181,7 +181,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>
@@ -302,7 +302,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
           />
         }
       />
-      <Memo(WithTooltip)
+      <WithTooltip
         title=""
       >
         <div
@@ -312,7 +312,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
             error={null}
           />
         </div>
-      </Memo(WithTooltip)>
+      </WithTooltip>
     </div>
   </div>
 </form>

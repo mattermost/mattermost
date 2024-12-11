@@ -374,7 +374,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
             onClick={[Function]}
             onTouchEnd={[Function]}
           >
-            <Memo(WithTooltip)
+            <WithTooltip
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Clear"
@@ -390,7 +390,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
                   className="icon icon-close-circle"
                 />
               </span>
-            </Memo(WithTooltip)>
+            </WithTooltip>
           </div>
         </span>
         <Memo(ExpiryTime)
@@ -2372,7 +2372,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
             onClick={[Function]}
             onTouchEnd={[Function]}
           >
-            <Memo(WithTooltip)
+            <WithTooltip
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Clear"
@@ -2388,7 +2388,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
                   className="icon icon-close-circle"
                 />
               </span>
-            </Memo(WithTooltip)>
+            </WithTooltip>
           </div>
         </span>
         <Memo(ExpiryTime)
