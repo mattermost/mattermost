@@ -21,6 +21,7 @@ import * as GlobalActions from 'actions/global_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
+import {openModal} from 'actions/views/modals';
 import {makeGetDraft} from 'selectors/drafts';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -29,6 +30,7 @@ import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
+import DeletePostModal from 'components/delete_post_modal';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -37,10 +39,17 @@ import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
-import Constants, {Locations, StoragePrefixes, Preferences, AdvancedTextEditor as AdvancedTextEditorConst, UserStatuses} from 'utils/constants';
+import Constants, {
+    Locations,
+    StoragePrefixes,
+    Preferences,
+    AdvancedTextEditor as AdvancedTextEditorConst,
+    UserStatuses,
+    ModalIdentifiers,
+} from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
-import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -321,7 +330,26 @@ const AdvancedTextEditor = ({
         isInEditMode,
     );
 
-    const noArgumentHandleSubmit = useCallback(() => handleSubmit(), [handleSubmit]);
+    const handleSubmitWrapper = useCallback(() => {
+        const hasAttachment = draft.fileInfos.length > 0;
+        const isEmptyPost = !draft.message.trim() && !hasAttachment;
+
+        if (isInEditMode && isEmptyPost) {
+            const deletePostModalData = {
+                modalId: ModalIdentifiers.DELETE_POST,
+                dialogType: DeletePostModal,
+                dialogProps: {
+                    post: draft,
+                    isRHS,
+                },
+            };
+
+            dispatch(openModal(deletePostModalData));
+            return;
+        }
+
+        handleSubmit();
+    }, [dispatch, draft, handleSubmit, isInEditMode, isRHS]);
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         handleSubmit();
@@ -718,7 +746,7 @@ const AdvancedTextEditor = ({
             </div>
             {isInEditMode && (
                 <EditPostFooter
-                    onSave={noArgumentHandleSubmit}
+                    onSave={handleSubmitWrapper}
                 />
             )}
             <Footer
@@ -727,7 +755,7 @@ const AdvancedTextEditor = ({
                 serverError={serverError}
                 channelId={channelId}
                 postId={postId}
-                noArgumentHandleSubmit={noArgumentHandleSubmit}
+                noArgumentHandleSubmit={handleSubmitWrapper}
                 isInEditMode={isInEditMode}
             />
         </form>
