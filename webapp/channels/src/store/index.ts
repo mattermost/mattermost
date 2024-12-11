@@ -34,13 +34,6 @@ window.Observable = Observable;
 
 const localForage = extendPrototype(baseLocalForage);
 
-interface LocalForageObservableChange {
-    key: string;
-    newValue: string;
-    oldValue: string | null;
-    crossTabNotification: boolean;
-}
-
 export default function configureStore(preloadedState?: DeepPartial<GlobalState>, additionalReducers?: Record<string, any>): Store<GlobalState> {
     const reducers = additionalReducers ? {...appReducers, ...additionalReducers} : appReducers;
     const store = configureServiceStore({
@@ -70,7 +63,7 @@ export default function configureStore(preloadedState?: DeepPartial<GlobalState>
 
         // Rehydrate redux-persist when another tab changes localForage
         observable.subscribe({
-            next: (value: LocalForageObservableChange) => {
+            next: (value) => {
                 if (!value.crossTabNotification) {
                     // Ignore changes made by this tab
                     return;
@@ -103,7 +96,7 @@ export default function configureStore(preloadedState?: DeepPartial<GlobalState>
                     payload,
                 });
             },
-        } as any);
+        });
 
         let purging = false;
 
