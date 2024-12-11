@@ -10,7 +10,7 @@ import type {GlobalState} from 'types/store';
 
 import SearchChannelWithPermissionsProvider from './search_channel_with_permissions_provider';
 
-const getState = store.getState;
+const getState = jest.mocked(store.getState)
 
 jest.mock('stores/redux_store', () => ({
     dispatch: jest.fn(),
@@ -147,7 +147,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        (getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+        getState.mockImplementation(store.getState);
 
         const searchText = 'some';
         searchProvider.handlePretextChanged(searchText, resultsCallback);
@@ -178,7 +178,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        (getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+        getState.mockImplementation(store.getState);
 
         const searchText = 'some';
         searchProvider.handlePretextChanged(searchText, resultsCallback);
@@ -210,7 +210,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        (getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+        getState.mockImplementation(store.getState);
 
         const searchText = 'some';
         searchProvider.handlePretextChanged(searchText, resultsCallback);
@@ -243,7 +243,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        (getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+        getState.mockImplementation(store.getState);
 
         const searchText = 'some';
         searchProvider.handlePretextChanged(searchText, resultsCallback);
@@ -274,7 +274,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        (getState as jest.MockedFunction<() => GlobalState>).mockImplementation(store.getState);
+        getState.mockImplementation(store.getState);
 
         const searchText = 'not matching text';
         searchProvider.handlePretextChanged(searchText, resultsCallback);
