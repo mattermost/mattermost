@@ -52,13 +52,13 @@ export function editLastPost(message) {
         cy.uiGetPostTextBox().clear().type('{uparrow}');
 
         // # Edit Post Input should appear
-        cy.get('#edit_textbox').should('be.visible');
+        cy.get('div.post-edit__container #post_textbox').should('be.visible');
 
         // # Update the post message and type ENTER
-        cy.get('#edit_textbox').invoke('val', '').type(message).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+        cy.get('div.post-edit__container #post_textbox').invoke('val', '').type(message).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
         // * Edit modal should not be visible
-        cy.get('#edit_textbox').should('not.exist');
+        cy.get('div.post-edit__container #post_textbox').should('not.exist');
     });
 }
 

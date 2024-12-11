@@ -37,7 +37,7 @@ function typeCmdOrCtrl(): ChainableT<any> {
 Cypress.Commands.add('typeCmdOrCtrl', typeCmdOrCtrl);
 
 function typeCmdOrCtrlForEdit(): ChainableT<any> {
-    return typeCmdOrCtrlInt('#edit_textbox');
+    return typeCmdOrCtrlInt('div.post-edit__container #post_textbox');
 }
 Cypress.Commands.add('typeCmdOrCtrlForEdit', typeCmdOrCtrlForEdit);
 

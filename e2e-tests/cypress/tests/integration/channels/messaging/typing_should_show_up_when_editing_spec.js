@@ -28,10 +28,10 @@ describe('Messaging', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // # Immediately after opening the edit modal, type more text and assert that the text has been inputted
-        cy.get('#edit_textbox').type(' and test post 2').should('have.text', 'test post 1 and test post 2');
+        cy.get('div.post-edit__container #post_textbox').type(' and test post 2').should('have.text', 'test post 1 and test post 2');
 
         // # finish editing
-        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        cy.get('div.post-edit__container #post_textbox').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
         // # Get the last post and check that none of the text was cut off after being edited
         cy.getLastPostId().then((postId) => {

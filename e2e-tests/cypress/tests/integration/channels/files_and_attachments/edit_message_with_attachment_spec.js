@@ -52,8 +52,8 @@ describe('Edit Message with Attachment', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // # Add some more text and save
-        cy.get('#edit_textbox').type(' with some edit');
-        cy.get('#edit_textbox').type('{enter}').wait(TIMEOUTS.HALF_SEC);
+        cy.get('div.post-edit__container #post_textbox').type(' with some edit');
+        cy.get('div.post-edit__container #post_textbox').type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
         cy.getLastPost().within(() => {
             // * New text should show

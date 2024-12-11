@@ -43,7 +43,7 @@ describe('Keyboard Shortcuts', () => {
             type('{uparrow}');
 
         // * Verify that the Edit Post Input is visible
-        cy.get('#edit_textbox').
+        cy.get('div.post-edit__container #post_textbox').
             should('be.visible').
             should('have.text', message);
     });

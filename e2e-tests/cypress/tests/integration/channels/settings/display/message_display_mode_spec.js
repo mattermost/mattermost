@@ -59,10 +59,10 @@ function verifyLineBreaksRemainIntact(display) {
 
         // # Add ",edited" to the text
         const editMessage = ',edited';
-        cy.get('#edit_textbox').type(editMessage);
+        cy.get('div.post-edit__container #post_textbox').type(editMessage);
 
         // # finish editing
-        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        cy.get('div.post-edit__container #post_textbox').wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
         // * Verify posted message includes newline, edit message and "Edited" indicator
         cy.get(postMessageTextId).should('have.text', `${firstLine}\n${secondLine}${editMessage} Edited`);

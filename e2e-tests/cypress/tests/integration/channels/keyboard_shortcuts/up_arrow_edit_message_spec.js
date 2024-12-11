@@ -53,7 +53,7 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // * Verify that Edit modal should not be visible
-        cy.get('#edit_textbox').should('not.exist');
+        cy.get('div.post-edit__container #post_textbox').should('not.exist');
     });
 
     it('MM-T1236 Arrow up key - Edit Input opens up for own message of a user', () => {
@@ -85,10 +85,10 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // * Verify that the Edit Post Input is visible
-        cy.get('#edit_textbox').should('be.visible');
+        cy.get('div.post-edit__container #post_textbox').should('be.visible');
 
         // * Verify that the Edit textbox contains previously sent message by user 1
-        cy.get('#edit_textbox').should('have.text', message1);
+        cy.get('div.post-edit__container #post_textbox').should('have.text', message1);
     });
 
     it('MM-T1271_1 UP - Removing all text in edit deletes post if without attachment', () => {
@@ -107,11 +107,11 @@ describe('Keyboard Shortcuts', () => {
             cy.uiGetPostTextBox().type('{uparrow}');
 
             // * Validate that edit box contains just posted message
-            cy.get('#edit_textbox').should('have.text', message);
+            cy.get('div.post-edit__container #post_textbox').should('have.text', message);
 
             // # Clear all text, delete and confirm by pressing enter
             cy.wait(TIMEOUTS.HALF_SEC);
-            cy.get('#edit_textbox').clear().type('{enter}');
+            cy.get('div.post-edit__container #post_textbox').clear().type('{enter}');
 
             // * Verify confirm modal is shown
             cy.findByRole('dialog', {name: 'Confirm Post Delete'}).should('be.visible');
@@ -158,7 +158,7 @@ describe('Keyboard Shortcuts', () => {
         cy.wait(TIMEOUTS.HALF_SEC);
 
         // # Clear all text and confirm
-        cy.get('#edit_textbox').clear().type('{enter}');
+        cy.get('div.post-edit__container #post_textbox').clear().type('{enter}');
 
         // * Delete post confirm modal should not exist
         cy.get('#deletePostModal').should('not.exist');
@@ -218,7 +218,7 @@ describe('Keyboard Shortcuts', () => {
             cy.wait(TIMEOUTS.HALF_SEC);
 
             // # Clear message and type ENTER
-            cy.get('#edit_textbox').clear().type('{enter}');
+            cy.get('div.post-edit__container #post_textbox').clear().type('{enter}');
 
             // * Delete post confirmation modal should be visible
             cy.get('#deletePostModal').should('be.visible');
@@ -248,7 +248,7 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // # Edit text
-        cy.get('#edit_textbox').clear().type(messageWithCodeblock2).type('{enter}');
+        cy.get('div.post-edit__container #post_textbox').clear().type(messageWithCodeblock2).type('{enter}');
 
         // * Verify that the message was edited
         cy.uiWaitUntilMessagePostedIncludes('codeblock2');
@@ -270,10 +270,10 @@ describe('Keyboard Shortcuts', () => {
         cy.get('body').type('{uparrow}');
 
         // * Verify that the Edit Post Input is visible
-        cy.get('#edit_textbox').should('be.visible');
+        cy.get('div.post-edit__container #post_textbox').should('be.visible');
 
         // * Verify that edit box have value of previous regular message
-        cy.get('#edit_textbox').should('have.value', message);
+        cy.get('div.post-edit__container #post_textbox').should('have.value', message);
     });
 
     it('MM-T1270 UP - Edit message with attachment but no text', () => {
@@ -302,7 +302,7 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // # Add some text to the previous message and save
-        cy.get('#edit_textbox').type('Test').type('{enter}');
+        cy.get('div.post-edit__container #post_textbox').type('Test').type('{enter}');
         cy.wait(TIMEOUTS.ONE_SEC);
 
         cy.getLastPost().within(() => {

@@ -30,18 +30,18 @@ describe('Messaging', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // # Insert a tilde (~) at the beginning of the post to be edited
-        cy.get('#edit_textbox').should('be.visible').wait(TIMEOUTS.HALF_SEC).type('{home}~');
+        cy.get('div.post-edit__container #post_textbox').should('be.visible').wait(TIMEOUTS.HALF_SEC).type('{home}~');
 
         // * autocomplete opens
         cy.get('#suggestionList').should('be.visible');
 
         // # Delete the tilde by backspacing
-        cy.get('#edit_textbox').type('{home}{rightarrow}{backspace}');
+        cy.get('div.post-edit__container #post_textbox').type('{home}{rightarrow}{backspace}');
 
         // * autocomplete closes
         cy.get('#suggestionList').should('not.exist');
 
         // finish editing
-        cy.get('#edit_textbox').should('be.visible').wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        cy.get('div.post-edit__container #post_textbox').should('be.visible').wait(TIMEOUTS.HALF_SEC).type('{enter}');
     });
 });

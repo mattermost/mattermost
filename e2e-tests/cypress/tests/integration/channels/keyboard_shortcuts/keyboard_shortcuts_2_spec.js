@@ -125,10 +125,10 @@ describe('Keyboard Shortcuts', () => {
             cy.uiGetPostTextBox().type('{uparrow}');
 
             // * Edit Post Input should appear
-            cy.get('#edit_textbox').should('be.visible');
+            cy.get('div.post-edit__container #post_textbox').should('be.visible');
 
             // * Edit to the post message and type ENTER
-            cy.get('#edit_textbox').invoke('val', '').clear().type(editMessage).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.get('div.post-edit__container #post_textbox').invoke('val', '').clear().type(editMessage).type('{enter}').wait(TIMEOUTS.HALF_SEC);
         });
 
         cy.getLastPostId().then((postId) => {

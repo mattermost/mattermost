@@ -59,7 +59,7 @@ describe('Permalink message edit', () => {
             const editedText = `edited - ${searchWord}`;
 
             // # Add new text in edit box and finish by hitting enter
-            cy.get('#edit_textbox').should('be.visible').type('any').click().focused().clear({force: true}).type(editedText).type('{enter}');
+            cy.get('div.post-edit__container #post_textbox').should('be.visible').type('any').click().focused().clear({force: true}).type(editedText).type('{enter}');
 
             // # Check edited post
             verifyEditedPermalink(postId, editedText, testTeam);
