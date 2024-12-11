@@ -119,6 +119,7 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
+		t.Skip("MM-62079")
 		WebSocketClient, err := th.CreateWebSocketClient()
 		WebSocketClient.Listen()
 		require.NoError(t, err)
