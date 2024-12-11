@@ -439,7 +439,7 @@ func (wc *WebConn) readPump() {
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	if err != nil {
-		wc.logSocketErr("SetReadDeadline failed", err)
+		wc.logSocketErr("websocket.SetReadDeadline", err)
 		return
 	}
 	wc.WebSocket.SetPongHandler(func(string) error {
@@ -626,8 +626,7 @@ func (wc *WebConn) writePump() {
 // writeMessageBuf is a helper utility that wraps the write to the socket
 // along with setting the write deadline.
 func (wc *WebConn) writeMessageBuf(msgType int, data []byte) error {
-	err := wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-	if err != nil {
+	if err := wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime)); err != nil {
 		return err
 	}
 	return wc.WebSocket.WriteMessage(msgType, data)
