@@ -8,10 +8,10 @@ import type {Persistor} from 'redux-persist';
 import {persistStore, REHYDRATE} from 'redux-persist';
 import Observable from 'zen-observable';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import configureServiceStore from 'mattermost-redux/store';
-
-import {DeepPartial} from '@mattermost/types/utilities';
 
 import {cleanLocalStorage} from 'actions/storage';
 import {clearUserCookie} from 'actions/views/cookie';

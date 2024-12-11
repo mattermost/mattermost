@@ -13,9 +13,7 @@ import reduxStore from 'stores/redux_store';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 
-import type {GlobalState} from 'types/store';
-
-const getState = jest.mocked(reduxStore.getState)
+const getState = jest.mocked(reduxStore.getState);
 
 jest.mock('actions/views/rhs', () => ({
     closeMenu: jest.fn(),

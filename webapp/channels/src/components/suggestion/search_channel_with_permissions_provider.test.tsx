@@ -6,11 +6,9 @@ import store from 'stores/redux_store';
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
-import type {GlobalState} from 'types/store';
-
 import SearchChannelWithPermissionsProvider from './search_channel_with_permissions_provider';
 
-const getState = jest.mocked(store.getState)
+const getState = jest.mocked(store.getState);
 
 jest.mock('stores/redux_store', () => ({
     dispatch: jest.fn(),
