@@ -21,7 +21,6 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
       }
       onClick={[Function]}
       showTooltip={true}
-      tooltipDirection="bottom"
     />
     <div
       className="status"
@@ -279,7 +278,6 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
       }
       onClick={[Function]}
       showTooltip={true}
-      tooltipDirection="bottom"
     />
     <div
       className="status"
@@ -367,7 +365,6 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
           <CustomStatusText
             className="custom_status__text"
             text="In a meeting"
-            tooltipDirection="bottom"
           />
           <Text
             margin="none"
@@ -377,9 +374,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
             onClick={[Function]}
             onTouchEnd={[Function]}
           >
-            <WithTooltip
-              id="InputClearTooltip"
-              placement="left"
+            <Memo(WithTooltip)
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Clear"
@@ -395,7 +390,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
                   className="icon icon-close-circle"
                 />
               </span>
-            </WithTooltip>
+            </Memo(WithTooltip)>
           </div>
         </span>
         <Memo(ExpiryTime)
@@ -606,7 +601,6 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
       }
       onClick={[Function]}
       showTooltip={true}
-      tooltipDirection="bottom"
     />
     <div
       className="status"
@@ -685,7 +679,6 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
           <CustomStatusText
             className="custom_status__text"
             text=""
-            tooltipDirection="bottom"
           />
           <Text
             margin="none"
@@ -896,7 +889,6 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
       }
       onClick={[Function]}
       showTooltip={true}
-      tooltipDirection="bottom"
     />
     <div
       className="status"
@@ -975,7 +967,6 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
           <CustomStatusText
             className="custom_status__text"
             text=""
-            tooltipDirection="bottom"
           />
           <Text
             margin="none"
@@ -1186,7 +1177,6 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
       }
       onClick={[Function]}
       showTooltip={true}
-      tooltipDirection="bottom"
     />
     <div
       className="status"
@@ -1265,7 +1255,6 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
           <CustomStatusText
             className="custom_status__text"
             text=""
-            tooltipDirection="bottom"
           />
           <Text
             margin="none"
@@ -1477,7 +1466,6 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
       }
       onClick={[Function]}
       showTooltip={true}
-      tooltipDirection="bottom"
     />
     <Memo(Avatar)
       size="sm"
@@ -1743,7 +1731,6 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
       }
       onClick={[Function]}
       showTooltip={true}
-      tooltipDirection="bottom"
     />
     <div
       className="status"
@@ -2001,7 +1988,6 @@ exports[`components/StatusDropdown should not show clear status button when cust
       }
       onClick={[Function]}
       showTooltip={true}
-      tooltipDirection="bottom"
     />
     <div
       className="status"
@@ -2080,7 +2066,6 @@ exports[`components/StatusDropdown should not show clear status button when cust
           <CustomStatusText
             className="custom_status__text"
             text=""
-            tooltipDirection="bottom"
           />
           <Text
             margin="none"
@@ -2291,7 +2276,6 @@ exports[`components/StatusDropdown should show clear status button when custom s
       }
       onClick={[Function]}
       showTooltip={true}
-      tooltipDirection="bottom"
     />
     <div
       className="status"
@@ -2379,7 +2363,6 @@ exports[`components/StatusDropdown should show clear status button when custom s
           <CustomStatusText
             className="custom_status__text"
             text="In a meeting"
-            tooltipDirection="bottom"
           />
           <Text
             margin="none"
@@ -2389,9 +2372,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
             onClick={[Function]}
             onTouchEnd={[Function]}
           >
-            <WithTooltip
-              id="InputClearTooltip"
-              placement="left"
+            <Memo(WithTooltip)
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Clear"
@@ -2407,7 +2388,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
                   className="icon icon-close-circle"
                 />
               </span>
-            </WithTooltip>
+            </Memo(WithTooltip)>
           </div>
         </span>
         <Memo(ExpiryTime)

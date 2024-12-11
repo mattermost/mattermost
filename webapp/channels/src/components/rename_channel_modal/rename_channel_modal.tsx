@@ -307,8 +307,6 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
 
                             <div className={urlInputClass}>
                                 <WithTooltip
-                                    id='renameChannelModalShortUrlTooltip'
-                                    placement='top'
                                     title={fullUrl}
                                 >
                                     <span className='input-group-addon'>{shortUrl}</span>

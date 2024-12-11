@@ -5,7 +5,6 @@ import React, {useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports
 import Flex from '@mattermost/compass-components/utilities/layout/Flex'; // eslint-disable-line no-restricted-imports
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
@@ -23,13 +22,13 @@ import {useShowOnboardingTutorialStep} from 'components/tours/onboarding_tour';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
 
+import './sidebar_header.scss';
+
 import type {GlobalState} from 'types/store';
 
 type SidebarHeaderContainerProps = {
     id?: string;
 }
-
-type SidebarHeaderProps = Record<string, unknown>;
 
 const SidebarHeaderContainer = styled(Flex).attrs(() => ({
     element: 'header',
@@ -51,32 +50,6 @@ const SidebarHeaderContainer = styled(Flex).attrs(() => ({
     #SidebarContainer & .AddChannelDropdown_dropdownButton {
         border-radius: 16px;
         font-size: 18px;
-    }
-`;
-
-const SidebarHeading = styled(Heading).attrs(() => ({
-    element: 'h1',
-    margin: 'none',
-    size: 200,
-}))<SidebarHeaderProps>`
-    color: var(--sidebar-text);
-    cursor: pointer;
-    display: flex;
-
-    .title {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        display: inline-block;
-    }
-
-    .icon-chevron-down {
-        margin-left: -3px;
-        margin-right: -1px;
-    }
-
-    #SidebarContainer & {
-        font-family: Metropolis, sans-serif;
     }
 `;
 
@@ -126,16 +99,14 @@ const SidebarHeader = (props: Props) => {
                     className='SidebarHeaderMenuWrapper test-team-header'
                 >
                     <WithTooltip
-                        id='team-name__tooltip'
                         title={currentTeam.description ? currentTeam.description : currentTeam.display_name}
-                        placement='bottom'
                     >
-                        <SidebarHeading>
+                        <h1 className='sidebarHeader'>
                             <button className='style--none sidebar-header'>
                                 <span className='title'>{currentTeam.display_name}</span>
                                 <i className='icon icon-chevron-down'/>
                             </button>
-                        </SidebarHeading>
+                        </h1>
                     </WithTooltip>
                     <MainMenu
                         id='sidebarDropdownMenu'

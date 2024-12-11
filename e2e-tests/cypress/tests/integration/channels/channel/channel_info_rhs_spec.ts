@@ -99,21 +99,21 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify tooltips appear with correct text
-                cy.uiGetRHS().findByText('Favorite').trigger('mouseover');
-                cy.get('#favorite-tooltip').should('be.visible').and('have.text', 'Add this channel to favorites');
-                cy.uiGetRHS().findByText('Favorite').trigger('mouseout');
+                cy.uiGetRHS().findByText('Favorite').trigger('mouseenter');
+                cy.findByText('Add this channel to favorites').should('be.visible');
+                cy.uiGetRHS().findByText('Favorite').trigger('mouseleave');
 
-                cy.uiGetRHS().findByText('Mute').trigger('mouseover');
-                cy.get('#mute-tooltip').should('be.visible').and('have.text', 'Mute notifications for this channel');
-                cy.uiGetRHS().findByText('Mute').trigger('mouseout');
+                cy.uiGetRHS().findByText('Mute').trigger('mouseenter');
+                cy.findByText('Mute notifications for this channel').should('be.visible');
+                cy.uiGetRHS().findByText('Mute').trigger('mouseleave');
 
-                cy.uiGetRHS().findByText('Add People').trigger('mouseover');
-                cy.get('#add-people-tooltip').should('be.visible').and('have.text', 'Add team members to this channel');
-                cy.uiGetRHS().findByText('Add People').trigger('mouseout');
+                cy.uiGetRHS().findByText('Add People').trigger('mouseenter');
+                cy.findByText('Add team members to this channel').should('be.visible');
+                cy.uiGetRHS().findByText('Add People').trigger('mouseleave');
 
-                cy.uiGetRHS().findByText('Copy Link').trigger('mouseover');
-                cy.get('#copy-link-tooltip').should('be.visible').and('have.text', 'Copy link to this channel');
-                cy.uiGetRHS().findByText('Copy Link').trigger('mouseout');
+                cy.uiGetRHS().findByText('Copy Link').trigger('mouseenter');
+                cy.findByText('Copy link to this channel').should('be.visible');
+                cy.uiGetRHS().findByText('Copy Link').trigger('mouseleave');
             });
 
             it('should be able to toggle favorite on a channel', () => {

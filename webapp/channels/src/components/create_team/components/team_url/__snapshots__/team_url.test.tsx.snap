@@ -27,9 +27,7 @@ exports[`/components/create_team/components/display_name should match snapshot 1
           <div
             className="input-group input-group--limit"
           >
-            <WithTooltip
-              id="urlTooltip"
-              placement="top"
+            <Memo(WithTooltip)
               title="http://localhost:8065/"
             >
               <span
@@ -37,7 +35,7 @@ exports[`/components/create_team/components/display_name should match snapshot 1
               >
                 http://localhost:8065/
               </span>
-            </WithTooltip>
+            </Memo(WithTooltip)>
             <input
               autoFocus={true}
               className="form-control"

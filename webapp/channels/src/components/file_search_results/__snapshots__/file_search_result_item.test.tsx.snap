@@ -75,10 +75,13 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <WithTooltip
-      id="file-name__tooltip"
-      placement="top"
-      title="Download"
+    <Memo(WithTooltip)
+      title={
+        Object {
+          "defaultMessage": "Download",
+          "id": "file_search_result_item.download",
+        }
+      }
     >
       <a
         className="action-icon download-icon"
@@ -89,7 +92,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </WithTooltip>
+    </Memo(WithTooltip)>
   </button>
 </div>
 `;
@@ -178,10 +181,13 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <WithTooltip
-      id="file-name__tooltip"
-      placement="top"
-      title="Download"
+    <Memo(WithTooltip)
+      title={
+        Object {
+          "defaultMessage": "Download",
+          "id": "file_search_result_item.download",
+        }
+      }
     >
       <a
         className="action-icon download-icon"
@@ -192,7 +198,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </WithTooltip>
+    </Memo(WithTooltip)>
   </button>
 </div>
 `;
@@ -281,10 +287,13 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <WithTooltip
-      id="file-name__tooltip"
-      placement="top"
-      title="Download"
+    <Memo(WithTooltip)
+      title={
+        Object {
+          "defaultMessage": "Download",
+          "id": "file_search_result_item.download",
+        }
+      }
     >
       <a
         className="action-icon download-icon"
@@ -295,7 +304,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </WithTooltip>
+    </Memo(WithTooltip)>
   </button>
 </div>
 `;
@@ -379,10 +388,13 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <WithTooltip
-      id="file-name__tooltip"
-      placement="top"
-      title="Download"
+    <Memo(WithTooltip)
+      title={
+        Object {
+          "defaultMessage": "Download",
+          "id": "file_search_result_item.download",
+        }
+      }
     >
       <a
         className="action-icon download-icon"
@@ -393,7 +405,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
           className="icon icon-download-outline"
         />
       </a>
-    </WithTooltip>
+    </Memo(WithTooltip)>
   </button>
 </div>
 `;

@@ -321,8 +321,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                 onTouchEnd={this.handleClearStatus}
             >
                 <WithTooltip
-                    id='InputClearTooltip'
-                    placement='left'
                     title={clearableTooltipText}
                 >
                     <span
@@ -545,7 +543,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                 >
                     <CustomStatusEmoji
                         showTooltip={true}
-                        tooltipDirection={'bottom'}
                         emojiStyle={{marginRight: '6px'}}
                         onClick={this.handleCustomStatusEmojiClick as () => void}
                     />

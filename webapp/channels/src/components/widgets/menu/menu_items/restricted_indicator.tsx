@@ -88,7 +88,6 @@ const RestrictedIndicator = ({
     return (
         <span className='RestrictedIndicator__icon-tooltip-container'>
             <WithTooltip
-                id={`${feature}-tooltip`}
                 title={
                     <div className='RestrictedIndicator__icon-tooltip'>
                         <span className='title'>
@@ -103,7 +102,6 @@ const RestrictedIndicator = ({
                         </span>
                     </div>
                 }
-                placement='right'
             >
                 {useModal && blocked ? (
                     <span>

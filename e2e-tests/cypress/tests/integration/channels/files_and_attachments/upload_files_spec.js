@@ -140,12 +140,11 @@ describe('Upload Files', () => {
 
             // * Download button should exist
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-                expect(downloadLink.attr('download')).to.equal(file.filename);
-
-                const fileAttachmentURL = downloadLink.attr('href');
-
-                // * Verify that download link has correct name
-                downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, file.filename, 'attachment');
+                cy.wrap(downloadLink).parent().should('have.attr', 'download', file.filename).then((link) => {
+                    const fileAttachmentURL = link.attr('href');
+                    // * Verify that download link has correct name
+                    downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, file.filename, 'attachment');
+                });
             });
 
             // # Close the modal
@@ -174,12 +173,11 @@ describe('Upload Files', () => {
 
             // * Download button should exist
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-                expect(downloadLink.attr('download')).to.equal(filename);
-
-                const fileAttachmentURL = downloadLink.attr('href');
-
-                // * Verify that download link has correct name
-                downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+                cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
+                    const fileAttachmentURL = link.attr('href');
+                    // * Verify that download link has correct name
+                    downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+                });
             });
 
             // # Close the modal
@@ -405,12 +403,11 @@ describe('Upload Files', () => {
 
         // * Download button should exist
         cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-            expect(downloadLink.attr('download')).to.equal(filename);
-
-            const fileAttachmentURL = downloadLink.attr('href');
-
-            // * Verify that download link has correct name
-            downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+            cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
+                const fileAttachmentURL = link.attr('href');
+                // * Verify that download link has correct name
+                downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+            });
         });
 
         // # Close modal

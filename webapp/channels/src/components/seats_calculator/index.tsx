@@ -190,10 +190,9 @@ export default function SeatsCalculator(props: Props) {
                     <div className='SeatsCalculator__seats-tooltip'>
                         <div className='icon'>
                             <WithTooltip
-                                id='userCount__tooltip'
                                 title={messages.tooltipTitle}
                                 hint={messages.tooltipText}
-                                placement='right'
+                                isVertical={false}
                             >
                                 <InformationOutlineIcon
                                     size={18}

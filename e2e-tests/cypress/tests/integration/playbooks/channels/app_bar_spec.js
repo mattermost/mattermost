@@ -60,10 +60,10 @@ describe('channels > App Bar', {testIsolation: true}, () => {
             cy.visit(`/${testTeam.name}/channels/town-square`);
 
             // # Hover over the channel header icon
-            cy.getPlaybooksAppBarIcon().trigger('mouseover');
+            cy.getPlaybooksAppBarIcon().trigger('mouseenter');
 
             // * Verify tooltip text
-            cy.findByRole('tooltip', {name: 'Playbooks'}).should('be.visible');
+            cy.findByRole('tooltip').should('be.visible').and('contain', 'Playbooks');
         });
     });
 });

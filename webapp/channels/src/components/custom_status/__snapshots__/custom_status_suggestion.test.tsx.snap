@@ -19,7 +19,6 @@ exports[`components/custom_status/custom_status_emoji should match snapshot 1`] 
   <CustomStatusText
     className="statusSuggestion__text"
     text=""
-    tooltipDirection="top"
   />
 </button>
 `;
@@ -43,7 +42,6 @@ exports[`components/custom_status/custom_status_emoji should match snapshot with
   <CustomStatusText
     className="statusSuggestion__text with_duration"
     text=""
-    tooltipDirection="top"
   />
   <span
     className="statusSuggestion__duration"

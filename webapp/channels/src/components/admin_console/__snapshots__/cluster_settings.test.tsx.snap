@@ -189,9 +189,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -201,7 +199,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>
@@ -396,9 +394,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -408,7 +404,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>
@@ -603,9 +599,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -615,7 +609,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>
@@ -810,9 +804,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
           />
         }
       />
-      <WithTooltip
-        id="error-tooltip"
-        placement="top"
+      <Memo(WithTooltip)
         title=""
       >
         <div
@@ -822,7 +814,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
             error={null}
           />
         </div>
-      </WithTooltip>
+      </Memo(WithTooltip)>
     </div>
   </div>
 </form>

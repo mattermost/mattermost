@@ -21,11 +21,9 @@ const PostEmoji = ({children, name, imageUrl}: Props) => {
 
     return (
         <WithTooltip
-            id='postEmoji__tooltip'
             title={emojiText}
             emoji={name}
-            emojiStyle='large'
-            placement='top'
+            isEmojiLarge={true}
         >
             <span
                 className='emoticon'
