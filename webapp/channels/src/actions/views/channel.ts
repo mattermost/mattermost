@@ -150,7 +150,7 @@ export function joinChannelById(channelId: string): ActionFuncAsync {
 
 export function leaveChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        let state = getState();
+        let state = getState() as GlobalState;
         const currentUserId = getCurrentUserId(state);
         const currentTeam = getCurrentTeam(state);
         if (!currentTeam) {
@@ -166,28 +166,28 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         const teamUrl = getCurrentRelativeTeamUrl(state);
 
         if (!isArchivedChannel(channel)) {
-            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state as GlobalState);
+            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
         }
         const {error} = await dispatch(leaveChannelRedux(channelId));
         if (error) {
             return {error};
         }
-        state = getState();
+        state = getState() as GlobalState;
 
-        const prevChannelName = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state as GlobalState);
+        const prevChannelName = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state);
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
         const prevChannel = getChannelByName(channelsInTeam, prevChannelName);
         if (!prevChannel || !getMyChannelMemberships(state)[prevChannel.id]) {
-            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state as GlobalState);
+            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
         }
-        const selectedPost = getSelectedPost(state as GlobalState);
-        const selectedPostId = getSelectedPostId(state as GlobalState);
+        const selectedPost = getSelectedPost(state);
+        const selectedPostId = getSelectedPostId(state);
         if (selectedPostId && selectedPost.exists === false) {
             dispatch(closeRightHandSide());
         }
 
         if (getMyChannels(getState()).filter((c) => c.type === Constants.OPEN_CHANNEL || c.type === Constants.PRIVATE_CHANNEL).length === 0) {
-            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state as GlobalState);
+            LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
             dispatch(selectTeam(''));
             dispatch({type: TeamTypes.LEAVE_TEAM, data: currentTeam});
             getHistory().push('/');
@@ -204,14 +204,14 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
 
 export function leaveDirectChannel(channelName: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        const state = getState();
+        const state = getState() as GlobalState;
         const currentUserId = getCurrentUserId(state);
         const teams = getTeamsList(state); // dms are shared across teams but on local storage are set linked to one, we need to look into all.
         teams.forEach((currentTeam) => {
-            const previousChannel = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state as GlobalState);
-            const penultimateChannel = LocalStorageStore.getPenultimateChannelName(currentUserId, currentTeam.id, state as GlobalState);
+            const previousChannel = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state);
+            const penultimateChannel = LocalStorageStore.getPenultimateChannelName(currentUserId, currentTeam.id, state);
             if (channelName === previousChannel) {
-                LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state as GlobalState);
+                LocalStorageStore.removePreviousChannel(currentUserId, currentTeam.id, state);
             } else if (channelName === penultimateChannel) {
                 LocalStorageStore.removePenultimateChannelName(currentUserId, currentTeam.id);
             }
@@ -423,10 +423,10 @@ export function loadPosts({
 export function syncPostsInChannel(channelId: string, since: number, prefetch = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         const time = Date.now();
-        const state = getState();
-        const socketStatus = getSocketStatus(state as GlobalState);
+        const state = getState() as GlobalState;
+        const socketStatus = getSocketStatus(state);
         let sinceTimeToGetPosts = since;
-        const lastPostsApiCallForChannel = getLastPostsApiTimeForChannel(state as GlobalState, channelId);
+        const lastPostsApiCallForChannel = getLastPostsApiTimeForChannel(state, channelId);
         const actions = [];
 
         if (lastPostsApiCallForChannel && lastPostsApiCallForChannel < socketStatus.lastDisconnectAt) {
