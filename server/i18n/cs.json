@@ -1,7 +1,7 @@
 [
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Nemohu najít uživatele."
+    "translation": "Nepodařilo se najít uživatele {{.user}}"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -9,7 +9,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Nedostatečná oprávnění ke kanálu."
+    "translation": "Uživatel {{.user}} nemá odpovídající oprávnění pro kanál {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -821,39 +821,39 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Nepodařilo se smazat Elasticsearch index"
+    "translation": "Nepodařilo se smazat{{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Selhala tvorba šablony Elasticsearch pro uživatele"
+    "translation": "Nepodařilo se vytvořit {{.Backend}} šablonu pro uživatele"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Selhala tvorba Elasticsearch šablony pro příspěvky"
+    "translation": "Nepodařilo se vytvořit {{.Backend}} šablonu pro příspěvky"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Selhala tvoba šablony Elasticsearch pro kanály"
+    "translation": "Nepodařilo se vytvořit {{.Backend}} šablonu pro kanály"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Nastavení Elasticsearch klienta selhalo"
+    "translation": "Nastavení {{.Backend}} klienta selhalo"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Agregátor Elasticsearch selhal protože indexovací úloha selhala"
+    "translation": "Agregátor {{.Backend}} selhal protože indexovací úloha selhala"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Agregátoru Elasticsearch se nezdařilo načíst indexy"
+    "translation": "Agregátoru {{.Backend}} se nezdařilo načíst indexy"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Agregátoru Elasticsearch se nezdařilo smazat indexy"
+    "translation": "Agregátoru {{.Backend}} se nepodařilo smazat indexy"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Agregátoru Elasticsearch se nezdařilo vytvoření indexovací úlohy"
+    "translation": "Agregátoru {{.Backend}} se nepodařilo vytvořit úlohu pro indexování"
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -1805,7 +1805,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Nelze aktualizovat připojení přes websocket."
+    "translation": "URL blokována kvůli CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -3857,7 +3857,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Soubor(y) nelze nahrát. {{.Length}}B překračuje maximální povolenou velikost {{.Limit}}B."
+    "translation": "Nepodařilo se nahrát soubor {{.Filename}}. Velikost {{.Length}} bajtů překračuje maximální povolenou velikost {{.Limit}} bajtů."
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -4306,9 +4306,9 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": {
-      "few": "{{.User}} již jsou v kanálu.",
-      "one": "{{.User}} již je v kanálu.",
-      "other": ""
+      "few": "{{.User}} jsou již v kanálu.",
+      "one": "{{.User}} je již v kanálu.",
+      "other": "{{.User}} je již v kanálu."
     }
   },
   {
@@ -4386,9 +4386,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "few": "Nelze najít uživatele: {{.Users}}",
+      "few": "Nepodařilo se najít uživatele: {{.Users}}",
       "one": "Nelze najít uživatele: {{.Users}}",
-      "other": "Nelze najít uživatele: {{.Users}}"
+      "other": "Nepodařilo se najít uživatele: {{.Users}}"
     }
   },
   {
@@ -4521,7 +4521,7 @@
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Váš účet byl deaktivován na {{ .SiteURL }}"
+    "translation": "Váš účet byl deaktivován na {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -5349,7 +5349,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Platnost relace vypršela: Chcete-li nadále dostávat oznámení, přihlaste se. Relace na webu {{.siteName}} jsou konfigurovány vaším správcem systému tak, aby vypršely každý(ch) {{.daysCount}} den/dnů."
+    "translation": "Platnost relace vypršela: Pro pokračování v přijímání notifikací se prosím přihlaste. Relace pro {{.siteName}} jsou nakonfigurovány vaším správcem systému tak, aby vypršely každých {{.hoursCount}} hodinu/hodiny."
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
@@ -5417,7 +5417,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 106+"
+    "translation": "Verze 130+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -6349,7 +6349,7 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Nelze najít daný kanál."
+    "translation": "Nepodařilo se najít existující kanál {{.channel_id}}."
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
@@ -6661,7 +6661,7 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Při hledání kanálu došlo k chybě."
+    "translation": "Při hledání kanálu {{.channel_id}} došlo k chybě."
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
@@ -6981,11 +6981,11 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Tento webhook nemá povoleno přispívat na požadovaný kanál."
+    "translation": "Tento webhook nemá povolení odesílat zprávy do požadovaného kanálu {{.channel_id}}"
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "V archivovaném kanálu nemůžete potvrdit potvrzení."
+    "translation": "Nemůžete uložit potvrzení v archivovaném kanálu."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -7001,7 +7001,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Zabezpečené připojení | Zobrazované jméno | ID připojení | Adresa URL webu | Přijatá pozvánka | Online | Poslední odezva|"
+    "translation": "| Bezpečné připojení | Zobrazované jméno | ID připojení | URL stránky | Výchozí tým | Pozvánka přijata | Online | Poslední ping | Smazáno |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8165,7 +8165,7 @@
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
-    "translation": "Chyba nebylo poskytnuto jméno organizace pro svépomocné nasazení."
+    "translation": "Chyba: Nebylo poskytnuto jméno organizace pro onboarding na vlastním hostingu."
   },
   {
     "id": "api.channel.create_group.remote_restricted.app_error",
