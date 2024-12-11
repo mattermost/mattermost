@@ -371,6 +371,11 @@
                             white-space: nowrap;
                         }
 
+                        .premadeThemeButton{
+                            border: none;
+                            background: none;
+                        }
+
                         label {
                             width: 100%;
                         }
@@ -407,12 +412,21 @@
                     }
 
                     .theme-elements__header {
-                        padding: 1px 0 10px;
                         border-bottom: 1px solid;
                         margin: 10px 20px 0 0;
                         cursor: pointer;
                         font-size: functions.em(13.5px);
                         font-weight: 600;
+
+                        button {
+                            display: flex;
+                            width: 100%;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 10px 1px;
+                            border: none;
+                            background: none;
+                        }
 
                         .fa-minus {
                             display: none;
@@ -442,6 +456,7 @@
                         background-color: rgba(255, 255, 255, 0.05);
                         overflow-y: hidden;
                         transition: all 0.4s ease-out;
+                        visibility: hidden;
 
                         @include mixins.pie-clearfix;
 
@@ -449,6 +464,7 @@
                             max-height: 1200px;
                             padding: 24px 0 0 24px;
                             margin: 0 20px 0 0;
+                            visibility: visible;
                         }
                     }
 
@@ -499,6 +515,12 @@
                     list-style-type: none;
 
                     .radio {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 0;
+                        border:none;
+                        background: none;
                         p {
                             padding-top: 5px;
                             padding-left: 20px;
