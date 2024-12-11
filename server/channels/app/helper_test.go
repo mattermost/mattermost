@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -247,13 +246,6 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	mainHelper.PreloadMigrations()
 
 	return setupTestHelper(dbStore, true, true, nil, []Option{SetCluster(cluster)}, tb)
-}
-
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
