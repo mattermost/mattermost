@@ -1,17 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Store} from 'redux';
-
-import type {GlobalState} from '@mattermost/types/store';
-
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import configureStore from './index';
 
 describe('configureStore', () => {
     test('should match initial state after logout', () => {
-        const store: Store<GlobalState> = configureStore();
+        const store = configureStore();
 
         const initialState = store.getState();
 
