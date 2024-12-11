@@ -1,7 +1,7 @@
 [
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Couldn't find the user."
+    "translation": "Couldn't find the user {{.user}}"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -13,7 +13,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Inappropriate channel permissions."
+    "translation": "User {{.user}} does not have appropriate permissions to channel {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel."
+    "translation": "This webhook is not permitted to post to the requested channel {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -137,11 +137,11 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Unable to parse incoming data."
+    "translation": "Unable to parse incoming data for webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Couldn't find the command."
+    "translation": "Couldn't find the command {{.command_id}}."
   },
   {
     "id": "system.message.name",
@@ -4489,11 +4489,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "An error occurred while finding the channel."
+    "translation": "An error occurred while finding the channel {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Unable to find the existing channel."
+    "translation": "Unable to find the existing channel {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -10403,5 +10403,29 @@
   {
     "id": "model.config.is_valid.storage_class.app_error",
     "translation": "Invalid storage class {{.Value}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Failed to cache post after deduplicating a client repeating the same request."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Unable to reset the read position to the start of the plugin bundle."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Failed to handle command webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Failed to decode the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Failed to handle the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Failed to parse media incoming webhook {{.hook_id}}."
   }
 ]

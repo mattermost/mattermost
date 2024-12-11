@@ -3,7 +3,8 @@
 
 import {getChannelMember} from 'mattermost-redux/actions/channels';
 import {getTeamMember} from 'mattermost-redux/actions/teams';
-import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
+
+import type {ThunkActionFunc} from 'types/store';
 
 export function getMembershipForEntities(teamId: string, userId: string, channelId?: string): ThunkActionFunc<unknown> {
     return (dispatch) => {
