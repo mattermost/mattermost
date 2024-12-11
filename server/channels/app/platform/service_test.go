@@ -41,7 +41,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			ConfigStore(configStore),
 		)
 		require.NoError(t, err)
-		require.Same(t, ps.sqlStore.GetMasterX(), ps.sqlStore.GetReplicaX())
+		require.Same(t, ps.sqlStore.GetMaster(), ps.sqlStore.GetReplica())
 		require.Len(t, ps.Config().SqlSettings.DataSourceReplicas, 1)
 	})
 
@@ -58,7 +58,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			},
 		)
 		require.NoError(t, err)
-		require.NotSame(t, ps.sqlStore.GetMasterX(), ps.sqlStore.GetReplicaX())
+		require.NotSame(t, ps.sqlStore.GetMaster(), ps.sqlStore.GetReplica())
 		require.Len(t, ps.Config().SqlSettings.DataSourceReplicas, 1)
 	})
 
@@ -71,7 +71,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			ConfigStore(configStore),
 		)
 		require.NoError(t, err)
-		require.Same(t, ps.sqlStore.GetMasterX(), ps.sqlStore.GetSearchReplicaX())
+		require.Same(t, ps.sqlStore.GetMaster(), ps.sqlStore.GetSearchReplicaX())
 		require.Len(t, ps.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
 
@@ -88,7 +88,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			},
 		)
 		require.NoError(t, err)
-		require.NotSame(t, ps.sqlStore.GetMasterX(), ps.sqlStore.GetSearchReplicaX())
+		require.NotSame(t, ps.sqlStore.GetMaster(), ps.sqlStore.GetSearchReplicaX())
 		require.Len(t, ps.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
 }
