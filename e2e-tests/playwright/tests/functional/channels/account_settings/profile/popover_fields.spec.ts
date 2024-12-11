@@ -8,7 +8,7 @@ test('MM-T53377 Profile popover should show correct fields after at-mention auto
     // # Initialize with specific config and get admin client
     const {user, adminClient, team} = await pw.initSetup();
 
-    adminClient.patchConfig({
+    await adminClient.patchConfig({
         PrivacySettings: {
             ShowEmailAddress: false,
             ShowFullName: false,
