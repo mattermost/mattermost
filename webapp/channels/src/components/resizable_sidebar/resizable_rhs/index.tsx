@@ -9,7 +9,6 @@ import {getIsRhsExpanded, getRhsSize} from 'selectors/rhs';
 
 import {CssVarKeyForResizable, RHS_MIN_MAX_WIDTH, ResizeDirection} from '../constants';
 import ResizableDivider from '../resizable_divider';
-import {shouldRhsOverlapChannelView} from '../utils';
 
 interface Props extends HTMLAttributes<'div'> {
     children: React.ReactNode;
@@ -32,8 +31,6 @@ function ResizableRhs({
 
     const defaultWidth = RHS_MIN_MAX_WIDTH[rhsSize].default;
 
-    const shouldRhsOverlap = shouldRhsOverlapChannelView(rhsSize);
-
     const handleResize = (_: number, cssVarProp: string, cssVarValue: string) => {
         const rightWidthHolderRefElement = rightWidthHolderRef.current;
 
@@ -41,9 +38,7 @@ function ResizableRhs({
             return;
         }
 
-        if (!shouldRhsOverlap) {
-            rightWidthHolderRefElement.style.setProperty(cssVarProp, cssVarValue);
-        }
+        rightWidthHolderRefElement.style.setProperty(cssVarProp, cssVarValue);
     };
 
     const handleResizeEnd = (_: number, cssVarProp: string) => {

@@ -18,6 +18,7 @@ import {clearChannelSelection, multiSelectChannelAdd, multiSelectChannelTo} from
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getFirstChannelName} from 'selectors/onboarding';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
+import {getIsTabletView} from 'selectors/views/browser';
 import {isChannelSelected} from 'selectors/views/channel_sidebar';
 
 import {
@@ -51,6 +52,7 @@ function makeMapStateToProps() {
         const showChannelsTour = enableTutorial && tutorialStep === OnboardingTourSteps.CHANNELS_AND_DIRECT_MESSAGES;
         const showChannelsTutorialStep = showChannelsTour && channelTourTriggered && isOnboardingFlowEnabled === 'true';
         return {
+            isTabletView: getIsTabletView(state),
             unreadMentions: unreadCount.mentions,
             unreadMsgs: unreadCount.messages,
             isUnread: unreadCount.showUnread,
