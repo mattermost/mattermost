@@ -8,6 +8,7 @@ import {initSetup, getAdminClient} from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
+import {stubNotification, waitForNotification} from './mock_browser_api';
 
 export {expect} from '@playwright/test';
 
@@ -41,7 +42,7 @@ export const test = base.extend<ExtendedFixtures>({
 
 class PlaywrightExtended {
     // ./browser_context
-    readonly testBrowser: TestBrowser;
+    readonly testBrowser;
 
     // ./flag
     readonly shouldHaveCallsEnabled;
@@ -64,6 +65,10 @@ class PlaywrightExtended {
 
     // ./visual
     readonly matchSnapshot;
+
+    // ./mock_browser_api
+    readonly stubNotification;
+    readonly waitForNotification;
 
     constructor(browser: Browser) {
         // ./browser_context
@@ -90,6 +95,10 @@ class PlaywrightExtended {
 
         // ./visual
         this.matchSnapshot = matchSnapshot;
+
+        // ./mock_browser_api
+        this.stubNotification = stubNotification;
+        this.waitForNotification = waitForNotification;
     }
 }
 
