@@ -38,6 +38,7 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl config edit <mmctl_config_edit.rst>`_ 	 - Edit the config
+* `mmctl config export <mmctl_config_export.rst>`_ 	 - Export the server configuration
 * `mmctl config get <mmctl_config_get.rst>`_ 	 - Get config setting
 * `mmctl config migrate <mmctl_config_migrate.rst>`_ 	 - Migrate existing config between backends
 * `mmctl config patch <mmctl_config_patch.rst>`_ 	 - Patch the config

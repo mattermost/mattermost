@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -27,10 +28,24 @@ func (api *API) InitConfigLocal() {
 func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("localGetConfig", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	cfg := c.App.GetSanitizedConfig()
+	filterMasked, _ := strconv.ParseBool(r.URL.Query().Get("remove_masked"))
+	filterDefaults, _ := strconv.ParseBool(r.URL.Query().Get("remove_defaults"))
+
+	filterOpts := model.ConfigFilterOptions{
+		GetConfigOptions: model.GetConfigOptions{
+			RemoveDefaults: filterDefaults,
+			RemoveMasked:   filterMasked,
+		},
+	}
+
+	m, err := model.FilterConfig(c.App.Config(), filterOpts)
+	if err != nil {
+		c.Err = model.NewAppError("getConfig", "api.filter_config_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 	auditRec.Success()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+	if err := json.NewEncoder(w).Encode(m); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
