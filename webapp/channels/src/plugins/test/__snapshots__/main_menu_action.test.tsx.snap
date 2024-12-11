@@ -4,11 +4,11 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
 <div
   aria-label="main menu"
   className="a11y__popup Menu"
-  role="menu"
 >
   <ul
     className="Menu__content dropdown-menu"
     onClick={[Function]}
+    role="menu"
     style={Object {}}
   >
     <Memo(MenuGroup)>
@@ -433,11 +433,11 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
 <div
   aria-label="team menu"
   className="a11y__popup Menu"
-  role="menu"
 >
   <ul
     className="Menu__content dropdown-menu"
     onClick={[Function]}
+    role="menu"
     style={Object {}}
   >
     <Memo(MenuGroup)>
