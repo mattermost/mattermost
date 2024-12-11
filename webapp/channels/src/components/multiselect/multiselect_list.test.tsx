@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen, render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type {Value} from './multiselect';
 import MultiSelectList from './multiselect_list';
 import type {Props as MultiSelectProps} from './multiselect_list';
+import {renderWithIntl} from 'tests/react_testing_utils';
 
 const element = () => <div/>;
 
@@ -48,20 +50,14 @@ describe('components/multiselect/multiselect', () => {
                     ref={isSelected ? selectedItemRef : option.id}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
+                    data-testid={`option-${option.id}`}
                 >
                     {option.id}
                 </p>
             );
         };
 
-        const wrapper = shallow(
-            <MultiSelectList
-                {...baseProps}
-                optionRenderer={renderOption}
-            />,
-        );
-
-        (wrapper.instance() as any).listRef = {
+        const listRef = {
             current: {
                 getBoundingClientRect: jest.fn(() => ({
                     bottom: 50,
@@ -70,7 +66,17 @@ describe('components/multiselect/multiselect', () => {
             },
         } as any;
 
-        wrapper.setState({selected: 1});
+        renderWithIntl(
+            <MultiSelectList
+                {...baseProps}
+                optionRenderer={renderOption}
+                forwardedRef={listRef}
+            />,
+        );
+
+        const option = screen.getByTestId('option-1');
+        userEvent.hover(option);
+
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(false);
     });
 
@@ -82,20 +88,14 @@ describe('components/multiselect/multiselect', () => {
                     ref={isSelected ? selectedItemRef : option.id}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
+                    data-testid={`option-${option.id}`}
                 >
                     {option.id}
                 </p>
             );
         };
 
-        const wrapper = shallow(
-            <MultiSelectList
-                {...baseProps}
-                optionRenderer={renderOption}
-            />,
-        );
-
-        (wrapper.instance() as any).listRef = {
+        const listRef = {
             current: {
                 getBoundingClientRect: jest.fn(() => ({
                     bottom: 200,
@@ -104,7 +104,17 @@ describe('components/multiselect/multiselect', () => {
             },
         } as any;
 
-        wrapper.setState({selected: 1});
+        renderWithIntl(
+            <MultiSelectList
+                {...baseProps}
+                optionRenderer={renderOption}
+                forwardedRef={listRef}
+            />,
+        );
+
+        const option = screen.getByTestId('option-1');
+        userEvent.hover(option);
+
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(true);
     });
 });

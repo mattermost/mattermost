@@ -1,39 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import FileUploadOverlay from 'components/file_upload_overlay';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
+import FileUploadOverlay from './file_upload_overlay';
 
 describe('components/FileUploadOverlay', () => {
-    test('should match snapshot when file upload is showing with no overlay type', () => {
-        const wrapper = shallow(
+    test('should render correctly with no overlay type', () => {
+        renderWithContext(
             <FileUploadOverlay
                 overlayType=''
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const overlay = screen.getByTestId('fileUploadOverlay');
+        expect(overlay).toBeInTheDocument();
+        expect(overlay).toHaveClass('file-overlay hidden');
+        expect(overlay).not.toHaveClass('right-file-overlay');
+        expect(overlay).not.toHaveClass('center-file-overlay');
+
+        expect(screen.getByText('Drop a file to upload it.')).toBeInTheDocument();
+        expect(screen.getByAltText('Files')).toBeInTheDocument();
+        expect(screen.getByAltText('Logo')).toBeInTheDocument();
+        expect(screen.getByTitle('Upload Icon')).toBeInTheDocument();
     });
 
-    test('should match snapshot when file upload is showing with overlay type of right', () => {
-        const wrapper = shallow(
+    test('should render correctly with right overlay type', () => {
+        renderWithContext(
             <FileUploadOverlay
                 overlayType='right'
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const overlay = screen.getByTestId('fileUploadOverlay');
+        expect(overlay).toBeInTheDocument();
+        expect(overlay).toHaveClass('file-overlay hidden right-file-overlay');
     });
 
-    test('should match snapshot when file upload is showing with overlay type of center', () => {
-        const wrapper = shallow(
+    test('should render correctly with center overlay type', () => {
+        renderWithContext(
             <FileUploadOverlay
                 overlayType='center'
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        const overlay = screen.getByTestId('fileUploadOverlay');
+        expect(overlay).toBeInTheDocument();
+        expect(overlay).toHaveClass('file-overlay hidden center-file-overlay');
     });
 });
