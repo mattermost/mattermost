@@ -8,14 +8,14 @@ dayjs.extend(duration);
 const {TYPE, SERVER_TYPE, BRANCH, PULL_REQUEST, BUILD_ID, MM_ENV, MM_DOCKER_IMAGE, MM_DOCKER_TAG, RELEASE_DATE} =
     process.env;
 
-const resultsFile = 'results/results.json';
+const resultsFile = 'results/reporter/results.json';
 const summaryFile = 'results/summary.json';
 const results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));
 const summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
-const passRate = summary.passed / (summary.passed + summary.failed);
-const totalSpecs = summary.passed + summary.failed + summary.failed_expected;
+const passRate = (summary.passed * 100) / (summary.passed + summary.failed);
+const totalSpecs = summary.passed + summary.failed;
 const playwrightVersion = results.config.version;
-const playwrightDuration = dayjs.duration(results.stats.duration, 'seconds').format('HH:mm:ss');
+const playwrightDuration = dayjs.duration(results.stats.duration, 'millisecond').format('HH:mm:ss');
 
 function generateTitle() {
     let dockerImageLink = '';
@@ -68,7 +68,7 @@ function generateWebhookBody() {
         }
     }
 
-    const summaryField = `${(passRate * 100).toFixed(2)}% (${summary.passed}/${totalSpecs}) | ${playwrightDuration} | playwright@${playwrightVersion}`;
+    const summaryField = `${passRate.toFixed(2)}% (${summary.passed}/${totalSpecs}) | ${playwrightDuration} | playwright@${playwrightVersion}`;
     const serverTypeField = SERVER_TYPE ? '\nTest server: ' + SERVER_TYPE : '';
     const mmEnvField = MM_ENV ? '\nTest server override: ' + MM_ENV : '';
     const rollingReleaseMatchRegex = BUILD_ID?.match(/-rolling(?<version>[^-]+)-/);

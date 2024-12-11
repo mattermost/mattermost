@@ -6,12 +6,11 @@ import {defineConfig, devices} from '@playwright/test';
 import {duration} from '@e2e-support/util';
 import testConfig from '@e2e-test.config';
 
-const defaultOutputFolder = './results';
-
 export default defineConfig({
     globalSetup: require.resolve('./global_setup'),
     forbidOnly: testConfig.isCI,
-    outputDir: './results/tests',
+    outputDir: './results/output',
+    retries: testConfig.isCI ? 2 : 0,
     testDir: 'tests',
     timeout: duration.one_min,
     workers: testConfig.workers,
@@ -58,6 +57,7 @@ export default defineConfig({
             use: {
                 browserName: 'chromium',
                 ...devices['iPad Pro 11'],
+                permissions: ['notifications'],
             },
         },
         {
@@ -78,9 +78,9 @@ export default defineConfig({
         },
     ],
     reporter: [
-        ['html', {open: 'never', outputFolder: defaultOutputFolder}],
-        ['json', {outputFile: `${defaultOutputFolder}/results.json`}],
-        ['junit', {outputFile: `${defaultOutputFolder}/results.xml`}],
+        ['html', {open: 'never', outputFolder: './results/reporter'}],
+        ['json', {outputFile: './results/reporter/results.json'}],
+        ['junit', {outputFile: './results/reporter/results.xml'}],
         ['list'],
     ],
 });

@@ -5,9 +5,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
 
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
-
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync} from 'types/store';
 import type {DesktopNotificationArgs} from 'types/store/plugins';
 
 import type {NewPostMessageProps} from './new_post';
@@ -16,7 +14,7 @@ import type {NewPostMessageProps} from './new_post';
  * @param {Post} originalPost
  * @returns {ActionFuncAsync<Post>}
  */
-export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync<Post, GlobalState> {
+export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBePosted;
         if (!hooks || hooks.length === 0) {
@@ -43,7 +41,7 @@ export function runMessageWillBePostedHooks(originalPost: Post): ActionFuncAsync
     };
 }
 
-export function runSlashCommandWillBePostedHooks(originalMessage: string, originalArgs: CommandArgs): ActionFuncAsync<{message: string; args: CommandArgs}, GlobalState> {
+export function runSlashCommandWillBePostedHooks(originalMessage: string, originalArgs: CommandArgs): ActionFuncAsync<{message: string; args: CommandArgs}> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.SlashCommandWillBePosted;
         if (!hooks || hooks.length === 0) {
@@ -78,7 +76,7 @@ export function runSlashCommandWillBePostedHooks(originalMessage: string, origin
     };
 }
 
-export function runMessageWillBeUpdatedHooks(newPost: Partial<Post>, oldPost: Post): ActionFuncAsync<Partial<Post>, GlobalState> {
+export function runMessageWillBeUpdatedHooks(newPost: Partial<Post>, oldPost: Post): ActionFuncAsync<Partial<Post>> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.MessageWillBeUpdated;
         if (!hooks || hooks.length === 0) {
@@ -105,7 +103,7 @@ export function runMessageWillBeUpdatedHooks(newPost: Partial<Post>, oldPost: Po
     };
 }
 
-export function runDesktopNotificationHooks(post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs): ActionFuncAsync<DesktopNotificationArgs, GlobalState> {
+export function runDesktopNotificationHooks(post: Post, msgProps: NewPostMessageProps, channel: Channel, teamId: string, args: DesktopNotificationArgs): ActionFuncAsync<DesktopNotificationArgs> {
     return async (dispatch, getState) => {
         const hooks = getState().plugins.components.DesktopNotificationHooks;
         if (!hooks || hooks.length === 0) {

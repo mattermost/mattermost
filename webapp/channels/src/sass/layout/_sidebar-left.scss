@@ -1,4 +1,4 @@
-@charset "UTF-8";
+@use "utils/variables";
 
 /* Height durations for height and opacity of sidebar channels needs to be different for optimum fps see PR #9732 */
 $sidebarHeightTransitionDuration: 0.18s;
@@ -213,7 +213,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
             &--untouched {
                 color: var(--sidebar-unread-text);
-                font-weight: $font-weight--semibold;
+                font-weight: variables.$font-weight--semibold;
             }
         }
 
@@ -1398,7 +1398,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     &:hover {
         background: #489dfe;
-        color: $white;
+        color: variables.$white;
     }
 
     &:focus,

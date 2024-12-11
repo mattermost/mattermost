@@ -45,7 +45,6 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-//
 function mapDispatchToProps(dispatch: Dispatch) {
     const dismissFirstError = dismissError.bind(null, 0);
     return {
