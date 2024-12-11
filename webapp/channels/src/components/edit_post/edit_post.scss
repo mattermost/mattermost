@@ -17,11 +17,17 @@
 }
 
 .post-edit__container {
+    background: transparent;
+
     .AdvancedTextEditor {
         padding: 0;
     }
 
     [data-testid='formattingBarContainer'] {
         background-color: var(--center-channel-bg);;
+    }
+
+    .custom-textarea {
+        padding: 13px 0 12px 16px;
     }
 }
