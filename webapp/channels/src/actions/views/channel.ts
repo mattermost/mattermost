@@ -42,7 +42,6 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
@@ -61,11 +60,11 @@ import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 export function goToLastViewedChannel(): ActionFuncAsync {
     return async (dispatch, getState) => {
-        const state = getState() as GlobalState;
+        const state = getState();
         const currentChannel = getCurrentChannel(state);
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
         const directChannel = getAllDirectChannelsNameMapInCurrentTeam(state);
@@ -150,7 +149,7 @@ export function joinChannelById(channelId: string): ActionFuncAsync {
 
 export function leaveChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        let state = getState() as GlobalState;
+        let state = getState();
         const currentUserId = getCurrentUserId(state);
         const currentTeam = getCurrentTeam(state);
         if (!currentTeam) {
@@ -172,7 +171,7 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
         if (error) {
             return {error};
         }
-        state = getState() as GlobalState;
+        state = getState();
 
         const prevChannelName = LocalStorageStore.getPreviousChannelName(currentUserId, currentTeam.id, state);
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
@@ -204,7 +203,7 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
 
 export function leaveDirectChannel(channelName: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        const state = getState() as GlobalState;
+        const state = getState();
         const currentUserId = getCurrentUserId(state);
         const teams = getTeamsList(state); // dms are shared across teams but on local storage are set linked to one, we need to look into all.
         teams.forEach((currentTeam) => {
@@ -423,7 +422,7 @@ export function loadPosts({
 export function syncPostsInChannel(channelId: string, since: number, prefetch = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         const time = Date.now();
-        const state = getState() as GlobalState;
+        const state = getState();
         const socketStatus = getSocketStatus(state);
         let sinceTimeToGetPosts = since;
         const lastPostsApiCallForChannel = getLastPostsApiTimeForChannel(state, channelId);
@@ -495,7 +494,7 @@ export function scrollPostListToBottom() {
     };
 }
 
-export function markAsReadOnFocus(): ThunkActionFunc<void, GlobalState> {
+export function markAsReadOnFocus(): ThunkActionFunc<void> {
     return (dispatch, getState) => {
         const state = getState();
         const currentChannelId = getCurrentChannelId(state);
@@ -523,7 +522,7 @@ export function updateToastStatus(status: boolean) {
     };
 }
 
-export function deleteChannel(channelId: string): ActionFuncAsync<boolean, GlobalState> {
+export function deleteChannel(channelId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const res = await dispatch(deleteChannelRedux(channelId));
         if (res.error) {
