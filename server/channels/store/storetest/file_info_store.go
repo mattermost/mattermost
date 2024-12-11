@@ -38,11 +38,9 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, rctx, ss) })
 	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, rctx, ss, s) })
 	t.Run("FileInfoPermanentDeleteForPost", func(t *testing.T) { testPermanentDeleteForPost(t, rctx, ss) })
-<<<<<<< HEAD
 	t.Run("FileInfoGetByIds", func(t *testing.T) { testGetByIds(t, rctx, ss) })
-=======
+	t.Run("FileInfoGetByIds", func(t *testing.T) { testGetByIds(t, rctx, ss) })
 	t.Run("FileInfoDeleteForPostByIds", func(t *testing.T) { testDeleteForPostByIds(t, rctx, ss) })
->>>>>>> feature_edit_attachments
 }
 
 func testFileInfoSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -973,7 +971,6 @@ func testPermanentDeleteForPost(t *testing.T, rctx request.CTX, ss store.Store) 
 	assert.Len(t, postInfos, 0)
 }
 
-<<<<<<< HEAD
 func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Should get single file info", func(t *testing.T) {
 		info, err := ss.FileInfo().Save(rctx, &model.FileInfo{
@@ -1062,7 +1059,9 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		require.Equal(t, info1.Id, fileInfos[1].Id)
 		require.Greater(t, fileInfos[1].DeleteAt, int64(0))
-=======
+	})
+}
+
 func testDeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("base case", func(t *testing.T) {
 		now := model.GetMillis()
@@ -1318,6 +1317,5 @@ func testDeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 				require.Equal(t, int64(0), fileInfo.DeleteAt)
 			}
 		}
->>>>>>> feature_edit_attachments
 	})
 }
