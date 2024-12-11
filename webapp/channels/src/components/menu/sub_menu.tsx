@@ -31,7 +31,7 @@ import {isKeyPressed} from 'utils/keyboard';
 import {SubMenuContext, useMenuContextValue} from './menu_context';
 import {MenuItem} from './menu_item';
 import type {Props as MenuItemProps} from './menu_item';
-import {MuiMenuStyled} from './menu_styled';
+import {MuiPopoverStyled} from './menu_styled';
 
 import './sub_menu.scss';
 
@@ -47,6 +47,7 @@ interface Props {
     menuAriaLabel?: string;
     forceOpenOnLeft?: boolean; // Most of the times this is not needed, since submenu position is calculated and placed
 
+    subMenuHeader?: ReactNode;
     children: ReactNode;
 }
 
@@ -61,6 +62,7 @@ export function SubMenu(props: Props) {
         menuAriaLabel,
         forceOpenOnLeft,
         children,
+        subMenuHeader,
         ...rest
     } = props;
 
@@ -134,6 +136,7 @@ export function SubMenu(props: Props) {
                 menuId,
                 menuAriaLabel,
                 children,
+                subMenuHeader,
             },
         }));
     }
@@ -163,34 +166,28 @@ export function SubMenu(props: Props) {
             onMouseLeave={handleMouseLeave}
             onKeyDown={handleKeyDown}
         >
-            <MuiMenuStyled
-                anchorEl={anchorElement}
-                open={isSubMenuOpen}
-                asSubMenu={true}
-                anchorOrigin={originOfAnchorAndTransform.anchorOrigin}
-                transformOrigin={originOfAnchorAndTransform.transformOrigin}
-                sx={{pointerEvents: 'none'}}
-            >
-                {/* This component is needed here to re enable pointer events for the submenu items which we had to disable above as */}
-                {/* pointer turns to default as soon as it leaves the parent menu */}
-                {/* Notice we dont use the below component in menu.tsx  */}
-                <MuiMenuList
-                    id={menuId}
-                    component='ul'
-                    aria-label={menuAriaLabel}
-                    className={A11yClassNames.POPUP}
-                    onKeyDown={handleSubMenuKeyDown}
-                    sx={{
-                        pointerEvents: 'auto', // reset pointer events to default from here on
-                        paddingTop: 0,
-                        paddingBottom: 0,
-                    }}
+            <SubMenuContext.Provider value={providerValue}>
+                <MuiPopoverStyled
+                    anchorEl={anchorElement}
+                    open={isSubMenuOpen}
+                    anchorOrigin={originOfAnchorAndTransform.anchorOrigin}
+                    transformOrigin={originOfAnchorAndTransform.transformOrigin}
                 >
-                    <SubMenuContext.Provider value={providerValue}>
+                    {subMenuHeader}
+                    <MuiMenuList
+                        id={menuId}
+                        aria-label={menuAriaLabel}
+                        className={A11yClassNames.POPUP}
+                        onKeyDown={handleSubMenuKeyDown}
+                        autoFocusItem={true}
+                        sx={{
+                            py: 0,
+                        }}
+                    >
                         {children}
-                    </SubMenuContext.Provider>
-                </MuiMenuList>
-            </MuiMenuStyled>
+                    </MuiMenuList>
+                </MuiPopoverStyled>
+            </SubMenuContext.Provider>
         </MenuItem>
     );
 }
@@ -199,6 +196,7 @@ interface SubMenuModalProps {
     menuId: Props['menuId'];
     menuAriaLabel?: Props['menuAriaLabel'];
     children: Props['children'];
+    subMenuHeader?: ReactNode;
 }
 
 function SubMenuModal(props: SubMenuModalProps) {
@@ -220,9 +218,11 @@ function SubMenuModal(props: SubMenuModalProps) {
                 className='menuModal'
             >
                 <MuiMenuList
+                    component={'div'}
                     aria-hidden={true}
                     onClick={handleModalClose}
                 >
+                    {props.subMenuHeader}
                     {props.children}
                 </MuiMenuList>
             </GenericModal>
