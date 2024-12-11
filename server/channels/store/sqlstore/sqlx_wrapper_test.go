@@ -42,7 +42,7 @@ func TestSqlX(t *testing.T) {
 
 			defer store.Close()
 
-			tx, err := store.GetMasterX().Beginx()
+			tx, err := store.GetMaster().Beginx()
 			require.NoError(t, err)
 
 			var query string
