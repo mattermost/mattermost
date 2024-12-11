@@ -85,18 +85,18 @@ describe('formatText', () => {
 
         for (let i = 0; i < 3; i++) {
             spaces += ' ';
-            const output = formatText(`${spaces}${emoji}`, {}, emptyEmojiMap);
+            const output = formatText(`${spaces}${emoji}`, {renderEmoticonsAsEmoji: true}, emptyEmojiMap);
             expect(output).toBe(`<span class="all-emoji"><p>${spaces}<span data-emoticon="slightly_smiling_face">${emoji}</span></p></span>`);
         }
     });
 
     test('code blocks newlines are not converted into <br/> with inline markdown image in the post', () => {
-        const output = formatText('```\nsome text\nsecond line\n```\n ![](https://example.com/image.png)', {}, emptyEmojiMap);
+        const output = formatText('```\nsome text\nsecond line\n```\n ![](https://example.com/image.png)', {renderEmoticonsAsEmoji: true}, emptyEmojiMap);
         expect(output).not.toContain('<br/>');
     });
 
     test('newlines in post text are converted into <br/> with inline markdown image in the post', () => {
-        const output = formatText('some text\nand some more ![](https://example.com/image.png)', {}, emptyEmojiMap);
+        const output = formatText('some text\nand some more ![](https://example.com/image.png)', {renderEmoticonsAsEmoji: true}, emptyEmojiMap);
         expect(output).toContain('<br/>');
     });
 });
