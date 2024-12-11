@@ -116,6 +116,7 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "reconnectListeners": Set {},
         "responseCallbacks": Object {},
         "responseSequence": 1,
+        "serverHostname": "",
         "serverSequence": 0,
       }
     }
@@ -163,6 +164,7 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "reconnectListeners": Set {},
         "responseCallbacks": Object {},
         "responseSequence": 1,
+        "serverHostname": "",
         "serverSequence": 0,
       }
     }
