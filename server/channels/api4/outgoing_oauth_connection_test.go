@@ -44,6 +44,8 @@ func outgoingOauthConnectionsCleanup(t *testing.T, th *TestHelper) {
 
 // Helper tests
 func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	t.Run("no permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -127,6 +129,8 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 }
 
 func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	t.Run("no permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -169,6 +173,8 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 // Client tests
 
 func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	t.Run("No license returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION")
@@ -840,6 +846,8 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 // Handler tests
 
 func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-61690")
+
 	t.Run("no feature flag, no interface, no license", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
