@@ -168,7 +168,7 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 
 	seqNum, err := strconv.ParseInt(seqVal, 10, 0)
 	if err != nil {
-		return nil, fmt.Errorf("invalid sequence number %s in query param: %v", seqVal, err)
+		return nil, fmt.Errorf("invalid sequence number %s in query param: %w", seqVal, err)
 	}
 
 	// This does not handle reconnect requests across nodes in a cluster.

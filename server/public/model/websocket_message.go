@@ -100,8 +100,8 @@ const (
 )
 
 type ActiveQueueItem struct {
-	Type string `json:"type"` // websocket event or websocket response
-	Buf  []byte `json:"buf"`
+	Type string          `json:"type"` // websocket event or websocket response
+	Buf  json.RawMessage `json:"buf"`
 }
 
 type WSQueues struct {

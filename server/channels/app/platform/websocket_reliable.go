@@ -31,7 +31,7 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 
 	// If seq-1 == last value in the dq.
 	if perfectMatch := !_hasMsgLoss(dq, dqPtr, seqNum); perfectMatch {
-		aqSlice, err := ps.getAQ(aq, connectionID, userID)
+		aqSlice, err := ps.marshalAQ(aq, connectionID, userID)
 		defer close(aq)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get from active queue: %w", err)
@@ -45,12 +45,12 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 
 	// If seq is there somewhere else in the dq.
 	if ok, index := _isInDeadQueue(dq, seqNum); ok {
-		aqSlice, err := ps.getAQ(aq, connectionID, userID)
+		aqSlice, err := ps.marshalAQ(aq, connectionID, userID)
 		defer close(aq)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get from active queue: %w", err)
 		}
-		dqSlice, err := ps.getDQ(dq, index, dqPtr)
+		dqSlice, err := ps.marshalDQ(dq, index, dqPtr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get from dead queue: %w", err)
 		}
@@ -66,7 +66,7 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 	return nil, nil
 }
 
-func (ps *PlatformService) getAQ(aq <-chan model.WebSocketMessage, connID, userID string) ([]model.ActiveQueueItem, error) {
+func (ps *PlatformService) marshalAQ(aq <-chan model.WebSocketMessage, connID, userID string) ([]model.ActiveQueueItem, error) {
 	aqSlice := make([]model.ActiveQueueItem, 0)
 	for {
 		select {
@@ -81,7 +81,7 @@ func (ps *PlatformService) getAQ(aq <-chan model.WebSocketMessage, connID, userI
 				return nil, fmt.Errorf("failed to marshal websocket event: %w, connection_id=%s, user_id=%s", err, connID, userID)
 			}
 			aqSlice = append(aqSlice, model.ActiveQueueItem{
-				Buf:  buf,
+				Buf:  json.RawMessage(buf),
 				Type: evtType,
 			})
 		default:
@@ -91,9 +91,9 @@ func (ps *PlatformService) getAQ(aq <-chan model.WebSocketMessage, connID, userI
 	}
 }
 
-// getDQ is the same as drainDeadQueue, except it writes to a byte slice
+// marshalDQ is the same as drainDeadQueue, except it writes to a byte slice
 // instead of the network. To be refactored into a single method.
-func (ps *PlatformService) getDQ(dq []*model.WebSocketEvent, index, dqPtr int) ([][]byte, error) {
+func (ps *PlatformService) marshalDQ(dq []*model.WebSocketEvent, index, dqPtr int) ([][]byte, error) {
 	if dq[0] == nil {
 		return nil, nil
 	}
@@ -110,7 +110,7 @@ func (ps *PlatformService) getDQ(dq []*model.WebSocketEvent, index, dqPtr int) (
 			if err != nil {
 				return nil, fmt.Errorf("error in encoding websocket message in dead queue: %w", err)
 			}
-			dqSlice = append(dqSlice, buf.Bytes())
+			dqSlice = append(dqSlice, bytes.Clone(buf.Bytes()))
 		}
 		return dqSlice, nil
 	}
@@ -124,6 +124,7 @@ func (ps *PlatformService) getDQ(dq []*model.WebSocketEvent, index, dqPtr int) (
 		if err != nil {
 			return nil, fmt.Errorf("error in encoding websocket message in dead queue: %w", err)
 		}
+		dqSlice = append(dqSlice, bytes.Clone(buf.Bytes()))
 		oldSeq := dq[currPtr].GetSequence()
 		currPtr = (currPtr + 1) % deadQueueSize
 		newSeq := dq[currPtr].GetSequence()

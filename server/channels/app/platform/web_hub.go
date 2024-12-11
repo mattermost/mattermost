@@ -275,6 +275,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 		ps.Log().Error("Error while getting websocket queues",
 			mlog.String("connection_id", connectionID),
 			mlog.String("user_id", userID),
+			mlog.Int("sequence_number", seqNum),
 			mlog.Err(err))
 		return nil
 	}
