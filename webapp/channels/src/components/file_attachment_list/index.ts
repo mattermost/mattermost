@@ -6,9 +6,10 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
-import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
+import {getFilesForEditHistory, makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
@@ -24,6 +25,9 @@ export type OwnProps = {
     compactDisplay?: boolean;
     isInPermalink?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
+    isEditHistory?: boolean;
+    disableDownload?: boolean;
+    disableActions?: boolean;
 }
 
 function makeMapStateToProps() {
@@ -31,7 +35,14 @@ function makeMapStateToProps() {
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const postId = ownProps.post ? ownProps.post.id : '';
-        const fileInfos = selectFilesForPost(state, postId);
+
+        var fileInfos: FileInfo[];
+
+        if (ownProps.isEditHistory) {
+            fileInfos = getFilesForEditHistory(state, ownProps.post);
+        } else {
+            fileInfos = selectFilesForPost(state, postId);
+        }
 
         let fileCount = 0;
         if (ownProps.post.metadata && ownProps.post.metadata.files) {

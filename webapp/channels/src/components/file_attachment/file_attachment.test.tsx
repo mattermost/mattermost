@@ -206,4 +206,16 @@ describe('FileAttachment', () => {
             screen.getByText(/This file is archived/);
         });
     });
+
+    test('should match snapshot when file is deleted', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: {
+                ...baseFileInfo,
+                delete_at: 10000000,
+            },
+        };
+        const wrapper = shallow(<FileAttachment {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
 });

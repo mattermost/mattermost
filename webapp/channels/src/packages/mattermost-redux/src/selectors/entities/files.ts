@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -45,6 +46,16 @@ export function makeGetFilesForPost(): (state: GlobalState, postId: string) => F
         },
     );
 }
+
+export const getFilesForEditHistory: (state: GlobalState, editHistoryPost: Post) => FileInfo[] = createSelector(
+    'getFilesForEditHistory',
+    (state) => getCurrentUserLocale(state),
+    (state: GlobalState, editHistoryPost: Post) => editHistoryPost,
+    (userLocal, editHistoryPost) => {
+        const fileInfos = editHistoryPost?.metadata?.files ? [...editHistoryPost.metadata.files] : [];
+        return sortFileInfos(fileInfos, userLocal);
+    },
+);
 
 export const getSearchFilesResults: (state: GlobalState) => FileSearchResultItem[] = createSelector(
     'getSearchFilesResults',
