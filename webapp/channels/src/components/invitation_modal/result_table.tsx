@@ -114,7 +114,7 @@ export default function ResultTable(props: Props) {
                         let botBadge;
                         let reactKey = '';
 
-                        if (invitation.hasOwnProperty('user')) {
+                        if (Object.hasOwn(invitation, 'user')) {
                             className = 'name';
                             const user = (invitation as InviteUser).user;
                             reactKey = user.id;
@@ -133,7 +133,7 @@ export default function ResultTable(props: Props) {
                             if (isGuest(user.roles)) {
                                 guestBadge = <GuestTag/>;
                             }
-                        } else if (invitation.hasOwnProperty('email')) {
+                        } else if (Object.hasOwn(invitation, 'email')) {
                             const email = (invitation as InviteEmail).email;
                             reactKey = email;
                             className = 'email';
