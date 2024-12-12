@@ -36,9 +36,10 @@ test('MM-T53377 Profile popover should show correct fields after at-mention auto
 
     // * Verify all fields are visible for current user
     const popover = channelPage.userProfilePopover;
-    await expect(popover.container.getByText(`@${user.username}`)).toBeVisible();
-    await expect(popover.container.getByText(`${user.first_name} ${user.last_name}`)).toBeVisible();
-    await expect(popover.container.getByText(user.email)).toBeVisible();
+    await expect(popover.username).toBeVisible();
+    await expect(popover.username).toHaveText(`@${user.username}`);
+    await expect(popover.getFullName(user.username)).toHaveText(`${user.first_name} ${user.last_name}`);
+    await expect(popover.email).toHaveText(user.email);
 
     // # Close profile popover
     await popover.close();
@@ -48,9 +49,10 @@ test('MM-T53377 Profile popover should show correct fields after at-mention auto
     await secondMention.click();
 
     // * Verify only username is visible for other user
-    await expect(popover.container.getByText(`@${testUser2.username}`)).toBeVisible();
-    await expect(popover.container.getByText(`${testUser2.first_name} ${testUser2.last_name}`)).not.toBeVisible();
-    await expect(popover.container.getByText(testUser2.email)).not.toBeVisible();
+    await expect(popover.username).toBeVisible();
+    await expect(popover.username).toHaveText(`@${testUser2.username}`);
+    await expect(popover.getFullName(user.username)).not.toBeVisible();
+    await expect(popover.email).not.toBeVisible();
 
     // # Close profile popover
     await popover.close();
@@ -69,7 +71,8 @@ test('MM-T53377 Profile popover should show correct fields after at-mention auto
     await firstMention.click();
 
     // * Verify all fields are still visible
-    await expect(popover.container.getByText(`@${user.username}`)).toBeVisible();
-    await expect(popover.container.getByText(`${user.first_name} ${user.last_name}`)).toBeVisible();
-    await expect(popover.container.getByText(user.email)).toBeVisible();
+    await expect(popover.username).toBeVisible();
+    await expect(popover.username).toHaveText(`@${user.username}`);
+    await expect(popover.getFullName(user.username)).toHaveText(`${user.first_name} ${user.last_name}`);
+    await expect(popover.email).toHaveText(user.email);
 });
