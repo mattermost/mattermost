@@ -89,7 +89,7 @@ func (o *LinkMetadata) PreSave() {
 }
 
 func (o *LinkMetadata) IsValid() *AppError {
-	if o.URL == "" {
+	if o.URL == "" || len(o.URL) > 2048 {
 		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.url.app_error", nil, "", http.StatusBadRequest)
 	}
 
