@@ -114,7 +114,7 @@ jobs:
         id: generate
         run: |
           MM_ENV_HASH=$(md5sum -z <<<"$MM_ENV" | cut -c-8)
-          IS_TEST_UNSTABLE=""
+          TESTCASE_FAILURE_FATAL="true"
           if grep -q CLOUD <<<"$REPORT_TYPE"; then
             SERVER=cloud
           else
@@ -139,19 +139,20 @@ jobs:
               ;;
             MASTER | MASTER_UNSTABLE | CLOUD | CLOUD_UNSTABLE)
               ### Populate support variables
-              IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # The variable's value is 'UNSTABLE' if report type is for unstable tests, otherwise it's empty
+              _IS_TEST_UNSTABLE=$(sed -n -E 's/^.*(UNSTABLE).*$/\1/p' <<< "$REPORT_TYPE") # The variable's value is 'UNSTABLE' if report type is for unstable tests, otherwise it's empty
               _TEST_FILTER_CYPRESS_VARIABLE="TEST_FILTER_CYPRESS_PROD_${SERVER@U}"
               ### For ref and image tag generation: ignore 'inputs.ref', and use master branch directly. Note that 'COMMIT_SHA' will be used for reporting the test result, and for checking out the testing scripts and test cases
               COMMIT_SHA="$(git rev-parse --verify origin/master)"
               BRANCH=master
               SERVER_IMAGE_TAG=master
               SERVER_IMAGE_ORG=mattermostdevelopment
-              BUILD_ID_SUFFIX="${IS_TEST_UNSTABLE:+unstable-}daily-${SERVER}-ent"
+              BUILD_ID_SUFFIX="${_IS_TEST_UNSTABLE:+unstable-}daily-${SERVER}-ent"
               BUILD_ID_SUFFIX_IN_STATUS_CHECK=true
               WORKERS_NUMBER=10   # Daily tests are not time critical, and it's more efficient to run on fewer workers
-              TEST_FILTER_CYPRESS="${!_TEST_FILTER_CYPRESS_VARIABLE} ${IS_TEST_UNSTABLE:+--invert}"
+              TEST_FILTER_CYPRESS="${!_TEST_FILTER_CYPRESS_VARIABLE} ${_IS_TEST_UNSTABLE:+--invert}"
               TM4J_ENABLE=true
               COMPUTED_REPORT_TYPE="${REPORT_TYPE}"
+              [ -z "$_IS_TEST_UNSTABLE" ] || TESTCASE_FAILURE_FATAL="" # Assert that tests are stable. If they are not, the status check will be always green
               ;;
             RELEASE | RELEASE_CLOUD)
               ### Populate support variables
@@ -207,7 +208,7 @@ jobs:
           echo "status_check_context=E2E Tests/test${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
           echo "TEST_FILTER_CYPRESS=${TEST_FILTER_CYPRESS}" >> $GITHUB_OUTPUT
-          echo "TESTCASE_FAILURE_FATAL=${IS_TEST_UNSTABLE:+true}" >> $GITHUB_OUTPUT
+          echo "TESTCASE_FAILURE_FATAL=${TESTCASE_FAILURE_FATAL}" >> $GITHUB_OUTPUT
           echo "TM4J_ENABLE=${TM4J_ENABLE:-}" >> $GITHUB_OUTPUT
           echo "REPORT_TYPE=${COMPUTED_REPORT_TYPE}" >> $GITHUB_OUTPUT
           echo "ROLLING_RELEASE_commit_sha=${ROLLING_RELEASE_COMMIT_SHA}" >> $GITHUB_OUTPUT
@@ -245,7 +246,7 @@ jobs:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
-      testcase_failure_fatal: "{{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' && 'false' || 'true' }}"
+      testcase_failure_fatal: "{{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' && 'true' || 'false' }}"
       run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
@@ -278,7 +279,7 @@ jobs:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
       workers_number: "1"
-      testcase_failure_fatal: "{{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' && 'false' || 'true' }}"
+      testcase_failure_fatal: "{{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' && 'true' || 'false' }}"
       run_preflight_checks: false
       enable_reporting: true
       SERVER: "${{ needs.generate-test-variables.outputs.SERVER }}"
