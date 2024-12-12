@@ -3,7 +3,9 @@
 
 import {ActionTypes} from 'utils/constants';
 
-export function incrementWsErrorCount() {
+import type {ActionFuncAsync} from 'types/store';
+
+export function incrementWsErrorCount(): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({
             type: ActionTypes.INCREMENT_WS_ERROR_COUNT,
@@ -11,7 +13,7 @@ export function incrementWsErrorCount() {
     };
 }
 
-export function resetWsErrorCount() {
+export function resetWsErrorCount(): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({
             type: ActionTypes.RESET_WS_ERROR_COUNT,

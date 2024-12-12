@@ -3,7 +3,9 @@
 
 import {ActionTypes} from 'utils/constants';
 
-export function dismissNotice(type) {
+import type {ActionFunc} from 'types/store';
+
+export function dismissNotice(type: string): ActionFunc {
     return (dispatch) => {
         dispatch({
             type: ActionTypes.DISMISS_NOTICE,
