@@ -33,11 +33,11 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Neporozuměl jsem příchozím datům."
+    "translation": "Nepodařilo se zpracovat příchozí data pro webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Tento příkaz nelze najít."
+    "translation": "Nepodařilo se najít příkaz {{.command_id}}."
   },
   {
     "id": "system.message.name",
@@ -109,7 +109,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Podmínky užívání GitLabu byly změněny. Prosím přihlašte se na gitlab.com, akceptujte je a potom se zkuste přihlásit do Mattermostu znovu."
+    "translation": "Podmínky služby GitLab byly aktualizovány. Přejděte na {{.URL}}, abyste je přijali, a poté se pokuste znovu přihlásit do Mattermostu."
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -817,7 +817,7 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Nepodařilo se načíst Elasticsearch indexy"
+    "translation": "Nepodařilo se získat {{.Backend}} indexy"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -933,7 +933,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Konfigurace clusteru id={{.id}} se změnila. Cluster může být nestabilní a může vyžadovat restart. Pro zajišťění správného chování by ste měli ihned provést rolling restart."
+    "translation": "Konfigurace clusteru byla změněna pro id={{ .id }}. Cluster může být nestabilní a je vyžadován restart. Aby byla konfigurace clusteru správná, měli byste okamžitě provést postupný restart."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -1257,15 +1257,15 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nové upozornění v {{ .TeamName}} z {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Notifikace v {{ .TeamName}} dne {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nová skupinová zpráva z {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Nová skupinová zpráva dne {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nová skupinová zpráva v {{ .ChannelName}} z {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Nová skupinová zpráva v {{ .ChannelName}} dne {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -2421,7 +2421,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID pro interaktivní dialog vypršel. ID triggeru existuje maximálně po dobu {{.Seconds}} vteřin."
+    "translation": "ID spouštěče pro interaktivní dialog vypršelo. ID spouštěčů mají maximální platnost {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -2581,7 +2581,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Překročen limit. Zkuste zkontrolovat [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Překročen limit velikosti. Zkuste zvýšit nastavení maximální velikosti stránky. Další podrobnosti najdete na: https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -2881,7 +2881,7 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Připojili jste se k {{ .ServerURL }}"
+    "translation": "Vítejte v týmu"
   },
   {
     "id": "api.templates.welcome_body.info",
@@ -2901,7 +2901,7 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Jste připojeni k {{ .ServerURL }}"
+    "translation": "Ověřte svou e-mailovou adresu"
   },
   {
     "id": "api.templates.verify_body.info",
@@ -2913,7 +2913,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "[{{.SiteName}}] Vaše uživatelské jméno se změnilo"
+    "translation": "[{{ .SiteName }}] Vaše uživatelské jméno bylo změněno"
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -2925,7 +2925,7 @@
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{.SiteName}}] Osobní přístupový token byl přidán do vašeho účtu"
+    "translation": "[{{ .SiteName }}] Osobní přístupový token byl přidán do vašeho účtu"
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -2933,11 +2933,11 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Do účtu {{.SiteURL}} byl do účtu přidán osobní přístupový token. Mohou být použity pro přístup k účtu {{.SiteName}}."
+    "translation": "Na váš účet na {{ .SiteURL }} byl přidán osobní přístupový token. Tento token můžete použít k přístupu na {{.SiteName}} s vaším účtem."
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{.SiteName}}] Vaše přihlašovací metoda byla aktualizována"
+    "translation": "[{{ .SiteName }}] Vaše metoda přihlášení byla aktualizována"
   },
   {
     "id": "api.templates.signin_change_email.body.title",
@@ -2949,7 +2949,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Aktualizoval jste svou metodu přihlášení na {{.SiteName}} na {{.Method}}."
+    "translation": "Aktualizovali jste svou metodu přihlášení na {{ .SiteName }} na {{.Method}}."
   },
   {
     "id": "api.templates.reset_subject",
@@ -2969,7 +2969,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{.SiteName}}] Vaše heslo bylo aktualizováno"
+    "translation": "[{{ .SiteName }}] Vaše heslo bylo aktualizováno"
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -2977,7 +2977,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Vaše heslo pro {{.TeamDisplayName}} bylo aktualizováno na {{.TeamURL}} do {{.Method}}."
+    "translation": "Vaše heslo pro {{.TeamDisplayName}} na {{ .TeamURL }} bylo aktualizováno metodou {{.Method}}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -2989,7 +2989,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{.SiteName}}] Vaše MFA bylo aktualizováno"
+    "translation": "[{{ .SiteName }}] Vaše MFA bylo aktualizováno"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -2997,15 +2997,15 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Do účtu {{.SiteURL}} bylo přidáno vícestupňové ověřování."
+    "translation": "Do vašeho účtu na {{ .SiteURL }} bylo přidáno vícefaktorové ověřování."
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} vás zve do skupiny {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval(a), abyste se připojil(a) k týmu {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} vás zve do skupiny {{.TeamDisplayName}} jako hosta"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval(a), abyste se připojil(a) k týmu {{ .TeamDisplayName }} jako host"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -5401,11 +5401,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Verze 14.1+"
+    "translation": "Verze 17.0+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -5413,7 +5413,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 95+"
+    "translation": "Verze 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -8174,5 +8174,193 @@
   {
     "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
     "translation": "Nelze vytvořit přímý kanál se vzdáleným uživatelem"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Nahrávání přes mmctl na cloudovou instanci není podporováno. Prosím, podívejte se na dokumentaci zde: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Parametry OnlyThreads a OnlyTotals pro getThreadsForUser jsou vzájemně neslučitelné"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Nepodařilo se zapsat záznamy do vyrovnávací paměti"
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Neshoda ID zabezpečeného připojení."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Chybí ID zabezpečeného připojení."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id musí být prázdné pro vlastní skupiny"
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Funkce vlastního stavu byla deaktivována. Pro podrobnosti kontaktujte svého správce systému."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Nepodařilo se smazat poslední stav. Zkuste nejprve přidat stav nebo kontaktujte svého správce systému pro podrobnosti."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Nepodařilo se aktualizovat vlastní stav. Emoji s daným názvem neexistuje."
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Nepodařilo se odeslat e-maily o obnově licence"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Neplatný filtr záznamů"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Špatný požadavek."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "funkce naplánovaných příspěvků je deaktivována"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Funkce naplánovaných příspěvků vyžaduje licenci"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Nepodařilo se získat URL adresu instance"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Nelze vygenerovat kód pozvánky pro potvrzený cluster"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Neplatná aktualizace člena týmu: Host nemůže být přiřazen k jednotlivému týmu, systémový administrátor musí uživatele povýšit nebo degradovat na hosta."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Při ověřování přihlašovacích údajů pro odchozí OAuth připojení došlo k chybě."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Unable to seek to file start."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Přidejte aplikace do svého pracovního prostoru"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Zjednodušte svou práci s nástroji jako GitHub, Jira a Zoom. Prozkoumejte všechny integrace, které máme na našem"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "funkce vlastních skupin je deaktivována"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference musí být 'true' pro vlastní skupiny"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Nepodařilo se aktualizovat vlastní stav. Přidejte buď emoji, vlastní textový stav, nebo obojí."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Nastavení Elasticsearch obsahuje nevyplněné hodnoty."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Chyba při pokusu o uložení stavu první návštěvy administrátora na marketplace do obchodu."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Parametry Před a Po pro getThreadsForUser jsou vzájemně neslučitelné"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portál není k dispozici pro registraci na self-hosted verzi."
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Nelze smazat příspěvek, ServiceSettings.EnableAPIPostDeletion není povoleno."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Chyba při pokusu o získání prvního nastavení administrátora z úložiště."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Chyba při pokusu o uložení dokončení nastavení prvního administrátora do obchodu."
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Typy úloh, které se pokoušíte získat, neobsahují oprávnění"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "marketplace aplikací."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Nepodařilo se uložit příspěvek do mezipaměti po odstranění duplicity klienta, který opakoval stejný požadavek."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Nepodařilo se získat přihlašovací údaje s uvedenou konfigurací připojení."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Ujistěte se, že váš Amazon S3 bucket je dostupný, a ověřte oprávnění k vašemu bucketu."
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "není licencováno pro vlastní skupiny"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Typ úlohy, kterou se pokoušíte vytvořit, je neplatný"
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Chyba při pokusu o získání stavu první návštěvy administrátora na marketplace z obchodu."
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Nepodařilo se zkopírovat obsah licenčního souboru do vyrovnávací paměti"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Nepodařilo se vytvořit pozvánku pro vzdálený cluster"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Neplatně nastavený stav"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Nemáte oprávnění spravovat tento typ úlohy"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Nepodařilo se načíst vzdálené kanály sdíleného kanálu"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Nepodařilo se zjistit, zda je kanál sdílený s vzdáleným serverem"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Nepodařilo se pozvat vzdáleného uživatele do kanálu"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Nepodařilo se odvolat pozvání vzdálenému uživateli do kanálu"
   }
 ]
