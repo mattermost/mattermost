@@ -3147,7 +3147,7 @@ func TestWebHubCloseConnOnDBFail(t *testing.T) {
 
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
 	require.NoError(t, err)
-	defer wsClient.Close()
+	wsClient.Close()
 
 	require.NoError(t, th.TestLogger.Flush())
 }
