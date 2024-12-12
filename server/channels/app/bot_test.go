@@ -890,14 +890,14 @@ func TestConvertUserToBot(t *testing.T) {
 		})
 		require.Nil(t, err)
 		defer func() {
-			err := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
 			require.Nil(t, err)
 		}()
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
 
 		// make sure session is no longer valid
-		testSession, err = th.App.GetSession(session.Token)
+		_, err = th.App.GetSession(session.Token)
 		require.NotNil(t, err)
 		require.Equal(t, "api.context.invalid_token.error", err.Id)
 	})
