@@ -33,7 +33,7 @@ test('MM-T5139: Message Priority - Standard message priority and system setting'
     await expect(standardOption.locator('svg.StyledCheckIcon-dFKfoY')).toBeVisible();
 
     // # Close menu and post message
-    await page.getByRole('button', { name: 'Cancel' }).click();
+    await channelPage.centerView.postCreate.priorityButton.click();
     const testMessage = 'This is just a test message';
     await channelPage.postMessage(testMessage);
 
