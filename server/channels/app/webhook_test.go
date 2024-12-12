@@ -136,7 +136,10 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 				require.Nil(t, err, "should not have failed")
 			}
 			if createdHook != nil {
-				defer th.App.DeleteIncomingWebhook(createdHook.Id)
+				defer func() {
+					appErr := th.App.DeleteIncomingWebhook(createdHook.Id)
+					assert.Nil(t, appErr)
+				}()
 			}
 			if tc.ExpectedIncomingWebhook == nil {
 				assert.Nil(t, createdHook, "expected nil webhook")
@@ -258,7 +261,10 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 				ChannelId: th.BasicChannel.Id,
 			})
 			require.Nil(t, err)
-			defer th.App.DeleteIncomingWebhook(hook.Id)
+			defer func() {
+				appErr := th.App.DeleteIncomingWebhook(hook.Id)
+				assert.Nil(t, appErr)
+			}()
 
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = tc.EnableIncomingHooks })
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -294,7 +300,10 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	require.Nil(t, err)
-	defer th.App.DeleteIncomingWebhook(hook.Id)
+	defer func() {
+		appErr := th.App.DeleteIncomingWebhook(hook.Id)
+		assert.Nil(t, appErr)
+	}()
 
 	post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "",
 		model.StringInterface{
@@ -393,7 +402,10 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 
 	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	require.Nil(t, err)
-	defer th.App.DeleteIncomingWebhook(hook.Id)
+	defer func() {
+		appErr := th.App.DeleteIncomingWebhook(hook.Id)
+		assert.Nil(t, appErr)
+	}()
 
 	testConditions := []model.PostPriority{
 		{
@@ -438,7 +450,10 @@ func TestCreateWebhookPostLinks(t *testing.T) {
 
 	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	require.Nil(t, err)
-	defer th.App.DeleteIncomingWebhook(hook.Id)
+	defer func() {
+		appErr := th.App.DeleteIncomingWebhook(hook.Id)
+		assert.Nil(t, appErr)
+	}()
 
 	for name, tc := range map[string]struct {
 		input          string
@@ -768,9 +783,11 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 				if testCase.WebhookResponse != nil {
 					js, jsonErr := json.Marshal(testCase.WebhookResponse)
 					require.NoError(t, jsonErr)
-					w.Write(js)
+					_, err := w.Write(js)
+					require.NoError(t, err)
 				} else {
-					w.Write([]byte(`{"text": "sample response text from test server"}`))
+					_, err := w.Write([]byte(`{"text": "sample response text from test server"}`))
+					require.NoError(t, err)
 				}
 			}))
 			defer ts.Close()
@@ -923,7 +940,8 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with a valid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -937,7 +955,8 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with an invalid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader("aaaaaaaa"))
+			_, err := io.Copy(w, strings.NewReader("aaaaaaaa"))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -948,7 +967,8 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with a large, valid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+			_, err := io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -959,7 +979,8 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with a large, invalid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, InfiniteReader{})
+			_, err := io.Copy(w, InfiniteReader{})
+			require.Contains(t, err.Error(), "connection reset by peer")
 		}))
 		defer server.Close()
 
@@ -991,7 +1012,8 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(1 * time.Second)
 
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
@@ -1018,7 +1040,8 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 	t.Run("with auth token", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			io.Copy(w, strings.NewReader(fmt.Sprintf(`{"text":"%s"}`, r.Header.Get("Authorization"))))
+			_, err := io.Copy(w, strings.NewReader(fmt.Sprintf(`{"text":"%s"}`, r.Header.Get("Authorization"))))
+			require.NoError(t, err)
 		}))
 		defer server.Close()
 
