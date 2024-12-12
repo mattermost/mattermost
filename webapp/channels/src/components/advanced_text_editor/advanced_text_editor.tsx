@@ -48,8 +48,8 @@ import Constants, {
     ModalIdentifiers,
 } from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -126,6 +126,17 @@ const AdvancedTextEditor = ({
 
     const isRHS = Boolean(postId && !isThreadView);
 
+    const getFormattingBarPreferenceName = () => {
+        let name: string;
+        if (isRHS) {
+            name = isInEditMode ? AdvancedTextEditorConst.EDIT : AdvancedTextEditorConst.COMMENT;
+        } else {
+            name = AdvancedTextEditorConst.POST;
+        }
+
+        return name;
+    };
+
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const channelDisplayName = channel?.display_name || '';
@@ -136,7 +147,10 @@ const AdvancedTextEditor = ({
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
     const fullWidthTextBox = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN);
-    const isFormattingBarHidden = useSelector((state: GlobalState) => getBool(state, Preferences.ADVANCED_TEXT_EDITOR, isRHS ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST));
+    const isFormattingBarHidden = useSelector((state: GlobalState) => {
+        const preferenceName = getFormattingBarPreferenceName();
+        return getBool(state, Preferences.ADVANCED_TEXT_EDITOR, preferenceName);
+    });
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
@@ -261,10 +275,12 @@ const AdvancedTextEditor = ({
         dispatch(savePreferences(currentUserId, [{
             category: Preferences.ADVANCED_TEXT_EDITOR,
             user_id: currentUserId,
-            name: isRHS ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST,
+
+            // name: isRHS ? AdvancedTextEditorConst.COMMENT : AdvancedTextEditorConst.POST,
+            name: getFormattingBarPreferenceName(),
             value: String(!isFormattingBarHidden),
         }]));
-    }, [currentUserId, isRHS, isFormattingBarHidden, dispatch]);
+    }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
     useOrientationHandler(textboxRef, postId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
