@@ -8870,5 +8870,13 @@
   {
     "id": "app.post.save.thread_membership.app_error",
     "translation": "Nepodařilo se uložit členství vlákna pro příspěvek."
+  },
+  {
+    "id": "app.preference.delete.app_error",
+    "translation": "Při mazání preferencí došlo k chybě."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Ahoj, tady je tvoje připomenutí o této zprávě od @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   }
 ]
