@@ -4,6 +4,9 @@
 package sqlstore
 
 import (
+	"database/sql"
+	"fmt"
+
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -65,11 +68,12 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not build sql query to get token store")
 	}
-	
+
 	if err := s.GetReplica().Get(&token, query, args); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
 		}
+	}
 
 	return &token, nil
 }
