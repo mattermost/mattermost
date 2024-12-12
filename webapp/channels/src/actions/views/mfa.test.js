@@ -13,6 +13,8 @@ import {
 
 import configureStore from 'tests/test_store';
 
+import type {GlobalState} from 'types/store';
+
 describe('actions/views/mfa', () => {
     describe('activateMfa', () => {
         it('should call updateUserMfa to enable MFA for the current user', async () => {
@@ -23,9 +25,9 @@ describe('actions/views/mfa', () => {
                         currentUserId,
                     },
                 },
-            });
+            } as unknown as GlobalState);
 
-            UserActions.updateUserMfa.mockImplementation(() => () => ({data: true}));
+            (UserActions.updateUserMfa as jest.Mock).mockImplementation(() => () => ({data: true}));
 
             const code = 'mfa code';
             await store.dispatch(activateMfa(code));
@@ -43,9 +45,9 @@ describe('actions/views/mfa', () => {
                         currentUserId,
                     },
                 },
-            });
+            } as unknown as GlobalState);
 
-            UserActions.updateUserMfa.mockImplementation(() => () => ({data: true}));
+            (UserActions.updateUserMfa as jest.Mock).mockImplementation(() => () => ({data: true}));
 
             await store.dispatch(deactivateMfa());
 
@@ -62,9 +64,9 @@ describe('actions/views/mfa', () => {
                         currentUserId,
                     },
                 },
-            });
+            } as unknown as GlobalState);
 
-            UserActions.generateMfaSecret.mockImplementation(() => () => ({data: '1234'}));
+            (UserActions.generateMfaSecret as jest.Mock).mockImplementation(() => () => ({data: '1234'}));
 
             await store.dispatch(generateMfaSecret());
 
