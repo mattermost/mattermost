@@ -154,7 +154,8 @@ before(() => {
 
 beforeEach(() => {
     // Temporary fix for error related to this.get('prev') being undefined with @testing-library/cypress@9.0.0
-    cy.then(() => null);
+    // Also solve issue with retried test: ensure they start off from a neutral page, as other pages may be used across retries (e.g. 'leave_channel_unread_spec.js')
+    cy.visit("/");
 });
 
 function printLicenseStatus() {
