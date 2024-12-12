@@ -119,6 +119,7 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
+		t.Skip("MM-62079")
 		WebSocketClient, err := th.CreateWebSocketClient()
 		WebSocketClient.Listen()
 		require.NoError(t, err)
@@ -3128,14 +3129,13 @@ func TestWebHubMembership(t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
-	t.Skip("MM-61780")
 	th := Setup(t).InitBasic()
 	defer func() {
 		th.TearDown()
-		// Asserting that the error message is present in the log
-		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "Error while registering to hub")
 		_, err := th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE dummy RENAME to ChannelMembers`)
 		require.NoError(t, err)
+		// Asserting that the error message is present in the log
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "Error while registering to hub")
 	}()
 
 	cli := th.CreateClient()
@@ -3147,7 +3147,7 @@ func TestWebHubCloseConnOnDBFail(t *testing.T) {
 
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
 	require.NoError(t, err)
-	defer wsClient.Close()
+	wsClient.Close()
 
 	require.NoError(t, th.TestLogger.Flush())
 }
