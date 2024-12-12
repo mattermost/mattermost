@@ -39,6 +39,8 @@ export type Props = {
     postCardVisible: boolean;
     searchVisible: boolean;
     isPinnedPosts: boolean;
+    isRecentMentions: boolean;
+    isSavedPosts: boolean;
     isChannelFiles: boolean;
     isChannelInfo: boolean;
     isChannelMembers: boolean;
@@ -89,6 +91,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         this.previous = {
             searchVisible: this.props.searchVisible,
             isPinnedPosts: this.props.isPinnedPosts,
+            isRecentMentions: this.props.isRecentMentions,
+            isSavedPosts: this.props.isSavedPosts,
             isChannelFiles: this.props.isChannelFiles,
             isChannelInfo: this.props.isChannelInfo,
             isChannelMembers: this.props.isChannelMembers,
@@ -133,6 +137,55 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         }
     };
 
+    handleRHSFocus(prevProps: Props) {
+        const wasOpen = prevProps.isOpen;
+        const isOpen = this.props.isOpen;
+
+        const contentChanged = (
+            (this.props.isPinnedPosts !== prevProps.isPinnedPosts) ||
+            (this.props.isRecentMentions !== prevProps.isRecentMentions) ||
+            (this.props.isSavedPosts !== prevProps.isSavedPosts) ||
+            (this.props.isChannelFiles !== prevProps.isChannelFiles) ||
+            (this.props.isChannelInfo !== prevProps.isChannelInfo) ||
+            (this.props.isChannelMembers !== prevProps.isChannelMembers) ||
+            (this.props.isPostEditHistory !== prevProps.isPostEditHistory) ||
+            (this.props.rhsChannel?.id !== prevProps.rhsChannel?.id) ||
+            (this.props.teamId !== prevProps.teamId)
+        );
+
+        if (this.props.isOpen && (contentChanged || (!wasOpen && isOpen))) {
+            this.previousActiveElement = document.activeElement as HTMLElement;
+            requestAnimationFrame(() => {
+                if (this.sidebarRight.current) {
+                    document.dispatchEvent(
+                        new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
+                            detail: {
+                                target: this.sidebarRight.current,
+                                keyboardOnly: false,
+                            },
+                        }),
+                    );
+                }
+            });
+        } else if (!this.props.isOpen && wasOpen) {
+            // RHS just was closed, restore focus to the previous element had it
+            // this will have to change for upcoming work specially for search and probalby plugins
+            requestAnimationFrame(() => {
+                if (this.previousActiveElement) {
+                    document.dispatchEvent(
+                        new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
+                            detail: {
+                                target: this.previousActiveElement,
+                                keyboardOnly: false,
+                            },
+                        }),
+                    );
+                    this.previousActiveElement = null;
+                }
+            });
+        }
+    }
+
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
         document.addEventListener('mousedown', this.handleClickOutside);
@@ -151,37 +204,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             trackEvent('ui', 'ui_rhs_opened');
         }
 
-        if (!prevProps.isOpen && this.props.isOpen) {
-            this.previousActiveElement = document.activeElement as HTMLElement;
-            requestAnimationFrame(() => {
-                if (this.sidebarRight.current) {
-                    document.dispatchEvent(
-                        new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                            detail: {
-                                target: this.sidebarRight.current,
-                                keyboardOnly: false,
-                            },
-                        }),
-                    );
-                }
-            });
-        }
-
-        if (prevProps.isOpen && !this.props.isOpen) {
-            requestAnimationFrame(() => {
-                if (this.previousActiveElement) {
-                    document.dispatchEvent(
-                        new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                            detail: {
-                                target: this.previousActiveElement,
-                                keyboardOnly: false,
-                            },
-                        }),
-                    );
-                    this.previousActiveElement = null;
-                }
-            });
-        }
+        this.handleRHSFocus(prevProps);
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
         if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
