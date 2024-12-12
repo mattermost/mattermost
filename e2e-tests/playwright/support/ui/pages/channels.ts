@@ -54,7 +54,7 @@ export default class ChannelsPage {
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
         this.scheduledDraftDropdown = new components.ScheduledDraftMenu(page.locator('#dropdown_send_post_options'));
         this.scheduledDraftModal = new components.ScheduledDraftModal(page.locator('div.modal-content'));
-        this.userProfilePopover = new components.UserProfilePopover(page.locator('#user-profile-popover-portal'));
+        this.userProfilePopover = new components.UserProfilePopover(page.locator('.user-profile-popover'));
 
         // Posts
         this.postContainer = page.locator('div.post-message__text');
