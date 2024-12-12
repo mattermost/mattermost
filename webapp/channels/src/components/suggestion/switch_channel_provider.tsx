@@ -121,6 +121,7 @@ type Props = SuggestionProps<WrappedChannel> & WrappedComponentProps & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
+    id: string;
 }
 
 const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, ref) => {
@@ -255,14 +256,23 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, r
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
 
+    const getId = () => {
+        if (channel.type === Constants.DM_CHANNEL) {
+            if (prefix) {
+                return `${props.id}_${(channel as FakeDirectChannel).userId}`;
+            }
+        }
+        return `${props.id}_${channel.id}`;
+    };
+
     return (
         <SuggestionContainer
             ref={ref}
-            id={`switchChannel_${channel.id}`}
             data-testid={channel.name}
             role='option'
             aria-labelledby={`${name.toLowerCase().replaceAll(' ', '-')}-item-name`}
             {...props}
+            id={getId()}
         >
             {icon}
             <div className='suggestion-list__ellipsis suggestion-list__flex'>
@@ -320,6 +330,7 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
         collapsedThreads,
         team,
         isPartOfOnlyOneTeam,
+        id: 'quickSwitchInput',
     };
 }
 
