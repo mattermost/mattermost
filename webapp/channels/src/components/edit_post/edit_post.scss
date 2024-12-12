@@ -30,4 +30,10 @@
     .custom-textarea {
         padding: 13px 0 12px 16px;
     }
+
+    .AdvancedTextEditor__body {
+        .AutoHeight {
+            background-color: var(--center-channel-bg);
+        }
+    }
 }

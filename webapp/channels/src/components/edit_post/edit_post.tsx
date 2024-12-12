@@ -24,7 +24,7 @@ export default function EditPost() {
 
     const channelId = editingPostDetailsAndPost.post.channel_id;
     const location = editingPostDetailsAndPost.isRHS ? Locations.RHS_COMMENT : Locations.CENTER;
-    const rootId = editingPostDetailsAndPost.post.root_id || '';
+    const rootId = editingPostDetailsAndPost.post.root_id || editingPostDetailsAndPost.post.id || '';
     const storageKey = `${StoragePrefixes.EDIT_DRAFT}${editingPostDetailsAndPost.post.id}`;
 
     return (
