@@ -13,6 +13,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
@@ -137,6 +138,7 @@ const AdvancedTextEditor = ({
         return name;
     };
 
+    const post = useSelector((state: GlobalState) => getPost(state, postId));
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const channelDisplayName = channel?.display_name || '';
@@ -326,6 +328,15 @@ const AdvancedTextEditor = ({
         undefined,
         isInEditMode,
     );
+
+    const handleCancel = useCallback(() => {
+        // This resets the draft to the post's original content
+        handleDraftChange({
+            ...draft,
+            message: post.message,
+        });
+    }, [handleDraftChange, draft, post]);
+
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
@@ -344,6 +355,7 @@ const AdvancedTextEditor = ({
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
         isInEditMode,
+        handleCancel,
     );
 
     const handleSubmitWrapper = useCallback(() => {
@@ -366,6 +378,7 @@ const AdvancedTextEditor = ({
 
         handleSubmit();
     }, [dispatch, draft, handleSubmit, isInEditMode, isRHS]);
+
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         handleSubmit();
@@ -763,6 +776,7 @@ const AdvancedTextEditor = ({
             {isInEditMode && (
                 <EditPostFooter
                     onSave={handleSubmitWrapper}
+                    onCancel={handleCancel}
                 />
             )}
             <Footer

@@ -12,6 +12,7 @@ import {isMac} from 'utils/user_agent';
 
 type Props = {
     onSave: () => void;
+    onCancel?: () => void;
 }
 
 export default function EditPostFooter(props: Props) {
@@ -21,6 +22,7 @@ export default function EditPostFooter(props: Props) {
     const ctrlSendKey = isMac() ? '⌘+' : 'CTRL+';
 
     function handleCancel() {
+        props.onCancel?.();
         dispatch(unsetEditingPost());
     }
 

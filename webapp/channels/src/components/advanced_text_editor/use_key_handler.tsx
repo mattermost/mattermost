@@ -48,6 +48,7 @@ const useKeyHandler = (
     toggleAdvanceTextEditor: () => void,
     toggleEmojiPicker: () => void,
     isInEditMode?: boolean,
+    onCancel?: () => void,
 ): [
         (e: React.KeyboardEvent<TextboxElement>) => void,
         (e: React.KeyboardEvent<TextboxElement>) => void,
@@ -172,6 +173,7 @@ const useKeyHandler = (
         }
 
         if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
+            onCancel?.();
             textboxRef.current?.blur();
             if (isInEditMode) {
                 dispatch(unsetEditingPost());
