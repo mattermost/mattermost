@@ -523,7 +523,7 @@ func checkUsersIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult
 	results <- checkUsersStatusIntegrity(ss)
 	results <- checkUsersTeamMembersIntegrity(ss)
 	results <- checkUsersUserAccessTokensIntegrity(ss)
-	results <- getAllValidUserIDsFromDMChannels(ss)
+	results <- validateDMChannelPattern(ss)
 }
 
 func checkThreadsTeamsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
@@ -549,7 +549,7 @@ func CheckRelationalIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckR
 	close(results)
 }
 
-func getAllValidUserIDsFromDMChannels(ss *SqlStore) model.IntegrityCheckResult {
+func validateDMChannelPattern(ss *SqlStore) model.IntegrityCheckResult {
 	type data struct {
 		invalidChannels []string
 		invalidIDs      []string
@@ -559,7 +559,7 @@ func getAllValidUserIDsFromDMChannels(ss *SqlStore) model.IntegrityCheckResult {
 	dirtyIDs := []string{}
 	result := model.IntegrityCheckResult{}
 
-	err := ss.GetMasterX().SelectBuilder(&records, ss.getQueryBuilder().
+	err := ss.GetMaster().SelectBuilder(&records, ss.getQueryBuilder().
 		Select().
 		Column("CT.name AS ParentId").
 		From("Channels AS CT").
