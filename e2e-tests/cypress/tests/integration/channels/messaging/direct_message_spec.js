@@ -66,9 +66,9 @@ describe('Direct Message', () => {
             cy.uiGetPostTextBox().clear().type('{uparrow}');
 
             // * Edit post Input should appear, and edit the post
-            cy.get('#edit_textbox').should('be.visible');
-            cy.get('#edit_textbox').should('have.text', originalMessage).type(' World{enter}');
-            cy.get('#edit_textbox').should('not.exist');
+            cy.get('div.post-edit__container #post_textbox').should('be.visible');
+            cy.get('div.post-edit__container #post_textbox').should('have.text', originalMessage).type(' World{enter}', {delay: 100});
+            cy.get('div.post-edit__container #post_textbox').should('not.exist');
 
             // * Verify that last post does contain "Edited"
             cy.getLastPostId().then((postId) => {

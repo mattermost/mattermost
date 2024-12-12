@@ -26,7 +26,7 @@ describe('Keyboard Shortcuts', () => {
             cy.clickPostDotMenu(postId);
             cy.findByText('Reply').click();
             const replyMessage = 'Well, hello there.';
-            cy.uiGetReplyTextBox().type(replyMessage);
+            cy.uiGetReplyTextBox().type(replyMessage, {delay: 100});
             cy.uiGetReplyTextBox().type('{enter}');
             cy.uiWaitUntilMessagePostedIncludes(replyMessage);
 
@@ -34,10 +34,10 @@ describe('Keyboard Shortcuts', () => {
             cy.get('body').type('{uparrow}');
 
             // * Verify that the Edit Post Input is visible
-            cy.get('div.post-edit__container #post_textbox').should('be.visible');
+            cy.get('div.post-edit__container #reply_textbox').should('be.visible');
 
             // * Verify that edit box have value of edited message
-            cy.get('div.post-edit__container #post_textbox').should('have.value', replyMessage);
+            cy.get('div.post-edit__container #reply_textbox').should('have.value', replyMessage);
         });
     });
 });
