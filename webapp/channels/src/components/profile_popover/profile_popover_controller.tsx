@@ -17,16 +17,11 @@ import {
 import classNames from 'classnames';
 import type {HtmlHTMLAttributes, ReactNode} from 'react';
 import React, {useCallback, useState} from 'react';
-import {useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getUser} from 'mattermost-redux/selectors/entities/users';
-
 import {A11yClassNames} from 'utils/constants';
-
-import type {GlobalState} from 'types/store';
 
 import ProfilePopover from './profile_popover';
 
@@ -44,6 +39,11 @@ interface Props<TriggerComponentType> {
      * Source URL from the image to display in the popover
      */
     src: string;
+
+    /**
+     * Username of the profile.
+     */
+    username?: string;
 
     /**
      * This should be the trigger button for the popover, Do note that the root element of the trigger component should be passed in triggerComponentRoot
@@ -81,8 +81,6 @@ interface Props<TriggerComponentType> {
 }
 
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
-    const user = useSelector((state: GlobalState) => getUser(state, props.userId));
-
     const [isOpen, setOpen] = useState(false);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
@@ -133,8 +131,8 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 ref={refs.setFloating}
                                 style={{...floatingStyles, ...transitionStyles}}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
+                                aria-label={`${props.username}'s profile popover`}
                                 {...getFloatingProps()}
-                                aria-label={`${user.username}'s profile popover`}
                             >
                                 <ProfilePopover
                                     userId={props.userId}
