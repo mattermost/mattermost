@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+
 import {logError} from 'mattermost-redux/actions/errors';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
@@ -20,7 +23,9 @@ import {getTimestamp} from 'utils/utils';
 
 import {runMessageWillBePostedHooks} from '../hooks';
 
-export function editPost(post) {
+import type {ActionFunc} from 'types/store';
+
+export function editPost(post: Post): ActionFunc {
     return async (dispatch) => {
         const result = await dispatch(PostActions.editPost(post));
 
@@ -33,7 +38,7 @@ export function editPost(post) {
     };
 }
 
-export function forwardPost(post, channel, message = '') {
+export function forwardPost(post: Post, channel: Channel, message = ''): ActionFunc {
     return async (dispatch, getState) => {
         const state = getState();
         const channelId = channel.id;
