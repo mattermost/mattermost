@@ -1,7 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export function clearUserCookie() {
+declare global {
+    interface Window {
+        basename: string;
+    }
+}
+
+export function clearUserCookie(): void {
     // We need to clear the cookie without the domain, with the domain, and with both the domain and path set because we
     // can't tell if the server set the cookie with or without the domain.
     // The server will have set the domain if ServiceSettings.EnableCookiesForSubdomains is true
