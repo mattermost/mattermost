@@ -121,6 +121,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                             key={'plugin preferences heading'}
                             role='heading'
                             className={'header'}
+                            aria-level={3}
                             id='userSettingsModal.pluginPreferences.header'
                         >
                             <FormattedMessage
