@@ -833,8 +833,11 @@ func TestImportImportUser(t *testing.T) {
 		user, err2 := th.App.GetUserByUsername(username)
 		require.Nil(t, err2, "Failed to get user from database.")
 
-		userBool := user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position
-		require.False(t, userBool, "User properties do not match Import Data.")
+		assert.Equal(t, *data.Email, user.Email)
+		assert.Equal(t, *data.Nickname, user.Nickname)
+		assert.Equal(t, *data.FirstName, user.FirstName)
+		assert.Equal(t, *data.LastName, user.LastName)
+		assert.Equal(t, *data.Position, user.Position)
 
 		// Check calculated properties.
 		require.Equal(t, strings.ToLower(username), user.Username, "Expected Username to be lower case.")
@@ -899,8 +902,12 @@ func TestImportImportUser(t *testing.T) {
 		user, err2 := th.App.GetUserByUsername(username)
 		require.Nil(t, err2, "Failed to get user from database.")
 
-		userBool := user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position
-		require.False(t, userBool, "Updated User properties do not match Import Data.")
+		assert.Equal(t, *data.Email, user.Email)
+		assert.Equal(t, *data.Nickname, user.Nickname)
+		assert.Equal(t, *data.FirstName, user.FirstName)
+		assert.Equal(t, *data.LastName, user.LastName)
+		assert.Equal(t, *data.Position, user.Position)
+
 		require.Equal(t, "ldap", user.AuthService, "Expected Auth Service to be ldap \"%v\"", user.AuthService)
 		require.Equal(t, user.AuthData, data.AuthData, "Expected AuthData to be set.")
 		require.Empty(t, user.Password, "Expected password to be empty.")
