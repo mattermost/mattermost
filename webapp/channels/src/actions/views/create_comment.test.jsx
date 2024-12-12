@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Post} from '@mattermost/types/posts';
+
 import {
     addMessageIntoHistory,
 } from 'mattermost-redux/actions/posts';
@@ -18,6 +20,9 @@ import {
 import mockStore from 'tests/test_store';
 import {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 /* eslint-disable global-require */
 
@@ -70,7 +75,7 @@ jest.mock('actions/storage', () => {
     };
 });
 
-function lastCall(calls) {
+function lastCall<T>(calls: T[]): T {
     return calls[calls.length - 1];
 }
 
@@ -172,16 +177,16 @@ describe('rhs view actions', () => {
         },
     };
 
-    let store;
+    let store: ReturnType<typeof mockStore>;
 
     beforeEach(() => {
         store = mockStore(initialState);
     });
 
     describe('submitPost', () => {
-        const draft = {message: '', channelId, rootId, fileInfos: []};
+        const draft: PostDraft = {message: '', channelId, rootId, fileInfos: [], uploadsInProgress: []};
 
-        const post = {
+        const post: Partial<Post> = {
             file_ids: [],
             message: draft.message,
             channel_id: channelId,
@@ -219,7 +224,7 @@ describe('rhs view actions', () => {
             root_id: rootId,
         };
 
-        const draft = {message: '/test msg', channelId, rootId};
+        const draft: PostDraft = {message: '/test msg', channelId, rootId, fileInfos: [], uploadsInProgress: []};
 
         test('it calls executeCommand', async () => {
             await store.dispatch(submitCommand(channelId, rootId, draft));
@@ -270,7 +275,7 @@ describe('rhs view actions', () => {
     });
 
     describe('onSubmit', () => {
-        const draft = {
+        const draft: PostDraft = {
             message: 'test',
             fileInfos: [],
             uploadsInProgress: [],
