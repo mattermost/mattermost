@@ -980,7 +980,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	t.Run("with a large, invalid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, InfiniteReader{})
-			require.NoError(t, err)
+			require.Contains(t, err.Error(), "connection reset by peer")
 		}))
 		defer server.Close()
 
