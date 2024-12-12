@@ -1480,7 +1480,6 @@
   "user.settings.general.usernameInfo": "Valitse jokin jonka tiimikaverisi tunnistavat ja muistavat helposti.",
   "user.settings.general.usernameRestrictions": "Käyttäjänimen on alettava kirjaimella, ja sen tulee sisältää {min} - {max} pientä kirjainta, numeroa, tai symboleita '.', '-' ja '_'.",
   "user.settings.general.validImage": "Vain BMP-, JPG- tai PNG-kuvia voidaan käyttää profiilin kuvana",
-  "user.settings.import_theme.importHeader": "Tuo Slack-teema",
   "user.settings.languages.change": "Muuta käyttöliittymän kieli",
   "user.settings.mfa.title": "Kaksivaiheinen tunnistautuminen",
   "user.settings.modal.display": "Näyttö",

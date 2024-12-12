@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
@@ -11,9 +10,9 @@ import {removeItem} from 'mattermost-redux/utils/array_utils';
 
 import {ActionTypes} from 'utils/constants';
 
-import type {DraggingState} from 'types/store';
+import type {DraggingState, MMAction} from 'types/store';
 
-export function unreadFilterEnabled(state = false, action: AnyAction) {
+export function unreadFilterEnabled(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_UNREAD_FILTER_ENABLED:
         return action.enabled;
@@ -25,7 +24,7 @@ export function unreadFilterEnabled(state = false, action: AnyAction) {
     }
 }
 
-export function draggingState(state: DraggingState = {}, action: AnyAction): DraggingState {
+export function draggingState(state: DraggingState = {}, action: MMAction): DraggingState {
     switch (action.type) {
     case ActionTypes.SIDEBAR_DRAGGING_SET_STATE:
         return {
@@ -42,7 +41,7 @@ export function draggingState(state: DraggingState = {}, action: AnyAction): Dra
     }
 }
 
-export function newCategoryIds(state: string[] = [], action: AnyAction): string[] {
+export function newCategoryIds(state: string[] = [], action: MMAction): string[] {
     switch (action.type) {
     case ActionTypes.ADD_NEW_CATEGORY_ID:
         return [...state, action.data];
@@ -74,7 +73,7 @@ export function newCategoryIds(state: string[] = [], action: AnyAction): string[
     }
 }
 
-export function multiSelectedChannelIds(state: string[] = [], action: AnyAction): string[] {
+export function multiSelectedChannelIds(state: string[] = [], action: MMAction): string[] {
     switch (action.type) {
     case ActionTypes.MULTISELECT_CHANNEL:
         // Channel was not previously selected
@@ -116,7 +115,7 @@ export function multiSelectedChannelIds(state: string[] = [], action: AnyAction)
     }
 }
 
-export function lastSelectedChannel(state = '', action: AnyAction): string {
+export function lastSelectedChannel(state = '', action: MMAction): string {
     switch (action.type) {
     case ActionTypes.MULTISELECT_CHANNEL:
     case ActionTypes.MULTISELECT_CHANNEL_ADD:
