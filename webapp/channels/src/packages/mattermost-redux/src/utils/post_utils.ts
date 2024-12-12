@@ -249,3 +249,7 @@ export function ensureString(v: unknown) {
 export function ensureNumber(v: unknown) {
     return typeof v === 'number' ? v : 0;
 }
+
+export function secureGetFromRecord<T>(v: Record<string, T> | undefined, key: string) {
+    return typeof v === 'object' && v && Object.hasOwn(v, key) ? v[key] : undefined;
+}

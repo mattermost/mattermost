@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/oembed"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
@@ -46,7 +47,9 @@ func (s *Server) initPostMetadata() {
 			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
 			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
 			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
-			platform.PurgeLinkCache()
+			if err := platform.PurgeLinkCache(); err != nil {
+				mlog.Warn("Failed to remove cached links when the proxy settings changed", mlog.Err(err))
+			}
 		}
 	})
 }
@@ -923,6 +926,16 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 		Width:  config.Width,
 		Height: config.Height,
 		Format: format,
+	}
+
+	if format == "jpeg" {
+		if imageOrientation, err := imaging.GetImageOrientation(io.MultiReader(buf, body)); err == nil &&
+			(imageOrientation == imaging.RotatedCWMirrored ||
+				imageOrientation == imaging.RotatedCCW ||
+				imageOrientation == imaging.RotatedCCWMirrored ||
+				imageOrientation == imaging.RotatedCW) {
+			image.Width, image.Height = image.Height, image.Width
+		}
 	}
 
 	if format == "gif" {
