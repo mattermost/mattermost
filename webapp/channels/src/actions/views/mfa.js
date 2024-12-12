@@ -4,7 +4,9 @@
 import * as UserActions from 'mattermost-redux/actions/users';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-export function activateMfa(code) {
+import type {ActionFunc} from 'types/store';
+
+export function activateMfa(code: string): ActionFunc {
     return (dispatch, getState) => {
         const currentUserId = getCurrentUserId(getState());
 
@@ -12,7 +14,7 @@ export function activateMfa(code) {
     };
 }
 
-export function deactivateMfa() {
+export function deactivateMfa(): ActionFunc {
     return (dispatch, getState) => {
         const currentUserId = getCurrentUserId(getState());
 
@@ -20,7 +22,7 @@ export function deactivateMfa() {
     };
 }
 
-export function generateMfaSecret() {
+export function generateMfaSecret(): ActionFunc {
     return (dispatch, getState) => {
         const currentUserId = getCurrentUserId(getState());
 
