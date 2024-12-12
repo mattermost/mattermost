@@ -142,6 +142,7 @@ describe('Upload Files', () => {
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
                 cy.wrap(downloadLink).parent().should('have.attr', 'download', file.filename).then((link) => {
                     const fileAttachmentURL = link.attr('href');
+
                     // * Verify that download link has correct name
                     downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, file.filename, 'attachment');
                 });
@@ -175,6 +176,7 @@ describe('Upload Files', () => {
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
                 cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
                     const fileAttachmentURL = link.attr('href');
+
                     // * Verify that download link has correct name
                     downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
                 });
@@ -405,6 +407,7 @@ describe('Upload Files', () => {
         cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
             cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
                 const fileAttachmentURL = link.attr('href');
+
                 // * Verify that download link has correct name
                 downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
             });

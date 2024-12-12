@@ -147,6 +147,7 @@ function testImage(properties) {
     cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
         cy.wrap(downloadLink).parent().should('have.attr', 'download', fileName).then((link) => {
             const fileAttachmentURL = link.attr('href');
+
             // * Verify that download link has correct name
             downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, fileName, 'attachment');
         });
