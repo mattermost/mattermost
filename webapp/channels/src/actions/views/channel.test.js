@@ -1,6 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {UserProfile} from '@mattermost/types/users';
+import type {ServerError} from '@mattermost/types/errors';
+
 import {leaveChannel, markChannelAsRead, getChannel} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import * as UserActions from 'mattermost-redux/actions/users';
@@ -13,6 +18,8 @@ import {markThreadAsRead} from 'actions/views/threads';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostRequestTypes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 jest.mock('utils/channel_utils.tsx', () => {
     const original = jest.requireActual('utils/channel_utils.tsx');
@@ -61,7 +68,7 @@ describe('channel view actions', () => {
     const gmChannel = {id: 'gmchannelid', name: 'gmchannel', display_name: 'GM Channel 1', type: 'G'};
     const team1 = {id: 'teamid1', name: 'team1'};
 
-    const initialState = {
+    const initialState: GlobalState = {
         entities: {
             users: {
                 currentUserId: 'userid1',
@@ -120,7 +127,7 @@ describe('channel view actions', () => {
         },
     };
 
-    let store;
+    let store: ReturnType<typeof mockStore>;
 
     beforeEach(() => {
         store = mockStore(initialState);
@@ -248,9 +255,14 @@ describe('channel view actions', () => {
 
     describe('loadUnreads', () => {
         test('when there are no posts after and before the response', async () => {
-            const posts = {posts: {}, order: [], next_post_id: '', prev_post_id: ''};
+            const posts: {posts: Record<string, Post>; order: string[]; next_post_id: string; prev_post_id: string} = {
+                posts: {},
+                order: [],
+                next_post_id: '',
+                prev_post_id: '',
+            };
 
-            PostActions.getPostsUnread.mockReturnValue(() => ({data: posts}));
+            (PostActions.getPostsUnread as jest.Mock).mockReturnValue(() => ({data: posts}));
 
             const result = await store.dispatch(Actions.loadUnreads('channel'));
 
@@ -332,7 +344,7 @@ describe('channel view actions', () => {
         });
 
         test('should disptach PREFETCH_POSTS_FOR_CHANNEL status when called with prefetch argument and loadUnreads error', async () => {
-            PostActions.getPostsUnread.mockReturnValue(() => ({error: {}}));
+            (PostActions.getPostsUnread as jest.Mock).mockReturnValue(() => ({error: {} as ServerError}));
 
             await store.dispatch(Actions.loadUnreads('channel', true));
 
