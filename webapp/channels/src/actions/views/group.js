@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Group} from '@mattermost/types/groups';
+
 import {searchGroups} from 'mattermost-redux/actions/groups';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {searchAssociatedGroupsForReferenceLocal} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
-export function searchAssociatedGroupsForReference(prefix, teamId, channelId, opts = {}) {
+import type {ActionFuncAsync} from 'types/store';
+
+export function searchAssociatedGroupsForReference(prefix: string, teamId: string, channelId: string, opts: Record<string, any> = {}): ActionFuncAsync<Group[]> {
     return async (dispatch, getState) => {
         const state = getState();
         if (!haveIChannelPermission(state,
