@@ -22,6 +22,7 @@ jobs:
     permissions:
       pull-requests: write
       checks: write
+      issues: write
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
