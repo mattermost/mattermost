@@ -92,7 +92,7 @@ export default class ActionMenu extends React.PureComponent<Props, State> {
         }
 
         this.props.selectAttachmentMenuAction(
-            this.props.postId, this.props.action.id || '', this.props.action.cookie || '', this.props.action?.data_source, text, value);
+            this.props.postId, this.props.action.id || '', this.props.action.cookie || '', this.props.action?.data_source || '', text, value);
 
         this.setState({value: text});
     };

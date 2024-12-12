@@ -352,7 +352,7 @@ export function deletePost(post: ExtendedPost): ActionFuncAsync {
     };
 }
 
-export function editPost(post: Post) {
+export function editPost(post: Partial<Post> & {id: string}) {
     return bindClientFunc({
         clientFunc: Client4.patchPost,
         onRequest: PostTypes.EDIT_POST_REQUEST,

@@ -158,7 +158,7 @@ export const getAssociatedGroupsForReferenceByMention: (state: GlobalState, team
     },
 );
 
-export function searchAssociatedGroupsForReferenceLocal(state: GlobalState, term: string, teamId: string, channelId: string): Group[] {
+export function searchAssociatedGroupsForReferenceLocal(state: GlobalState, term: string, teamId: string, channelId?: string): Group[] {
     const groups = getAssociatedGroupsForReference(state, teamId, channelId);
     if (!groups) {
         return emptyList;
