@@ -7,6 +7,9 @@ declare global {
     }
 }
 
+/**
+ * Clears user-related cookies from the browser
+ */
 export function clearUserCookie(): void {
     // We need to clear the cookie without the domain, with the domain, and with both the domain and path set because we
     // can't tell if the server set the cookie with or without the domain.
