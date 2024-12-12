@@ -21,9 +21,9 @@ import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import {getSiteURL} from 'utils/url';
 import {getTimestamp} from 'utils/utils';
 
-import {runMessageWillBePostedHooks} from '../hooks';
+import type {ActionFuncAsync} from 'types/store';
 
-import type {ActionFunc, ActionFuncAsync} from 'types/store';
+import {runMessageWillBePostedHooks} from '../hooks';
 
 export function editPost(post: Partial<Post> & {id: string}): ActionFuncAsync {
     return async (dispatch) => {
@@ -59,32 +59,29 @@ export function forwardPost(post: Post, channel: Channel, message = ''): ActionF
         const time = getTimestamp();
         const userId = currentUserId;
         let newPost: Post = {
-          id: '',
-          channel_id: channelId,
-          message: message ? `${message}\n${permaLink}` : permaLink,
-          pending_post_id: `${userId}:${time}`,
-          user_id: userId,
-          create_at: time,
-          edit_at: 0,
-          update_at: time,
-          original_id: '',
-          delete_at: 0,
-          root_id: '',
-          is_pinned: false,
-          hashtags: '',
-          reply_count: 0,
-          type: '',
-          metadata: {
-            embeds: [],
-            emojis: [],
-            files: [],
-            images: {},
-          },
-          props: {},
+            id: '',
+            channel_id: channelId,
+            message: message ? `${message}\n${permaLink}` : permaLink,
+            pending_post_id: `${userId}:${time}`,
+            user_id: userId,
+            create_at: time,
+            edit_at: 0,
+            update_at: time,
+            original_id: '',
+            delete_at: 0,
+            root_id: '',
+            is_pinned: false,
+            hashtags: '',
+            reply_count: 0,
+            type: '',
+            metadata: {
+                embeds: [],
+                emojis: [],
+                files: [],
+                images: {},
+            },
+            props: {},
         };
-
-
-
 
         if (!useChannelMentions && containsAtChannel(newPost.message, {checkAllMentions: true})) {
             newPost.props.mentionHighlightDisabled = true;

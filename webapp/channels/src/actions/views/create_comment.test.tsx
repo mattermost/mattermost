@@ -27,7 +27,7 @@ import type {PostDraft} from 'types/store/draft';
 
 const createPost = jest.mocked(PostActions.createPost);
 const executeCommand = jest.mocked(originalExecuteCommand);
-const runMessageWillBePostedHooks = jest.mocked(HookActions.runMessageWillBePostedHooks)
+const runMessageWillBePostedHooks = jest.mocked(HookActions.runMessageWillBePostedHooks);
 const runSlashCommandWillBePostedHooks = jest.mocked(HookActions.runSlashCommandWillBePostedHooks);
 
 /* eslint-disable global-require */
@@ -313,6 +313,7 @@ describe('rhs view actions', () => {
             expect(store.getActions()).toEqual(
                 expect.arrayContaining(testStore.getActions()),
             );
+
             // TODO: Fix this test, it is not working
             expect(store.getActions()).toEqual(
                 expect.arrayContaining(commandActions),

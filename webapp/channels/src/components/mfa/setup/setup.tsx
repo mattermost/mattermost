@@ -5,6 +5,7 @@ import React from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
@@ -30,7 +31,7 @@ type Props = {
     enforceMultifactorAuthentication: boolean;
     actions: {
         activateMfa: (code: string) => Promise<ActionResult<unknown, {server_error_id: string; message: string}>>;
-        generateMfaSecret: () => Promise<ActionResult<unknown, { message: string; }>>;
+        generateMfaSecret: () => Promise<ActionResult<unknown, { message: string }>>;
     };
     history: {
         push(path: string): void;
@@ -75,8 +76,8 @@ export default class Setup extends React.PureComponent<Props, State> {
             }
 
             this.setState({
-                secret: (data as {secret: string, qr_code: string}).secret,
-                qrCode: (data as {secret: string, qr_code: string}).qr_code,
+                secret: (data as {secret: string; qr_code: string}).secret,
+                qrCode: (data as {secret: string; qr_code: string}).qr_code,
             });
         });
     }

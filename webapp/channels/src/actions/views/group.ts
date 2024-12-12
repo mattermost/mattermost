@@ -11,7 +11,6 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 
 import type {ActionFuncAsync} from 'types/store';
 export function searchAssociatedGroupsForReference(prefix: string, teamId: string, channelId: string | undefined, opts?: GroupSearchParams): ActionFuncAsync<Group[]> {
-
     return async (dispatch, getState) => {
         const state = getState();
         if (!haveIChannelPermission(state,

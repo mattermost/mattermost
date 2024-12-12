@@ -3,8 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
-import type {ServerError} from '@mattermost/types/errors';
-import type {DeepPartial} from '@mattermost/types/utilities'
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {leaveChannel, markChannelAsRead, getChannel} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
@@ -82,7 +81,7 @@ describe('channel view actions', () => {
                 currentUserId: 'userid1',
                 profiles: {
                     userid1: TestHelper.getUserMock({id: 'userid1', username: 'username1', roles: 'system_user'}),
-                    userid2: TestHelper.getUserMock({id: 'userid2', username: 'username2', roles: 'system_user'})
+                    userid2: TestHelper.getUserMock({id: 'userid2', username: 'username2', roles: 'system_user'}),
                 },
                 profilesInChannel: {},
             },
@@ -138,7 +137,7 @@ describe('channel view actions', () => {
         websocket: {
             connectionId: '',
         },
-    }
+    };
 
     let store: ReturnType<typeof mockStore>;
 
@@ -275,7 +274,7 @@ describe('channel view actions', () => {
                 prev_post_id: '',
             };
 
-            (getPostsUnread as jest.Mock).mockReturnValue(() => ({data: posts}));
+            getPostsUnread.mockReturnValue(() => ({data: posts} as any));
 
             const result = await store.dispatch(Actions.loadUnreads('channel'));
 
@@ -357,7 +356,7 @@ describe('channel view actions', () => {
         });
 
         test('should disptach PREFETCH_POSTS_FOR_CHANNEL status when called with prefetch argument and loadUnreads error', async () => {
-            (getPostsUnread as jest.Mock).mockReturnValue(() => ({error: {} as ServerError}));
+            getPostsUnread.mockReturnValue(() => ({error: {}} as any));
 
             await store.dispatch(Actions.loadUnreads('channel', true));
 
