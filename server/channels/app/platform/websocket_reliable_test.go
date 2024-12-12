@@ -60,7 +60,7 @@ func TestMarshalDQ(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, got, 3)
 
-	gotEvents, dqPtr, err := ps.unmarshalDQ(got)
+	gotEvents, dqPtr, err := ps.UnmarshalDQ(got)
 	require.NoError(t, err)
 	assert.Equal(t, 3, dqPtr)
 	assert.Equal(t, events[:3], gotEvents[:3])

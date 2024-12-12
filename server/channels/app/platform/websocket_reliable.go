@@ -144,7 +144,7 @@ func (ps *PlatformService) marshalDQ(dq []*model.WebSocketEvent, index, dqPtr in
 	return dqSlice, nil
 }
 
-func (ps *PlatformService) unmarshalDQ(buf []json.RawMessage) ([]*model.WebSocketEvent, int, error) {
+func (ps *PlatformService) UnmarshalDQ(buf []json.RawMessage) ([]*model.WebSocketEvent, int, error) {
 	dqPtr := 0
 	dq := make([]*model.WebSocketEvent, deadQueueSize)
 	for _, dqItem := range buf {

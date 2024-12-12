@@ -310,7 +310,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 
 		// parse the dq, wc.addToDeadQ()
 		if queues.DeadQ != nil {
-			dq, dqPtr, err := ps.unmarshalDQ(queues.DeadQ)
+			dq, dqPtr, err := ps.UnmarshalDQ(queues.DeadQ)
 			if err != nil {
 				ps.Log().Error("Error while unmarshalling websocket message from dead queue",
 					mlog.String("connection_id", connectionID),
