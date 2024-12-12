@@ -3,14 +3,22 @@
 
 import {ActionTypes} from 'utils/constants';
 
-export function incrementAnnouncementBarCount() {
-    return {
-        type: ActionTypes.TRACK_ANNOUNCEMENT_BAR,
+import type {ActionFunc} from 'types/store';
+
+export function incrementAnnouncementBarCount(): ActionFunc {
+    return () => {
+        return {
+            type: ActionTypes.TRACK_ANNOUNCEMENT_BAR,
+            data: true,
+        };
     };
 }
 
-export function decrementAnnouncementBarCount() {
-    return {
-        type: ActionTypes.DISMISS_ANNOUNCEMENT_BAR,
+export function decrementAnnouncementBarCount(): ActionFunc {
+    return () => {
+        return {
+            type: ActionTypes.DISMISS_ANNOUNCEMENT_BAR,
+            data: true,
+        };
     };
 }
