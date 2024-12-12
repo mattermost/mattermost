@@ -207,7 +207,7 @@ func TestStoreLicenseRace(t *testing.T) {
 	}()
 
 	go func() {
-		store.GetReplicaX()
+		store.GetReplica()
 		wg.Done()
 	}()
 
@@ -305,7 +305,7 @@ func TestGetReplica(t *testing.T) {
 
 			replicas := make(map[*sqlxDBWrapper]bool)
 			for i := 0; i < 5; i++ {
-				replicas[store.GetReplicaX()] = true
+				replicas[store.GetReplica()] = true
 			}
 
 			searchReplicas := make(map[*sqlxDBWrapper]bool)
@@ -318,12 +318,12 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, replicas, testCase.DataSourceReplicaNum)
 
 				for replica := range replicas {
-					assert.NotSame(t, store.GetMasterX(), replica)
+					assert.NotSame(t, store.GetMaster(), replica)
 				}
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Same(t, store.GetMasterX(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 			}
 
@@ -332,7 +332,7 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, searchReplicas, testCase.DataSourceSearchReplicaNum)
 
 				for searchReplica := range searchReplicas {
-					assert.NotSame(t, store.GetMasterX(), searchReplica)
+					assert.NotSame(t, store.GetMaster(), searchReplica)
 					for replica := range replicas {
 						assert.NotSame(t, searchReplica, replica)
 					}
@@ -345,7 +345,7 @@ func TestGetReplica(t *testing.T) {
 			} else if testCase.DataSourceReplicaNum == 0 && assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Same(t, store.GetMasterX(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
@@ -376,7 +376,7 @@ func TestGetReplica(t *testing.T) {
 
 			replicas := make(map[*sqlxDBWrapper]bool)
 			for i := 0; i < 5; i++ {
-				replicas[store.GetReplicaX()] = true
+				replicas[store.GetReplica()] = true
 			}
 
 			searchReplicas := make(map[*sqlxDBWrapper]bool)
@@ -389,12 +389,12 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, replicas, 1)
 
 				for replica := range replicas {
-					assert.Same(t, store.GetMasterX(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Same(t, store.GetMasterX(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 			}
 
@@ -403,7 +403,7 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, searchReplicas, 1)
 
 				for searchReplica := range searchReplicas {
-					assert.Same(t, store.GetMasterX(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 			} else if testCase.DataSourceReplicaNum > 0 {
 				assert.Equal(t, len(replicas), len(searchReplicas))
@@ -413,7 +413,7 @@ func TestGetReplica(t *testing.T) {
 			} else if assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Same(t, store.GetMasterX(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
@@ -831,7 +831,7 @@ func TestExecNoTimeout(t *testing.T) {
 		} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
 			query = `SELECT pg_sleep(2);`
 		}
-		_, err := sqlStore.GetMasterX().ExecNoTimeout(query)
+		_, err := sqlStore.GetMaster().ExecNoTimeout(query)
 		require.NoError(t, err)
 	})
 }
@@ -858,7 +858,7 @@ func TestMySQLReadTimeout(t *testing.T) {
 	require.NoError(t, store.initConnection())
 	defer store.Close()
 
-	_, err = store.GetMasterX().ExecNoTimeout(`SELECT SLEEP(3)`)
+	_, err = store.GetMaster().ExecNoTimeout(`SELECT SLEEP(3)`)
 	require.NoError(t, err)
 }
 

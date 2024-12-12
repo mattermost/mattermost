@@ -12,6 +12,7 @@ export default class ChannelsPostCreate {
     readonly sendMessageButton;
     readonly scheduleDraftMessageButton;
     readonly priorityButton;
+    readonly suggestionList;
 
     constructor(container: Locator, isRHS = false) {
         this.container = container;
@@ -27,6 +28,7 @@ export default class ChannelsPostCreate {
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
+        this.suggestionList = container.getByTestId('suggestionList');
     }
 
     async toBeVisible() {
