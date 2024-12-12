@@ -24,7 +24,7 @@ func TestMarshalAQ(t *testing.T) {
 	for _, ev := range events {
 		aq <- ev
 	}
-	defer close(aq)
+	close(aq)
 
 	queue, err := ps.marshalAQ(aq, "connID", "u1")
 	require.NoError(t, err)

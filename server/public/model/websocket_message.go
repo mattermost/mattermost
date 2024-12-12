@@ -106,7 +106,7 @@ type ActiveQueueItem struct {
 
 type WSQueues struct {
 	ActiveQ    []ActiveQueueItem `json:"active_queue"` // websocketEvent|websocketResponse
-	DeadQ      [][]byte          `json:"dead_queue"`   // websocketEvent
+	DeadQ      []json.RawMessage `json:"dead_queue"`   // websocketEvent
 	ReuseCount int               `json:"reuse_count"`
 }
 

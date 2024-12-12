@@ -29,10 +29,10 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 		return nil, nil
 	}
 
-	// If seq-1 == last value in the dq.
+	// Check if seq_num-1 == last value in the dead queue.
 	if perfectMatch := !_hasMsgLoss(dq, dqPtr, seqNum); perfectMatch {
+		close(aq)
 		aqSlice, err := ps.marshalAQ(aq, connectionID, userID)
-		defer close(aq)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get from active queue: %w", err)
 		}
@@ -43,10 +43,10 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 		}, nil
 	}
 
-	// If seq is there somewhere else in the dq.
+	// Check if seq_num is somewhere else in the dead queue.
 	if ok, index := _isInDeadQueue(dq, seqNum); ok {
+		close(aq)
 		aqSlice, err := ps.marshalAQ(aq, connectionID, userID)
-		defer close(aq)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get from active queue: %w", err)
 		}
@@ -68,27 +68,23 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 
 func (ps *PlatformService) marshalAQ(aq <-chan model.WebSocketMessage, connID, userID string) ([]model.ActiveQueueItem, error) {
 	aqSlice := make([]model.ActiveQueueItem, 0)
-	for {
-		select {
-		case msg := <-aq:
-			evtType := model.WebSocketMsgTypeResponse
-			_, evtOk := msg.(*model.WebSocketEvent)
-			if evtOk {
-				evtType = model.WebSocketMsgTypeEvent
-			}
-			buf, err := msg.ToJSON()
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal websocket event: %w, connection_id=%s, user_id=%s", err, connID, userID)
-			}
-			aqSlice = append(aqSlice, model.ActiveQueueItem{
-				Buf:  json.RawMessage(buf),
-				Type: evtType,
-			})
-		default:
-			// read until there's nothing to read.
-			return aqSlice, nil
+	for msg := range aq {
+		evtType := model.WebSocketMsgTypeResponse
+		_, evtOk := msg.(*model.WebSocketEvent)
+		if evtOk {
+			evtType = model.WebSocketMsgTypeEvent
 		}
+		buf, err := msg.ToJSON()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal websocket event: %w, connection_id=%s, user_id=%s", err, connID, userID)
+		}
+		aqSlice = append(aqSlice, model.ActiveQueueItem{
+			Buf:  json.RawMessage(buf),
+			Type: evtType,
+		})
 	}
+
+	return aqSlice, nil
 }
 
 func (ps *PlatformService) UnmarshalAQItem(aqItem model.ActiveQueueItem) (model.WebSocketMessage, error) {
@@ -106,12 +102,12 @@ func (ps *PlatformService) UnmarshalAQItem(aqItem model.ActiveQueueItem) (model.
 
 // marshalDQ is the same as drainDeadQueue, except it writes to a byte slice
 // instead of the network. To be refactored into a single method.
-func (ps *PlatformService) marshalDQ(dq []*model.WebSocketEvent, index, dqPtr int) ([][]byte, error) {
+func (ps *PlatformService) marshalDQ(dq []*model.WebSocketEvent, index, dqPtr int) ([]json.RawMessage, error) {
 	if len(dq) == 0 || dq[0] == nil {
 		return nil, nil
 	}
 
-	dqSlice := make([][]byte, 0)
+	dqSlice := make([]json.RawMessage, 0)
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
 	// This means pointer hasn't rolled over.
@@ -148,7 +144,7 @@ func (ps *PlatformService) marshalDQ(dq []*model.WebSocketEvent, index, dqPtr in
 	return dqSlice, nil
 }
 
-func (ps *PlatformService) unmarshalDQ(buf [][]byte) ([]*model.WebSocketEvent, int, error) {
+func (ps *PlatformService) unmarshalDQ(buf []json.RawMessage) ([]*model.WebSocketEvent, int, error) {
 	dqPtr := 0
 	dq := make([]*model.WebSocketEvent, deadQueueSize)
 	for _, dqItem := range buf {
