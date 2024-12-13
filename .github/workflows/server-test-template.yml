@@ -33,8 +33,10 @@ jobs:
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: server/go.sum
-      - name: Store test name
-        run: echo "${{ inputs.name }}" > server/test-name
+      - name: Store required variables for publishing results
+        run: |
+          echo "${{ inputs.name }}" > server/test-name
+          echo "${{ github.event.pull_request.number }}" > server/pr-number
       - name: Run docker compose
         run: |
           cd server/build
@@ -75,3 +77,4 @@ jobs:
             server/gotestsum.json
             server/report.xml
             server/test-name
+            server/pr-number

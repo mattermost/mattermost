@@ -51,7 +51,10 @@ jobs:
           github-token: ${{ github.token }}
           name: ${{ matrix.test.artifact }}
           path: ${{ matrix.test.artifact }}
-
+      - name: report/fetch-pr-number
+        if: github.event.workflow_run.name == 'Server CI PR'
+        id: incoming-pr
+        run: echo "NUMBER=$(cat ${{ matrix.test.artifact }}/pr-number)" >> ${GITHUB_OUTPUT}
       - name: Publish test report
         id: report
         uses: mikepenz/action-junit-report@992d97d6eb2e5f3de985fbf9df6a04386874114d # v5.1.0
@@ -85,7 +88,7 @@ jobs:
             const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Failing job: [github.com/mattermost/mattermost:${{ matrix.test.name }}](${{ github.event.workflow_run.html_url }})\n* Double check your code to ensure you haven't introduced a flaky test.\n* If this seems to be unrelated to your changes, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.\n\n${{ steps.report.outputs.flaky_summary }}`
 
             await github.rest.issues.createComment({
-              issue_number: context.issue.number,
+              issue_number: ${{ steps.incoming-pr.outputs.NUMBER }},
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: body
