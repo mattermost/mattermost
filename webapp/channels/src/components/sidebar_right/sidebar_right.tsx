@@ -39,8 +39,6 @@ export type Props = {
     postCardVisible: boolean;
     searchVisible: boolean;
     isPinnedPosts: boolean;
-    isRecentMentions: boolean;
-    isSavedPosts: boolean;
     isChannelFiles: boolean;
     isChannelInfo: boolean;
     isChannelMembers: boolean;
@@ -50,6 +48,8 @@ export type Props = {
     rhsChannel?: Channel;
     selectedPostId: string;
     selectedPostCardId: string;
+    isSavedPosts?: boolean;
+    isRecentMentions?: boolean;
     actions: {
         setRhsExpanded: (expanded: boolean) => void;
         showPinnedPosts: (channelId: string) => void;
