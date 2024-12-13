@@ -1994,6 +1994,14 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, posts.Order, 10, "expected 10 posts")
+
+		// allow viewing of direct messages
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		th.CreateMessagePostNoClient(dmChannel, "test1", model.GetMillis())
+
+		posts, resp, err = c.GetPostsForChannel(context.Background(), dmChannel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 }
 
@@ -3147,7 +3155,7 @@ func TestWebHubCloseConnOnDBFail(t *testing.T) {
 
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
 	require.NoError(t, err)
-	defer wsClient.Close()
+	wsClient.Close()
 
 	require.NoError(t, th.TestLogger.Flush())
 }
