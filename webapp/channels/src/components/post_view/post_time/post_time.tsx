@@ -94,6 +94,8 @@ export default class PostTime extends React.PureComponent<Props> {
 
         return (
             <WithTooltip
+                placement='top'
+                id={eventTime.toString()}
                 title={
                     <Timestamp
                         value={eventTime}

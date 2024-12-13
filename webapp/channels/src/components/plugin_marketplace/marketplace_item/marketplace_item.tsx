@@ -26,7 +26,9 @@ export const Label = ({name, description, url}: MarketplaceLabel): JSX.Element =
     if (description) {
         label = (
             <WithTooltip
+                id={'plugin-marketplace_label_' + name.toLowerCase() + '-tooltip'}
                 title={description}
+                placement='top'
             >
                 {tag}
             </WithTooltip>
@@ -135,7 +137,9 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
         if (this.state.showTooltip) {
             description = (
                 <WithTooltip
+                    id='marketplace-item-description__tooltip'
                     title={descriptionText || ''}
+                    placement='top'
                 >
                     {description}
                 </WithTooltip>

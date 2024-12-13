@@ -104,7 +104,9 @@ const GroupOption = (props: Props) => {
                         {'@'}{group.name}
                     </span>
                     <WithTooltip
+                        id={'usernames-overflow'}
                         title={overflowNames}
+                        placement={'top'}
                     >
                         <span
                             className='add-group-members'

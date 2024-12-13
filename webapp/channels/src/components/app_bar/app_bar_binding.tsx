@@ -84,8 +84,9 @@ const AppBarBinding = (props: BindingComponentProps) => {
 
     return (
         <WithTooltip
+            id={'tooltip-' + id}
             title={label}
-            isVertical={false}
+            placement='left'
         >
             <div
                 id={id}

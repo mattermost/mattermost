@@ -84,7 +84,9 @@ const PlanUpgradeButton = (): JSX.Element | null => {
 
     return (
         <WithTooltip
+            id='upgrade_button_tooltip'
             title={formatMessage({id: 'pricing_modal.btn.tooltip', defaultMessage: 'Only visible to system admins'})}
+            placement='bottom'
         >
             <UpgradeButton
                 id='UpgradeButton'

@@ -129,6 +129,8 @@ const useEmojiPicker = (
                     topOffset={-7}
                 />
                 <WithTooltip
+                    id='upload-tooltip'
+                    placement='top'
                     title={
                         <KeyboardShortcutSequence
                             shortcut={KEYBOARD_SHORTCUTS.msgShowEmojiPicker}

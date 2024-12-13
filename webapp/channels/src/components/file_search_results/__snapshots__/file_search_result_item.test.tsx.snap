@@ -76,12 +76,9 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       </div>
     </div>
     <WithTooltip
-      title={
-        Object {
-          "defaultMessage": "Download",
-          "id": "file_search_result_item.download",
-        }
-      }
+      id="file-name__tooltip"
+      placement="top"
+      title="Download"
     >
       <a
         className="action-icon download-icon"
@@ -182,12 +179,9 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       </div>
     </div>
     <WithTooltip
-      title={
-        Object {
-          "defaultMessage": "Download",
-          "id": "file_search_result_item.download",
-        }
-      }
+      id="file-name__tooltip"
+      placement="top"
+      title="Download"
     >
       <a
         className="action-icon download-icon"
@@ -288,12 +282,9 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       </div>
     </div>
     <WithTooltip
-      title={
-        Object {
-          "defaultMessage": "Download",
-          "id": "file_search_result_item.download",
-        }
-      }
+      id="file-name__tooltip"
+      placement="top"
+      title="Download"
     >
       <a
         className="action-icon download-icon"
@@ -389,12 +380,9 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       </div>
     </div>
     <WithTooltip
-      title={
-        Object {
-          "defaultMessage": "Download",
-          "id": "file_search_result_item.download",
-        }
-      }
+      id="file-name__tooltip"
+      placement="top"
+      title="Download"
     >
       <a
         className="action-icon download-icon"

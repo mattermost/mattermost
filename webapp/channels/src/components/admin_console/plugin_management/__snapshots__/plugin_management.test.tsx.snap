@@ -259,6 +259,8 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -533,6 +535,8 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -616,6 +620,8 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -890,6 +896,8 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -1166,6 +1174,8 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -1444,6 +1454,8 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -1718,6 +1730,8 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -1969,6 +1983,8 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -2243,6 +2259,8 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -2524,6 +2542,8 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -2861,6 +2881,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -3166,6 +3188,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -3471,6 +3495,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -3776,6 +3802,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -4113,6 +4141,8 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div

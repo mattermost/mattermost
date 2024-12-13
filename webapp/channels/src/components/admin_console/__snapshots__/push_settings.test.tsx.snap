@@ -172,6 +172,8 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -303,6 +305,8 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div

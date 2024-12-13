@@ -68,6 +68,8 @@ export default class Contents extends React.PureComponent<Props> {
         if (this.props.teamDescription) {
             teamNameWithToolTip = (
                 <WithTooltip
+                    id='team-name__tooltip'
+                    placement='bottom'
                     title={this.props.teamDescription}
                 >
                     {teamNameWithToolTip}
@@ -98,6 +100,7 @@ export default class Contents extends React.PureComponent<Props> {
                             </div>
                             <CustomStatusEmoji
                                 showTooltip={true}
+                                tooltipDirection='bottom'
                                 emojiStyle={{
                                     verticalAlign: 'top',
                                     marginLeft: 2,

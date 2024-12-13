@@ -86,6 +86,8 @@ function PostPriorityPickerOverlay({
     return (
         <>
             <WithTooltip
+                id='postPriorityPickerOverlayTooltip'
+                placement='top'
                 title={messagePriority}
             >
                 <IconContainer

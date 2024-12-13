@@ -96,8 +96,9 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
 
     return (
         <WithTooltip
+            id={'pluginTooltip-' + buttonId}
             title={tooltipText}
-            isVertical={false}
+            placement='left'
         >
             <div
                 id={buttonId}

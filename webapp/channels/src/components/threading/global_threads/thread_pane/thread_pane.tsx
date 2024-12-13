@@ -120,10 +120,12 @@ const ThreadPane = ({
                             unreadTimestamp={unreadTimestamp}
                         >
                             <WithTooltip
+                                id='threadActionMenu'
                                 title={formatMessage({
                                     id: 'threading.threadHeader.menu',
                                     defaultMessage: 'More Actions',
                                 })}
+                                placement={'top'}
                             >
                                 <Button className='Button___icon Button___large'>
                                     <DotsVerticalIcon size={18}/>

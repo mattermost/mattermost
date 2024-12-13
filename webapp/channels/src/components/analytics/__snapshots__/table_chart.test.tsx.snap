@@ -22,6 +22,8 @@ exports[`components/analytics/table_chart.tsx should match snapshot, loaded with
           >
             <td>
               <WithTooltip
+                id="tip-table-entry-test1"
+                placement="top"
                 title="test-tip1"
               >
                 <span>
@@ -40,6 +42,8 @@ exports[`components/analytics/table_chart.tsx should match snapshot, loaded with
           >
             <td>
               <WithTooltip
+                id="tip-table-entry-test2"
+                placement="top"
                 title="test-tip2"
               >
                 <span>

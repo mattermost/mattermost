@@ -63,7 +63,9 @@ const TeamWarningBanner = (props: Props) => {
                         ),
                         others: (
                             <WithTooltip
+                                id='usernames-overflow'
                                 title={commaSeparatedUsernames.replace(`@${firstName}, `, '')}
+                                placement='top'
                             >
                                 <span
                                     className='add-others-link'
@@ -132,7 +134,9 @@ const TeamWarningBanner = (props: Props) => {
                     ),
                     others: (
                         <WithTooltip
+                            id='usernames-overflow'
                             title={commaSeparatedUsernames.replace(`@${firstName}, `, '')}
+                            placement='top'
                         >
                             <span
                                 className='add-others-link'

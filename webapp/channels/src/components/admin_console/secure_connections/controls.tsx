@@ -230,6 +230,8 @@ export const ConnectionStatusLabel = ({rc}: {rc: RemoteCluster}) => {
 
     return (
         <WithTooltip
+            id='connection-status-tooltip'
+            placement='top'
             title={(
                 <>
                     <FormattedMessage

@@ -136,6 +136,8 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 onToggle={this.buttonToggleState}
             >
                 <WithTooltip
+                    id='userGuideHelpTooltip'
+                    placement='bottom'
                     title={tooltipText}
                 >
                     <IconButton

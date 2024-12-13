@@ -65,6 +65,8 @@ function SearchResultsHeader(props: Props) {
             <div className='pull-right'>
                 {showExpand && (
                     <WithTooltip
+                        placement='bottom'
+                        id={props.isExpanded ? 'shrinkSidebarTooltip' : 'expandSidebarTooltip'}
                         title={sidebarTooltipContent}
                     >
                         <button
@@ -84,6 +86,8 @@ function SearchResultsHeader(props: Props) {
                     </WithTooltip>
                 )}
                 <WithTooltip
+                    placement='top'
+                    id='closeSidebarTooltip'
                     title={
                         <FormattedMessage
                             id='rhs_header.closeSidebarTooltip'

@@ -29,6 +29,8 @@ const CopyText = ({
 
     return (
         <WithTooltip
+            id='copyTextTooltip'
+            placement='top'
             title={
                 tooltip || (
                     <FormattedMessage

@@ -147,6 +147,8 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -423,6 +425,8 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -585,6 +589,8 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div
@@ -861,6 +867,8 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         }
       />
       <WithTooltip
+        id="error-tooltip"
+        placement="top"
         title=""
       >
         <div

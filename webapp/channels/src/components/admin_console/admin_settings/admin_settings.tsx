@@ -60,6 +60,8 @@ const AdminSettings = ({
                         }
                     />
                     <WithTooltip
+                        id='error-tooltip'
+                        placement='top'
                         title={serverError ?? ''}
                     >
                         <div

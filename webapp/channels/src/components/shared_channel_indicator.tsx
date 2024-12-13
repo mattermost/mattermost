@@ -27,6 +27,8 @@ const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
 
     return (
         <WithTooltip
+            id='sharedTooltip'
+            placement='bottom'
             title={sharedTooltipText}
         >
             {sharedIcon}

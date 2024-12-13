@@ -32,12 +32,14 @@ const SavedPostsButton = (): JSX.Element | null => {
 
     return (
         <WithTooltip
+            id='recentMentions'
             title={
                 <FormattedMessage
                     id='channel_header.flagged'
                     defaultMessage='Saved messages'
                 />
             }
+            placement='bottom'
         >
             <IconButton
                 size={'sm'}

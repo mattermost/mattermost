@@ -107,7 +107,9 @@ const CallButton = ({
     });
     const callButton = (
         <WithTooltip
+            id='startCallTooltip'
             title={startCallMessage}
+            placement='top'
         >
             <button
                 id='startCallButton'

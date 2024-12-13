@@ -25,6 +25,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
   >
     <WithTooltip
       disabled={false}
+      id="defaultID"
+      placement="top"
       title={
         <span
           className="inherit-link-wrapper"
@@ -42,42 +44,108 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
         </span>
       }
     >
-      <span
-        className="permission-description"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseMove={[Function]}
-        onPointerDown={[Function]}
-        onPointerEnter={[Function]}
+      <OverlayTrigger
+        defaultOverlayShown={false}
+        delay={400}
+        disabled={false}
+        overlay={<Unknown />}
+        placement="top"
+        trigger={
+          Array [
+            "hover",
+            "focus",
+          ]
+        }
       >
-        <span
-          className="inherit-link-wrapper"
-        >
-          <FormattedMessage
-            defaultMessage="Inherited from <link>{name}</link>."
-            id="admin.permissions.inherited_from"
-            values={
-              Object {
-                "link": [Function],
-                "name": "All Members",
+        <OverlayTrigger
+          defaultOverlayShown={false}
+          delay={400}
+          overlay={
+            <OverlayWrapper
+              intl={
+                Object {
+                  "$t": [Function],
+                  "defaultFormats": Object {},
+                  "defaultLocale": "en",
+                  "defaultRichTextElements": undefined,
+                  "fallbackOnEmptyString": true,
+                  "formatDate": [Function],
+                  "formatDateTimeRange": [Function],
+                  "formatDateToParts": [Function],
+                  "formatDisplayName": [Function],
+                  "formatList": [Function],
+                  "formatListToParts": [Function],
+                  "formatMessage": [Function],
+                  "formatNumber": [Function],
+                  "formatNumberToParts": [Function],
+                  "formatPlural": [Function],
+                  "formatRelativeTime": [Function],
+                  "formatTime": [Function],
+                  "formatTimeToParts": [Function],
+                  "formats": Object {},
+                  "formatters": Object {
+                    "getDateTimeFormat": [Function],
+                    "getDisplayNames": [Function],
+                    "getListFormat": [Function],
+                    "getMessageFormat": [Function],
+                    "getNumberFormat": [Function],
+                    "getPluralRules": [Function],
+                    "getRelativeTimeFormat": [Function],
+                  },
+                  "locale": "en",
+                  "messages": Object {},
+                  "onError": [Function],
+                  "onWarn": [Function],
+                  "textComponent": "span",
+                  "timeZone": "Etc/UTC",
+                  "wrapRichTextChunksInFragment": undefined,
+                }
               }
-            }
+            />
+          }
+          placement="top"
+          trigger={
+            Array [
+              "hover",
+              "focus",
+            ]
+          }
+        >
+          <span
+            className="permission-description"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onMouseOut={[Function]}
+            onMouseOver={[Function]}
           >
-            <span>
-              Inherited from 
-              <a
-                key=".$.1"
+            <span
+              className="inherit-link-wrapper"
+            >
+              <FormattedMessage
+                defaultMessage="Inherited from <link>{name}</link>."
+                id="admin.permissions.inherited_from"
+                values={
+                  Object {
+                    "link": [Function],
+                    "name": "All Members",
+                  }
+                }
               >
-                All Members
-              </a>
-              .
+                <span>
+                  Inherited from 
+                  <a
+                    key=".$.1"
+                  >
+                    All Members
+                  </a>
+                  .
+                </span>
+              </FormattedMessage>
             </span>
-          </FormattedMessage>
-        </span>
-      </span>
+          </span>
+        </OverlayTrigger>
+      </OverlayTrigger>
     </WithTooltip>
   </PermissionDescription>
 </Provider>
@@ -131,6 +199,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
 exports[`components/admin_console/permission_schemes_settings/permission_description should match snapshot with clickable link 1`] = `
 <WithTooltip
   disabled={false}
+  id="defaultID"
+  placement="top"
   title={
     <span>
       This is a clickable description
@@ -151,6 +221,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_descrip
 exports[`components/admin_console/permission_schemes_settings/permission_description should match snapshot with default Props 1`] = `
 <WithTooltip
   disabled={false}
+  id="defaultID"
+  placement="top"
   title="This is the description"
 >
   <span

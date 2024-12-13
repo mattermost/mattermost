@@ -328,6 +328,8 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                                 {codeThemeOptions}
                             </select>
                             <WithTooltip
+                                placement='top'
+                                id='code-popover'
                                 title={
                                     <div className='code-popover'>
                                         <img

@@ -5,13 +5,14 @@ import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
-
 import {copyToClipboard} from 'utils/utils';
+
+import WithTooltip from './with_tooltip';
 
 type Props = {
     content: string;
     isForText?: boolean;
+    placement?: string;
     className?: string;
 };
 
@@ -53,6 +54,8 @@ const CopyButton: React.FC<Props> = (props: Props) => {
 
     return (
         <WithTooltip
+            id='copyButton.text'
+            placement={props.placement ?? 'top'}
             title={tooltipText}
         >
             <span

@@ -32,6 +32,8 @@ const TableChart = ({
                                 <tr key={'table-entry-' + item.name}>
                                     <td>
                                         <WithTooltip
+                                            id={'tip-table-entry-' + item.name}
+                                            placement='top'
                                             title={item.tip}
                                         >
                                             <span>{item.name}</span>

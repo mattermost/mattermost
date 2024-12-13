@@ -198,10 +198,12 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
             </RoleChooser>
             {!editing && (
                 <WithTooltip
+                    id={`member-tooltip-${member.user.id}`}
                     title={formatMessage({
                         id: 'channel_members_rhs.member.send_message',
                         defaultMessage: 'Send message',
                     })}
+                    placement='left'
                 >
                     <SendMessage onClick={() => actions.openDirectMessage(member.user)}>
                         <i className='icon icon-send'/>

@@ -193,13 +193,13 @@ export default class BrandImageSetting extends React.PureComponent<Props, State>
             if (!this.props.disabled) {
                 overlay = (
                     <WithTooltip
-                        title={(
+                        id='removeIcon'
+                        title={
                             <FormattedMessage
                                 id='admin.team.removeBrandImage'
                                 defaultMessage='Remove brand image'
-                            />
-                        )}
-                        isVertical={false}
+                            />}
+                        placement='right'
                     >
                         <button
                             type='button'

@@ -201,7 +201,9 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
         if (this.state.showTooltip) {
             labelElement = (
                 <WithTooltip
+                    id='channel-displayname__tooltip'
                     title={label}
+                    placement={'top'}
                 >
                     {labelElement}
                 </WithTooltip>

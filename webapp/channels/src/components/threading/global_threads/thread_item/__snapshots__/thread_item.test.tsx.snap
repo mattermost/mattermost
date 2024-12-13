@@ -46,6 +46,8 @@ exports[`components/threading/global_threads/thread_item should report total num
       unreadTimestamp={1611786714912}
     >
       <WithTooltip
+        id="threadActionMenu"
+        placement="top"
         title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
@@ -169,6 +171,8 @@ exports[`components/threading/global_threads/thread_item should report unread me
       unreadTimestamp={1611786714912}
     >
       <WithTooltip
+        id="threadActionMenu"
+        placement="top"
         title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
@@ -290,6 +294,8 @@ exports[`components/threading/global_threads/thread_item should report unread me
       unreadTimestamp={1611786714912}
     >
       <WithTooltip
+        id="threadActionMenu"
+        placement="top"
         title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"

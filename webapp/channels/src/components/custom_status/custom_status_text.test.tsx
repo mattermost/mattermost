@@ -25,6 +25,7 @@ describe('components/custom_status/custom_status_text', () => {
     it('should match snapshot with props', () => {
         const wrapper = mount(
             <CustomStatusText
+                tooltipDirection='top'
                 text='In a meeting'
             />,
             {wrappingComponent: Provider, wrappingComponentProps: {store}},

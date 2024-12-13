@@ -569,6 +569,8 @@ export class FileUpload extends PureComponent<Props, State> {
             bodyAction = (
                 <div>
                     <WithTooltip
+                        id='upload-tooltip'
+                        placement='top'
                         title={
                             <KeyboardShortcutSequence
                                 shortcut={KEYBOARD_SHORTCUTS.filesUpload}
@@ -643,6 +645,8 @@ export class FileUpload extends PureComponent<Props, State> {
                     />
                     <MenuWrapper>
                         <WithTooltip
+                            id='upload-tooltip'
+                            placement='top'
                             title={
                                 <KeyboardShortcutSequence
                                     shortcut={KEYBOARD_SHORTCUTS.filesUpload}

@@ -48,6 +48,7 @@ const FilePreviewModalHeader: React.FC<Props> = ({post, totalFiles, fileIndex, .
         <FilePreviewModalMainActions
             {...actionProps}
             showOnlyClose={actionProps.isMobileView}
+            usedInside='Header'
         />);
     return (
         <div className='file-preview-modal-header'>

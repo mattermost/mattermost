@@ -65,8 +65,10 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
         if (restoreDisabled) {
             return (
                 <WithTooltip
-                    title={intl.formatMessage({id: 'workspace_limits.teams_limit_reached.upgrade_to_unarchive', defaultMessage: 'Upgrade to Unarchive'})}
-                    hint={intl.formatMessage({id: 'workspace_limits.teams_limit_reached.tool_tip', defaultMessage: 'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'})}
+                    id='sharedTooltip'
+                    title={defineMessage({id: 'workspace_limits.teams_limit_reached.upgrade_to_unarchive', defaultMessage: 'Upgrade to Unarchive'})}
+                    hint={defineMessage({id: 'workspace_limits.teams_limit_reached.tool_tip', defaultMessage: 'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'})}
+                    placement='bottom'
                 >
                     <div
                         className={'disabled-overlay-wrapper'}

@@ -85,6 +85,8 @@ function ThreadFooter({
                 <div className='indicator'/>
             ) : (
                 <WithTooltip
+                    id='threadFooterIndicator'
+                    placement='top'
                     title={
                         <FormattedMessage
                             id='threading.numNewMessages'

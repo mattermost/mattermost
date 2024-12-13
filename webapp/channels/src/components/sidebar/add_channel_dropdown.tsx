@@ -152,6 +152,8 @@ const AddChannelDropdown = ({
             open={isAddChannelOpen}
         >
             <WithTooltip
+                id='new-group-tooltip'
+                placement='top'
                 title={intl.formatMessage({
                     id: 'sidebar_left.add_channel_dropdown.browseOrCreateChannels',
                     defaultMessage: 'Browse or create channels',

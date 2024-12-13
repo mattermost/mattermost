@@ -3,6 +3,8 @@
 exports[`FileAttachment should match snapshot, after change from file to image 1`] = `
 <WithTooltip
   disabled={true}
+  id="fileAttachmentArchivedTooltip"
+  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -97,6 +99,8 @@ exports[`FileAttachment should match snapshot, after change from file to image 1
 exports[`FileAttachment should match snapshot, regular file 1`] = `
 <WithTooltip
   disabled={true}
+  id="fileAttachmentArchivedTooltip"
+  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -191,6 +195,8 @@ exports[`FileAttachment should match snapshot, regular file 1`] = `
 exports[`FileAttachment should match snapshot, regular image 1`] = `
 <WithTooltip
   disabled={true}
+  id="fileAttachmentArchivedTooltip"
+  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -268,6 +274,8 @@ exports[`FileAttachment should match snapshot, regular image 1`] = `
 exports[`FileAttachment should match snapshot, small image 1`] = `
 <WithTooltip
   disabled={true}
+  id="fileAttachmentArchivedTooltip"
+  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -345,6 +353,8 @@ exports[`FileAttachment should match snapshot, small image 1`] = `
 exports[`FileAttachment should match snapshot, svg image 1`] = `
 <WithTooltip
   disabled={true}
+  id="fileAttachmentArchivedTooltip"
+  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -439,6 +449,8 @@ exports[`FileAttachment should match snapshot, svg image 1`] = `
 exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
 <WithTooltip
   disabled={true}
+  id="fileAttachmentArchivedTooltip"
+  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -516,6 +528,8 @@ exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
 exports[`FileAttachment should match snapshot, with compact display 1`] = `
 <WithTooltip
   disabled={true}
+  id="fileAttachmentArchivedTooltip"
+  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -560,6 +574,8 @@ exports[`FileAttachment should match snapshot, with compact display 1`] = `
 exports[`FileAttachment should match snapshot, without compact display and without can download 1`] = `
 <WithTooltip
   disabled={true}
+  id="fileAttachmentArchivedTooltip"
+  placement="top"
   title={<ArchivedTooltip />}
 >
   <div

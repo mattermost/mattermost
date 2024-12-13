@@ -32,6 +32,7 @@ describe('components/custom_status/custom_status_emoji', () => {
             <CustomStatusEmoji
                 emojiSize={34}
                 showTooltip={true}
+                tooltipDirection='bottom'
             />,
             {wrappingComponent: Provider, wrappingComponentProps: {store}},
         );

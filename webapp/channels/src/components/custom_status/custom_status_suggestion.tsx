@@ -43,12 +43,14 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
     const clearButton = handleClear ? (
         <div className='suggestion-clear'>
             <WithTooltip
+                placement='top'
                 title={
                     <FormattedMessage
                         id='custom_status.suggestions.clear'
                         defaultMessage='Clear'
                     />
                 }
+                id='clear-recent-custom-status'
             >
                 <button
                     className='style--none input-clear-x'
@@ -76,6 +78,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
             </div>
             <CustomStatusText
                 text={text}
+                tooltipDirection='top'
                 className={classNames('statusSuggestion__text', {
                     with_duration: duration,
                 })}

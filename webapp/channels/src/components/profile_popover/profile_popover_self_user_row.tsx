@@ -67,7 +67,9 @@ const ProfilePopoverSelfUserRow = ({
                 />
             </button>
             <WithTooltip
+                id='user_profile.send.dm.yourself'
                 title={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
+                placement='top'
             >
                 <button
                     type='button'

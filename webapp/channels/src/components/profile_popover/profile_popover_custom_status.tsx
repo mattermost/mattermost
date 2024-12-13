@@ -82,6 +82,7 @@ const ProfilePopoverCustomStatus = ({
                     emojiStyle={emojiStyles}
                 />
                 <CustomStatusText
+                    tooltipDirection='top'
                     text={customStatus.text || ''}
                 />
             </div>

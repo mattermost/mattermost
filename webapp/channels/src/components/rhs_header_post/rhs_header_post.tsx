@@ -147,6 +147,8 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         if (backToResultsTooltip) {
             back = (
                 <WithTooltip
+                    id='backToResultsTooltip'
+                    placement='top'
                     title={backToResultsTooltip}
                 >
                     <button
@@ -189,6 +191,8 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     ) : null}
 
                     <WithTooltip
+                        id={this.props.isExpanded ? 'shrinkSidebarTooltip' : 'expandSidebarTooltip'}
+                        placement='bottom'
                         title={rhsHeaderTooltipContent}
                     >
                         <button
@@ -209,6 +213,8 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     </WithTooltip>
 
                     <WithTooltip
+                        id='closeSidebarTooltip'
+                        placement='top'
                         title={closeSidebarTooltip}
                     >
                         <button

@@ -44,12 +44,14 @@ export default class PopoverBar extends React.PureComponent<Props> {
             zoomControls.push(
                 <WithTooltip
                     key='zoomOut'
+                    id='zoom-out-icon-tooltip'
                     title={
                         <FormattedMessage
                             id='view_image.zoom_out'
                             defaultMessage='Zoom Out'
                         />
                     }
+                    placement='top'
                 >
                     {zoomOutButton}
                 </WithTooltip>,
@@ -81,12 +83,14 @@ export default class PopoverBar extends React.PureComponent<Props> {
             zoomControls.push(
                 <WithTooltip
                     key='zoomReset'
+                    id='zoom-reset-icon-tooltip'
                     title={
                         <FormattedMessage
                             id='view_image.zoom_reset'
                             defaultMessage='Reset Zoom'
                         />
                     }
+                    placement='top'
                 >
                     {zoomResetButton}
                 </WithTooltip>,
@@ -111,12 +115,14 @@ export default class PopoverBar extends React.PureComponent<Props> {
             zoomControls.push(
                 <WithTooltip
                     key='zoomIn'
+                    id='zoom-in-icon-tooltip'
                     title={
                         <FormattedMessage
                             id='view_image.zoom_in'
                             defaultMessage='Zoom In'
                         />
                     }
+                    placement='top'
                 >
                     {zoomInButton}
                 </WithTooltip>,

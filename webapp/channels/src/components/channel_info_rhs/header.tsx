@@ -59,6 +59,8 @@ const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
             </span>
 
             <WithTooltip
+                id='closeSidebarTooltip'
+                placement='top'
                 title={
                     <FormattedMessage
                         id='rhs_header.closeSidebarTooltip'

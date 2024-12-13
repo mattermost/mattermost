@@ -19,12 +19,14 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     const leftArrow = (
         <WithTooltip
             key='previewArrowLeft'
+            id='close-icon-tooltip'
             title={
                 <FormattedMessage
                     id='generic.close'
                     defaultMessage='Close'
                 />
             }
+            placement='bottom'
         >
             <button
                 id='previewArrowLeft'
@@ -39,12 +41,14 @@ const FilePreviewModalMainNav: React.FC<Props> = (props: Props) => {
     const rightArrow = (
         <WithTooltip
             key='publicLink'
+            id='close-icon-tooltip'
             title={
                 <FormattedMessage
                     id='generic.next'
                     defaultMessage='Next'
                 />
             }
+            placement='bottom'
         >
             <button
                 id='previewArrowRight'

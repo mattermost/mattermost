@@ -134,6 +134,8 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
             return (
                 <div className='more-modal__shared-actions'>
                     <WithTooltip
+                        id='userGridDropdown.sharedUserIndicator.tooltip'
+                        placement='bottom'
                         title={
                             <FormattedMessage
                                 id='shared_user_indicator.tooltip'

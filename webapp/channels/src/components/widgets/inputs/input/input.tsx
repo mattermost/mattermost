@@ -146,7 +146,9 @@ const Input = React.forwardRef((
             onTouchEnd={handleOnClear}
         >
             <WithTooltip
+                id='inputClearTooltip'
                 title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
+                placement='bottom'
             >
                 <CloseCircleIcon size={18}/>
             </WithTooltip>

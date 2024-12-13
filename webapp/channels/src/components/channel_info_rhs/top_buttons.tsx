@@ -124,6 +124,8 @@ export default function TopButtons({
     return (
         <ChannelInfoRhsTopButtons>
             <WithTooltip
+                placement='top'
+                id='favorite-tooltip'
                 title={
                     <FormattedMessage
                         id='channel_info_rhs.top_buttons.favorite.tooltip'
@@ -142,6 +144,8 @@ export default function TopButtons({
                 </Button>
             </WithTooltip>
             <WithTooltip
+                placement='top'
+                id='mute-tooltip'
                 title={
                     <FormattedMessage
                         id='channel_info_rhs.top_buttons.mute.tooltip'
@@ -161,6 +165,8 @@ export default function TopButtons({
             </WithTooltip>
             {canAddPeople && (
                 <WithTooltip
+                    id='add-people-tooltip'
+                    placement='top'
                     title={
                         <FormattedMessage
                             id='channel_info_rhs.top_buttons.add_people.tooltip'
@@ -186,6 +192,8 @@ export default function TopButtons({
             )}
             {canCopyLink && (
                 <WithTooltip
+                    id='copy-link-tooltip'
+                    placement='top'
                     title={
                         <FormattedMessage
                             id='channel_info_rhs.top_buttons.copy_link.tooltip'

@@ -8,6 +8,8 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
+    id="userGuideHelpTooltip"
+    placement="bottom"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"
@@ -83,6 +85,8 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
+    id="userGuideHelpTooltip"
+    placement="bottom"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"
@@ -150,6 +154,8 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
+    id="userGuideHelpTooltip"
+    placement="bottom"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"

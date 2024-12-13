@@ -130,6 +130,8 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
         >
             {rest.currentUserId === post.user_id && !isInPermalink && (
                 <WithTooltip
+                    id={`removeLinkPreview-${post.id}`}
+                    placement='top'
                     title={formatMessage({id: 'link_preview.remove_link_preview', defaultMessage: 'Remove link preview'})}
                 >
                     <button

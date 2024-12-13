@@ -138,6 +138,8 @@ function DraftsLink() {
                         </span>
                     </div>
                     <WithTooltip
+                        placement='right'
+                        id='draft-scheduled-post-tooltip'
                         title={tooltipText}
                     >
                         <div>
