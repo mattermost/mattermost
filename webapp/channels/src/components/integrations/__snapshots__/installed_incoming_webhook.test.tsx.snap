@@ -1,92 +1,82 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/integrations/InstalledIncomingWebhook should match snapshot 1`] = `
-<div
-  className="backstage-list__item"
->
+<DocumentFragment>
   <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="item-details"
     >
-      <strong
-        className="item-details__name"
-      >
-        build
-      </strong>
       <div
-        className="item-actions"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <Link
-          to="/test/integrations/incoming_webhooks/edit?id=9w96t4nhbfdiij64wfqors4i1r"
+        <strong
+          class="item-details__name"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Edit"
-            id="installed_integrations.edit"
-          />
-        </Link>
-         - 
-        <Connect(DeleteIntegrationLink)
-          modalMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="This action permanently deletes the incoming webhook and breaks any integrations using it. Are you sure you want to delete it?"
-              id="installed_incoming_webhooks.delete.confirm"
-            />
-          }
-          onDelete={[Function]}
-        />
+          build
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <a>
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
       </div>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__description"
+      <div
+        class="item-details__row"
       >
-        build status
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__url word-break--all"
+        <span
+          class="item-details__description"
+        >
+          build status
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="URL: {url}"
-          id="installed_integrations.url"
-          values={
-            Object {
-              "url": "http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r",
-            }
-          }
-        />
-        <span>
-          <Memo(CopyText)
-            value="http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r"
+        <span
+          class="item-details__url word-break--all"
+        >
+          URL: http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r
+          <a
+            class="fa fa-copy ml-2"
+            data-testid="copyText"
+            href="#"
           />
         </span>
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1502455422406,
-              "creator": "creator",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__channel_name word-break--all"
+        >
+          Channel: name
+          <a
+            class="fa fa-copy ml-2"
+            data-testid="copyText"
+            href="#"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by creator on Friday, August 11, 2017
+        </span>
+      </div>
     </div>
   </div>
-</div>
+</DocumentFragment>
 `;
