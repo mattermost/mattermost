@@ -236,6 +236,7 @@ describe('Channel members RHS', () => {
             cy.uiGetRHS().findByText('Manage').should('be.visible').click();
 
             cy.wait(500);
+
             // * Can see user with their roles, and change it
             cy.uiGetRHS().findByTestId(`memberline-${user.id}`).should('be.visible').within(() => {
                 cy.contains(`${user.username}`).should('be.visible');
