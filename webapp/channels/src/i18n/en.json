@@ -5338,7 +5338,6 @@
   "team_settings.openInviteDescription.groupConstrained": "Members of this team are added and removed by linked groups. <link>Learn More</link>",
   "team_sidebar.join": "Other teams you can join",
   "team.button.ariaLabel": "{teamName} team",
-  "team.button.create.ariaLabel": "Create a team",
   "team.button.mentions.ariaLabel": "{teamName} team, {mentionCount} mentions",
   "team.button.name_undefined": "This team does not have a name",
   "team.button.unread.ariaLabel": "{teamName} team unread",

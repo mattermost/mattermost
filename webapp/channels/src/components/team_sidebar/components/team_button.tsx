@@ -127,13 +127,6 @@ export default function TeamButton({
         }
     }
 
-    if (!isNotCreateTeamButton) {
-        ariaLabel = formatMessage({
-            id: 'team.button.create.ariaLabel',
-            defaultMessage: displayName,
-        });
-    }
-
     ariaLabel = ariaLabel.toLowerCase();
 
     const content = (
@@ -171,7 +164,7 @@ export default function TeamButton({
     const teamButton = (
         <Link
             id={`${url.slice(1)}TeamButton`}
-            aria-label={ariaLabel}
+            aria-label={isNotCreateTeamButton ? ariaLabel : displayName}
             to={url}
             onClick={handleSwitch}
         >
