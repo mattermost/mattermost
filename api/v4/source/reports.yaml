@@ -20,7 +20,7 @@
             default: 'Username'
         - name: direction
           in: query
-          description: The direction in which to accept paging values from. Will return values ahead of the cursor if "prev", and below the cursor if "next". Default is "next".
+          description: The direction to accept paging values from. Will return values ahead of the cursor if "prev", and below the cursor if "next". Default is "next".
           schema:
             type: string
             default: 'next'
