@@ -55,7 +55,6 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
     let content;
 
     if (isSystemEmoji(emoji)) {
-        const emojiName = emoji.short_name ? emoji.short_name : emoji.name;
         const emojiUnified = emoji.unified ? emoji.unified.toLowerCase() : emoji.name.toLowerCase();
 
         content = (
@@ -65,15 +64,6 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
                 src={imgTrans}
                 className={`emojisprite emoji-category-${emoji.category} emoji-${emojiUnified}`}
                 id={`emoji-${emojiUnified}`}
-                aria-label={formatMessage(
-                    {
-                        id: 'emoji_picker_item.emoji_aria_label',
-                        defaultMessage: '{emojiName} emoji',
-                    },
-                    {
-                        emojiName: (emojiName).replace(/_/g, ' '),
-                    },
-                )}
             />
         );
     } else {
@@ -95,7 +85,16 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
             data-testid='emojiItem'
             tabIndex={-1}
             type='button'
-            aria-label={isSystemEmoji(emoji) ? emoji.short_name : emoji.name}
+            id={emoji.name.toLocaleLowerCase().replaceAll(' ', '_')}
+            aria-label={formatMessage(
+                {
+                    id: 'emoji_picker_item.emoji_aria_label',
+                    defaultMessage: '{emojiName} emoji',
+                },
+                {
+                    emojiName: (isSystemEmoji(emoji) ? emoji.short_name : emoji.name).replace(/_/g, ' '),
+                },
+            )}
         >
             {content}
         </button>
