@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -265,6 +266,69 @@ func TestInstallPluginLocally(t *testing.T) {
 			assertBundleInfoManifests(t, th, []*model.Manifest{manifest})
 		})
 	})
+
+	installPluginUpdateConfig := func(t *testing.T, th *TestHelper, id, version string, installationStrategy pluginInstallationStrategy) (*model.Manifest, map[string]any, *model.AppError) {
+		t.Helper()
+		var mp map[string]any
+
+		manifest := &model.Manifest{
+			Id:      id,
+			Version: version,
+		}
+		manifestJSON, jsonErr := json.Marshal(manifest)
+		require.NoError(t, jsonErr)
+		reader := makeInMemoryGzipTarFile(t, []testFile{
+			{"plugin.json", string(manifestJSON)},
+		})
+
+		actualManifest, appError := th.App.ch.installPluginLocally(reader, installationStrategy)
+		if actualManifest != nil {
+			require.Equal(t, manifest, actualManifest)
+		}
+
+		th.App.ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
+			if _, ok := cfg.PluginSettings.Plugins[actualManifest.Id]; !ok {
+				cfg.PluginSettings.Plugins[actualManifest.Id] = make(map[string]any)
+
+				for _, pluginSetting := range manifest.SettingsSchema.Settings {
+					cfg.PluginSettings.Plugins[actualManifest.Id][strings.ToLower(pluginSetting.Key)] = pluginSetting.Default
+				}
+			}
+			mp = cfg.PluginSettings.Plugins[actualManifest.Id]
+		})
+		return actualManifest, mp, appError
+	}
+
+	t.Run("Config updates beacuse manifest ID does not exist in map", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+		cleanExistingBundles(t, th)
+
+		_, returnedMap, appErr := installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyAlways)
+		require.Nil(t, appErr)
+
+		//will probably have to make a separte pluginSetting struct with dummy vals to check against return plugin settign vals
+		for _, v := range returnedMap {
+			require.Equal(t, model.PluginSetting.Default, v)
+		}
+	})
+
+	t.Run("Config does not update beacuse manifest ID already exist in map", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+		cleanExistingBundles(t, th)
+
+		_, returnedMap, appErr := installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
+		require.Nil(t, appErr)
+
+		_, returnedMap, appErr = installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
+		require.Nil(t, appErr)
+
+		for _, v := range returnedMap {
+			require.Equalf(t, model.PluginSetting.Default, v, "it works!")
+		}
+	})
+
 }
 
 func TestInstallPluginAlreadyActive(t *testing.T) {
