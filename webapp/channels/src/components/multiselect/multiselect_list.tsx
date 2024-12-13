@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {getOptionValue} from 'react-select/src/builtins';
 
@@ -13,6 +13,7 @@ import {cmdOrCtrlPressed} from 'utils/keyboard';
 import type {Value} from './multiselect';
 
 export type Props<T extends Value> = {
+    forwardedRef?: React.Ref<any>;
     ariaLabelRenderer: getOptionValue<T>;
     loading?: boolean;
     onAdd: (value: T) => void;
@@ -32,12 +33,16 @@ export type Props<T extends Value> = {
     customNoOptionsMessage?: React.ReactNode;
 }
 
+export default forwardRef((props: Props<any>, ref) => {
+    return <MultiSelectList {...props} forwardedRef={ref}/>;
+});
+
 type State = {
     selected: number;
 }
 const KeyCodes = Constants.KeyCodes;
 
-export default class MultiSelectList<T extends Value> extends React.PureComponent<Props<T>, State> {
+class MultiSelectList<T extends Value> extends React.PureComponent<Props<T>, State> {
     public static defaultProps = {
         options: [],
         perPage: 50,
@@ -45,11 +50,14 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
     };
 
     private toSelect = -1;
-    private listRef = React.createRef<HTMLDivElement>();
-    private selectedItemRef = React.createRef<HTMLDivElement>();
+    private listRef: React.RefObject<HTMLDivElement>;
+    private selectedItemRef: React.RefObject<HTMLDivElement>;
 
     public constructor(props: Props<T>) {
         super(props);
+
+        this.listRef = React.createRef<HTMLDivElement>();
+        this.selectedItemRef = React.createRef<HTMLDivElement>();
 
         this.state = {
             selected: -1,

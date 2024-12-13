@@ -1,12 +1,76 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {Provider} from 'react-redux';
+import {screen} from '@testing-library/react';
+import configureStore from 'redux-mock-store';
 
+import {renderWithIntl} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderMobile from './channel_header_mobile';
+
+const mockStore = configureStore();
+
+const defaultState = {
+    entities: {
+        general: {
+            config: {},
+        },
+        teams: {
+            currentTeamId: 'team_id',
+            teams: {
+                team_id: {
+                    id: 'team_id',
+                    name: 'team',
+                    display_name: 'Team',
+                },
+            },
+        },
+        channels: {
+            channels: {},
+            myMembers: {},
+            channelMemberCountsByGroup: {},
+        },
+        users: {
+            currentUserId: 'user_id',
+            profiles: {
+                user_id: {
+                    id: 'user_id',
+                    username: 'username',
+                    roles: '',
+                },
+            },
+            statuses: {
+                user_id: 'online',
+            },
+        },
+        preferences: {
+            myPreferences: {},
+        },
+        groups: {
+            groups: {},
+            myGroups: [],
+        },
+        emojis: {
+            customEmoji: {},
+        },
+        apps: {
+            main: {
+                bindings: [],
+            },
+        },
+        threads: {
+            countsIncludingDirect: {},
+        },
+    },
+    plugins: {
+        components: {
+            MobileChannelHeaderButton: [],
+        },
+    },
+};
 
 describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
     global.document.querySelector = jest.fn().mockReturnValue({
@@ -40,15 +104,37 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
         isFavoriteChannel: false,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
-            <ChannelHeaderMobile {...baseProps}/>,
+    test('should render channel header mobile component', () => {
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    channels: {
+                        channel_id: baseProps.channel,
+                    },
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    profiles: {
+                        user_id: baseProps.user,
+                    },
+                },
+            },
+        });
+
+        renderWithIntl(
+            <Provider store={store}>
+                <ChannelHeaderMobile {...baseProps}/>
+            </Provider>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Toggle sidebar Menu Icon'})).toBeInTheDocument();
     });
 
-    test('should match snapshot, for default channel', () => {
+    test('should render default channel header', () => {
         const props = {
             ...baseProps,
             channel: TestHelper.getChannelMock({
@@ -59,30 +145,110 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 team_id: 'team_id',
             }),
         };
-        const wrapper = shallow(
-            <ChannelHeaderMobile {...props}/>,
+
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    currentChannelId: '123',
+                    channels: {
+                        123: props.channel,
+                    },
+                    myMembers: {
+                        123: {
+                            channel_id: '123',
+                            user_id: 'user_id',
+                            roles: '',
+                            mention_count: 0,
+                            msg_count: 0,
+                        },
+                    },
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    profiles: {
+                        user_id: props.user,
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        });
+
+        renderWithIntl(
+            <Provider store={store}>
+                <ChannelHeaderMobile {...props}/>
+            </Provider>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getByText('Town Square')).toBeInTheDocument();
     });
 
-    test('should match snapshot, if DM channel', () => {
+    test('should render DM channel header', () => {
         const props = {
             ...baseProps,
             channel: TestHelper.getChannelMock({
                 type: 'D',
                 id: 'channel_id',
-                name: 'user_id_1__user_id_2',
+                name: 'user_id__user_id_2',
                 display_name: 'display_name',
                 team_id: 'team_id',
             }),
         };
-        const wrapper = shallow(<ChannelHeaderMobile {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    currentChannelId: 'channel_id',
+                    channels: {
+                        channel_id: props.channel,
+                    },
+                    myMembers: {
+                        channel_id: {
+                            channel_id: 'channel_id',
+                            user_id: 'user_id',
+                            roles: '',
+                            mention_count: 0,
+                            msg_count: 0,
+                        },
+                    },
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    profiles: {
+                        user_id: props.user,
+                        user_id_2: {
+                            id: 'user_id_2',
+                            username: 'other_user',
+                            roles: '',
+                            display_name: 'Other User',
+                        },
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        });
+
+        renderWithIntl(
+            <Provider store={store}>
+                <ChannelHeaderMobile {...props}/>
+            </Provider>,
+        );
+
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getByText('other_user')).toBeInTheDocument();
     });
 
-    test('should match snapshot, for private channel', () => {
+    test('should render private channel header', () => {
         const props = {
             ...baseProps,
             channel: TestHelper.getChannelMock({
@@ -92,8 +258,46 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
                 team_id: 'team_id',
             }),
         };
-        const wrapper = shallow(<ChannelHeaderMobile {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    currentChannelId: 'channel_id',
+                    channels: {
+                        channel_id: props.channel,
+                    },
+                    myMembers: {
+                        channel_id: {
+                            channel_id: 'channel_id',
+                            user_id: 'user_id',
+                            roles: '',
+                            mention_count: 0,
+                            msg_count: 0,
+                        },
+                    },
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    profiles: {
+                        user_id: props.user,
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+            },
+        });
+
+        renderWithIntl(
+            <Provider store={store}>
+                <ChannelHeaderMobile {...props}/>
+            </Provider>,
+        );
+
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getByText('display_name')).toBeInTheDocument();
     });
 });

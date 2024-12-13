@@ -26,6 +26,10 @@ import type {GlobalState} from 'types/store';
 export * from '@testing-library/react';
 export {userEvent};
 
+export const renderWithIntl = (component: React.ReactElement) => {
+    return renderWithContext(component);
+};
+
 export type FullContextOptions = {
     intlMessages?: Record<string, string>;
     locale?: string;
