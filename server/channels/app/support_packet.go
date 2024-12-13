@@ -63,8 +63,8 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 		}
 
 		// Generate platform support packet
-		mut.Lock()
 		files, err := a.Srv().Platform().GenerateSupportPacket(rctx, options)
+		mut.Lock()
 		if err != nil {
 			warnings = multierror.Append(warnings, err)
 		}
