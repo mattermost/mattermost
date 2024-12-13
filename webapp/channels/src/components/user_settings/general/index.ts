@@ -34,6 +34,11 @@ function mapStateToProps(state: GlobalState) {
     const samlPositionAttributeSet = config.SamlPositionAttributeSet === 'true';
     const ldapPositionAttributeSet = config.LdapPositionAttributeSet === 'true';
     const ldapPictureAttributeSet = config.LdapPictureAttributeSet === 'true';
+    const customAttributeValues = {
+        Rank: 'Private',
+        CO: 'Joe Seargent',
+        Base: 'Lowrey AFB',
+    };
 
     return {
         isMobileView: getIsMobileView(state),
@@ -48,6 +53,7 @@ function mapStateToProps(state: GlobalState) {
         samlPositionAttributeSet,
         ldapPositionAttributeSet,
         ldapPictureAttributeSet,
+        customAttributeValues,
     };
 }
 
