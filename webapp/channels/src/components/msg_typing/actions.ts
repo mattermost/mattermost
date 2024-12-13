@@ -9,7 +9,8 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 function getTimeBetweenTypingEvents(state: GlobalState) {
     const config = getConfig(state);
