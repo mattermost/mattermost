@@ -55,7 +55,7 @@ type MenuProps = {
     'aria-label'?: string;
 
     /**
-     * @warning Make the styling of your components such a way that they dont need this handler
+     * @warning Make the styling of your components such a way that they don't need this handler
      */
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
@@ -85,6 +85,11 @@ interface Props {
         horizontal: HorizontalOrigin;
     };
     hideTooltipWhenDisabled?: boolean;
+
+    /**
+     * @deprecated This is not needed except for cases where you want to override positioning completely.
+     */
+    menuRootClass?: string;
 }
 
 /**
@@ -108,7 +113,7 @@ export function Menu(props: Props) {
     const [disableAutoFocusItem, setDisableAutoFocusItem] = useState(false);
     const isMenuOpen = Boolean(anchorElement);
 
-    // Callback funtion handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
+    // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
         event.preventDefault();
         setAnchorElement(null);
@@ -245,6 +250,9 @@ export function Menu(props: Props) {
                     onKeyDown={handleMenuKeyDown}
                     className={A11yClassNames.POPUP}
                     width={props.menu.width}
+                    classes={{
+                        paper: props.menuRootClass,
+                    }}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown

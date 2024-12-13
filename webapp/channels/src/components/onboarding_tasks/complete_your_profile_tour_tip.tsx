@@ -43,7 +43,7 @@ export const CompleteYourProfileTour = () => {
         </p>
     );
 
-    const overlayPunchOut = useMeasurePunchouts(['status-drop-down-menu-list'], [], {y: -6, height: 6, x: 0, width: 0});
+    const overlayPunchOut = useMeasurePunchouts(['userAccountMenu'], [], {y: -6, height: 6, x: 0, width: 0});
     const onDismiss = (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
