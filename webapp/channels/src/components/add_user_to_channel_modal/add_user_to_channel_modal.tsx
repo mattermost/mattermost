@@ -287,7 +287,7 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                 onHide={this.onHide}
                 onExited={this.onExited}
                 enforceFocus={true}
-                role='dialog'
+                role='none'
                 aria-labelledby='addChannelModalLabel'
             >
                 <Modal.Header closeButton={true}>
