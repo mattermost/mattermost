@@ -40,6 +40,7 @@ import DeactivateMemberModal from './deactivate_member_modal';
 import DemoteToGuestModal from './demote_to_guest_modal';
 import PromoteToMemberModal from './promote_to_member_modal';
 import RevokeSessionsModal from './revoke_sessions_modal';
+import ConfirmResetFailedAttemptsModal from './confirm_reset_failed_attempts_modal';
 
 interface Props {
     user: UserProfile;
@@ -301,6 +302,24 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         );
     }, [user, updateUser, onError]);
 
+    const handleResetAttemptsClick = useCallback(() => {
+        function onResetAttemptsSuccess() {
+            updateUser({failed_attempts: 0});
+        }
+
+        dispatch(
+            openModal({
+                modalId: ModalIdentifiers.CONFIRM_RESET_FAILED_ATTEMPTS_MODAL,
+                dialogType: ConfirmResetFailedAttemptsModal,
+                dialogProps: {
+                    user,
+                    onError,
+                    onSuccess: onResetAttemptsSuccess,
+                },
+            }),
+        );
+    }, [user, updateUser, onError]);
+
     const disableActivationToggle = user.auth_service === Constants.LDAP_SERVICE;
 
     const getManagedByLDAPText = (managedByLDAP: boolean) => {
@@ -311,6 +330,26 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             }),
         } : {};
     };
+
+    const showResetFailedAttempts = useCallback(() => {
+        if (user.failed_attempts === undefined) {
+            return false;
+        }
+
+        if (user.auth_service !== Constants.LDAP_SERVICE && user.auth_service !== "") {
+            return false;
+        }
+
+        if (user.auth_service === Constants.LDAP_SERVICE && config.LdapSettings?.MaximumLoginAttempts !== undefined && user.failed_attempts < config.LdapSettings?.MaximumLoginAttempts) {
+            return false;
+        }
+
+        if (user.auth_service === "" && config.ServiceSettings?.MaximumLoginAttempts !== undefined && user.failed_attempts < config.ServiceSettings?.MaximumLoginAttempts) {
+            return false;
+        }
+
+        return true
+    }, [user, config.LdapSettings?.MaximumLoginAttempts, config.ServiceSettings?.MaximumLoginAttempts]);
 
     return (
         <Menu.Container
@@ -500,6 +539,18 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     />
                 }
             </SystemPermissionGate>
+            {showResetFailedAttempts() && (
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-resetAttempts`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.resetAttempts'
+                            defaultMessage='Reset login attempts'
+                        />
+                    }
+                    onClick={handleResetAttemptsClick}
+                />
+            )}
             {user.delete_at === 0 && (
                 <Menu.Item
                     id={`${menuItemIdPrefix}-deactivate`}

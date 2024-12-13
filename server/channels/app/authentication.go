@@ -62,8 +62,8 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
 	// MM-37585
 	// Use locks to avoid concurrently checking AND updating the failed login attempts.
-	a.ch.loginAttemptsMut.Lock()
-	defer a.ch.loginAttemptsMut.Unlock()
+	a.ch.emailLoginAttemptsMut.Lock()
+	defer a.ch.emailLoginAttemptsMut.Unlock()
 
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -147,7 +147,12 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 	return nil
 }
 
-func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) CheckLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) (*model.User, *model.AppError) {
+	// MM-37585: Use locks to avoid concurrently checking AND updating the failed login attempts.
+	a.ch.ldapLoginAttemptsMut.Lock()
+	defer a.ch.ldapLoginAttemptsMut.Unlock()
+	ldapId := user.AuthData
+
 	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
@@ -160,16 +165,31 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, ldapId *stri
 			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapId))
 		}
 
+		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+		}
+
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
 	}
 
 	if err := a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
+		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
+		// about the MFA state of the user in question
+		if mfaToken != "" {
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+				return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+			}
+		}
 		return nil, err
 	}
 
 	if err := checkUserNotDisabled(ldapUser); err != nil {
 		return nil, err
+	}
+
+	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+		return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
 
 	// user successfully authenticated
@@ -235,6 +255,9 @@ func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *mo
 
 func checkUserLoginAttempts(user *model.User, max int) *model.AppError {
 	if user.FailedAttempts >= max {
+		if user.AuthService == model.UserAuthServiceLdap {
+			return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many_ldap.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+		}
 		return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
@@ -265,7 +288,12 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 			return user, err
 		}
 
-		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(rctx, user.AuthData, password, mfaToken)
+		// Check the max failed attempts before hitting their LDAP server
+		if err := checkUserLoginAttempts(user, *a.Config().LdapSettings.MaximumLoginAttempts); err != nil {
+			return nil, err
+		}
+
+		ldapUser, err := a.CheckLdapUserPasswordAndAllCriteria(rctx, user, password, mfaToken)
 		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err

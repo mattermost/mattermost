@@ -13,9 +13,12 @@ import (
 	"time"
 
 	"github.com/dgryski/dgoogauth"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestParseAuthTokenFromRequest(t *testing.T) {
@@ -152,4 +155,101 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	maxFailedLoginAttempts := *th.App.Config().ServiceSettings.MaximumLoginAttempts
+
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockLdap := &mocks.LdapInterface{}
+	th.App.Channels().Ldap = mockLdap
+
+	authData := model.NewRandomString(32)
+
+	// create an ldap user by calling createUser
+	ldapUser := &model.User{
+		Email:         "ldapuser@mattermost-customer.com",
+		Username:      "ldapuser",
+		AuthService:   model.UserAuthServiceLdap,
+		AuthData:      &authData,
+		EmailVerified: true,
+	}
+	user, appErr := th.App.CreateUser(th.Context, ldapUser)
+	require.Nil(t, appErr)
+	user.AuthData = &authData
+
+	testCases := []struct {
+		name          string
+		password      string
+		expectedErrID string
+		mockDoLogin   func()
+	}{
+		{
+			name:          "valid password",
+			password:      "password",
+			expectedErrID: "",
+			mockDoLogin: func() {
+				mockLdap.Mock.On("DoLogin", th.Context, authData, "password").Return(user, nil)
+			},
+		},
+		{
+			name:          "invalid password",
+			password:      "wrongpassword",
+			expectedErrID: "api.user.check_user_password.invalid.app_error",
+			mockDoLogin: func() {
+				mockLdap.Mock.On("DoLogin", th.Context, authData, "wrongpassword").Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"})
+			},
+		},
+		{
+			name:          "too many login attempts",
+			password:      "wrongpassword",
+			expectedErrID: "api.user.check_user_login_attempts.too_many_ldap.app_error",
+			mockDoLogin: func() {
+				mockLdap.Mock.On("DoLogin", th.Context, authData, "wrongpassword").Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"}).Times(maxFailedLoginAttempts + 1)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Reset login attempts
+			err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
+			require.NoError(t, err)
+
+			tc.mockDoLogin()
+
+			//log the user struct
+			mlog.Debug("User struct", mlog.String("user", fmt.Sprintf("%+v", user)))
+			mlog.Debug("Max failed login attempts", mlog.Int("maxFailedLoginAttempts", maxFailedLoginAttempts))
+
+			// Simulate failed login attempts if necessary
+			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
+				for i := 0; i < maxFailedLoginAttempts; i++ {
+					_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, user, "wrongpassword", "")
+					require.NotNil(t, appErr)
+				}
+			}
+
+			// Call the method with the test case parameters
+			_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, user, tc.password, "")
+
+			// Verify the returned error matches the expected error
+			if tc.expectedErrID == "" {
+				require.Nil(t, appErr)
+			} else {
+				require.NotNil(t, appErr)
+			}
+
+			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
+				user, err := th.App.GetUser(user.Id)
+				require.Nil(t, err)
+				require.Equal(t, maxFailedLoginAttempts, user.FailedAttempts)
+			}
+		})
+	}
 }

@@ -709,10 +709,10 @@ func (u *User) ClearNonProfileFields(asAdmin bool) {
 	u.EmailVerified = false
 	u.AllowMarketing = false
 	u.LastPasswordUpdate = 0
-	u.FailedAttempts = 0
 
 	if !asAdmin {
 		u.NotifyProps = StringMap{}
+		u.FailedAttempts = 0
 	}
 }
 
