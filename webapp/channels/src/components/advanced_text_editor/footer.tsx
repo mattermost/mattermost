@@ -31,10 +31,6 @@ export default function Footer({
     noArgumentHandleSubmit,
     isInEditMode,
 }: Props) {
-    if (isInEditMode) {
-        return null;
-    }
-
     return (
         <div
             id='postCreateFooter'
@@ -53,10 +49,13 @@ export default function Footer({
                     handleSubmit={noArgumentHandleSubmit}
                 />
             )}
-            <MsgTyping
-                channelId={channelId}
-                postId={postId}
-            />
+            {
+                !isInEditMode &&
+                <MsgTyping
+                    channelId={channelId}
+                    postId={postId}
+                />
+            }
         </div>
     );
 }

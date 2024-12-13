@@ -264,9 +264,7 @@ const AdvancedTextEditor = ({
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-
-        // handleShowMentionHelper(draftToChange.message);
-    }, [dispatch, handleShowMentionHelper]);
+    }, [dispatch]);
 
     const applyMarkdown = useCallback((params: ApplyMarkdownOptions) => {
         if (showPreview) {
@@ -673,7 +671,7 @@ const AdvancedTextEditor = ({
 
     const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
 
-    console.log({messageValue, showMentionHelper});
+    console.log({postError});
 
     return (
         <form
