@@ -56,7 +56,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.1
 	github.com/prometheus/client_model v0.6.1
-	github.com/redis/rueidis v1.0.45
+	github.com/redis/rueidis v1.0.50
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/rs/cors v1.11.0
 	github.com/rudderlabs/analytics-go v3.3.3+incompatible

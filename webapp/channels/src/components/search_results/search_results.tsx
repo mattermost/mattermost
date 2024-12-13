@@ -127,6 +127,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         }
     };
 
+    const setSearchTeam = (teamId: string): void => {
+        props.updateSearchTeam(teamId);
+    };
+
     const loadMorePosts = debounce(
         () => {
             props.getMorePostsForSearch();
@@ -373,6 +377,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     filesCounter={isSearchFilesAtEnd || props.searchPage === 0 ? `${fileResults.length}` : `${fileResults.length}+`}
                     onChange={setSearchType}
                     onFilter={setSearchFilterType}
+                    onTeamChange={setSearchTeam}
+                    crossTeamSearchEnabled={props.crossTeamSearchEnabled}
                 />}
             {isChannelFiles &&
                 <div className='channel-files__header'>
@@ -433,11 +439,11 @@ SearchResults.defaultProps = defaultProps;
 export const arePropsEqual = (props: Props, nextProps: Props): boolean => {
     // Shallow compare for all props except 'results' and 'fileResults'
     for (const key in nextProps) {
-        if (!Object.prototype.hasOwnProperty.call(nextProps, key) || key === 'results') {
+        if (!Object.hasOwn(nextProps, key) || key === 'results') {
             continue;
         }
 
-        if (!Object.prototype.hasOwnProperty.call(nextProps, key) || key === 'fileResults') {
+        if (!Object.hasOwn(nextProps, key) || key === 'fileResults') {
             continue;
         }
 

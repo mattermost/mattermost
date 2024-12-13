@@ -1,7 +1,7 @@
 [
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Couldn't find the user."
+    "translation": "Couldn't find the user {{.user}}"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -13,7 +13,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Inappropriate channel permissions."
+    "translation": "User {{.user}} does not have appropriate permissions to channel {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel."
+    "translation": "This webhook is not permitted to post to the requested channel {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -137,11 +137,11 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Unable to parse incoming data."
+    "translation": "Unable to parse incoming data for webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Couldn't find the command."
+    "translation": "Couldn't find the command {{.command_id}}."
   },
   {
     "id": "system.message.name",
@@ -3365,47 +3365,47 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Failed to get Elasticsearch indexes"
+    "translation": "Failed to get {{.Backend}} indexes"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Failed to delete {{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Failed to create {{.Backend}} template for users"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Failed to create {{.Backend}} template for posts"
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for files"
+    "translation": "Failed to create {{.Backend}} template for files"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Failed to create {{.Backend}} template for channels"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up Elasticsearch Client Failed"
+    "translation": "Setting up {{.Backend}} Client Failed"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+    "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
+    "translation": "{{.Backend}} aggregator worker failed to get indexes"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+    "translation": "{{.Backend}} aggregator worker failed to delete the indexes"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+    "translation": "{{.Backend}} aggregator worker failed to create the indexing job"
   },
   {
     "id": "ent.data_retention.policies.invalid_policy",
@@ -4489,11 +4489,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "An error occurred while finding the channel."
+    "translation": "An error occurred while finding the channel {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Unable to find the existing channel."
+    "translation": "Unable to find the existing channel {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -4614,10 +4614,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Unable to update webhook across teams."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -8916,19 +8912,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Could not open the client key file for Elasticsearch"
+    "translation": "Could not open the client key file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Could not open the client certificate file for Elasticsearch"
+    "translation": "Could not open the client certificate file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Decoding of the client certificate for Elasticsearch failed"
+    "translation": "Decoding of the client certificate for {{.Backend}} failed"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Could not open the CA file for Elasticsearch"
+    "translation": "Could not open the CA file for {{.Backend}}"
   },
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
@@ -10313,5 +10309,123 @@
   {
     "id": "model.remote_cluster_invite.is_valid.token.app_error",
     "translation": "Invalid token."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "The post cannot be created"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Cannot get the system bot"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Cannot get the system bot direct message"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Cannot get the user"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "If you received this test notification, it worked!"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Unable to seek to the beginning of the GIF data."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Channel is archived"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Channel not found"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Invalid post content"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Not a member of the channel"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "No permission to post in channel"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Thread has been deleted"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Unable to send the message"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Failed to send {{.Count}} scheduled post.",
+      "other": "Failed to send {{.Count}} scheduled posts."
+    }
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Unknown Error"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "User account is deleted"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "User does not exist"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}",
+      "other": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete scheduled posts for user."
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Private channel"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Unknown Channel"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Invalid storage class {{.Value}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Failed to cache post after deduplicating a client repeating the same request."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Unable to reset the read position to the start of the plugin bundle."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Failed to handle command webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Failed to decode the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Failed to handle the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Failed to parse media incoming webhook {{.hook_id}}."
   }
 ]
