@@ -605,8 +605,8 @@ func (a *App) AddUserToTeamByToken(c request.CTX, userID string, tokenID string)
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-		if delErr := a.DeleteToken(token); delErr != nil { // Use a new variable for the error
-			c.Logger().Warn("Error while deleting token", mlog.Err(delErr))
+		if appErr := a.DeleteToken(token); appErr != nil {
+			c.Logger().Warn("Error while deleting expired token", mlog.Err(appErr))
 		}
 		return nil, nil, model.NewAppError(
 			"AddUserToTeamByToken",
@@ -1892,8 +1892,8 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 		}
 
 		if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-			if err := a.DeleteToken(token); err != nil {
-				return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.delete_token.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if appErr := a.DeleteToken(token); appErr != nil {
+				rctx.Logger().Warn("Error while deleting expired token", mlog.Err(appErr))
 			}
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
