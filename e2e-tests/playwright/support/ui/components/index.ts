@@ -13,6 +13,7 @@ import {FindChannelsModal} from './channels/find_channels_modal';
 import {SettingsModal} from './channels/settings/settings_modal';
 import {Footer} from './footer';
 import {GlobalHeader} from './global_header';
+import {SearchPopover} from './channels/search_popover';
 import {MainHeader} from './main_header';
 import {PostDotMenu} from './channels/post_dot_menu';
 import {PostReminderMenu} from './channels/post_reminder_menu';
@@ -23,6 +24,7 @@ import {GenericConfirmModal} from './channels/generic_confirm_modal';
 
 import {ScheduledDraftMenu} from './channels/scheduled_draft_menu';
 import {ScheduledDraftModal} from './channels/scheduled_draft_modal';
+import {UserProfilePopover} from './channels/user_profile_popover';
 import {SystemConsoleSidebar} from './system_console/sidebar';
 import {SystemConsoleNavbar} from './system_console/navbar';
 
@@ -33,6 +35,7 @@ import {SystemUsersColumnToggleMenu} from './system_console/sections/system_user
 
 const components = {
     GlobalHeader,
+    SearchPopover,
     ChannelsCenterView,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
@@ -59,6 +62,7 @@ const components = {
     SystemUsersFilterPopover,
     SystemUsersFilterMenu,
     SystemUsersColumnToggleMenu,
+    UserProfilePopover,
 };
 
 export {

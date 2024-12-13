@@ -2290,10 +2290,6 @@
     "translation": "必须设置 trigger_words 或 channel_id。"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "无法解码传入的 webhook 混合数据。"
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "无法跨团队更新 webhook。"
   },
@@ -3059,31 +3055,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch 聚合器工作者创建索引任务失败"
+    "translation": "{{.Backend}} 聚合器工作者创建索引任务失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch 聚合器工作者创删除引失败"
+    "translation": "{{.Backend}} 聚合器工作者删除索引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch 聚合器工作者获取索引失败"
+    "translation": "{{.Backend}} 聚合器工作者获取索引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch 聚合器工作者因索引任务失败而失败"
+    "translation": "{{.Backend}} 聚合器工作者因索引任务失败而失败"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "设置 ElasticSearch 客户端失败"
+    "translation": "设置 {{.Backend}} 客户端失败"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "删除 ElasticSearch 索引失败"
+    "translation": "删除 {{.Backend}} 索引失败"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "获取 ElasticSearch 索引失败"
+    "translation": "获取 {{.Backend}} 索引失败"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -4607,11 +4603,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "找不到该命令。"
+    "translation": "找不到命令 {{.command_id}}。"
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "无法解析传入数据。"
+    "translation": "无法解析 webhook {{.hook_id}} 的传入数据。"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4623,7 +4619,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "此 webhook 不允许发消息到指定的频道。"
+    "translation": "此 webhook 不允许发布到请求的频道 {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4639,7 +4635,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "不合适的频道权限。"
+    "translation": "用户 {{.user}} 没有频道 {{.channel}} 的适当权限"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4651,7 +4647,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "找不到用户。"
+    "translation": "找不到用户 {{.user}}"
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
@@ -4955,11 +4951,11 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 消息模板失败"
+    "translation": "创建消息的 {{.Backend}} 模板失败"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 用户模板失败"
+    "translation": "创建用户的 {{.Backend}} 模板失败"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -5303,7 +5299,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 频道模板失败"
+    "translation": "创建频道的 {{.Backend}} 模板失败"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -5683,7 +5679,7 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "无法找到频道。"
+    "translation": "无法找到现有的频道 {{.channel_id}}。"
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
@@ -5711,7 +5707,7 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "我们查找该频道时遇到了错误。"
+    "translation": "查找频道 {{.channel_id}} 时遇到错误。"
   },
   {
     "id": "app.channel.get_all_channels.app_error",
@@ -7511,7 +7507,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 文件模板失败"
+    "translation": "创建文件的 {{.Backend}} 模板失败"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8839,19 +8835,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "无法打开 Elasticsearch 客户密钥文件"
+    "translation": "无法打开 {{.Backend}} 的客户端密钥文件"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "无法打开 Elasticsearch 客户证书"
+    "translation": "无法打开 {{.Backend}} 的客户端证书"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "解码 Elasticsearch 客户证书失败"
+    "translation": "解码 {{.Backend}} 客户端证书失败"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "无法打开 Elasticsearch CA 文件"
+    "translation": "无法打开 {{.Backend}} 的 CA 文件"
   },
   {
     "id": "app.user.get_badge_count.app_error",
@@ -9447,7 +9443,7 @@
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
-    "translation": "对话移动已禁用"
+    "translation": "话题移动已禁用"
   },
   {
     "id": "api.post.move_thread.no_permission",
@@ -9459,7 +9455,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动至私信/群组消息\n"
+    "translation": "一个包含 {{.NumMessages}} 条消息的话题已被移动至私信/群组消息\n"
   },
   {
     "id": "app.post.move_thread_command.error",
@@ -9467,7 +9463,7 @@
   },
   {
     "id": "app.post.move_thread.from_another_channel",
-    "translation": "此对话移动自其他频道"
+    "translation": "此话题移动自其他频道"
   },
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
@@ -9483,7 +9479,7 @@
   },
   {
     "id": "app.post.move_thread_command.channel.multiple_messages",
-    "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动：{{.Link}}\n"
+    "translation": "一个包含 {{.NumMessages}} 条消息的话题已被移动：{{.Link}}\n"
   },
   {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
@@ -10220,5 +10216,209 @@
   {
     "id": "model.remote_cluster_invite.is_valid.token.app_error",
     "translation": "令牌无效。"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request：错误的请求。"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "计划消息功能已禁用"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "计划消息功能需要授权"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "无法升级机器人。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "从数据库删除计划消息失败。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "您没有删除此资源的权限。"
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "计划消息不存在。"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "无法从数据库获取现有的计划消息。"
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "获取计划消息时遇到错误。"
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "无法找到机器人的拥有者"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "导入数据行的类型为“bot”，但 bot 对象为 null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "缺少机器人的拥有者"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "无法在已归档的频道内计划消息。"
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "保存计划消息时出错。"
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "计划消息不存在。"
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "无法从数据库获取现有的计划消息。"
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "您没有更新此资源的权限。"
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "在数据库中保存更新后的计划消息失败。"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "此消息无法创建"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "无法获取用户"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "无法获取系统机器人"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "如果您收到了这条测试通知，表示通知正常工作！"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "无法获取系统机器人的私信"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "无法定位到 GIF 数据的开头。"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "频道已归档"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "未找到频道"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "消息内容无效"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "不是该频道的成员"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "没有在频道中发送消息的权限"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "话题已被删除"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "无法发送消息"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "未知错误"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "用户账号已被删除"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "用户不存在"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "other": "- {{.Count}} 条在{{.ChannelName}}频道内。原因：{{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "other": "{{.Count}} 条计划消息发送失败。"
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "无法为用户删除计划消息。"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "私有频道"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "未知频道"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "无法计划空消息。计划消息必须至少有一条消息或文件附件。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "计划消息必须有 ID。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "计划时间无效。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "处理时间无效。"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "存储类别 {{.Value}} 无效。"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "客户端重复发送相同请求后，缓存消息失败。"
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "无法将读取位置重置到插件包的起始位置。"
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "处理命令 webhook {{.hook_id}} 失败。"
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "无法解码传入 webhook {{.hook_id}} 的媒体类型 {{.media_type}} 负载。"
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "处理传入 webhook {{.hook_id}} 的媒体类型 {{.media_type}} 的负载失败。"
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "解析媒体传入 webhook {{.hook_id}} 失败。"
   }
 ]
