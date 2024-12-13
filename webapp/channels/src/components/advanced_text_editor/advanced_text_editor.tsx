@@ -5,7 +5,22 @@ import classNames from 'classnames';
 import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import Constants, {
+    Locations,
+    StoragePrefixes,
+    Preferences,
+    AdvancedTextEditor as AdvancedTextEditorConst,
+    UserStatuses,
+    ModalIdentifiers,
+} from 'utils/constants';
+import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
+import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {isErrorInvalidSlashCommand} from 'utils/post_utils';
+import {allAtMentions} from 'utils/text_formatting';
+import * as Utils from 'utils/utils';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
@@ -39,20 +54,6 @@ import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
-
-import Constants, {
-    Locations,
-    StoragePrefixes,
-    Preferences,
-    AdvancedTextEditor as AdvancedTextEditorConst,
-    UserStatuses,
-    ModalIdentifiers,
-} from 'utils/constants';
-import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
-import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
-import {isErrorInvalidSlashCommand} from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -199,6 +200,7 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const [showMentionHelper, setShowMentionHelper] = useState<boolean>(false);
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
@@ -214,6 +216,15 @@ const AdvancedTextEditor = ({
     const emitTypingEvent = useCallback(() => {
         GlobalActions.emitLocalUserTypingEvent(channelId, postId);
     }, [channelId, postId]);
+
+    const handleShowMentionHelper = useCallback((message: string) => {
+        if (!isInEditMode) {
+            return;
+        }
+
+        const isMentions = allAtMentions(message).length > 0;
+        setShowMentionHelper(isMentions);
+    }, [isInEditMode]);
 
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
         if (saveDraftFrame.current) {
@@ -253,7 +264,9 @@ const AdvancedTextEditor = ({
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch]);
+
+        handleShowMentionHelper(draftToChange.message);
+    }, [dispatch, handleShowMentionHelper]);
 
     const applyMarkdown = useCallback((params: ApplyMarkdownOptions) => {
         if (showPreview) {
@@ -333,7 +346,7 @@ const AdvancedTextEditor = ({
         // This resets the draft to the post's original content
         handleDraftChange({
             ...draft,
-            message: post.message,
+            message: post?.message,
         });
     }, [handleDraftChange, draft, post]);
 
@@ -543,6 +556,11 @@ const AdvancedTextEditor = ({
             }
         };
     }, [channelId, postId]);
+
+    useEffect(() => {
+        // this checks for the mention helper for initial load of component.
+        handleShowMentionHelper(draft.message);
+    }, []);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
@@ -773,6 +791,22 @@ const AdvancedTextEditor = ({
                     )}
                 </div>
             </div>
+            { showMentionHelper ? (
+                <div className='post-body__info'>
+                    <span className='post-body__info__icon'>
+                        <InformationOutlineIcon
+                            size={14}
+                            color='currentColor'
+                        />
+                    </span>
+                    <span>{
+                        formatMessage({
+                            id: 'edit_post.no_notification_trigger_on_mention',
+                            defaultMessage: "Editing this message with an '@mention' will not notify the recipient.",
+                        })
+                    }</span>
+                </div>) : null
+            }
             {isInEditMode && (
                 <EditPostFooter
                     onSave={handleSubmitWrapper}
