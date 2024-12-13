@@ -68,12 +68,15 @@
             schema:
               type: object
               required:
-                - name
+                - display_name
                 - scope
               properties:
                 name:
                   type: string
                   description: The name of the scheme
+                display_name:
+                  type: string
+                  description: The display name of the scheme
                 description:
                   type: string
                   description: The description of the scheme

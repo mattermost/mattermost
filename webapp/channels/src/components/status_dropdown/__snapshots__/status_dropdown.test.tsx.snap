@@ -111,7 +111,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
         show={true}
         text="Away"
       />
-      <SubMenuItem
+      <injectIntl(SubMenuItem)
         action={[Function]}
         ariaLabel="Do not disturb. Disables all notifications"
         direction="left"
@@ -124,9 +124,7 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
         }
         id="status-menu-dnd"
         openUp={false}
-        renderSelected={true}
         rightDecorator={false}
-        show={true}
         subMenu={
           Array [
             Object {
@@ -189,7 +187,6 @@ exports[`components/StatusDropdown should match snapshot in default state 1`] = 
             },
           ]
         }
-        subMenuClass="pl-4"
         text="Do not disturb"
       />
       <MenuItemAction
@@ -434,7 +431,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
         show={true}
         text="Away"
       />
-      <SubMenuItem
+      <injectIntl(SubMenuItem)
         action={[Function]}
         ariaLabel="Do not disturb. Disables all notifications"
         direction="left"
@@ -447,9 +444,7 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
         }
         id="status-menu-dnd"
         openUp={false}
-        renderSelected={true}
         rightDecorator={false}
-        show={true}
         subMenu={
           Array [
             Object {
@@ -512,7 +507,6 @@ exports[`components/StatusDropdown should match snapshot with custom status and 
             },
           ]
         }
-        subMenuClass="pl-4"
         text="Do not disturb"
       />
       <MenuItemAction
@@ -722,7 +716,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
         show={true}
         text="Away"
       />
-      <SubMenuItem
+      <injectIntl(SubMenuItem)
         action={[Function]}
         ariaLabel="Do not disturb. Disables all notifications"
         direction="left"
@@ -735,9 +729,7 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
         }
         id="status-menu-dnd"
         openUp={false}
-        renderSelected={true}
         rightDecorator={false}
-        show={true}
         subMenu={
           Array [
             Object {
@@ -800,7 +792,6 @@ exports[`components/StatusDropdown should match snapshot with custom status enab
             },
           ]
         }
-        subMenuClass="pl-4"
         text="Do not disturb"
       />
       <MenuItemAction
@@ -1010,7 +1001,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
         show={true}
         text="Away"
       />
-      <SubMenuItem
+      <injectIntl(SubMenuItem)
         action={[Function]}
         ariaLabel="Do not disturb. Disables all notifications"
         direction="left"
@@ -1023,9 +1014,7 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
         }
         id="status-menu-dnd"
         openUp={false}
-        renderSelected={true}
         rightDecorator={false}
-        show={true}
         subMenu={
           Array [
             Object {
@@ -1088,7 +1077,6 @@ exports[`components/StatusDropdown should match snapshot with custom status expi
             },
           ]
         }
-        subMenuClass="pl-4"
         text="Do not disturb"
       />
       <MenuItemAction
@@ -1299,7 +1287,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
         show={true}
         text="Away"
       />
-      <SubMenuItem
+      <injectIntl(SubMenuItem)
         action={[Function]}
         ariaLabel="Do not disturb. Disables all notifications"
         direction="left"
@@ -1312,9 +1300,7 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
         }
         id="status-menu-dnd"
         openUp={false}
-        renderSelected={true}
         rightDecorator={false}
-        show={true}
         subMenu={
           Array [
             Object {
@@ -1377,7 +1363,6 @@ exports[`components/StatusDropdown should match snapshot with custom status puls
             },
           ]
         }
-        subMenuClass="pl-4"
         text="Do not disturb"
       />
       <MenuItemAction
@@ -1564,7 +1549,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
         show={true}
         text="Away"
       />
-      <SubMenuItem
+      <injectIntl(SubMenuItem)
         action={[Function]}
         ariaLabel="Do not disturb. Disables all notifications"
         direction="left"
@@ -1577,9 +1562,7 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
         }
         id="status-menu-dnd"
         openUp={false}
-        renderSelected={true}
         rightDecorator={false}
-        show={true}
         subMenu={
           Array [
             Object {
@@ -1642,7 +1625,6 @@ exports[`components/StatusDropdown should match snapshot with profile picture UR
             },
           ]
         }
-        subMenuClass="pl-4"
         text="Do not disturb"
       />
       <MenuItemAction
@@ -1821,7 +1803,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
         show={true}
         text="Away"
       />
-      <SubMenuItem
+      <injectIntl(SubMenuItem)
         action={[Function]}
         ariaLabel="Do not disturb. Disables all notifications"
         direction="left"
@@ -1834,9 +1816,7 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
         }
         id="status-menu-dnd"
         openUp={false}
-        renderSelected={true}
         rightDecorator={false}
-        show={true}
         subMenu={
           Array [
             Object {
@@ -1899,7 +1879,6 @@ exports[`components/StatusDropdown should match snapshot with status dropdown op
             },
           ]
         }
-        subMenuClass="pl-4"
         text="Do not disturb"
       />
       <MenuItemAction
@@ -2109,7 +2088,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
         show={true}
         text="Away"
       />
-      <SubMenuItem
+      <injectIntl(SubMenuItem)
         action={[Function]}
         ariaLabel="Do not disturb. Disables all notifications"
         direction="left"
@@ -2122,9 +2101,7 @@ exports[`components/StatusDropdown should not show clear status button when cust
         }
         id="status-menu-dnd"
         openUp={false}
-        renderSelected={true}
         rightDecorator={false}
-        show={true}
         subMenu={
           Array [
             Object {
@@ -2187,7 +2164,6 @@ exports[`components/StatusDropdown should not show clear status button when cust
             },
           ]
         }
-        subMenuClass="pl-4"
         text="Do not disturb"
       />
       <MenuItemAction
@@ -2432,7 +2408,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
         show={true}
         text="Away"
       />
-      <SubMenuItem
+      <injectIntl(SubMenuItem)
         action={[Function]}
         ariaLabel="Do not disturb. Disables all notifications"
         direction="left"
@@ -2445,9 +2421,7 @@ exports[`components/StatusDropdown should show clear status button when custom s
         }
         id="status-menu-dnd"
         openUp={false}
-        renderSelected={true}
         rightDecorator={false}
-        show={true}
         subMenu={
           Array [
             Object {
@@ -2510,7 +2484,6 @@ exports[`components/StatusDropdown should show clear status button when custom s
             },
           ]
         }
-        subMenuClass="pl-4"
         text="Do not disturb"
       />
       <MenuItemAction
