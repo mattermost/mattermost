@@ -42,7 +42,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
       </label>
       <div
         class="help-text"
-        data-textid="MySettinghelp-text"
+        data-testid="MySettinghelp-text"
       >
         When true, external guest can be invited to channels within teams. Please see 
         <a
@@ -99,7 +99,7 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
       </label>
       <div
         class="help-text"
-        data-textid="MySettinghelp-text"
+        data-testid="MySettinghelp-text"
       >
         When true, external guest can be invited to channels within teams. Please see 
         <a
