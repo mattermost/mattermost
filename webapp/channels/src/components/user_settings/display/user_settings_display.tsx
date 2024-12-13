@@ -60,7 +60,7 @@ type ChildOption = {
 
 type Option = {
     value: string;
-    radionButtonText: {
+    radioButtonText: {
         label: MessageDescriptor;
         more?: MessageDescriptor;
     };
@@ -340,7 +340,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         this.setState({channelDisplayMode});
     }
 
-    handlemessageDisplayRadio(messageDisplay: string) {
+    handleMessageDisplayRadio(messageDisplay: string) {
         this.setState({messageDisplay});
     }
 
@@ -405,20 +405,20 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const firstMessage = (
             <FormattedMessage
-                id={firstOption.radionButtonText.label.id}
-                defaultMessage={firstOption.radionButtonText.label.defaultMessage}
+                id={firstOption.radioButtonText.label.id}
+                defaultMessage={firstOption.radioButtonText.label.defaultMessage}
             />
         );
 
         let moreColon;
         let firstMessageMore;
-        if (firstOption.radionButtonText.more?.id) {
+        if (firstOption.radioButtonText.more?.id) {
             moreColon = ': ';
             firstMessageMore = (
                 <span className='font-weight--normal'>
                     <FormattedMessage
-                        id={firstOption.radionButtonText.more.id}
-                        defaultMessage={firstOption.radionButtonText.more.defaultMessage}
+                        id={firstOption.radioButtonText.more.id}
+                        defaultMessage={firstOption.radioButtonText.more.defaultMessage}
                     />
                 </span>
             );
@@ -426,18 +426,18 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const secondMessage = (
             <FormattedMessage
-                id={secondOption.radionButtonText.label.id}
-                defaultMessage={secondOption.radionButtonText.label.defaultMessage}
+                id={secondOption.radioButtonText.label.id}
+                defaultMessage={secondOption.radioButtonText.label.defaultMessage}
             />
         );
 
         let secondMessageMore;
-        if (secondOption.radionButtonText.more?.id) {
+        if (secondOption.radioButtonText.more?.id) {
             secondMessageMore = (
                 <span className='font-weight--normal'>
                     <FormattedMessage
-                        id={secondOption.radionButtonText.more.id}
-                        defaultMessage={secondOption.radionButtonText.more.defaultMessage}
+                        id={secondOption.radioButtonText.more.id}
+                        defaultMessage={secondOption.radioButtonText.more.defaultMessage}
                     />
                 </span>
             );
@@ -447,8 +447,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (thirdOption) {
             thirdMessage = (
                 <FormattedMessage
-                    id={thirdOption.radionButtonText.label.id}
-                    defaultMessage={thirdOption.radionButtonText.label.defaultMessage}
+                    id={thirdOption.radioButtonText.label.id}
+                    defaultMessage={thirdOption.radioButtonText.label.defaultMessage}
                 />
             );
         }
@@ -657,7 +657,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
             firstOption: {
                 value: 'false',
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.collapseOn',
                         defaultMessage: 'Expanded',
@@ -666,7 +666,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             secondOption: {
                 value: 'true',
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.collapseOff',
                         defaultMessage: 'Collapsed',
@@ -693,7 +693,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 }),
                 firstOption: {
                     value: 'true',
-                    radionButtonText: {
+                    radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.display.linkPreviewOn',
                             defaultMessage: 'On',
@@ -702,7 +702,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
                 secondOption: {
                     value: 'false',
-                    radionButtonText: {
+                    radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.display.linkPreviewOff',
                             defaultMessage: 'Off',
@@ -733,7 +733,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 }),
                 firstOption: {
                     value: 'true',
-                    radionButtonText: {
+                    radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.display.lastActiveOn',
                             defaultMessage: 'On',
@@ -742,7 +742,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
                 secondOption: {
                     value: 'false',
-                    radionButtonText: {
+                    radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.display.lastActiveOff',
                             defaultMessage: 'Off',
@@ -768,7 +768,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
             firstOption: {
                 value: 'false',
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.normalClock',
                         defaultMessage: '12-hour clock (example: 4:00 PM)',
@@ -777,7 +777,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             secondOption: {
                 value: 'true',
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.militaryClock',
                         defaultMessage: '24-hour clock (example: 16:00)',
@@ -801,7 +801,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
             firstOption: {
                 value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.teammateNameDisplayUsername',
                         defaultMessage: 'Show username',
@@ -810,7 +810,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             secondOption: {
                 value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_NICKNAME_FULLNAME,
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.teammateNameDisplayNicknameFullname',
                         defaultMessage: 'Show nickname if one exists, otherwise show first and last name',
@@ -819,7 +819,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             thirdOption: {
                 value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_FULLNAME,
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.teammateNameDisplayFullname',
                         defaultMessage: 'Show first and last name',
@@ -844,7 +844,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
             firstOption: {
                 value: 'true',
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.sidebar.on',
                         defaultMessage: 'On',
@@ -853,7 +853,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             secondOption: {
                 value: 'false',
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.sidebar.off',
                         defaultMessage: 'Off',
@@ -915,7 +915,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
             firstOption: {
                 value: Preferences.MESSAGE_DISPLAY_CLEAN,
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.messageDisplayClean',
                         defaultMessage: 'Standard',
@@ -928,7 +928,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             secondOption: {
                 value: Preferences.MESSAGE_DISPLAY_COMPACT,
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.messageDisplayCompact',
                         defaultMessage: 'Compact',
@@ -971,7 +971,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 }),
                 firstOption: {
                     value: Preferences.COLLAPSED_REPLY_THREADS_ON,
-                    radionButtonText: {
+                    radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.display.collapsedReplyThreadsOn',
                             defaultMessage: 'On',
@@ -980,7 +980,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
                 secondOption: {
                     value: Preferences.COLLAPSED_REPLY_THREADS_OFF,
-                    radionButtonText: {
+                    radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.display.collapsedReplyThreadsOff',
                             defaultMessage: 'Off',
@@ -1005,7 +1005,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
             firstOption: {
                 value: 'true',
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.sidebar.on',
                         defaultMessage: 'On',
@@ -1014,7 +1014,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             secondOption: {
                 value: 'false',
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.sidebar.off',
                         defaultMessage: 'Off',
@@ -1038,7 +1038,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }),
             firstOption: {
                 value: Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.fullScreen',
                         defaultMessage: 'Full width',
@@ -1047,7 +1047,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             },
             secondOption: {
                 value: Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
-                radionButtonText: {
+                radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.display.fixedWidthCentered',
                         defaultMessage: 'Fixed width, centered',
@@ -1124,7 +1124,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 }),
                 firstOption: {
                     value: 'true',
-                    radionButtonText: {
+                    radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.sidebar.on',
                             defaultMessage: 'On',
@@ -1133,7 +1133,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
                 secondOption: {
                     value: 'false',
-                    radionButtonText: {
+                    radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.sidebar.off',
                             defaultMessage: 'Off',

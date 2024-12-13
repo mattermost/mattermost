@@ -306,10 +306,10 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             </Provider>,
         ).find(UserSettingsDisplay);
 
-        (wrapper.instance() as UserSettingsDisplay).handlemessageDisplayRadio('clean');
+        (wrapper.instance() as UserSettingsDisplay).handleMessageDisplayRadio('clean');
         expect(wrapper.state('messageDisplay')).toBe('clean');
 
-        (wrapper.instance() as UserSettingsDisplay).handlemessageDisplayRadio('compact');
+        (wrapper.instance() as UserSettingsDisplay).handleMessageDisplayRadio('compact');
         expect(wrapper.state('messageDisplay')).toBe('compact');
     });
 
