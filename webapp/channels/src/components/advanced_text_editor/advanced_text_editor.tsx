@@ -346,7 +346,7 @@ const AdvancedTextEditor = ({
         // This resets the draft to the post's original content
         handleDraftChange({
             ...draft,
-            message: post?.message,
+            message: post?.message || '',
         });
     }, [handleDraftChange, draft, post]);
 
