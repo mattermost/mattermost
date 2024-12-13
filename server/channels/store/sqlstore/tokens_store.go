@@ -73,6 +73,7 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
 		}
+		return nil, errors.Wrapf(err, "failed to get Token with value %s", tokenString)
 	}
 
 	return &token, nil
