@@ -28,9 +28,13 @@ const (
 	ClientRHSLoadDuration           MetricType = "rhs_load"
 	ClientGlobalThreadsLoadDuration MetricType = "global_threads_load"
 
-	MobileClientLoadDuration          MetricType = "mobile_load"
-	MobileClientChannelSwitchDuration MetricType = "mobile_channel_switch"
-	MobileClientTeamSwitchDuration    MetricType = "mobile_team_switch"
+	MobileClientLoadDuration                    MetricType = "mobile_load"
+	MobileClientChannelSwitchDuration           MetricType = "mobile_channel_switch"
+	MobileClientTeamSwitchDuration              MetricType = "mobile_team_switch"
+	MobileClientContentLoadTotalCompressedSize  MetricType = "mobile_content_load_total_compressed_size"
+	MobileClientContentLoadUrlCount             MetricType = "mobile_content_load_url_count"
+	MobileClientContentLoadLatency              MetricType = "mobile_content_load_latency"
+	MobileClientContentLoadTotalSize            MetricType = "mobile_content_load_total_size"
 
 	DesktopClientCPUUsage    MetricType = "desktop_cpu"
 	DesktopClientMemoryUsage MetricType = "desktop_memory"

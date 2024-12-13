@@ -100,6 +100,18 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 		case model.MobileClientTeamSwitchDuration:
 			a.Metrics().ObserveMobileClientTeamSwitchDuration(commonLabels["platform"],
 				h.Value/1000)
+		case model.MobileClientContentLoadTotalCompressedSize:
+			a.Metrics().ObserveMobileClientContentLoadTotalCompressedSize(commonLabels["platform"],
+				h.Value)
+		case model.MobileClientContentLoadUrlCount:
+			a.Metrics().ObserveMobileClientContentLoadUrlCount(commonLabels["platform"],
+				h.Value)
+		case model.MobileClientContentLoadLatency:
+			a.Metrics().ObserveMobileClientContentLoadLatency(commonLabels["platform"],
+				h.Value)
+		case model.MobileClientContentLoadTotalSize:
+			a.Metrics().ObserveMobileClientContentLoadTotalSize(commonLabels["platform"],
+				h.Value)
 		case model.DesktopClientCPUUsage:
 			a.Metrics().ObserveDesktopCpuUsage(commonLabels["platform"], commonLabels["desktop_app_version"], h.Labels["process"], h.Value)
 		case model.DesktopClientMemoryUsage:
