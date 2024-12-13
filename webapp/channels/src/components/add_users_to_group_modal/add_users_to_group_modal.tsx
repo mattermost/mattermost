@@ -93,7 +93,7 @@ const AddUsersToGroupModal = (props: Props) => {
             show={show}
             onHide={doHide}
             onExited={props.onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='createUserGroupsModalLabel'
             id='addUsersToGroupsModal'
         >
