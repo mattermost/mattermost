@@ -230,8 +230,8 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 			return nil, err
 		}
 		if written < minFirstPartSize && written != us.FileSize {
-			if err = a.RemoveFile(uploadPath); err != nil {
-				c.Logger().Warn("Failed to remove file", mlog.Err(err))
+			if err2 = a.RemoveFile(uploadPath); err2 != nil {
+				c.Logger().Warn("Failed to remove file", mlog.Err(err2))
 			}
 			var errStr string
 			if err != nil {
