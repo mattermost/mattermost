@@ -8878,5 +8878,97 @@
   {
     "id": "app.post_reminder_dm",
     "translation": "Ahoj, tady je tvoje připomenutí o této zprávě od @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.preference.get.app_error",
+    "translation": "Narazili jsme na chybu při vyhledávání předvoleb."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Váš export je připraven. Soubor CSV obsahuje uživatelská data za období {{.DateRange}}. Klikněte na odkaz níže pro stažení zprávy."
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Nepodařilo se uložit informace o souboru."
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "po celou dobu"
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Export dávkového reportu je dostupný pouze pro verze Pro a Enterprise."
+  },
+  {
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Nelze získat reakce na příspěvek."
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Nelze odstranit reakce uživatele."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Chybí ID uživatele pro odeslání reportu"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Chybí časové období"
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "Začali jste export uživatelských dat pro období {{.DateRange}}. Jakmile bude export dokončen, CSV soubor vám bude doručen v této přímé zprávě."
+  },
+  {
+    "id": "app.reaction.get_for_post.app_error",
+    "translation": "Nelze získat reakce na příspěvek."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Byl dosažen limit reakcí pro tento příspěvek."
+  },
+  {
+    "id": "app.preference.get_all.app_error",
+    "translation": "Narazili jsme na chybu při vyhledávání předvoleb."
+  },
+  {
+    "id": "app.preference.get_category.app_error",
+    "translation": "Narazili jsme na chybu při vyhledávání předvoleb."
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Nepodařilo se načíst počet uživatelů."
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Nepodařilo se načíst uživatelskou zprávu."
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "předchozí měsíc"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "posledních 6 měsíců"
+  },
+  {
+    "id": "app.preference.permanent_delete_by_user.app_error",
+    "translation": "Narazili jsme na chybu při mazání předvoleb."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Verzi předinstalovaného pluginu se nepodařilo analyzovat."
+  },
+  {
+    "id": "app.preference.save.updating.app_error",
+    "translation": "Narazili jsme na chybu při aktualizaci předvoleb."
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Úloha pro tohoto uživatele a daný časový rozsah již existuje."
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "posledních 30 dní"
   }
 ]
