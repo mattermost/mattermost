@@ -83,7 +83,7 @@ func isExactRole(roleName string) func(*model.Role, map[string]map[string]bool) 
 	}
 }
 
-// isRole returns true if roleName matches a role's name field or if the a team
+// isRole returns true if roleName matches a role's name field or if the team
 // or channel scheme role matches a "common name". A common name is one of the following role
 // that is common among the system scheme and the team and/or channel schemes:
 //
