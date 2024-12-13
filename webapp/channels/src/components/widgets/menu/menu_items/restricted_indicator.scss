@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 .RestrictedIndicator__icon-tooltip-container {
+    align-items: center;
     display: flex;
     flex: 1;
     align-self: stretch;
     padding: 0 10px;
-    align-items: center;
 
     .RestrictedIndicator__button {
         padding: 0;
