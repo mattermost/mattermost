@@ -116,6 +116,13 @@ type SupportPacketConfig struct {
 	FeatureFlags FeatureFlags `json:"FeatureFlags"`
 }
 
+// SupportPacketPluginList contains the list of enabled and disabled plugins.
+// It is included in the Support Packet.
+type SupportPacketPluginList struct {
+	Enabled  []Manifest `json:"enabled"`
+	Disabled []Manifest `json:"disabled"`
+}
+
 type FileData struct {
 	Filename string
 	Body     []byte

@@ -324,12 +324,20 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 
 func (a *App) getPluginsFile(_ request.CTX) (*model.FileData, error) {
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
-	pluginsResponse, appErr := a.GetPlugins()
+	plugins, appErr := a.GetPlugins()
 	if appErr != nil {
 		return nil, errors.Wrap(appErr, "failed to get plugin list for Support Packet")
 	}
 
-	pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
+	var pluginList model.SupportPacketPluginList
+	for _, p := range plugins.Active {
+		pluginList.Enabled = append(pluginList.Enabled, p.Manifest)
+	}
+	for _, p := range plugins.Inactive {
+		pluginList.Disabled = append(pluginList.Disabled, p.Manifest)
+	}
+
+	pluginsPrettyJSON, err := json.MarshalIndent(pluginList, "", "    ")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal plugin list into json")
 	}

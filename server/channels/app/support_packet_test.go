@@ -4,9 +4,11 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -267,22 +270,64 @@ func TestGetPluginsFile(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	// Happy path where we have a plugins file with no err
-	fileData, err := th.App.getPluginsFile(th.Context)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "plugins.json", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
-	assert.NoError(t, err)
+	getJobList := func(t *testing.T) *model.SupportPacketPluginList {
+		t.Helper()
 
-	// Turn off plugins so we can get an error
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = false
+		fileData, err := th.App.getPluginsFile(th.Context)
+		assert.NoError(t, err)
+		require.NotNil(t, fileData)
+		assert.Equal(t, "plugins.json", fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+
+		var pl model.SupportPacketPluginList
+		err = json.Unmarshal(fileData.Body, &pl)
+		require.NoError(t, err)
+
+		return &pl
+	}
+
+	t.Run("no errors if no plugins are installed", func(t *testing.T) {
+		pl := getJobList(t)
+		assert.Len(t, pl.Enabled, 0)
+		assert.Len(t, pl.Disabled, 0)
 	})
 
-	// Plugins off in settings so no fileData and we get a warning instead
-	fileData, err = th.App.getPluginsFile(th.Context)
-	assert.Nil(t, fileData)
-	assert.ErrorContains(t, err, "failed to get plugin list for Support Packet")
+	t.Run("no errors if no plugins are installed", func(t *testing.T) {
+		path, _ := fileutils.FindDir("tests")
+
+		bundle1, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		require.NoError(t, err)
+		manifest1, appErr := th.App.InstallPlugin(bytes.NewReader(bundle1), false)
+		require.Nil(t, appErr)
+		require.Equal(t, "testplugin", manifest1.Id)
+		appErr = th.App.EnablePlugin(manifest1.Id)
+		require.Nil(t, appErr)
+
+		bundle2, err := os.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
+		require.NoError(t, err)
+		manifest2, appErr := th.App.InstallPlugin(bytes.NewReader(bundle2), false)
+		require.Nil(t, appErr)
+		require.Equal(t, "testplugin2", manifest2.Id)
+
+		pl := getJobList(t)
+		require.Len(t, pl.Enabled, 1)
+		assert.Equal(t, "testplugin", pl.Enabled[0].Id)
+		require.Len(t, pl.Disabled, 1)
+		assert.Equal(t, "testplugin2", pl.Disabled[0].Id)
+	})
+
+	t.Run("error if plugin are disabled", func(t *testing.T) {
+
+		// Turn off plugins so we can get an error
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+
+		// Plugins off in settings so no fileData and we get a warning instead
+		fileData, err := th.App.getPluginsFile(th.Context)
+		assert.Nil(t, fileData)
+		assert.ErrorContains(t, err, "failed to get plugin list for Support Packet")
+	})
 }
 
 func TestGetSupportPacketStats(t *testing.T) {
