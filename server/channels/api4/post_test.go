@@ -3172,10 +3172,8 @@ func TestDeletePostEvent(t *testing.T) {
 	_, err = th.SystemAdminClient.DeletePost(context.Background(), th.BasicPost.Id)
 	require.NoError(t, err)
 
-	var received bool
-
-	for {
-		var exit bool
+	var received, exit bool
+	for !received && !exit {
 		select {
 		case event := <-WebSocketClient.EventChannel:
 			if event.EventType() == model.WebsocketEventPostDeleted {
@@ -3186,9 +3184,6 @@ func TestDeletePostEvent(t *testing.T) {
 			}
 		case <-time.After(5 * time.Second):
 			exit = true
-		}
-		if exit {
-			break
 		}
 	}
 
