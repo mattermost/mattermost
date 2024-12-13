@@ -8970,5 +8970,21 @@
   {
     "id": "app.report.date_range.last_30_days",
     "translation": "posledních 30 dní"
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": "Role je neplatná."
+  },
+  {
+    "id": "app.role.save.insert.app_error",
+    "translation": "Nepodařilo se uložit novou roli."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Nelze získat všechny role."
+  },
+  {
+    "id": "app.role.permanent_delete_all.app_error",
+    "translation": "Nepodařilo se trvale smazat všechny role."
   }
 ]
