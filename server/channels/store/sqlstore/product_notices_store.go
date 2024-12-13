@@ -27,7 +27,7 @@ func (s SqlProductNoticesStore) Clear(notices []string) error {
 		return errors.Wrap(err, "product_notice_view_state_tosql")
 	}
 
-	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
+	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
 		return errors.Wrap(err, "failed to delete records from ProductNoticeViewState")
 	}
 	return nil
@@ -43,14 +43,14 @@ func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNoti
 		return errors.Wrap(err, "product_notice_view_state_tosql")
 	}
 
-	if _, err := s.GetMasterX().Exec(sql, args...); err != nil {
+	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to delete records from ProductNoticeViewState")
 	}
 	return nil
 }
 
 func (s SqlProductNoticesStore) View(userId string, notices []string) (err error) {
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -119,7 +119,7 @@ func (s SqlProductNoticesStore) GetViews(userId string) ([]model.ProductNoticeVi
 	if err != nil {
 		return nil, errors.Wrap(err, "product_notice_view_state_tosql")
 	}
-	if err := s.GetReplicaX().Select(&noticeStates, sql, args...); err != nil {
+	if err := s.GetReplica().Select(&noticeStates, sql, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get ProductNoticeViewState with userId=%s", userId)
 	}
 	return noticeStates, nil

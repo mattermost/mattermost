@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessages} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+import {defineMessages, injectIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -13,10 +14,9 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'components/with_tooltip/with_tooltip_new';
 
 import {Locations} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 const TOP_OFFSET = -7;
 
@@ -27,12 +27,12 @@ const messages = defineMessages({
     },
 });
 
-export type Props = {
+export type Props = WrappedComponentProps & {
     channelId?: string;
     postId: string;
     teamId: string;
     getDotMenuRef: () => HTMLDivElement | null;
-    location: keyof typeof Locations;
+    location?: keyof typeof Locations;
     showEmojiPicker: boolean;
     toggleEmojiPicker: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     actions: {
@@ -45,7 +45,7 @@ type State = {
     showEmojiPicker: boolean;
 }
 
-export default class PostReaction extends React.PureComponent<Props, State> {
+export class PostReaction extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {
         location: Locations.CENTER as 'CENTER',
         showEmojiPicker: false,
@@ -65,6 +65,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
             postId,
             showEmojiPicker,
             teamId,
+            intl,
         } = this.props;
 
         let spaceRequiredAbove;
@@ -91,14 +92,12 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                         spaceRequiredBelow={spaceRequiredBelow}
                     />
                     <WithTooltip
-                        id='reaction-icon-tooltip'
                         title={messages.addReaction}
-                        placement='top'
                     >
                         <button
                             data-testid='post-reaction-emoji-icon'
                             id={`${location}_reaction_${postId}`}
-                            aria-label={localizeMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'}).toLowerCase()}
+                            aria-label={intl.formatMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'})}
                             className={classNames('post-menu__item', 'post-menu__item--reactions', {
                                 'post-menu__item--active': showEmojiPicker,
                             })}
@@ -112,3 +111,5 @@ export default class PostReaction extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(PostReaction);
