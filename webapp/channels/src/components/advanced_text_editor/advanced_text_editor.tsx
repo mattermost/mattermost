@@ -606,7 +606,7 @@ const AdvancedTextEditor = ({
         createMessage = formatMessage({id: 'create_comment.addComment', defaultMessage: 'Reply to this thread...'});
     }
 
-    const messageValue = isDisabled ? '' : draft.message;
+    const messageValue = isDisabled ? '' : draft.message_source || draft.message;
 
     let textboxId = 'textbox';
 

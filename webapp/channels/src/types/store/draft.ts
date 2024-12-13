@@ -12,6 +12,7 @@ export type DraftInfo = {
 
 export type PostDraft = {
     message: string;
+    message_source?: string;
     fileInfos: FileInfo[];
     uploadsInProgress: string[];
     props?: any;
