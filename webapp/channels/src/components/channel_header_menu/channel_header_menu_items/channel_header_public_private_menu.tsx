@@ -19,6 +19,7 @@ import {Constants} from 'utils/constants';
 
 import MenuItemAddMembers from '../menu_items/add_channel_members/add_channel_members';
 import MenuItemArchiveChannel from '../menu_items/archive_channel/archive_channel';
+import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings/channel_settings';
 import MenuItemCloseChannel from '../menu_items/close_channel/close_channel';
 import MenuItemGroupsMenuItems from '../menu_items/groups/groups';
@@ -73,6 +74,9 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                     <MenuItemChannelSettings
                         isReadonly={isReadonly}
                         isDefault={isDefault}
+                        channel={channel}
+                    />
+                    <MenuItemChannelBookmarks
                         channel={channel}
                     />
                 </>

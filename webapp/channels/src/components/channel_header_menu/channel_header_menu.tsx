@@ -57,7 +57,6 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
 
     const isReadonly = false;
     const {dmUser, gmMembers, isMobile, archivedIcon, sharedIcon} = props;
-    const [titleMenuOpen, setTitleMenuOpen] = useState(false);
 
     if (!channel) {
         return null;
@@ -97,7 +96,7 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
             }}
             menuButton={{
                 id: 'channelHeaderDropdownButton',
-                class: classNames('channel-header__trigger style--none', {active: titleMenuOpen}),
+                class: classNames('channel-header__trigger style--none'),
                 children: (
                     <>
                         {archivedIcon}
