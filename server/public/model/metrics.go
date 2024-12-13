@@ -62,6 +62,7 @@ var (
 	)
 	AcceptedTrueFalseLabels     = sliceToMapKey("true", "false")
 	AcceptedSplashScreenOrigins = sliceToMapKey("root", "team_controller")
+	AcceptedContentLoadGroups   = sliceToMapKey("entry", "notification", "login", "reconnection")
 )
 
 type MetricSample struct {
@@ -117,6 +118,7 @@ func (r *PerformanceReport) ProcessLabels() map[string]string {
 		"platform":            processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
 		"agent":               processLabel(r.Labels, "agent", acceptedAgents, "other"),
 		"desktop_app_version": r.Labels["desktop_app_version"],
+		"content_load_group":  processLabel(r.Labels, "content_load_group", AcceptedContentLoadGroups, "entry"),
 	}
 }
 
