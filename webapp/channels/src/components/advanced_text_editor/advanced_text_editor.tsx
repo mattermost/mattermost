@@ -265,7 +265,7 @@ const AdvancedTextEditor = ({
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
 
-        handleShowMentionHelper(draftToChange.message);
+        // handleShowMentionHelper(draftToChange.message);
     }, [dispatch, handleShowMentionHelper]);
 
     const applyMarkdown = useCallback((params: ApplyMarkdownOptions) => {
@@ -560,7 +560,7 @@ const AdvancedTextEditor = ({
     useEffect(() => {
         // this checks for the mention helper for initial load of component.
         handleShowMentionHelper(draft.message);
-    }, []);
+    }, [draft.message, handleShowMentionHelper]);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
@@ -672,6 +672,9 @@ const AdvancedTextEditor = ({
     );
 
     const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
+
+    console.log({messageValue, showMentionHelper});
+
     return (
         <form
             id={postId ? undefined : 'create_post'}
@@ -792,7 +795,10 @@ const AdvancedTextEditor = ({
                 </div>
             </div>
             { showMentionHelper ? (
-                <div className='post-body__info'>
+                <div
+                    className='post-body__info'
+                    data-testid='editPostAtMentionWarning'
+                >
                     <span className='post-body__info__icon'>
                         <InformationOutlineIcon
                             size={14}
