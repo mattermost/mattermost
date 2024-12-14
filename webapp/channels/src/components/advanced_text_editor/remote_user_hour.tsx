@@ -3,9 +3,11 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import type {UserTimezone} from '@mattermost/types/users';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import Moon from 'components/common/svg_images_components/moon_svg';
 import Timestamp from 'components/timestamp';
@@ -44,6 +46,12 @@ type Props = {
 }
 
 const RemoteUserHour = ({displayName, timestamp, teammateTimezone}: Props) => {
+    const config = useSelector(getConfig);
+
+    if (config.EnableLateTimeWarnings !== 'true') {
+        return null;
+    }
+
     return (
         <Container className='RemoteUserHour'>
             <Icon className='icon moonIcon'/>
