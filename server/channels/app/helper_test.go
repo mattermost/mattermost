@@ -245,12 +245,6 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	return setupTestHelper(dbStore, true, true, nil, []Option{SetCluster(cluster)}, tb)
 }
 
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
-
 func (th *TestHelper) InitBasic() *TestHelper {
 	// create users
 	th.SystemAdminUser = th.CreateUser()
