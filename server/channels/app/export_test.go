@@ -1158,6 +1158,13 @@ func TestExportSingleTeam(t *testing.T) {
 	assert.Nil(t, err1)
 	assert.Equal(t, 3, len(channels1))
 
+	// create DM and GM channels, which shouldn't be exported
+	dm1 := th1.CreateDmChannel(th1.BasicUser2)
+	th1.CreatePost(dm1)
+	user3 := th1.CreateUser()
+	gm1 := th1.CreateGroupChannel(th1.Context, th1.BasicUser2, user3)
+	th1.CreatePost(gm1)
+
 	// create additional team and channels outside of the team to export, to check they are excluded
 	team1 := th1.CreateTeam()
 	channel1 := th1.CreateChannel(th1.Context, team1)
@@ -1171,7 +1178,7 @@ func TestExportSingleTeam(t *testing.T) {
 	assert.Equal(t, 6, len(all_channels))
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamId: &th1.BasicTeam.Id})
+	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: &th1.BasicTeam.Name})
 	require.Nil(t, err)
 
 	th2 := Setup(t)
@@ -1187,11 +1194,27 @@ func TestExportSingleTeam(t *testing.T) {
 
 	channels2, err := th2.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
 	assert.Nil(t, err)
-	assert.Equal(t, 3, len(channels2))
+	assert.Equal(t, 3, len(channels2)) // the DM and GM channels were excluded
 	channelNames := []string{channels1[0].Name, channels1[1].Name, channels1[2].Name}
 	for _, channel := range channels2 {
 		assert.Contains(t, channelNames, channel.Name)
 	}
+}
+
+func TestExportMissingTeam(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+	defer th1.TearDown()
+
+	teams1, errTeams := th1.App.GetAllTeams()
+	assert.Nil(t, errTeams)
+	assert.Equal(t, len(teams1), 1)
+
+	var b bytes.Buffer
+	unknownTeam := "some_nonexistent_team"
+	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{TeamName: &unknownTeam})
+	require.NotNil(t, err)
+	assert.Equal(t, err.Id, "app.team.get.app_error")
+	assert.Equal(t, err.DetailedError, "team=some_nonexistent_team")
 }
 
 func TestExportArchivedChannels(t *testing.T) {

@@ -148,12 +148,18 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 
 	var teamNames map[string]bool
 	var appErr *model.AppError
-	if opts.TeamId == nil {
+	var teamId *string
+	if opts.TeamName == nil {
 		ctx.Logger().Info("Bulk export: exporting teams")
 		teamNames, appErr = a.exportAllTeams(ctx, job, writer)
 	} else {
 		ctx.Logger().Info("Bulk export: exporting a single team")
-		teamNames, appErr = a.exportSingleTeam(ctx, job, writer, *opts.TeamId)
+		team, err := a.Srv().Store().Team().GetByName(*opts.TeamName)
+		if err != nil {
+			return model.NewAppError("BulkExport", "app.team.get.app_error", nil, "team="+*opts.TeamName, http.StatusInternalServerError).Wrap(err)
+		}
+		teamId = &team.Id
+		teamNames, appErr = a.exportSingleTeam(ctx, job, writer, *teamId)
 	}
 	if appErr != nil {
 		return appErr
@@ -178,7 +184,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	profilePictures = append(profilePictures, botPPs...)
 
 	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, appErr := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels, opts.TeamId)
+	attachments, appErr := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels, teamId)
 	if appErr != nil {
 		return appErr
 	}
@@ -190,7 +196,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	var directAttachments []imports.AttachmentImportData
-	if opts.TeamId == nil {
+	if teamId == nil {
 		ctx.Logger().Info("Bulk export: exporting direct channels")
 		if appErr = a.exportAllDirectChannels(ctx, job, writer, opts.IncludeArchivedChannels); appErr != nil {
 			return appErr
@@ -210,7 +216,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 			return appErr
 		}
 
-		if opts.TeamId == nil {
+		if teamId == nil {
 			ctx.Logger().Info("Bulk export: exporting direct file attachments")
 			newWarnings, appErr := a.exportAttachments(ctx, directAttachments, outPath, zipWr)
 			if appErr != nil {
@@ -511,9 +517,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 	cnt := 0
 	profilePictures := []string{}
 	for {
-		var users []*model.User
-		var err error
-		users, err = a.Srv().Store().User().GetAllAfter(1000, afterId)
+		users, err := a.Srv().Store().User().GetAllAfter(1000, afterId)
 
 		if err != nil {
 			return profilePictures, model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
