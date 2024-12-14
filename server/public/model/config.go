@@ -961,6 +961,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.ScheduledPosts == nil {
 		s.ScheduledPosts = NewPointer(true)
 	}
+
+	if s.EnableLateTimeWarnings == nil {
+		s.EnableLateTimeWarnings = NewPointer(false)
+	}
 }
 
 type CacheSettings struct {
