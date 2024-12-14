@@ -1510,6 +1510,13 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.environment.smtp.enableSecurityFixAlert.description', defaultMessage: 'When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                         },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableLateTimeWarnings',
+                            label: defineMessage({id: 'admin.notifications.enableLateTimeWarnings.title', defaultMessage: 'Enable Late Time Warnings:'}),
+                            help_text: defineMessage({id: 'admin.notifications.enableLateTimeWarnings.description', defaultMessage: 'When true, users will be warned when sending direct messages to other users during their late hours based on their timezone.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                        },
                     ],
                 },
             },
