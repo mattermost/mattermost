@@ -53,9 +53,9 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			opts.IncludeRolesAndSchemes = true
 		}
 
-		teamId, ok := job.Data["team_id"]
+		teamName, ok := job.Data["team_name"]
 		if ok {
-			opts.TeamId = &teamId
+			opts.TeamName = &teamName
 		}
 
 		outPath := *app.Config().ExportSettings.Directory

@@ -25,7 +25,7 @@ Options
       --include-profile-pictures    Include profile pictures in the export file.
       --no-attachments              Exclude file attachments from the export file.
       --no-roles-and-schemes        Exclude roles and custom permission schemes from the export file.
-      --team-id string              Identifier of the team to restrict the export to.
+      --team string                 Name of the team to restrict the export to.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
