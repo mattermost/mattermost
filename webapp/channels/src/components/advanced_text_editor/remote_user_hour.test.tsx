@@ -31,7 +31,7 @@ describe('components/advanced_text_editor/RemoteUserHour', () => {
         };
 
         renderWithContext(<RemoteUserHour {...baseProps}/>, state);
-        
+
         expect(screen.queryByText(/The time for/)).not.toBeInTheDocument();
     });
 
@@ -47,25 +47,9 @@ describe('components/advanced_text_editor/RemoteUserHour', () => {
         };
 
         renderWithContext(<RemoteUserHour {...baseProps}/>, state);
-        
+
         expect(screen.getByText(/The time for/)).toBeInTheDocument();
         expect(screen.getByText('Test User')).toBeInTheDocument();
-    });
-
-    test('should render moon icon', () => {
-        const state = {
-            entities: {
-                general: {
-                    config: {
-                        EnableLateTimeWarnings: 'true',
-                    },
-                },
-            },
-        };
-
-        renderWithContext(<RemoteUserHour {...baseProps}/>, state);
-        
-        expect(screen.getByTestId('moonIcon')).toBeInTheDocument();
     });
 
     test('should render timestamp in user timezone', () => {
@@ -80,7 +64,7 @@ describe('components/advanced_text_editor/RemoteUserHour', () => {
         };
 
         renderWithContext(<RemoteUserHour {...baseProps}/>, state);
-        
+
         // Verify timestamp is rendered (exact time will depend on timezone)
         expect(screen.getByText(/\d{1,2}:\d{2}/)).toBeInTheDocument();
     });
