@@ -55,9 +55,7 @@ const RemoteUserHour = ({displayName, timestamp, teammateTimezone}: Props) => {
 
     return (
         <Container className='RemoteUserHour'>
-            <Icon
-                className='icon moonIcon'
-            />
+            <Icon className='icon moonIcon'/>
             <FormattedMessage
                 id='advanced_text_editor.remote_user_hour'
                 defaultMessage='The time for {user} is {time}'
