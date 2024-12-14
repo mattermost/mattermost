@@ -28,7 +28,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <Connect(Component)
@@ -154,7 +154,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <Connect(Component)
