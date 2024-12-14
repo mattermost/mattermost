@@ -81,7 +81,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.2 server
+// Based on v10.3 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -198,6 +198,7 @@ const defaultServerConfig: AdminConfig = {
         RefreshPostStatsRunTime: '00:00',
         MaximumPayloadSizeBytes: 300000,
         MaximumURLLength: 2048,
+        ScheduledPosts: true,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -685,6 +686,9 @@ const defaultServerConfig: AdminConfig = {
             'com.mattermost.nps': {
                 Enable: true,
             },
+            'mattermost-ai': {
+                Enable: true,
+            },
             playbooks: {
                 Enable: true,
             },
@@ -724,6 +728,7 @@ const defaultServerConfig: AdminConfig = {
         TestFeature: 'off',
         TestBoolFeature: false,
         EnableRemoteClusterService: false,
+        EnableSharedChannelsDMs: false,
         AppsEnabled: false,
         PermalinkPreviews: false,
         NormalizeLdapDNs: false,
@@ -741,6 +746,7 @@ const defaultServerConfig: AdminConfig = {
         WebSocketEventScope: true,
         NotificationMonitoring: true,
         ExperimentalAuditSettingsSystemConsoleUI: false,
+        ExperimentalCrossTeamSearch: false,
     },
     ImportSettings: {
         Directory: './import',

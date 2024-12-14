@@ -40,7 +40,7 @@ func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
 
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error) {
 	if scheme.Id == "" {
-		transaction, terr := s.GetMasterX().Beginx()
+		transaction, terr := s.GetMaster().Beginx()
 		if terr != nil {
 			return nil, errors.Wrap(terr, "begin_transaction")
 		}
@@ -62,7 +62,7 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 
 	scheme.UpdateAt = model.GetMillis()
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE Schemes
+	res, err := s.GetMaster().NamedExec(`UPDATE Schemes
 		SET UpdateAt=:UpdateAt, CreateAt=:CreateAt, DeleteAt=:DeleteAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
 		 DefaultTeamAdminRole=:DefaultTeamAdminRole, DefaultTeamUserRole=:DefaultTeamUserRole, DefaultTeamGuestRole=:DefaultTeamGuestRole,
 		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole,
@@ -299,7 +299,7 @@ func filterModerated(permissions []string) []string {
 
 func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	var scheme model.Scheme
-	if err := s.GetReplicaX().Get(&scheme, "SELECT * from Schemes WHERE Id = ?", schemeId); err != nil {
+	if err := s.GetReplica().Get(&scheme, "SELECT * from Schemes WHERE Id = ?", schemeId); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
@@ -312,7 +312,7 @@ func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	var scheme model.Scheme
 
-	if err := s.GetReplicaX().Get(&scheme, "SELECT * from Schemes WHERE Name = ?", schemeName); err != nil {
+	if err := s.GetReplica().Get(&scheme, "SELECT * from Schemes WHERE Name = ?", schemeName); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeName=%s", schemeName))
 		}
@@ -325,7 +325,7 @@ func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	// Get the scheme
 	scheme := model.Scheme{}
-	if err := s.GetMasterX().Get(&scheme, `SELECT * from Schemes WHERE Id = ?`, schemeId); err != nil {
+	if err := s.GetMaster().Get(&scheme, `SELECT * from Schemes WHERE Id = ?`, schemeId); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
@@ -334,13 +334,13 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 
 	// Update any teams or channels using this scheme to the default scheme.
 	if scheme.Scope == model.SchemeScopeTeam {
-		if _, err := s.GetMasterX().Exec(`UPDATE Teams SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
+		if _, err := s.GetMaster().Exec(`UPDATE Teams SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
 			return nil, errors.Wrapf(err, "failed to update Teams with schemeId=%s", schemeId)
 		}
 
 		s.Team().ClearCaches()
 	} else if scheme.Scope == model.SchemeScopeChannel {
-		if _, err := s.GetMasterX().Exec(`UPDATE Channels SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
+		if _, err := s.GetMaster().Exec(`UPDATE Channels SET SchemeId = '' WHERE SchemeId = ?`, schemeId); err != nil {
 			return nil, errors.Wrapf(err, "failed to update Channels with schemeId=%s", schemeId)
 		}
 	}
@@ -374,7 +374,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
 
-	if _, err = s.GetMasterX().Exec(updateQuery, args...); err != nil {
+	if _, err = s.GetMaster().Exec(updateQuery, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", roleNames)
 	}
 
@@ -382,7 +382,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	scheme.UpdateAt = time
 	scheme.DeleteAt = time
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE Schemes
+	res, err := s.GetMaster().NamedExec(`UPDATE Schemes
 		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, CreateAt=:CreateAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
 		 DefaultTeamAdminRole=:DefaultTeamAdminRole, DefaultTeamUserRole=:DefaultTeamUserRole, DefaultTeamGuestRole=:DefaultTeamGuestRole,
 		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole
@@ -423,7 +423,7 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 		return nil, errors.Wrap(err, "status_tosql")
 	}
 
-	if err := s.GetReplicaX().Select(&schemes, queryString, args...); err != nil {
+	if err := s.GetReplica().Select(&schemes, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Schemes")
 	}
 
@@ -431,7 +431,7 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 }
 
 func (s *SqlSchemeStore) PermanentDeleteAll() error {
-	if _, err := s.GetMasterX().Exec("DELETE from Schemes"); err != nil {
+	if _, err := s.GetMaster().Exec("DELETE from Schemes"); err != nil {
 		return errors.Wrap(err, "failed to delete Schemes")
 	}
 
@@ -440,7 +440,7 @@ func (s *SqlSchemeStore) PermanentDeleteAll() error {
 
 func (s *SqlSchemeStore) CountByScope(scope string) (int64, error) {
 	var count int64
-	err := s.GetReplicaX().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = ? AND DeleteAt = 0`, scope)
+	err := s.GetReplica().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = ? AND DeleteAt = 0`, scope)
 
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Schemes by scope")
@@ -462,7 +462,7 @@ func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string
 	`, joinCol, schemeScope, permissionID)
 
 	var count int64
-	err := s.GetReplicaX().Get(&count, query)
+	err := s.GetReplica().Get(&count, query)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Schemes without permission")
 	}

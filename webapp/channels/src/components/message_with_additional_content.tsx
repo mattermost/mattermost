@@ -22,7 +22,7 @@ type Props = {
 }
 
 export default function MessageWithAdditionalContent({post, isEmbedVisible, pluginPostTypes, isRHS, compactDisplay}: Props) {
-    const hasPlugin = post.type && pluginPostTypes?.hasOwnProperty(post.type);
+    const hasPlugin = post.type && pluginPostTypes && Object.hasOwn(pluginPostTypes, post.type);
     let msg;
     const messageWrapper = (
         <PostMessageView

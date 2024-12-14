@@ -8,15 +8,8 @@ async function interceptConfigWithLandingPage(page: Page, enabled: boolean) {
         route.fulfill({
             status: 200,
             body: JSON.stringify({
-                EmailLoginButtonBorderColor: '#2389D7',
-                EmailLoginButtonColor: '#0000',
-                EmailLoginButtonTextColor: '#2389D7',
                 EnableDesktopLandingPage: enabled,
-                EnableSignInWithEmail: 'true',
                 EnableSignInWithUsername: 'true',
-                EnableSignUpWithEmail: 'true',
-                SiteName: 'Mattermost',
-                SiteURL: 'http://localhost:8065',
             }),
             headers: {'Content-Type': 'application/json'},
         });
@@ -29,7 +22,7 @@ test('MM-T5640_1 should not see landing page ', async ({pw, pages, page}) => {
     await interceptConfigWithLandingPage(page, false);
 
     // Navigate to your starting URL
-    await page.goto('http://localhost:8065');
+    await page.goto('/');
 
     // Wait until the URL contains '/login'
     await page.waitForURL(/.*\/login.*/);
@@ -44,11 +37,11 @@ test('MM-T5640_1 should not see landing page ', async ({pw, pages, page}) => {
 
 test('MM-T5640_2 should see landing page', async ({pages, isMobile, page}) => {
     // Navigate to your starting URL
-    await page.goto('http://localhost:8065');
+    await page.goto('/');
 
     await page.evaluate(() => localStorage.clear());
 
-    await page.goto('http://localhost:8065');
+    await page.goto('/');
 
     // Wait until the URL contains '/landing'
     await page.waitForURL(/.*\/landing.*/);

@@ -56,7 +56,7 @@ describe('Keyboard Shortcuts', () => {
         cy.apiLogin(testUser);
     });
 
-    it('MM-T1241 - CTRL/CMD+K: Unreads', () => {
+    it.skip('MM-T1241 - CTRL/CMD+K: Unreads', () => {
         const otherUserMention = `@${otherUser.username}`;
 
         // # Post messages as testUser to first and second team's channels

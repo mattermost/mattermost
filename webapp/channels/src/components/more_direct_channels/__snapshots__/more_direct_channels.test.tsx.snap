@@ -29,7 +29,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -320,7 +320,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

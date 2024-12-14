@@ -2,22 +2,19 @@
 
 exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders correctly when disabled 1`] = `
 <div>
-  <div
+  <fieldset
     class="form-group"
     data-testid="MySetting"
+    id="MySetting"
   >
-    <label
-      class="control-label col-sm-4"
-      for="MySetting"
+    <legend
+      class="control-label form-legend col-sm-4"
     >
       Enable Guest Access: 
-    </label>
+    </legend>
     <div
       class="col-sm-8"
     >
-      <a
-        id="MySetting"
-      />
       <label
         class="Label-eIDBis glIJuw"
       >
@@ -56,28 +53,25 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
          for which roles can invite guests.
       </div>
     </div>
-  </div>
+  </fieldset>
 </div>
 `;
 
 exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders correctly when enabled 1`] = `
 <div>
-  <div
+  <fieldset
     class="form-group"
     data-testid="MySetting"
+    id="MySetting"
   >
-    <label
-      class="control-label col-sm-4"
-      for="MySetting"
+    <legend
+      class="control-label form-legend col-sm-4"
     >
       Enable Guest Access: 
-    </label>
+    </legend>
     <div
       class="col-sm-8"
     >
-      <a
-        id="MySetting"
-      />
       <label
         class="Label-eIDBis glIJuw"
       >
@@ -116,6 +110,6 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
          for which roles can invite guests.
       </div>
     </div>
-  </div>
+  </fieldset>
 </div>
 `;

@@ -7,6 +7,7 @@ test('/signup_email', async ({pw, pages, page, browserName, viewport}, testInfo)
     // Go to login page
     const {adminClient} = await pw.getAdminClient();
     const adminConfig = await adminClient.getConfig();
+    const license = await adminClient.getClientLicenseOld();
     const loginPage = new pages.LoginPage(page, adminConfig);
     await loginPage.goto();
     await loginPage.toBeVisible();
@@ -23,7 +24,8 @@ test('/signup_email', async ({pw, pages, page, browserName, viewport}, testInfo)
 
     // Match snapshot of signup_email page
     const testArgs = {page, browserName, viewport};
-    await pw.matchSnapshot(testInfo, testArgs);
+    const editionSuffix = license.IsLicensed === 'true' ? '' : 'free edition';
+    await pw.matchSnapshot({...testInfo, title: `${testInfo.title} ${editionSuffix}`}, testArgs);
 
     // Click sign in button without entering user credential
     const invalidUser = {email: 'invalid', username: 'a', password: 'b'};
@@ -34,5 +36,5 @@ test('/signup_email', async ({pw, pages, page, browserName, viewport}, testInfo)
     await pw.waitForAnimationEnd(signupPage.bodyCard);
 
     // Match snapshot of signup_email page
-    await pw.matchSnapshot({...testInfo, title: `${testInfo.title} error`}, testArgs);
+    await pw.matchSnapshot({...testInfo, title: `${testInfo.title} error ${editionSuffix}`}, testArgs);
 });

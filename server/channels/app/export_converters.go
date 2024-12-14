@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 )
 
-func ImportLineFromTeam(team *model.TeamForExport) *imports.LineImportData {
+func importLineFromTeam(team *model.TeamForExport) *imports.LineImportData {
 	return &imports.LineImportData{
 		Type: "team",
 		Team: &imports.TeamImportData{
@@ -24,7 +24,7 @@ func ImportLineFromTeam(team *model.TeamForExport) *imports.LineImportData {
 	}
 }
 
-func ImportLineFromChannel(channel *model.ChannelForExport) *imports.LineImportData {
+func importLineFromChannel(channel *model.ChannelForExport) *imports.LineImportData {
 	return &imports.LineImportData{
 		Type: "channel",
 		Channel: &imports.ChannelImportData{
@@ -40,7 +40,7 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *imports.LineImportD
 	}
 }
 
-func ImportLineFromDirectChannel(channel *model.DirectChannelForExport, favoritedBy, shownBy []string) *imports.LineImportData {
+func importLineFromDirectChannel(channel *model.DirectChannelForExport, favoritedBy, shownBy []string) *imports.LineImportData {
 	channelMembers := channel.Members
 	if len(channelMembers) == 1 {
 		channelMembers = []*model.ChannelMemberForExport{channelMembers[0], channelMembers[0]}
@@ -134,7 +134,7 @@ func importDirectChannelMembersFromChannelMembers(members []*model.ChannelMember
 	return importedMembers
 }
 
-func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imports.LineImportData {
+func importLineFromUser(user *model.User, exportedPrefs map[string]*string) *imports.LineImportData {
 	// Bulk Importer doesn't accept "empty string" for AuthService.
 	var authService *string
 	if user.AuthService != "" {
@@ -177,7 +177,7 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imp
 	}
 }
 
-func ImportLineFromBot(bot *model.Bot, ownerUsername string) *imports.LineImportData {
+func importLineFromBot(bot *model.Bot, ownerUsername string) *imports.LineImportData {
 	return &imports.LineImportData{
 		Type: "bot",
 		Bot: &imports.BotImportData{
@@ -190,7 +190,7 @@ func ImportLineFromBot(bot *model.Bot, ownerUsername string) *imports.LineImport
 	}
 }
 
-func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *imports.UserTeamImportData {
+func importUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *imports.UserTeamImportData {
 	rolesList := strings.Fields(member.Roles)
 	if member.SchemeAdmin {
 		rolesList = append(rolesList, model.TeamAdminRoleId)
@@ -208,7 +208,7 @@ func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *import
 	}
 }
 
-func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelMemberForExport, preferences *model.Preferences) *imports.UserChannelImportData {
+func importUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelMemberForExport, preferences *model.Preferences) *imports.UserChannelImportData {
 	rolesList := strings.Fields(member.Roles)
 	if member.SchemeAdmin {
 		rolesList = append(rolesList, model.ChannelAdminRoleId)
@@ -257,7 +257,7 @@ func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelM
 	}
 }
 
-func ImportLineForPost(post *model.PostForExport) *imports.LineImportData {
+func importLineForPost(post *model.PostForExport) *imports.LineImportData {
 	f := []string(post.FlaggedBy)
 	return &imports.LineImportData{
 		Type: "post",
@@ -276,7 +276,7 @@ func ImportLineForPost(post *model.PostForExport) *imports.LineImportData {
 	}
 }
 
-func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImportData {
+func importLineForDirectPost(post *model.DirectPostForExport) *imports.LineImportData {
 	channelMembers := *post.ChannelMembers
 	if len(channelMembers) == 1 {
 		channelMembers = []string{channelMembers[0], channelMembers[0]}
@@ -298,7 +298,7 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *imports.LineImpor
 	}
 }
 
-func ImportReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
+func importReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
 	f := []string(post.FlaggedBy)
 	return &imports.ReplyImportData{
 		User:      &post.Username,
@@ -311,7 +311,7 @@ func ImportReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
 	}
 }
 
-func ImportReactionFromPost(user *model.User, reaction *model.Reaction) *imports.ReactionImportData {
+func importReactionFromPost(user *model.User, reaction *model.Reaction) *imports.ReactionImportData {
 	return &imports.ReactionImportData{
 		User:      &user.Username,
 		EmojiName: &reaction.EmojiName,
@@ -319,7 +319,7 @@ func ImportReactionFromPost(user *model.User, reaction *model.Reaction) *imports
 	}
 }
 
-func ImportLineFromEmoji(emoji *model.Emoji, filePath string) *imports.LineImportData {
+func importLineFromEmoji(emoji *model.Emoji, filePath string) *imports.LineImportData {
 	return &imports.LineImportData{
 		Type: "emoji",
 		Emoji: &imports.EmojiImportData{
@@ -329,7 +329,7 @@ func ImportLineFromEmoji(emoji *model.Emoji, filePath string) *imports.LineImpor
 	}
 }
 
-func ImportRoleDataFromRole(role *model.Role) *imports.RoleImportData {
+func importRoleDataFromRole(role *model.Role) *imports.RoleImportData {
 	return &imports.RoleImportData{
 		Name:          &role.Name,
 		DisplayName:   &role.DisplayName,
@@ -339,14 +339,14 @@ func ImportRoleDataFromRole(role *model.Role) *imports.RoleImportData {
 	}
 }
 
-func ImportLineFromRole(role *model.Role) *imports.LineImportData {
+func importLineFromRole(role *model.Role) *imports.LineImportData {
 	return &imports.LineImportData{
 		Type: "role",
-		Role: ImportRoleDataFromRole(role),
+		Role: importRoleDataFromRole(role),
 	}
 }
 
-func ImportLineFromScheme(scheme *model.Scheme, rolesMap map[string]*model.Role) *imports.LineImportData {
+func importLineFromScheme(scheme *model.Scheme, rolesMap map[string]*model.Role) *imports.LineImportData {
 	data := &imports.SchemeImportData{
 		Name:        &scheme.Name,
 		DisplayName: &scheme.DisplayName,
@@ -355,15 +355,15 @@ func ImportLineFromScheme(scheme *model.Scheme, rolesMap map[string]*model.Role)
 	}
 
 	if scheme.Scope == model.SchemeScopeTeam {
-		data.DefaultTeamAdminRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultTeamAdminRole])
-		data.DefaultTeamUserRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultTeamUserRole])
-		data.DefaultTeamGuestRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultTeamGuestRole])
+		data.DefaultTeamAdminRole = importRoleDataFromRole(rolesMap[scheme.DefaultTeamAdminRole])
+		data.DefaultTeamUserRole = importRoleDataFromRole(rolesMap[scheme.DefaultTeamUserRole])
+		data.DefaultTeamGuestRole = importRoleDataFromRole(rolesMap[scheme.DefaultTeamGuestRole])
 	}
 
 	if scheme.Scope == model.SchemeScopeTeam || scheme.Scope == model.SchemeScopeChannel {
-		data.DefaultChannelAdminRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultChannelAdminRole])
-		data.DefaultChannelUserRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultChannelUserRole])
-		data.DefaultChannelGuestRole = ImportRoleDataFromRole(rolesMap[scheme.DefaultChannelGuestRole])
+		data.DefaultChannelAdminRole = importRoleDataFromRole(rolesMap[scheme.DefaultChannelAdminRole])
+		data.DefaultChannelUserRole = importRoleDataFromRole(rolesMap[scheme.DefaultChannelUserRole])
+		data.DefaultChannelGuestRole = importRoleDataFromRole(rolesMap[scheme.DefaultChannelGuestRole])
 	}
 
 	return &imports.LineImportData{
@@ -372,7 +372,7 @@ func ImportLineFromScheme(scheme *model.Scheme, rolesMap map[string]*model.Role)
 	}
 }
 
-func ImportFollowerFromThreadMember(threadMember *model.ThreadMembershipForExport) *imports.ThreadFollowerImportData {
+func importFollowerFromThreadMember(threadMember *model.ThreadMembershipForExport) *imports.ThreadFollowerImportData {
 	return &imports.ThreadFollowerImportData{
 		User:           &threadMember.Username,
 		LastViewed:     &threadMember.LastViewed,

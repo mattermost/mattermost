@@ -1624,7 +1624,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"mention_keys": "User,@User,MENTION",
 		},
 	}
-	mentionableUser1ID := MentionableUserID(user1.Id)
+	mentionableUser1ID := mentionableUserID(user1.Id)
 
 	channelMemberNotifyPropsMap1Off := map[string]model.StringMap{
 		user1.Id: {
@@ -1655,7 +1655,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"first_name": "true",
 		},
 	}
-	mentionableUser2ID := MentionableUserID(user2.Id)
+	mentionableUser2ID := mentionableUserID(user2.Id)
 
 	channelMemberNotifyPropsMap2Off := map[string]model.StringMap{
 		user2.Id: {
@@ -1680,7 +1680,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"channel": "true",
 		},
 	}
-	mentionableUser3ID := MentionableUserID(user3.Id)
+	mentionableUser3ID := mentionableUserID(user3.Id)
 
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap3Off := map[string]model.StringMap{
@@ -1746,7 +1746,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"channel":      "true",
 		},
 	}
-	mentionableUser4ID := MentionableUserID(user4.Id)
+	mentionableUser4ID := mentionableUserID(user4.Id)
 
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap4Off := map[string]model.StringMap{
@@ -1933,7 +1933,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	assert.Equal(t, 1, len(keywords), "should've returned one mention keyword")
 	ids, ok = keywords["@user"]
 	assert.True(t, ok)
-	assert.Equal(t, MentionableUserID(userNoMentionKeys.Id), ids[0], "should've returned mention key of @user")
+	assert.Equal(t, mentionableUserID(userNoMentionKeys.Id), ids[0], "should've returned mention key of @user")
 }
 
 func TestGetMentionKeywords_Groups(t *testing.T) {
@@ -1942,8 +1942,8 @@ func TestGetMentionKeywords_Groups(t *testing.T) {
 
 	userID1 := model.NewId()
 	userID2 := model.NewId()
-	mentionableUserID1 := MentionableUserID(userID1)
-	mentionableUserID2 := MentionableUserID(userID2)
+	mentionableUserID1 := mentionableUserID(userID1)
+	mentionableUserID2 := mentionableUserID(userID2)
 
 	for name, tc := range map[string]struct {
 		Profiles                 map[string]*model.User
@@ -3094,13 +3094,13 @@ func TestRemoveNotifications(t *testing.T) {
 
 func TestShouldAckWebsocketNotification(t *testing.T) {
 	t.Run("should return true if channel notify level is ALL", func(t *testing.T) {
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyNone, model.ChannelNotifyAll))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyNone, model.ChannelNotifyAll))
 	})
 	t.Run("should return true if user notify level is ALL and the channel is unchanged", func(t *testing.T) {
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyAll, model.ChannelNotifyDefault))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyAll, model.ChannelNotifyDefault))
 	})
 	t.Run("should return true if its a group channel, and the level is mention", func(t *testing.T) {
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyMention, model.ChannelNotifyDefault))
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyNone, model.ChannelNotifyMention))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyMention, model.ChannelNotifyDefault))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyNone, model.ChannelNotifyMention))
 	})
 }

@@ -83,7 +83,7 @@ export function UserGroupPopoverController(props: Props) {
             </span>
 
             {isMounted && (
-                <FloatingPortal id='user-group-popover-portal'>
+                <FloatingPortal id='root-portal'>
                     <FloatingOverlay
                         id='user-group-popover-floating-overlay'
                         className='user-group-popover-floating-overlay'

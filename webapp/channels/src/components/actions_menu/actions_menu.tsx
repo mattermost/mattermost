@@ -24,7 +24,6 @@ import Pluggable from 'plugins/pluggable';
 import {createCallContext} from 'utils/apps';
 import {Constants, Locations, ModalIdentifiers} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
@@ -395,7 +394,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         key='more-actions-button'
                         ref={this.buttonRef}
                         id={`${this.props.location}_actions_button_${this.props.post.id}`}
-                        aria-label={Utils.localizeMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase()}
+                        aria-label={formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase()}
                         className={classNames('post-menu__item', {
                             'post-menu__item--active': this.props.isMenuOpen,
                         })}
@@ -409,7 +408,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     id={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                     openLeft={true}
                     openUp={this.state.openUp}
-                    ariaLabel={Utils.localizeMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
+                    ariaLabel={formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
                     key={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                 >
                     {menuItems}

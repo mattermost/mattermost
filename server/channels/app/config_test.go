@@ -95,12 +95,12 @@ func TestEnsureInstallationDate(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			sqlStore := th.GetSqlStore()
-			sqlStore.GetMasterX().Exec("DELETE FROM Users")
+			sqlStore.GetMaster().Exec("DELETE FROM Users")
 
 			for _, createAt := range tc.UsersCreationDates {
 				user := th.CreateUser()
 				user.CreateAt = createAt
-				sqlStore.GetMasterX().Exec("UPDATE Users SET CreateAt = ? WHERE Id = ?", createAt, user.Id)
+				sqlStore.GetMaster().Exec("UPDATE Users SET CreateAt = ? WHERE Id = ?", createAt, user.Id)
 			}
 
 			if tc.PrevInstallationDate == nil {
@@ -125,7 +125,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)
 			}
 
-			sqlStore.GetMasterX().Exec("DELETE FROM Users")
+			sqlStore.GetMaster().Exec("DELETE FROM Users")
 		})
 	}
 }

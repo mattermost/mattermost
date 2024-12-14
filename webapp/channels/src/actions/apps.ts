@@ -9,7 +9,6 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {cleanForm} from 'mattermost-redux/utils/apps';
 
 import {openModal} from 'actions/views/modals';
@@ -22,6 +21,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 
 import type {DoAppCallResult} from 'types/apps';
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 import {sendEphemeralPost} from './global_actions';
 

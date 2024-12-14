@@ -275,7 +275,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.46.1
+    image: mcr.microsoft.com/playwright:v1.49.0-noble
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:

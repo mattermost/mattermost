@@ -405,7 +405,7 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsy
 
         const actions: AnyAction[] = [];
         for (const channelId in channelProfiles) {
-            if (channelProfiles.hasOwnProperty(channelId)) {
+            if (Object.hasOwn(channelProfiles, channelId)) {
                 const profiles = channelProfiles[channelId];
 
                 actions.push(

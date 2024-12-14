@@ -23,7 +23,6 @@ import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/e
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {
@@ -42,10 +41,10 @@ import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
-function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean, GlobalState> {
+function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
 
@@ -55,7 +54,7 @@ function selectPostWithPreviousState(post: Post, previousRhsState?: RhsState): A
     };
 }
 
-function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean, GlobalState> {
+function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -105,7 +104,7 @@ export function openShowEditHistory(post: Post) {
     };
 }
 
-export function goBack(): ActionFuncAsync<boolean, GlobalState> {
+export function goBack(): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const prevState = getPreviousRhsState(getState());
         const defaultTab = 'channel-info';
@@ -123,14 +122,14 @@ export function selectPostFromRightHandSideSearch(post: Post) {
     return selectPostWithPreviousState(post);
 }
 
-export function selectPostFromRightHandSideSearchByPostId(postId: string): ActionFuncAsync<boolean, GlobalState> {
+export function selectPostFromRightHandSideSearchByPostId(postId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const post = getPost(getState(), postId);
         return dispatch(selectPostFromRightHandSideSearch(post));
     };
 }
 
-export function replyToLatestPostInChannel(channelId: string): ActionFuncAsync<boolean, GlobalState> {
+export function replyToLatestPostInChannel(channelId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         const postId = getLatestInteractablePostId(state, channelId);
@@ -209,7 +208,7 @@ function updateSearchResultsType(searchType: string) {
     };
 }
 
-export function performSearch(terms: string, teamId: string, isMentionSearch?: boolean): ThunkActionFunc<unknown, GlobalState> {
+export function performSearch(terms: string, teamId: string, isMentionSearch?: boolean): ThunkActionFunc<unknown> {
     return (dispatch, getState) => {
         let searchTerms = terms;
         const config = getConfig(getState());
@@ -256,7 +255,7 @@ export function filterFilesSearchByExt(extensions: string[]) {
     };
 }
 
-export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unknown, GlobalState> {
+export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unknown> {
     return (dispatch, getState) => {
         const state = getState();
 
@@ -285,7 +284,7 @@ export function showRHSPlugin(pluggableId: string) {
     };
 }
 
-export function showChannelMembers(channelId: string, inEditingMode = false): ActionFuncAsync<boolean, GlobalState> {
+export function showChannelMembers(channelId: string, inEditingMode = false): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -308,9 +307,9 @@ export function showChannelMembers(channelId: string, inEditingMode = false): Ac
     };
 }
 
-export function hideRHSPlugin(pluggableId: string): ActionFunc<boolean, GlobalState> {
+export function hideRHSPlugin(pluggableId: string): ActionFunc<boolean> {
     return (dispatch, getState) => {
-        const state = getState() as GlobalState;
+        const state = getState();
 
         if (getPluggableId(state) === pluggableId) {
             dispatch(closeRightHandSide());
@@ -320,7 +319,7 @@ export function hideRHSPlugin(pluggableId: string): ActionFunc<boolean, GlobalSt
     };
 }
 
-export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean, GlobalState> {
+export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
 
@@ -369,7 +368,7 @@ export function showFlaggedPosts(): ActionFuncAsync {
     };
 }
 
-export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean, GlobalState> {
+export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentChannelId = getCurrentChannelId(state);
@@ -412,7 +411,7 @@ export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean, Gl
     };
 }
 
-export function showChannelFiles(channelId: string): ActionFuncAsync<boolean, GlobalState> {
+export function showChannelFiles(channelId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         const teamId = getSearchTeam(state);
@@ -470,7 +469,7 @@ export function showChannelFiles(channelId: string): ActionFuncAsync<boolean, Gl
     };
 }
 
-export function showMentions(): ActionFunc<boolean, GlobalState> {
+export function showMentions(): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const termKeys = getCurrentUserMentionKeys(getState()).filter(({key}) => {
             return key !== '@channel' && key !== '@all' && key !== '@here';
@@ -622,7 +621,7 @@ export function openRHSSearch(): ActionFunc {
     };
 }
 
-export function openAtPrevious(previous: any): ThunkActionFunc<unknown, GlobalState> {
+export function openAtPrevious(previous: any): ThunkActionFunc<unknown> {
     return (dispatch, getState) => {
         if (!previous) {
             return dispatch(openRHSSearch());

@@ -21,7 +21,7 @@ func (ps *PlatformService) AddStatusCacheSkipClusterSend(status *model.Status) {
 func (ps *PlatformService) AddStatusCache(status *model.Status) {
 	ps.AddStatusCacheSkipClusterSend(status)
 
-	if ps.Cluster() != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
+	if ps.Cluster() != nil {
 		statusJSON, err := json.Marshal(status)
 		if err != nil {
 			ps.logger.Warn("Failed to encode status to JSON", mlog.Err(err))

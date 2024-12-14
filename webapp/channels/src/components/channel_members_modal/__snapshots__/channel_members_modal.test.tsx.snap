@@ -29,7 +29,7 @@ exports[`components/ChannelMembersModal should match snapshot 1`] = `
     onHide={[Function]}
     renderBackdrop={[Function]}
     restoreFocus={true}
-    role="dialog"
+    role="none"
     show={true}
   >
     <ModalHeader
@@ -123,7 +123,7 @@ exports[`components/ChannelMembersModal should match snapshot with archived chan
     onHide={[Function]}
     renderBackdrop={[Function]}
     restoreFocus={true}
-    role="dialog"
+    role="none"
     show={true}
   >
     <ModalHeader

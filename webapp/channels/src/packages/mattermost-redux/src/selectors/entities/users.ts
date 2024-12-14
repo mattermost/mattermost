@@ -104,7 +104,7 @@ export const getUsersByUsername: (a: GlobalState) => Record<string, UserProfile>
         const usersByUsername: Record<string, UserProfile> = {};
 
         for (const id in users) {
-            if (users.hasOwnProperty(id)) {
+            if (Object.hasOwn(users, id)) {
                 const user = users[id];
                 usersByUsername[user.username] = user;
             }

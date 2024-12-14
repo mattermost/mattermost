@@ -424,7 +424,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 backdrop={this.getBackdrop()}
                 aria-modal='true'
                 aria-labelledby='invitation_modal_title'

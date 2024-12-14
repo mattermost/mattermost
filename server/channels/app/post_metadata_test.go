@@ -2756,6 +2756,70 @@ func TestParseImages(t *testing.T) {
 				Format: "png",
 			},
 		},
+		"jpg-1": {
+			FileName: "orientation_test_1.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-2": {
+			FileName: "orientation_test_2.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-3": {
+			FileName: "orientation_test_3.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-4": {
+			FileName: "orientation_test_4.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-5": {
+			FileName: "orientation_test_5.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-6": {
+			FileName: "orientation_test_6.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-7": {
+			FileName: "orientation_test_7.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-8": {
+			FileName: "orientation_test_8.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
 		"animated gif": {
 			FileName: "testgif.gif",
 			Expected: &model.PostImage{

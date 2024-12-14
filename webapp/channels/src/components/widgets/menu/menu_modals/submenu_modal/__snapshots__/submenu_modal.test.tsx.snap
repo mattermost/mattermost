@@ -27,7 +27,7 @@ exports[`components/submenu_modal should match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalBody
@@ -44,25 +44,18 @@ exports[`components/submenu_modal should match snapshot 1`] = `
         ariaLabel="mobile submenu"
         openLeft={true}
       >
-        <SubMenuItem
+        <injectIntl(SubMenuItem)
           action={[MockFunction]}
-          direction="left"
           id="A"
           key="A"
-          renderSelected={true}
           root={false}
-          show={true}
-          subMenuClass="pl-4"
           text="Text A"
         />
-        <SubMenuItem
+        <injectIntl(SubMenuItem)
           action={[MockFunction]}
-          direction="left"
           id="B"
           key="B"
-          renderSelected={true}
           root={false}
-          show={true}
           subMenu={
             Array [
               Object {
@@ -73,7 +66,6 @@ exports[`components/submenu_modal should match snapshot 1`] = `
               },
             ]
           }
-          subMenuClass="pl-4"
           text="Text B"
         />
       </Menu>

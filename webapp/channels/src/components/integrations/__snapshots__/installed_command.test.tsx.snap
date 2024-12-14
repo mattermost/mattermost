@@ -80,6 +80,12 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>
@@ -186,6 +192,12 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>
@@ -262,6 +274,12 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>
@@ -336,6 +354,12 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>

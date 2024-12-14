@@ -4,12 +4,13 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {CSSProperties} from 'react';
+import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import {showMobileSubMenuModal} from 'actions/global_actions';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import * as Utils from 'utils/utils';
 
 import type {Menu} from 'types/store/plugins';
 
@@ -38,7 +39,7 @@ import './menu_item.scss';
 // }
 // Submenus can contain Submenus as well
 
-export type Props = {
+export type Props = WrappedComponentProps & {
     id?: string;
     postId?: string;
     text: React.ReactNode;
@@ -68,12 +69,12 @@ type State = {
 /**
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
-export default class SubMenuItem extends React.PureComponent<Props, State> {
+export class SubMenuItem extends React.PureComponent<Props, State> {
     private node: React.RefObject<HTMLLIElement>;
 
     public static defaultProps = {
         show: true,
-        direction: 'left',
+        direction: 'left' as const,
         subMenuClass: 'pl-4',
         renderSelected: true,
     };
@@ -149,7 +150,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
     };
 
     public render() {
-        const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex} = this.props;
+        const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex, intl} = this.props;
         const isMobile = isMobileViewHack();
 
         if (filter && !filter(id)) {
@@ -191,7 +192,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                         const hasDivider = s.id === 'ChannelMenu-moveToDivider';
                         let aria = ariaLabel;
                         if (s.action) {
-                            aria = s.text === selectedValueText ? s.text + ' ' + Utils.localizeMessage({id: 'sidebar.menu.item.selected', defaultMessage: 'selected'}) : s.text + ' ' + Utils.localizeMessage({id: 'sidebar.menu.item.notSelected', defaultMessage: 'not selected'});
+                            aria = s.text === selectedValueText ? s.text + ' ' + intl.formatMessage({id: 'sidebar.menu.item.selected', defaultMessage: 'selected'}) : s.text + ' ' + intl.formatMessage({id: 'sidebar.menu.item.notSelected', defaultMessage: 'not selected'});
                         }
                         return (
                             <span
@@ -213,6 +214,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                                     direction={s.direction}
                                     isHeader={s.isHeader}
                                     tabIndex={1}
+                                    intl={this.props.intl}
                                 />
                                 {s.text === selectedValueText && <span className='sorting-menu-checkbox'>
                                     <i className='icon-check'/>
@@ -248,7 +250,7 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                             <span
                                 id={'channelHeaderDropdownIconRight_' + id}
                                 className={classNames([`fa fa-angle-right SubMenu__icon-right${hasSubmenu ? '' : '-empty'}`, {mobile: isMobile}])}
-                                aria-label={Utils.localizeMessage({id: 'post_info.submenu.icon', defaultMessage: 'submenu icon'}).toLowerCase()}
+                                aria-label={intl.formatMessage({id: 'post_info.submenu.icon', defaultMessage: 'submenu icon'}).toLowerCase()}
                             />
                         }
                     </div>
@@ -259,3 +261,5 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SubMenuItem);

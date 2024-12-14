@@ -18,55 +18,7 @@ const testServerVersion = async (
     formatMessage: ReturnType<typeof useIntl>['formatMessage'],
     options: Options,
 ) => {
-    const fetchVersion = async (
-        installedVersion: string,
-        formatMessage: ReturnType<typeof useIntl>['formatMessage'],
-    ) => {
-        const result = await fetch(`${Client4.getBaseRoute()}/latest_version`).then((result) => result.json());
-
-        if (result.tag_name) {
-            const sanitizedVersion = result.tag_name.startsWith('v') ? result.tag_name.slice(1) : result.tag_name;
-            const newVersionParts = sanitizedVersion.split('.');
-            const installedVersionParts = installedVersion.split('.').slice(0, 3);
-
-            // quick general check if a newer version is available
-            let type = '';
-            let status: ItemStatus = ItemStatus.OK;
-
-            if (newVersionParts.join('') > installedVersionParts.join('')) {
-                // get correct values to be inserted into the accordion item
-                switch (true) {
-                case newVersionParts[0] > installedVersionParts[0]:
-                    type = formatMessage({
-                        id: 'admin.reporting.workspace_optimization.updates.server_version.update_type.major',
-                        defaultMessage: 'Major',
-                    });
-                    status = ItemStatus.ERROR;
-                    break;
-                case newVersionParts[1] > installedVersionParts[1]:
-                    type = formatMessage({
-                        id: 'admin.reporting.workspace_optimization.updates.server_version.update_type.minor',
-                        defaultMessage: 'Minor',
-                    });
-                    status = ItemStatus.WARNING;
-                    break;
-                case newVersionParts[2] > installedVersionParts[2]:
-                    type = formatMessage({
-                        id: 'admin.reporting.workspace_optimization.updates.server_version.update_type.patch',
-                        defaultMessage: 'Patch',
-                    });
-                    status = ItemStatus.INFO;
-                    break;
-                }
-            }
-
-            return {type, description: result.body, status};
-        }
-
-        return {type: '', description: '', status: ItemStatus.OK};
-    };
-
-    const serverVersion = await fetchVersion(options.installedVersion, formatMessage);
+    const serverVersion = await fetchAndCompareVersion(options.installedVersion, formatMessage);
     return {
         id: 'server_version',
         title: formatMessage({
@@ -83,6 +35,54 @@ const testServerVersion = async (
         scoreImpact: 15,
         impactModifier: impactModifiers[serverVersion.status],
     };
+};
+
+export const fetchAndCompareVersion = async (
+    installedVersion: string,
+    formatMessage: ReturnType<typeof useIntl>['formatMessage'],
+) => {
+    const result = await fetch(`${Client4.getBaseRoute()}/latest_version`).then((result) => result.json());
+
+    if (result.tag_name) {
+        const sanitizedVersion = result.tag_name.startsWith('v') ? result.tag_name.slice(1) : result.tag_name;
+        const newVersionParts = sanitizedVersion.split('.');
+        const installedVersionParts = installedVersion.split('.').slice(0, 3);
+
+        // quick general check if a newer version is available
+        let type = '';
+        let status: ItemStatus = ItemStatus.OK;
+
+        if (sanitizedVersion.localeCompare(installedVersion, undefined, {numeric: true, sensitivity: 'base'}) > 0) {
+            // get correct values to be inserted into the accordion item
+            switch (true) {
+            case Number(newVersionParts[0]) > Number(installedVersionParts[0]):
+                type = formatMessage({
+                    id: 'admin.reporting.workspace_optimization.updates.server_version.update_type.major',
+                    defaultMessage: 'Major',
+                });
+                status = ItemStatus.ERROR;
+                break;
+            case Number(newVersionParts[1]) > Number(installedVersionParts[1]):
+                type = formatMessage({
+                    id: 'admin.reporting.workspace_optimization.updates.server_version.update_type.minor',
+                    defaultMessage: 'Minor',
+                });
+                status = ItemStatus.WARNING;
+                break;
+            case Number(newVersionParts[2]) > Number(installedVersionParts[2]):
+                type = formatMessage({
+                    id: 'admin.reporting.workspace_optimization.updates.server_version.update_type.patch',
+                    defaultMessage: 'Patch',
+                });
+                status = ItemStatus.INFO;
+                break;
+            }
+        }
+
+        return {type, description: result.body, status};
+    }
+
+    return {type: '', description: '', status: ItemStatus.OK};
 };
 
 export const runUpdateChecks = async (

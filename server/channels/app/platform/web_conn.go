@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -436,7 +437,11 @@ func (wc *WebConn) readPump() {
 	}
 
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
-	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+	err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+	if err != nil {
+		wc.logSocketErr("websocket.SetReadDeadline", err)
+		return
+	}
 	wc.WebSocket.SetPongHandler(func(string) error {
 		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
 			return err
@@ -550,7 +555,9 @@ func (wc *WebConn) writePump() {
 		select {
 		case msg, ok := <-wc.send:
 			if !ok {
-				wc.writeMessageBuf(websocket.CloseMessage, []byte{})
+				if err := wc.writeMessageBuf(websocket.CloseMessage, []byte{}); err != nil {
+					wc.logSocketErr("websocket.send", err)
+				}
 				return
 			}
 
@@ -619,7 +626,9 @@ func (wc *WebConn) writePump() {
 // writeMessageBuf is a helper utility that wraps the write to the socket
 // along with setting the write deadline.
 func (wc *WebConn) writeMessageBuf(msgType int, data []byte) error {
-	wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
+	if err := wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime)); err != nil {
+		return err
+	}
 	return wc.WebSocket.WriteMessage(msgType, data)
 }
 
@@ -776,6 +785,18 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 		wc.Platform.ClientConfigHash(),
 		ee))
 	msg.Add("connection_id", wc.connectionID.Load())
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		wc.Platform.logger.Warn("Could not get hostname",
+			mlog.String("user_id", wc.UserId),
+			mlog.String("conn_id", wc.GetConnectionID()),
+			mlog.Err(err))
+		// return without the hostname in the message
+		return msg
+	}
+
+	msg.Add("server_hostname", hostname)
 	return msg
 }
 

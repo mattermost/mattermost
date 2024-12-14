@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'components/with_tooltip/with_tooltip_new';
 
 type Props = {
     canAddReactions: boolean;
@@ -14,7 +14,6 @@ type Props = {
     children: React.ReactNode;
     currentUserReacted: boolean;
     emojiName: string;
-    id: string;
     onShow: () => void;
     reactions: ReactionType[];
     users: string[];
@@ -27,7 +26,6 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         children,
         currentUserReacted,
         emojiName,
-        id,
         onShow,
         reactions,
         users,
@@ -101,7 +99,7 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         });
     }
 
-    const tooltip = intl.formatMessage(
+    const tooltipTitle = intl.formatMessage(
         {
             id: 'reaction.reacted',
             defaultMessage: '{users} {reactionVerb} with {emoji}',
@@ -113,14 +111,14 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         },
     );
 
-    let clickTooltip;
+    let tooltipHint;
     if (currentUserReacted && canRemoveReactions) {
-        clickTooltip = intl.formatMessage({
+        tooltipHint = intl.formatMessage({
             id: 'reaction.clickToRemove',
             defaultMessage: '(click to remove)',
         });
     } else if (!currentUserReacted && canAddReactions) {
-        clickTooltip = intl.formatMessage({
+        tooltipHint = intl.formatMessage({
             id: 'reaction.clickToAdd',
             defaultMessage: '(click to add)',
         });
@@ -128,13 +126,11 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
 
     return (
         <WithTooltip
-            id={id}
+            title={tooltipTitle}
+            hint={tooltipHint}
             emoji={emojiName}
-            emojiStyle='large'
-            placement='top'
-            title={tooltip}
-            hint={clickTooltip}
-            onShow={onShow}
+            isEmojiLarge={true}
+            onOpen={onShow}
         >
             {children}
         </WithTooltip>

@@ -548,12 +548,23 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
         img {
             -moz-transform: scale(0.45);
-            zoom: 0.45;
+            transform: scale(0.45);
+
+            @supports (zoom: 0.45) {
+                -moz-transform: none;
+                transform: none;
+                zoom: 0.45;
+            }
 
             &.emoji-category--custom {
                 -moz-transform: scale(1);
-                transform: scale(1.25);
-                zoom: 1;
+                transform: scale(1);
+
+                @supports (zoom: 1) {
+                    -moz-transform: none;
+                    transform: none;
+                    zoom: 1;
+                }
             }
         }
     }

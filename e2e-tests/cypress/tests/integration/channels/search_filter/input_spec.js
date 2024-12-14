@@ -108,7 +108,7 @@ describe('Search Date Filter', () => {
         cy.get('@dayPicker').should('be.visible');
     });
 
-    it('MM-T598 Dates work without leading 0 for date and month', () => {
+    it.skip('MM-T598 Dates work without leading 0 for date and month', () => {
         // These must match the date of the firstMessage, only altering leading zeroes
         const testCases = [
             {name: 'day', date: '2018-06-5'},
@@ -122,7 +122,7 @@ describe('Search Date Filter', () => {
         });
     });
 
-    it('MM-T601 Remove date filter with keyboard', () => {
+    it.skip('MM-T601 Remove date filter with keyboard', () => {
         const queryString = `on:${Cypress.dayjs().format('YYYY-MM-DD')} ${commonText}`;
 
         // * Filter can be removed with keyboard

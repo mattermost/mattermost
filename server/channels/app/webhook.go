@@ -224,7 +224,7 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 	return &hookResp, nil
 }
 
-func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
+func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
 	splits := make([]*model.Post, 0)
 	remainingText := post.Message
 
@@ -238,7 +238,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	}
 
 	if utf8.RuneCountInString(model.StringInterfaceToJSON(base.GetProps())) > model.PostPropsMaxUserRunes {
-		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("splitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 	}
 
 	for utf8.RuneCountInString(remainingText) > maxPostSize {
@@ -287,7 +287,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			truncationNeeded := runeCount - model.PostPropsMaxUserRunes
 			textRuneCount := utf8.RuneCountInString(attachment.Text)
 			if textRuneCount < truncationNeeded {
-				return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
+				return nil, model.NewAppError("splitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
 			}
 			x := 0
 			for index := range attachment.Text {
@@ -360,7 +360,7 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 		}
 	}
 
-	splits, err := SplitWebhookPost(post, a.MaxPostSize())
+	splits, err := splitWebhookPost(post, a.MaxPostSize())
 	if err != nil {
 		return nil, err
 	}
