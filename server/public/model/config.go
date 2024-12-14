@@ -963,7 +963,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableLateTimeWarnings == nil {
-		s.EnableLateTimeWarnings = NewPointer(false)
+		s.EnableLateTimeWarnings = NewPointer(true)
 	}
 }
 
