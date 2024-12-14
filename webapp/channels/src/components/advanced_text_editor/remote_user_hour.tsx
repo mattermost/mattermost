@@ -40,6 +40,10 @@ const Icon = styled(Moon)`
     margin: 0 2px;
 `;
 
+Icon.defaultProps = {
+    'data-testid': 'moonIcon',
+};
+
 type Props = {
     displayName: string;
     timestamp: number;
