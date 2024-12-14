@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import type {UserTimezone} from '@mattermost/types/users';
+
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import Moon from 'components/common/svg_images_components/moon_svg';
