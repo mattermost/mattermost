@@ -4072,7 +4072,7 @@ func (a *OpenTracingAppLayer) DoEmojisPermissionsMigration() error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DoGuestRolesCreationMigration() {
+func (a *OpenTracingAppLayer) DoGuestRolesCreationMigration() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoGuestRolesCreationMigration")
 
@@ -4084,7 +4084,14 @@ func (a *OpenTracingAppLayer) DoGuestRolesCreationMigration() {
 	}()
 
 	defer span.Finish()
-	a.app.DoGuestRolesCreationMigration()
+	resultVar0 := a.app.DoGuestRolesCreationMigration()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {

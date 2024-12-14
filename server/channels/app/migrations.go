@@ -165,10 +165,11 @@ func (s *Server) doEmojisPermissionsMigration() error {
 	return nil
 }
 
-func (a *App) DoGuestRolesCreationMigration() {
+func (a *App) DoGuestRolesCreationMigration() error {
 	if err := a.Srv().doGuestRolesCreationMigration(); err != nil {
-		mlog.Error("Failed to complete guest roles creation migration", mlog.Err(err))
+		return fmt.Errorf("Failed to complete guest roles creation migration: %w", err)
 	}
+	return nil
 }
 
 func (s *Server) doGuestRolesCreationMigration() error {
