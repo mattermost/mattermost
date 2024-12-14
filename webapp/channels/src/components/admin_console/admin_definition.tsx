@@ -1515,7 +1515,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.EnableLateTimeWarnings',
                             label: defineMessage({id: 'admin.notifications.enableLateTimeWarnings.title', defaultMessage: 'Enable Late Time Warnings:'}),
                             help_text: defineMessage({id: 'admin.notifications.enableLateTimeWarnings.description', defaultMessage: 'When true, users will be warned when sending direct messages to other users during their late hours based on their timezone.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                         },
                     ],
                 },
