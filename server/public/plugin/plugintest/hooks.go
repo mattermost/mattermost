@@ -379,6 +379,36 @@ func (_m *Hooks) OnInstall(c *plugin.Context, event model.OnInstallEvent) error 
 	return r0
 }
 
+// OnOmniSearch provides a mock function with given fields: c, terms, userID, isOrSearch, timeZoneOffset, page, perPage
+func (_m *Hooks) OnOmniSearch(c *plugin.Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error) {
+	ret := _m.Called(c, terms, userID, isOrSearch, timeZoneOffset, page, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OnOmniSearch")
+	}
+
+	var r0 []*model.OmniSearchResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, string, bool, int, int, int) ([]*model.OmniSearchResult, error)); ok {
+		return rf(c, terms, userID, isOrSearch, timeZoneOffset, page, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, string, bool, int, int, int) []*model.OmniSearchResult); ok {
+		r0 = rf(c, terms, userID, isOrSearch, timeZoneOffset, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.OmniSearchResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, string, string, bool, int, int, int) error); ok {
+		r1 = rf(c, terms, userID, isOrSearch, timeZoneOffset, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // OnPluginClusterEvent provides a mock function with given fields: c, ev
 func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterEvent) {
 	_m.Called(c, ev)

@@ -166,6 +166,7 @@ func init() {
 	gob.Register(&model.AutocompleteStaticListArg{})
 	gob.Register(&model.AutocompleteTextArg{})
 	gob.Register(&model.PreviewPost{})
+	gob.Register([]*model.OmniSearchResult{})
 }
 
 // These enforce compile time checks to make sure types implement the interface

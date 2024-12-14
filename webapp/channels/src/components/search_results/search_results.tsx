@@ -9,6 +9,7 @@ import {useSelector} from 'react-redux';
 
 import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
+import type {OmniSearchResult} from '@mattermost/types/search';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -29,6 +30,7 @@ import FilesFilterMenu from './files_filter_menu';
 import MessageOrFileSelector from './messages_or_files_selector';
 import PostSearchResultsItem from './post_search_results_item';
 import SearchLimitsBanner from './search_limits_banner';
+import OmniSearchResultItem from './omnisearch_result_item';
 import type {Props} from './types';
 
 import './search_results.scss';
@@ -152,10 +154,12 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const {
         results,
         fileResults,
+        omniSearchResults,
         searchTerms,
         isCard,
         isSearchAtEnd,
         isSearchFilesAtEnd,
+        isOmniSearchAtEnd,
         isSearchingTerm,
         isFlaggedPosts,
         isSearchingFlaggedPost,
@@ -319,8 +323,11 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         if (searchType === DataSearchTypes.FILES_SEARCH_TYPE || isChannelFiles) {
             sortedResults = fileResults;
         }
+        if (searchType === DataSearchTypes.OMNISEARCH_SEARCH_TYPE) {
+            sortedResults = omniSearchResults;
+        }
 
-        contentItems = sortedResults.map((item: Post|FileSearchResultItemType, index: number) => {
+        contentItems = sortedResults.map((item: Post|FileSearchResultItemType|OmniSearchResult, index: number) => {
             if (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isChannelFiles) {
                 return (
                     <PostSearchResultsItem
@@ -335,15 +342,32 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     />
                 );
             }
-            return (
-                <FileSearchResultItem
-                    key={item.id}
-                    channelId={item.channel_id}
-                    fileInfo={item as FileSearchResultItemType}
-                    teamName={props.currentTeamName}
-                    pluginMenuItems={filesDropdownPluginMenuItems}
-                />
-            );
+            if (searchType === DataSearchTypes.FILES_SEARCH_TYPE || props.isChannelFiles) {
+                return (
+                    <FileSearchResultItem
+                        key={item.id}
+                        channelId={(item as FileSearchResultItemType).channel_id}
+                        fileInfo={item as FileSearchResultItemType}
+                        teamName={props.currentTeamName}
+                        pluginMenuItems={filesDropdownPluginMenuItems}
+                    />
+                );
+            }
+            if (searchType === DataSearchTypes.OMNISEARCH_SEARCH_TYPE && !props.isChannelFiles) {
+                const result = item as OmniSearchResult;
+                return (
+                    <OmniSearchResultItem
+                        key={result.id}
+                        icon={result.icon}
+                        link={result.link}
+                        title={result.title}
+                        subtitle={result.subtitle || ''}
+                        description={result.description}
+                        create_at={result.create_at}
+                        source={result.source}
+                    />
+                );
+            }
         });
 
         loadingMorePostsComponent = (showLoadMore) ? (
@@ -375,6 +399,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     isFileAttachmentsEnabled={isFileAttachmentsEnabled(config)}
                     messagesCounter={isSearchAtEnd || props.searchPage === 0 ? `${results.length}` : `${results.length}+`}
                     filesCounter={isSearchFilesAtEnd || props.searchPage === 0 ? `${fileResults.length}` : `${fileResults.length}+`}
+                    omnisearchCounter={isOmniSearchAtEnd || props.searchPage === 0 ? `${omniSearchResults.length}` : `${omniSearchResults.length}+`}
                     onChange={setSearchType}
                     onFilter={setSearchFilterType}
                     onTeamChange={setSearchTeam}

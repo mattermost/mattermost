@@ -51,6 +51,7 @@ type Props = {
 const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
     const setMessagesSearchType = useCallback(() => setSearchType('messages'), [setSearchType]);
     const setFilesSearchType = useCallback(() => setSearchType('files'), [setSearchType]);
+    const setOmnisearchSearchType = useCallback(() => setSearchType('omnisearch'), [setSearchType]);
 
     const searchPluginButtons = useSelector(getSearchButtons);
 
@@ -72,6 +73,15 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                 <FormattedMessage
                     id='search_bar.usage.search_type_files'
                     defaultMessage='Files'
+                />
+            </SearchTypeItem>
+            <SearchTypeItem
+                selected={searchType === 'omnisearch'}
+                onClick={setOmnisearchSearchType}
+            >
+                <FormattedMessage
+                    id='search_bar.usage.search_type_omnisearch'
+                    defaultMessage='Omnisearch'
                 />
             </SearchTypeItem>
             {searchPluginButtons.map(({component, pluginId}: any) => {

@@ -61,6 +61,7 @@ const (
 	OnSharedChannelsAttachmentSyncMsgID       = 43
 	OnSharedChannelsProfileImageSyncMsgID     = 44
 	GenerateSupportDataID                     = 45
+	OnOmniSearchID                            = 46
 	TotalHooksID                              = iota
 )
 
@@ -395,4 +396,11 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.8
 	GenerateSupportData(c *Context) ([]*model.FileData, error)
+
+	// OnOmniSearch is invoked when a search is executed to allow the plugin to provide results to that search.
+	// It allows plugins to include their own content in the Support Packet.
+	//
+	// Minimum server version: 9.10
+	// Enterprise only
+	OnOmniSearch(c *Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error)
 }

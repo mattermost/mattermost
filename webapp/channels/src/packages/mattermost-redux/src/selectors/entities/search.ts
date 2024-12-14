@@ -26,3 +26,7 @@ export const getAllUserMentionKeys: (state: GlobalState) => UserMentionKey[] = c
         return userMentionKeys.concat(groupMentionKeys);
     },
 );
+
+export function getOmniSearchResults(state: GlobalState) {
+    return state.entities.search.omniSearchResults;
+}

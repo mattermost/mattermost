@@ -5,7 +5,7 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
 import type {PostList, PostSearchResults} from '@mattermost/types/posts';
-import type {SearchParameter} from '@mattermost/types/search';
+import type {SearchParameter, OmniSearchResult} from '@mattermost/types/search';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -179,6 +179,45 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
         ], 'SEARCH_FILE_BATCH'));
 
         return {data: files};
+    };
+}
+
+export function searchInOmniSearch(params: SearchParameter): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const isGettingMore = params.page > 0;
+        dispatch({
+            type: SearchTypes.SEARCH_OMNISEARCH_REQUEST,
+            isGettingMore,
+        });
+
+        let results: OmniSearchResult[];
+        try {
+            results = await Client4.searchInOmniSearch(params);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch(batchActions([
+            {
+                type: SearchTypes.RECEIVED_OMNISEARCH_RESULTS,
+                data: results,
+                isGettingMore,
+            },
+            {
+                type: SearchTypes.RECEIVED_SEARCH_TERM,
+                data: {
+                    params,
+                    isFilesEnd: results.length === 0,
+                },
+            },
+            {
+                type: SearchTypes.SEARCH_OMNISEARCH_SUCCESS,
+            },
+        ], 'SEARCH_OMNISEARCH_BATCH'));
+
+        return {data: results};
     };
 }
 

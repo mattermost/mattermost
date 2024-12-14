@@ -28,6 +28,7 @@ type Props = {
     selectedFilter: SearchFilterType;
     messagesCounter: string;
     filesCounter: string;
+    omnisearchCounter: string;
     isFileAttachmentsEnabled: boolean;
     crossTeamSearchEnabled: boolean;
     onChange: (value: SearchType) => void;
@@ -75,6 +76,17 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                         <span className='counter'>{props.filesCounter}</span>
                     </button>
                 }
+                <button
+                    onClick={() => props.onChange('omnisearch')}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Keyboard.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('omnisearch')}
+                    className={props.selected === 'omnisearch' ? 'active tab files-tab' : 'tab files-tab'}
+                >
+                    <FormattedMessage
+                        id='search_bar.omnisearch_tab'
+                        defaultMessage='Omnisearch'
+                    />
+                    <span className='counter'>{props.omnisearchCounter}</span>
+                </button>
             </div>
             {props.crossTeamSearchEnabled && (
                 <div className='team-selector-container'>
