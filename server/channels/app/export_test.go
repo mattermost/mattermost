@@ -305,8 +305,9 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 0, len(channels))
 
 		// import the exported channel
-		err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
-		require.Nil(t, err)
+		var i int
+		appErr, i = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+		require.Nil(t, appErr)
 		assert.Equal(t, 0, i)
 
 		// Ensure the Members of the imported DM channel is the same was from the exported
