@@ -568,6 +568,7 @@ func (ts *TelemetryService) trackConfig() {
 		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
 		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
 		"maximum_url_length":                                      *cfg.ServiceSettings.MaximumURLLength,
+		"enable_late_time_warnings":                               *cfg.ServiceSettings.EnableLateTimeWarnings,
 	}
 
 	configs[TrackConfigTeam] = map[string]any{
