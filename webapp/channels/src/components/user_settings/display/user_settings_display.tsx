@@ -236,76 +236,68 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
     handleSubmit = async () => {
         const userId = this.props.user.id;
-
-        const timePreference = {
+        const sharedProperties = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+        };
+
+        const timePreference = {
+            ...sharedProperties,
             name: Preferences.USE_MILITARY_TIME,
             value: this.state.militaryTime,
         };
         const availabilityStatusOnPostsPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.AVAILABILITY_STATUS_ON_POSTS,
             value: this.state.availabilityStatusOnPosts,
         };
         const teammateNameDisplayPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.NAME_NAME_FORMAT,
             value: this.state.teammateNameDisplay,
         };
         const channelDisplayModePreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.CHANNEL_DISPLAY_MODE,
             value: this.state.channelDisplayMode,
         };
         const messageDisplayPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.MESSAGE_DISPLAY,
             value: this.state.messageDisplay,
         };
         const colorizeUsernamesPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.COLORIZE_USERNAMES,
             value: this.state.colorizeUsernames,
         };
         const collapseDisplayPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.COLLAPSE_DISPLAY,
             value: this.state.collapseDisplay,
         };
         const collapsedReplyThreadsPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.COLLAPSED_REPLY_THREADS,
             value: this.state.collapsedReplyThreads,
         };
         const linkPreviewDisplayPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.LINK_PREVIEW_DISPLAY,
             value: this.state.linkPreviewDisplay,
         };
         const oneClickReactionsOnPostsPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.ONE_CLICK_REACTIONS_ENABLED,
             value: this.state.oneClickReactionsOnPosts,
         };
         const clickToReplyPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.CLICK_TO_REPLY,
             value: this.state.clickToReply,
         };
         const autoplayGifsAndEmojisPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+            ...sharedProperties,
             name: Preferences.AUTOPLAY_GIFS_AND_EMOJIS,
             value: this.state.autoplayGifsAndEmojis,
         }
@@ -540,9 +532,9 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                                 id={name + 'childOption'}
                                 type='checkbox'
                                 name={childOptionToShow.label.id}
-                                checked={childOptionToShow.value === 'true'}
+                                checked={childOptionToShow.value === Constants.BoolString.true}
                                 onChange={(e) => {
-                                    this.handleOnChange(e, {[childDisplay]: e.target.checked ? 'true' : 'false'});
+                                    this.handleOnChange(e, {[childDisplay]: e.target.checked ? Constants.BoolString.true : Constants.BoolString.false});
                                 }}
                             />
                             <FormattedMessage
@@ -606,11 +598,11 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 </fieldset>,
             ];
 
-            if (display === 'teammateNameDisplay' && disabled) {
+            if (display === Constants.UserSettings.teammateNameDisplay && disabled) {
                 extraInfo = (
                     <span>
                         <FormattedMessage
-                            id='user.settings.display.teammateNameDisplay'
+                            id={`${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.teammateNameDisplay}`}
                             defaultMessage='This field is handled through your System Administrator. If you want to change it, you need to do so through your System Administrator.'
                         />
                     </span>
@@ -658,33 +650,33 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     render() {
         const collapseSection = this.createSection({
             section: 'collapse',
-            display: 'collapseDisplay',
+            display: `${Constants.UserSettings.collapseDisplay}`,
             value: this.state.collapseDisplay,
-            defaultDisplay: 'false',
+            defaultDisplay: Constants.BoolString.false,
             title: defineMessage({
-                id: 'user.settings.display.collapseDisplay',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.collapseDisplay}`,
                 defaultMessage: 'Default Appearance of Image Previews',
             }),
             firstOption: {
-                value: 'false',
+                value: Constants.BoolString.false,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.collapseOn',
+                        id: `${Constants.UserSettings.displayIdAnchorText}collapseOn`,
                         defaultMessage: 'Expanded',
                     }),
                 },
             },
             secondOption: {
-                value: 'true',
+                value: Constants.BoolString.true,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.collapseOff',
+                        id: `${Constants.UserSettings.displayIdAnchorText}collapseOff`,
                         defaultMessage: 'Collapsed',
                     }),
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.collapseDesc',
+                id: `${Constants.UserSettings.displayIdAnchorText}collapseDesc`,
                 defaultMessage: 'Set whether previews of image links and image attachment thumbnails show as expanded or collapsed by default. This setting can also be controlled using the slash commands /expand and /collapse.',
             }),
         });
@@ -694,33 +686,33 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.enableLinkPreviews) {
             linkPreviewSection = this.createSection({
                 section: 'linkpreview',
-                display: 'linkPreviewDisplay',
+                display: `${Constants.UserSettings.linkPreviewDisplay}`,
                 value: this.state.linkPreviewDisplay,
-                defaultDisplay: 'true',
+                defaultDisplay: Constants.BoolString.true,
                 title: defineMessage({
-                    id: 'user.settings.display.linkPreviewDisplay',
+                    id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.linkPreviewDisplay}`,
                     defaultMessage: 'Website Link Previews',
                 }),
                 firstOption: {
-                    value: 'true',
+                    value: Constants.BoolString.true,
                     radioButtonText: {
                         label: defineMessage({
-                            id: 'user.settings.display.linkPreviewOn',
+                            id: `${Constants.UserSettings.displayIdAnchorText}linkPreviewOn`,
                             defaultMessage: 'On',
                         }),
                     },
                 },
                 secondOption: {
-                    value: 'false',
+                    value: Constants.BoolString.false,
                     radioButtonText: {
                         label: defineMessage({
-                            id: 'user.settings.display.linkPreviewOff',
+                            id: `${Constants.UserSettings.displayIdAnchorText}linkPreviewOff`,
                             defaultMessage: 'Off',
                         }),
                     },
                 },
                 description: defineMessage({
-                    id: 'user.settings.display.linkPreviewDesc',
+                    id: `${Constants.UserSettings.displayIdAnchorText}linkPreviewDesc`,
                     defaultMessage: 'When available, the first web link in a message will show a preview of the website content below the message.',
                 }),
             });
@@ -731,33 +723,33 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const autoplayGifsAndEmojiSection = this.createSection({
             section: Preferences.AUTOPLAY_GIFS_AND_EMOJIS,
-            display: 'autoplayGifsAndEmojis',
+            display: `${Constants.UserSettings.autoplayGifsAndEmojis}`,
             value: this.state.autoplayGifsAndEmojis,
-            defaultDisplay: 'true',
+            defaultDisplay: Constants.BoolString.true,
             title: defineMessage({
-                id: 'user.settings.display.autoplayGifsAndEmojis',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.autoplayGifsAndEmojis}`,
                 defaultMessage: 'Autoplay GIFs and Emojis',
             }),
             firstOption: {
-                value: 'true',
+                value: Constants.BoolString.true,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.autoplayGifsAndEmojisOn',
+                        id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.autoplayGifsAndEmojis}On`,
                         defaultMessage: 'On',
                     }),
                 },
             },
             secondOption: {
-                value: 'false',
+                value: Constants.BoolString.false,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.autoplayGifsAndEmojisOff',
+                        id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.autoplayGifsAndEmojis}Off`,
                         defaultMessage: 'Off',
                     }),
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.autoplayGifsAndEmojisDesc',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.autoplayGifsAndEmojis}Desc`,
                 defaultMessage: 'When disabled, GIFs and animated emojis will appear as static images.',
             }),
         });
@@ -767,33 +759,33 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.lastActiveTimeEnabled) {
             lastActiveSection = this.createSection({
                 section: 'lastactive',
-                display: 'lastActiveDisplay',
+                display: `${Constants.UserSettings.lastActiveDisplay}`,
                 value: this.state.lastActiveDisplay,
-                defaultDisplay: 'true',
+                defaultDisplay: Constants.BoolString.true,
                 title: defineMessage({
-                    id: 'user.settings.display.lastActiveDisplay',
+                    id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.lastActiveDisplay}`,
                     defaultMessage: 'Share last active time',
                 }),
                 firstOption: {
-                    value: 'true',
+                    value: Constants.BoolString.true,
                     radioButtonText: {
                         label: defineMessage({
-                            id: 'user.settings.display.lastActiveOn',
+                            id: `${Constants.UserSettings.displayIdAnchorText}lastActiveOn`,
                             defaultMessage: 'On',
                         }),
                     },
                 },
                 secondOption: {
-                    value: 'false',
+                    value: Constants.BoolString.false,
                     radioButtonText: {
                         label: defineMessage({
-                            id: 'user.settings.display.lastActiveOff',
+                            id: `${Constants.UserSettings.displayIdAnchorText}lastActiveOff`,
                             defaultMessage: 'Off',
                         }),
                     },
                 },
                 description: defineMessage({
-                    id: 'user.settings.display.lastActiveDesc',
+                    id: `${Constants.UserSettings.displayIdAnchorText}lastActiveDesc`,
                     defaultMessage: 'When enabled, other users will see when you were last active.',
                 }),
                 onSubmit: this.submitLastActive,
@@ -802,51 +794,51 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const clockSection = this.createSection({
             section: 'clock',
-            display: 'militaryTime',
+            display: `${Constants.UserSettings.militaryTime}`,
             value: this.state.militaryTime,
-            defaultDisplay: 'false',
+            defaultDisplay: Constants.BoolString.false,
             title: defineMessage({
-                id: 'user.settings.display.clockDisplay',
+                id: `${Constants.UserSettings.displayIdAnchorText}clockDisplay`,
                 defaultMessage: 'Clock Display',
             }),
             firstOption: {
-                value: 'false',
+                value: Constants.BoolString.false,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.normalClock',
+                        id: `${Constants.UserSettings.displayIdAnchorText}normalClock`,
                         defaultMessage: '12-hour clock (example: 4:00 PM)',
                     }),
                 },
             },
             secondOption: {
-                value: 'true',
+                value: Constants.BoolString.true,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.militaryClock',
+                        id: `${Constants.UserSettings.displayIdAnchorText}militaryClock`,
                         defaultMessage: '24-hour clock (example: 16:00)',
                     }),
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.preferTime',
+                id: `${Constants.UserSettings.displayIdAnchorText}preferTime`,
                 defaultMessage: 'Select how you prefer time displayed.',
             }),
         });
 
         const teammateNameDisplaySection = this.createSection({
             section: Preferences.NAME_NAME_FORMAT,
-            display: 'teammateNameDisplay',
+            display: Constants.UserSettings.teammateNameDisplay,
             value: this.props.lockTeammateNameDisplay ? this.props.configTeammateNameDisplay : this.state.teammateNameDisplay,
             defaultDisplay: this.props.configTeammateNameDisplay,
             title: defineMessage({
-                id: 'user.settings.display.teammateNameDisplayTitle',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.teammateNameDisplay}Title`,
                 defaultMessage: 'Teammate Name Display',
             }),
             firstOption: {
                 value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.teammateNameDisplayUsername',
+                        id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.teammateNameDisplay}Username`,
                         defaultMessage: 'Show username',
                     }),
                 },
@@ -855,7 +847,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_NICKNAME_FULLNAME,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.teammateNameDisplayNicknameFullname',
+                        id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.teammateNameDisplay}NicknameFullname`,
                         defaultMessage: 'Show nickname if one exists, otherwise show first and last name',
                     }),
                 },
@@ -864,13 +856,13 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 value: Constants.TEAMMATE_NAME_DISPLAY.SHOW_FULLNAME,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.teammateNameDisplayFullname',
+                        id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.teammateNameDisplay}Fullname`,
                         defaultMessage: 'Show first and last name',
                     }),
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.teammateNameDisplayDescription',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.teammateNameDisplay}Description`,
                 defaultMessage: 'Set how to display other user\'s names in posts and the Direct Messages list.',
             }),
             disabled: this.props.lockTeammateNameDisplay,
@@ -878,15 +870,15 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const availabilityStatusOnPostsSection = this.createSection({
             section: 'availabilityStatus',
-            display: 'availabilityStatusOnPosts',
+            display: `${Constants.UserSettings.availabilityStatusOnPosts}`,
             value: this.state.availabilityStatusOnPosts,
-            defaultDisplay: 'true',
+            defaultDisplay: Constants.BoolString.true,
             title: defineMessage({
-                id: 'user.settings.display.availabilityStatusOnPostsTitle',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.availabilityStatusOnPosts}Title`,
                 defaultMessage: 'Show user availability on posts',
             }),
             firstOption: {
-                value: 'true',
+                value: Constants.BoolString.true,
                 radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.sidebar.on',
@@ -895,7 +887,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
             },
             secondOption: {
-                value: 'false',
+                value: Constants.BoolString.false,
                 radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.sidebar.off',
@@ -904,7 +896,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.availabilityStatusOnPostsDescription',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.availabilityStatusOnPosts}Description`,
                 defaultMessage: 'When enabled, online availability is displayed on profile images in the message list.',
             }),
         });
@@ -933,7 +925,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         areAllSectionsInactive={this.props.activeSection === ''}
                         title={
                             <FormattedMessage
-                                id='user.settings.display.timezone'
+                                id={`${Constants.UserSettings.displayIdAnchorText}timezone`}
                                 defaultMessage='Timezone'
                             />
                         }
@@ -949,22 +941,22 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const messageDisplaySection = this.createSection({
             section: Preferences.MESSAGE_DISPLAY,
-            display: 'messageDisplay',
+            display: `${Constants.UserSettings.messageDisplay}`,
             value: this.state.messageDisplay,
             defaultDisplay: Preferences.MESSAGE_DISPLAY_CLEAN,
             title: defineMessage({
-                id: 'user.settings.display.messageDisplayTitle',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.messageDisplay}Title`,
                 defaultMessage: 'Message Display',
             }),
             firstOption: {
                 value: Preferences.MESSAGE_DISPLAY_CLEAN,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.messageDisplayClean',
+                        id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.messageDisplay}Clean`,
                         defaultMessage: 'Standard',
                     }),
                     more: defineMessage({
-                        id: 'user.settings.display.messageDisplayCleanDes',
+                        id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.messageDisplay}CleanDes`,
                         defaultMessage: 'Easy to scan and read.',
                     }),
                 },
@@ -973,29 +965,29 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 value: Preferences.MESSAGE_DISPLAY_COMPACT,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.messageDisplayCompact',
+                        id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.messageDisplay}Compact`,
                         defaultMessage: 'Compact',
                     }),
                     more: defineMessage({
-                        id: 'user.settings.display.messageDisplayCompactDes',
+                        id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.messageDisplay}CompactDes`,
                         defaultMessage: 'Fit as many messages on the screen as we can.',
                     }),
                 },
                 childOption: {
                     label: defineMessage({
-                        id: 'user.settings.display.colorize',
+                        id: `${Constants.UserSettings.displayIdAnchorText}colorize`,
                         defaultMessage: 'Colorize usernames',
                     }),
                     value: this.state.colorizeUsernames,
                     display: 'colorizeUsernames',
                     more: defineMessage({
-                        id: 'user.settings.display.colorizeDes',
+                        id: `${Constants.UserSettings.displayIdAnchorText}colorizeDes`,
                         defaultMessage: 'Use colors to distinguish users in compact mode',
                     }),
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.messageDisplayDescription',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.messageDisplay}Description`,
                 defaultMessage: 'Select how messages in a channel should be displayed.',
             }),
         });
@@ -1005,18 +997,18 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.collapsedReplyThreadsAllowUserPreference) {
             collapsedReplyThreads = this.createSection({
                 section: Preferences.COLLAPSED_REPLY_THREADS,
-                display: 'collapsedReplyThreads',
+                display: `${Constants.UserSettings.collapsedReplyThreads}`,
                 value: this.state.collapsedReplyThreads,
                 defaultDisplay: Preferences.COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT,
                 title: defineMessage({
-                    id: 'user.settings.display.collapsedReplyThreadsTitle',
+                    id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.collapsedReplyThreads}Title`,
                     defaultMessage: 'Threaded Discussions',
                 }),
                 firstOption: {
                     value: Preferences.COLLAPSED_REPLY_THREADS_ON,
                     radioButtonText: {
                         label: defineMessage({
-                            id: 'user.settings.display.collapsedReplyThreadsOn',
+                            id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.collapsedReplyThreads}On`,
                             defaultMessage: 'On',
                         }),
                     },
@@ -1025,13 +1017,13 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     value: Preferences.COLLAPSED_REPLY_THREADS_OFF,
                     radioButtonText: {
                         label: defineMessage({
-                            id: 'user.settings.display.collapsedReplyThreadsOff',
+                            id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.collapsedReplyThreads}Off`,
                             defaultMessage: 'Off',
                         }),
                     },
                 },
                 description: defineMessage({
-                    id: 'user.settings.display.collapsedReplyThreadsDescription',
+                    id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.collapsedReplyThreads}Description`,
                     defaultMessage: 'When enabled, reply messages are not shown in the channel and you\'ll be notified about threads you\'re following in the "Threads" view.',
                 }),
             });
@@ -1039,15 +1031,15 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const clickToReply = this.createSection({
             section: Preferences.CLICK_TO_REPLY,
-            display: 'clickToReply',
+            display: `${Constants.UserSettings.clickToReply}`,
             value: this.state.clickToReply,
-            defaultDisplay: 'true',
+            defaultDisplay: Constants.BoolString.true,
             title: defineMessage({
-                id: 'user.settings.display.clickToReply',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.clickToReply}`,
                 defaultMessage: 'Click to open threads',
             }),
             firstOption: {
-                value: 'true',
+                value: Constants.BoolString.true,
                 radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.sidebar.on',
@@ -1056,7 +1048,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
             },
             secondOption: {
-                value: 'false',
+                value: Constants.BoolString.false,
                 radioButtonText: {
                     label: defineMessage({
                         id: 'user.settings.sidebar.off',
@@ -1065,25 +1057,25 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.clickToReplyDescription',
+                id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.clickToReply}Description`,
                 defaultMessage: 'When enabled, click anywhere on a message to open the reply thread.',
             }),
         });
 
         const channelDisplayModeSection = this.createSection({
             section: Preferences.CHANNEL_DISPLAY_MODE,
-            display: 'channelDisplayMode',
+            display: `${Constants.UserSettings.channelDisplayMode}`,
             value: this.state.channelDisplayMode,
             defaultDisplay: Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
             title: defineMessage({
-                id: 'user.settings.display.channelDisplayTitle',
+                id: `${Constants.UserSettings.displayIdAnchorText}channelDisplayTitle`,
                 defaultMessage: 'Channel Display',
             }),
             firstOption: {
                 value: Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.fullScreen',
+                        id: `${Constants.UserSettings.displayIdAnchorText}fullScreen`,
                         defaultMessage: 'Full width',
                     }),
                 },
@@ -1092,13 +1084,13 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 value: Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
                 radioButtonText: {
                     label: defineMessage({
-                        id: 'user.settings.display.fixedWidthCentered',
+                        id: `${Constants.UserSettings.displayIdAnchorText}fixedWidthCentered`,
                         defaultMessage: 'Fixed width, centered',
                     }),
                 },
             },
             description: defineMessage({
-                id: 'user.settings.display.channeldisplaymode',
+                id: `${Constants.UserSettings.displayIdAnchorText}channeldisplaymode`,
                 defaultMessage: 'Select the width of the center channel.',
             }),
         });
@@ -1114,7 +1106,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     areAllSectionsInactive={this.props.activeSection === ''}
                     title={
                         <FormattedMessage
-                            id='user.settings.display.language'
+                            id={`${Constants.UserSettings.displayIdAnchorText}language`}
                             defaultMessage='Language'
                         />
                     }
@@ -1158,15 +1150,15 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.emojiPickerEnabled) {
             oneClickReactionsOnPostsSection = this.createSection({
                 section: Preferences.ONE_CLICK_REACTIONS_ENABLED,
-                display: 'oneClickReactionsOnPosts',
+                display: `${Constants.UserSettings.oneClickReactionsOnPosts}`,
                 value: this.state.oneClickReactionsOnPosts,
-                defaultDisplay: 'true',
+                defaultDisplay: Constants.BoolString.true,
                 title: defineMessage({
-                    id: 'user.settings.display.oneClickReactionsOnPostsTitle',
+                    id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.oneClickReactionsOnPosts}Title`,
                     defaultMessage: 'Quick reactions on messages',
                 }),
                 firstOption: {
-                    value: 'true',
+                    value: Constants.BoolString.true,
                     radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.sidebar.on',
@@ -1175,7 +1167,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     },
                 },
                 secondOption: {
-                    value: 'false',
+                    value: Constants.BoolString.false,
                     radioButtonText: {
                         label: defineMessage({
                             id: 'user.settings.sidebar.off',
@@ -1184,7 +1176,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     },
                 },
                 description: defineMessage({
-                    id: 'user.settings.display.oneClickReactionsOnPostsDescription',
+                    id: `${Constants.UserSettings.displayIdAnchorText}${Constants.UserSettings.oneClickReactionsOnPosts}Description`,
                     defaultMessage: 'When enabled, you can react in one-click with recently used reactions when hovering over a message.',
                 }),
             });
@@ -1197,7 +1189,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     collapseModal={this.props.collapseModal}
                     text={
                         <FormattedMessage
-                            id='user.settings.display.title'
+                            id={`${Constants.UserSettings.displayIdAnchorText}title`}
                             defaultMessage='Display Settings'
                         />
                     }
@@ -1207,7 +1199,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         id='displaySettingsTitle'
                         text={
                             <FormattedMessage
-                                id='user.settings.display.title'
+                                id={`${Constants.UserSettings.displayIdAnchorText}title`}
                                 defaultMessage='Display Settings'
                             />
                         }
