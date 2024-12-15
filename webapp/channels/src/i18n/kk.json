@@ -819,6 +819,8 @@
   "admin.email.pushServerLocationUS": "US",
   "admin.email.pushServerTitle": "Push хабарландырулар сервері:",
   "admin.email.pushTitle": "Push хабарландыруларды іске қосу: ",
+  "admin.environment.notifications.contents.full": "Хабарламалардың толық құрамын жіберу",
+  "admin.environment.notifications.contents.generic": "Құрамында тек жіберуші аты бар жалпылама сипаттаманы жіберу",
   "admin.environment.notifications.enablePreviewModeBanner.help": "Іске қосылса, қолданушылар электрондық пошта хабарландырулары өшірілгені туралы білуі үшін Алдын ала көру баннері көрсетіледі. Өшірілсе, қолданушыларға Алдын ала көру баннері көрсетілмейді.",
   "admin.environment.notifications.enablePreviewModeBanner.label": "Алдын ала көру режимінің баннерін іске қосу:",
   "admin.environment.notifications.feedbackEmail.help": "Mattermost-тан хабарландыру электрондық пошталарын жібергенде қолданылатын электрондық пошта тіркеулік жазбада көрсетілетін электрондық пошта мекен-жайы.",
