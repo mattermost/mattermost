@@ -60,7 +60,7 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     try {
         await adminClient.deletePost(adminPost.id);
     } catch (error) {
-        throw new Error('Failed to delete post by admin');
+        throw new Error(`Failed to delete post by admin: ${error}`);
     }
 
     // # Open the last post in the channel sent by admin again

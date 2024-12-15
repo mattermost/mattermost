@@ -1429,6 +1429,8 @@ components:
               type: string
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -1901,6 +1903,8 @@ components:
               type: boolean
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -3055,6 +3059,19 @@ components:
           format: int64
         has_syncables:
           type: boolean
+    GroupMember:
+      type: object
+      properties:
+        group_id:
+          type: string
+        user_id:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
     GroupSyncableTeam:
       type: object
       properties:

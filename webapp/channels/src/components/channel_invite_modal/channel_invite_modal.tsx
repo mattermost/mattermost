@@ -542,7 +542,7 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='channelInviteModalLabel'
             >
                 <Modal.Header

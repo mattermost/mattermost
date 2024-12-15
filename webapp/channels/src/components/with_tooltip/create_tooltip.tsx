@@ -6,11 +6,11 @@ import type {ComponentProps} from 'react';
 import {type MessageDescriptor} from 'react-intl';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import Tooltip from 'components/tooltip';
 
 import {formatAsComponent} from 'utils/i18n';
 
 import {TooltipShortcutSequence, type ShortcutDefinition} from './shortcut';
+import BSTooltip from './tooltip';
 
 type EmojiStyle = 'inline' | 'large' | undefined;
 
@@ -24,7 +24,7 @@ export type CommonTooltipProps = {
 }
 
 export function createTooltip(commonTooltipProps: CommonTooltipProps) {
-    return (props: Omit<ComponentProps<typeof Tooltip>, 'children' | 'id'>) => {
+    return (props: Omit<ComponentProps<typeof BSTooltip>, 'children' | 'id'>) => {
         const contents = [];
 
         if (commonTooltipProps.emoji && commonTooltipProps.emojiStyle === 'large') {
@@ -90,12 +90,12 @@ export function createTooltip(commonTooltipProps: CommonTooltipProps) {
         }
 
         return (
-            <Tooltip
+            <BSTooltip
                 {...props}
                 id={commonTooltipProps.id}
             >
                 {contents}
-            </Tooltip>
+            </BSTooltip>
         );
     };
 }

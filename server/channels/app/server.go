@@ -82,7 +82,8 @@ import (
 )
 
 const (
-	scheduledPostJobInterval = 5 * time.Minute
+	scheduledPostJobInterval      = 5 * time.Minute
+	debugScheduledPostJobInterval = 2 * time.Second
 )
 
 var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
@@ -1365,7 +1366,6 @@ func (s *Server) doReportUserCountForCloudSubscriptionJob() {
 	appInstance := New(ServerConnector(s.Channels()))
 
 	_, err := appInstance.SendSubscriptionHistoryEvent("")
-
 	if err != nil {
 		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
 	}
@@ -1414,7 +1414,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	//send email to admin(s)
+	// send email to admin(s)
 	for _, user := range users {
 		user := user
 		if user.Email == "" {
@@ -1434,7 +1434,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		})
 	}
 
-	//remove the license
+	// remove the license
 	s.RemoveLicense()
 }
 
@@ -1458,10 +1458,6 @@ func (s *Server) ExportFileBackend() filestore.FileBackend {
 
 func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
-}
-
-func (s *Server) ClusterHealthScore() int {
-	return s.platform.Cluster().HealthScore()
 }
 
 func (ch *Channels) ClientConfigHash() string {
@@ -1699,15 +1695,7 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 	return s.platform.Metrics()
 }
 
-// SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
-// For testing only.
-func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
-	s.serviceMux.Lock()
-	defer s.serviceMux.Unlock()
-	s.remoteClusterService = remoteClusterService
-}
-
-// SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
 	s.serviceMux.Lock()
@@ -1841,10 +1829,17 @@ func runScheduledPostJob(a *App) {
 }
 
 func doRunScheduledPostJob(a *App) {
+	var jobInterval time.Duration
+	if *a.Config().ServiceSettings.EnableTesting {
+		jobInterval = debugScheduledPostJobInterval
+	} else {
+		jobInterval = scheduledPostJobInterval
+	}
+
 	rctx := request.EmptyContext(a.Log())
 	withMut(&a.ch.scheduledPostMut, func() {
 		fn := func() { a.ProcessScheduledPosts(rctx) }
-		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, scheduledPostJobInterval)
+		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
 	})
 }
 

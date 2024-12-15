@@ -399,8 +399,10 @@ func (a *App) findTeamIdForFilename(rctx request.CTX, post *model.Post, id, file
 	return ""
 }
 
-var fileMigrationLock sync.Mutex
-var oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+var (
+	fileMigrationLock   sync.Mutex
+	oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+)
 
 // Parse the path from the Filename of the form /{channelID}/{userID}/{uid}/{nameWithExtension}
 func parseOldFilenames(rctx request.CTX, filenames []string, channelID, userID string) [][]string {
@@ -1039,7 +1041,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 
 	var rejectionError *model.AppError
 	pluginContext := pluginContext(c)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		var newBytes bytes.Buffer
 		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
 		if rejectionReason != "" {
@@ -1397,7 +1399,6 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 			Method:   zip.Deflate,
 			Modified: time.Now(),
 		})
-
 		if err != nil {
 			return err
 		}

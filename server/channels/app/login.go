@@ -55,7 +55,7 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 		}
 	}()
 
-	if password == "" && !IsCWSLogin(a, cwsToken) {
+	if password == "" && !isCWSLogin(a, cwsToken) {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -66,7 +66,7 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
-	if IsCWSLogin(a, cwsToken) {
+	if isCWSLogin(a, cwsToken) {
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
 		}
@@ -159,7 +159,7 @@ func (a *App) GetUserForLogin(c request.CTX, id, loginId string) (*model.User, *
 func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError) {
 	var rejectionReason string
 	pluginContext := pluginContext(c)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		rejectionReason = hooks.UserWillLogIn(pluginContext, user)
 		return rejectionReason == ""
 	}, plugin.UserWillLogInID)
@@ -193,8 +193,8 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 
 	ua := uasurfer.Parse(r.UserAgent())
 
-	plat := getPlatformName(ua)
-	os := getOSName(ua)
+	plat := getPlatformName(ua, r.UserAgent())
+	os := getOSName(ua, r.UserAgent())
 	bname := getBrowserName(ua, r.UserAgent())
 	bversion := getBrowserVersion(ua, r.UserAgent())
 
@@ -230,7 +230,7 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 	}
 
 	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.UserHasLoggedIn(pluginContext, user)
 			return true
 		}, plugin.UserHasLoggedInID)
@@ -349,6 +349,6 @@ func GetProtocol(r *http.Request) string {
 	return "http"
 }
 
-func IsCWSLogin(a *App, token string) bool {
+func isCWSLogin(a *App, token string) bool {
 	return a.License().IsCloud() && token != ""
 }
