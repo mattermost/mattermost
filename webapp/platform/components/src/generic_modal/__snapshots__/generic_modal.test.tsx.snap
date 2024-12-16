@@ -11,7 +11,7 @@ exports[`GenericModal should match snapshot for base case 1`] = `
       aria-hidden="true"
     />
     <div
-      role="dialog"
+      role="none"
     >
       <div
         class="fade modal-backdrop in"
