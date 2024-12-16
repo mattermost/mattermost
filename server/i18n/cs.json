@@ -9049,7 +9049,7 @@
   },
   {
     "id": "app.scheduled_post.private_channel",
-    "translation": "Soukromý Kanál"
+    "translation": "Soukromý kanál"
   },
   {
     "id": "app.scheduled_post.unknown_channel",
@@ -9074,5 +9074,261 @@
   {
     "id": "app.save_config.plugin_hook_error",
     "translation": "Nastala chyba při spuštění hooku pluginu při ukládání konfigurace."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Nepodařilo se aktualizovat dodatečné vlastnosti relace."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Nepodařilo se uložit tým."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Nepodařilo se najít existující tým."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Nepodařilo se získat všechny týmy."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Nepodařilo se získat všechny soukromé týmy."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Naplánovaný příspěvek neexistuje."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Nepodařilo se načíst existující naplánovaný příspěvek z databáze."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Nepodařilo se resetovat schémata týmu."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Nepodařilo se dekódovat úplný požadavek na zahájení procesu."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Chyba při vymazání cache členů týmu"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Nepodařilo se získat seznam týmů uživatele."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Vyskytla se chyba při aktualizaci týmu."
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Nepodařilo se získat stránku schémat."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "Nepodařilo se vytvořit nové členství v týmu"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Pro stávající tým je nutné provést aktualizaci."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Nepodařilo se uložit člena týmu."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Vyskytla se chyba při vyhledávání soukromých týmů."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Nepodařilo se najít existující tým k aktualizaci."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Nelze získat počet týmů"
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "Nepodařilo se trvale smazat schémata."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding může být dokončeno pouze Administrátorem Systému."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Nepodařilo se načíst členy týmu."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Nepodařilo se spočítat členy týmu."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Nepodařilo se najít existující tým."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Nepodařilo se získat členy týmu."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Nepodařilo se získat členy týmu."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "Nepodařilo se vytvořit nové členství v týmu, protože již existuje"
+  },
+  {
+    "id": "app.terms_of_service.get.app_error",
+    "translation": "Nepodařilo se načíst podmínky služby."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Nepodařilo se spočítat týmy."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Nepodařilo se spočítat členy týmu."
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Nepodařilo se prodloužit délku relace"
+  },
+  {
+    "id": "app.session.get.app_error",
+    "translation": "Vyskytla se chyba při hledání relace."
+  },
+  {
+    "id": "app.system.permanent_delete_by_name.app_error",
+    "translation": "Nepodařilo se trvale smazat záznam v systémové tabulce."
+  },
+  {
+    "id": "app.system.get_by_name.app_error",
+    "translation": "Nelze najít systémovou proměnnou."
+  },
+  {
+    "id": "app.system.save.app_error",
+    "translation": "Došlo k chybě při ukládání systémového nastavení."
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Nepodařilo se získat stav dokončení onboardingového procesu."
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Nepodařilo se aktualizovat člena týmu."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Nepodařilo se smazat existující tým."
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Nepodařilo se odstranit člena týmu."
+  },
+  {
+    "id": "app.session.get_sessions.app_error",
+    "translation": "Vyskytla se chyba při hledání relací uživatele."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Při hledání týmu došlo k chybě."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Nepodařilo se najít existující tým."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Vyskytla se chyba při vyhledávání týmů."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Vyskytla se chyba při vyhledávání otevřených týmů."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Nepodařilo se získat nejméně používané relace."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Nepodařilo se označit všechna vlákna jako přečtená pro kanál"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Nelze získat běžné ID týmů."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Nepodařilo se získat člena týmu."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Pro zadané ID uživatele a ID týmu nebyl nalezen žádný člen týmu."
+  },
+  {
+    "id": "app.session.remove_all_sessions_for_team.app_error",
+    "translation": "Nepodařilo se odebrat všechny relace."
+  },
+  {
+    "id": "app.terms_of_service.create.app_error",
+    "translation": "Nelze uložit podmínky služby."
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Pro stávající podmínky služby není možné provést uložení."
+  },
+  {
+    "id": "app.session.update_device_id.app_error",
+    "translation": "Nepodařilo se aktualizovat ID zařízení."
+  },
+  {
+    "id": "app.status.get.missing.app_error",
+    "translation": "Pro tento stav neexistuje žádný záznam."
+  },
+  {
+    "id": "app.status.get.app_error",
+    "translation": "Došlo k chybě při získávání stavu."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Nepodařilo se najít existující tým."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Nepodařilo se získat všechny týmy."
+  },
+  {
+    "id": "app.session.permanent_delete_sessions_by_user.app_error",
+    "translation": "Nepodařilo se odebrat všechny relace pro uživatele."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "Nepodařilo se vytvořit nové členství v týmu, protože tým dosáhl limitu členů"
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Nelze určit, zda uživatel patří do seznamu týmů."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Systém"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Nepodařilo se získat kanály pro poskytnutý schéma."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Nepodařilo se získat nepřečtené zprávy týmu."
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Nepodařilo se získat členy vlákna pro export."
   }
 ]
