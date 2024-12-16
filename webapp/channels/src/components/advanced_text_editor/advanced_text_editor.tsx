@@ -622,6 +622,10 @@ const AdvancedTextEditor = ({
         break;
     }
 
+    if (isInEditMode) {
+        textboxId += '_edit';
+    }
+
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
     let loginSuccessfulLabel;
