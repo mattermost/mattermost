@@ -8986,5 +8986,93 @@
   {
     "id": "app.role.permanent_delete_all.app_error",
     "translation": "Nepodařilo se trvale smazat všechny role."
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Nelze naplánovat příspěvek v archivovaném kanálu."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Při ukládání naplánovaného příspěvku došlo k chybě."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanál je archivován"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Neplatný obsah příspěvku"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanál Nenalezen"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Nejste členem kanálu"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Uživatel neexistuje"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "{{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}",
+      "one": "{{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}",
+      "other": "{{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Nelze odeslat zprávu"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Neznámá Chyba"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Uživatelský účet je smazán"
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Nepodařilo se smazat naplánované příspěvky pro uživatele."
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "few": "Nepodařilo se odeslat {{.Count}} naplánované příspěvky.",
+      "one": "Nepodařilo se odeslat {{.Count}} naplánovaný příspěvek.",
+      "other": "Nepodařilo se odeslat {{.Count}} naplánovaných příspěvků."
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Soukromý Kanál"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Neznámý Kanál"
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Nepodporovaný formát zprávy."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Nemáte oprávnění přispívat do kanálu"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Vlákno bylo smazáno"
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Nepodařilo se zapsat část CSV."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Nastala chyba při spuštění hooku pluginu při ukládání konfigurace."
   }
 ]
