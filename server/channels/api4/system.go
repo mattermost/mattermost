@@ -401,8 +401,8 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logsJSON := make(map[string][]interface{})
-	var result interface{}
+	logsJSON := make(map[string][]any)
+	var result any
 	for node, logLines := range logs {
 		for _, log := range logLines {
 			err = json.Unmarshal([]byte(log), &result)

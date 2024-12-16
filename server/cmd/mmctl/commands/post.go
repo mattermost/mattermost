@@ -123,7 +123,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func eventDataToPost(eventData map[string]interface{}) (*model.Post, error) {
+func eventDataToPost(eventData map[string]any) (*model.Post, error) {
 	post := &model.Post{}
 	var rawPost string
 	for k, v := range eventData {
