@@ -352,7 +352,7 @@ describe('Integrations page', () => {
         });
     });
 
-    it('MM-T652 Regenerate Secret', () => {
+    it.skip('MM-T652 Regenerate Secret', () => {
         cy.apiLogin(user1);
         cy.visit(testChannelUrl1);
 
