@@ -31,10 +31,10 @@ const (
 	MobileClientLoadDuration                    MetricType = "mobile_load"
 	MobileClientChannelSwitchDuration           MetricType = "mobile_channel_switch"
 	MobileClientTeamSwitchDuration              MetricType = "mobile_team_switch"
-	MobileClientContentLoadTotalCompressedSize  MetricType = "mobile_content_load_total_compressed_size"
-	MobileClientContentLoadUrlCount             MetricType = "mobile_content_load_url_count"
-	MobileClientContentLoadLatency              MetricType = "mobile_content_load_latency"
-	MobileClientContentLoadTotalSize            MetricType = "mobile_content_load_total_size"
+	MobileClientNetworkRequestsTotalCompressedSize  MetricType = "mobile_network_requests_total_compressed_size"
+	MobileClientNetworkRequestsUrlCount             MetricType = "mobile_network_requests_url_count"
+	MobileClientNetworkRequestsLatency              MetricType = "mobile_network_requests_latency"
+	MobileClientNetworkRequestsTotalSize            MetricType = "mobile_network_requests_total_size"
 
 	DesktopClientCPUUsage    MetricType = "desktop_cpu"
 	DesktopClientMemoryUsage MetricType = "desktop_memory"
@@ -62,7 +62,7 @@ var (
 	)
 	AcceptedTrueFalseLabels     = sliceToMapKey("true", "false")
 	AcceptedSplashScreenOrigins = sliceToMapKey("root", "team_controller")
-	AcceptedContentLoadGroups   = sliceToMapKey("entry", "notification", "login", "reconnection")
+	AcceptedNetworkRequestGroups   = sliceToMapKey("entry", "notification", "login", "reconnection")
 )
 
 type MetricSample struct {
@@ -118,7 +118,7 @@ func (r *PerformanceReport) ProcessLabels() map[string]string {
 		"platform":            processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
 		"agent":               processLabel(r.Labels, "agent", acceptedAgents, "other"),
 		"desktop_app_version": r.Labels["desktop_app_version"],
-		"content_load_group":  processLabel(r.Labels, "content_load_group", AcceptedContentLoadGroups, "entry"),
+		"network_request_group":  processLabel(r.Labels, "network_request_group", AcceptedNetworkRequestGroups, "entry"),
 	}
 }
 

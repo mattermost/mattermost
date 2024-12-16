@@ -102,7 +102,7 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 				h.Value/1000)
 		case model.MobileClientContentLoadTotalCompressedSize:
 			a.Metrics().ObserveMobileClientContentLoadTotalCompressedSize(commonLabels["platform"],
-				commonLabels["content_load_group"],
+				commonLabels["network_request_group"],
 				h.Value)
 		case model.MobileClientContentLoadUrlCount:
 			a.Metrics().ObserveMobileClientContentLoadUrlCount(commonLabels["platform"],
