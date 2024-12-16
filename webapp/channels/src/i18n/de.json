@@ -3475,7 +3475,6 @@
   "copied.message": "Kopiert",
   "copy.code.message": "Code kopieren",
   "copy.text.message": "Text kopieren",
-  "copyTextTooltip.copy": "Kopieren",
   "copy_text.copied": "Kopiert",
   "copy_text.copy": "Kopieren",
   "createComment.threadFromArchivedChannelMessage": "Du betrachtest eine Unterhaltung aus einem <b>archivierten Kanal</b>. Neue Antworten können nicht gepostet werden.",

@@ -3475,7 +3475,6 @@
   "copied.message": "Kopyalandı",
   "copy.code.message": "Kodu kopyala",
   "copy.text.message": "Metni kopyala",
-  "copyTextTooltip.copy": "Kopyala",
   "copy_text.copied": "Kopyalandı",
   "copy_text.copy": "Kopyala",
   "createComment.threadFromArchivedChannelMessage": "Bir <b>arşivlenmiş kanal</b> konusuna bakıyorsunuz. Yeni ileti gönderilemez.",

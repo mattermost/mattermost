@@ -3475,7 +3475,6 @@
   "copied.message": "Gekopieerd",
   "copy.code.message": "Code kopiëren",
   "copy.text.message": "Tekst kopiëren",
-  "copyTextTooltip.copy": "Kopiëren",
   "copy_text.copied": "Gekopieerd",
   "copy_text.copy": "Kopiëren",
   "createComment.threadFromArchivedChannelMessage": "Je bekijkt een draadje van een <b>gearchiveerd kanaal</b>. Nieuwe berichten kunnen niet worden geplaatst.",

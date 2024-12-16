@@ -3475,7 +3475,6 @@
   "copied.message": "Zkopírováno",
   "copy.code.message": "Kopírovat kód",
   "copy.text.message": "Kopírovat text",
-  "copyTextTooltip.copy": "Kopírovat",
   "copy_text.copied": "Zkopírováno",
   "copy_text.copy": "Kopírovat",
   "createComment.threadFromArchivedChannelMessage": "Prohlížíte vlákno z <b>archivovaného kanálu</b>. Nové zprávy nelze odesílat.",

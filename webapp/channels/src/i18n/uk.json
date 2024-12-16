@@ -3472,7 +3472,6 @@
   "copied.message": "Скопійовано",
   "copy.code.message": "Скопіювати код",
   "copy.text.message": "Копіювати текст",
-  "copyTextTooltip.copy": "Скопіювати",
   "copy_text.copied": "Скопійовано",
   "copy_text.copy": "Скопіювати",
   "createComment.threadFromArchivedChannelMessage": "Ви переглядаєте обговорення з <b>архівованого каналу</b>. Нові повідомлення не можуть бути опубліковані.",

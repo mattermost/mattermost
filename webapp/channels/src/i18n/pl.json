@@ -3475,7 +3475,6 @@
   "copied.message": "Skopiowane",
   "copy.code.message": "Skopiuj Kod",
   "copy.text.message": "Kopiuj tekst",
-  "copyTextTooltip.copy": "Kopiuj",
   "copy_text.copied": "Skopiowane",
   "copy_text.copy": "Kopiuj",
   "createComment.threadFromArchivedChannelMessage": "Przeglądasz wątek z <b>archiwalnego kanału</b> . Nie możesz wysyłać nowych wiadomości.",
