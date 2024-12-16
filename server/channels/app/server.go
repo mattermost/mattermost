@@ -35,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
@@ -136,6 +137,7 @@ type Server struct {
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
+	propertyService  *properties.PropertyService
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -237,6 +239,15 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create teams service")
+	}
+
+	s.propertyService, err = properties.New(properties.ServiceConfig{
+		PropertyGroupStore: s.Store().PropertyGroup(),
+		PropertyFieldStore: s.Store().PropertyField(),
+		PropertyValueStore: s.Store().PropertyValue(),
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create properties service")
 	}
 
 	// It is important to initialize the hub only after the global logger is set
