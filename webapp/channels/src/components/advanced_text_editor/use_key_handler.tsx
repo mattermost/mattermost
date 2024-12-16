@@ -318,9 +318,15 @@ const useKeyHandler = (
 
         const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
         if (lastMessageReactionKeyCombo) {
+            // we need to stop propagating and prevent default even if a
+            // post is being edited so the document level event handler doesn't trigger
             e.stopPropagation();
             e.preventDefault();
-            dispatch(emitShortcutReactToLastPostFrom(postId ? Locations.RHS_ROOT : Locations.CENTER));
+
+            if (!isInEditMode) {
+                // don't show the reaction dialog if a post is being edited
+                dispatch(emitShortcutReactToLastPostFrom(postId ? Locations.RHS_ROOT : Locations.CENTER));
+            }
         }
 
         if (!postId) {
