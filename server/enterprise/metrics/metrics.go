@@ -1381,7 +1381,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Number of URLs requested during network requests",
 			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
 		},
-		[]string{"platform", "content_load_group"},
+		[]string{"platform", "network_request_group"},
 	)
 
 	m.MobileClientNetworkRequestsLatency = prometheus.NewHistogramVec(
@@ -1392,7 +1392,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Latency of network requests in seconds",
 			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
 		},
-		[]string{"platform", "content_load_group"},
+		[]string{"platform", "network_request_group"},
 	)
 
 	m.MobileClientNetworkRequestsTotalSize = prometheus.NewHistogramVec(
@@ -1403,7 +1403,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Total uncompressed size of network requests in bytes",
 			Buckets:   []float64{1000, 10000, 50000, 100000, 500000, 1000000, 5000000},
 		},
-		[]string{"platform", "content_load_group"},
+		[]string{"platform", "network_request_group"},
 	)
 
 	m.Registry.MustRegister(m.MobileClientLoadDuration)
@@ -2009,20 +2009,20 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform s
 	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalCompressedSize(platform string, contentLoadGroup string, size float64) {
-	mi.MobileClientNetworkRequestsTotalCompressedSize.With(prometheus.Labels{"platform": platform, "network_request_group": contentLoadGroup}).Observe(size)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalCompressedSize(platform string, networkRequestGroup string, size float64) {
+	mi.MobileClientNetworkRequestsTotalCompressedSize.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(size)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsUrlCount(platform string, contentLoadGroup string, count float64) {
-	mi.MobileClientNetworkRequestsUrlCount.With(prometheus.Labels{"platform": platform, "network_request_group": contentLoadGroup}).Observe(count)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsUrlCount(platform string, networkRequestGroup string, count float64) {
+	mi.MobileClientNetworkRequestsUrlCount.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(count)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsLatency(platform string, contentLoadGroup string, latency float64) {
-	mi.MobileClientNetworkRequestsLatency.With(prometheus.Labels{"platform": platform, "network_request_group": contentLoadGroup}).Observe(latency)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsLatency(platform string, networkRequestGroup string, latency float64) {
+	mi.MobileClientNetworkRequestsLatency.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(latency)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalSize(platform string, contentLoadGroup string, size float64) {
-	mi.MobileClientNetworkRequestsTotalSize.With(prometheus.Labels{"platform": platform, "network_request_group": contentLoadGroup}).Observe(size)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalSize(platform string, networkRequestGroup string, size float64) {
+	mi.MobileClientNetworkRequestsTotalSize.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(size)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version, platform string, value float64, notificationDisabled string) {
