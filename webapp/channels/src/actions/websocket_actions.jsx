@@ -126,6 +126,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {getCurrentTime} from 'utils/datetime';
 import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
@@ -218,7 +219,7 @@ function restart() {
 
 export function reconnect() {
     // eslint-disable-next-line
-    console.log('Reconnecting WebSocket');
+    console.log(`Reconnecting WebSocket - ${getCurrentTime()}`); //eslint-disable-line no-console
 
     temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
 
@@ -240,7 +241,9 @@ export function reconnect() {
         }
 
         dispatch(fetchAllMyTeamsChannels());
-        dispatch(fetchTeamScheduledPosts());
+        setTimeout(() => {
+            dispatch(fetchTeamScheduledPosts());
+        }, 30000);
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
         loadProfilesForSidebar();

@@ -29,7 +29,7 @@ import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
 
-const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
+const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 2;
 
 export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES) {
     const start = moment(value);
