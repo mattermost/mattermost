@@ -125,6 +125,7 @@ type MetricsInterface interface {
 	ObserveMobileClientNetworkRequestsUrlCount(platform string, contentLoadGroup string, count float64)
 	ObserveMobileClientNetworkRequestsLatency(platform string, contentLoadGroup string, latency float64)
 	ObserveMobileClientNetworkRequestsTotalSize(platform string, contentLoadGroup string, size float64)
+	ObserveMobileClientNetworkRequestsElapsedTime(platform string, contentLoadGroup string, elapsedTime float64)
 	ClearMobileClientSessionMetadata()
 	ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string)
 	ObserveDesktopCpuUsage(platform, version, process string, usage float64)

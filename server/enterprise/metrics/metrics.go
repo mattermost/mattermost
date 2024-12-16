@@ -224,6 +224,7 @@ type MetricsInterfaceImpl struct {
 	MobileClientNetworkRequestsUrlCount             *prometheus.HistogramVec
 	MobileClientNetworkRequestsLatency              *prometheus.HistogramVec
 	MobileClientNetworkRequestsTotalSize            *prometheus.HistogramVec
+	MobileClientNetworkRequestsElapsedTime          *prometheus.HistogramVec
 
 	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
@@ -1412,6 +1413,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsLatency)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSize)
 
+	m.MobileClientNetworkRequestsElapsedTime = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_elapsed_time",
+			Help:      "Total elapsed time of network requests in seconds",
+			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+		},
+		[]string{"platform", "network_request_group"},
+	)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsElapsedTime)
+
 	m.MobileClientChannelSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
@@ -2023,6 +2036,10 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsLatency(platfo
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalSize(platform string, networkRequestGroup string, size float64) {
 	mi.MobileClientNetworkRequestsTotalSize.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(size)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsElapsedTime(platform string, networkRequestGroup string, elapsedTime float64) {
+	mi.MobileClientNetworkRequestsElapsedTime.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(elapsedTime)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version, platform string, value float64, notificationDisabled string) {
