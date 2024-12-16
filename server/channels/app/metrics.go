@@ -100,21 +100,21 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 		case model.MobileClientTeamSwitchDuration:
 			a.Metrics().ObserveMobileClientTeamSwitchDuration(commonLabels["platform"],
 				h.Value/1000)
-		case model.MobileClientContentLoadTotalCompressedSize:
-			a.Metrics().ObserveMobileClientContentLoadTotalCompressedSize(commonLabels["platform"],
+		case model.MobileClientNetworkRequestsTotalCompressedSize:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalCompressedSize(commonLabels["platform"],
 				commonLabels["network_request_group"],
 				h.Value)
-		case model.MobileClientContentLoadUrlCount:
-			a.Metrics().ObserveMobileClientContentLoadUrlCount(commonLabels["platform"],
-				commonLabels["content_load_group"],
+		case model.MobileClientNetworkRequestsUrlCount:
+			a.Metrics().ObserveMobileClientNetworkRequestsUrlCount(commonLabels["platform"],
+				commonLabels["network_request_group"],
 				h.Value)
-		case model.MobileClientContentLoadLatency:
-			a.Metrics().ObserveMobileClientContentLoadLatency(commonLabels["platform"],
-				commonLabels["content_load_group"],
+		case model.MobileClientNetworkRequestsLatency:
+			a.Metrics().ObserveMobileClientNetworkRequestsLatency(commonLabels["platform"],
+				commonLabels["network_request_group"],
 				h.Value)
-		case model.MobileClientContentLoadTotalSize:
-			a.Metrics().ObserveMobileClientContentLoadTotalSize(commonLabels["platform"],
-				commonLabels["content_load_group"],
+		case model.MobileClientNetworkRequestsTotalSize:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalSize(commonLabels["platform"],
+				commonLabels["network_request_group"],
 				h.Value)
 		case model.DesktopClientCPUUsage:
 			a.Metrics().ObserveDesktopCpuUsage(commonLabels["platform"], commonLabels["desktop_app_version"], h.Labels["process"], h.Value)
