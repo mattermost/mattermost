@@ -356,10 +356,6 @@
     "translation": "Neplatné původní ID."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Neplatná zpráva."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Nevalidní Id."
   },

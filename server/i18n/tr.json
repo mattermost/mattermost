@@ -4307,10 +4307,6 @@
     "translation": "Kimlik geçersiz."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "İleti geçersiz."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Özgün kimlik geçersiz."
   },
@@ -8848,10 +8844,6 @@
   {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Öncelik geçersiz"
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "İleti geçersiz."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

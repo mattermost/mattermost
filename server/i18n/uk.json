@@ -4312,10 +4312,6 @@
     "translation": "Недійсний ідентифікатор."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Недійсне повідомлення."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Недійсний початковий ідентифікатор."
   },
@@ -10106,10 +10102,6 @@
   {
     "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
     "translation": "Неправильний максимальний час простою з'єднання для налаштувань SQL. Повинно бути невід'ємним числом."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Недійсне повідомлення."
   },
   {
     "id": "model.channel_bookmark.is_valid.type.app_error",

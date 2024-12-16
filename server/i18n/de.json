@@ -4307,10 +4307,6 @@
     "translation": "Ungültige Id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ungültige Nachricht."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Ungültige Original-ID."
   },
@@ -8828,10 +8824,6 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Ungültige Eigenschaften."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ungültige Nachricht."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
