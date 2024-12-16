@@ -16,7 +16,7 @@ import BooleanSetting from './boolean_setting';
 import CheckboxSetting from './checkbox_setting';
 import type {BaseProps, BaseState} from './old_admin_settings';
 import OLDAdminSettings from './old_admin_settings';
-import Setting from './setting';
+import SettingSet from './setting_set';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
@@ -199,57 +199,59 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                         setByEnv={this.isSetByEnv('PasswordSettings.MinimumLength')}
                         disabled={this.props.isDisabled}
                     />
-                    <Setting
+                    <SettingSet
                         label={<FormattedMessage {...messages.passwordRequirements}/>}
                     >
-                        <div>
-                            <CheckboxSetting
-                                id='admin.password.lowercase'
-                                label={
-                                    <FormattedMessage {...messages.lowercase}/>
-                                }
-                                defaultChecked={this.state.passwordLowercase}
-                                onChange={this.handleBooleanChange('passwordLowercase')}
-                                setByEnv={this.isSetByEnv('PasswordSettings.Lowercase')}
-                                disabled={this.props.isDisabled}
-                            />
-                        </div>
-                        <div>
-                            <CheckboxSetting
-                                id='admin.password.uppercase'
-                                label={
-                                    <FormattedMessage {...messages.uppercase}/>
-                                }
-                                defaultChecked={this.state.passwordUppercase}
-                                onChange={this.handleBooleanChange('passwordUppercase')}
-                                setByEnv={this.isSetByEnv('PasswordSettings.Uppercase')}
-                                disabled={this.props.isDisabled}
-                            />
-                        </div>
-                        <div>
-                            <CheckboxSetting
-                                id='admin.password.number'
-                                label={
-                                    <FormattedMessage {...messages.number}/>
-                                }
-                                defaultChecked={this.state.passwordNumber}
-                                onChange={this.handleBooleanChange('passwordNumber')}
-                                setByEnv={this.isSetByEnv('PasswordSettings.Number')}
-                                disabled={this.props.isDisabled}
-                            />
-                        </div>
-                        <div>
-                            <CheckboxSetting
-                                id='admin.password.symbol'
-                                label={
-                                    <FormattedMessage {...messages.symbol}/>
-                                }
-                                defaultChecked={this.state.passwordSymbol}
-                                onChange={this.handleBooleanChange('passwordSymbol')}
-                                setByEnv={this.isSetByEnv('PasswordSettings.Symbol')}
-                                disabled={this.props.isDisabled}
-                            />
-                        </div>
+                        <ul className='admin-console__checkbox-list'>
+                            <div>
+                                <CheckboxSetting
+                                    id='admin.password.lowercase'
+                                    label={
+                                        <FormattedMessage {...messages.lowercase}/>
+                                    }
+                                    defaultChecked={this.state.passwordLowercase}
+                                    onChange={this.handleBooleanChange('passwordLowercase')}
+                                    setByEnv={this.isSetByEnv('PasswordSettings.Lowercase')}
+                                    disabled={this.props.isDisabled}
+                                />
+                            </div>
+                            <div>
+                                <CheckboxSetting
+                                    id='admin.password.uppercase'
+                                    label={
+                                        <FormattedMessage {...messages.uppercase}/>
+                                    }
+                                    defaultChecked={this.state.passwordUppercase}
+                                    onChange={this.handleBooleanChange('passwordUppercase')}
+                                    setByEnv={this.isSetByEnv('PasswordSettings.Uppercase')}
+                                    disabled={this.props.isDisabled}
+                                />
+                            </div>
+                            <div>
+                                <CheckboxSetting
+                                    id='admin.password.number'
+                                    label={
+                                        <FormattedMessage {...messages.number}/>
+                                    }
+                                    defaultChecked={this.state.passwordNumber}
+                                    onChange={this.handleBooleanChange('passwordNumber')}
+                                    setByEnv={this.isSetByEnv('PasswordSettings.Number')}
+                                    disabled={this.props.isDisabled}
+                                />
+                            </div>
+                            <div>
+                                <CheckboxSetting
+                                    id='admin.password.symbol'
+                                    label={
+                                        <FormattedMessage {...messages.symbol}/>
+                                    }
+                                    defaultChecked={this.state.passwordSymbol}
+                                    onChange={this.handleBooleanChange('passwordSymbol')}
+                                    setByEnv={this.isSetByEnv('PasswordSettings.Symbol')}
+                                    disabled={this.props.isDisabled}
+                                />
+                            </div>
+                        </ul>
                         <div>
                             <br/>
                             <label>
@@ -258,7 +260,7 @@ export default class PasswordSettings extends OLDAdminSettings<Props, State> {
                             <br/>
                             {this.getSampleErrorMsg()}
                         </div>
-                    </Setting>
+                    </SettingSet>
                 </div>
                 {!this.props.config.ExperimentalSettings?.RestrictSystemAdmin &&
                 (
