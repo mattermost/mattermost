@@ -196,7 +196,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
     const postContainerClass = classNames('edit-post-history__container', {'edit-post-history__container__background': open});
     const timeStampValue = post.edit_at === 0 ? post.create_at : post.edit_at;
 
-    const isFileDeletd = post.delete_at > 0;
+    const isFileDeleted = post.delete_at > 0;
 
     return (
         <CompassThemeProvider theme={theme}>
@@ -236,9 +236,9 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                         open &&
                         <FileAttachmentListContainer
                             post={post}
-                            isEditHistory={isFileDeletd}
-                            disableDownload={isFileDeletd}
-                            disableActions={isFileDeletd}
+                            isEditHistory={isFileDeleted}
+                            disableDownload={isFileDeleted}
+                            disableActions={isFileDeleted}
                         />
                     }
                 </PostAriaLabelDiv>
