@@ -17,7 +17,7 @@ import ShowSearchButton from './show_search_button';
 import UnmuteChannelButton from './unmute_channel_button';
 
 import ChannelHeaderMenu from '../channel_header_menu/channel_header_menu';
-import MobileChannelHeaderPlug from '../channel_header_menu/menu_items/mobile_channel_header_plugins/mobile_channel_header_plugins';
+import MobileChannelHeaderPlug from '../channel_header_menu/menu_items/mobile_channel_header_plugins';
 
 type Props = {
     channel?: Channel;

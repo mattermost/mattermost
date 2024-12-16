@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {closeRightHandSide, showChannelInfo} from 'actions/views/rhs';
@@ -52,6 +53,7 @@ const ToggleInfo = ({channel}: Props) => {
     return (
         <>
             <Menu.Item
+                leadingElement={<InformationOutlineIcon size='18px'/>}
                 onClick={toggleRHS}
                 labels={text}
             />

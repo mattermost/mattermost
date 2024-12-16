@@ -17,21 +17,21 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 
 import {Constants} from 'utils/constants';
 
-import MenuItemAddMembers from '../menu_items/add_channel_members/add_channel_members';
-import MenuItemArchiveChannel from '../menu_items/archive_channel/archive_channel';
+import MenuItemAddMembers from '../menu_items/add_channel_members';
+import MenuItemArchiveChannel from '../menu_items/archive_channel';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
-import MenuItemChannelSettings from '../menu_items/channel_settings/channel_settings';
-import MenuItemCloseChannel from '../menu_items/close_channel/close_channel';
-import MenuItemGroupsMenuItems from '../menu_items/groups/groups';
-import MenuItemLeaveChannel from '../menu_items/leave_channel/leave_channel';
-import MenuItemNotification from '../menu_items/notification/notification';
-import MenuItemOpenMembersRHS from '../menu_items/open_members_rhs/open_members_rhs';
-import MenuItemPluginItems from '../menu_items/plugins_submenu/plugins_submenu';
-import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel/toggle_favorite_channel';
-import MenuItemToggleInfo from '../menu_items/toggle_info/toggle_info';
-import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel/toggle_mute_channel';
-import MenuItemUnarchiveChannel from '../menu_items/unarchive_channel/unarchive_channel';
-import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts/view_pinned_posts';
+import MenuItemChannelSettings from '../menu_items/channel_settings';
+import MenuItemCloseChannel from '../menu_items/close_channel';
+import MenuItemGroupsMenuItems from '../menu_items/groups';
+import MenuItemLeaveChannel from '../menu_items/leave_channel';
+import MenuItemNotification from '../menu_items/notification';
+import MenuItemOpenMembersRHS from '../menu_items/open_members_rhs';
+import MenuItemPluginItems from '../menu_items/plugins_submenu';
+import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel';
+import MenuItemToggleInfo from '../menu_items/toggle_info';
+import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel';
+import MenuItemUnarchiveChannel from '../menu_items/unarchive_channel';
+import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts';
 
 type Props = {
     channel: Channel;

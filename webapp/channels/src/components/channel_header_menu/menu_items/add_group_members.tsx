@@ -5,6 +5,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {AccountMultipleOutlineIcon} from '@mattermost/compass-icons/components';
+
 import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
@@ -18,6 +20,7 @@ const AddGroupMembers = (): JSX.Element => {
     return (
         <Menu.Item
             id='channelAddMembers'
+            leadingElement={<AccountMultipleOutlineIcon size='18px'/>}
             onClick={() => {
                 dispatch(
                     openModal({

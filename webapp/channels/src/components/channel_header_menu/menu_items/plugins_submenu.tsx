@@ -6,7 +6,7 @@ import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {
-    FolderMoveOutlineIcon,
+    AppsIcon,
     ChevronRightIcon,
 } from '@mattermost/compass-icons/components';
 
@@ -27,7 +27,7 @@ const PluginsSubmenu = (props: Props) => {
                     defaultMessage='More actions'
                 />
             }
-            leadingElement={<FolderMoveOutlineIcon/>}
+            leadingElement={<AppsIcon size='18px'/>}
             trailingElements={<ChevronRightIcon size={16}/>}
             menuId={'moreActions-menu'}
             menuAriaLabel={formatMessage({id: 'pluginsMenu.more_actions', defaultMessage: 'More actions'})}

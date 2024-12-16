@@ -10,6 +10,7 @@ import {
     ChevronRightIcon,
     LinkVariantIcon,
     PaperclipIcon,
+    BookmarkOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -42,6 +43,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
     return (
         <Menu.SubMenu
             id={`channel-menu-${props.channel.id}-bookmarks`}
+            leadingElement={<BookmarkOutlineIcon size={18}/>}
             labels={(
                 <FormattedMessage
                     id='channel_menu.bookmarks'
@@ -56,7 +58,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
         >
             <Menu.Item
                 id={`channel-menu-${props.channel.id}-bookmarks-link`}
-                leadingElement={<LinkVariantIcon size={16}/>}
+                leadingElement={<LinkVariantIcon size={18}/>}
                 labels={(
                     <FormattedMessage
                         id='channel_menu.bookmarks.addLink'
@@ -68,7 +70,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
             {canUploadFiles && (
                 <Menu.Item
                     id={`channel-menu-${props.channel.id}-bookmarks-file`}
-                    leadingElement={<PaperclipIcon size={16}/>}
+                    leadingElement={<PaperclipIcon size={18}/>}
                     labels={(
                         <FormattedMessage
                             id='channel_menu.bookmarks.addFile'

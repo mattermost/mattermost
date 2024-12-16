@@ -4,6 +4,7 @@
 import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {AccountOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {showChannelMembers} from 'actions/views/rhs';
@@ -41,6 +42,7 @@ const ToggleChannelMembersRHS = ({
 
     return (
         <Menu.Item
+            leadingElement={<AccountOutlineIcon size={16}/>}
             id={id}
             onClick={openRHSIfNotOpen}
             labels={text}

@@ -31,7 +31,7 @@ import {Constants} from 'utils/constants';
 import ChannelDirectMenu from './channel_header_menu_items/channel_header_direct_menu';
 import ChannelGroupMenu from './channel_header_menu_items/channel_header_group_menu';
 import ChannelPublicPrivateMenu from './channel_header_menu_items/channel_header_public_private_menu';
-import MobileChannelHeaderPlugins from './menu_items/mobile_channel_header_plugins/mobile_channel_header_plugins';
+import MobileChannelHeaderPlugins from './menu_items/mobile_channel_header_plugins';
 
 import ChannelHeaderTitleDirect from '../channel_header/channel_header_title_direct';
 import ChannelHeaderTitleGroup from '../channel_header/channel_header_title_group';

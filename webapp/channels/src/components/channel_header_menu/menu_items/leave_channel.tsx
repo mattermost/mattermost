@@ -5,6 +5,7 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {LogoutVariantIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {leaveChannel} from 'actions/views/channel';
@@ -46,6 +47,7 @@ const LeaveChannel = ({
     return (
         <Menu.Item
             id={id}
+            leadingElement={<LogoutVariantIcon size='18px'/>}
             onClick={handleLeave}
             labels={
                 <FormattedMessage

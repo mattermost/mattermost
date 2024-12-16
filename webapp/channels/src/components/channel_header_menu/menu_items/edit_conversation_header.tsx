@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {CogOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {openModal} from 'actions/views/modals';
@@ -23,6 +24,7 @@ const EditConversationHeader = ({channel}: Props): JSX.Element => {
     return (
         <Menu.Item
             id='channelEditHeader'
+            leadingElement={<CogOutlineIcon size='18px'/>}
             onClick={() => {
                 dispatch(
                     openModal({

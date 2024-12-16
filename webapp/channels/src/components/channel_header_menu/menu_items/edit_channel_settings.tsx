@@ -19,7 +19,7 @@ import RenameChannelModal from 'components/rename_channel_modal';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
-import MenuItemConvertToPrivate from '../convert_public_to_private/convert_public_to_private';
+import MenuItemConvertToPrivate from './convert_public_to_private';
 
 type Props = {
     channel: Channel;

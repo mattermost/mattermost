@@ -7,12 +7,13 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {
     FolderMoveOutlineIcon,
     ChevronRightIcon,
+    CogOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import * as Menu from 'components/menu';
 
-import MenuItemEditChannelSettings from '../edit_channel_settings/edit_channel_settings';
+import MenuItemEditChannelSettings from './edit_channel_settings';
 
 type Props = {
     channel: Channel;
@@ -31,7 +32,7 @@ const ChannelSettings = ({channel, isReadonly, isDefault}: Props): JSX.Element =
                     defaultMessage='Channel Settings'
                 />
             }
-            leadingElement={<FolderMoveOutlineIcon/>}
+            leadingElement={<CogOutlineIcon size={18}/>}
             trailingElements={<ChevronRightIcon size={16}/>}
             menuId={'channelSettings-menu'}
             menuAriaLabel={formatMessage({id: 'channelSettings', defaultMessage: 'Channel Settings'})}

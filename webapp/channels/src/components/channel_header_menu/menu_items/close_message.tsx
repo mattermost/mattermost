@@ -74,7 +74,7 @@ export default function CloseMessage(props: Props) {
     return (
         <Menu.Item
             id={id}
-            leadingElement={<CloseIcon color='#808080'/>}
+            leadingElement={<CloseIcon size='18px'/>}
             onClick={handleClose}
             labels={text}
         />

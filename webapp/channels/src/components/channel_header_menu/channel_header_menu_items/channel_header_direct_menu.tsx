@@ -10,12 +10,12 @@ import type {UserProfile} from '@mattermost/types/users';
 import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 
-import CloseMessage from '../menu_items/close_message/close_message';
-import EditConversationHeader from '../menu_items/edit_conversation_header/edit_conversation_header';
-import MenuItemPluginItems from '../menu_items/plugins_submenu/plugins_submenu';
-import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel/toggle_favorite_channel';
-import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel/toggle_mute_channel';
-import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts/view_pinned_posts';
+import CloseMessage from '../menu_items/close_message';
+import EditConversationHeader from '../menu_items/edit_conversation_header';
+import MenuItemPluginItems from '../menu_items/plugins_submenu';
+import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel';
+import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel';
+import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts';
 
 type Props = {
     channel: Channel;

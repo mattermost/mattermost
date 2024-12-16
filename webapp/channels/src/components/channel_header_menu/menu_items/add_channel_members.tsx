@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {AccountPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {openModal} from 'actions/views/modals';
@@ -24,6 +25,7 @@ const AddChannelMembers = ({channel}: Props): JSX.Element => {
     return (
         <Menu.Item
             id='channelAddMembers'
+            leadingElement={<AccountPlusOutlineIcon size='18px'/>}
             onClick={() => {
                 dispatch(openModal({
                     modalId: ModalIdentifiers.CHANNEL_INVITE,
