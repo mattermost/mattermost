@@ -4308,10 +4308,6 @@
     "translation": "ID Incorect."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mesaj inexistent."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Identitatea originala invalidă."
   },
