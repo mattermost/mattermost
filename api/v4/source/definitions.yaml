@@ -3698,14 +3698,39 @@ components:
           description: The time in milliseconds a user was created
           type: integer
           format: int64
+        update_at:
+          description: The time in milliseconds a user was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds a user was deleted
+          type: integer
+          format: int64
         username:
+          type: string
+        auth_data:
+          type: string
+        auth_service:
           type: string
         email:
           type: string
-        display_name:
+        nickname:
           type: string
-          description: Calculated display name based on user
-        last_login_at:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        position:
+          type: string
+        roles:
+          type: string
+        locale:
+          type: string
+        timezone:
+          $ref: "#/components/schemas/Timezone"
+        disable_welcome_email:
+          type: boolean
+        last_login:
           description: Last time the user was logged in
           type: integer
           format: int64
