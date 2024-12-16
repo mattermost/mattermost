@@ -1507,7 +1507,7 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 
 	if !skipTeamMembershipCheck {
 		builder = builder.Where(sq.Or{
-			sq.NotEq{"Type": model.ChannelTypePrivate},
+			sq.Eq{"Type": model.ChannelTypeOpen},
 			sq.And{
 				sq.Eq{"Type": model.ChannelTypePrivate},
 				sq.Expr("Id IN (?)", sq.Select("ChannelId").From("ChannelMembers").Where(sq.Eq{"UserId": userId})),

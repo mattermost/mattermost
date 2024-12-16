@@ -18,20 +18,20 @@ type ConfigDiff struct {
 	ActualVal any    `json:"actual_val"`
 }
 
-func (c *ConfigDiff) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ConfigDiff) Auditable() map[string]any {
+	return map[string]any{
 		"path":       c.Path,
 		"base_val":   c.BaseVal,
 		"actual_val": c.ActualVal,
 	}
 }
 
-func (cd *ConfigDiffs) Auditable() map[string]interface{} {
-	var s []interface{}
+func (cd *ConfigDiffs) Auditable() map[string]any {
+	var s []any
 	for _, d := range cd.Sanitize() {
 		s = append(s, d.Auditable())
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"config_diffs": s,
 	}
 }
