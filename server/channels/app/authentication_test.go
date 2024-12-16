@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -223,15 +222,12 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 
 			tc.mockDoLogin()
 
-			//log the user struct
-			mlog.Debug("User struct", mlog.String("user", fmt.Sprintf("%+v", user)))
-			mlog.Debug("Max failed login attempts", mlog.Int("maxFailedLoginAttempts", maxFailedLoginAttempts))
-
 			// Simulate failed login attempts if necessary
 			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
 				for i := 0; i < maxFailedLoginAttempts; i++ {
 					_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, user, "wrongpassword", "")
 					require.NotNil(t, appErr)
+					require.Equal(t, "api.user.check_user_password.invalid.app_error", appErr.Id)
 				}
 			}
 
@@ -246,9 +242,9 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			}
 
 			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
-				user, err := th.App.GetUser(user.Id)
+				updatedUser, err := th.App.GetUser(user.Id)
 				require.Nil(t, err)
-				require.Equal(t, maxFailedLoginAttempts, user.FailedAttempts)
+				require.Equal(t, maxFailedLoginAttempts, updatedUser.FailedAttempts)
 			}
 		})
 	}

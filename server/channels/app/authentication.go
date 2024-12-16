@@ -151,11 +151,33 @@ func (a *App) CheckLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 	// MM-37585: Use locks to avoid concurrently checking AND updating the failed login attempts.
 	a.ch.ldapLoginAttemptsMut.Lock()
 	defer a.ch.ldapLoginAttemptsMut.Unlock()
+
+	// LDAP users who are logging in for the first time will not have an ID
+	if user.Id != "" {
+		// Get the latest user data
+		mmUser, err := a.GetUser(user.Id)
+		if err != nil {
+			if err.Id != MissingAccountError {
+				err.StatusCode = http.StatusInternalServerError
+				return nil, err
+			}
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		}
+		user = mmUser
+	}
+
 	ldapId := user.AuthData
 
 	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
+	}
+
+	if user.Id != "" {
+		if err := checkUserLoginAttempts(user, *a.Config().LdapSettings.MaximumLoginAttempts); err != nil {
+			return nil, err
+		}
 	}
 
 	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapId, password)
@@ -165,8 +187,10 @@ func (a *App) CheckLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapId))
 		}
 
-		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-			return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+		if ldapUser.Id != "" {
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
+				return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+			}
 		}
 
 		err.StatusCode = http.StatusUnauthorized
@@ -176,8 +200,8 @@ func (a *App) CheckLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 	if err := a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
 		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
 		// about the MFA state of the user in question
-		if mfaToken != "" {
-			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+		if mfaToken != "" && ldapUser.Id != "" {
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
 				return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 			}
 		}
@@ -188,7 +212,7 @@ func (a *App) CheckLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		return nil, err
 	}
 
-	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, 0); passErr != nil {
 		return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
 
@@ -286,11 +310,6 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 		if !ldapAvailable {
 			err := model.NewAppError("login", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 			return user, err
-		}
-
-		// Check the max failed attempts before hitting their LDAP server
-		if err := checkUserLoginAttempts(user, *a.Config().LdapSettings.MaximumLoginAttempts); err != nil {
-			return nil, err
 		}
 
 		ldapUser, err := a.CheckLdapUserPasswordAndAllCriteria(rctx, user, password, mfaToken)
