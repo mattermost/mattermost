@@ -721,6 +721,24 @@ func (_m *ThreadStore) UpdateMembership(membership *model.ThreadMembership) (*mo
 	return r0, r1
 }
 
+// UpdateTeamIdForChannelThreads provides a mock function with given fields: channelId, teamId
+func (_m *ThreadStore) UpdateTeamIdForChannelThreads(channelId string, teamId string) error {
+	ret := _m.Called(channelId, teamId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateTeamIdForChannelThreads")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(channelId, teamId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewThreadStore creates a new instance of ThreadStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewThreadStore(t interface {
