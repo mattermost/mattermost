@@ -549,6 +549,11 @@ func TestImportValidateUserImportData(t *testing.T) {
 	err = ValidateUserImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
+	// Test with not-all lowercase username
+	data.Username = model.NewPointer("Bob")
+	err = ValidateUserImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid even the username has uppercase letters.")
+
 	// Test various invalid optional field values.
 	data.Nickname = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateUserImportData(&data)
@@ -682,6 +687,11 @@ func TestImportValidateBotImportData(t *testing.T) {
 	}
 	err := ValidateBotImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with not-all lowercase username
+	data.Username = model.NewPointer("Bob")
+	err = ValidateBotImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid even the username has uppercase letters.")
 
 	// Test with various invalid names.
 	data.Username = nil

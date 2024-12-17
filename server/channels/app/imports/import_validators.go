@@ -200,7 +200,7 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Username == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidUsername(*data.Username) {
+	} else if !model.IsValidUsername(model.NormalizeUsername(*data.Username)) { // we already lowercase the username while saving and querying so we are more forgiving here
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -329,7 +329,7 @@ func ValidateBotImportData(data *BotImportData) *model.AppError {
 
 	if data.Username == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidUsername(*data.Username) {
+	} else if !model.IsValidUsername(model.NormalizeUsername(*data.Username)) { // we already lowercase the username while saving and querying so we are more forgiving here
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
