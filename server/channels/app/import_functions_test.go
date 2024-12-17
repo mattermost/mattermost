@@ -748,852 +748,967 @@ func TestImportImportUser(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many users are in the database.
-	userCount, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
+	userCount, cErr := th.App.Srv().Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
 	})
-	require.NoError(t, err, "Failed to get user count.")
+	require.NoError(t, cErr, "Failed to get user count.")
 
-	// Do an invalid user in dry-run mode.
-	data := imports.UserImportData{
-		Username: model.NewPointer(model.NewUsername()),
-	}
-	err = th.App.importUser(th.Context, &data, true)
-	require.Error(t, err, "Should have failed to import invalid user.")
+	t.Run("import an invalid user in dry-run", func(t *testing.T) {
+		data := imports.UserImportData{
+			Username: model.NewPointer(model.NewUsername()),
+		}
+		appErr := th.App.importUser(th.Context, &data, true)
+		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
-	// Check that no more users are in the DB.
-	userCount2, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
-		IncludeDeleted:     true,
-		IncludeBotAccounts: false,
+		// Check that no more users are in the DB.
+		userCountCurrent, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
+			IncludeDeleted:     true,
+			IncludeBotAccounts: false,
+		})
+		require.NoError(t, err, "Failed to get user count.")
+		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 	})
-	require.NoError(t, err, "Failed to get user count.")
-	assert.Equal(t, userCount, userCount2, "Unexpected number of users")
 
-	// Do a valid user in dry-run mode.
-	data = imports.UserImportData{
-		Username: model.NewPointer(model.NewUsername()),
-		Email:    model.NewPointer(model.NewId() + "@example.com"),
-	}
-	appErr := th.App.importUser(th.Context, &data, true)
-	require.Nil(t, appErr, "Should have succeeded to import valid user.")
+	t.Run("import a valid user in dry-run", func(t *testing.T) {
+		data := imports.UserImportData{
+			Username: model.NewPointer(model.NewUsername()),
+			Email:    model.NewPointer(model.NewId() + "@example.com"),
+		}
+		appErr := th.App.importUser(th.Context, &data, true)
+		require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
-	// Check that no more users are in the DB.
-	userCount3, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
-		IncludeDeleted:     true,
-		IncludeBotAccounts: false,
+		// Check that no more users are in the DB.
+		userCountCurrent, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
+			IncludeDeleted:     true,
+			IncludeBotAccounts: false,
+		})
+		require.NoError(t, err, "Failed to get user count.")
+		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 	})
-	require.NoError(t, err, "Failed to get user count.")
-	assert.Equal(t, userCount, userCount3, "Unexpected number of users")
 
-	// Do an invalid user in apply mode.
-	data = imports.UserImportData{
-		Username: model.NewPointer(model.NewUsername()),
-	}
-	err = th.App.importUser(th.Context, &data, false)
-	require.Error(t, err, "Should have failed to import invalid user.")
+	t.Run("import an invalid user in apply mode", func(t *testing.T) {
+		data := imports.UserImportData{
+			Username: model.NewPointer(model.NewUsername()),
+		}
+		appErr := th.App.importUser(th.Context, &data, false)
+		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
-	// Check that no more users are in the DB.
-	userCount4, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
-		IncludeDeleted:     true,
-		IncludeBotAccounts: false,
+		// Check that no more users are in the DB.
+		userCountCurrent, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
+			IncludeDeleted:     true,
+			IncludeBotAccounts: false,
+		})
+		require.NoError(t, err, "Failed to get user count.")
+		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 	})
-	require.NoError(t, err, "Failed to get user count.")
-	assert.Equal(t, userCount, userCount4, "Unexpected number of users")
 
-	// Do a valid user in apply mode.
-	username := model.NewUsername()
-	testsDir, _ := fileutils.FindDir("tests")
-	data = imports.UserImportData{
-		Avatar: imports.Avatar{
-			ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
-		},
-		Username:  &username,
-		Email:     model.NewPointer(model.NewId() + "@example.com"),
-		Nickname:  model.NewPointer(model.NewId()),
-		FirstName: model.NewPointer(model.NewId()),
-		LastName:  model.NewPointer(model.NewId()),
-		Position:  model.NewPointer(model.NewId()),
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	require.Nil(t, appErr, "Should have succeeded to import valid user.")
+	t.Run("import a valid user in apply mode", func(t *testing.T) {
+		username := "A" + model.NewUsername()[1:]
+		testsDir, _ := fileutils.FindDir("tests")
+		data := imports.UserImportData{
+			Avatar: imports.Avatar{
+				ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+			},
+			Username:  &username,
+			Email:     model.NewPointer(model.NewId() + "@example.com"),
+			Nickname:  model.NewPointer(model.NewId()),
+			FirstName: model.NewPointer(model.NewId()),
+			LastName:  model.NewPointer(model.NewId()),
+			Position:  model.NewPointer(model.NewId()),
+		}
+		appErr := th.App.importUser(th.Context, &data, false)
+		require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
-	// Check that one more user is in the DB.
-	userCount5, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
-		IncludeDeleted:     true,
-		IncludeBotAccounts: false,
+		// Check that one more user is in the DB.
+		userCountCurrent, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
+			IncludeDeleted:     true,
+			IncludeBotAccounts: false,
+		})
+		require.NoError(t, err, "Failed to get user count.")
+		userCount++ // Increment the user count.
+		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
+
+		// Get the user and check all the fields are correct.
+		user, err2 := th.App.GetUserByUsername(username)
+		require.Nil(t, err2, "Failed to get user from database.")
+
+		assert.Equal(t, *data.Email, user.Email)
+		assert.Equal(t, *data.Nickname, user.Nickname)
+		assert.Equal(t, *data.FirstName, user.FirstName)
+		assert.Equal(t, *data.LastName, user.LastName)
+		assert.Equal(t, *data.Position, user.Position)
+
+		// Check calculated properties.
+		require.Equal(t, strings.ToLower(username), user.Username, "Expected Username to be lower case.")
+		require.Empty(t, user.AuthService, "Expected Auth Service to be empty.")
+		require.Empty(t, user.AuthData, "Expected AuthData to be empty.")
+		require.NotEmpty(t, user.Password, "Expected password to be set.")
+		require.True(t, user.EmailVerified, "Expected EmailVerified to be true.")
+		require.Equal(t, user.Locale, *th.App.Config().LocalizationSettings.DefaultClientLocale, "Expected Locale to be the default.")
+		require.Equal(t, user.Roles, "system_user", "Expected roles to be system_user")
 	})
-	require.NoError(t, err, "Failed to get user count.")
-	assert.Equal(t, userCount+1, userCount5, "Unexpected number of users")
 
-	// Get the user and check all the fields are correct.
-	user, err2 := th.App.GetUserByUsername(username)
-	require.Nil(t, err2, "Failed to get user from database.")
+	t.Run("import a valid user where there is an existing user", func(t *testing.T) {
+		username := model.NewUsername()
+		testsDir, _ := fileutils.FindDir("tests")
+		data := imports.UserImportData{
+			Avatar: imports.Avatar{
+				ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+			},
+			Username:  &username,
+			Email:     model.NewPointer(model.NewId() + "@example.com"),
+			Nickname:  model.NewPointer(model.NewId()),
+			FirstName: model.NewPointer(model.NewId()),
+			LastName:  model.NewPointer(model.NewId()),
+			Position:  model.NewPointer(model.NewId()),
+		}
+		appErr := th.App.importUser(th.Context, &data, false)
+		require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
-	userBool := user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position
-	require.False(t, userBool, "User properties do not match Import Data.")
+		// Check that one more user is in the DB.
+		userCountCurrent, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
+			IncludeDeleted:     true,
+			IncludeBotAccounts: false,
+		})
+		require.NoError(t, err, "Failed to get user count.")
+		userCount++ // Increment the user count.
+		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 
-	// Check calculated properties.
-	require.Empty(t, user.AuthService, "Expected Auth Service to be empty.")
+		// Alter all the fields of that user.
+		data.Email = model.NewPointer(model.NewId() + "@example.com")
+		data.ProfileImage = model.NewPointer(filepath.Join(testsDir, "testgif.gif"))
+		data.AuthService = model.NewPointer("ldap")
+		data.AuthData = &username
+		data.Nickname = model.NewPointer(model.NewId())
+		data.FirstName = model.NewPointer(model.NewId())
+		data.LastName = model.NewPointer(model.NewId())
+		data.Position = model.NewPointer(model.NewId())
+		data.Roles = model.NewPointer("system_admin system_user")
+		data.Locale = model.NewPointer("zh_CN")
 
-	require.Empty(t, user.AuthData, "Expected AuthData to be empty.")
+		appErr = th.App.importUser(th.Context, &data, false)
+		require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
-	require.NotEmpty(t, user.Password, "Expected password to be set.")
+		// Check user count the same.
+		userCountCurrent, err = th.App.Srv().Store().User().Count(model.UserCountOptions{
+			IncludeDeleted:     true,
+			IncludeBotAccounts: false,
+		})
+		require.NoError(t, err, "Failed to get user count.")
+		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 
-	require.True(t, user.EmailVerified, "Expected EmailVerified to be true.")
+		// Get the user and check all the fields are correct.
+		user, err2 := th.App.GetUserByUsername(username)
+		require.Nil(t, err2, "Failed to get user from database.")
 
-	require.Equal(t, user.Locale, *th.App.Config().LocalizationSettings.DefaultClientLocale, "Expected Locale to be the default.")
+		assert.Equal(t, *data.Email, user.Email)
+		assert.Equal(t, *data.Nickname, user.Nickname)
+		assert.Equal(t, *data.FirstName, user.FirstName)
+		assert.Equal(t, *data.LastName, user.LastName)
+		assert.Equal(t, *data.Position, user.Position)
 
-	require.Equal(t, user.Roles, "system_user", "Expected roles to be system_user")
-
-	// Alter all the fields of that user.
-	data.Email = model.NewPointer(model.NewId() + "@example.com")
-	data.ProfileImage = model.NewPointer(filepath.Join(testsDir, "testgif.gif"))
-	data.AuthService = model.NewPointer("ldap")
-	data.AuthData = &username
-	data.Nickname = model.NewPointer(model.NewId())
-	data.FirstName = model.NewPointer(model.NewId())
-	data.LastName = model.NewPointer(model.NewId())
-	data.Position = model.NewPointer(model.NewId())
-	data.Roles = model.NewPointer("system_admin system_user")
-	data.Locale = model.NewPointer("zh_CN")
-
-	appErr = th.App.importUser(th.Context, &data, false)
-	require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
-
-	// Check user count the same.
-	userCount6, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
-		IncludeDeleted:     true,
-		IncludeBotAccounts: false,
+		require.Equal(t, "ldap", user.AuthService, "Expected Auth Service to be ldap \"%v\"", user.AuthService)
+		require.Equal(t, user.AuthData, data.AuthData, "Expected AuthData to be set.")
+		require.Empty(t, user.Password, "Expected password to be empty.")
+		require.True(t, user.EmailVerified, "Expected EmailVerified to be true.")
+		require.Equal(t, *data.Locale, user.Locale, "Expected Locale to be the set.")
+		require.Equal(t, *data.Roles, user.Roles, "Expected roles to be set: %v", user.Roles)
 	})
-	require.NoError(t, err, "Failed to get user count.")
-	assert.Equal(t, userCount+1, userCount6, "Unexpected number of users")
 
-	// Get the user and check all the fields are correct.
-	user, err2 = th.App.GetUserByUsername(username)
-	require.Nil(t, err2, "Failed to get user from database.")
+	t.Run("import invalid fields", func(t *testing.T) {
+		username := model.NewUsername()
+		testsDir, _ := fileutils.FindDir("tests")
+		data := imports.UserImportData{
+			Avatar: imports.Avatar{
+				ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+			},
+			Username:    &username,
+			Email:       model.NewPointer(model.NewId() + "@example.com"),
+			Nickname:    model.NewPointer(model.NewId()),
+			FirstName:   model.NewPointer(model.NewId()),
+			LastName:    model.NewPointer(model.NewId()),
+			Position:    model.NewPointer(model.NewId()),
+			AuthData:    &username,
+			AuthService: model.NewPointer("ldap"),
+		}
+		appErr := th.App.importUser(th.Context, &data, false)
+		require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
-	userBool = user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position
-	require.False(t, userBool, "Updated User properties do not match Import Data.")
+		// Check that one more user is in the DB.
+		userCountCurrent, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
+			IncludeDeleted:     true,
+			IncludeBotAccounts: false,
+		})
+		require.NoError(t, err, "Failed to get user count.")
+		userCount++ // Increment the user count.
+		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 
-	require.Equal(t, "ldap", user.AuthService, "Expected Auth Service to be ldap \"%v\"", user.AuthService)
+		// Check Password and AuthData together.
+		data.Password = model.NewPointer("PasswordTest")
+		appErr = th.App.importUser(th.Context, &data, false)
+		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
-	require.Equal(t, user.AuthData, data.AuthData, "Expected AuthData to be set.")
+		data.AuthData = nil
+		data.AuthService = nil
+		appErr = th.App.importUser(th.Context, &data, false)
+		require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
-	require.Empty(t, user.Password, "Expected password to be empty.")
+		data.Password = model.NewPointer("")
+		appErr = th.App.importUser(th.Context, &data, false)
+		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
-	require.True(t, user.EmailVerified, "Expected EmailVerified to be true.")
+		data.Password = model.NewPointer(strings.Repeat("0123456789", 10))
+		appErr = th.App.importUser(th.Context, &data, false)
+		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
-	require.Equal(t, *data.Locale, user.Locale, "Expected Locale to be the set.")
+		// Check that no more user is in the DB.
+		userCountCurrent, err = th.App.Srv().Store().User().Count(model.UserCountOptions{
+			IncludeDeleted:     true,
+			IncludeBotAccounts: false,
+		})
+		require.NoError(t, err, "Failed to get user count.")
+		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
+	})
 
-	require.Equal(t, *data.Roles, user.Roles, "Expected roles to be set: %v", user.Roles)
+	t.Run("import with team and channel memberships", func(t *testing.T) {
+		teamName := model.NewRandomTeamName()
+		tAppErr := th.App.importTeam(th.Context, &imports.TeamImportData{
+			Name:        &teamName,
+			DisplayName: model.NewPointer("Display Name"),
+			Type:        model.NewPointer("O"),
+		}, false)
+		require.Nil(t, tAppErr, "Failed to import team.")
+		team, appErr := th.App.GetTeamByName(teamName)
+		require.Nil(t, appErr, "Failed to get team from database.")
 
-	// Check Password and AuthData together.
-	data.Password = model.NewPointer("PasswordTest")
-	appErr = th.App.importUser(th.Context, &data, false)
-	require.NotNil(t, appErr, "Should have failed to import invalid user.")
+		channelName := model.NewId()
+		chanTypeOpen := model.ChannelTypeOpen
+		appErr = th.App.importChannel(th.Context, &imports.ChannelImportData{
+			Team:        &teamName,
+			Name:        &channelName,
+			DisplayName: model.NewPointer("Display Name"),
+			Type:        &chanTypeOpen,
+		}, false)
+		require.Nil(t, appErr, "Failed to import channel.")
+		channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
+		require.Nil(t, appErr, "Failed to get channel from database.")
 
-	data.AuthData = nil
-	data.AuthService = nil
-	appErr = th.App.importUser(th.Context, &data, false)
-	require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
+		username := model.NewUsername()
+		data := imports.UserImportData{
+			Username:  &username,
+			Email:     model.NewPointer(model.NewId() + "@example.com"),
+			Nickname:  model.NewPointer(model.NewId()),
+			FirstName: model.NewPointer(model.NewId()),
+			LastName:  model.NewPointer(model.NewId()),
+			Position:  model.NewPointer(model.NewId()),
+		}
 
-	data.Password = model.NewPointer("")
-	appErr = th.App.importUser(th.Context, &data, false)
-	require.NotNil(t, appErr, "Should have failed to import invalid user.")
+		teamMembers, appErr := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+		require.Nil(t, appErr, "Failed to get team member count")
+		teamMemberCount := len(teamMembers)
 
-	data.Password = model.NewPointer(strings.Repeat("0123456789", 10))
-	appErr = th.App.importUser(th.Context, &data, false)
-	require.NotNil(t, appErr, "Should have failed to import invalid user.")
+		channelMemberCount, appErr := th.App.GetChannelMemberCount(th.Context, channel.Id)
+		require.Nil(t, appErr, "Failed to get channel member count")
 
-	data.Password = model.NewPointer("TestPassword")
-
-	// Test team and channel memberships
-	teamName := model.NewRandomTeamName()
-	appErr = th.App.importTeam(th.Context, &imports.TeamImportData{
-		Name:        &teamName,
-		DisplayName: model.NewPointer("Display Name"),
-		Type:        model.NewPointer("O"),
-	}, false)
-	require.Nil(t, appErr, "Failed to import team.")
-	team, appErr := th.App.GetTeamByName(teamName)
-	require.Nil(t, appErr, "Failed to get team from database.")
-
-	channelName := model.NewId()
-	chanTypeOpen := model.ChannelTypeOpen
-	appErr = th.App.importChannel(th.Context, &imports.ChannelImportData{
-		Team:        &teamName,
-		Name:        &channelName,
-		DisplayName: model.NewPointer("Display Name"),
-		Type:        &chanTypeOpen,
-	}, false)
-	require.Nil(t, appErr, "Failed to import channel.")
-	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
-	require.Nil(t, appErr, "Failed to get channel from database.")
-
-	username = model.NewUsername()
-	data = imports.UserImportData{
-		Username:  &username,
-		Email:     model.NewPointer(model.NewId() + "@example.com"),
-		Nickname:  model.NewPointer(model.NewId()),
-		FirstName: model.NewPointer(model.NewId()),
-		LastName:  model.NewPointer(model.NewId()),
-		Position:  model.NewPointer(model.NewId()),
-	}
-
-	teamMembers, appErr := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.Nil(t, appErr, "Failed to get team member count")
-	teamMemberCount := len(teamMembers)
-
-	channelMemberCount, appErr := th.App.GetChannelMemberCount(th.Context, channel.Id)
-	require.Nil(t, appErr, "Failed to get channel member count")
-
-	// Test with an invalid team & channel membership in dry-run mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Roles: model.NewPointer("invalid"),
-			Channels: &[]imports.UserChannelImportData{
+		t.Run("invalid team and channel memberships in dry-run mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
 				{
 					Roles: model.NewPointer("invalid"),
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, true)
-	assert.NotNil(t, appErr)
-
-	// Test with an unknown team name & invalid channel membership in dry-run mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Name: model.NewPointer(model.NewId()),
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Roles: model.NewPointer("invalid"),
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, true)
-	assert.NotNil(t, appErr)
-
-	// Test with a valid team & invalid channel membership in dry-run mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Name: &teamName,
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Roles: model.NewPointer("invalid"),
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, true)
-	assert.NotNil(t, appErr)
-
-	// Test with a valid team & unknown channel name in dry-run mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Name: &teamName,
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Name: model.NewPointer(model.NewId()),
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, true)
-	assert.Nil(t, appErr)
-
-	// Test with a valid team & valid channel name in dry-run mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Name: &teamName,
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Name: &channelName,
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, true)
-	assert.Nil(t, appErr)
-
-	// Check no new member objects were created because dry run mode.
-	tmc, appErr := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.Nil(t, appErr, "Failed to get Team Member Count")
-	require.Len(t, tmc, teamMemberCount, "Number of team members not as expected")
-
-	cmc, appErr := th.App.GetChannelMemberCount(th.Context, channel.Id)
-	require.Nil(t, appErr, "Failed to get Channel Member Count")
-	require.Equal(t, channelMemberCount, cmc, "Number of channel members not as expected")
-
-	// Test with an invalid team & channel membership in apply mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Roles: model.NewPointer("invalid"),
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Roles: model.NewPointer("invalid"),
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.NotNil(t, appErr)
-
-	// Test with an unknown team name & invalid channel membership in apply mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Name: model.NewPointer(model.NewId()),
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Roles: model.NewPointer("invalid"),
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.NotNil(t, appErr)
-
-	// Test with a valid team & invalid channel membership in apply mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Name: &teamName,
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Roles: model.NewPointer("invalid"),
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.NotNil(t, appErr)
-
-	// Check no new member objects were created because all tests should have failed so far.
-	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.Nil(t, appErr, "Failed to get Team Member Count")
-	require.Len(t, tmc, teamMemberCount)
-
-	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
-	require.Nil(t, appErr, "Failed to get Channel Member Count")
-	require.Equal(t, channelMemberCount, cmc)
-
-	// Test with a valid team & unknown channel name in apply mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Name: &teamName,
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Name: model.NewPointer(model.NewId()),
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.NotNil(t, appErr)
-
-	// Check only new team member object created because dry run mode.
-	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.Nil(t, appErr, "Failed to get Team Member Count")
-	require.Len(t, tmc, teamMemberCount+1)
-
-	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
-	require.Nil(t, appErr, "Failed to get Channel Member Count")
-	require.Equal(t, channelMemberCount, cmc)
-
-	// Check team member properties.
-	user, appErr = th.App.GetUserByUsername(username)
-	require.Nil(t, appErr, "Failed to get user from database.")
-
-	teamMember, appErr := th.App.GetTeamMember(th.Context, team.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get team member from database.")
-	require.Equal(t, "team_user", teamMember.Roles)
-
-	// Test with a valid team & valid channel name in apply mode.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Name: &teamName,
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Name: &channelName,
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.Nil(t, appErr)
-
-	// Check only new channel member object created because dry run mode.
-	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.Nil(t, appErr, "Failed to get Team Member Count")
-	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
-
-	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
-	require.Nil(t, appErr, "Failed to get Channel Member Count")
-	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
-
-	// Check channel member properties.
-	channelMember, appErr := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get channel member from database.")
-	assert.Equal(t, "channel_user", channelMember.Roles)
-	assert.Equal(t, "default", channelMember.NotifyProps[model.DesktopNotifyProp])
-	assert.Equal(t, "default", channelMember.NotifyProps[model.PushNotifyProp])
-	assert.Equal(t, "all", channelMember.NotifyProps[model.MarkUnreadNotifyProp])
-
-	// Test with the properties of the team and channel membership changed.
-	data.Teams = &[]imports.UserTeamImportData{
-		{
-			Name:  &teamName,
-			Theme: model.NewPointer(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-			Roles: model.NewPointer("team_user team_admin"),
-			Channels: &[]imports.UserChannelImportData{
-				{
-					Name:  &channelName,
-					Roles: model.NewPointer("channel_user channel_admin"),
-					NotifyProps: &imports.UserChannelNotifyPropsImportData{
-						Desktop:    model.NewPointer(model.UserNotifyMention),
-						Mobile:     model.NewPointer(model.UserNotifyMention),
-						MarkUnread: model.NewPointer(model.UserNotifyMention),
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Roles: model.NewPointer("invalid"),
+						},
 					},
-					Favorite: model.NewPointer(true),
 				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.Nil(t, appErr)
+			}
+			appErr = th.App.importUser(th.Context, &data, true)
+			assert.NotNil(t, appErr)
+		})
 
-	// Check both member properties.
-	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get team member from database.")
-	require.Equal(t, "team_user team_admin", teamMember.Roles)
+		t.Run("unknown team name & invalid channel membership in dry-run mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Name: model.NewPointer(model.NewId()),
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Roles: model.NewPointer("invalid"),
+						},
+					},
+				},
+			}
+			appErr = th.App.importUser(th.Context, &data, true)
+			assert.NotNil(t, appErr)
+		})
 
-	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get channel member Desktop from database.")
-	assert.Equal(t, "channel_user channel_admin", channelMember.Roles)
-	assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.DesktopNotifyProp])
-	assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.PushNotifyProp])
-	assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.MarkUnreadNotifyProp])
+		t.Run("valid team & invalid channel membership in dry-run mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Name: &teamName,
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Roles: model.NewPointer("invalid"),
+						},
+					},
+				},
+			}
+			appErr = th.App.importUser(th.Context, &data, true)
+			assert.NotNil(t, appErr)
+		})
 
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, team.Id, *(*data.Teams)[0].Theme)
+		t.Run("valid team & unknown channel name in dry-run mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Name: &teamName,
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Name: model.NewPointer(model.NewId()),
+						},
+					},
+				},
+			}
+			appErr = th.App.importUser(th.Context, &data, true)
+			assert.Nil(t, appErr)
+		})
 
-	// No more new member objects.
-	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.Nil(t, appErr, "Failed to get Team Member Count")
-	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
+		t.Run("valid team & valid channel name in dry-run mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Name: &teamName,
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Name: &channelName,
+						},
+					},
+				},
+			}
+			appErr = th.App.importUser(th.Context, &data, true)
+			assert.Nil(t, appErr)
 
-	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
-	require.Nil(t, appErr, "Failed to get Channel Member Count")
-	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
+			// Check no new member objects were created because dry run mode.
+			tmc, appErr2 := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+			require.Nil(t, appErr2, "Failed to get Team Member Count")
+			require.Len(t, tmc, teamMemberCount, "Number of team members not as expected")
 
-	// Add a user with some preferences.
-	username = model.NewUsername()
-	data = imports.UserImportData{
-		Username:                 &username,
-		Email:                    model.NewPointer(model.NewId() + "@example.com"),
-		Theme:                    model.NewPointer(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		UseMilitaryTime:          model.NewPointer("true"),
-		CollapsePreviews:         model.NewPointer("true"),
-		MessageDisplay:           model.NewPointer("compact"),
-		ColorizeUsernames:        model.NewPointer("true"),
-		ChannelDisplayMode:       model.NewPointer("centered"),
-		TutorialStep:             model.NewPointer("3"),
-		UseMarkdownPreview:       model.NewPointer("true"),
-		UseFormatting:            model.NewPointer("true"),
-		ShowUnreadSection:        model.NewPointer("true"),
-		EmailInterval:            model.NewPointer("immediately"),
-		NameFormat:               model.NewPointer("full_name"),
-		SendOnCtrlEnter:          model.NewPointer("true"),
-		CodeBlockCtrlEnter:       model.NewPointer("true"),
-		ShowJoinLeave:            model.NewPointer("false"),
-		SyncDrafts:               model.NewPointer("false"),
-		ShowUnreadScrollPosition: model.NewPointer("start_from_newest"),
-		LimitVisibleDmsGms:       model.NewPointer("20"),
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.Nil(t, appErr)
+			cmc, appErr2 := th.App.GetChannelMemberCount(th.Context, channel.Id)
+			require.Nil(t, appErr2, "Failed to get Channel Member Count")
+			require.Equal(t, channelMemberCount, cmc, "Number of channel members not as expected")
+		})
 
-	// Check their values.
-	user, appErr = th.App.GetUserByUsername(username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+		t.Run("invalid team & channel membership in apply mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Roles: model.NewPointer("invalid"),
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Roles: model.NewPointer("invalid"),
+						},
+					},
+				},
+			}
+			appErr = th.App.importUser(th.Context, &data, false)
+			assert.NotNil(t, appErr)
+		})
 
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, "", *data.Theme)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime, *data.UseMilitaryTime)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapseSetting, *data.CollapsePreviews)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameMessageDisplay, *data.MessageDisplay)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameColorizeUsernames, *data.ColorizeUsernames)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameChannelDisplayMode, *data.ChannelDisplayMode)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTutorialSteps, user.Id, *data.TutorialStep)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "formatting", *data.UseFormatting)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategorySidebarSettings, "show_unread_section", *data.ShowUnreadSection)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameNameFormat, "full_name")
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "send_on_ctrl_enter", "true")
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "code_block_ctrl_enter", "true")
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "join_leave", "false")
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "sync_drafts", "false")
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "unread_scroll_position", "start_from_newest")
-	checkPreference(t, th.App, user.Id, model.PreferenceCategorySidebarSettings, model.PreferenceLimitVisibleDmsGms, "20")
+		t.Run("unknown team name & invalid channel membership in apply mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Name: model.NewPointer(model.NewId()),
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Roles: model.NewPointer("invalid"),
+						},
+					},
+				},
+			}
+			appErr = th.App.importUser(th.Context, &data, false)
+			assert.NotNil(t, appErr)
+		})
 
-	// Change those preferences.
-	data = imports.UserImportData{
-		Username:           &username,
-		Email:              model.NewPointer(model.NewId() + "@example.com"),
-		Theme:              model.NewPointer(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		UseMilitaryTime:    model.NewPointer("false"),
-		CollapsePreviews:   model.NewPointer("false"),
-		MessageDisplay:     model.NewPointer("clean"),
-		ColorizeUsernames:  model.NewPointer("false"),
-		ChannelDisplayMode: model.NewPointer("full"),
-		TutorialStep:       model.NewPointer("2"),
-		EmailInterval:      model.NewPointer("hour"),
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.Nil(t, appErr)
+		t.Run("import with valid team and invalid channel memberships in apply mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Name: &teamName,
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Roles: model.NewPointer("invalid"),
+						},
+					},
+				},
+			}
+			appErr = th.App.importUser(th.Context, &data, false)
+			assert.NotNil(t, appErr)
 
-	// Check their values again.
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, "", *data.Theme)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime, *data.UseMilitaryTime)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapseSetting, *data.CollapsePreviews)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameMessageDisplay, *data.MessageDisplay)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameColorizeUsernames, *data.ColorizeUsernames)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameChannelDisplayMode, *data.ChannelDisplayMode)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTutorialSteps, user.Id, *data.TutorialStep)
-	checkPreference(t, th.App, user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval, "3600")
+			// Check no new member objects were created because all tests should have failed so far.
+			tmc, appErr2 := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+			require.Nil(t, appErr2, "Failed to get Team Member Count")
+			require.Len(t, tmc, teamMemberCount)
 
-	// Set Notify Without mention keys
-	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          model.NewPointer(model.UserNotifyAll),
-		DesktopSound:     model.NewPointer("true"),
-		Email:            model.NewPointer("true"),
-		Mobile:           model.NewPointer(model.UserNotifyAll),
-		MobilePushStatus: model.NewPointer(model.StatusOnline),
-		ChannelTrigger:   model.NewPointer("true"),
-		CommentsTrigger:  model.NewPointer(model.CommentsNotifyRoot),
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.Nil(t, appErr)
+			cmc, appErr2 := th.App.GetChannelMemberCount(th.Context, channel.Id)
+			require.Nil(t, appErr2, "Failed to get Channel Member Count")
+			require.Equal(t, channelMemberCount, cmc)
+		})
 
-	user, appErr = th.App.GetUserByUsername(username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+		t.Run("valid team & unknown channel name in apply mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Name: &teamName,
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Name: model.NewPointer(model.NewId()),
+						},
+					},
+				},
+			}
+			appErr = th.App.importUser(th.Context, &data, false)
+			assert.NotNil(t, appErr)
 
-	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyAll)
-	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "true")
-	checkNotifyProp(t, user, model.EmailNotifyProp, "true")
-	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyAll)
-	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusOnline)
-	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "true")
-	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyRoot)
-	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "")
+			// Check only new team member object created because dry run mode.
+			tmc, appErr2 := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+			require.Nil(t, appErr2, "Failed to get Team Member Count")
+			teamMemberCount++
+			require.Len(t, tmc, teamMemberCount)
 
-	// Set Notify Props with Mention keys
-	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          model.NewPointer(model.UserNotifyAll),
-		DesktopSound:     model.NewPointer("true"),
-		Email:            model.NewPointer("true"),
-		Mobile:           model.NewPointer(model.UserNotifyAll),
-		MobilePushStatus: model.NewPointer(model.StatusOnline),
-		ChannelTrigger:   model.NewPointer("true"),
-		CommentsTrigger:  model.NewPointer(model.CommentsNotifyRoot),
-		MentionKeys:      model.NewPointer("valid,misc"),
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.Nil(t, appErr)
+			cmc, appErr2 := th.App.GetChannelMemberCount(th.Context, channel.Id)
+			require.Nil(t, appErr2, "Failed to get Channel Member Count")
+			require.Equal(t, channelMemberCount, cmc)
 
-	user, appErr = th.App.GetUserByUsername(username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+			// Check team member properties.
+			user, appErr2 := th.App.GetUserByUsername(username)
+			require.Nil(t, appErr2, "Failed to get user from database.")
 
-	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyAll)
-	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "true")
-	checkNotifyProp(t, user, model.EmailNotifyProp, "true")
-	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyAll)
-	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusOnline)
-	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "true")
-	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyRoot)
-	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "valid,misc")
+			teamMember, appErr2 := th.App.GetTeamMember(th.Context, team.Id, user.Id)
+			require.Nil(t, appErr2, "Failed to get team member from database.")
+			require.Equal(t, "team_user", teamMember.Roles)
+		})
 
-	// Change Notify Props with mention keys
-	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          model.NewPointer(model.UserNotifyMention),
-		DesktopSound:     model.NewPointer("false"),
-		Email:            model.NewPointer("false"),
-		Mobile:           model.NewPointer(model.UserNotifyNone),
-		MobilePushStatus: model.NewPointer(model.StatusAway),
-		ChannelTrigger:   model.NewPointer("false"),
-		CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
-		MentionKeys:      model.NewPointer("misc"),
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.Nil(t, appErr)
+		t.Run("valid team & valid channel name in apply mode", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Name: &teamName,
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Name: &channelName,
+						},
+					},
+				},
+			}
 
-	user, appErr = th.App.GetUserByUsername(username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+			// convert to a new user
+			username = model.NewUsername()
+			data.Username = &username
+			data.Email = model.NewPointer(model.NewId() + "@example.com")
+			appErr2 := th.App.importUser(th.Context, &data, false)
+			assert.Nil(t, appErr2)
 
-	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyMention)
-	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "false")
-	checkNotifyProp(t, user, model.EmailNotifyProp, "false")
-	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyNone)
-	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusAway)
-	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "false")
-	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyAny)
-	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
+			// Check only new channel member object created because dry run mode.
+			tmc, appErr2 := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+			require.Nil(t, appErr2, "Failed to get Team Member Count")
+			teamMemberCount++
+			require.Len(t, tmc, teamMemberCount, "Number of team members not as expected")
 
-	// Change Notify Props without mention keys
-	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          model.NewPointer(model.UserNotifyMention),
-		DesktopSound:     model.NewPointer("false"),
-		Email:            model.NewPointer("false"),
-		Mobile:           model.NewPointer(model.UserNotifyNone),
-		MobilePushStatus: model.NewPointer(model.StatusAway),
-		ChannelTrigger:   model.NewPointer("false"),
-		CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
-	}
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.Nil(t, appErr)
+			cmc, appErr2 := th.App.GetChannelMemberCount(th.Context, channel.Id)
+			require.Nil(t, appErr2, "Failed to get Channel Member Count")
+			channelMemberCount++
+			require.Equal(t, channelMemberCount, cmc, "Number of channel members not as expected")
 
-	user, appErr = th.App.GetUserByUsername(username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+			user, err2 := th.App.GetUserByUsername(username)
+			require.Nil(t, err2, "Failed to get user from database.")
 
-	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyMention)
-	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "false")
-	checkNotifyProp(t, user, model.EmailNotifyProp, "false")
-	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyNone)
-	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusAway)
-	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "false")
-	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyAny)
-	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
+			// Check channel member properties.
+			channelMember, appErr2 := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+			require.Nil(t, appErr2, "Failed to get channel member from database.")
+			assert.Equal(t, "channel_user", channelMember.Roles)
+			assert.Equal(t, "default", channelMember.NotifyProps[model.DesktopNotifyProp])
+			assert.Equal(t, "default", channelMember.NotifyProps[model.PushNotifyProp])
+			assert.Equal(t, "all", channelMember.NotifyProps[model.MarkUnreadNotifyProp])
+		})
 
-	// Check Notify Props get set on *create* user.
-	username = model.NewUsername()
-	data = imports.UserImportData{
-		Username: &username,
-		Email:    model.NewPointer(model.NewId() + "@example.com"),
-	}
-	data.NotifyProps = &imports.UserNotifyPropsImportData{
-		Desktop:          model.NewPointer(model.UserNotifyMention),
-		DesktopSound:     model.NewPointer("false"),
-		Email:            model.NewPointer("false"),
-		Mobile:           model.NewPointer(model.UserNotifyNone),
-		MobilePushStatus: model.NewPointer(model.StatusAway),
-		ChannelTrigger:   model.NewPointer("false"),
-		CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
-		MentionKeys:      model.NewPointer("misc"),
-	}
+		t.Run("test with the properties of the team and channel membership changed", func(t *testing.T) {
+			data.Teams = &[]imports.UserTeamImportData{
+				{
+					Name:  &teamName,
+					Theme: model.NewPointer(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+					Roles: model.NewPointer("team_user team_admin"),
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Name:  &channelName,
+							Roles: model.NewPointer("channel_user channel_admin"),
+							NotifyProps: &imports.UserChannelNotifyPropsImportData{
+								Desktop:    model.NewPointer(model.UserNotifyMention),
+								Mobile:     model.NewPointer(model.UserNotifyMention),
+								MarkUnread: model.NewPointer(model.UserNotifyMention),
+							},
+							Favorite: model.NewPointer(true),
+						},
+					},
+				},
+			}
 
-	appErr = th.App.importUser(th.Context, &data, false)
-	assert.Nil(t, appErr)
+			// convert to a new user
+			username = model.NewUsername()
+			data.Username = &username
+			data.Email = model.NewPointer(model.NewId() + "@example.com")
 
-	user, appErr = th.App.GetUserByUsername(username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+			appErr2 := th.App.importUser(th.Context, &data, false)
+			assert.Nil(t, appErr2)
 
-	checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyMention)
-	checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "false")
-	checkNotifyProp(t, user, model.EmailNotifyProp, "false")
-	checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyNone)
-	checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusAway)
-	checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "false")
-	checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyAny)
-	checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
+			user, err2 := th.App.GetUserByUsername(username)
+			require.Nil(t, err2, "Failed to get user from database.")
 
-	// Test importing a user with roles set to a team and a channel which are affected by an override scheme.
-	// The import subsystem should translate `channel_admin/channel_user/team_admin/team_user`
-	// to the appropriate scheme-managed-role booleans.
+			// Check both member properties.
+			teamMember, appErr2 := th.App.GetTeamMember(th.Context, team.Id, user.Id)
+			require.Nil(t, appErr2, "Failed to get team member from database.")
+			require.Equal(t, "team_user team_admin", teamMember.Roles)
 
-	// Mark the phase 2 permissions migration as completed.
-	err = th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
-	require.NoError(t, err)
+			channelMember, appErr2 := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+			require.Nil(t, appErr2, "Failed to get channel member Desktop from database.")
+			assert.Equal(t, "channel_user channel_admin", channelMember.Roles)
+			assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.DesktopNotifyProp])
+			assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.PushNotifyProp])
+			assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.MarkUnreadNotifyProp])
 
-	defer func() {
-		_, err = th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+			checkPreference(t, th.App, user.Id, model.PreferenceCategoryFavoriteChannel, channel.Id, "true")
+			checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, team.Id, *(*data.Teams)[0].Theme)
+
+			// No more new member objects.
+			tmc, appErr2 := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+			require.Nil(t, appErr2, "Failed to get Team Member Count")
+			require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
+
+			cmc, appErr2 := th.App.GetChannelMemberCount(th.Context, channel.Id)
+			require.Nil(t, appErr2, "Failed to get Channel Member Count")
+			require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
+		})
+	})
+
+	t.Run("add a user with some preferences.", func(t *testing.T) {
+		teamName := model.NewRandomTeamName()
+		appErr2 := th.App.importTeam(th.Context, &imports.TeamImportData{
+			Name:        &teamName,
+			DisplayName: model.NewPointer("Display Name"),
+			Type:        model.NewPointer("O"),
+		}, false)
+		require.Nil(t, appErr2, "Failed to import team.")
+
+		channelName := model.NewId()
+		chanTypeOpen := model.ChannelTypeOpen
+		appErr2 = th.App.importChannel(th.Context, &imports.ChannelImportData{
+			Team:        &teamName,
+			Name:        &channelName,
+			DisplayName: model.NewPointer("Display Name"),
+			Type:        &chanTypeOpen,
+		}, false)
+		require.Nil(t, appErr2, "Failed to import channel.")
+
+		username := model.NewUsername()
+		data := imports.UserImportData{
+			Username:                 &username,
+			Email:                    model.NewPointer(model.NewId() + "@example.com"),
+			Theme:                    model.NewPointer(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+			UseMilitaryTime:          model.NewPointer("true"),
+			CollapsePreviews:         model.NewPointer("true"),
+			MessageDisplay:           model.NewPointer("compact"),
+			ColorizeUsernames:        model.NewPointer("true"),
+			ChannelDisplayMode:       model.NewPointer("centered"),
+			TutorialStep:             model.NewPointer("3"),
+			UseMarkdownPreview:       model.NewPointer("true"),
+			UseFormatting:            model.NewPointer("true"),
+			ShowUnreadSection:        model.NewPointer("true"),
+			EmailInterval:            model.NewPointer("immediately"),
+			NameFormat:               model.NewPointer("full_name"),
+			SendOnCtrlEnter:          model.NewPointer("true"),
+			CodeBlockCtrlEnter:       model.NewPointer("true"),
+			ShowJoinLeave:            model.NewPointer("false"),
+			SyncDrafts:               model.NewPointer("false"),
+			ShowUnreadScrollPosition: model.NewPointer("start_from_newest"),
+			LimitVisibleDmsGms:       model.NewPointer("20"),
+		}
+		appErr2 = th.App.importUser(th.Context, &data, false)
+		assert.Nil(t, appErr2)
+
+		// Check their values.
+		user, appErr2 := th.App.GetUserByUsername(username)
+		require.Nil(t, appErr2, "Failed to get user from database.")
+
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, "", *data.Theme)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime, *data.UseMilitaryTime)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapseSetting, *data.CollapsePreviews)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameMessageDisplay, *data.MessageDisplay)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameColorizeUsernames, *data.ColorizeUsernames)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameChannelDisplayMode, *data.ChannelDisplayMode)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryTutorialSteps, user.Id, *data.TutorialStep)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "formatting", *data.UseFormatting)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategorySidebarSettings, "show_unread_section", *data.ShowUnreadSection)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameNameFormat, "full_name")
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "send_on_ctrl_enter", "true")
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "code_block_ctrl_enter", "true")
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "join_leave", "false")
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "sync_drafts", "false")
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "unread_scroll_position", "start_from_newest")
+		checkPreference(t, th.App, user.Id, model.PreferenceCategorySidebarSettings, model.PreferenceLimitVisibleDmsGms, "20")
+
+		// Change those preferences.
+		data = imports.UserImportData{
+			Username:           &username,
+			Email:              model.NewPointer(model.NewId() + "@example.com"),
+			Theme:              model.NewPointer(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
+			UseMilitaryTime:    model.NewPointer("false"),
+			CollapsePreviews:   model.NewPointer("false"),
+			MessageDisplay:     model.NewPointer("clean"),
+			ColorizeUsernames:  model.NewPointer("false"),
+			ChannelDisplayMode: model.NewPointer("full"),
+			TutorialStep:       model.NewPointer("2"),
+			EmailInterval:      model.NewPointer("hour"),
+		}
+		appErr2 = th.App.importUser(th.Context, &data, false)
+		assert.Nil(t, appErr2)
+
+		// Check their values again.
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryTheme, "", *data.Theme)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime, *data.UseMilitaryTime)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapseSetting, *data.CollapsePreviews)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameMessageDisplay, *data.MessageDisplay)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameColorizeUsernames, *data.ColorizeUsernames)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameChannelDisplayMode, *data.ChannelDisplayMode)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryTutorialSteps, user.Id, *data.TutorialStep)
+		checkPreference(t, th.App, user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval, "3600")
+
+		// Set Notify Without mention keys
+		data.NotifyProps = &imports.UserNotifyPropsImportData{
+			Desktop:          model.NewPointer(model.UserNotifyAll),
+			DesktopSound:     model.NewPointer("true"),
+			Email:            model.NewPointer("true"),
+			Mobile:           model.NewPointer(model.UserNotifyAll),
+			MobilePushStatus: model.NewPointer(model.StatusOnline),
+			ChannelTrigger:   model.NewPointer("true"),
+			CommentsTrigger:  model.NewPointer(model.CommentsNotifyRoot),
+		}
+		appErr2 = th.App.importUser(th.Context, &data, false)
+		assert.Nil(t, appErr2)
+
+		user, appErr2 = th.App.GetUserByUsername(username)
+		require.Nil(t, appErr2, "Failed to get user from database.")
+
+		checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyAll)
+		checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "true")
+		checkNotifyProp(t, user, model.EmailNotifyProp, "true")
+		checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyAll)
+		checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusOnline)
+		checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "true")
+		checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyRoot)
+		checkNotifyProp(t, user, model.MentionKeysNotifyProp, "")
+
+		// Set Notify Props with Mention keys
+		data.NotifyProps = &imports.UserNotifyPropsImportData{
+			Desktop:          model.NewPointer(model.UserNotifyAll),
+			DesktopSound:     model.NewPointer("true"),
+			Email:            model.NewPointer("true"),
+			Mobile:           model.NewPointer(model.UserNotifyAll),
+			MobilePushStatus: model.NewPointer(model.StatusOnline),
+			ChannelTrigger:   model.NewPointer("true"),
+			CommentsTrigger:  model.NewPointer(model.CommentsNotifyRoot),
+			MentionKeys:      model.NewPointer("valid,misc"),
+		}
+		appErr2 = th.App.importUser(th.Context, &data, false)
+		assert.Nil(t, appErr2)
+
+		user, appErr2 = th.App.GetUserByUsername(username)
+		require.Nil(t, appErr2, "Failed to get user from database.")
+
+		checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyAll)
+		checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "true")
+		checkNotifyProp(t, user, model.EmailNotifyProp, "true")
+		checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyAll)
+		checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusOnline)
+		checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "true")
+		checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyRoot)
+		checkNotifyProp(t, user, model.MentionKeysNotifyProp, "valid,misc")
+
+		// Change Notify Props with mention keys
+		data.NotifyProps = &imports.UserNotifyPropsImportData{
+			Desktop:          model.NewPointer(model.UserNotifyMention),
+			DesktopSound:     model.NewPointer("false"),
+			Email:            model.NewPointer("false"),
+			Mobile:           model.NewPointer(model.UserNotifyNone),
+			MobilePushStatus: model.NewPointer(model.StatusAway),
+			ChannelTrigger:   model.NewPointer("false"),
+			CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
+			MentionKeys:      model.NewPointer("misc"),
+		}
+		appErr2 = th.App.importUser(th.Context, &data, false)
+		assert.Nil(t, appErr2)
+
+		user, appErr2 = th.App.GetUserByUsername(username)
+		require.Nil(t, appErr2, "Failed to get user from database.")
+
+		checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyMention)
+		checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "false")
+		checkNotifyProp(t, user, model.EmailNotifyProp, "false")
+		checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyNone)
+		checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusAway)
+		checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "false")
+		checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyAny)
+		checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
+
+		// Change Notify Props without mention keys
+		data.NotifyProps = &imports.UserNotifyPropsImportData{
+			Desktop:          model.NewPointer(model.UserNotifyMention),
+			DesktopSound:     model.NewPointer("false"),
+			Email:            model.NewPointer("false"),
+			Mobile:           model.NewPointer(model.UserNotifyNone),
+			MobilePushStatus: model.NewPointer(model.StatusAway),
+			ChannelTrigger:   model.NewPointer("false"),
+			CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
+		}
+		appErr2 = th.App.importUser(th.Context, &data, false)
+		assert.Nil(t, appErr2)
+
+		user, appErr2 = th.App.GetUserByUsername(username)
+		require.Nil(t, appErr2, "Failed to get user from database.")
+
+		checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyMention)
+		checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "false")
+		checkNotifyProp(t, user, model.EmailNotifyProp, "false")
+		checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyNone)
+		checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusAway)
+		checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "false")
+		checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyAny)
+		checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
+
+		// Check Notify Props get set on *create* user.
+		username = model.NewUsername()
+		data = imports.UserImportData{
+			Username: &username,
+			Email:    model.NewPointer(model.NewId() + "@example.com"),
+		}
+		data.NotifyProps = &imports.UserNotifyPropsImportData{
+			Desktop:          model.NewPointer(model.UserNotifyMention),
+			DesktopSound:     model.NewPointer("false"),
+			Email:            model.NewPointer("false"),
+			Mobile:           model.NewPointer(model.UserNotifyNone),
+			MobilePushStatus: model.NewPointer(model.StatusAway),
+			ChannelTrigger:   model.NewPointer("false"),
+			CommentsTrigger:  model.NewPointer(model.CommentsNotifyAny),
+			MentionKeys:      model.NewPointer("misc"),
+		}
+
+		appErr2 = th.App.importUser(th.Context, &data, false)
+		assert.Nil(t, appErr2)
+
+		user, appErr2 = th.App.GetUserByUsername(username)
+		require.Nil(t, appErr2, "Failed to get user from database.")
+
+		checkNotifyProp(t, user, model.DesktopNotifyProp, model.UserNotifyMention)
+		checkNotifyProp(t, user, model.DesktopSoundNotifyProp, "false")
+		checkNotifyProp(t, user, model.EmailNotifyProp, "false")
+		checkNotifyProp(t, user, model.PushNotifyProp, model.UserNotifyNone)
+		checkNotifyProp(t, user, model.PushStatusNotifyProp, model.StatusAway)
+		checkNotifyProp(t, user, model.ChannelMentionsNotifyProp, "false")
+		checkNotifyProp(t, user, model.CommentsNotifyProp, model.CommentsNotifyAny)
+		checkNotifyProp(t, user, model.MentionKeysNotifyProp, "misc")
+
+		// Test importing a user with roles set to a team and a channel which are affected by an override scheme.
+		// The import subsystem should translate `channel_admin/channel_user/team_admin/team_user`
+		// to the appropriate scheme-managed-role booleans.
+
+		// Mark the phase 2 permissions migration as completed.
+		err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
-	}()
 
-	teamSchemeData := &imports.SchemeImportData{
-		Name:        model.NewPointer(model.NewId()),
-		DisplayName: model.NewPointer(model.NewId()),
-		Scope:       model.NewPointer("team"),
-		DefaultTeamGuestRole: &imports.RoleImportData{
+		defer func() {
+			_, err = th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+			require.NoError(t, err)
+		}()
+
+		teamSchemeData := &imports.SchemeImportData{
 			Name:        model.NewPointer(model.NewId()),
 			DisplayName: model.NewPointer(model.NewId()),
-		},
-		DefaultTeamUserRole: &imports.RoleImportData{
-			Name:        model.NewPointer(model.NewId()),
-			DisplayName: model.NewPointer(model.NewId()),
-		},
-		DefaultTeamAdminRole: &imports.RoleImportData{
-			Name:        model.NewPointer(model.NewId()),
-			DisplayName: model.NewPointer(model.NewId()),
-		},
-		DefaultChannelGuestRole: &imports.RoleImportData{
-			Name:        model.NewPointer(model.NewId()),
-			DisplayName: model.NewPointer(model.NewId()),
-		},
-		DefaultChannelUserRole: &imports.RoleImportData{
-			Name:        model.NewPointer(model.NewId()),
-			DisplayName: model.NewPointer(model.NewId()),
-		},
-		DefaultChannelAdminRole: &imports.RoleImportData{
-			Name:        model.NewPointer(model.NewId()),
-			DisplayName: model.NewPointer(model.NewId()),
-		},
-		Description: model.NewPointer("description"),
-	}
+			Scope:       model.NewPointer("team"),
+			DefaultTeamGuestRole: &imports.RoleImportData{
+				Name:        model.NewPointer(model.NewId()),
+				DisplayName: model.NewPointer(model.NewId()),
+			},
+			DefaultTeamUserRole: &imports.RoleImportData{
+				Name:        model.NewPointer(model.NewId()),
+				DisplayName: model.NewPointer(model.NewId()),
+			},
+			DefaultTeamAdminRole: &imports.RoleImportData{
+				Name:        model.NewPointer(model.NewId()),
+				DisplayName: model.NewPointer(model.NewId()),
+			},
+			DefaultChannelGuestRole: &imports.RoleImportData{
+				Name:        model.NewPointer(model.NewId()),
+				DisplayName: model.NewPointer(model.NewId()),
+			},
+			DefaultChannelUserRole: &imports.RoleImportData{
+				Name:        model.NewPointer(model.NewId()),
+				DisplayName: model.NewPointer(model.NewId()),
+			},
+			DefaultChannelAdminRole: &imports.RoleImportData{
+				Name:        model.NewPointer(model.NewId()),
+				DisplayName: model.NewPointer(model.NewId()),
+			},
+			Description: model.NewPointer("description"),
+		}
 
-	appErr = th.App.importScheme(th.Context, teamSchemeData, false)
-	assert.Nil(t, appErr)
+		appErr2 = th.App.importScheme(th.Context, teamSchemeData, false)
+		assert.Nil(t, appErr2)
 
-	teamScheme, nErr := th.App.Srv().Store().Scheme().GetByName(*teamSchemeData.Name)
-	require.NoError(t, nErr, "Failed to import scheme")
+		teamScheme, nErr := th.App.Srv().Store().Scheme().GetByName(*teamSchemeData.Name)
+		require.NoError(t, nErr, "Failed to import scheme")
 
-	teamData := &imports.TeamImportData{
-		Name:            model.NewPointer(NewTestId()),
-		DisplayName:     model.NewPointer("Display Name"),
-		Type:            model.NewPointer("O"),
-		Description:     model.NewPointer("The team description."),
-		AllowOpenInvite: model.NewPointer(true),
-		Scheme:          &teamScheme.Name,
-	}
-	appErr = th.App.importTeam(th.Context, teamData, false)
-	assert.Nil(t, appErr)
-	team, appErr = th.App.GetTeamByName(teamName)
-	require.Nil(t, appErr, "Failed to get team from database.")
+		teamData := &imports.TeamImportData{
+			Name:            model.NewPointer(NewTestId()),
+			DisplayName:     model.NewPointer("Display Name"),
+			Type:            model.NewPointer("O"),
+			Description:     model.NewPointer("The team description."),
+			AllowOpenInvite: model.NewPointer(true),
+			Scheme:          &teamScheme.Name,
+		}
+		appErr2 = th.App.importTeam(th.Context, teamData, false)
+		assert.Nil(t, appErr2)
+		team, appErr2 := th.App.GetTeamByName(teamName)
+		require.Nil(t, appErr2, "Failed to get team from database.")
 
-	channelData := &imports.ChannelImportData{
-		Team:        &teamName,
-		Name:        model.NewPointer(NewTestId()),
-		DisplayName: model.NewPointer("Display Name"),
-		Type:        &chanTypeOpen,
-		Header:      model.NewPointer("Channel Header"),
-		Purpose:     model.NewPointer("Channel Purpose"),
-	}
-	appErr = th.App.importChannel(th.Context, channelData, false)
-	assert.Nil(t, appErr)
-	channel, appErr = th.App.GetChannelByName(th.Context, *channelData.Name, team.Id, false)
-	require.Nil(t, appErr, "Failed to get channel from database")
+		channelData := &imports.ChannelImportData{
+			Team:        &teamName,
+			Name:        model.NewPointer(NewTestId()),
+			DisplayName: model.NewPointer("Display Name"),
+			Type:        &chanTypeOpen,
+			Header:      model.NewPointer("Channel Header"),
+			Purpose:     model.NewPointer("Channel Purpose"),
+		}
+		appErr2 = th.App.importChannel(th.Context, channelData, false)
+		assert.Nil(t, appErr2)
+		channel, appErr2 := th.App.GetChannelByName(th.Context, *channelData.Name, team.Id, false)
+		require.Nil(t, appErr2, "Failed to get channel from database")
 
-	// Test with a valid team & valid channel name in apply mode.
-	userData := &imports.UserImportData{
-		Username: &username,
-		Email:    model.NewPointer(model.NewId() + "@example.com"),
-		Teams: &[]imports.UserTeamImportData{
-			{
-				Name:  &team.Name,
-				Roles: model.NewPointer("team_user team_admin"),
-				Channels: &[]imports.UserChannelImportData{
-					{
-						Name:  &channel.Name,
-						Roles: model.NewPointer("channel_admin channel_user"),
+		// Test with a valid team & valid channel name in apply mode.
+		userData := &imports.UserImportData{
+			Username: &username,
+			Email:    model.NewPointer(model.NewId() + "@example.com"),
+			Teams: &[]imports.UserTeamImportData{
+				{
+					Name:  &team.Name,
+					Roles: model.NewPointer("team_user team_admin"),
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Name:  &channel.Name,
+							Roles: model.NewPointer("channel_admin channel_user"),
+						},
 					},
 				},
 			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, userData, false)
-	assert.Nil(t, appErr)
+		}
+		appErr2 = th.App.importUser(th.Context, userData, false)
+		assert.Nil(t, appErr2)
 
-	user, appErr = th.App.GetUserByUsername(*userData.Username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+		user, appErr2 = th.App.GetUserByUsername(*userData.Username)
+		require.Nil(t, appErr2, "Failed to get user from database.")
 
-	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get the team member")
+		teamMember, appErr2 := th.App.GetTeamMember(th.Context, team.Id, user.Id)
+		require.Nil(t, appErr2, "Failed to get the team member")
 
-	assert.True(t, teamMember.SchemeAdmin)
-	assert.True(t, teamMember.SchemeUser)
-	assert.False(t, teamMember.SchemeGuest)
-	assert.Equal(t, "", teamMember.ExplicitRoles)
+		assert.True(t, teamMember.SchemeAdmin)
+		assert.True(t, teamMember.SchemeUser)
+		assert.False(t, teamMember.SchemeGuest)
+		assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get the channel member")
+		channelMember, appErr2 := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+		require.Nil(t, appErr2, "Failed to get the channel member")
 
-	assert.True(t, channelMember.SchemeAdmin)
-	assert.True(t, channelMember.SchemeUser)
-	assert.False(t, channelMember.SchemeGuest)
-	assert.Equal(t, "", channelMember.ExplicitRoles)
+		assert.True(t, channelMember.SchemeAdmin)
+		assert.True(t, channelMember.SchemeUser)
+		assert.False(t, channelMember.SchemeGuest)
+		assert.Equal(t, "", channelMember.ExplicitRoles)
 
-	// Test importing deleted user with a valid team & valid channel name in apply mode.
+		// Test importing deleted user with a valid team & valid channel name in apply mode.
+		username = model.NewUsername()
+		deleteAt := model.GetMillis()
+		deletedUserData := &imports.UserImportData{
+			Username: &username,
+			DeleteAt: &deleteAt,
+			Email:    model.NewPointer(model.NewId() + "@example.com"),
+			Teams: &[]imports.UserTeamImportData{
+				{
+					Name:  &team.Name,
+					Roles: model.NewPointer("team_user"),
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Name:  &channel.Name,
+							Roles: model.NewPointer("channel_user"),
+						},
+					},
+				},
+			},
+		}
+		appErr2 = th.App.importUser(th.Context, deletedUserData, false)
+		assert.Nil(t, appErr2)
+
+		user, appErr2 = th.App.GetUserByUsername(*deletedUserData.Username)
+		require.Nil(t, appErr2, "Failed to get user from database.")
+
+		teamMember, appErr2 = th.App.GetTeamMember(th.Context, team.Id, user.Id)
+		require.Nil(t, appErr2, "Failed to get the team member")
+
+		assert.False(t, teamMember.SchemeAdmin)
+		assert.True(t, teamMember.SchemeUser)
+		assert.False(t, teamMember.SchemeGuest)
+		assert.Equal(t, "", teamMember.ExplicitRoles)
+
+		channelMember, appErr2 = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+		require.Nil(t, appErr2, "Failed to get the channel member")
+
+		assert.False(t, channelMember.SchemeAdmin)
+		assert.True(t, channelMember.SchemeUser)
+		assert.False(t, channelMember.SchemeGuest)
+		assert.Equal(t, "", channelMember.ExplicitRoles)
+	})
+
+	// Test importing deleted guest with a valid team & valid channel name in apply mode.
 	username = model.NewUsername()
-	deleteAt := model.GetMillis()
-	deletedUserData := &imports.UserImportData{
+	deleteAt = model.GetMillis()
+	deletedGuestData := &imports.UserImportData{
 		Username: &username,
 		DeleteAt: &deleteAt,
 		Email:    model.NewPointer(model.NewId() + "@example.com"),
+		Roles:    model.NewPointer("system_guest"),
 		Teams: &[]imports.UserTeamImportData{
 			{
 				Name:  &team.Name,
-				Roles: model.NewPointer("team_user"),
+				Roles: model.NewPointer("team_guest"),
 				Channels: &[]imports.UserChannelImportData{
 					{
 						Name:  &channel.Name,
-						Roles: model.NewPointer("channel_user"),
+						Roles: model.NewPointer("channel_guest"),
 					},
 				},
 			},
 		},
 	}
-	appErr = th.App.importUser(th.Context, deletedUserData, false)
+	appErr = th.App.importUser(th.Context, deletedGuestData, false)
 	assert.Nil(t, appErr)
 
-	user, appErr = th.App.GetUserByUsername(*deletedUserData.Username)
+	user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
 	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the team member")
 
 	assert.False(t, teamMember.SchemeAdmin)
-	assert.True(t, teamMember.SchemeUser)
-	assert.False(t, teamMember.SchemeGuest)
+	assert.False(t, teamMember.SchemeUser)
+	assert.True(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
 	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
-	assert.False(t, channelMember.SchemeAdmin)
-	assert.True(t, channelMember.SchemeUser)
-	assert.False(t, channelMember.SchemeGuest)
+	assert.False(t, teamMember.SchemeAdmin)
+	assert.False(t, channelMember.SchemeUser)
+	assert.True(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", channelMember.ExplicitRoles)
-
-	// see https://mattermost.atlassian.net/browse/MM-56986
-	// Test importing deleted guest with a valid team & valid channel name in apply mode.
-	// username = model.NewUsername()
-	// deleteAt = model.GetMillis()
-	// deletedGuestData := &imports.UserImportData{
-	// 	Username: &username,
-	// 	DeleteAt: &deleteAt,
-	// 	Email:    model.NewPointer(model.NewId() + "@example.com"),
-	// 	Teams: &[]imports.UserTeamImportData{
-	// 		{
-	// 			Name:  &team.Name,
-	// 			Roles: model.NewPointer("team_guest"),
-	// 			Channels: &[]imports.UserChannelImportData{
-	// 				{
-	// 					Name:  &channel.Name,
-	// 					Roles: model.NewPointer("channel_guest"),
-	// 				},
-	// 			},
-	// 		},
-	// 	},
-	// }
-	// appErr = th.App.importUser(th.Context, deletedGuestData, false)
-	// assert.Nil(t, appErr)
-
-	// user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
-	// require.Nil(t, appErr, "Failed to get user from database.")
-
-	// teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
-	// require.Nil(t, appErr, "Failed to get the team member")
-
-	// assert.False(t, teamMember.SchemeAdmin)
-	// assert.False(t, teamMember.SchemeUser)
-	// assert.True(t, teamMember.SchemeGuest)
-	// assert.Equal(t, "", teamMember.ExplicitRoles)
-
-	// channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
-	// require.Nil(t, appErr, "Failed to get the channel member")
-
-	// assert.False(t, teamMember.SchemeAdmin)
-	// assert.False(t, channelMember.SchemeUser)
-	// assert.True(t, teamMember.SchemeGuest)
-	// assert.Equal(t, "", channelMember.ExplicitRoles)
 }
 
 func TestImportUserTeams(t *testing.T) {
