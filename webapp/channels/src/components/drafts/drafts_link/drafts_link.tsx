@@ -73,6 +73,11 @@ function DraftsLink() {
     }, [teamId, syncedDraftsAllowedAndEnabled, dispatch]);
 
     useEffect(() => {
+        if (!teamId) {
+            // eslint-disable-next-line no-console
+            console.log('draft-links - no team Id');
+            return;
+        }
         const loadDMsAndGMs = !initialScheduledPostsLoaded.current;
 
         if (isScheduledPostEnabled) {

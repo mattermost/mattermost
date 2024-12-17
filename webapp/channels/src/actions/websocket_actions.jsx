@@ -242,7 +242,7 @@ export function reconnect() {
 
         dispatch(fetchAllMyTeamsChannels());
         setTimeout(() => {
-            dispatch(fetchTeamScheduledPosts());
+            dispatch(fetchTeamScheduledPosts(currentTeamId, true));
         }, 30000);
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
