@@ -970,6 +970,31 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
     };
 }
 
+export function saveAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let returnedAttributes;
+        try {
+            returnedAttributes = await Client4.updateUserAttributes(userID, attributeID, attributeValue);
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const profile = getState().entities.users.profiles[userID];
+        let custom_attributes = profile.custom_attributes;
+        if (custom_attributes === undefined) {
+            custom_attributes = returnedAttributes;
+        } else {
+            custom_attributes = {...custom_attributes, ...returnedAttributes};
+        }
+
+        if (profile) {
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, custom_attributes}});
+        }
+        return {data: true};
+    };
+}
+
 export function patchUser(user: UserProfile): ActionFuncAsync<UserProfile> {
     return async (dispatch) => {
         let data: UserProfile;

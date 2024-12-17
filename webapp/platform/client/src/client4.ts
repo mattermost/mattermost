@@ -667,6 +667,16 @@ export default class Client4 {
         );
     };
 
+    updateUserAttributes = (userID: string, attributeID: string, attributeValue: string) => {
+        const obj: { [key: string]: string } = {};
+        obj[attributeID] = attributeValue;
+
+        return this.doFetch<Record<string, string>>(
+            `${this.getUserRoute(userID)}/custom_profile_attributes/value`,
+            {method: 'post', body: JSON.stringify(obj)},
+        );
+    };
+
     getKnownUsers = () => {
         return this.doFetch<Array<UserProfile['id']>>(
             `${this.getUsersRoute()}/known`,

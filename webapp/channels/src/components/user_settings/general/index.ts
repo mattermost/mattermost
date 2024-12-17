@@ -11,6 +11,7 @@ import {
     sendVerificationEmail,
     setDefaultProfileImage,
     uploadProfileImage,
+    saveAttribute,
 } from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
@@ -34,11 +35,6 @@ function mapStateToProps(state: GlobalState) {
     const samlPositionAttributeSet = config.SamlPositionAttributeSet === 'true';
     const ldapPositionAttributeSet = config.LdapPositionAttributeSet === 'true';
     const ldapPictureAttributeSet = config.LdapPictureAttributeSet === 'true';
-    const customAttributeValues = {
-        Rank: 'Private',
-        CO: 'Joe Seargent',
-        Base: 'Lowrey AFB',
-    };
 
     return {
         isMobileView: getIsMobileView(state),
@@ -53,7 +49,6 @@ function mapStateToProps(state: GlobalState) {
         samlPositionAttributeSet,
         ldapPositionAttributeSet,
         ldapPictureAttributeSet,
-        customAttributeValues,
     };
 }
 
@@ -66,6 +61,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             sendVerificationEmail,
             setDefaultProfileImage,
             uploadProfileImage,
+            saveAttribute,
         }, dispatch),
     };
 }

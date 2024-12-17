@@ -22,11 +22,8 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import UserSettingsCustomAttributes, { CustomProperty } from './user_settings_custom_attributes';
-
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -116,7 +113,7 @@ export type Props = {
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
-        uploadAttributes?: () => Promise<ActionResult>;
+        saveAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -128,7 +125,6 @@ export type Props = {
     ldapPositionAttributeSet?: boolean;
     samlPositionAttributeSet?: boolean;
     ldapPictureAttributeSet?: boolean;
-    customAttributeValues: Record<string, string>;
 }
 
 type State = {
@@ -398,24 +394,56 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         this.submitUser(user, false);
     };
 
-    submitAttribute = () => {
-        const user = Object.assign({}, this.props.user);
-        const position = this.state.position.trim();
+    // submitAttribute = () => {
+    //     const user = Object.assign({}, this.props.user);
+    //     const customAttributes = this.state.customAttributeValues;
+    //     if (user.custom_attributes === customAttributes) {
+    //         this.updateSection('');
+    //         return;
+    //     }
 
-        if (user.position === position) {
-            this.updateSection('');
+    //     user.custom_attributes = customAttributes;
+
+    //     trackEvent('settings', 'user_settings_update', {field: 'customAttributes'});
+
+    //     this.submitUser(user, false);
+    // };
+
+    submitAttribute = async (settings: string[]) => {
+        const user = Object.assign({}, this.props.user);
+        const attributeID = settings[0];
+        const attributeValue = this.state.customAttributeValues[attributeID];
+        if (!this.state.customAttributeValues && !this.state.customAttributeValues[attributeID]) {
             return;
         }
 
-        user.position = position;
+        trackEvent('settings', 'user_settings_update', {field: 'customAttributeValues-' + attributeID});
 
-        trackEvent('settings', 'user_settings_update', {field: 'position'});
+        this.setState({sectionIsSaving: true});
 
-        this.submitAttribute();
+        this.props.actions.saveAttribute(this.props.user.id, attributeID, this.state.customAttributeValues[attributeID]).
+            then(({data, error: err}) => {
+                if (data) {
+                    this.updateSection('');
+                } else if (err) {
+                    const serverError = err;
+                    // let serverError = err;
+                    // if (err.server_error_id &&
+                    //     err.server_error_id === 'api.user.check_user_password.invalid.app_error') {
+                    //     serverError = formatMessage(holders.incorrectPassword);
+                    // } else if (err.server_error_id === 'app.user.group_name_conflict') {
+                    //     serverError = formatMessage(holders.usernameGroupNameUniqueness);
+                    // } else if (err.message) {
+                    //     serverError = err.message;
+                    // } else {
+                    //     serverError = err;
+                    // }
+                    this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
+                }
+            });
     };
 
     updateUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log('Update Username ' + e.target.value);
         this.setState({username: e.target.value});
     };
 
@@ -463,9 +491,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         attributes[e.target.id] = e.target.value;
         console.log('Update Attribute ' + e.target.id + ' ' + e.target.value);
         this.setState({customAttributeValues: attributes});
+        console.log('Update Attribute  ' + this.state.customAttributeValues[e.target.id]);
     };
 
     updateSection = (section: string) => {
+        console.log('Update Section ' + this.props.user.position);
         this.setState(Object.assign({}, this.setupInitialState(this.props), {clientError: '', serverError: '', emailError: '', sectionIsSaving: false}));
         this.submitActive = false;
         this.props.updateSection(section);
@@ -488,7 +518,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             sectionIsSaving: false,
             showSpinner: false,
             serverError: '',
-            customAttributeValues: props.customAttributeValues,
+            customAttributeValues: user.custom_attributes ? user.custom_attributes : {},
         };
     }
 
@@ -1087,7 +1117,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     createUsernameSection = () => {
-        console.log('createUsernameSection ' + this.state.username);
         const {formatMessage} = this.props.intl;
 
         const active = this.props.activeSection === 'username';
@@ -1292,15 +1321,18 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     attributes = [
-        {name: 'Rank', type: 'text'},
-        {name: 'CO', type: 'text'},
-        {name: 'Base', type: 'text'},
+        {id: '123', name: 'Rank', type: 'text'},
+        {id: '456', name: 'CO', type: 'text'},
+        {id: '789', name: 'Base', type: 'text'},
     ];
 
     createCustomPropertySection = () => {
-        const attributeSections = this.attributes.map((property) => {
-            console.log('createCustomPropertySection ' + this.state.customAttributeValues[property.name]);
-            const sectionName = property.name + '-customProperty';
+        const attributeSections = this.attributes.map((attribute) => {
+            const sectionName = attribute.name + '-customProperty';
+            let attributeValue = '';
+            if (attribute.id in this.state.customAttributeValues) {
+                attributeValue = this.state.customAttributeValues[attribute.id];
+            }
             const active = this.props.activeSection === sectionName;
             let max = null;
 
@@ -1308,7 +1340,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 const inputs = [];
 
                 let extraInfo: JSX.Element|string;
-                let submit = null;
                 const isHandled = this.props.samlPositionAttributeSet;
                 if (isHandled === true) {
                     extraInfo = (
@@ -1321,7 +1352,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     );
                 } else {
                     let attributeLabel: JSX.Element | string = (
-                        property.name
+                        attribute.name
                     );
                     if (this.props.isMobileView) {
                         attributeLabel = '';
@@ -1335,16 +1366,16 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             <label className='col-sm-5 control-label'>{attributeLabel}</label>
                             <div className='col-sm-7'>
                                 <input
-                                    id={property.name}
+                                    id={attribute.id}
                                     autoFocus={true}
                                     className='form-control'
                                     type='text'
                                     onChange={this.updateAttribute}
-                                    value={this.state.customAttributeValues[property.name]}
+                                    value={attributeValue}
                                     maxLength={Constants.MAX_POSITION_LENGTH}
                                     autoCapitalize='off'
                                     onFocus={Utils.moveCursorToEnd}
-                                    aria-label={property.name}
+                                    aria-label={attribute.name}
                                 />
                             </div>
                         </div>,
@@ -1358,16 +1389,14 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
-
-                    submit = this.submitAttribute;
                 }
 
                 max = (
                     <SettingItemMax
-                        key={property.name + '-settingItemMax'}
-                        title={property.name}
+                        key={attribute.name + '-settingItemMax'}
+                        title={attribute.name}
                         inputs={inputs}
-                        submit={submit}
+                        submit={this.submitAttribute.bind(this, [attribute.id])}
                         saving={this.state.sectionIsSaving}
                         serverError={this.state.serverError}
                         clientError={this.state.clientError}
@@ -1377,8 +1406,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
             }
             let describe: JSX.Element|string = '';
-            if (this.state.customAttributeValues[property.name]) {
-                describe = this.state.customAttributeValues[property.name];
+            if (attributeValue) {
+                describe = attributeValue;
             } else {
                 describe = (
                     <FormattedMessage
@@ -1399,10 +1428,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             return (
                 <div key={sectionName}>
                     <SettingItem
-                        key={property.name + '-settingItem'}
+                        key={attribute.name + '-settingItem'}
                         active={active}
                         areAllSectionsInactive={this.props.activeSection === ''}
-                        title={property.name}
+                        title={attribute.name}
                         describe={describe}
                         section={sectionName}
                         updateSection={this.updateSection}
@@ -1515,7 +1544,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         const positionSection = this.createPositionSection();
         const emailSection = this.createEmailSection();
         const customProperiesSection = this.createCustomPropertySection();
-        console.log(customProperiesSection);
         const pictureSection = this.createPictureSection();
 
         return (
