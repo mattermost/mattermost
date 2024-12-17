@@ -12033,28 +12033,6 @@ func (a *OpenTracingAppLayer) ImageProxyRemover() (f func(string) string) {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ImportPermissions(jsonl io.Reader) error {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ImportPermissions")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.ImportPermissions(jsonl)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) InitPlugins(c request.CTX, pluginDir string, webappPluginDir string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InitPlugins")
