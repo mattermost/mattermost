@@ -75,7 +75,7 @@ describe('Actions.Posts', () => {
         user_id: 'current_user_id',
         message: 'test msg',
         channel_id: 'current_channel_id',
-        type: 'normal,',
+        type: 'normal',
     };
     const initialState = {
         entities: {
@@ -305,8 +305,15 @@ describe('Actions.Posts', () => {
         const {data} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(data).toEqual(true);
 
-        expect(testStore.getActions()[0].payload[0]).toEqual(
+        let actions = testStore.getActions();
+        expect(actions.length).toEqual(1);
+        expect(actions[0].payload.length).toEqual(2);
+
+        expect(actions[0].payload[0]).toEqual(
             {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
+        );
+        expect(actions[0].payload[1]).toEqual(
+            {args: ['edit_draft_latest_post_id', {id: 'latest_post_id', user_id: 'current_user_id', message: 'test msg', channel_id: 'current_channel_id', type: 'normal'}], type: 'MOCK_SET_GLOBAL_ITEM'},
         );
 
         const general = {
@@ -339,6 +346,36 @@ describe('Actions.Posts', () => {
         const {data: withPendingPostData} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(withPendingPostData).toEqual(false);
         expect(testStore.getActions()).toEqual([]);
+
+        // should not save draft when it already exists
+        const stateWithDraft = {
+            ...initialState,
+            storage: {
+                ...initialState.storage,
+                storage: {
+                    ...initialState.storage.storage,
+                    edit_draft_latest_post_id: {
+                        timestamp: new Date(),
+                        value: {id: 'latest_post_id', user_id: 'current_user_id', message: 'test msg', channel_id: 'current_channel_id', type: 'normal'},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        stateWithDraft.entities.posts.posts[latestPost.id] = latestPost as Post;
+
+        testStore = mockStore(stateWithDraft);
+
+        const {data: dataExisting} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
+        expect(dataExisting).toEqual(true);
+
+        actions = testStore.getActions();
+        expect(actions.length).toEqual(1);
+        expect(actions[0].payload.length).toEqual(1);
+
+        expect(actions[0].payload[0]).toEqual(
+            {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
+        );
     });
 
     test('searchForTerm', async () => {
