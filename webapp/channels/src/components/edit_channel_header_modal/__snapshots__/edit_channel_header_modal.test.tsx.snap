@@ -54,14 +54,8 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
   >
     <div>
       <label
+        className="textarea-label"
         htmlFor="edit_textbox"
-        id="edit_textbox_label"
-        style={
-          Object {
-            "fontWeight": "400",
-            "marginBottom": "10px",
-          }
-        }
       >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."
@@ -193,14 +187,8 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
   >
     <div>
       <label
+        className="textarea-label"
         htmlFor="edit_textbox"
-        id="edit_textbox_label"
-        style={
-          Object {
-            "fontWeight": "400",
-            "marginBottom": "10px",
-          }
-        }
       >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."
@@ -350,14 +338,8 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
   >
     <div>
       <label
+        className="textarea-label"
         htmlFor="edit_textbox"
-        id="edit_textbox_label"
-        style={
-          Object {
-            "fontWeight": "400",
-            "marginBottom": "10px",
-          }
-        }
       >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."
@@ -499,14 +481,8 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
   >
     <div>
       <label
+        className="textarea-label"
         htmlFor="edit_textbox"
-        id="edit_textbox_label"
-        style={
-          Object {
-            "fontWeight": "400",
-            "marginBottom": "10px",
-          }
-        }
       >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."
@@ -638,14 +614,8 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
   >
     <div>
       <label
+        className="textarea-label"
         htmlFor="edit_textbox"
-        id="edit_textbox_label"
-        style={
-          Object {
-            "fontWeight": "400",
-            "marginBottom": "10px",
-          }
-        }
       >
         <MemoizedFormattedMessage
           defaultMessage="Edit the text appearing next to the channel name in the header."

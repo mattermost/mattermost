@@ -229,11 +229,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                     <div>
                         <label
                             htmlFor='edit_textbox'
-                            id='edit_textbox_label'
-                            style={{
-                                fontWeight: '400',
-                                marginBottom: '10px',
-                            }}
+                            className='textarea-label'
                         >
                             <FormattedMessage
                                 id='edit_channel_header_modal.description'
