@@ -134,7 +134,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 	channel, appErr := a.GetChannel(rctx, scheduledPost.ChannelId)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			rctx.Logger().Warn("postScheduledPost channel for scheduled post not found, setting error code", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId), mlog.String("error_code", model.ScheduledPostErrorCodeChannelNotFound))
+			rctx.Logger().Warn("channel for scheduled post not found, setting error code", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId), mlog.String("error_code", model.ScheduledPostErrorCodeChannelNotFound), mlog.Err(appErr))
 
 			scheduledPost.ErrorCode = model.ScheduledPostErrorCodeChannelNotFound
 			return scheduledPost, nil
