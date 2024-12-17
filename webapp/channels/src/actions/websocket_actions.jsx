@@ -241,9 +241,7 @@ export function reconnect() {
         }
 
         dispatch(fetchAllMyTeamsChannels());
-        setTimeout(() => {
-            dispatch(fetchTeamScheduledPosts(currentTeamId, true));
-        }, 30000);
+        dispatch(fetchTeamScheduledPosts(currentTeamId, true));
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
         loadProfilesForSidebar();
