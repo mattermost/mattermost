@@ -59,7 +59,7 @@ const AccessHistoryModal = ({
             onHide={onCloseClick}
             onExited={onHide}
             bsSize='large'
-            role='dialog'
+            role='none'
             aria-labelledby='accessHistoryModalLabel'
         >
             <Modal.Header closeButton={true}>

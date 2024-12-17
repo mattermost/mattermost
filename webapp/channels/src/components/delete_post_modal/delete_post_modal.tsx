@@ -162,7 +162,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                 onHide={this.onHide}
                 onExited={this.props.onExited}
                 id='deletePostModal'
-                role='dialog'
+                role='none'
                 aria-labelledby='deletePostModalLabel'
             >
                 <Modal.Header closeButton={true}>

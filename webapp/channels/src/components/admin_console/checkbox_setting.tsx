@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import Setting from './setting';
+import SetByEnv from './set_by_env';
 
 type Props = {
     id: string;
@@ -12,8 +12,6 @@ type Props = {
     onChange: (id: string, foo: boolean) => void;
     disabled: boolean;
     setByEnv: boolean;
-    disabledText?: React.ReactNode;
-    helpText?: React.ReactNode;
 }
 
 export default class CheckboxSetting extends React.PureComponent<Props> {
@@ -26,29 +24,8 @@ export default class CheckboxSetting extends React.PureComponent<Props> {
     };
 
     public render() {
-        let helpText;
-        if (this.props.disabled && this.props.disabledText) {
-            helpText = (
-                <div>
-                    <span className='admin-console__disabled-text'>
-                        {this.props.disabledText}
-                    </span>
-                    {this.props.helpText}
-                </div>
-            );
-        } else {
-            helpText = this.props.helpText;
-        }
-
         return (
-            <Setting
-                inputId={this.props.id}
-                label={this.props.label}
-                helpText={helpText}
-                setByEnv={this.props.setByEnv}
-                nested={true}
-            >
-                <a id={this.props.id}/>
+            <div>
                 <label className='checkbox-inline'>
                     <input
                         data-testid={this.props.id}
@@ -61,7 +38,8 @@ export default class CheckboxSetting extends React.PureComponent<Props> {
                     />
                     {this.props.label}
                 </label>
-            </Setting>
+                {this.props.setByEnv ? <SetByEnv/> : null}
+            </div>
         );
     }
 }
