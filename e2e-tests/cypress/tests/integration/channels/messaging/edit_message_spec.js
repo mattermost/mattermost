@@ -35,31 +35,31 @@ describe('Edit Message', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // # In the modal type @
-        cy.get('div.post-edit__container #post_textbox').type(' @');
+        cy.get('#edit_textbox').type(' @');
 
         // * Assert user autocomplete is visible
         cy.get('#suggestionList').should('be.visible');
 
         // # Press the escape key
-        cy.get('div.post-edit__container #post_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{esc}');
+        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{esc}');
 
         // * Check if the textbox contains expected text
-        cy.get('div.post-edit__container #post_textbox').should('have.value', 'Hello World! @');
+        cy.get('#edit_textbox').should('have.value', 'Hello World! @');
 
         // * Assert user autocomplete is not visible
         cy.get('#suggestionList').should('not.exist');
 
         // # In the modal type ~
-        cy.get('div.post-edit__container #post_textbox').type(' ~');
+        cy.get('#edit_textbox').type(' ~');
 
         // * Assert channel autocomplete is visible
         cy.get('#suggestionList').should('be.visible');
 
         // # Press the escape key
-        cy.get('div.post-edit__container #post_textbox').wait(TIMEOUTS.HALF_SEC).type('{esc}');
+        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).type('{esc}');
 
         // * Check if the textbox contains expected text
-        cy.get('div.post-edit__container #post_textbox').should('have.value', 'Hello World! @ ~');
+        cy.get('#edit_textbox').should('have.value', 'Hello World! @ ~');
 
         // * Assert channel autocomplete is not visible
         cy.get('#suggestionList').should('not.exist');
@@ -93,7 +93,7 @@ describe('Edit Message', () => {
                 cy.get(`#edit_post_${postId}`).click();
 
                 // # Edit the post
-                cy.get('div.post-edit__container #post_textbox').type('Some text {enter}', {delay: 100});
+                cy.get('#edit_textbox').type('Some text {enter}', {delay: 100});
 
                 // # Mouseover the post again
                 cy.get(`#post_${postId}`).trigger('mouseover');
@@ -137,9 +137,9 @@ describe('Edit Message', () => {
             cy.uiGetPostTextBox().type('{uparrow}');
 
             // * Edit Post Input should appear, and edit the post
-            cy.get('div.post-edit__container #post_textbox').should('be.visible');
-            cy.get('div.post-edit__container #post_textbox').should('have.text', secondMessage).type(' Another new message{enter}', {delay: 100});
-            cy.get('div.post-edit__container #post_textbox').should('not.exist');
+            cy.get('#edit_textbox').should('be.visible');
+            cy.get('#edit_textbox').should('have.text', secondMessage).type(' Another new message{enter}', {delay: 100});
+            cy.get('#edit_textbox').should('not.exist');
 
             // * Check the second post and verify that it contains new edited message.
             cy.get(postText).should('have.text', `${secondMessage} Another new message Edited`);
@@ -159,11 +159,11 @@ describe('Edit Message', () => {
             cy.uiGetPostTextBox().type('{uparrow}');
 
             // * Edit Post Input should appear, and edit the post
-            cy.get('div.post-edit__container #post_textbox').should('be.visible');
+            cy.get('#edit_textbox').should('be.visible');
 
             // * Press the escape key to cancel
-            cy.get('div.post-edit__container #post_textbox').should('have.text', message).type(' Another new message{esc}', {delay: 100});
-            cy.get('div.post-edit__container #post_textbox').should('not.exist');
+            cy.get('#edit_textbox').should('have.text', message).type(' Another new message{esc}', {delay: 100});
+            cy.get('#edit_textbox').should('not.exist');
 
             // * Check that the message wasn't edited
             cy.get(postText).should('have.text', message);
@@ -177,10 +177,10 @@ describe('Edit Message', () => {
             cy.uiGetPostTextBox().type('{uparrow}');
 
             // * Edit Post Input should appear, and edit the post
-            cy.get('div.post-edit__container #post_textbox').should('be.visible');
+            cy.get('#edit_textbox').should('be.visible');
 
             // * Opening the edit textbox again after previously cancelling the edit should contain the original message.
-            cy.get('div.post-edit__container #post_textbox').should('have.text', message);
+            cy.get('#edit_textbox').should('have.text', message);
         });
     });
 
@@ -192,17 +192,17 @@ describe('Edit Message', () => {
         cy.uiGetPostTextBox().type('{uparrow}');
 
         // # In the modal type @
-        cy.get('div.post-edit__container #post_textbox').type(' @user');
+        cy.get('#edit_textbox').type(' @user');
 
         // # Press the enter key
-        cy.get('div.post-edit__container #post_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}', {delay: 100});
+        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}', {delay: 100});
 
         // * Check if the textbox contains expected text
         cy.get('.post-body__info').should('be.visible');
         cy.get('.post-body__info').contains('span', "Editing this message with an '@mention' will not notify the recipient.");
 
         // # Press the escape key
-        cy.get('div.post-edit__container #post_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}', {delay: 100});
+        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}', {delay: 100});
 
         // # Open the RHS
         cy.getLastPostId().then((postId) => {

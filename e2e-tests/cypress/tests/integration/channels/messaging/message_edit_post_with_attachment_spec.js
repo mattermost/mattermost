@@ -45,7 +45,7 @@ describe('Messaging', () => {
             cy.get(`#edit_post_${postID}`).click();
 
             // # Edit message and finish by hitting `enter`
-            cy.get('div.post-edit__container #post_textbox').
+            cy.get('#edit_textbox').
                 should('be.visible').
                 and('be.focused').
                 wait(TIMEOUTS.HALF_SEC).

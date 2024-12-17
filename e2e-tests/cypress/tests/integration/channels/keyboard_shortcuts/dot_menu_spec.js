@@ -68,8 +68,8 @@ describe('Keyboard Shortcuts', () => {
             cy.uiPostDropdownMenuShortcut(postId, 'Edit', 'E');
 
             // # add test to the message
-            cy.get('div.post-edit__container #post_textbox').type(postEditMessage);
-            cy.get('div.post-edit__container #post_textbox').type('{enter}');
+            cy.get('#edit_textbox').type(postEditMessage);
+            cy.get('#edit_textbox').type('{enter}');
 
             // * Verify edited message
             cy.uiWaitUntilMessagePostedIncludes(postMessage + postEditMessage);

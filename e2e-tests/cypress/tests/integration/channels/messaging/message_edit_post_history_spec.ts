@@ -117,7 +117,7 @@ const editMessage = (postId: string) => {
     cy.get(`#edit_post_${postId}`).click();
 
     // # Edit the message
-    cy.get('div.post-edit__container #post_textbox').
+    cy.get('#edit_textbox').
         should('be.visible').
         and('be.focused').
         wait(TIMEOUTS.HALF_SEC).
@@ -132,7 +132,7 @@ const editMessage = (postId: string) => {
     cy.get(`#edit_post_${postId}`).click();
 
     // # Edit the message again
-    cy.get('div.post-edit__container #post_textbox').
+    cy.get('#edit_textbox').
         should('be.visible').
         and('be.focused').
         wait(TIMEOUTS.HALF_SEC).
