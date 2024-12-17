@@ -633,7 +633,7 @@ const AdvancedTextEditor = ({
     }
 
     if (isInEditMode) {
-        textboxId += '_edit';
+        textboxId = 'edit_textbox';
     }
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
