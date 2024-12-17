@@ -3,6 +3,7 @@
 
 import {GiphyFetch} from '@giphy/js-fetch-api';
 
+import type {CustomAttribute} from '@mattermost/types/admin';
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -164,4 +165,8 @@ export function developerModeEnabled(state: GlobalState): boolean {
 
 export function testingEnabled(state: GlobalState): boolean {
     return state.entities.general.config.EnableTesting === 'true';
+}
+
+export function getCustomProfileAttributes(state: GlobalState): CustomAttribute[] {
+    return state.entities.general.customAttributes;
 }

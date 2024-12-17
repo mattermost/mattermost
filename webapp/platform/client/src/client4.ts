@@ -9,7 +9,7 @@ import {
     TrackPropertyUserAgent, TrackScheduledPostsFeature,
 } from 'mattermost-webapp/src/packages/mattermost-redux/src/constants/telemetry';
 
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, CustomAttribute} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -518,6 +518,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/client_perf`;
     }
 
+    getAttributesRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');
@@ -664,16 +668,6 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/password/reset`,
             {method: 'post', body: JSON.stringify({token, new_password: newPassword})},
-        );
-    };
-
-    updateUserAttributes = (userID: string, attributeID: string, attributeValue: string) => {
-        const obj: { [key: string]: string } = {};
-        obj[attributeID] = attributeValue;
-
-        return this.doFetch<Record<string, string>>(
-            `${this.getUserRoute(userID)}/custom_profile_attributes/value`,
-            {method: 'post', body: JSON.stringify(obj)},
         );
     };
 
@@ -4279,6 +4273,24 @@ export default class Client4 {
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePostId}`,
             {method: 'delete', headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    // Custom Profile Attributes
+    getCustomAttributes = () => {
+        return this.doFetch<CustomAttribute[]>(
+            `${this.getAttributesRoute()}/fields`,
+            {method: 'get'},
+        );
+    };
+
+    updateUserAttributes = (userID: string, attributeID: string, attributeValue: string) => {
+        const obj: { [key: string]: string } = {};
+        obj[attributeID] = attributeValue;
+
+        return this.doFetch<Record<string, string>>(
+            `${this.getUserRoute(userID)}/custom_profile_attributes/value`,
+            {method: 'post', body: JSON.stringify(obj)},
         );
     };
 }

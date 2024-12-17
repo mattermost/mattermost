@@ -140,3 +140,9 @@ export type SupportPacketContent = {
     selected: boolean;
     mandatory: boolean;
 }
+
+export type CustomAttribute = {
+    id: string;
+    name: string;
+    dataType: string;
+}

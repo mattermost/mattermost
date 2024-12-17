@@ -7,6 +7,7 @@ import React, {PureComponent} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import type {CustomAttribute} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -106,6 +107,7 @@ export type Props = {
     collapseModal: () => void;
     isMobileView: boolean;
     maxFileSize: number;
+    customAttributes: CustomAttribute[];
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
         clearErrors: () => void;
@@ -410,7 +412,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     // };
 
     submitAttribute = async (settings: string[]) => {
-        const user = Object.assign({}, this.props.user);
         const attributeID = settings[0];
         const attributeValue = this.state.customAttributeValues[attributeID];
         if (!this.state.customAttributeValues && !this.state.customAttributeValues[attributeID]) {
@@ -421,7 +422,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         this.setState({sectionIsSaving: true});
 
-        this.props.actions.saveAttribute(this.props.user.id, attributeID, this.state.customAttributeValues[attributeID]).
+        this.props.actions.saveAttribute(this.props.user.id, attributeID, attributeValue).
             then(({data, error: err}) => {
                 if (data) {
                     this.updateSection('');
@@ -487,10 +488,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     updateAttribute = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const attributes = Object.assign({}, this.state.customAttributeValues);
-        attributes[e.target.id] = e.target.value;
+        const attributeValues = Object.assign({}, this.state.customAttributeValues);
+        attributeValues[e.target.id] = e.target.value;
         console.log('Update Attribute ' + e.target.id + ' ' + e.target.value);
-        this.setState({customAttributeValues: attributes});
+        this.setState({customAttributeValues: attributeValues});
         console.log('Update Attribute  ' + this.state.customAttributeValues[e.target.id]);
     };
 
@@ -1320,14 +1321,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         );
     };
 
-    attributes = [
-        {id: '123', name: 'Rank', type: 'text'},
-        {id: '456', name: 'CO', type: 'text'},
-        {id: '789', name: 'Base', type: 'text'},
-    ];
-
     createCustomPropertySection = () => {
-        const attributeSections = this.attributes.map((attribute) => {
+        const attributeSections = this.props.customAttributes.map((attribute) => {
             const sectionName = attribute.name + '-customProperty';
             let attributeValue = '';
             if (attribute.id in this.state.customAttributeValues) {

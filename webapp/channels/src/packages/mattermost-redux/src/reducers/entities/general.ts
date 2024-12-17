@@ -3,6 +3,7 @@
 
 import {combineReducers} from 'redux';
 
+import type {CustomAttribute} from '@mattermost/types/admin';
 import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
@@ -32,6 +33,15 @@ function license(state: ClientLicense = {}, action: MMReduxAction) {
     case GeneralTypes.CLIENT_LICENSE_RESET:
     case UserTypes.LOGOUT_SUCCESS:
         return {};
+    default:
+        return state;
+    }
+}
+
+function customAttributes(state: CustomAttribute[] = [], action: MMReduxAction) {
+    switch (action.type) {
+    case GeneralTypes.ATTRIBUTES_RECEIVED:
+        return [...state, ...action.data];
     default:
         return state;
     }
@@ -71,6 +81,7 @@ function firstAdminCompleteSetup(state = false, action: MMReduxAction) {
 export default combineReducers({
     config,
     license,
+    customAttributes,
     serverVersion,
     firstAdminVisitMarketplaceStatus,
     firstAdminCompleteSetup,

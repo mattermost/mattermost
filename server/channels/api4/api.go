@@ -151,6 +151,8 @@ type Routes struct {
 
 	OutgoingOAuthConnections *mux.Router // 'api/v4/oauth/outgoing_connections'
 	OutgoingOAuthConnection  *mux.Router // 'api/v4/oauth/outgoing_connections/{outgoing_oauth_connection_id:[A-Za-z0-9]+}'
+
+	CustomProfileAttributes *mux.Router // 'api/v4/custom_profile-attributes'
 }
 
 type API struct {
@@ -245,6 +247,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
 	api.BaseRoutes.Bleve = api.BaseRoutes.APIRoot.PathPrefix("/bleve").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
+	api.BaseRoutes.CustomProfileAttributes = api.BaseRoutes.APIRoot.PathPrefix("/custom_profile_attributes").Subrouter()
 
 	api.BaseRoutes.Emojis = api.BaseRoutes.APIRoot.PathPrefix("/emoji").Subrouter()
 	api.BaseRoutes.Emoji = api.BaseRoutes.APIRoot.PathPrefix("/emoji/{emoji_id:[A-Za-z0-9]+}").Subrouter()
@@ -338,6 +341,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitOutgoingOAuthConnection()
 	api.InitClientPerformanceMetrics()
 	api.InitScheduledPost()
+	api.InitCustomAttributes()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {

@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState, CustomAttribute} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -662,6 +662,8 @@ export default combineReducers({
 
     // object representing the server configuration
     config,
+
+    customAttributes,
 
     // object representing which fields of the server configuration were set through the environment config
     environmentConfig,
