@@ -10066,5 +10066,373 @@
   {
     "id": "humanize.list_join",
     "translation": "{{.OtherItems}} a {{.LastItem}}"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "URL publika je neplatná: {{ .Url }}"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Neplatné ID klienta."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Neplatný klientský tajný klíč."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Neplatné vlastnosti (vlastní status)"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Nelze rozdělit vlastnosti webhooku na části o délce {{.Max}} znaků."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Neplatný atribut hosta. Musí mít formát 'field=value'."
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Název kanálu není platný"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "Stáhnout aplikaci"
+  },
+  {
+    "id": "searchengine.bleve.disabled.error",
+    "translation": "Chyba při čištění indexů Bleve: engine je deaktivován"
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Neplatné ID souborů."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Nelze naplánovat prázdný příspěvek. Naplánovaný příspěvek musí obsahovat alespoň zprávu nebo přílohy souborů."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Naplánovaný příspěvek musí mít ID."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Neplatný čas naplánování."
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Jeden nebo více příspěvků nebylo možné doručit na vzdálený server {{.Remote}}, protože je offline. Příspěvky budou doručeny, jakmile bude server online."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Vaše heslo nesmí obsahovat více než 72 znaků."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Vlastnost konceptu zprávy je delší než maximálně povolená délka."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Vlastnost zprávy příspěvku je delší než maximálně povolená délka."
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
+    "translation": "Byl proveden pokus vytvořit jiný než přímý kanál pomocí SaveDirectChannel."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Název se shoduje s názvem existujícího systémového emoji."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Neplatný čas zpracování."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Při ukládání hesla došlo k interní chybě."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Vyhledávání souborů bylo na tomto serveru zakázáno. Kontaktujte svého systémového administrátora."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Neplatný maximální počet příjemců pro trvalá oznámení. Musí to být kladné číslo."
+  },
+  {
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
+    "translation": "Neplatná hodnota pro soubor TLS klíče – použijte LetsEncrypt nebo nastavte cestu k existujícímu souboru s klíčem."
+  },
+  {
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
+    "translation": "Neplatná hodnota pro soubor TLS certifikátu – použijte LetsEncrypt nebo nastavte cestu k existujícímu certifikátu."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Neplatné ID uživatele."
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "Neplatná vlastnost „display name“ pro skupinu."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Neplatná hodnota bajtů při nahrávání licence."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Maximální délka MattermostAppID je 32 znaků."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Hodnota „Aktualizuj v“ musí být platný čas."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Neplatné role člena týmu delší než {{.Limit}} znaků."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Vaše heslo nesmí obsahovat více než 72 znaků."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Vaše heslo musí obsahovat alespoň {{.Min}} znaků."
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "Stáhněte si aplikaci Mattermost nebo použijte podporovaný prohlížeč pro lepší zážitek."
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Neplatná třída úložiště {{.Value}}."
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Neplatná priorita"
+  },
+  {
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "Neplatná hodnota pro přepsání šifry TLS – prosím, odkazujte se na dokumentaci pro platné hodnoty."
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "Stáhnout aplikaci"
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "Dosáhli jste limitu povoleného počtu kanálů."
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "Tato verze vašeho prohlížeče již není Mattermostem podporována"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Neplatný časový limit pro odchozí integrace v nastavení služby. Musí to být kladné číslo."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Neplatné id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Neplatný typ udělení oprávnění."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Neplatné schéma."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Neplatné role relace delší než {{.Limit}} znaků."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Neplatné role uživatele delší než {{.Limit}} znaků."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Poskytnutý sloupec pro řazení není platný."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Neplatný celkový počet trvalých oznámení na příspěvek. Musí to být kladné číslo."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Neplatná frekvence trvalých oznámení. Musí být alespoň dvě minuty."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Neplatná maximální doba života připojení pro SQL nastavení. Musí to být nezáporné číslo."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Neplatná hodnota pro časový limit stavu uživatele „nepřítomný“. Musí to být kladné číslo."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Neplatná hodnota pro zabezpečení připojení webového serveru."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Neplatné vlastnosti."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Neplatné root ID."
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "Neplatná vlastnost „create at“ pro skupinu."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "Název skupiny již existuje jako rezervovaný název"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Seznam e-mailů je prázdný"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Hodnota „Create at“ musí být platný čas."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Neplatné ID tvůrce."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Neplatné přihlašovací údaje k heslu."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Neplatné jméno."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Neplatná URL adresa tokenu OAuth."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Hodnota „Aktualizovat v“ musí být platný čas."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Zadané časové období je neplatné."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Neplatné pole UserId pro relaci."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Aktualizovat musí být platný čas."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Chybí manifest"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Neplatný algoritmus podpisu."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Neplatný maximální nečinný čas připojení pro SQL nastavení. Musí to být nezáporné číslo."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Publikum nesmí být prázdné."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Neplatné pole CreateAt pro relaci."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Nepodařilo se zakódovat pole do formátu JSON"
+  },
+  {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Neplatný popis, musí mít nejvýše 255 znaků."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Neplatné zobrazení spoluhráče. Musí to být 'full_name', 'nickname_full_name' nebo 'username'."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Neplatné ID relace pro relaci."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Nepodařilo se zpracovat příkaz webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Nepodařilo se dekódovat payload typu média {{.media_type}} pro příchozí webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Nepodařilo se zpracovat payload typu média {{.media_type}} pro příchozí webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Nepodařilo se analyzovat médium příchozího webhooku {{.hook_id}}."
+  },
+  {
+    "id": "model.websocket_client.connect_fail.app_error",
+    "translation": "Nelze se připojit k serveru WebSocket."
+  },
+  {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Neplatný atribut administrátora. Musí mít formát 'field=value'."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Tento příspěvek obsahuje trvalé odkazy na jiné kanály, které nemusí být viditelné pro uživatele na jiných serverech."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Chybí konfigurace opětovného připojení pluginu"
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Vytvořeno musí být platný čas."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Neplatné ID kanálu."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Neplatná adresa URL stránky."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Neplatný token."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Neplatná hodnota pro limit_visible_dms_gms."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Neplatné vzdálené ID."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Tým s touto URL adresou již existuje."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Neplatné id příspěvku."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Neplatné id uživatele."
   }
 ]
