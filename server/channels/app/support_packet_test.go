@@ -317,7 +317,6 @@ func TestGetPluginsFile(t *testing.T) {
 	})
 
 	t.Run("error if plugin are disabled", func(t *testing.T) {
-
 		// Turn off plugins so we can get an error
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = false
@@ -331,15 +330,7 @@ func TestGetPluginsFile(t *testing.T) {
 }
 
 func TestGetSupportPacketStats(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	t.Setenv(envVarInstallType, "docker")
-
-	licenseUsers := 100
-	license := model.NewTestLicense("ldap")
-	license.Features.Users = model.NewPointer(licenseUsers)
-	th.App.Srv().SetLicense(license)
+	th := Setup(t)
 
 	generateStats := func(t *testing.T) *model.SupportPacketStats {
 		t.Helper()
@@ -357,23 +348,97 @@ func TestGetSupportPacketStats(t *testing.T) {
 		return &packet
 	}
 
-	t.Run("Happy path", func(t *testing.T) {
+	t.Run("fresh server", func(t *testing.T) {
 		sp := generateStats(t)
 
-		assert.Equal(t, int64(3), sp.RegisteredUsers) // from InitBasic()
-		assert.Equal(t, int64(3), sp.ActiveUsers)     // from InitBasic()
+		assert.Equal(t, int64(0), sp.RegisteredUsers)
+		assert.Equal(t, int64(0), sp.ActiveUsers)
 		assert.Equal(t, int64(0), sp.DailyActiveUsers)
 		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
 		assert.Equal(t, int64(0), sp.DeactivatedUsers)
 		assert.Equal(t, int64(0), sp.Guests)
 		assert.Equal(t, int64(0), sp.BotAccounts)
-		assert.Equal(t, int64(5), sp.Posts)    // from InitBasic()
-		assert.Equal(t, int64(3), sp.Channels) // from InitBasic()
-		assert.Equal(t, int64(1), sp.Teams)    // from InitBasic()
+		assert.Equal(t, int64(0), sp.Posts)
+		assert.Equal(t, int64(0), sp.Channels)
+		assert.Equal(t, int64(0), sp.Teams)
 		assert.Equal(t, int64(0), sp.SlashCommands)
 		assert.Equal(t, int64(0), sp.IncomingWebhooks)
 		assert.Equal(t, int64(0), sp.OutgoingWebhooks)
 	})
+
+	t.Run("Happy path", func(t *testing.T) {
+		var user *model.User
+		for i := 0; i < 4; i++ {
+			user = th.CreateUser()
+		}
+		th.BasicUser = user
+
+		for i := 0; i < 3; i++ {
+			deactivatedUser := th.CreateUser()
+			require.NotNil(t, deactivatedUser)
+			_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+			require.Nil(t, appErr)
+		}
+
+		for i := 0; i < 2; i++ {
+			guest := th.CreateGuest()
+			require.NotNil(t, guest)
+		}
+
+		th.CreateBot()
+
+		team := th.CreateTeam()
+		channel := th.CreateChannel(th.Context, team)
+
+		for i := 0; i < 3; i++ {
+			p := th.CreatePost(channel)
+			require.NotNil(t, p)
+		}
+
+		cmd, appErr := th.App.CreateCommand(&model.Command{
+			CreatorId: user.Id,
+			TeamId:    team.Id,
+			Trigger:   "test",
+			Method:    model.CommandMethodGet,
+			URL:       "http://nowhere.com/",
+		})
+		require.Nil(t, appErr)
+		require.NotNil(t, cmd)
+
+		webhookIn, appErr := th.App.CreateIncomingWebhookForChannel(user.Id, channel, &model.IncomingWebhook{ChannelId: channel.Id})
+		require.Nil(t, appErr)
+		require.NotNil(t, webhookIn)
+
+		webhookOut, appErr := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
+			ChannelId:    channel.Id,
+			TeamId:       channel.TeamId,
+			CreatorId:    th.BasicUser.Id,
+			CallbackURLs: []string{"http://nowhere.com/"},
+		})
+		require.Nil(t, appErr)
+		require.NotNil(t, webhookOut)
+
+		sp := generateStats(t)
+
+		assert.Equal(t, int64(9), sp.RegisteredUsers)
+		assert.Equal(t, int64(6), sp.ActiveUsers)
+		assert.Equal(t, int64(0), sp.DailyActiveUsers)
+		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
+		assert.Equal(t, int64(3), sp.DeactivatedUsers)
+		assert.Equal(t, int64(2), sp.Guests)
+		assert.Equal(t, int64(1), sp.BotAccounts)
+		assert.Equal(t, int64(4), sp.Posts)    // 1 from the bot creation and 3 created directly
+		assert.Equal(t, int64(3), sp.Channels) // 2 from the team creation and 1 created directly
+		assert.Equal(t, int64(1), sp.Teams)
+		assert.Equal(t, int64(1), sp.SlashCommands)
+		assert.Equal(t, int64(1), sp.IncomingWebhooks)
+		assert.Equal(t, int64(1), sp.OutgoingWebhooks)
+	})
+
+	// Reset test server
+	th.TearDown()
+	th = Setup(t).InitBasic()
+	defer th.TearDown()
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
