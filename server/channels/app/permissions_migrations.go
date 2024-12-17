@@ -744,6 +744,24 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 		model.PermissionSysconsoleWriteEnvironmentDeveloper.Id,
 	}
 
+	permissionsElasticsearchRead := []string{
+		model.PermissionReadElasticsearchPostIndexingJob.Id,
+		model.PermissionReadElasticsearchPostAggregationJob.Id,
+	}
+
+	permissionsElasticsearchWrite := []string{
+		model.PermissionTestElasticsearch.Id,
+		model.PermissionCreateElasticsearchPostIndexingJob.Id,
+		model.PermissionCreateElasticsearchPostAggregationJob.Id,
+		model.PermissionPurgeElasticsearchIndexes.Id,
+	}
+
+	permissionsWebServerWrite := []string{
+		model.PermissionTestSiteURL.Id,
+		model.PermissionReloadConfig.Id,
+		model.PermissionInvalidateCaches.Id,
+	}
+
 	return permissionsMap{
 		// Give the new subsection READ permissions to any user with READ_ENVIRONMENT
 		permissionTransformation{
@@ -757,20 +775,13 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 		},
 		// Give these ancillary permissions to anyone with READ_ENVIRONMENT_ELASTICSEARCH
 		permissionTransformation{
-			On: permissionExists(model.PermissionSysconsoleReadEnvironmentElasticsearch.Id),
-			Add: []string{
-				model.PermissionReadElasticsearchPostIndexingJob.Id,
-				model.PermissionReadElasticsearchPostAggregationJob.Id,
-			},
+			On:  permissionExists(model.PermissionSysconsoleReadEnvironmentElasticsearch.Id),
+			Add: permissionsElasticsearchRead,
 		},
 		// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_WEB_SERVER
 		permissionTransformation{
-			On: permissionExists(model.PermissionSysconsoleWriteEnvironmentWebServer.Id),
-			Add: []string{
-				model.PermissionTestSiteURL.Id,
-				model.PermissionReloadConfig.Id,
-				model.PermissionInvalidateCaches.Id,
-			},
+			On:  permissionExists(model.PermissionSysconsoleWriteEnvironmentWebServer.Id),
+			Add: permissionsWebServerWrite,
 		},
 		// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_DATABASE
 		permissionTransformation{
@@ -779,13 +790,8 @@ func (a *App) getAddEnvironmentSubsectionPermissions() (permissionsMap, error) {
 		},
 		// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_ELASTICSEARCH
 		permissionTransformation{
-			On: permissionExists(model.PermissionSysconsoleWriteEnvironmentElasticsearch.Id),
-			Add: []string{
-				model.PermissionTestElasticsearch.Id,
-				model.PermissionCreateElasticsearchPostIndexingJob.Id,
-				model.PermissionCreateElasticsearchPostAggregationJob.Id,
-				model.PermissionPurgeElasticsearchIndexes.Id,
-			},
+			On:  permissionExists(model.PermissionSysconsoleWriteEnvironmentElasticsearch.Id),
+			Add: permissionsElasticsearchWrite,
 		},
 		// Give these ancillary permissions to anyone with WRITE_ENVIRONMENT_FILE_STORAGE
 		permissionTransformation{
