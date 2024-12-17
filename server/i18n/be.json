@@ -744,10 +744,6 @@
     "translation": "Няправільныя рэквізіты."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Няправільнае паведамленне."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Няправільны ідэнтыфікатар."
   },
@@ -5142,10 +5138,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Не ўдалося абнавіць вэбхук у розных камандах."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не атрымалася дэкадаваць шматчастковую карысную нагрузку ўваходнага вэбхука."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",

@@ -399,8 +399,10 @@ func (a *App) findTeamIdForFilename(rctx request.CTX, post *model.Post, id, file
 	return ""
 }
 
-var fileMigrationLock sync.Mutex
-var oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+var (
+	fileMigrationLock   sync.Mutex
+	oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+)
 
 // Parse the path from the Filename of the form /{channelID}/{userID}/{uid}/{nameWithExtension}
 func parseOldFilenames(rctx request.CTX, filenames []string, channelID, userID string) [][]string {
@@ -1417,7 +1419,6 @@ func populateZipfile(rctx request.CTX, w *zip.Writer, fileDatas []model.FileData
 			Method:   zip.Deflate,
 			Modified: time.Now(),
 		})
-
 		if err != nil {
 			return err
 		}
@@ -1535,7 +1536,7 @@ func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
 
 	lastAccessibleFileTime, err := strconv.ParseInt(system.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
+		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]any{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return lastAccessibleFileTime, nil

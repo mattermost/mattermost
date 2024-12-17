@@ -6,7 +6,6 @@ exports[`components/post_view/Reaction should apply read-only class if user does
   canRemoveReactions={true}
   currentUserReacted={false}
   emojiName="smile"
-  id="post_id-smile-reaction"
   onShow={[Function]}
   reactions={
     Array [
@@ -73,7 +72,6 @@ exports[`components/post_view/Reaction should apply read-only class if user does
   canRemoveReactions={false}
   currentUserReacted={true}
   emojiName="smile"
-  id="post_id-smile-reaction"
   onShow={[Function]}
   reactions={
     Array [
@@ -140,7 +138,6 @@ exports[`components/post_view/Reaction should match snapshot 1`] = `
   canRemoveReactions={true}
   currentUserReacted={false}
   emojiName="smile"
-  id="post_id-smile-reaction"
   onShow={[Function]}
   reactions={
     Array [
@@ -207,7 +204,6 @@ exports[`components/post_view/Reaction should match snapshot when a current user
   canRemoveReactions={true}
   currentUserReacted={true}
   emojiName="smile"
-  id="post_id-smile-reaction"
   onShow={[Function]}
   reactions={
     Array [

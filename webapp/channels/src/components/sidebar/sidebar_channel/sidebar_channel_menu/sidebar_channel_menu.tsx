@@ -39,7 +39,7 @@ const SidebarChannelMenu = ({
     isUnread,
     managePrivateChannelMembers,
     managePublicChannelMembers,
-    markMultipleChannelsAsRead,
+    readMultipleChannels,
     markMostRecentPostInChannelAsUnread,
     muteChannel,
     onMenuToggle,
@@ -56,7 +56,7 @@ const SidebarChannelMenu = ({
     if (isUnread) {
         function handleMarkAsRead() {
             // We use mark multiple to not update the active channel in the server
-            markMultipleChannelsAsRead({[channel.id]: Date.now()});
+            readMultipleChannels([channel.id]);
             trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
 
