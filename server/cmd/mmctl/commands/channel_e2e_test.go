@@ -21,7 +21,7 @@ import (
 func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	var assertChannelNames = func(want []string, lines []interface{}) {
+	var assertChannelNames = func(want []string, lines []any) {
 		var got []string
 		for i := 0; i < len(lines); i++ {
 			got = append(got, lines[i].(*model.Channel).Name)

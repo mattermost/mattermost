@@ -278,7 +278,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
-                role='dialog'
+                role='none'
                 aria-labelledby='teamSelectorModalLabel'
             >
                 <Modal.Header closeButton={true}>
