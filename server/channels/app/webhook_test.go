@@ -941,7 +941,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	t.Run("with a valid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
-			require.NoError(t, err)
+			require.Contains(t, err.Error(), "connection reset by peer")
 		}))
 		defer server.Close()
 
@@ -956,7 +956,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	t.Run("with an invalid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, strings.NewReader("aaaaaaaa"))
-			require.NoError(t, err)
+			require.Contains(t, err.Error(), "connection reset by peer")
 		}))
 		defer server.Close()
 
@@ -968,7 +968,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	t.Run("with a large, valid response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
-			require.NoError(t, err)
+			require.Contains(t, err.Error(), "connection reset by peer")
 		}))
 		defer server.Close()
 
@@ -1013,7 +1013,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 			time.Sleep(1 * time.Second)
 
 			_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
-			require.NoError(t, err)
+			require.Contains(t, err.Error(), "connection reset by peer")
 		}))
 		defer server.Close()
 
@@ -1041,7 +1041,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	t.Run("with auth token", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, strings.NewReader(fmt.Sprintf(`{"text":"%s"}`, r.Header.Get("Authorization"))))
-			require.NoError(t, err)
+			require.Contains(t, err.Error(), "connection reset by peer")
 		}))
 		defer server.Close()
 
