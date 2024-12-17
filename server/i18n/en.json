@@ -2133,6 +2133,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.filter_config_error",
+    "translation": "Unable to filter the configuration."
+  },
+  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
   },

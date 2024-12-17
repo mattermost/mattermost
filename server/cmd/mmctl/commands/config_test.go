@@ -1002,3 +1002,26 @@ func TestSetConfigValue(t *testing.T) {
 		assert.Equal(t, tc.expectedConfig, tc.config, name)
 	}
 }
+
+func (s *MmctlUnitTestSuite) TestConfigExportCmd() {
+	s.Run("Should get the config as-is", func() {
+		// there is not much to test as the config is returned as-is
+		// adding a test to make sure future changes are not breaking this
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetConfigWithOptions(context.TODO(), model.GetConfigOptions{}).
+			Return(map[string]any{
+				"SqlSettings": map[string]any{
+					"DriverName": "postgres",
+				},
+			}, &model.Response{}, nil).
+			Times(1)
+
+		err := configExportCmdF(s.client, &cobra.Command{}, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
