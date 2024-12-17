@@ -499,7 +499,7 @@
   "admin.channel_settings.channel_moderation.channelMentions.disabledGuest": "Zmínky v kanálu jsou pro hosty zakázány dle [{scheme_name}](../permissions/{scheme_link}).",
   "admin.channel_settings.channel_moderation.channelMentions.disabledGuestsDueToCreatePosts": "Hosté nemohou používat zmínky kanálu bez možnosti vytvářet příspěvky.",
   "admin.channel_settings.channel_moderation.channelMentions.disabledMember": "Zmínky v kanálu jsou pro členy zakázány dle [{scheme_name}](../permissions/{scheme_link}).",
-  "admin.channel_settings.channel_moderation.channelMentions.disabledMemberDueToCreatePosts": "Členové bez možnosti přispívat nemohou vytvářet ani zmínky.",
+  "admin.channel_settings.channel_moderation.channelMentions.disabledMemberDueToCreatePosts": "Členové nemohou používat zmínky kanálu bez možnosti vytvářet příspěvky.",
   "admin.channel_settings.channel_moderation.channelMentionsDesc": "Schopnost členů a hostů používat @all, @here s @channel.",
   "admin.channel_settings.channel_moderation.channelMentionsDescMembers": "Schopnost členů používat @všichni, @zde a @kanál.",
   "admin.channel_settings.channel_moderation.createPosts": "Vyvořit příspěvky",
