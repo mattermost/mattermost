@@ -2947,7 +2947,7 @@ func (a *OpenTracingAppLayer) CreateWebhookPost(c request.CTX, userID string, ch
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName string, directory string) error {
+func (a *OpenTracingAppLayer) CreateZipFileAndAddFiles(rctx request.CTX, fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName string, directory string) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateZipFileAndAddFiles")
 
@@ -2959,7 +2959,7 @@ func (a *OpenTracingAppLayer) CreateZipFileAndAddFiles(fileBackend filestore.Fil
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CreateZipFileAndAddFiles(fileBackend, fileDatas, zipFileName, directory)
+	resultVar0 := a.app.CreateZipFileAndAddFiles(rctx, fileBackend, fileDatas, zipFileName, directory)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
