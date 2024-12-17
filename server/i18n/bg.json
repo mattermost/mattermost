@@ -1512,10 +1512,6 @@
     "translation": "Невалиден оригинален id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Невалидно съобщение."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Невалиден id."
   },
@@ -4704,10 +4700,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Не може да се актуализира webhook между екипи."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не може да се декодира тялото от много части на входящите webhook."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",

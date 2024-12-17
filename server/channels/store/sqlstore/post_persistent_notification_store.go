@@ -32,7 +32,7 @@ func (s *SqlPostPersistentNotificationStore) GetSingle(postID string) (*model.Po
 		})
 
 	post := &model.PostPersistentNotifications{}
-	err := s.GetReplicaX().GetBuilder(post, builder)
+	err := s.GetReplica().GetBuilder(post, builder)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Persistent Notification Post", postID)
@@ -62,7 +62,7 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 	var posts []*model.PostPersistentNotifications
 	// Replica may not have the latest changes(done by UpdateLastActivity func)
 	// by the time this Get func is called again in the loop.
-	err := s.GetMasterX().SelectBuilder(&posts, builder)
+	err := s.GetMaster().SelectBuilder(&posts, builder)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get notifications")
 	}
@@ -77,7 +77,7 @@ func (s *SqlPostPersistentNotificationStore) UpdateLastActivity(postIds []string
 		Set("SentCount", sq.Expr("SentCount+1")).
 		Where(sq.Eq{"PostId": postIds})
 
-	_, err := s.GetMasterX().ExecBuilder(builder)
+	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update last activity for posts %s", postIds)
 	}
@@ -96,7 +96,7 @@ func (s *SqlPostPersistentNotificationStore) Delete(postIds []string) error {
 		Set("DeleteAt", model.GetMillis()).
 		Where(sq.Eq{"PostId": postIds})
 
-	_, err := s.GetMasterX().ExecBuilder(builder)
+	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete notifications for posts %s", postIds)
 	}
@@ -113,7 +113,7 @@ func (s *SqlPostPersistentNotificationStore) DeleteExpired(maxSentCount int16) e
 			sq.GtOrEq{"SentCount": maxSentCount},
 		})
 
-	_, err := s.GetMasterX().ExecBuilder(builder)
+	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete notifications")
 	}
@@ -148,7 +148,7 @@ func (s *SqlPostPersistentNotificationStore) DeleteByChannel(channelIds []string
 		sq.Eq{"Posts.ChannelId": channelIds},
 	})
 
-	_, err := s.GetMasterX().ExecBuilder(builder)
+	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete notifications for channels %s", channelIds)
 	}
@@ -184,7 +184,7 @@ func (s *SqlPostPersistentNotificationStore) DeleteByTeam(teamIds []string) erro
 		sq.Eq{"Channels.TeamId": teamIds},
 	})
 
-	_, err := s.GetMasterX().ExecBuilder(builder)
+	_, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete notifications for teams %s", teamIds)
 	}
