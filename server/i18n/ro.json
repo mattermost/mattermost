@@ -2296,10 +2296,6 @@
     "translation": "Trebuie să fie setate fie trigger_words, fie channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nu s-a putut decoda încărcătura utilă multiplă a hubului de intrare."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Nu se poate actualiza webhook între echipe."
   },
@@ -4310,10 +4306,6 @@
   {
     "id": "model.post.is_valid.id.app_error",
     "translation": "ID Incorect."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mesaj inexistent."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
