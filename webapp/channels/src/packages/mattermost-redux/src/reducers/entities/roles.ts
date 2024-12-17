@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {Role} from '@mattermost/types/roles';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {RoleTypes, UserTypes} from 'mattermost-redux/action_types';
 
-function pending(state: Set<string> = new Set(), action: AnyAction) {
+function pending(state: Set<string> = new Set(), action: MMReduxAction) {
     switch (action.type) {
     case RoleTypes.SET_PENDING_ROLES:
         return action.data;
@@ -19,7 +19,7 @@ function pending(state: Set<string> = new Set(), action: AnyAction) {
     }
 }
 
-function roles(state: Record<string, Role> = {}, action: AnyAction) {
+function roles(state: Record<string, Role> = {}, action: MMReduxAction) {
     switch (action.type) {
     case RoleTypes.RECEIVED_ROLES: {
         if (action.data) {

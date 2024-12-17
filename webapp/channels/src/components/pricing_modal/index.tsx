@@ -64,7 +64,7 @@ function PricingModal(props: Props) {
             data-testid='pricingModal'
             dialogClassName='a11y__modal'
             onHide={onHide}
-            role='dialog'
+            role='none'
             aria-modal='true'
             aria-labelledby='pricing_modal_title'
         >

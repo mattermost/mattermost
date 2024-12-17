@@ -166,7 +166,7 @@ const UpdateUserGroupModal = ({
             show={show}
             onHide={doHide}
             onExited={onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='createUserGroupsModalLabel'
             id='createUserGroupsModal'
         >

@@ -35,14 +35,14 @@ func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.User
 	if err != nil {
 		return nil, errors.Wrap(err, "UserAccessToken_tosql")
 	}
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to save UserAccessToken")
 	}
 	return token, nil
 }
 
 func (s SqlUserAccessTokenStore) Delete(tokenId string) (err error) {
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -83,7 +83,7 @@ func (s SqlUserAccessTokenStore) deleteTokensById(transaction *sqlxTxWrapper, to
 }
 
 func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) (err error) {
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -125,7 +125,7 @@ func (s SqlUserAccessTokenStore) deleteTokensByUser(transaction *sqlxTxWrapper, 
 func (s SqlUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, error) {
 	var token model.UserAccessToken
 
-	if err := s.GetReplicaX().Get(&token, "SELECT * FROM UserAccessTokens WHERE Id = ?", tokenId); err != nil {
+	if err := s.GetReplica().Get(&token, "SELECT * FROM UserAccessTokens WHERE Id = ?", tokenId); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UserAccessToken", tokenId)
 		}
@@ -138,7 +138,7 @@ func (s SqlUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, er
 func (s SqlUserAccessTokenStore) GetAll(offset, limit int) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
-	if err := s.GetReplicaX().Select(&tokens, "SELECT * FROM UserAccessTokens LIMIT ? OFFSET ?", limit, offset); err != nil {
+	if err := s.GetReplica().Select(&tokens, "SELECT * FROM UserAccessTokens LIMIT ? OFFSET ?", limit, offset); err != nil {
 		return nil, errors.Wrap(err, "failed to find UserAccessTokens")
 	}
 
@@ -148,7 +148,7 @@ func (s SqlUserAccessTokenStore) GetAll(offset, limit int) ([]*model.UserAccessT
 func (s SqlUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAccessToken, error) {
 	var token model.UserAccessToken
 
-	if err := s.GetReplicaX().Get(&token, "SELECT * FROM UserAccessTokens WHERE Token = ?", tokenString); err != nil {
+	if err := s.GetReplica().Get(&token, "SELECT * FROM UserAccessTokens WHERE Token = ?", tokenString); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("UserAccessToken", fmt.Sprintf("token=%s", tokenString))
 		}
@@ -161,7 +161,7 @@ func (s SqlUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAcce
 func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
-	if err := s.GetReplicaX().Select(&tokens, "SELECT * FROM UserAccessTokens WHERE UserId = ? LIMIT ? OFFSET ?", userId, limit, offset); err != nil {
+	if err := s.GetReplica().Select(&tokens, "SELECT * FROM UserAccessTokens WHERE UserId = ? LIMIT ? OFFSET ?", userId, limit, offset); err != nil {
 		return nil, errors.Wrapf(err, "failed to find UserAccessTokens with userId=%s", userId)
 	}
 
@@ -180,7 +180,7 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 			ON uat.UserId = u.Id
 		WHERE uat.Id LIKE ? OR uat.UserId LIKE ? OR u.Username LIKE ?`
 
-	if err := s.GetReplicaX().Select(&tokens, query, params...); err != nil {
+	if err := s.GetReplica().Select(&tokens, query, params...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find UserAccessTokens by term with value '%s'", term)
 	}
 
@@ -188,14 +188,14 @@ func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, 
 }
 
 func (s SqlUserAccessTokenStore) UpdateTokenEnable(tokenId string) error {
-	if _, err := s.GetMasterX().Exec("UPDATE UserAccessTokens SET IsActive = TRUE WHERE Id = ?", tokenId); err != nil {
+	if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET IsActive = TRUE WHERE Id = ?", tokenId); err != nil {
 		return errors.Wrapf(err, "failed to update UserAccessTokens with id=%s", tokenId)
 	}
 	return nil
 }
 
 func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) {
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

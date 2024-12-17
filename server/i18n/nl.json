@@ -4307,10 +4307,6 @@
     "translation": "Ongeldig Id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Ongeldige orgineel id."
   },
@@ -4608,11 +4604,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Kon de opdracht niet vinden."
+    "translation": "Kon de opdracht {{.command_id}} niet vinden."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Kan binnenkomende data niet verwerken."
+    "translation": "Kan inkomende gegevens voor webhook {{.hook_id}} niet verwerken."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4624,7 +4620,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Deze webhook is niet toegestaan om te posten naar het aangevraagde kanaal."
+    "translation": "Deze webhook mag niet posten naar het gevraagde kanaal {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4640,7 +4636,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Onjuiste kanaal rechten."
+    "translation": "Gebruiker {{.user}} heeft niet de juiste rechten voor kanaal {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4652,7 +4648,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "De gebruiker kan niet worden gevonden."
+    "translation": "Kon de gebruiker {{.user}} niet vinden"
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -5396,11 +5392,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal."
+    "translation": "Er is een fout opgetreden bij het vinden van het kanaal {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Het bestaande kanaal kon niet gevonden worden."
+    "translation": "Kan het bestaande kanaal {{.channel_id}} niet vinden."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -8846,10 +8842,6 @@
     "translation": "Ongeldige prioriteit"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht."
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Ongeldige bestandids."
   },
@@ -10215,7 +10207,7 @@
   },
   {
     "id": "api.license.add_license.copy.app_error",
-    "translation": "Fout bij het kopiëren van de licentie naar de buffer."
+    "translation": "Fout bij het kopiëren van de licentie naar de buffer"
   },
   {
     "id": "api.remote_cluster.create_invite_error",
@@ -10422,5 +10414,25 @@
   {
     "id": "api.post.deduplicate_create_post.cache_error",
     "translation": "Kan post niet in cache plaatsen na ontdubbelen van een client die hetzelfde verzoek herhaalt."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Kan de leespositie niet terugzetten naar het begin van de plugin-bundel."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Kon de opdracht webhook {{.hook_id}} niet verwerken."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Kan de payload van mediatype {{.media_type}} voor inkomende webhook {{.hook_id}} niet decoderen."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Kan de payload van mediatype {{.media_type}} voor inkomende webhook {{.hook_id}} niet verwerken."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Kan de media voor inkomende webhook {{.hook_id}} niet verwerken."
   }
 ]
