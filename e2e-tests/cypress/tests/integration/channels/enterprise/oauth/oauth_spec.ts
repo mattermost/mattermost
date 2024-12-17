@@ -351,7 +351,7 @@ describe('Integrations page', () => {
         });
     });
 
-    it.skip('MM-T652 Regenerate Secret', () => {
+    it('MM-T652 Regenerate Secret', () => {
         cy.apiLogin(user1);
         cy.visit(testChannelUrl1);
 
@@ -405,7 +405,7 @@ describe('Integrations page', () => {
         cy.contains('Invalid client credentials.').should('exist');
     });
 
-    it.skip('MM-T654 Successful reconnect with updated secret', () => {
+    it('MM-T654 Successful reconnect with updated secret', () => {
         cy.apiAdminLogin();
 
         // # Send new credentials
