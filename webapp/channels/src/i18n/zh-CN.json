@@ -3472,7 +3472,6 @@
   "copied.message": "已复制",
   "copy.code.message": "复制代码",
   "copy.text.message": "复制文本",
-  "copyTextTooltip.copy": "复制",
   "copy_text.copied": "已复制",
   "copy_text.copy": "复制",
   "createComment.threadFromArchivedChannelMessage": "您正在浏览一个来自<b>已归档的频道</b>的话题。无法发送新消息。",
