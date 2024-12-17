@@ -1,0 +1,11 @@
+with-expecter: false
+packages:
+  github.com/mattermost/mattermost/server/v8/channels/app/platform:
+    config:
+      dir: "channels/app/platform/mocks"
+      filename: "{{.InterfaceName}}.go"
+      mockname: "{{.InterfaceName}}"
+      outpkg: mocks
+      note: "Regenerate this file using `make platform-mocks`."
+    interfaces:
+      SuiteIFace:

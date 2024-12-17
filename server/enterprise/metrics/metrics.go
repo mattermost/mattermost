@@ -44,6 +44,7 @@ const (
 	MetricsSubsystemNotifications      = "notifications"
 	MetricsSubsystemClientsMobileApp   = "mobileapp"
 	MetricsSubsystemClientsWeb         = "webapp"
+	MetricsSubsystemClientsDesktopApp  = "desktopapp"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -200,13 +201,16 @@ type MetricsInterfaceImpl struct {
 	NotificationNotSentCounters     *prometheus.CounterVec
 	NotificationUnsupportedCounters *prometheus.CounterVec
 
-	ClientTimeToFirstByte           *prometheus.HistogramVec
+	ClientTimeToFirstByte           *HistogramVec
+	ClientTimeToLastByte            *HistogramVec
+	ClientTimeToDOMInteractive      *HistogramVec
+	ClientSplashScreenEnd           *HistogramVec
 	ClientFirstContentfulPaint      *prometheus.HistogramVec
 	ClientLargestContentfulPaint    *prometheus.HistogramVec
 	ClientInteractionToNextPaint    *prometheus.HistogramVec
 	ClientCumulativeLayoutShift     *prometheus.HistogramVec
 	ClientLongTasks                 *prometheus.CounterVec
-	ClientPageLoadDuration          *prometheus.HistogramVec
+	ClientPageLoadDuration          *HistogramVec
 	ClientChannelSwitchDuration     *prometheus.HistogramVec
 	ClientTeamSwitchDuration        *prometheus.HistogramVec
 	ClientRHSLoadDuration           *prometheus.HistogramVec
@@ -216,6 +220,9 @@ type MetricsInterfaceImpl struct {
 	MobileClientChannelSwitchDuration *prometheus.HistogramVec
 	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
 	MobileClientSessionMetadataGauge  *prometheus.GaugeVec
+
+	DesktopClientCPUUsage    *prometheus.HistogramVec
+	DesktopClientMemoryUsage *prometheus.HistogramVec
 }
 
 func init() {
@@ -1172,7 +1179,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.NotificationUnsupportedCounters)
 
-	m.ClientTimeToFirstByte = prometheus.NewHistogramVec(
+	m.ClientTimeToFirstByte = NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1180,8 +1187,47 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Duration from when a browser starts to request a page from a server until when it starts to receive data in response (seconds)",
 		},
 		[]string{"platform", "agent"},
+		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientTimeToFirstByte)
+
+	m.ClientTimeToLastByte = NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "time_to_last_byte",
+			Help:      "Duration from when a browser starts to request a page from a server until when it receives the last byte of the resource or immediately before the transport connection is closed, whichever comes first. (seconds)",
+		},
+		[]string{"platform", "agent"},
+		m.Platform.Log(),
+	)
+	m.Registry.MustRegister(m.ClientTimeToLastByte)
+
+	m.ClientTimeToDOMInteractive = NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "dom_interactive",
+			Help:      "Duration from when a browser starts to request a page from a server until when it sets the document's readyState to interactive. (seconds)",
+			Buckets:   []float64{.1, .25, .5, 1, 2.5, 5, 7.5, 10, 12.5, 15},
+		},
+		[]string{"platform", "agent"},
+		m.Platform.Log(),
+	)
+	m.Registry.MustRegister(m.ClientTimeToDOMInteractive)
+
+	m.ClientSplashScreenEnd = NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsWeb,
+			Name:      "splash_screen",
+			Help:      "Duration from when a browser starts to request a page from a server until when the splash screen ends. (seconds)",
+			Buckets:   []float64{.1, .25, .5, 1, 2.5, 5, 7.5, 10, 12.5, 15},
+		},
+		[]string{"platform", "agent", "page_type"},
+		m.Platform.Log(),
+	)
+	m.Registry.MustRegister(m.ClientSplashScreenEnd)
 
 	m.ClientFirstContentfulPaint = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -1244,7 +1290,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.ClientLongTasks)
 
-	m.ClientPageLoadDuration = prometheus.NewHistogramVec(
+	m.ClientPageLoadDuration = NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1253,6 +1299,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 40},
 		},
 		[]string{"platform", "agent"},
+		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientPageLoadDuration)
 
@@ -1346,6 +1393,30 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"version", "platform", "notifications_disabled"},
 	)
 	m.Registry.MustRegister(m.MobileClientSessionMetadataGauge)
+
+	m.DesktopClientCPUUsage = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsDesktopApp,
+			Name:      "cpu_usage",
+			Help:      "Average CPU usage of a specific process over an interval",
+			Buckets:   []float64{0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 80, 100},
+		},
+		[]string{"platform", "version", "processName"},
+	)
+	m.Registry.MustRegister(m.DesktopClientCPUUsage)
+
+	m.DesktopClientMemoryUsage = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsDesktopApp,
+			Name:      "memory_usage",
+			Help:      "Memory usage in MB of a specific process",
+			Buckets:   []float64{0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 3000, 5000},
+		},
+		[]string{"platform", "version", "processName"},
+	)
+	m.Registry.MustRegister(m.DesktopClientMemoryUsage)
 
 	return m
 }
@@ -1806,8 +1877,20 @@ func (mi *MetricsInterfaceImpl) DecrementHTTPWebSockets(originClient string) {
 	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Dec()
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientTimeToFirstByte(platform, agent string, elapsed float64) {
-	mi.ClientTimeToFirstByte.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientTimeToFirstByte(platform, agent, userID string, elapsed float64) {
+	mi.ClientTimeToFirstByte.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientTimeToLastByte(platform, agent, userID string, elapsed float64) {
+	mi.ClientTimeToLastByte.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientTimeToDomInteractive(platform, agent, userID string, elapsed float64) {
+	mi.ClientTimeToDOMInteractive.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveClientSplashScreenEnd(platform, agent, pageType, userID string, elapsed float64) {
+	mi.ClientSplashScreenEnd.With(prometheus.Labels{"platform": platform, "agent": agent, "page_type": pageType}, userID).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64) {
@@ -1830,8 +1913,11 @@ func (mi *MetricsInterfaceImpl) IncrementClientLongTasks(platform, agent string,
 	mi.ClientLongTasks.With(prometheus.Labels{"platform": platform, "agent": agent}).Add(inc)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent string, elapsed float64) {
-	mi.ClientPageLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent, userID string, elapsed float64) {
+	mi.ClientPageLoadDuration.With(prometheus.Labels{
+		"platform": platform,
+		"agent":    agent,
+	}, userID).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent, fresh string, elapsed float64) {
@@ -1850,6 +1936,14 @@ func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent
 	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
 }
 
+func (mi *MetricsInterfaceImpl) ObserveDesktopCpuUsage(platform, version, process string, usage float64) {
+	mi.DesktopClientCPUUsage.With(prometheus.Labels{"platform": platform, "version": version, "processName": process}).Observe(usage)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveDesktopMemoryUsage(platform, version, process string, usage float64) {
+	mi.DesktopClientMemoryUsage.With(prometheus.Labels{"platform": platform, "version": version, "processName": process}).Observe(usage)
+}
+
 func (mi *MetricsInterfaceImpl) ObserveMobileClientLoadDuration(platform string, elapsed float64) {
 	mi.MobileClientLoadDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
@@ -1862,7 +1956,7 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform s
 	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string) {
+func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version, platform string, value float64, notificationDisabled string) {
 	mi.MobileClientSessionMetadataGauge.With(prometheus.Labels{"version": version, "platform": platform, "notifications_disabled": notificationDisabled}).Set(value)
 }
 

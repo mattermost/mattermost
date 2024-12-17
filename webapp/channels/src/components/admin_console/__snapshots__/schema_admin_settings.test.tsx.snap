@@ -316,7 +316,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 3,
-                  "text": "Español (Beta)",
+                  "text": "Español (Alpha)",
                   "value": "es",
                 },
                 Object {
@@ -401,7 +401,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 20,
-                  "text": "中文 (繁體)",
+                  "text": "中文 (繁體) (Beta)",
                   "value": "zh-TW",
                 },
                 Object {
@@ -445,7 +445,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 3,
-                  "text": "Español (Beta)",
+                  "text": "Español (Alpha)",
                   "value": "es",
                 },
                 Object {
@@ -530,7 +530,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 20,
-                  "text": "中文 (繁體)",
+                  "text": "中文 (繁體) (Beta)",
                   "value": "zh-TW",
                 },
                 Object {

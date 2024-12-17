@@ -153,6 +153,13 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		return err
 	}
 
+	ctx.Logger().Info("Bulk export: exporting bots")
+	botPPs, err := a.exportAllBots(ctx, job, writer, opts.IncludeProfilePictures)
+	if err != nil {
+		return err
+	}
+	profilePictures = append(profilePictures, botPPs...)
+
 	ctx.Logger().Info("Bulk export: exporting posts")
 	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
 	if err != nil {
@@ -295,7 +302,7 @@ func (a *App) exportRoles(ctx request.CTX, job *model.Job, writer io.Writer, sch
 	for _, role := range allRoles {
 		// We skip any roles that will be included as part of custom schemes.
 		if !schemeRoles[role.Name] {
-			if err := a.exportWriteLine(writer, ImportLineFromRole(role)); err != nil {
+			if err := a.exportWriteLine(writer, importLineFromRole(role)); err != nil {
 				return err
 			}
 			cnt++
@@ -347,7 +354,7 @@ func (a *App) exportSchemes(ctx request.CTX, job *model.Job, writer io.Writer, s
 				schemeRolesMap[scheme.DefaultChannelGuestRole] = true
 			}
 
-			if err := a.exportWriteLine(writer, ImportLineFromScheme(scheme, rolesMap)); err != nil {
+			if err := a.exportWriteLine(writer, importLineFromScheme(scheme, rolesMap)); err != nil {
 				return err
 			}
 		}
@@ -387,7 +394,7 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 			}
 			teamNames[team.Name] = true
 
-			teamLine := ImportLineFromTeam(team)
+			teamLine := importLineFromTeam(team)
 			if err := a.exportWriteLine(writer, teamLine); err != nil {
 				return nil, err
 			}
@@ -402,7 +409,6 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 	cnt := 0
 	for {
 		channels, err := a.Srv().Store().Channel().GetAllChannelsForExportAfter(1000, afterId)
-
 		if err != nil {
 			return model.NewAppError("exportAllChannels", "app.channel.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -425,7 +431,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 				continue
 			}
 
-			channelLine := ImportLineFromChannel(channel)
+			channelLine := importLineFromChannel(channel)
 			if err := a.exportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
@@ -441,7 +447,6 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 	profilePictures := []string{}
 	for {
 		users, err := a.Srv().Store().User().GetAllAfter(1000, afterId)
-
 		if err != nil {
 			return profilePictures, model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -455,7 +460,12 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 		for _, user := range users {
 			afterId = user.Id
 
-			// Gathering here the exportable preferences to pass them on to ImportLineFromUser
+			// Skip bots as they are exported separately.
+			if user.IsBot {
+				continue
+			}
+
+			// Gathering here the exportable preferences to pass them on to importLineFromUser
 			exportedPrefs := make(map[string]*string)
 			allPrefs, err := a.GetPreferencesForUser(ctx, user.Id)
 			if err != nil {
@@ -493,7 +503,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 				}
 			}
 
-			userLine := ImportLineFromUser(user, exportedPrefs)
+			userLine := importLineFromUser(user, exportedPrefs)
 
 			if includeProfilePictures {
 				var pp string
@@ -531,11 +541,68 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 	return profilePictures, nil
 }
 
+func (a *App) exportAllBots(ctx request.CTX, job *model.Job, writer io.Writer, includeProfilePictures bool) ([]string, *model.AppError) {
+	afterId := ""
+	cnt := 0
+	profilePictures := []string{}
+
+	const pageSize = 1000
+
+	for {
+		bots, err := a.Srv().Store().Bot().GetAllAfter(pageSize, afterId)
+		if err != nil {
+			return profilePictures, model.NewAppError("exportAllBots", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		cnt += len(bots)
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "bots_exported", cnt)
+
+		for _, bot := range bots {
+			afterId = bot.UserId
+
+			var ownerUsername string
+			owner, err := a.Srv().Store().User().Get(ctx.Context(), bot.OwnerId)
+			if err != nil {
+				var nfErr *store.ErrNotFound
+				if errors.As(err, &nfErr) {
+					ownerUsername = bot.OwnerId
+				} else {
+					return profilePictures, model.NewAppError("exportAllBots", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+			} else {
+				ownerUsername = owner.Username
+			}
+
+			botLine := importLineFromBot(bot, ownerUsername)
+
+			if includeProfilePictures {
+				pp, err := a.GetProfileImagePath(model.UserFromBot(bot))
+				if err != nil {
+					return profilePictures, err
+				}
+				if pp != "" {
+					botLine.Bot.ProfileImage = &pp
+					profilePictures = append(profilePictures, pp)
+				}
+			}
+
+			if err := a.exportWriteLine(writer, botLine); err != nil {
+				return profilePictures, err
+			}
+		}
+
+		if len(bots) < pageSize {
+			break
+		}
+	}
+
+	return profilePictures, nil
+}
+
 func (a *App) buildUserTeamAndChannelMemberships(c request.CTX, userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
 	var memberships []imports.UserTeamImportData
 
 	members, err := a.Srv().Store().Team().GetTeamMembersForExport(userID)
-
 	if err != nil {
 		return nil, model.NewAppError("buildUserTeamAndChannelMemberships", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -546,7 +613,7 @@ func (a *App) buildUserTeamAndChannelMemberships(c request.CTX, userID string, i
 			continue
 		}
 
-		memberData := ImportUserTeamDataFromTeamMember(member)
+		memberData := importUserTeamDataFromTeamMember(member)
 
 		// Do the Channel Memberships.
 		channelMembers, err := a.buildUserChannelMemberships(c, userID, member.TeamId, includeArchivedChannels)
@@ -582,7 +649,7 @@ func (a *App) buildUserChannelMemberships(c request.CTX, userID string, teamID s
 
 	memberships := make([]imports.UserChannelImportData, len(members))
 	for i, member := range members {
-		memberships[i] = *ImportUserChannelDataFromChannelMemberAndPreferences(member, &preferences)
+		memberships[i] = *importUserChannelDataFromChannelMemberAndPreferences(member, &preferences)
 	}
 	return &memberships, nil
 }
@@ -640,7 +707,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 				continue
 			}
 
-			postLine := ImportLineForPost(post)
+			postLine := importLineForPost(post)
 
 			replies, replyAttachments, err := a.buildPostReplies(ctx, post.Id, withAttachments)
 			if err != nil {
@@ -698,7 +765,7 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 	}
 
 	for _, reply := range replyPosts {
-		replyImportObject := ImportReplyFromPost(reply)
+		replyImportObject := importReplyFromPost(reply)
 		if reply.HasReactions {
 			var appErr *model.AppError
 			replyImportObject.Reactions, appErr = a.BuildPostReactions(ctx, reply.Id)
@@ -732,7 +799,7 @@ func (a *App) buildThreadFollowers(_ request.CTX, postID string) ([]imports.Thre
 	}
 
 	for _, member := range threadFollowers {
-		followers = append(followers, *ImportFollowerFromThreadMember(member))
+		followers = append(followers, *importFollowerFromThreadMember(member))
 	}
 
 	return followers, nil
@@ -756,7 +823,7 @@ func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImp
 			}
 			return nil, model.NewAppError("BuildPostReactions", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
+		reactionsOfPost = append(reactionsOfPost, *importReactionFromPost(user, reaction))
 	}
 
 	return &reactionsOfPost, nil
@@ -782,7 +849,6 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 	cnt := 0
 	for {
 		customEmojiList, err := a.GetEmojiList(c, pageNumber, 100, model.EmojiSortByName)
-
 		if err != nil {
 			return nil, err
 		}
@@ -816,7 +882,7 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 				emojiPaths = append(emojiPaths, filePath)
 			}
 
-			emojiImportObject := ImportLineFromEmoji(emoji, filePath)
+			emojiImportObject := importLineFromEmoji(emoji, filePath)
 			if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
 				return nil, err
 			}
@@ -898,7 +964,7 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 				return err
 			}
 
-			channelLine := ImportLineFromDirectChannel(channel, favoritedBy, shownBy)
+			channelLine := importLineFromDirectChannel(channel, favoritedBy, shownBy)
 			if err := a.exportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
@@ -1037,7 +1103,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 				attachments = append(attachments, replyAttachments...)
 			}
 
-			postLine := ImportLineForDirectPost(post)
+			postLine := importLineForDirectPost(post)
 			postLine.DirectPost.Replies = &replies
 			if len(postAttachments) > 0 {
 				postLine.DirectPost.Attachments = &postAttachments

@@ -58,6 +58,7 @@ export type ClientConfig = {
     EnableCustomEmoji: string;
     EnableCustomGroups: string;
     EnableCustomUserStatuses: string;
+    EnableExperimentalLocales: string;
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
     EnableTimedDND: string;
@@ -213,6 +214,7 @@ export type ClientConfig = {
     UniqueEmojiReactionLimitPerPost: string;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
     YoutubeReferrerPolicy: 'true' | 'false';
+    ScheduledPosts: string;
 };
 
 export type License = {
@@ -396,7 +398,9 @@ export type ServiceSettings = {
     RefreshPostStatsRunTime: string;
     MaximumPayloadSizeBytes: number;
     EnableAPIPostDeletion: boolean;
+    EnableDesktopLandingPage: boolean;
     MaximumURLLength: number;
+    ScheduledPosts: boolean;
 };
 
 export type TeamSettings = {
@@ -542,6 +546,7 @@ export type FileSettings = {
     AmazonS3Trace: boolean;
     AmazonS3RequestTimeoutMilliseconds: number;
     AmazonS3UploadPartSizeBytes: number;
+    AmazonS3StorageClass: string;
     DedicatedExportStore: boolean;
     ExportDriverName: string;
     ExportDirectory: string;
@@ -558,6 +563,7 @@ export type FileSettings = {
     ExportAmazonS3RequestTimeoutMilliseconds: number;
     ExportAmazonS3PresignExpiresSeconds: number;
     ExportAmazonS3UploadPartSizeBytes: number;
+    ExportAmazonS3StorageClass: string;
 };
 
 export type EmailSettings = {
@@ -716,6 +722,7 @@ export type LocalizationSettings = {
     DefaultServerLocale: string;
     DefaultClientLocale: string;
     AvailableLocales: string;
+    EnableExperimentalLocales: boolean;
 };
 
 export type SamlSettings = {
@@ -760,6 +767,7 @@ export type NativeAppSettings = {
     AppDownloadLink: string;
     AndroidAppDownloadLink: string;
     IosAppDownloadLink: string;
+    MobileExternalBrowser: boolean;
 };
 
 export type ClusterSettings = {
@@ -808,6 +816,7 @@ export type CacheSettings = {
     RedisAddress: string;
     RedisPassword: string;
     RedisDB: number;
+    DisableClientCache: boolean;
 };
 
 export type ElasticsearchSettings = {

@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -267,6 +268,19 @@ const (
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 
 	ConnectedWorkspacesSettingsDefaultMaxPostsPerSync = 50 // a bit more than 4 typical screenfulls of posts
+
+	// These storage classes are the valid values for the x-amz-storage-class header. More documentation here https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html#AmazonS3-PutObject-request-header-StorageClass
+	StorageClassStandard           = "STANDARD"
+	StorageClassReducedRedundancy  = "REDUCED_REDUNDANCY"
+	StorageClassStandardIA         = "STANDARD_IA"
+	StorageClassOnezoneIA          = "ONEZONE_IA"
+	StorageClassIntelligentTiering = "INTELLIGENT_TIERING"
+	StorageClassGlacier            = "GLACIER"
+	StorageClassDeepArchive        = "DEEP_ARCHIVE"
+	StorageClassOutposts           = "OUTPOSTS"
+	StorageClassGlacierIR          = "GLACIER_IR"
+	StorageClassSnow               = "SNOW"
+	StorageClassExpressOnezone     = "EXPRESS_ONEZONE"
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
@@ -419,6 +433,7 @@ type ServiceSettings struct {
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
 	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	MaximumURLLength                                  *int    `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	ScheduledPosts                                    *bool   `access:"site_posts"`
 }
 
 var MattermostGiphySdkKey string
@@ -941,6 +956,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.MaximumURLLength == nil {
 		s.MaximumURLLength = NewPointer(ServiceSettingsDefaultMaxURLLength)
+	}
+
+	if s.ScheduledPosts == nil {
+		s.ScheduledPosts = NewPointer(true)
 	}
 }
 
@@ -1478,7 +1497,7 @@ type ExperimentalAuditSettings struct {
 	FileMaxBackups      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON json.RawMessage `access:"experimental_features,write_restrictable"`
+	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1644,6 +1663,7 @@ type FileSettings struct {
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
@@ -1661,6 +1681,7 @@ type FileSettings struct {
 	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 	ExportAmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1773,6 +1794,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3UploadPartSizeBytes))
 	}
 
+	if s.AmazonS3StorageClass == nil {
+		s.AmazonS3StorageClass = NewPointer("")
+	}
+
 	if s.DedicatedExportStore == nil {
 		s.DedicatedExportStore = NewPointer(false)
 	}
@@ -1837,6 +1862,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExportAmazonS3UploadPartSizeBytes == nil {
 		s.ExportAmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3ExportUploadPartSizeBytes))
+	}
+
+	if s.ExportAmazonS3StorageClass == nil {
+		s.ExportAmazonS3StorageClass = NewPointer("")
 	}
 }
 
@@ -2568,9 +2597,10 @@ func (s *ComplianceSettings) SetDefaults() {
 }
 
 type LocalizationSettings struct {
-	DefaultServerLocale *string `access:"site_localization"`
-	DefaultClientLocale *string `access:"site_localization"`
-	AvailableLocales    *string `access:"site_localization"`
+	DefaultServerLocale       *string `access:"site_localization"`
+	DefaultClientLocale       *string `access:"site_localization"`
+	AvailableLocales          *string `access:"site_localization"`
+	EnableExperimentalLocales *bool   `access:"site_localization"`
 }
 
 func (s *LocalizationSettings) SetDefaults() {
@@ -2584,6 +2614,10 @@ func (s *LocalizationSettings) SetDefaults() {
 
 	if s.AvailableLocales == nil {
 		s.AvailableLocales = NewPointer("")
+	}
+
+	if s.EnableExperimentalLocales == nil {
+		s.EnableExperimentalLocales = NewPointer(false)
 	}
 }
 
@@ -3188,6 +3222,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates[PluginIdPlaybooks] == nil {
 		// Enable the playbooks plugin by default
 		s.PluginStates[PluginIdPlaybooks] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates[PluginIdAI] == nil {
+		// Enable the AI plugin by default
+		s.PluginStates[PluginIdAI] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -3948,6 +3987,14 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.amazons3_timeout.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
 
+	if *s.AmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.AmazonS3StorageClass) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.AmazonS3StorageClass}, "", http.StatusBadRequest)
+	}
+
+	if *s.ExportAmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.ExportAmazonS3StorageClass) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.storage_class.app_error", map[string]any{"Value": *s.ExportAmazonS3StorageClass}, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -4529,6 +4576,66 @@ func (o *Config) Sanitize(pluginManifests []*Manifest) {
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
+type FilterTag struct {
+	TagType string
+	TagName string
+}
+
+type ConfigFilterOptions struct {
+	GetConfigOptions
+	TagFilters []FilterTag
+}
+
+type GetConfigOptions struct {
+	RemoveMasked   bool
+	RemoveDefaults bool
+}
+
+// FilterConfig returns a map[string]any representation of the configuration.
+// Also, the function can filter the configuration by the options passed
+// in the argument. The options are used to remove the default values, the masked
+// values and to filter the configuration by the tags passed in the TagFilters.
+func FilterConfig(cfg *Config, opts ConfigFilterOptions) (map[string]any, error) {
+	if cfg == nil {
+		return nil, nil
+	}
+
+	defaultCfg := &Config{}
+	defaultCfg.SetDefaults()
+
+	filteredCfg, err := cfg.StringMap()
+	if err != nil {
+		return nil, err
+	}
+
+	filteredDefaultCfg, err := defaultCfg.StringMap()
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range opts.TagFilters {
+		filteredCfg = structToMapFilteredByTag(filteredCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
+		filteredDefaultCfg = structToMapFilteredByTag(defaultCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
+	}
+
+	if opts.RemoveDefaults {
+		filteredCfg = stringMapDiff(filteredCfg, filteredDefaultCfg)
+	}
+
+	if opts.RemoveMasked {
+		removeFakeSettings(filteredCfg)
+	}
+
+	// only apply this if we applied some filters
+	// the alternative is to remove empty maps and slices during the filters
+	// but having this in a separate step makes it easier to understand
+	if opts.RemoveDefaults || opts.RemoveMasked || len(opts.TagFilters) > 0 {
+		removeEmptyMapsAndSlices(filteredCfg)
+	}
+
+	return filteredCfg, nil
+}
+
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
 // as argument
 func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any {
@@ -4576,6 +4683,90 @@ func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any
 	}
 
 	return out
+}
+
+// removeEmptyMapsAndSlices removes all the empty maps and slices from a map
+func removeEmptyMapsAndSlices(m map[string]any) {
+	for k, v := range m {
+		switch vt := v.(type) {
+		case map[string]any:
+			removeEmptyMapsAndSlices(vt)
+			if len(vt) == 0 {
+				delete(m, k)
+			}
+		case []any:
+			if len(vt) == 0 {
+				delete(m, k)
+			}
+		}
+	}
+}
+
+// StringMap returns a map[string]any representation of the Config struct
+func (o *Config) StringMap() (map[string]any, error) {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]any
+	err = json.Unmarshal(b, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// stringMapDiff returns the difference between two maps with string keys
+func stringMapDiff(m1, m2 map[string]any) map[string]any {
+	result := make(map[string]any)
+
+	for k, v := range m1 {
+		if _, ok := m2[k]; !ok {
+			result[k] = v // ideally this should be never reached
+		}
+
+		if reflect.DeepEqual(v, m2[k]) {
+			continue
+		}
+
+		switch v.(type) {
+		case map[string]any:
+			// this happens during the serialization of the struct to map
+			// so we can safely assume that the type is not matching, there
+			// is a difference in the values
+			casted, ok := m2[k].(map[string]any)
+			if !ok {
+				result[k] = v
+				continue
+			}
+			res := stringMapDiff(v.(map[string]any), casted)
+			if len(res) > 0 {
+				result[k] = res
+			}
+		default:
+			result[k] = v
+		}
+	}
+
+	return result
+}
+
+// removeFakeSettings removes all the fields that have the value of FakeSetting
+// it's necessary to remove the fields that have been masked to be able to
+// export the configuration (and make it importable)
+func removeFakeSettings(m map[string]any) {
+	for k, v := range m {
+		switch vt := v.(type) {
+		case map[string]any:
+			removeFakeSettings(vt)
+		case string:
+			if v == FakeSetting {
+				delete(m, k)
+			}
+		}
+	}
 }
 
 func isTagPresent(tag string, tags []string) bool {

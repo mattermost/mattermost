@@ -23,13 +23,17 @@ jobs:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
       - name: Checkout mattermost project
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Calculate Golang Version
         id: go
         working-directory: ./server
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Store required variables for publishing results
+        run: |
+          echo "${{ inputs.name }}" > server/test-name
+          echo "${{ github.event.pull_request.number }}" > server/pr-number        
       - name: Setup Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
         with:
           go-version: ${{ steps.go.outputs.GO_VERSION }}
           cache-dependency-path: server/go.sum
@@ -74,16 +78,11 @@ jobs:
           docker compose --ansi never stop
       - name: Archive logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: ${{ inputs.logsartifact }}
           path: |
             server/gotestsum.json
             server/report.xml
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@c0e4b81aaa0067314a2d0d06e19b512c9d8af4f5 # v3.7.7
-        if: success() || failure() # always run even if the previous step fails
-        with:
-          report_paths: server/report.xml
-          check_name: ${{ inputs.name }} (Results)
-          job_name: ${{ inputs.name }}
+            server/test-name
+            server/pr-number

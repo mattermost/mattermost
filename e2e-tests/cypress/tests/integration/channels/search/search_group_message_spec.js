@@ -54,7 +54,7 @@ describe('Search', () => {
             cy.uiGetSearchContainer().should('be.visible').click();
 
             //# Type "in:" text in search input
-            cy.uiGetSearchBox().find('input').type('in:');
+            cy.uiGetSearchBox().type('in:');
 
             const sortedUsernames = groupMembers.
                 map((member) => member.username).
@@ -64,11 +64,11 @@ describe('Search', () => {
             cy.uiGetSearchBox().find('.suggestion-list__main').contains(sortedUsernames.join(',')).click();
 
             //# Press enter to select
-            cy.uiGetSearchBox().find('input').type('{enter}');
+            cy.uiGetSearchBox().type('{enter}');
 
             //# Search for the message
             cy.uiGetSearchContainer().should('be.visible').click();
-            cy.uiGetSearchBox().find('input').clear().type(`${message}{enter}`);
+            cy.uiGetSearchBox().first().clear().type(`${message}{enter}`);
 
             // * Should return exactly one result from the group channel and matches the message
             cy.findAllByTestId('search-item-container').should('be.visible').and('have.length', 1).within(() => {
@@ -91,7 +91,7 @@ describe('Search', () => {
             cy.uiGetSearchContainer().should('be.visible').click();
 
             //# Type "in:" text in search input
-            cy.uiGetSearchBox().find('input').type('in:');
+            cy.uiGetSearchBox().type('in:');
 
             const sortedUsernames = groupMembers.
                 map((member) => member.username).
@@ -101,7 +101,7 @@ describe('Search', () => {
             cy.uiGetSearchBox().find('.suggestion-list__main').contains(sortedUsernames.join(',')).click();
 
             //# Search for the message
-            cy.uiGetSearchBox().find('input').type('word-file{enter}');
+            cy.uiGetSearchBox().type('word-file{enter}');
 
             // # Click the files tab
             cy.get('.files-tab').should('be.visible').click();

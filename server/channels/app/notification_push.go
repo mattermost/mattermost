@@ -68,7 +68,8 @@ type PushNotification struct {
 }
 
 func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
+	explicitMention bool, channelWideMention bool, replyToThreadType string,
+) *model.AppError {
 	cfg := a.Config()
 	msg, appErr := a.BuildPushNotificationMessage(
 		c,
@@ -91,7 +92,7 @@ func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *mo
 
 func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
 	rejectionReason := ""
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
 		if rejectionReason != "" {
@@ -169,7 +170,6 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 			AckId:    tmpMessage.AckId,
 			DeviceId: tmpMessage.DeviceId,
 		}).SignedString(a.AsymmetricSigningKey())
-
 		if err != nil {
 			a.NotificationsLog().Error("Notification error",
 				mlog.String("ackId", tmpMessage.AckId),
@@ -256,7 +256,8 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 }
 
 func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention,
-	hasFiles bool, senderName string, channelType model.ChannelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
+	hasFiles bool, senderName string, channelType model.ChannelType, replyToThreadType string, userLocale i18n.TranslateFunc,
+) string {
 	// If the post only has images then push an appropriate message
 	if postMessage == "" && hasFiles {
 		if channelType == model.ChannelTypeDirect {
@@ -530,9 +531,12 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 
 	switch pushResponse[model.PushStatus] {
 	case model.PushStatusRemove:
-		a.SetExtraSessionProps(session, map[string]string{
+		appErr := a.SetExtraSessionProps(session, map[string]string{
 			model.SessionPropLastRemovedDeviceId: session.DeviceId,
 		})
+		if appErr != nil {
+			return fmt.Errorf("Failed to set extra session properties: %w", appErr)
+		}
 		a.ClearSessionCacheForUser(session.UserId)
 		return errors.New(notificationErrorRemoveDevice)
 	case model.PushStatusFail:
@@ -596,7 +600,11 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
-	if notifyPropsAllowedReason := DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsAllowedReason != "" {
+	if prop := post.GetProp(model.PostPropsForceNotification); prop != nil && prop != "" {
+		return true
+	}
+
+	if notifyPropsAllowedReason := doesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsAllowedReason != "" {
 		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, notifyPropsAllowedReason, model.NotificationNoPlatform)
 		a.NotificationsLog().Debug("Notification not sent - notify props",
 			mlog.String("type", model.NotificationTypePush),
@@ -609,7 +617,7 @@ func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps mo
 		return false
 	}
 
-	if statusAllowedReason := DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId, false); statusAllowedReason != "" {
+	if statusAllowedReason := doesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId, false); statusAllowedReason != "" {
 		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, statusAllowedReason, model.NotificationNoPlatform)
 		a.NotificationsLog().Debug("Notification not sent - status",
 			mlog.String("type", model.NotificationTypePush),
@@ -626,7 +634,7 @@ func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps mo
 	return true
 }
 
-func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) model.NotificationReason {
+func doesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) model.NotificationReason {
 	userNotifyProps := user.NotifyProps
 	userNotify := userNotifyProps[model.PushNotifyProp]
 	channelNotify, ok := channelNotifyProps[model.PushNotifyProp]
@@ -667,16 +675,16 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	return ""
 }
 
-func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelID string, isCRT bool) model.NotificationReason {
+func doesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelID string, isCRT bool) model.NotificationReason {
 	// If User status is DND or OOO return false right away
 	if status.Status == model.StatusDnd || status.Status == model.StatusOutOfOffice {
 		return model.NotificationReasonUserStatus
 	}
 
 	pushStatus, ok := userNotifyProps[model.PushStatusNotifyProp]
-	sendOnlineNotification := status.ActiveChannel != channelID || //We are in a different channel
-		model.GetMillis()-status.LastActivityAt > model.StatusChannelTimeout || //It has been a while since we were last active on this channel
-		isCRT //Is CRT, so being active in a channel doesn't mean you are seeing thread activity
+	sendOnlineNotification := status.ActiveChannel != channelID || // We are in a different channel
+		model.GetMillis()-status.LastActivityAt > model.StatusChannelTimeout || // It has been a while since we were last active on this channel
+		isCRT // Is CRT, so being active in a channel doesn't mean you are seeing thread activity
 
 	if (pushStatus == model.StatusOnline || !ok) && sendOnlineNotification {
 		return ""
@@ -694,7 +702,8 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 }
 
 func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
+	explicitMention bool, channelWideMention bool, replyToThreadType string,
+) (*model.PushNotification, *model.AppError) {
 	var msg *model.PushNotification
 
 	notificationInterface := a.ch.Notification
@@ -788,7 +797,8 @@ func (a *App) buildIdLoadedPushNotificationMessage(c request.CTX, channel *model
 }
 
 func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.PushNotification {
+	explicitMention bool, channelWideMention bool, replyToThreadType string,
+) *model.PushNotification {
 	msg := &model.PushNotification{
 		Category:     model.CategoryCanReply,
 		Version:      model.PushMessageV2,

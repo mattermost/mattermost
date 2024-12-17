@@ -73,7 +73,7 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 				(:RemoteId, :RemoteTeamId, :Name, :DisplayName, :SiteURL, :DefaultTeamId, :CreateAt,
 				:DeleteAt, :LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId, :PluginID, :Options)`
 
-	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
+	if _, err := s.GetMaster().NamedExec(query, remoteCluster); err != nil {
 		return nil, errors.Wrap(err, "failed to save RemoteCluster")
 	}
 	return remoteCluster, nil
@@ -102,14 +102,14 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 			Options = :Options
 			WHERE RemoteId = :RemoteId AND Name = :Name`
 
-	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
+	if _, err := s.GetMaster().NamedExec(query, remoteCluster); err != nil {
 		return nil, errors.Wrap(err, "failed to update RemoteCluster")
 	}
 	return remoteCluster, nil
 }
 
 func (s sqlRemoteClusterStore) Delete(remoteId string) (bool, error) {
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return false, errors.Wrap(err, "DeleteRemoteCluster: begin_transaction")
 	}
@@ -175,7 +175,7 @@ func (s sqlRemoteClusterStore) Get(remoteId string, includeDeleted bool) (*model
 	}
 
 	var rc model.RemoteCluster
-	if err := s.GetReplicaX().Get(&rc, queryString, args...); err != nil {
+	if err := s.GetReplica().Get(&rc, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find RemoteCluster")
 	}
 	return &rc, nil
@@ -193,7 +193,7 @@ func (s sqlRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteClus
 	}
 
 	var rc model.RemoteCluster
-	if err := s.GetReplicaX().Get(&rc, queryString, args...); err != nil {
+	if err := s.GetReplica().Get(&rc, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find RemoteCluster by plugin_id")
 	}
 	return &rc, nil
@@ -269,7 +269,7 @@ func (s sqlRemoteClusterStore) GetAll(offset, limit int, filter model.RemoteClus
 	}
 
 	list := []*model.RemoteCluster{}
-	if err := s.GetReplicaX().Select(&list, queryString, args...); err != nil {
+	if err := s.GetReplica().Select(&list, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find RemoteClusters")
 	}
 	return list, nil
@@ -288,7 +288,7 @@ func (s sqlRemoteClusterStore) UpdateTopics(remoteClusterid string, topics strin
 			  SET Topics = :Topics
 			  WHERE	RemoteId = :RemoteId`
 
-	if _, err = s.GetMasterX().NamedExec(query, rc); err != nil {
+	if _, err = s.GetMaster().NamedExec(query, rc); err != nil {
 		return nil, err
 	}
 	return rc, nil
@@ -305,7 +305,7 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 		return errors.Wrap(err, "remote_cluster_tosql")
 	}
 
-	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
 		return errors.Wrap(err, "failed to update RemoteCluster")
 	}
 	return nil
