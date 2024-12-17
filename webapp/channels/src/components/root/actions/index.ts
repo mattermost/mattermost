@@ -39,7 +39,6 @@ export function loadConfigAndMe(): ThunkActionFunc<Promise<{isLoaded: boolean; i
             await Promise.all([
                 dispatch(getClientConfig()),
                 dispatch(getLicenseConfig()),
-                dispatch(getCustomAttributes()),
             ]);
         } catch (error) {
             dispatch(logError(error as ServerError));
@@ -62,6 +61,7 @@ export function loadConfigAndMe(): ThunkActionFunc<Promise<{isLoaded: boolean; i
 
         try {
             await Promise.all([
+                dispatch(getCustomAttributes()),
                 dispatch(getMe()),
                 dispatch(getMyPreferences()),
                 dispatch(getMyTeams()),

@@ -1318,13 +1318,13 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         );
     };
 
-    createCustomPropertySection = () => {
+    createCustomAttributeSection = () => {
         const attributeSections = this.props.customAttributes.map((attribute) => {
-            const sectionName = attribute.name + '-customProperty';
             let attributeValue = '';
             if (attribute.id in this.state.customAttributeValues) {
                 attributeValue = this.state.customAttributeValues[attribute.id];
             }
+            const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
 
@@ -1358,7 +1358,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             <label className='col-sm-5 control-label'>{attributeLabel}</label>
                             <div className='col-sm-7'>
                                 <input
-                                    id={attribute.id}
+                                    id={sectionName}
                                     autoFocus={true}
                                     className='form-control'
                                     type='text'
@@ -1385,7 +1385,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
                 max = (
                     <SettingItemMax
-                        key={attribute.name + '-settingItemMax'}
+                        key={'settingItemMax_' + attribute.id}
                         title={attribute.name}
                         inputs={inputs}
                         submit={this.submitAttribute.bind(this, [attribute.id])}
@@ -1420,7 +1420,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             return (
                 <div key={sectionName}>
                     <SettingItem
-                        key={attribute.name + '-settingItem'}
+                        key={'settingItem_' + attribute.id}
                         active={active}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         title={attribute.name}
@@ -1535,7 +1535,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         const usernameSection = this.createUsernameSection();
         const positionSection = this.createPositionSection();
         const emailSection = this.createEmailSection();
-        const customProperiesSection = this.createCustomPropertySection();
+        const customProperiesSection = this.createCustomAttributeSection();
         const pictureSection = this.createPictureSection();
 
         return (
