@@ -1707,8 +1707,55 @@
         position: relative;
         display: inline-block;
 
-        &:hover .image-preview-utility-buttons-container {
+        &:hover .image-preview-utility-buttons-container,
+        &:hover .gif-button--pause {
             display: inline-block;
+        }
+
+        .gif-button {
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, .72);
+            height: 44px;
+            border-radius: 100px;
+
+            font-family: 'Open Sans';
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+
+            position: absolute;
+            z-index: 2;
+
+            &__icon-container {
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        .gif-button--play {
+            @extend .gif-button;
+            padding: 12px;
+            width: 78px;
+            gap: 4px;
+        }
+
+        .gif-button--pause {
+            @extend .gif-button;
+            display: none;
+            padding: 10px;
+            width: 44px;
+        }
+
+        .static-gif-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .static-gif-container--none {
+            @extend .static-gif-container;
+            display: none;
         }
     }
 

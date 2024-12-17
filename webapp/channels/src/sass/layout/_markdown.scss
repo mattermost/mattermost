@@ -95,6 +95,12 @@ h6.markdown__heading {
         .image-loaded-container {
             display: inline-block;
         }
+        
+        .image-loaded-container.align-gif-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
         .markdown-inline-img {
             margin: 0;
