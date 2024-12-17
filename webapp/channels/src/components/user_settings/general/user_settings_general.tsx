@@ -490,13 +490,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     updateAttribute = (e: React.ChangeEvent<HTMLInputElement>) => {
         const attributeValues = Object.assign({}, this.state.customAttributeValues);
         attributeValues[e.target.id] = e.target.value;
-        console.log('Update Attribute ' + e.target.id + ' ' + e.target.value);
         this.setState({customAttributeValues: attributeValues});
-        console.log('Update Attribute  ' + this.state.customAttributeValues[e.target.id]);
     };
 
     updateSection = (section: string) => {
-        console.log('Update Section ' + this.props.user.position);
         this.setState(Object.assign({}, this.setupInitialState(this.props), {clientError: '', serverError: '', emailError: '', sectionIsSaving: false}));
         this.submitActive = false;
         this.props.updateSection(section);

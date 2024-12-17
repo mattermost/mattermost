@@ -41,7 +41,7 @@ function license(state: ClientLicense = {}, action: MMReduxAction) {
 function customAttributes(state: CustomAttribute[] = [], action: MMReduxAction) {
     switch (action.type) {
     case GeneralTypes.ATTRIBUTES_RECEIVED:
-        return [...state, ...action.data];
+        return [...action.data];
     default:
         return state;
     }
