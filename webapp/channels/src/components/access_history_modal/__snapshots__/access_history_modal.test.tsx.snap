@@ -28,7 +28,7 @@ exports[`components/AccessHistoryModal should match snapshot when audits exist 1
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -109,7 +109,7 @@ exports[`components/AccessHistoryModal should match snapshot when no audits exis
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
