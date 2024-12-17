@@ -1140,20 +1140,18 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 }
 
 func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.Writer) *model.AppError {
-	var wr io.Writer
-	var err error
 	rd, appErr := a.FileReader(filePath)
 	if appErr != nil {
 		return appErr
 	}
 	defer func() {
-		if err = rd.Close(); err != nil {
+		if err := rd.Close(); err != nil {
 			rctx.Logger().Error("Error closing file", mlog.Err(err))
 		}
 	}()
 
 	if zipWr != nil {
-		wr, err = zipWr.CreateHeader(&zip.FileHeader{
+		wr, err := zipWr.CreateHeader(&zip.FileHeader{
 			Name:   filepath.Join(model.ExportDataDir, filePath),
 			Method: zip.Store,
 		})
@@ -1161,28 +1159,33 @@ func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.zip_create_header.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
+
+		if _, err = io.Copy(wr, rd); err != nil {
+			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
+				nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
 	} else {
 		filePath = filepath.Join(outPath, model.ExportDataDir, filePath)
-		if err = os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.mkdirall.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		wr, err = os.Create(filePath)
+		file, err := os.Create(filePath)
 		if err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.create_file.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 		defer func() {
-			if err = wr.Close(); err != nil {
+			if err = file.Close(); err != nil {
 				rctx.Logger().Error("Error closing file", mlog.Err(err))
 			}
 		}()
-	}
 
-	if _, err = io.Copy(wr, rd); err != nil {
-		return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
-			nil, "err="+err.Error(), http.StatusInternalServerError)
+		if _, err = io.Copy(file, rd); err != nil {
+			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
+				nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return nil
