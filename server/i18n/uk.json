@@ -10426,5 +10426,13 @@
   {
     "id": "api.post.deduplicate_create_post.cache_error",
     "translation": "Не вдалося кешувати допис після усунення дублікатів клієнта, що повторював один і той самий запит."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Властивість Post Message довша за максимально допустиму довжину."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Властивість Draft Message довша за максимально допустиму довжину."
   }
 ]
