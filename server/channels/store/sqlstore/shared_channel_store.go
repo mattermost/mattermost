@@ -44,7 +44,7 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (sh *model.SharedCh
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -108,7 +108,7 @@ func (s SqlSharedChannelStore) Get(channelId string) (*model.SharedChannel, erro
 		return nil, errors.Wrapf(err, "getsharedchannel_tosql")
 	}
 
-	if err := s.GetMasterX().Get(&sc, squery, args...); err != nil {
+	if err := s.GetMaster().Get(&sc, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannel", channelId)
 		}
@@ -132,7 +132,7 @@ func (s SqlSharedChannelStore) HasChannel(channelID string) (bool, error) {
 	}
 
 	var exists bool
-	if err := s.GetReplicaX().Get(&exists, query, args...); err != nil {
+	if err := s.GetReplica().Get(&exists, query, args...); err != nil {
 		return exists, errors.Wrapf(err, "failed to get shared channel for channel_id=%s", channelID)
 	}
 	return exists, nil
@@ -170,7 +170,7 @@ func (s SqlSharedChannelStore) GetAll(offset, limit int, opts model.SharedChanne
 	}
 
 	channels := []*model.SharedChannel{}
-	err = s.GetReplicaX().Select(&channels, squery, args...)
+	err = s.GetReplica().Select(&channels, squery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get shared channels")
 	}
@@ -190,7 +190,7 @@ func (s SqlSharedChannelStore) GetAllCount(opts model.SharedChannelFilterOpts) (
 	}
 
 	var count int64
-	err = s.GetReplicaX().Get(&count, squery, args...)
+	err = s.GetReplica().Get(&count, squery, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count channels")
 	}
@@ -255,7 +255,7 @@ func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedCha
 	if err != nil {
 		return nil, errors.Wrapf(err, "updatesharedchannel_tosql")
 	}
-	res, err := s.GetMasterX().Exec(query, args...)
+	res, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update shared channel with channelId=%s", sc.ChannelId)
 	}
@@ -274,7 +274,7 @@ func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedCha
 // Returns true if shared channel found and deleted, false if not
 // found.
 func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return false, errors.Wrap(err, "DeleteSharedChannel: begin_transaction")
 	}
@@ -351,7 +351,7 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 		return nil, errors.Wrapf(err, "savesharedchannelremote_tosql")
 	}
 
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel_remote: channel_id=%s, id=%s", remote.ChannelId, remote.Id)
 	}
 	return remote, nil
@@ -384,7 +384,7 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		return nil, errors.Wrapf(err, "updatesharedchannelremote_tosql")
 	}
 
-	res, err := s.GetMasterX().Exec(query, args...)
+	res, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update shared channel remote with remoteId=%s", remote.Id)
 	}
@@ -434,7 +434,7 @@ func (s SqlSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote,
 		return nil, errors.Wrapf(err, "get_shared_channel_remote_tosql")
 	}
 
-	if err := s.GetReplicaX().Get(&remote, squery, args...); err != nil {
+	if err := s.GetReplica().Get(&remote, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelRemote", id)
 		}
@@ -458,7 +458,7 @@ func (s SqlSharedChannelStore) GetRemoteByIds(channelId string, remoteId string)
 		return nil, errors.Wrapf(err, "get_shared_channel_remote_by_ids_tosql")
 	}
 
-	if err := s.GetReplicaX().Get(&remote, squery, args...); err != nil {
+	if err := s.GetReplica().Get(&remote, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelRemote", fmt.Sprintf("channelId=%s, remoteId=%s", channelId, remoteId))
 		}
@@ -522,7 +522,7 @@ func (s SqlSharedChannelStore) GetRemotes(offset, limit int, opts model.SharedCh
 		return nil, errors.Wrapf(err, "get_shared_channel_remotes_tosql")
 	}
 
-	if err := s.GetReplicaX().Select(&remotes, squery, args...); err != nil {
+	if err := s.GetReplica().Select(&remotes, squery, args...); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, errors.Wrapf(err, "failed to get shared channel remotes for channel_id=%s; remote_id=%s",
 				opts.ChannelId, opts.RemoteId)
@@ -548,7 +548,7 @@ func (s SqlSharedChannelStore) HasRemote(channelID string, remoteId string) (boo
 	}
 
 	var hasRemote bool
-	if err := s.GetReplicaX().Get(&hasRemote, query, args...); err != nil {
+	if err := s.GetReplica().Get(&hasRemote, query, args...); err != nil {
 		return hasRemote, errors.Wrapf(err, "failed to get channel remotes for channel_id=%s", channelID)
 	}
 	return hasRemote, nil
@@ -572,7 +572,7 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 	}
 
 	var rc model.RemoteCluster
-	if err := s.GetReplicaX().Get(&rc, query, args...); err != nil {
+	if err := s.GetReplica().Get(&rc, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("RemoteCluster", remoteId)
 		}
@@ -611,7 +611,7 @@ func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPos
 		return errors.Wrap(err, "update_shared_channel_remote_cursor_tosql")
 	}
 
-	result, err := s.GetMasterX().Exec(squery, args...)
+	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
 		return errors.Wrap(err, "failed to update cursor for SharedChannelRemote")
 	}
@@ -641,7 +641,7 @@ func (s SqlSharedChannelStore) DeleteRemote(id string) (bool, error) {
 		return false, errors.Wrap(err, "delete_shared_channel_remote_tosql")
 	}
 
-	result, err := s.GetMasterX().Exec(squery, args...)
+	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to delete SharedChannelRemote")
 	}
@@ -672,7 +672,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 		return nil, errors.Wrapf(err, "get_shared_channel_remotes_status_tosql")
 	}
 
-	if err := s.GetReplicaX().Select(&status, squery, args...); err != nil {
+	if err := s.GetReplica().Select(&status, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelRemoteStatus", channelId)
 		}
@@ -709,7 +709,7 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchanneluser_tosql")
 	}
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel_user: user_id=%s, remote_id=%s", scUser.UserId, scUser.RemoteId)
 	}
 	return scUser, nil
@@ -731,7 +731,7 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 		return nil, errors.Wrapf(err, "getsharedchannelsingleuser_tosql")
 	}
 
-	if err := s.GetReplicaX().Get(&scu, squery, args...); err != nil {
+	if err := s.GetReplica().Get(&scu, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelUser", userID)
 		}
@@ -753,7 +753,7 @@ func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedCh
 	}
 
 	users := []*model.SharedChannelUser{}
-	if err := s.GetReplicaX().Select(&users, squery, args...); err != nil {
+	if err := s.GetReplica().Select(&users, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return make([]*model.SharedChannelUser, 0), nil
 		}
@@ -795,7 +795,7 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 	}
 
 	users := []*model.User{}
-	if err := s.GetReplicaX().Select(&users, sqlQuery, args...); err != nil {
+	if err := s.GetReplica().Select(&users, sqlQuery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return make([]*model.User, 0), nil
 		}
@@ -829,7 +829,7 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID str
 			"scu.RemoteId":  remoteID,
 		})
 
-	_, err = s.GetMasterX().ExecBuilder(query)
+	_, err = s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return fmt.Errorf("failed to update LastSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
 			userID, channelID, remoteID, err)
@@ -865,7 +865,7 @@ func (s SqlSharedChannelStore) SaveAttachment(attachment *model.SharedChannelAtt
 		return nil, errors.Wrapf(err, "savesahredchannelattachment_tosql")
 	}
 
-	if _, err := s.GetMasterX().Exec(query, args...); err != nil {
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel_attachment: file_id=%s, remote_id=%s", attachment.FileId, attachment.RemoteId)
 	}
 	return attachment, nil
@@ -893,7 +893,7 @@ func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelA
 	if err != nil {
 		return "", errors.Wrap(err, "upsertsharedchannelattachment_tosql")
 	}
-	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
 		return "", errors.Wrap(err, "failed to upsert SharedChannelAttachments")
 	}
 	return attachment.Id, nil
@@ -914,7 +914,7 @@ func (s SqlSharedChannelStore) GetAttachment(fileId string, remoteId string) (*m
 		return nil, errors.Wrapf(err, "getsharedchannelattachment_tosql")
 	}
 
-	if err := s.GetReplicaX().Get(&attachment, squery, args...); err != nil {
+	if err := s.GetReplica().Get(&attachment, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelAttachment", fileId)
 		}
@@ -934,7 +934,7 @@ func (s SqlSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime in
 		return errors.Wrap(err, "update_shared_channel_attachment_last_sync_at_tosql")
 	}
 
-	result, err := s.GetMasterX().Exec(squery, args...)
+	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
 		return errors.Wrap(err, "failed to update LastSyncAt for SharedChannelAttachment")
 	}
