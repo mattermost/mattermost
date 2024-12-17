@@ -745,7 +745,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Vyhledávání pomocí Elasticsearch není a tomto serveru povoleno"
+    "translation": "{{.Backend}} vyhledávání je na tomto serveru zakázáno"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -757,7 +757,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Vyhledávání pomocí Elasticsearch není na tomto serveru povoleno"
+    "translation": "{{.Backend}} vyhledávání je na tomto serveru zakázáno"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -769,7 +769,7 @@
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch neběží"
+    "translation": "{{.Backend}} není spuštěn"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -777,11 +777,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Indexovacímu procesu Elasticsearch se nepodařilo pročíst čas začátku"
+    "translation": "Indexační proces {{.Backend}} nedokázal zpracovat čas začátku"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Indexovacímu procesu Elasticsearch se nepodařilo pročíst čas konce"
+    "translation": "Indexační proces {{.Backend}} nedokázal zpracovat čas ukončení"
   },
   {
     "id": "ent.elasticsearch.index_user.error",
@@ -797,7 +797,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Vyhledávání pomocí Elasticsearch není povoleno na tomto serveru"
+    "translation": "Hledání pomocí {{.Backend}} není na tomto serveru povoleno"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
@@ -2025,31 +2025,31 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout musí být minimálně 1 vteřina."
+    "translation": "Search Request Timeout musí být alespoň 1 sekunda."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime musí být časový údaj ve formátu \"hh:mm\"."
+    "translation": "Nastavení Search PostsAggregatorJobStartTime musí být čas ve formátu \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size musí být nastaveno minimálně na 1."
+    "translation": "Velikost dávky Search Live Indexing musí být alespoň 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Nastavení indexace pro Elasticsearch musí být povoleno pokud hodnota Elasticsearch EnableSearching je také povolena"
+    "translation": "Nastavení Search EnableIndexing musí být nastaveno na true, když je Elasticsearch EnableSearching nastaveno na true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Nastavení indexace pro Elasticsearch musí být povoleno pokud hodnota Elasticsearch EnableAutocomplete je také povolena"
+    "translation": "Nastavení Search EnableIndexing musí být nastaveno na true, když je Elasticsearch EnableAutocomplete nastaveno na true"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl nastavení musí být zadáno když je Elastic Search index zapnutý."
+    "translation": "Nastavení Search ConnectionUrl musí být poskytnuto, když je indexování povoleno."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays musí být číslo větší nebo rovno 1."
+    "translation": "Nastavení Search AggregatePostsAfterDays musí být číslo větší nebo rovno 1."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -2653,19 +2653,19 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch je vypnutý."
+    "translation": "{{.Backend}} je zakázán."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch je už zastaven."
+    "translation": "{{.Backend}} je již zastaven."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Nepodařilo se zpracovat verzi Elasticsearch serveru."
+    "translation": "Nepodařilo se zpracovat verzi {{.Backend}} serveru."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Nepodařilo se získat verzi Elasticsearch serveru."
+    "translation": "Nepodařilo se získat verzi {{.Backend}} serveru."
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
@@ -5401,11 +5401,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Verze 17.0+"
+    "translation": "Verze 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verze 91+"
+    "translation": "Verze 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -9326,5 +9326,745 @@
   {
     "id": "app.thread.get_threadmembers_for_export.app_error",
     "translation": "Nepodařilo se získat členy vlákna pro export."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Nepodařilo se získat počet vláken pro uživatele."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Nepodařilo se zavřít index souboru."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Neplatné ID vlastníka."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Nelze se připojit k SMTP serveru"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Při získávání odchozího OAuth připojení pro obecenstvo došlo k chybě."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Neplatné ID nadřazeného prvku."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Byl překročen limit velikosti vlastností notifikace."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Neplatná hodnota časového limitu {{.Value}}. Měla by to být kladná číslice."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Hodiny uchovávání souborů nemohou být menší než 0"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Heslo je neplatné"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Nepodařilo se indexovat dávku souborů."
+  },
+  {
+    "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+    "translation": " připojil soubor."
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": "Nejstarší entita (uživatel, kanál nebo příspěvek) se nepodařila načíst z databáze"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Při získávání odchozího OAuth připojení došlo k chybě."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "Odchozí OAuth připojení pro zadané obecenstvo nebylo nalezeno."
+  },
+  {
+    "id": "error",
+    "translation": "Chyba"
+  },
+  {
+    "id": "migrations.system.save.app_error",
+    "translation": "Při ukládání systémového nastavení došlo k chybě."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Chybí zobrazované jméno."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "\"Vytvořeno\" musí být platný čas."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "ID souboru chybí nebo je neplatné."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Nelze nastavit odkaz a soubor ve stejném záložce."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Neplatná URL obrázku."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Neplatný typ."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Nelze nahrát do smazaného kanálu."
+  },
+  {
+    "id": "app.webhooks.analytics_outgoing_count.app_error",
+    "translation": "Nelze spočítat odchozí webhooky."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "Nelze načíst podmínky služby."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Nepodařilo se indexovat soubor."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Nepodařilo se zpracovat hodnotu: {{.Value}} na int64"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Neplatná hodnota konkurence dekodéru {{.Value}}. Měla by to být kladná číslice nebo -1."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Neplatná hodnota pro časový limit metadat odkazu. Musí to být kladné číslo."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Nepodařilo se uložit aktualizovaný naplánovaný příspěvek do databáze."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Nemáte oprávnění k aktualizaci tohoto zdroje."
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "Nelze nahrát do určeného kanálu."
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "Nepodařilo se získat nahrané soubory pro uživatele."
+  },
+  {
+    "id": "app.webhooks.save_incoming.app_error",
+    "translation": "Nelze uložit příchozíWebhook."
+  },
+  {
+    "id": "ent.ldap_id_migrate.app_error",
+    "translation": "Nelze migrovat."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Pro zadané obecenstvo již existuje odchozí OAuth připojení: {{ .Audience }}"
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "Nepodařilo se aktualizovat relaci nahrávání."
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "Nepodařilo se přečíst soubor."
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Nepodařilo se odstranit soubor"
+  },
+  {
+    "id": "app.user_access_token.delete.app_error",
+    "translation": "Nelze odstranit osobní přístupový token."
+  },
+  {
+    "id": "app.user_access_token.get_all.app_error",
+    "translation": "Nelze získat všechny osobní přístupové tokeny."
+  },
+  {
+    "id": "app.webhooks.update_outgoing.app_error",
+    "translation": "Nelze aktualizovat webhook."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Nepodařilo se odstranit soubory."
+  },
+  {
+    "id": "ent.cluster.timeout.error",
+    "translation": "Vypršel časový limit při čekání na odpověď clusteru"
+  },
+  {
+    "id": "ent.jobs.start_synchronize_job.timeout",
+    "translation": "Byl dosažen časový limit synchronizace AD/LDAP úlohy."
+  },
+  {
+    "id": "ent.saml.save_user.email_exists.saml_app_error",
+    "translation": "Tento účet nepoužívá autentifikaci pomocí SAML. Přihlaste se prosím pomocí e-mailu a hesla."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow musí být nastaveno na true, aby bylo možné povolit SbalenáVlákna"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Počet dní uchovávání zpráv a počet hodin uchovávání zpráv nemohou být oba větší než 0."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Neplatná hodnota pro RetentionDays. Hodnota by měla být větší než 0"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Neplatný vyhledávací backend. Musí to být buď Elasticsearch, nebo OpenSearch."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Nelze získat členství uživatele ve vláknech"
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Nepodařilo se odstranit soubory příspěvku."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.app_error",
+    "translation": "Nelze uložit OdchozíWebhook."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Pro zadané obecenstvo již existuje odchozí OAuth připojení."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Pro zadané obecenstvo neexistuje odchozí OAuth připojení."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Při mazání odchozího OAuth připojení došlo k chybě."
+  },
+  {
+    "id": "ent.saml.save_user.username_exists.saml_app_error",
+    "translation": "Účet s tímto uživatelským jménem již existuje. Kontaktujte prosím svého administrátora."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Neplatné ID."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Neplatné ID příspěvku."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Nepodařilo se zpracovat JSON: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Neplatný formát: {{.Error}}"
+  },
+  {
+    "id": "app.user_access_token.search.app_error",
+    "translation": "Došlo k chybě při vyhledávání uživatelských přístupových tokenů."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.override.app_error",
+    "translation": "Nemůžete přepsat existující OdchozíWebhook."
+  },
+  {
+    "id": "bleveengine.create_user_index.error",
+    "translation": "Chyba při vytváření Bleve indexu uživatele."
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "Funkce vyčištění seznamu není pro Bleve dostupná."
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "Došlo k chybě při serializaci JSON požadavku"
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Nepodařilo se odstranit Elasticsearch index"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "Nepodařilo se získat informace o souboru pro příspěvek."
+  },
+  {
+    "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Nelze dokončit SAML přihlášení s prázdnou e-mailovou adresou."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Neplatné původní ID."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Dny uchovávání zpráv a hodiny uchovávání zpráv nemohou být oba nastaveny na 0."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Neplatná doména pro nastavení přesunu vlákna"
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "Rozměry souboru {{.Filename}} ({{.Width}} x {{.Height}} pixelů) překračují limity."
+  },
+  {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "Nepodařilo se uložit informace o souboru."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Nepodařilo se získat využití úložiště."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Členství uživatele ve vláknech neexistuje"
+  },
+  {
+    "id": "app.user_access_token.update_token_disable.app_error",
+    "translation": "Nelze deaktivovat přístupový token."
+  },
+  {
+    "id": "app.webhooks.update_incoming.app_error",
+    "translation": "Nelze aktualizovat PříchozíWebhook."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Nepodařilo se smazat soubory uživatele."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Nepodařilo se odstranit soubor."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.engine_inactive",
+    "translation": "Nepodařilo se spustit úlohu indexace Bleve: engine je neaktivní."
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Kontrola limitů obrázku selhala. Rozlišení je příliš vysoké."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Došlo k chybě při provádění požadované operace."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Zásada je neplatná."
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Úloha uchovávání dat selhala."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Nepodařilo se otevřít soubor CA pro {{.Backend}}"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Dekódování klientského certifikátu pro {{.Backend}} selhalo"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Nepodařilo se otevřít soubor klientského certifikátu pro {{.Backend}}"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Nepodařilo se vytvořit šablonu {{.Backend}} pro soubory"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Nepodařilo se odstranit soubory příspěvku"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Nelze získat dávku kanálů pro indexaci."
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Nepodařilo se indexovat soubor"
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Verze {{.Backend}} {{.Version}} je vyšší než maximálně podporovaná verze {{.MaxVersion}}"
+  },
+  {
+    "id": "ent.get_users_in_channel_during",
+    "translation": "Nepodařilo se získat uživatele v kanálu během určeného časového období."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Při autentizaci odchozího OAuth připojení došlo k chybě: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Odchozí OAuth připojení nejsou na tomto serveru k dispozici."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Odchozí OAuth připojení nebylo nalezeno."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Vaše licence nepodporuje odchozí OAuth připojení."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Při získávání odchozích OAuth připojení došlo k chybě."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Při aktualizaci odchozího OAuth připojení došlo k chybě: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Pro zadané obecenstvo již existuje odchozí OAuth připojení: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Zadané obecenstvo je neplatné: {{ .Error }}"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML se nepodařilo úspěšně načíst veřejný certifikát poskytovatele identity, kontaktujte prosím svého systémového administrátora."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Skupina nemůže být přiřazena k kanálu, dokud nebude nejprve přiřazena k nadřazenému týmu synchronizovanému se skupinou."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Nepodařilo se aktualizovat aktivní stav MFA pro uživatele."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Jméno musí obsahovat alespoň jedno malé písmeno nebo alfanumerický znak."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Neplatné role členů kanálu, které mají více než {{.Limit}} znaků."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.filename.app_error",
+    "translation": "Nastavení Bleve IndexingDir musí být definováno, když je nastaveno Bleve EnableIndexing na hodnotu true"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Dny uchovávání souborů a hodiny uchovávání souborů nemohou být oba nastaveny na 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Dny uchovávání souborů a hodiny uchovávání souborů nemohou být oba větší než 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Hodiny uchovávání zpráv nemohou být menší než 0"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignorované indexy pro vyčištění by neměly začínat pomlčkou."
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Hodnota pro adresář by neměla být prázdná."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Pokud je GlobalRelaySettings.CustomerType nastaven na 'CUSTOM', musí být nastaveny GlobalRelaySettings.CustomSMTPServerName a GlobalRelaySettings.CustomSMTPPort."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Při ukládání odchozího OAuth připojení došlo k chybě: {{ .Error }}"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Neplatná hodnota pro channel-auto-follow-threads."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Nepodařilo se získat počet odznaků pro uživatele."
+  },
+  {
+    "id": "app.webhooks.save_incoming.existing.app_error",
+    "translation": "Nemůžete přepsat existující PříchozíWebhook."
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Nepodařilo se odstranit uživatelské soubory"
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Nepodařilo se aktualizovat stav aktivace MFA pro uživatele."
+  },
+  {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "Nelze nahrát data z více než jednoho požadavku."
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "Nepodařilo se nahrát data. První část musí mít alespoň {{.Size}} bajtů."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Velikost dávky pro hromadné indexování Bleve musí být alespoň {{.BatchSize}}."
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Nepodařilo se generovat informace o souboru z nahraných dat."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Vlákno uživatele neexistuje nebo není sledováno"
+  },
+  {
+    "id": "bleveengine.create_channel_index.error",
+    "translation": "Chyba při vytváření Bleve indexu kanálu."
+  },
+  {
+    "id": "bleveengine.create_post_index.error",
+    "translation": "Chyba při vytváření Bleve indexu příspěvku."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Chyba při vytváření Bleve indexu souboru."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Hledání souboru nebylo úspěšně dokončeno."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Nepodařilo se otevřít soubor klientského klíče pro {{.Backend}}"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nepodařilo se získat všechny členy týmu"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nepodařilo se získat všechny členy kanálu"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Nepodařilo se dekódovat výsledky vyhledávání"
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "Chyba při načítání souboru certifikátu LDAP TLS."
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "Nebyl nalezen žádný uživatel LDAP, zkontrolujte filtr uživatelů a certifikáty."
+  },
+  {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "Nepodařilo se získat informace o souboru pro příspěvek."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Zadané obecenstvo je neplatné: {{ .Error }}"
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "V odpovědi od poskytovatele identity byla obdržena neplatná časová hodnota. Kontaktujte prosím svého systémového administrátora."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "V odpovědi od poskytovatele identity byla přijata neplatná signatura. Kontaktujte prosím svého systémového administrátora."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Nepodařilo se najít adresář pro místní soketový soubor."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Dostupné jazyky musí obsahovat výchozí jazyk klienta."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Neplatná maximální velikost payloadu pro nastavení služby. Musí to být celé číslo větší než nula."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.close.appError",
+    "translation": "Nelze zavřít ZIP soubor"
+  },
+  {
+    "id": "ent.compliance.csv.seek.appError",
+    "translation": "Nelze přejít na začátek exportního souboru."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Aktualizováno\" musí být platný čas."
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Neplatný adresář pro místní úložiště. Musí to být neprázdný řetězec."
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "Nepodařilo se vybrat exportní data zprávy."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Neplatné ID kanálu."
+  },
+  {
+    "id": "app.user_access_token.get_by_user.app_error",
+    "translation": "Nelze získat osobní přístupové tokeny podle uživatele."
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Nelze odstranit podmínky služby."
+  },
+  {
+    "id": "app.user.convert_bot_to_user.app_error",
+    "translation": "Nepodařilo se konvertovat bota na uživatele."
+  },
+  {
+    "id": "app.user_access_token.update_token_enable.app_error",
+    "translation": "Nelze aktivovat přístupový token."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Nelze získat dávku souborů pro indexaci."
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "Nepodařilo se získat informace o souboru pro příspěvek."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Neplatné post_id"
+  },
+  {
+    "id": "app.user_access_token.save.app_error",
+    "translation": "Nelze uložit osobní přístupový token."
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "Nelze uložit podmínky služby."
+  },
+  {
+    "id": "app.webhooks.analytics_incoming_count.app_error",
+    "translation": "Nelze spočítat příchozí webhooky."
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Nepodařilo se odstranit zadaný neznámý index"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Hledání souborů {{.Backend}} je na tomto serveru zakázáno"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Vyhledávání se nepodařilo dokončit"
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "Chyba při načítání souboru klíče LDAP TLS."
+  },
+  {
+    "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+    "translation": "Tento účet nepoužívá autentifikaci přes AD/LDAP. Přihlaste se prosím pomocí e-mailu a hesla."
+  },
+  {
+    "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+    "translation": "Účet s tímto uživatelským jménem již existuje. Kontaktujte prosím svého administrátora."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Neplatné ID uživatele."
+  },
+  {
+    "id": "ent.actiance.export.marshalToXml.appError",
+    "translation": "Nelze převést export do XML."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Nejstarší entitu (uživatel, kanál nebo příspěvek) se nepodařilo načíst z databáze."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Nepodařilo se vyčistit indexy souborů."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Nelze aktivovat uživatele. Server překračuje bezpečný limit uživatelů. Kontaktujte svého administrátora s kódem: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Nelze získat dávku příspěvků pro indexaci."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Neplatný interval dávkování e-mailů pro nastavení e-mailu. Musí být alespoň 30 sekund."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Neplatná maximální délka URL pro nastavení služby. Musí to být celé číslo větší než nula."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "URL odkazu chybí nebo je neplatné."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Velikost dávky pro hromadnou indexaci vyhledávání musí být alespoň {{.BatchSize}}."
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Chyba při určování počtu účtů správců systému."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Nelze degradovat posledního správce systému."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Nelze určit, zda toto uživatelské jméno již existuje"
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Nelze odeslat automatickou odpověď od uživatele."
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Nepodařilo se ověřit, zda je úložiště uživatele prázdné."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Typ cache musí být buď lru, nebo redis."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress musí být specifikována pro typ cache Redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB musí mít hodnotu větší nebo rovnou nule."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Nelze získat webhook pro teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} a {{.LastItem}}"
   }
 ]
