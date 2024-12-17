@@ -428,6 +428,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     this.updateSection('');
                 } else if (err) {
                     const serverError = err;
+
                     // let serverError = err;
                     // if (err.server_error_id &&
                     //     err.server_error_id === 'api.user.check_user_password.invalid.app_error') {

@@ -1719,7 +1719,6 @@ describe('Actions.Users', () => {
         expect(myUserCustomAttributeValue).toBeEqual('NewValue');
     });
 
-
     describe('checkForModifiedUsers', () => {
         test('should request users by IDs that have changed since the last websocket disconnect', async () => {
             const lastDisconnectAt = 1500;

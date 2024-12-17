@@ -982,15 +982,15 @@ export function saveAttribute(userID: string, attributeID: string, attributeValu
         }
 
         const profile = getState().entities.users.profiles[userID];
-        let custom_attributes = profile.custom_attributes;
-        if (custom_attributes === undefined) {
-            custom_attributes = returnedAttributes;
+        let customAttributes = profile.custom_attributes;
+        if (customAttributes === undefined) {
+            customAttributes = returnedAttributes;
         } else {
-            custom_attributes = {...custom_attributes, ...returnedAttributes};
+            customAttributes = {...customAttributes, ...returnedAttributes};
         }
 
         if (profile) {
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, custom_attributes}});
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, custom_attributes: customAttributes}});
         }
         return {data: true};
     };
