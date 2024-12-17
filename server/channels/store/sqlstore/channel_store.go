@@ -1475,7 +1475,7 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 		SELECT * FROM Channels
 		WHERE (TeamId = ? OR TeamId = '')
 		AND DeleteAt != 0
-		AND Type != ?
+		AND Type = ?
 		UNION
 			SELECT * FROM Channels
 			WHERE (TeamId = ? OR TeamId = '')
@@ -1485,7 +1485,7 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 		ORDER BY DisplayName LIMIT ? OFFSET ?
 	`
 
-	if err := s.GetReplicaX().Select(&channels, query, teamId, model.ChannelTypePrivate, teamId, model.ChannelTypePrivate, userId, limit, offset); err != nil {
+	if err := s.GetReplicaX().Select(&channels, query, teamId, model.ChannelTypeOpen, teamId, model.ChannelTypePrivate, userId, limit, offset); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s,UserId=%s", teamId, userId))
 		}
