@@ -470,7 +470,7 @@ export function handleEvent(msg) {
         break;
 
     case SocketEvents.STATUS_CHANGED:
-        handleStatusChangedEvent(msg);
+        dispatch(handleStatusChangedEvent(msg));
         break;
 
     case SocketEvents.HELLO:
@@ -738,7 +738,7 @@ export function handleNewPostEvent(msg) {
         ) {
             myDispatch({
                 type: UserTypes.RECEIVED_STATUSES,
-                data: [{[post.user_id]: UserStatuses.ONLINE}],
+                data: {[post.user_id]: UserStatuses.ONLINE},
             });
         }
     };
@@ -1287,11 +1287,11 @@ function addedNewGmUser(preference) {
     return preference.category === Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW && preference.value === 'true';
 }
 
-function handleStatusChangedEvent(msg) {
-    dispatch({
+export function handleStatusChangedEvent(msg) {
+    return {
         type: UserTypes.RECEIVED_STATUSES,
-        data: [{[msg.data.user_id]: msg.data.status}],
-    });
+        data: {[msg.data.user_id]: msg.data.status},
+    };
 }
 
 function handleHelloEvent(msg) {
