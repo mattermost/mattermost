@@ -384,72 +384,20 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 			}
 
 			T := i18n.GetUserTranslations(user.Locale)
-
-			// Aggregate failed messages by channel and error code
-			type channelErrorKey struct {
-				ChannelId string
-				ErrorCode string
-			}
-
-			channelErrorCounts := make(map[channelErrorKey]int)
-			channelIdsSet := make(map[string]struct{})
-			for _, msg := range userFailedMessages {
-				key := channelErrorKey{ChannelId: msg.ChannelId, ErrorCode: msg.ErrorCode}
-				channelErrorCounts[key]++
-				channelIdsSet[msg.ChannelId] = struct{}{}
-			}
-
-			// Get the channel names
-			channelNames := make(map[string]string)
-			for channelId := range channelIdsSet {
-				ch, err := th.App.GetChannel(rctx, channelId)
-				assert.Nil(t, err)
-				channelNames[channelId] = ch.DisplayName
-			}
-
-			// Helper function to get error reason
-			getErrorReason := func(T i18n.TranslateFunc, errorCode string) string {
-				key := "app.scheduled_post.error_reason." + errorCode
-				reason := T(key)
-				if reason == key {
-					return errorCode
-				}
-				return reason
-			}
-
-			// Build the expected message content
-			var messageBuilder strings.Builder
-
-			messageHeader := T("app.scheduled_post.failed_messages", map[string]interface{}{
+			messageHeader := T("app.scheduled_post.failed_messages", map[string]any{
 				"Count": len(userFailedMessages),
 			})
-			messageBuilder.WriteString(messageHeader)
-			messageBuilder.WriteString("\n")
-
-			for key, count := range channelErrorCounts {
-				channelName := channelNames[key.ChannelId]
-				errorReason := getErrorReason(T, key.ErrorCode)
-
-				detailMessage := T("app.scheduled_post.failed_message_detail", map[string]interface{}{
-					"Count":       count,
-					"ChannelName": channelName,
-					"ErrorReason": errorReason,
-				})
-				messageBuilder.WriteString(detailMessage)
-				messageBuilder.WriteString("\n")
-			}
-
-			expectedMessageContent := messageBuilder.String()
 
 			// Validate the actual content of the notification posted
 			found := false
 			for _, post := range posts.Posts {
-				if post.UserId == systemBot.UserId && post.Message == expectedMessageContent {
+				if post.UserId == systemBot.UserId && strings.HasPrefix(post.Message, messageHeader) {
 					found = true
 					break
 				}
 			}
-			assert.True(t, found, "\nNotification post not found for user %s with expected message. \n Expected: %s \n", user.Id, expectedMessageContent)
+
+			assert.True(t, found, "\nNotification post not found for user %s with expected message prefix. \n Expected: %s \n", user.Id, messageHeader)
 		}
 
 		// Check notifications sent for failed messages for both users

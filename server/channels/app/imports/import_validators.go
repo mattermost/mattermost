@@ -261,6 +261,10 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.roles_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
+	if !isValidGuestRoles(*data) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.guest_roles_conflict.error", nil, "", http.StatusBadRequest)
+	}
+
 	if data.NotifyProps != nil {
 		if data.NotifyProps.Desktop != nil && !isValidUserNotifyLevel(*data.NotifyProps.Desktop) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_invalid.error", nil, "", http.StatusBadRequest)
@@ -501,14 +505,18 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			ValidateReactionImportData(&reaction, *data.CreateAt)
+			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
+				return err
+			}
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -617,14 +625,18 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			ValidateReactionImportData(&reaction, *data.CreateAt)
+			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
+				return err
+			}
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -679,4 +691,48 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 	return emailInterval == model.PreferenceEmailIntervalImmediately ||
 		emailInterval == model.PreferenceEmailIntervalFifteen ||
 		emailInterval == model.PreferenceEmailIntervalHour
+}
+
+// isValidGuestRoles checks if the user has both guest roles in the same team or channel.
+// at this point we assume that the user has a valid role scheme.
+func isValidGuestRoles(data UserImportData) bool {
+	if data.Roles == nil {
+		return true
+	}
+	isSystemGuest := model.IsInRole(*data.Roles, model.SystemGuestRoleId)
+
+	var isTeamGuest, isChannelGuest bool
+	if data.Teams != nil {
+		// counters for guest roles for teams and channels
+		// we expect the total count of guest roles to be equal to the total count of teams and channels
+		var gtc, ctc int
+		for _, team := range *data.Teams {
+			if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
+				gtc++
+			}
+
+			if *team.Channels != nil {
+				for _, channel := range *team.Channels {
+					if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
+						ctc++
+					}
+				}
+
+				if ctc == len(*team.Channels) {
+					isChannelGuest = true
+				}
+			}
+		}
+		if gtc == len(*data.Teams) {
+			isTeamGuest = true
+		}
+	}
+
+	// basically we want to be sure if the user either fully guest in all 3 places or not at all
+	// (a | b | c) & !(a & b & c) -> 3-way XOR?
+	if (isSystemGuest || isTeamGuest || isChannelGuest) && !(isSystemGuest && isTeamGuest && isChannelGuest) {
+		return false
+	}
+
+	return true
 }

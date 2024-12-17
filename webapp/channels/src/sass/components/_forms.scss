@@ -1,4 +1,5 @@
-@charset 'UTF-8';
+@use "utils/functions";
+@use "utils/variables";
 
 @use 'sass:color';
 
@@ -47,7 +48,7 @@
     }
 
     &.error {
-        color: color.adjust($red, $lightness: -20%);
+        color: color.adjust(variables.$red, $lightness: -20%);
     }
 }
 
@@ -86,7 +87,7 @@
 
 .help-block {
     margin: 10px 0 0;
-    color: $dark-gray;
+    color: variables.$dark-gray;
     font-size: 0.95em;
 }
 
@@ -105,7 +106,7 @@
     .checkbox,
     .radio-inline,
     .checkbox-inline {
-        color: $red;
+        color: variables.$red;
     }
 
     .form__label {
@@ -119,7 +120,7 @@
     &.radio-inline,
     &.checkbox-inline {
         label {
-            color: $red;
+            color: variables.$red;
         }
     }
 }
@@ -166,9 +167,9 @@
     .form-control {
         border-color: rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        background: v(center-channel-bg);
+        background: functions.v(center-channel-bg);
         box-shadow: none;
-        color: v(center-channel-color);
+        color: functions.v(center-channel-color);
 
         &:focus {
             border-color: rgba(var(--button-bg-rgb), 1);

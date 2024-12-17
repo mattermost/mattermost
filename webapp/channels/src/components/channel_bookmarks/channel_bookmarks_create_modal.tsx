@@ -292,7 +292,6 @@ function ChannelBookmarkCreateModal({
 
         return undefined;
     })();
-    const showControls = type === 'file' || (isValid || bookmark);
 
     const cancel = useCallback(() => {
         if (type === 'file') {
@@ -375,8 +374,8 @@ function ChannelBookmarkCreateModal({
             className='channel-bookmarks-create-modal'
             modalHeaderText={formatMessage(bookmark ? msg.editHeading : msg.heading)}
             confirmButtonText={formatMessage(bookmark ? msg.saveText : msg.addBookmarkText)}
-            handleCancel={(showControls && cancel) || undefined}
-            handleConfirm={(showControls && confirm) || undefined}
+            handleCancel={cancel}
+            handleConfirm={confirm}
             handleEnterKeyPress={(!confirmDisabled && confirm) || undefined}
             onExited={handleOnExited}
             compassDesign={true}
@@ -452,30 +451,28 @@ function ChannelBookmarkCreateModal({
 
                 )}
 
-                {showControls && (
-                    <TitleWrapper>
-                        <FieldLabel>
-                            <FormattedMessage
-                                id='channel_bookmarks.create.title_input.label'
-                                defaultMessage='Title'
-                            />
-                        </FieldLabel>
-                        <CreateModalNameInput
-                            maxLength={MAX_TITLE_LENGTH}
-                            type={type}
-                            imageUrl={icon}
-                            fileInfo={pendingFile || fileInfo}
-                            emoji={emoji}
-                            setEmoji={setEmoji}
-                            displayName={displayName?.substring(0, MAX_TITLE_LENGTH)}
-                            placeholder={displayNameValue?.substring(0, MAX_TITLE_LENGTH)}
-                            setDisplayName={setDisplayName}
-                            onAddCustomEmojiClick={onHide}
-                            showEmojiPicker={showEmojiPicker}
-                            setShowEmojiPicker={setShowEmojiPicker}
+                <TitleWrapper>
+                    <FieldLabel>
+                        <FormattedMessage
+                            id='channel_bookmarks.create.title_input.label'
+                            defaultMessage='Title'
                         />
-                    </TitleWrapper>
-                )}
+                    </FieldLabel>
+                    <CreateModalNameInput
+                        maxLength={MAX_TITLE_LENGTH}
+                        type={type}
+                        imageUrl={icon}
+                        fileInfo={pendingFile || fileInfo}
+                        emoji={emoji}
+                        setEmoji={setEmoji}
+                        displayName={displayName?.substring(0, MAX_TITLE_LENGTH)}
+                        placeholder={displayNameValue?.substring(0, MAX_TITLE_LENGTH)}
+                        setDisplayName={setDisplayName}
+                        onAddCustomEmojiClick={onHide}
+                        showEmojiPicker={showEmojiPicker}
+                        setShowEmojiPicker={setShowEmojiPicker}
+                    />
+                </TitleWrapper>
             </>
         </GenericModal>
     );
