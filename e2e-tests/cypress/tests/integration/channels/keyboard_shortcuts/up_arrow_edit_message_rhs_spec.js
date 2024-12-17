@@ -34,10 +34,10 @@ describe('Keyboard Shortcuts', () => {
             cy.get('body').type('{uparrow}');
 
             // * Verify that the Edit Post Input is visible
-            cy.get('div.post-edit__container #reply_textbox').should('be.visible');
+            cy.get('#edit_textbox').should('be.visible');
 
             // * Verify that edit box have value of edited message
-            cy.get('div.post-edit__container #reply_textbox').should('have.value', replyMessage);
+            cy.get('#edit_textbox').should('have.value', replyMessage);
         });
     });
 });
