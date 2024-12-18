@@ -3789,7 +3789,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "Nový formát klientské licence ještě není podporován. Doplňte do dotazu: format=old."
+    "translation": "Nový formát pro klientskou licenci není zatím podporován. Prosím, uveďte format=old v řetězci dotazu."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
@@ -3805,11 +3805,11 @@
   },
   {
     "id": "api.license.add_license.open.app_error",
-    "translation": "Nelze otevřít soubor s licencí."
+    "translation": "Nelze otevřít licenční soubor."
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": "Žádný soubor pod 'license' v žádosti."
+    "translation": "Žádný soubor pod 'licence' v žádosti."
   },
   {
     "id": "api.license.add_license.invalid_count.app_error",
@@ -3821,11 +3821,11 @@
   },
   {
     "id": "api.license.add_license.expired.app_error",
-    "translation": "Licence uplynula nebo ještě nezačala."
+    "translation": "Licence buď uplynula nebo ještě nezačala."
   },
   {
     "id": "api.license.add_license.array.app_error",
-    "translation": "Prázdné pole pod 'license' v žádosti."
+    "translation": "Prázdné pole pod 'licence' v žádosti."
   },
   {
     "id": "api.ldap_groups.license_error",
@@ -3833,7 +3833,7 @@
   },
   {
     "id": "api.ldap_groups.existing_group_name_error",
-    "translation": "člen skupiny už existuje"
+    "translation": "Název skupiny již existuje"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -3857,11 +3857,11 @@
   },
   {
     "id": "api.file.upload_file.storage.app_error",
-    "translation": "Nelze nahrát obrázek. Uložiště obrázků není nakonfigurováno."
+    "translation": "Nelze nahrát soubor. Uložiště obrázků není nakonfigurováno."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Soubor(y) nelze nahrát. Chyba při čtení nebo parsování dat."
+    "translation": "Soubor(y) nelze nahrát. Chyba při čtení nebo zpracování dat."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
@@ -3869,15 +3869,15 @@
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Soubor(y) nelze nahrát. Několik konfliktních channel_ids."
+    "translation": "Nelze nahrát soubor(y). Více konfliktujících channel_id."
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} rozměry ({{.Width}} x {{.Height}} pixelů) překračují povolené limity."
+    "translation": "Rozměry souboru {{.Filename}} ({{.Width}} x {{.Height}} pixelů) překračují stanovené limity."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Soubor větší než povolený rozměr nemohl být nahrán: {{.Filename}}"
+    "translation": "Soubor přesahující maximální rozměry nemohl být nahrán: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -3885,63 +3885,63 @@
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
-    "translation": "Nastala chyba při čtení z lokálního úložiště."
+    "translation": "Nastala chyba při čtení z lokálního úložiště serveru."
   },
   {
     "id": "api.file.no_driver.app_error",
-    "translation": "Není vybrán ovladač souboru."
+    "translation": "Není vybrán žádný ovladač souboru."
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "K souboru nelze zajistit veřejný odkaz. Soubor musí být přiložen ke zprávě, která je čitelná aktuálnímu uživateli."
+    "translation": "Nelze získat veřejný odkaz na soubor. Soubor musí být připojen k příspěvku, který může aktuální uživatel číst."
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
-    "translation": "Vkládání veřejných odkazů ze deaktivované."
+    "translation": "Veřejné odkazy byli zakázány."
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
-    "translation": "Souboru nemá náhled."
+    "translation": "Soubor nemá náhledový obrázek."
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
-    "translation": "Souboru nemá náhled."
+    "translation": "Soubor nemá obrázek náhledu."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
-    "translation": "Tento veřejný odkaz se nezdá být v pořádku."
+    "translation": "Veřejný odkaz se nezdá být platný."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
-    "translation": "Přidávání příloh je na tomto serveru zakázáno."
+    "translation": "Přílohy souborů byly na tomto serveru zakázány."
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Nelze vytvořit emoji, jelikož vznikla chyba při pokusu otevřít přiložený obrázek."
+    "translation": "Nelze vytvořit emotikon. Vyskytla se chyba při pokusu otevřít přiložený obrázek."
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Emoji nelze vytvořit. Obrázek musí být menší než {{.MaxWidth}} od {{.MaxHeight}}."
+    "translation": "Nelze vytvořit emotikon. Obrázek musí být menší než {{.MaxWidth}} x {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o zakódování souboru GIF."
+    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o kódování obrázku GIF."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o dékódování souboru GIF."
+    "translation": "Nelze vytvořit emotikon. Nastala chyba při pokusu o dekódování obrázku GIF."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o zakódování souboru."
+    "translation": "Nelze vytvořit emotikonu. Došlo k chybě při pokusu o kódování obrázku."
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o dékódování souboru."
+    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o dekódování souboru obrázku."
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Nemohu vytvořit emotikon. Soubor musí být fomrátu PNG, JPEG, nebo GIF."
+    "translation": "Nemohu vytvořit emotikon. Soubor musí být ve formátu PNG, JPEG, nebo GIF."
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -3949,11 +3949,11 @@
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Nemohu přečíst soubor s emotikonem."
+    "translation": "Nelze přečíst soubor obrázku pro emotikon."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Nedaří se mi převést soubor s obrázkem na emotikon."
+    "translation": "Nelze dekódovat soubor obrázku pro emotikon."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -3961,15 +3961,15 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Nemohu vytvořit emotikon. Obrázek musí bát menší než 1 MB."
+    "translation": "Nelze vytvořit emoji. Obraz musí mít velikost menší než 512 KiB."
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Nemohu vytvořit emotikon. Nerozumím požadavku."
+    "translation": "Nelze vytvořit emotikon. Požadavek nelze pochopit."
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": "Neplatná ID uživatele."
+    "translation": "Neplatné ID uživatele."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -3978,18 +3978,18 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "few": "[{{.SiteName}}] Nová upozornění k datu {{.Day}}. {{.Month}} {{.Year}}",
-      "one": "[{{.SiteName}}] Nové upozornění k datu {{.Day}}. {{.Month}} {{.Year}}",
-      "other": "[{{.SiteName}}] Nová upozornění k datu {{.Day}}. {{.Month}} {{.Year}}"
+      "few": "[{{.SiteName}}] Nová upozornění k {{.Day}}. {{.Month}} {{.Year}}",
+      "one": "[{{.SiteName}}] Nové upozornění k {{.Day}}. {{.Month}} {{.Year}}",
+      "other": "[{{.SiteName}}] Nových upozornění k {{.Day}}. {{.Month}} {{.Year}}"
     }
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Dávkování emailů bylo správcem systému zakázáno."
+    "translation": "Dávkování e-mailů bylo zakázáno systémovým administrátorem."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "Dávkovací úloha pro emaily přijímacího kanálu byla moc velká. Prosím zvyšte nastavení EmailBatchingBufferSize."
+    "translation": "Přijímací kanál pro dávkování e-mailů byl plný. Zvyšte prosím hodnotu EmailBatchingBufferSize."
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
@@ -5289,7 +5289,7 @@
   },
   {
     "id": "api.license.request_trial_license.app_error",
-    "translation": "Zkušební licenci nelze získat, zkuste to znovu nebo se obraťte na support@mattermost.com."
+    "translation": "Nelze získat zkušební licenci, prosím zkuste to znovu nebo kontaktujte support@mattermost.com."
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -5301,11 +5301,11 @@
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": "tento název skupiny už existuje jako uživatelské jméno"
+    "translation": "název skupiny již existuje jako uživatelské jméno"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "tento název skupiny je rezervován"
+    "translation": "Název skupiny již existuje jako rezervovaný název"
   },
   {
     "id": "api.invalid_channel",
@@ -5321,7 +5321,7 @@
   },
   {
     "id": "api.emoji.create.internal_error",
-    "translation": "server_error: Při vytváření smajlíku došlo k interní chybě serveru."
+    "translation": "server_error: Při vytváření emotikonu došlo k interní chybě serveru."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -6701,7 +6701,7 @@
   },
   {
     "id": "api.file.write_file.app_error",
-    "translation": "Soubor nelze zapsat."
+    "translation": "Nelze zapsat soubor."
   },
   {
     "id": "api.file.test_connection.app_error",
@@ -6725,7 +6725,7 @@
   },
   {
     "id": "api.file.list_directory.app_error",
-    "translation": "Nelze vylistovat adresář."
+    "translation": "Nelze vypsat obsah adresáře."
   },
   {
     "id": "api.file.file_size.app_error",
@@ -6737,11 +6737,11 @@
   },
   {
     "id": "api.file.file_exists.app_error",
-    "translation": "Nelze ověřit existenci souboru."
+    "translation": "Nelze ověřit zda soubor existuje."
   },
   {
     "id": "api.file.append_file.app_error",
-    "translation": "Nelze přidat do souboru data."
+    "translation": "Nelze připojit data k souboru."
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -6861,11 +6861,11 @@
   },
   {
     "id": "api.file.file_mod_time.app_error",
-    "translation": "Nemohu zjistit čas poslední změny souboru."
+    "translation": "Nelze zjistit čas poslední změny souboru."
   },
   {
     "id": "api.export.export_not_found.app_error",
-    "translation": "Nemohu najít soubor s exportem."
+    "translation": "Nepodařilo se najít exportovaný soubor."
   },
   {
     "id": "api.config.update_config.not_allowed_security.app_error",
@@ -7977,7 +7977,7 @@
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": "V nastavení emailu jsou prázdné hodnoty."
+    "translation": "Nastavení e-mailu obsahuje nevyplněné hodnoty."
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
@@ -8017,19 +8017,19 @@
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
-    "translation": "Není možné uložit rozepsanou zprávu do smazaného kanálu"
+    "translation": "Koncept není možné uložit do smazaného kanálu"
   },
   {
     "id": "api.drafts.disabled.app_error",
-    "translation": "Ukládání rozepsaných zpráv je vypnuto."
+    "translation": "Funkce konceptů je zakázána."
   },
   {
     "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Nemohu se připojit k S3. Zkontrolujte vaše autorizační parametry a nastavení autentifikace pro připojení k Amazon S3."
+    "translation": "Nelze se připojit k S3. Zkontrolujte vaše autorizační parametry a nastavení autentifikace pro připojení k Amazon S3."
   },
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "V nastavení úložného prostoru jsou chybějící hodnoty."
+    "translation": "Nastavení úložiště souborů obsahuje nevyplněné hodnoty."
   },
   {
     "id": "api.getUsersForReporting.invalid_active_filter",
@@ -8037,7 +8037,7 @@
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
-    "translation": "Neplatný pracovní email pro zkušební verzi"
+    "translation": "Neplatný firemní e-mail pro zkušební verzi"
   },
   {
     "id": "api.saml.invalid_email_token.app_error",
@@ -8153,7 +8153,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.messageButton",
-    "translation": "Prohlédnout tuto zprávu"
+    "translation": "Zobrazit tuto zprávu"
   },
   {
     "id": "api.context.request_body_too_large.app_error",
