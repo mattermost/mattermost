@@ -169,9 +169,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                         permissions={[Permissions.ADD_REACTION]}
                     >
                         <WithTooltip
-                            id='addReactionTooltip'
                             title={messages.addAReaction}
-                            placement='top'
                         >
                             <button
                                 aria-label={localizeMessage({id: 'reaction.add.ariaLabel', defaultMessage: 'Add a reaction'})}

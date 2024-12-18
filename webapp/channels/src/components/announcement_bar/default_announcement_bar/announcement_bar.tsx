@@ -44,8 +44,6 @@ type State = {
     isStringContainingUrl: boolean;
 }
 
-const OVERLAY_ANNOUNCEMENT_HIDE_DELAY = 600;
-
 export default class AnnouncementBar extends React.PureComponent<Props, State> {
     messageRef: React.RefObject<HTMLDivElement>;
     constructor(props: Props) {
@@ -196,10 +194,8 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
         if (this.state.showTooltip) {
             barContent = (
                 <WithTooltip
-                    id='announcement-bar__tooltip'
                     title={this.props.tooltipMsg ? this.props.tooltipMsg : message}
-                    placement='bottom'
-                    delayHide={this.state.isStringContainingUrl ? OVERLAY_ANNOUNCEMENT_HIDE_DELAY : 0}
+                    tooltipContentContainerClassName='announcementBarTooltip'
                 >
                     {barContent}
 
