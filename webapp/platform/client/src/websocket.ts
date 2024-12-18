@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getCurrentTime} from 'mattermost-webapp/src/utils/datetime';
-
 const MAX_WEBSOCKET_FAILS = 7;
 const MIN_WEBSOCKET_RETRY_TIME = 3000; // 3 sec
 const MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
@@ -118,7 +116,7 @@ export default class WebSocketClient {
             }
 
             if (this.connectFailCount > 0) {
-                console.log(`websocket re-established connection at - ${getCurrentTime()}`); //eslint-disable-line no-console
+                console.log('websocket re-established connection'); //eslint-disable-line no-console
 
                 this.reconnectCallback?.();
                 this.reconnectListeners.forEach((listener) => listener());
@@ -135,7 +133,7 @@ export default class WebSocketClient {
             this.responseSequence = 1;
 
             if (this.connectFailCount === 0) {
-                console.log(`websocket closed at - ${getCurrentTime()}`); //eslint-disable-line no-console
+                console.log('websocket closed'); //eslint-disable-line no-console
             }
 
             this.connectFailCount++;
@@ -364,7 +362,7 @@ export default class WebSocketClient {
             this.conn.onclose = () => {};
             this.conn.close();
             this.conn = null;
-            console.log(`websocket closed at - ${getCurrentTime()}`); //eslint-disable-line no-console
+            console.log('websocket closed'); //eslint-disable-line no-console
         }
     }
 
