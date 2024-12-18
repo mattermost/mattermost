@@ -186,7 +186,7 @@ export function SubMenu(props: Props) {
                         aria-describedby={menuAriaDescribedBy}
                         className={A11yClassNames.POPUP}
                         onKeyDown={handleSubMenuKeyDown}
-                        autoFocusItem={true}
+                        autoFocusItem={isSubMenuOpen}
                         sx={{
                             py: 0,
                         }}
