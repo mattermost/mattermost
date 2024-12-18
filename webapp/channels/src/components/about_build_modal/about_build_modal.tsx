@@ -237,7 +237,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.doHide}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='aboutModalLabel'
             >
                 <Modal.Header closeButton={true}>

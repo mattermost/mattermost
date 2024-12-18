@@ -13,7 +13,8 @@
 import {Team} from '@mattermost/types/teams';
 import {getRandomLetter} from '../../../../utils';
 import {doTestDMChannelSidebar, doTestUserChannelSection} from '../../autocomplete/common_test';
-import {createSearchData, enableElasticSearch, SimpleUser} from '../../autocomplete/helpers';
+import {createSearchData, SimpleUser} from '../../autocomplete/helpers';
+import {enableElasticSearch} from './helpers';
 
 describe('Autocomplete with Elasticsearch - Users', () => {
     const prefix = getRandomLetter(3);

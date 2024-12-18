@@ -72,7 +72,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='teamMemberModalLabel'
                 id='teamMembersModal'
             >
