@@ -200,7 +200,7 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Username == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidUsername(*data.Username) {
+	} else if !model.IsValidUsername(model.NormalizeUsername(*data.Username)) { // we already lowercase the username while saving and querying so we are more forgiving here
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -259,6 +259,10 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Roles != nil && !model.IsValidUserRoles(*data.Roles) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.roles_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if !isValidGuestRoles(*data) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.guest_roles_conflict.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.NotifyProps != nil {
@@ -325,7 +329,7 @@ func ValidateBotImportData(data *BotImportData) *model.AppError {
 
 	if data.Username == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidUsername(*data.Username) {
+	} else if !model.IsValidUsername(model.NormalizeUsername(*data.Username)) { // we already lowercase the username while saving and querying so we are more forgiving here
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -687,4 +691,48 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 	return emailInterval == model.PreferenceEmailIntervalImmediately ||
 		emailInterval == model.PreferenceEmailIntervalFifteen ||
 		emailInterval == model.PreferenceEmailIntervalHour
+}
+
+// isValidGuestRoles checks if the user has both guest roles in the same team or channel.
+// at this point we assume that the user has a valid role scheme.
+func isValidGuestRoles(data UserImportData) bool {
+	if data.Roles == nil {
+		return true
+	}
+	isSystemGuest := model.IsInRole(*data.Roles, model.SystemGuestRoleId)
+
+	var isTeamGuest, isChannelGuest bool
+	if data.Teams != nil {
+		// counters for guest roles for teams and channels
+		// we expect the total count of guest roles to be equal to the total count of teams and channels
+		var gtc, ctc int
+		for _, team := range *data.Teams {
+			if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
+				gtc++
+			}
+
+			if *team.Channels != nil {
+				for _, channel := range *team.Channels {
+					if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
+						ctc++
+					}
+				}
+
+				if ctc == len(*team.Channels) {
+					isChannelGuest = true
+				}
+			}
+		}
+		if gtc == len(*data.Teams) {
+			isTeamGuest = true
+		}
+	}
+
+	// basically we want to be sure if the user either fully guest in all 3 places or not at all
+	// (a | b | c) & !(a & b & c) -> 3-way XOR?
+	if (isSystemGuest || isTeamGuest || isChannelGuest) && !(isSystemGuest && isTeamGuest && isChannelGuest) {
+		return false
+	}
+
+	return true
 }

@@ -226,9 +226,9 @@ func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 
 	if resp.StatusCode == http.StatusOK {
-		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "ok"})
+		printer.PrintT("Status: {{.status}}", map[string]any{"status": "ok"})
 	} else {
-		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "error"})
+		printer.PrintT("Status: {{.status}}", map[string]any{"status": "error"})
 	}
 	return nil
 }
@@ -320,9 +320,9 @@ func moveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	if resp.StatusCode == http.StatusOK {
-		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "ok"})
+		printer.PrintT("Status: {{.status}}", map[string]any{"status": "ok"})
 	} else {
-		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "error"})
+		printer.PrintT("Status: {{.status}}", map[string]any{"status": "error"})
 	}
 	return nil
 }
