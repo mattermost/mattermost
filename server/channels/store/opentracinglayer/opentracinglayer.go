@@ -6459,7 +6459,7 @@ func (s *OpenTracingLayerPostStore) GetEditHistoryForPost(postID string) ([]*mod
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
+func (s *OpenTracingLayerPostStore) GetEtag(channelID string, userId string, allowFromCache bool, collapsedThreads bool) string {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetEtag")
 	s.Root.Store.SetContext(newCtx)
@@ -6468,7 +6468,7 @@ func (s *OpenTracingLayerPostStore) GetEtag(channelID string, allowFromCache boo
 	}()
 
 	defer span.Finish()
-	result := s.PostStore.GetEtag(channelID, allowFromCache, collapsedThreads)
+	result := s.PostStore.GetEtag(channelID, userId, allowFromCache, collapsedThreads)
 	return result
 }
 
