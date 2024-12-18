@@ -478,6 +478,15 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
 	}
 
+	if data.Reactions != nil {
+		for _, reaction := range *data.Reactions {
+			reaction := reaction
+			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
