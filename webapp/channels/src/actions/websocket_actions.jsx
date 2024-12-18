@@ -126,7 +126,6 @@ import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
-import {getCurrentTime} from 'utils/datetime';
 import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
@@ -219,7 +218,7 @@ function restart() {
 
 export function reconnect() {
     // eslint-disable-next-line
-    console.log(`Reconnecting WebSocket - ${getCurrentTime()}`); //eslint-disable-line no-console
+    console.log('Reconnecting WebSocket'); //eslint-disable-line no-console
 
     temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
 
