@@ -165,6 +165,8 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         />
     );
 
+    const isFileDeleted = post.delete_at > 0;
+
     const messageContainer = (
         <div className='edit-post-history__content_container'>
             {postHeader}
@@ -173,6 +175,12 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                     {message}
                 </div>
             </div>
+            <FileAttachmentListContainer
+                post={post}
+                isEditHistory={isFileDeleted}
+                disableDownload={isFileDeleted}
+                disableActions={isFileDeleted}
+            />
         </div>
     );
 
@@ -195,8 +203,6 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
 
     const postContainerClass = classNames('edit-post-history__container', {'edit-post-history__container__background': open});
     const timeStampValue = post.edit_at === 0 ? post.create_at : post.edit_at;
-
-    const isFileDeleted = post.delete_at > 0;
 
     return (
         <CompassThemeProvider theme={theme}>
@@ -232,15 +238,6 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                         {restoreButton}
                     </div>
                     {open && messageContainer}
-                    {
-                        open &&
-                        <FileAttachmentListContainer
-                            post={post}
-                            isEditHistory={isFileDeleted}
-                            disableDownload={isFileDeleted}
-                            disableActions={isFileDeleted}
-                        />
-                    }
                 </PostAriaLabelDiv>
             </div>
         </CompassThemeProvider>
