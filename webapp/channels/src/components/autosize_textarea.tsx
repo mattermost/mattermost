@@ -131,7 +131,6 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     }
 
     let textareaPlaceholder = null;
-    const placeholderAriaLabel = placeholder ? placeholder.toLowerCase() : '';
     if (!value && !defaultValue) {
         textareaPlaceholder = (
             <div
@@ -166,8 +165,8 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                 id={id}
                 {...heightProps}
                 {...otherProps}
+                placeholder={placeholder}
                 role='textbox'
-                aria-label={placeholderAriaLabel}
                 dir='auto'
                 disabled={disabled}
                 onChange={onChange}
