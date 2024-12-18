@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
+import {isStringArray} from '@mattermost/types/utilities';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
@@ -19,7 +20,7 @@ export type Props = {
 }
 function GMConversionMessage(props: Props): JSX.Element {
     const convertedByUserId = props.post.props.convertedByUserId;
-    const gmMembersDuringConversionIDs = props.post.props.gmMembersDuringConversionIDs as string[];
+    const gmMembersDuringConversionIDs = isStringArray(props.post.props.gmMembersDuringConversionIDs) ? props.post.props.gmMembersDuringConversionIDs : [];
 
     const dispatch = useDispatch();
     const intl = useIntl();

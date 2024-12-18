@@ -81,6 +81,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
+const (
+	scheduledPostJobInterval      = 5 * time.Minute
+	debugScheduledPostJobInterval = 2 * time.Second
+)
+
 var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
 
 // This is a placeholder to allow the existing release pipelines to run without failing to insert
@@ -506,6 +511,7 @@ func (s *Server) runJobs() {
 		appInstance := New(ServerConnector(s.Channels()))
 		runDNDStatusExpireJob(appInstance)
 		runPostReminderJob(appInstance)
+		runScheduledPostJob(appInstance)
 	})
 	s.Go(func() {
 		runSecurityJob(s)
@@ -1360,7 +1366,6 @@ func (s *Server) doReportUserCountForCloudSubscriptionJob() {
 	appInstance := New(ServerConnector(s.Channels()))
 
 	_, err := appInstance.SendSubscriptionHistoryEvent("")
-
 	if err != nil {
 		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
 	}
@@ -1409,7 +1414,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	//send email to admin(s)
+	// send email to admin(s)
 	for _, user := range users {
 		user := user
 		if user.Email == "" {
@@ -1429,7 +1434,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		})
 	}
 
-	//remove the license
+	// remove the license
 	s.RemoveLicense()
 }
 
@@ -1453,10 +1458,6 @@ func (s *Server) ExportFileBackend() filestore.FileBackend {
 
 func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
-}
-
-func (s *Server) ClusterHealthScore() int {
-	return s.platform.Cluster().HealthScore()
 }
 
 func (ch *Channels) ClientConfigHash() string {
@@ -1694,15 +1695,7 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 	return s.platform.Metrics()
 }
 
-// SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
-// For testing only.
-func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
-	s.serviceMux.Lock()
-	defer s.serviceMux.Unlock()
-	s.remoteClusterService = remoteClusterService
-}
-
-// SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
 	s.serviceMux.Lock()
@@ -1816,6 +1809,37 @@ func runPostReminderJob(a *App) {
 		} else {
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
+	})
+}
+
+func runScheduledPostJob(a *App) {
+	if a.IsLeader() {
+		doRunScheduledPostJob(a)
+	}
+
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			doRunScheduledPostJob(a)
+		} else {
+			mlog.Info("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
+		}
+	})
+}
+
+func doRunScheduledPostJob(a *App) {
+	var jobInterval time.Duration
+	if *a.Config().ServiceSettings.EnableTesting {
+		jobInterval = debugScheduledPostJobInterval
+	} else {
+		jobInterval = scheduledPostJobInterval
+	}
+
+	rctx := request.EmptyContext(a.Log())
+	withMut(&a.ch.scheduledPostMut, func() {
+		fn := func() { a.ProcessScheduledPosts(rctx) }
+		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
 	})
 }
 

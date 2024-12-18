@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import nock from 'nock';
-import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals/attribution';
+import {onCLS, onFCP, onINP, onLCP} from 'web-vitals/attribution';
 
 import {Client4} from '@mattermost/client';
 
@@ -10,6 +10,7 @@ import configureStore from 'store';
 
 import {reset as resetUserAgent, setPlatform, set as setUserAgent} from 'tests/helpers/user_agent_mocks';
 import {waitForObservations} from 'tests/performance_mock';
+import {DesktopAppAPI} from 'utils/desktop_api';
 
 import PerformanceReporter from './reporter';
 
@@ -215,8 +216,6 @@ describe.skip('PerformanceReporter', () => {
         onINPCallback({name: 'INP', value: 200});
         const onLCPCallback = (onLCP as jest.Mock).mock.calls[0][0];
         onLCPCallback({name: 'LCP', value: 2500, entries: []});
-        const onTTFBCallback = (onTTFB as jest.Mock).mock.calls[0][0];
-        onTTFBCallback({name: 'TTFB', value: 800});
 
         await waitForReport();
 
@@ -232,10 +231,6 @@ describe.skip('PerformanceReporter', () => {
                 {
                     metric: 'LCP',
                     value: 2500,
-                },
-                {
-                    metric: 'TTFB',
-                    value: 800,
                 },
             ],
         });
@@ -389,7 +384,7 @@ function newTestReporter(telemetryEnabled = true, loggedIn = true) {
                 currentUserId: loggedIn ? 'currentUserId' : '',
             },
         },
-    }));
+    }), new DesktopAppAPI());
 
     return {
         client,

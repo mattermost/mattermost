@@ -27,7 +27,7 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={false}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -53,9 +53,14 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
         className="channel-switcher__hint"
         id="quickSwitchHint"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="Type to find a channel. Use **UP/DOWN** to browse, **ENTER** to select, **ESC** to dismiss."
-          id="quick_switch_modal.help_no_team"
+        <MemoizedFormattedMessage
+          defaultMessage="Type to find a channel. Use <b>UP/DOWN</b> to browse, <b>ENTER</b> to select, <b>ESC</b> to dismiss."
+          id="quickSwitchModal.help_no_team"
+          values={
+            Object {
+              "b": [Function],
+            }
+          }
         />
       </div>
     </div>

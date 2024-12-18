@@ -11,7 +11,7 @@ exports[`GenericModal should match snapshot for base case 1`] = `
       aria-hidden="true"
     />
     <div
-      role="dialog"
+      role="none"
     >
       <div
         class="fade modal-backdrop in"
@@ -54,6 +54,9 @@ exports[`GenericModal should match snapshot for base case 1`] = `
                     Close
                   </span>
                 </button>
+                <div
+                  class="GenericModal__header__text_container"
+                />
               </div>
               <div
                 class="modal-body"

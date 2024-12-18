@@ -1,20 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import type {Moment} from 'moment-timezone';
+import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
-import {GenericModal} from '@mattermost/components';
+import {getRoundedTime} from 'components/custom_status/date_time_input';
+import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
-import DateTimeInput, {getRoundedTime} from 'components/custom_status/date_time_input';
-
-import Constants from 'utils/constants';
 import {toUTCUnix} from 'utils/datetime';
-import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 import type {PropsFromRedux} from './index';
-import './post_reminder_custom_time_picker_modal.scss';
 
 type Props = PropsFromRedux & {
     onExited: () => void;
@@ -25,63 +22,28 @@ type Props = PropsFromRedux & {
 };
 
 function PostReminderCustomTimePicker({userId, timezone, onExited, postId, actions}: Props) {
+    const {formatMessage} = useIntl();
+    const ariaLabel = formatMessage({id: 'post_reminder_custom_time_picker_modal.defaultMsg', defaultMessage: 'Set a reminder'});
+    const header = formatMessage({id: 'post_reminder.custom_time_picker_modal.header', defaultMessage: 'Set a reminder'});
+    const confirmButtonText = formatMessage({id: 'post_reminder.custom_time_picker_modal.submit_button', defaultMessage: 'Set reminder'});
+
     const currentTime = getCurrentMomentForTimezone(timezone);
     const initialReminderTime = getRoundedTime(currentTime);
 
-    const [customReminderTime, setCustomReminderTime] = useState(initialReminderTime);
-
-    const handleConfirm = useCallback(() => {
-        actions.addPostReminder(userId, postId, toUTCUnix(customReminderTime.toDate()));
-    }, [customReminderTime]);
-
-    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-
-    const {formatMessage} = useIntl();
-
-    useEffect(() => {
-        function handleKeyDown(event: KeyboardEvent) {
-            if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !isDatePickerOpen) {
-                onExited();
-            }
-        }
-
-        document.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isDatePickerOpen]);
+    const handleConfirm = useCallback((dateTime: Moment) => {
+        actions.addPostReminder(userId, postId, toUTCUnix(dateTime.toDate()));
+        onExited();
+    }, [actions, postId, userId, onExited]);
 
     return (
-        <GenericModal
-            id='PostReminderCustomTimePickerModal'
-            ariaLabel={formatMessage({id: 'post_reminder_custom_time_picker_modal.defaultMsg', defaultMessage: 'Set a reminder'})}
+        <DateTimePickerModal
             onExited={onExited}
-            modalHeaderText={(
-                <FormattedMessage
-                    id='post_reminder.custom_time_picker_modal.header'
-                    defaultMessage='Set a reminder'
-                />
-            )}
-            confirmButtonText={(
-                <FormattedMessage
-                    id='post_reminder.custom_time_picker_modal.submit_button'
-                    defaultMessage='Set reminder'
-                />
-            )}
-            handleConfirm={handleConfirm}
-            handleEnterKeyPress={handleConfirm}
-            className={'post-reminder-modal'}
-            compassDesign={true}
-            keyboardEscape={false}
-        >
-            <DateTimeInput
-                time={customReminderTime}
-                handleChange={setCustomReminderTime}
-                timezone={timezone}
-                setIsDatePickerOpen={setIsDatePickerOpen}
-            />
-        </GenericModal>
+            ariaLabel={ariaLabel}
+            header={header}
+            initialTime={initialReminderTime}
+            onConfirm={handleConfirm}
+            confirmButtonText={confirmButtonText}
+        />
     );
 }
 

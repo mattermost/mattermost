@@ -13,7 +13,6 @@ import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
@@ -25,7 +24,6 @@ import Pluggable from 'plugins/pluggable';
 import {createCallContext} from 'utils/apps';
 import {Constants, Locations, ModalIdentifiers} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
@@ -200,10 +198,18 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 key='visit-marketplace-permissions'
             >
                 <div className='visit-marketplace-text' >
-                    <FormattedMarkdownMessage
-                        id='post_info.actions.noActions'
-                        defaultMessage='No Actions currently\nconfigured for this server'
-                    />
+                    <p>
+                        <FormattedMessage
+                            id='post_info.actions.noActions.first_line'
+                            defaultMessage='No Actions currently'
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='post_info.actions.noActions.second_line'
+                            defaultMessage='configured for this server'
+                        />
+                    </p>
                 </div>
                 <div className='visit-marketplace' >
                     <button
@@ -213,7 +219,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     >
                         <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
                         <span className='visit-marketplace-button-text'>
-                            <FormattedMarkdownMessage
+                            <FormattedMessage
                                 id='post_info.actions.visitMarketplace'
                                 defaultMessage='Visit the Marketplace'
                             />
@@ -388,7 +394,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         key='more-actions-button'
                         ref={this.buttonRef}
                         id={`${this.props.location}_actions_button_${this.props.post.id}`}
-                        aria-label={Utils.localizeMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase()}
+                        aria-label={formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase()}
                         className={classNames('post-menu__item', {
                             'post-menu__item--active': this.props.isMenuOpen,
                         })}
@@ -402,7 +408,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     id={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                     openLeft={true}
                     openUp={this.state.openUp}
-                    ariaLabel={Utils.localizeMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
+                    ariaLabel={formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
                     key={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                 >
                     {menuItems}

@@ -98,13 +98,13 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bool, pathToReplace, newPath, subpath string) error {
 	newRootHTML := oldRootHTML
 
-	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3([^"]*)">`)
+	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/([^"]*)">`)
 	if results := reCSP.FindAllString(newRootHTML, -1); len(results) == 0 {
 		return fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite")
 	}
 
 	newRootHTML = reCSP.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf(
-		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3%s">`,
+		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/%s">`,
 		GetSubpathScriptHash(subpath),
 	))
 
@@ -113,15 +113,15 @@ func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bo
 	// be updated (and isn't covered by the cases above).
 	newRootHTML = strings.Replace(newRootHTML, pathToReplace, newPath, -1)
 
+	publicPathInWindowsScriptRegex := regexp.MustCompile(`(?s)<script id="publicPathInWindowScript">(.*?)</script>`)
+
 	if alreadyRewritten && subpath == "/" {
-		// Remove the injected script since no longer required. Note that the rewrite above
-		// will have affected the script, so look for the new subpath, not the old one.
-		oldScript := getSubpathScript(subpath)
-		newRootHTML = strings.Replace(newRootHTML, fmt.Sprintf("</style><script>%s</script>", oldScript), "</style>", 1)
+		// Remove window global publicPath definition if subpath is root
+		newRootHTML = publicPathInWindowsScriptRegex.ReplaceAllLiteralString(newRootHTML, "<script id=\"publicPathInWindowScript\"></script>")
 	} else if !alreadyRewritten && subpath != "/" {
-		// Otherwise, inject the script to define `window.publicPath`.
-		script := getSubpathScript(subpath)
-		newRootHTML = strings.Replace(newRootHTML, "</style>", fmt.Sprintf("</style><script>%s</script>", script), 1)
+		// Inject the script to define `window.publicPath` for the specified subpath
+		subpathScript := getSubpathScript(subpath)
+		newRootHTML = publicPathInWindowsScriptRegex.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf("<script id=\"publicPathInWindowScript\">%s</script>", subpathScript))
 	}
 
 	if newRootHTML == oldRootHTML {

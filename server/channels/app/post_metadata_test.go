@@ -71,7 +71,7 @@ func TestPreparePostForClient(t *testing.T) {
 		switch r.URL.Path {
 		case "/":
 			w.Header().Set("Content-Type", "text/html")
-			w.Write([]byte(`
+			_, err := w.Write([]byte(`
 			<html>
 			<head>
 			<meta property="og:image" content="` + serverURL + `/test-image3.png" />
@@ -82,24 +82,28 @@ func TestPreparePostForClient(t *testing.T) {
 			<meta property="og:description" content="Contribute to hmhealey/test-files development by creating an account on GitHub." />
 			</head>
 			</html>`))
+			require.NoError(t, err)
 		case "/test-image1.png":
 			file, err := testutils.ReadTestFile("test.png")
 			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
-			w.Write(file)
+			_, err = w.Write(file)
+			require.NoError(t, err)
 		case "/test-image2.png":
 			file, err := testutils.ReadTestFile("test-data-graph.png")
 			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
-			w.Write(file)
+			_, err = w.Write(file)
+			require.NoError(t, err)
 		case "/test-image3.png":
 			file, err := testutils.ReadTestFile("qa-data-graph.png")
 			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
-			w.Write(file)
+			_, err = w.Write(file)
+			require.NoError(t, err)
 		default:
 			require.Fail(t, "Invalid path", r.URL.Path)
 		}
@@ -190,7 +194,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			FileIds:   []string{fileInfo.Id},
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		fileInfo.PostId = post.Id
@@ -225,7 +229,7 @@ func TestPreparePostForClient(t *testing.T) {
 					},
 				},
 			},
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		th.AddReactionToPost(post, th.BasicUser, "smile")
@@ -269,7 +273,7 @@ func TestPreparePostForClient(t *testing.T) {
 					},
 				},
 			},
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		th.AddReactionToPost(post, th.BasicUser, emoji1.Name)
@@ -303,7 +307,7 @@ func TestPreparePostForClient(t *testing.T) {
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "Test",
-			}, th.BasicChannel, false, true)
+			}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 
 			require.Nil(t, err)
 
@@ -360,7 +364,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("This is ![our logo](%s/test-image2.png) and ![our icon](%s/test-image1.png)", server.URL, server.URL),
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -389,7 +393,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "some post",
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		// this value expected to be a string
@@ -423,7 +427,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message: `This is our logo: ` + server.URL + `/test-image2.png
 	And this is our icon: ` + server.URL + `/test-image1.png`,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		post.Metadata.Embeds = nil
 		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, false, false, false)
@@ -458,7 +462,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our web page: ` + server.URL,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -529,7 +533,7 @@ func TestPreparePostForClient(t *testing.T) {
 					}
 					prepost.AddProp(UnsafeLinksPostProp, "true")
 
-					post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
+					post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 					require.Nil(t, err)
 
 					clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -545,7 +549,7 @@ func TestPreparePostForClient(t *testing.T) {
 							Message:   `Bla bla bla: ` + fmt.Sprintf(tc.link, server.URL),
 						}
 
-						post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
+						post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 						require.Nil(t, err)
 
 						clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
@@ -571,7 +575,7 @@ func TestPreparePostForClient(t *testing.T) {
 					},
 				},
 			},
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		post.Metadata.Embeds = nil
 		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, false, false, false)
@@ -607,7 +611,7 @@ func TestPreparePostForClient(t *testing.T) {
 			FileIds:   []string{fileInfo.Id},
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		post.Metadata.Embeds = nil
 
@@ -641,7 +645,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "hello world",
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		referencedPost.Metadata.Embeds = nil
 
@@ -651,7 +655,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		previewPost.Metadata.Embeds = nil
 		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, previewPost, false, false, false)
@@ -699,7 +703,7 @@ func TestPreparePostForClient(t *testing.T) {
 					UserId:    th.BasicUser.Id,
 					ChannelId: testCase.Channel.Id,
 					Message:   "hello world",
-				}, th.BasicChannel, false, true)
+				}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 				require.Nil(t, err)
 				referencedPost.Metadata.Embeds = nil
 
@@ -709,7 +713,7 @@ func TestPreparePostForClient(t *testing.T) {
 					UserId:    th.BasicUser.Id,
 					ChannelId: th.BasicChannel.Id,
 					Message:   link,
-				}, th.BasicChannel, false, true)
+				}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 				require.Nil(t, err)
 				previewPost.Metadata.Embeds = nil
 
@@ -737,7 +741,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our logo: ` + server.URL + `/test-image2.png`,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		referencedPost.Metadata.Embeds = nil
 
@@ -747,7 +751,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		previewPost.Metadata.Embeds = nil
 
@@ -774,7 +778,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our logo: ` + server.URL + `/test-image2.png`,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		nestedPermalinkPost.Metadata.Embeds = nil
 
@@ -784,7 +788,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   nestedLink,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		referencedPost.Metadata.Embeds = nil
 
@@ -794,7 +798,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 		previewPost.Metadata.Embeds = nil
 
@@ -821,7 +825,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "hello world",
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
@@ -830,7 +834,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   link,
-		}, th.BasicChannel, false, true)
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(th.Context, previewPost, false, false, false)
@@ -916,7 +920,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		switch r.URL.Path {
 		case "/":
 			w.Header().Set("Content-Type", "text/html")
-			w.Write([]byte(`
+			_, err := w.Write([]byte(`
 			<html>
 			<head>
 			<meta property="og:image" content="` + serverURL + `/test-image3.png" />
@@ -927,12 +931,14 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 			<meta property="og:description" content="Contribute to hmhealey/test-files development by creating an account on GitHub." />
 			</head>
 			</html>`))
+			require.NoError(t, err)
 		case "/test-image3.png":
 			file, err := testutils.ReadTestFile("qa-data-graph.png")
 			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
-			w.Write(file)
+			_, err = w.Write(file)
+			require.NoError(t, err)
 		default:
 			require.Fail(t, "Invalid path", r.URL.Path)
 		}
@@ -944,7 +950,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   `This is our web page: ` + server.URL,
-	}, th.BasicChannel, false, true)
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	post.Metadata.Embeds = nil
@@ -978,35 +984,39 @@ func TestGetEmbedForPost(t *testing.T) {
 			w.Header().Set("Content-Type", "text/html")
 			if r.Header.Get("Accept-Language") == "fr" {
 				w.Header().Set("Content-Language", "fr")
-				w.Write([]byte(`
+				_, err := w.Write([]byte(`
 				<html>
 				<head>
 				<meta property="og:title" content="Title-FR" />
 				<meta property="og:description" content="Bonjour le monde" />
 				</head>
 				</html>`))
+				require.NoError(t, err)
 			} else {
-				w.Write([]byte(`
+				_, err := w.Write([]byte(`
 				<html>
 				<head>
 				<meta property="og:title" content="Title" />
 				<meta property="og:description" content="Hello world" />
 				</head>
 				</html>`))
+				require.NoError(t, err)
 			}
 		} else if r.URL.Path == "/image.png" {
 			file, err := testutils.ReadTestFile("test.png")
 			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
-			w.Write(file)
+			_, err = w.Write(file)
+			require.NoError(t, err)
 		} else if r.URL.Path == "/other" {
 			w.Header().Set("Content-Type", "text/html")
-			w.Write([]byte(`
+			_, err := w.Write([]byte(`
 			<html>
 			<head>
 			</head>
 			</html>`))
+			require.NoError(t, err)
 		} else {
 			require.Fail(t, "Invalid path", r.URL.Path)
 		}
@@ -1158,7 +1168,8 @@ func TestGetImagesForPost(t *testing.T) {
 			require.NoError(t, err)
 
 			w.Header().Set("Content-Type", "image/png")
-			w.Write(file)
+			_, err = w.Write(file)
+			require.NoError(t, err)
 		}))
 
 		post := &model.Post{
@@ -1214,7 +1225,8 @@ func TestGetImagesForPost(t *testing.T) {
 				img := image.NewGray(image.Rect(0, 0, 200, 300))
 
 				var encoder png.Encoder
-				encoder.Encode(w, img)
+				err := encoder.Encode(w, img)
+				require.NoError(t, err)
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
@@ -1268,7 +1280,8 @@ func TestGetImagesForPost(t *testing.T) {
 				img := image.NewGray(image.Rect(0, 0, 300, 400))
 
 				var encoder png.Encoder
-				encoder.Encode(w, img)
+				err := encoder.Encode(w, img)
+				require.NoError(t, err)
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
@@ -1322,7 +1335,8 @@ func TestGetImagesForPost(t *testing.T) {
 				img := image.NewGray(image.Rect(0, 0, 400, 500))
 
 				var encoder png.Encoder
-				encoder.Encode(w, img)
+				err := encoder.Encode(w, img)
+				require.NoError(t, err)
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
@@ -2029,7 +2043,8 @@ func TestGetLinkMetadata(t *testing.T) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		})
 
-		platform.PurgeLinkCache()
+		err := platform.PurgeLinkCache()
+		require.NoError(t, err)
 
 		return th
 	}
@@ -2042,13 +2057,14 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			var encoder png.Encoder
 
-			encoder.Encode(w, img)
+			err := encoder.Encode(w, img)
+			require.NoError(t, err)
 		}
 
 		writeHTML := func(title string) {
 			w.Header().Set("Content-Type", "text/html")
 
-			w.Write([]byte(`
+			_, err := w.Write([]byte(`
 				<html prefix="og:http://ogp.me/ns#">
 				<head>
 				<meta property="og:title" content="` + title + `" />
@@ -2056,6 +2072,7 @@ func TestGetLinkMetadata(t *testing.T) {
 				<body>
 				</body>
 				</html>`))
+			require.NoError(t, err)
 		}
 
 		if strings.HasPrefix(r.URL.Path, "/image") {
@@ -2068,16 +2085,19 @@ func TestGetLinkMetadata(t *testing.T) {
 		} else if strings.HasPrefix(r.URL.Path, "/json") {
 			w.Header().Set("Content-Type", "application/json")
 
-			w.Write([]byte("true"))
+			_, err := w.Write([]byte("true"))
+			require.NoError(t, err)
 		} else if strings.HasPrefix(r.URL.Path, "/timeout") {
 			w.Header().Set("Content-Type", "text/html")
 
-			w.Write([]byte("<html>"))
+			_, err := w.Write([]byte("<html>"))
+			require.NoError(t, err)
 			select {
 			case <-time.After(60 * time.Second):
 			case <-r.Context().Done():
 			}
-			w.Write([]byte("</html>"))
+			_, err = w.Write([]byte("</html>"))
+			require.NoError(t, err)
 		} else if strings.HasPrefix(r.URL.Path, "/mixed") {
 			for _, acceptedType := range r.Header["Accept"] {
 				if strings.HasPrefix(acceptedType, "image/*") || strings.HasPrefix(acceptedType, "image/png") {
@@ -2100,7 +2120,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		timestamp := int64(1547510400000)
 		title := "from cache"
 
-		cacheLinkMetadata(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil, nil)
+		cacheLinkMetadata(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil, nil)
 
 		t.Run("should use cache if cached entry exists", func(t *testing.T) {
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
@@ -2176,7 +2196,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		th.App.saveLinkMetadataToDatabase(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
 
 		t.Run("should use database if saved entry exists", func(t *testing.T) {
-			platform.PurgeLinkCache()
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2193,7 +2214,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should use database if saved entry exists near time", func(t *testing.T) {
-			platform.PurgeLinkCache()
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2210,7 +2232,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if URL is different", func(t *testing.T) {
-			platform.PurgeLinkCache()
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			differentURL := requestURL + "/other"
 
@@ -2228,7 +2251,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if timestamp is different", func(t *testing.T) {
-			platform.PurgeLinkCache()
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			differentTimestamp := timestamp + 60*60*1000
 
@@ -2436,7 +2460,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.True(t, ok, "data should now exist in in-memory cache")
 
-		platform.PurgeLinkCache()
+		err = platform.PurgeLinkCache()
+		require.NoError(t, err)
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should no longer exist in in-memory cache")
 
@@ -2465,7 +2490,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/error?name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		cacheLinkMetadata(requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil, nil)
+		cacheLinkMetadata(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil, nil)
 
 		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, true, "")
 		assert.NotNil(t, og)
@@ -2731,6 +2756,70 @@ func TestParseImages(t *testing.T) {
 				Format: "png",
 			},
 		},
+		"jpg-1": {
+			FileName: "orientation_test_1.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-2": {
+			FileName: "orientation_test_2.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-3": {
+			FileName: "orientation_test_3.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-4": {
+			FileName: "orientation_test_4.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-5": {
+			FileName: "orientation_test_5.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-6": {
+			FileName: "orientation_test_6.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-7": {
+			FileName: "orientation_test_7.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-8": {
+			FileName: "orientation_test_8.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
 		"animated gif": {
 			FileName: "testgif.gif",
 			Expected: &model.PostImage{
@@ -2972,7 +3061,7 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "hello world",
-	}, th.BasicChannel, false, true)
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	referencedPost.Metadata.Embeds = nil
 
@@ -2982,7 +3071,7 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   link,
-	}, th.BasicChannel, false, true)
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 	previewPost.Metadata.Embeds = nil
 	clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, previewPost, false, false, false)

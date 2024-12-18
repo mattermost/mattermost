@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @search
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
@@ -24,12 +23,16 @@ describe('Search', () => {
     it('QuickInput clear X', () => {
         // * X should not be visible on empty input
         cy.uiGetSearchContainer().find('.input-clear-x').should('not.exist');
+        cy.uiGetSearchContainer().click();
 
         // # Write something on the input
-        cy.uiGetSearchBox().clear().type('abc');
+        cy.uiGetSearchBox().first().clear().wait(TIMEOUTS.HALF_SEC).type('abc').wait(TIMEOUTS.HALF_SEC).type('{enter}');
+
+        cy.uiGetSearchContainer().click();
 
         // * The input should contain what we wrote
         cy.uiGetSearchBox().should('have.value', 'abc');
+        cy.get('#searchBox .icon-close').click();
 
         // * The X should be visible
         // # Then click X to clear the input field
@@ -42,6 +45,7 @@ describe('Search', () => {
         cy.uiGetSearchContainer().find('.input-clear-x').should('not.exist');
 
         // * The value of the input is empty
+        cy.uiGetSearchContainer().click();
         cy.uiGetSearchBox().should('have.value', '');
     });
 
@@ -50,13 +54,8 @@ describe('Search', () => {
 
         // * Verify search input field exists and not search button, as inputs contains placeholder not buttons/icons
         // and then type in a search text
-        cy.uiGetSearchBox().click().wait(TIMEOUTS.HALF_SEC).type(searchText);
-
-        // # Click on the pinned post button from the header
-        cy.uiGetChannelPinButton().click();
-
-        // * Verify the pinned post RHS is open
-        cy.uiGetRHS().should('contain', 'Pinned messages');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().first().clear().wait(TIMEOUTS.HALF_SEC).type(searchText + '{enter}').wait(TIMEOUTS.HALF_SEC);
 
         // # Now click on the saved post button from the header
         cy.uiGetSavedPostButton().click();

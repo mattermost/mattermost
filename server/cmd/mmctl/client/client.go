@@ -91,6 +91,7 @@ type Client interface {
 	MoveCommand(ctx context.Context, teamID string, commandID string) (*model.Response, error)
 	DeleteCommand(ctx context.Context, commandID string) (*model.Response, error)
 	GetConfig(ctx context.Context) (*model.Config, *model.Response, error)
+	GetConfigWithOptions(ctx context.Context, options model.GetConfigOptions) (map[string]any, *model.Response, error)
 	GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
 	UpdateConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	PatchConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
@@ -159,4 +160,6 @@ type Client interface {
 	GetPreferenceByCategoryAndName(ctx context.Context, userId, category, preferenceName string) (*model.Preference, *model.Response, error)
 	UpdatePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
+	PermanentDeletePost(ctx context.Context, postID string) (*model.Response, error)
+	DeletePost(ctx context.Context, postId string) (*model.Response, error)
 }

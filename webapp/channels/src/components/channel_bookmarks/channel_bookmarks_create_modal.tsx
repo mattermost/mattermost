@@ -37,6 +37,9 @@ import './bookmark_create_modal.scss';
 import CreateModalNameInput from './create_modal_name_input';
 import {useCanUploadFiles} from './utils';
 
+const MAX_LINK_LENGTH = 1024;
+const MAX_TITLE_LENGTH = 64;
+
 type Props = {
     channelId: string;
     bookmarkType?: ChannelBookmark['type'];
@@ -268,10 +271,10 @@ function ChannelBookmarkCreateModal({
     const isValid = (() => {
         if (type === 'link') {
             if (!link || linkError) {
-                if (link && linkError && linkErrorBypass) {
-                    return true;
-                }
                 return false;
+            }
+            if (link && linkErrorBypass) {
+                return true;
             }
 
             if (validatedLink || link === bookmark?.link_url) {
@@ -289,7 +292,6 @@ function ChannelBookmarkCreateModal({
 
         return undefined;
     })();
-    const showControls = type === 'file' || (isValid || bookmark);
 
     const cancel = useCallback(() => {
         if (type === 'file') {
@@ -357,6 +359,14 @@ function ChannelBookmarkCreateModal({
         linkStatusIndicator = checkedIcon;
     }
 
+    let linkMessage = formatMessage(msg.linkInfoMessage);
+    if (linkErrorBypass) {
+        const url = validHttpUrl(link);
+        if (url) {
+            linkMessage = formatMessage(msg.invalidLinkMessage, {link: url.toString()});
+        }
+    }
+
     return (
         <GenericModal
             enforceFocus={!showEmojiPicker}
@@ -364,8 +374,8 @@ function ChannelBookmarkCreateModal({
             className='channel-bookmarks-create-modal'
             modalHeaderText={formatMessage(bookmark ? msg.editHeading : msg.heading)}
             confirmButtonText={formatMessage(bookmark ? msg.saveText : msg.addBookmarkText)}
-            handleCancel={(showControls && cancel) || undefined}
-            handleConfirm={(showControls && confirm) || undefined}
+            handleCancel={cancel}
+            handleConfirm={confirm}
             handleEnterKeyPress={(!confirmDisabled && confirm) || undefined}
             onExited={handleOnExited}
             compassDesign={true}
@@ -377,6 +387,7 @@ function ChannelBookmarkCreateModal({
                 {type === 'link' ? (
                     <>
                         <Input
+                            maxLength={MAX_LINK_LENGTH}
                             type='text'
                             name='bookmark-link'
                             containerClassName='linkInput'
@@ -387,7 +398,7 @@ function ChannelBookmarkCreateModal({
                             data-testid='linkInput'
                             autoFocus={true}
                             addon={linkStatusIndicator}
-                            customMessage={linkError ? {type: 'error', value: linkError} : {value: formatMessage(msg.linkInfoMessage)}}
+                            customMessage={linkError ? {type: 'error', value: linkError} : {value: linkMessage}}
                         />
                     </>
                 ) : (
@@ -440,29 +451,28 @@ function ChannelBookmarkCreateModal({
 
                 )}
 
-                {showControls && (
-                    <TitleWrapper>
-                        <FieldLabel>
-                            <FormattedMessage
-                                id='channel_bookmarks.create.title_input.label'
-                                defaultMessage='Title'
-                            />
-                        </FieldLabel>
-                        <CreateModalNameInput
-                            type={type}
-                            imageUrl={icon}
-                            fileInfo={pendingFile || fileInfo}
-                            emoji={emoji}
-                            setEmoji={setEmoji}
-                            displayName={displayName}
-                            placeholder={displayNameValue}
-                            setDisplayName={setDisplayName}
-                            onAddCustomEmojiClick={onHide}
-                            showEmojiPicker={showEmojiPicker}
-                            setShowEmojiPicker={setShowEmojiPicker}
+                <TitleWrapper>
+                    <FieldLabel>
+                        <FormattedMessage
+                            id='channel_bookmarks.create.title_input.label'
+                            defaultMessage='Title'
                         />
-                    </TitleWrapper>
-                )}
+                    </FieldLabel>
+                    <CreateModalNameInput
+                        maxLength={MAX_TITLE_LENGTH}
+                        type={type}
+                        imageUrl={icon}
+                        fileInfo={pendingFile || fileInfo}
+                        emoji={emoji}
+                        setEmoji={setEmoji}
+                        displayName={displayName?.substring(0, MAX_TITLE_LENGTH)}
+                        placeholder={displayNameValue?.substring(0, MAX_TITLE_LENGTH)}
+                        setDisplayName={setDisplayName}
+                        onAddCustomEmojiClick={onHide}
+                        showEmojiPicker={showEmojiPicker}
+                        setShowEmojiPicker={setShowEmojiPicker}
+                    />
+                </TitleWrapper>
             </>
         </GenericModal>
     );
@@ -558,19 +568,7 @@ const FileInputContainer = styled.div`
     }
 `;
 
-const continuableLinkErr = (url: URL, confirm?: () => void) => {
-    if (!confirm) {
-        return (
-            <FormattedMessage
-                id='channel_bookmarks.create.error.invalid_url.continuing_anyway'
-                defaultMessage='Could not find: {url}. Please enter a valid link.'
-                values={{
-                    url: url.toString(),
-                }}
-            />
-        );
-    }
-
+const continuableLinkErr = (url: URL, confirm: () => void) => {
     return (
         <FormattedMessage
             id='channel_bookmarks.create.error.invalid_url.continue_anyway'
@@ -615,6 +613,7 @@ const msg = defineMessages({
     editHeading: {id: 'channel_bookmarks.create.edit.title', defaultMessage: 'Edit bookmark'},
     linkPlaceholder: {id: 'channel_bookmarks.create.link_placeholder', defaultMessage: 'Link'},
     linkInfoMessage: {id: 'channel_bookmarks.create.link_info', defaultMessage: 'Add a link to any post, file, or any external link'},
+    invalidLinkMessage: {id: 'channel_bookmarks.create.error.invalid_url.continuing_anyway', defaultMessage: 'This may not be a valid link: {link}.'},
     addBookmarkText: {id: 'channel_bookmarks.create.confirm_add.button', defaultMessage: 'Add bookmark'},
     saveText: {id: 'channel_bookmarks.create.confirm_save.button', defaultMessage: 'Save bookmark'},
     fileInputEdit: {id: 'channel_bookmarks.create.file_input.edit', defaultMessage: 'Edit'},
@@ -674,7 +673,7 @@ export const useBookmarkLinkValidation = (link: string, onValidated: (validatedL
                     setError(continuableLinkErr(url, () => {
                         onValidated(link, true);
                         setSuppressed(true);
-                        setError(continuableLinkErr(url));
+                        setError(undefined);
                     }));
                 }
             } finally {

@@ -7,7 +7,6 @@ import {FormattedMessage} from 'react-intl';
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import type {Notice} from 'components/system_notice/types';
 
 import {DocLinks} from 'utils/constants';
@@ -128,7 +127,7 @@ const notices: Notice[] = [
             const USERS_THRESHOLD = 10000;
 
             // If we don't have the analytics yet, don't show
-            if (!analytics?.hasOwnProperty('TOTAL_USERS')) {
+            if (!analytics || Object.hasOwn(analytics, 'TOTAL_USERS')) {
                 return false;
             }
 
@@ -146,7 +145,7 @@ const notices: Notice[] = [
     {
         name: 'ie11_deprecation',
         title: (
-            <FormattedMarkdownMessage
+            <FormattedMessage
                 id='system_notice.title'
                 defaultMessage='Notice from Mattermost'
             />

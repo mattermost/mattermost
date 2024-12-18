@@ -6,7 +6,6 @@ package model
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/blang/semver/v4"
 )
@@ -15,6 +14,9 @@ type MetricType string
 
 const (
 	ClientTimeToFirstByte           MetricType = "TTFB"
+	ClientTimeToLastByte            MetricType = "TTLB"
+	ClientTimeToDOMInteractive      MetricType = "dom_interactive"
+	ClientSplashScreenEnd           MetricType = "splash_screen"
 	ClientFirstContentfulPaint      MetricType = "FCP"
 	ClientLargestContentfulPaint    MetricType = "LCP"
 	ClientInteractionToNextPaint    MetricType = "INP"
@@ -29,6 +31,9 @@ const (
 	MobileClientLoadDuration          MetricType = "mobile_load"
 	MobileClientChannelSwitchDuration MetricType = "mobile_channel_switch"
 	MobileClientTeamSwitchDuration    MetricType = "mobile_team_switch"
+
+	DesktopClientCPUUsage    MetricType = "desktop_cpu"
+	DesktopClientMemoryUsage MetricType = "desktop_memory"
 
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
 )
@@ -51,7 +56,8 @@ var (
 		"modal_content",
 		"other",
 	)
-	AcceptedTrueFalseLabels = sliceToMapKey("true", "false")
+	AcceptedTrueFalseLabels     = sliceToMapKey("true", "false")
+	AcceptedSplashScreenOrigins = sliceToMapKey("root", "team_controller")
 )
 
 type MetricSample struct {
@@ -83,7 +89,7 @@ func (r *PerformanceReport) IsValid() error {
 
 	reportVersion, err := semver.ParseTolerant(r.Version)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not parse semver version: %s, %w", r.Version, err)
 	}
 
 	if reportVersion.Major != performanceReportVersion.Major || reportVersion.Minor > performanceReportVersion.Minor {
@@ -91,12 +97,12 @@ func (r *PerformanceReport) IsValid() error {
 	}
 
 	if r.Start > r.End {
-		return fmt.Errorf("report timestamps are erroneous")
+		return fmt.Errorf("report timestamps are erroneous: start_timestamp %f is greater than end_timestamp %f", r.Start, r.End)
 	}
 
-	now := time.Now().UnixMilli()
+	now := GetMillis()
 	if r.End < float64(now-performanceReportTTLMilliseconds) {
-		return fmt.Errorf("report is outdated: %f", r.End)
+		return fmt.Errorf("report is outdated: end_time %f is past %d ms from now", r.End, performanceReportTTLMilliseconds)
 	}
 
 	return nil
@@ -104,8 +110,9 @@ func (r *PerformanceReport) IsValid() error {
 
 func (r *PerformanceReport) ProcessLabels() map[string]string {
 	return map[string]string{
-		"platform": processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
-		"agent":    processLabel(r.Labels, "agent", acceptedAgents, "other"),
+		"platform":            processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
+		"agent":               processLabel(r.Labels, "agent", acceptedAgents, "other"),
+		"desktop_app_version": r.Labels["desktop_app_version"],
 	}
 }
 

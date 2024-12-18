@@ -6,7 +6,8 @@ import React from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {Team} from '@mattermost/types/teams';
@@ -26,7 +27,7 @@ import * as Utils from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
 
-export interface Props extends PropsFromRedux {
+export interface Props extends PropsFromRedux, WrappedComponentProps {
     location: RouteComponentProps['location'];
 }
 
@@ -62,7 +63,7 @@ export function renderThumbVertical(props: Props) {
     );
 }
 
-export default class TeamSidebar extends React.PureComponent<Props, State> {
+export class TeamSidebar extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -202,6 +203,8 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
     };
 
     render() {
+        const {intl} = this.props;
+
         const root: Element | null = document.querySelector('#root');
         if (this.props.myTeams.length <= 1) {
             root!.classList.remove('multi-teams');
@@ -246,7 +249,7 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             <i
                 className='icon icon-plus'
                 role={'img'}
-                aria-label={Utils.localizeMessage({id: 'sidebar.team_menu.button.plusIcon', defaultMessage: 'Plus Icon'})}
+                aria-label={intl.formatMessage({id: 'sidebar.team_menu.button.plusIcon', defaultMessage: 'Plus Icon'})}
             />
         );
 
@@ -347,3 +350,5 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(TeamSidebar);

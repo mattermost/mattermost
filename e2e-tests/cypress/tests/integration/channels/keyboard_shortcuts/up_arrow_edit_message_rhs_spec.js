@@ -26,7 +26,7 @@ describe('Keyboard Shortcuts', () => {
             cy.clickPostDotMenu(postId);
             cy.findByText('Reply').click();
             const replyMessage = 'Well, hello there.';
-            cy.uiGetReplyTextBox().type(replyMessage);
+            cy.uiGetReplyTextBox().type(replyMessage, {delay: 100});
             cy.uiGetReplyTextBox().type('{enter}');
             cy.uiWaitUntilMessagePostedIncludes(replyMessage);
 

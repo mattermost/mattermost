@@ -28,7 +28,7 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <form
@@ -208,7 +208,12 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
           id="appsModalSubmit"
           key="submit"
           spinning={false}
-          spinningText="Submitting..."
+          spinningText={
+            Object {
+              "defaultMessage": "Submitting...",
+              "id": "interactive_dialog.submitting",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage

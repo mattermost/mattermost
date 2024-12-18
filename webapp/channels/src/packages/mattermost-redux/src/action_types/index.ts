@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import AdminTypes from './admin';
 import AppsTypes from './apps';
 import BotTypes from './bots';
@@ -24,6 +26,7 @@ import PostTypes from './posts';
 import PreferenceTypes from './preferences';
 import RoleTypes from './roles';
 import SchemeTypes from './schemes';
+import ScheduledPostTypes from './scheudled_posts';
 import SearchTypes from './search';
 import TeamTypes from './teams';
 import ThreadTypes from './threads';
@@ -57,4 +60,10 @@ export {
     DraftTypes,
     PlaybookType,
     ChannelBookmarkTypes,
+    ScheduledPostTypes,
 };
+
+/**
+ * An MMReduxAction is any non-Thunk Redux action accepted by mattermost-redux.
+ */
+export type MMReduxAction = AnyAction;

@@ -12,6 +12,7 @@ export type Props = {
     className?: string;
     onExited: () => void;
     modalHeaderText?: React.ReactNode;
+    modalSubheaderText?: React.ReactNode;
     show?: boolean;
     handleCancel?: () => void;
     handleConfirm?: () => void;
@@ -31,7 +32,7 @@ export type Props = {
     ariaLabel?: string;
     errorText?: string | React.ReactNode;
     compassDesign?: boolean;
-    backdrop?: boolean;
+    backdrop?: boolean | 'static';
     backdropClassName?: string;
     tabIndex?: number;
     children: React.ReactNode;
@@ -40,6 +41,7 @@ export type Props = {
     headerInput?: React.ReactNode;
     bodyPadding?: boolean;
     bodyDivider?: boolean;
+    bodyOverflowVisible?: boolean;
     footerContent?: React.ReactNode;
     footerDivider?: boolean;
     appendedContent?: React.ReactNode;
@@ -177,10 +179,17 @@ export class GenericModal extends React.PureComponent<Props, State> {
         return (
             <Modal
                 id={this.props.id}
-                role='dialog'
+                role='none'
                 aria-label={this.props.ariaLabel}
                 aria-labelledby={this.props.ariaLabel ? undefined : 'genericModalLabel'}
-                dialogClassName={classNames('a11y__modal GenericModal', {GenericModal__compassDesign: this.props.compassDesign}, this.props.className)}
+                dialogClassName={classNames(
+                    'a11y__modal GenericModal',
+                    {
+                        GenericModal__compassDesign: this.props.compassDesign,
+                        'modal--overflow': this.props.bodyOverflowVisible,
+                    },
+                    this.props.className,
+                )}
                 show={this.state.show}
                 restoreFocus={true}
                 enforceFocus={this.props.enforceFocus}
@@ -197,14 +206,28 @@ export class GenericModal extends React.PureComponent<Props, State> {
                     className='GenericModal__wrapper-enter-key-press-catcher'
                 >
                     <Modal.Header closeButton={true}>
-                        {this.props.compassDesign && (
-                            <>
-                                {headerText}
-                                {this.props.headerInput}
-                            </>
-                        )}
+                        <div className='GenericModal__header__text_container'>
+                            {this.props.compassDesign && (
+                                <>
+                                    {headerText}
+                                    {this.props.headerInput}
+                                </>
+                            )}
+
+                            {
+                                this.props.modalSubheaderText &&
+                                <div className='modal-subheading-container'>
+                                    <p
+                                        id='genericModalSubheading'
+                                        className='modal-subheading'
+                                    >
+                                        {this.props.modalSubheaderText}
+                                    </p>
+                                </div>
+                            }
+                        </div>
                     </Modal.Header>
-                    <Modal.Body className={classNames({divider: this.props.bodyDivider})}>
+                    <Modal.Body className={classNames({divider: this.props.bodyDivider, 'overflow-visible': this.props.bodyOverflowVisible})}>
                         {this.props.compassDesign ? (
                             this.props.errorText && (
                                 <div className='genericModalError'>

@@ -2,22 +2,19 @@
 
 exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders correctly when disabled 1`] = `
 <div>
-  <div
+  <fieldset
     class="form-group"
     data-testid="MySetting"
+    id="MySetting"
   >
-    <label
-      class="control-label col-sm-4"
-      for="MySetting"
+    <legend
+      class="control-label form-legend col-sm-4"
     >
       Enable Guest Access: 
-    </label>
+    </legend>
     <div
       class="col-sm-8"
     >
-      <a
-        id="MySetting"
-      />
       <label
         class="Label-eIDBis glIJuw"
       >
@@ -47,41 +44,34 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
         class="help-text"
         data-testid="MySettinghelp-text"
       >
-        <span>
-          When true, external guest can be invited to channels within teams. Please see 
-          <a
-            href="../user_management/permissions/system_scheme"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Permissions Schemes
-          </a>
-           for which roles can invite guests.
-        </span>
+        When true, external guest can be invited to channels within teams. Please see 
+        <a
+          href="/admin_console/user_management/permissions/system_scheme"
+        >
+          Permissions Schemes
+        </a>
+         for which roles can invite guests.
       </div>
     </div>
-  </div>
+  </fieldset>
 </div>
 `;
 
 exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders correctly when enabled 1`] = `
 <div>
-  <div
+  <fieldset
     class="form-group"
     data-testid="MySetting"
+    id="MySetting"
   >
-    <label
-      class="control-label col-sm-4"
-      for="MySetting"
+    <legend
+      class="control-label form-legend col-sm-4"
     >
       Enable Guest Access: 
-    </label>
+    </legend>
     <div
       class="col-sm-8"
     >
-      <a
-        id="MySetting"
-      />
       <label
         class="Label-eIDBis glIJuw"
       >
@@ -111,19 +101,15 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
         class="help-text"
         data-testid="MySettinghelp-text"
       >
-        <span>
-          When true, external guest can be invited to channels within teams. Please see 
-          <a
-            href="../user_management/permissions/system_scheme"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Permissions Schemes
-          </a>
-           for which roles can invite guests.
-        </span>
+        When true, external guest can be invited to channels within teams. Please see 
+        <a
+          href="/admin_console/user_management/permissions/system_scheme"
+        >
+          Permissions Schemes
+        </a>
+         for which roles can invite guests.
       </div>
     </div>
-  </div>
+  </fieldset>
 </div>
 `;

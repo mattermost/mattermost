@@ -114,7 +114,7 @@ func (a *App) elasticsearchChannelIndexCheck() {
 	}
 
 	// TODO include a link to changelog
-	postMessage := i18n.T("app.channel.elasticsearch_channel_index.notify_admin.message", map[string]interface{}{"ElasticsearchSection": elasticsearchSettingsSectionLink})
+	postMessage := i18n.T("app.channel.elasticsearch_channel_index.notify_admin.message", map[string]any{"ElasticsearchSection": elasticsearchSettingsSectionLink})
 
 	for _, sysAdmin := range sysAdmins {
 		var channel *model.Channel
@@ -129,7 +129,7 @@ func (a *App) elasticsearchChannelIndexCheck() {
 			UserId:    systemBot.UserId,
 			ChannelId: channel.Id,
 		}
-		_, appErr = a.CreatePost(request.EmptyContext(a.Log()), post, channel, true, false)
+		_, appErr = a.CreatePost(request.EmptyContext(a.Log()), post, channel, model.CreatePostFlags{TriggerWebhooks: true})
 		if appErr != nil {
 			a.Log().Error("elasticsearchChannelIndexCheck: error occurred creating post", mlog.Err(appErr))
 			continue

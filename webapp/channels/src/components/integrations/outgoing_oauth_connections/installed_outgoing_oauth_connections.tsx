@@ -18,7 +18,6 @@ import {loadOutgoingOAuthConnectionsAndProfiles} from 'actions/integration_actio
 
 import BackstageList from 'components/backstage/components/backstage_list';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DeveloperLinks} from 'utils/constants';
 
@@ -32,7 +31,7 @@ type Props = {
 
 const InstalledOutgoingOAuthConnections = (props: Props) => {
     const [loading, setLoading] = useState(true);
-    const canManageOutgoingOAuthConnections = useSelector((state) => haveITeamPermission(state as GlobalState, props.team.id, Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS));
+    const canManageOutgoingOAuthConnections = useSelector((state: GlobalState) => haveITeamPermission(state, props.team.id, Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS));
     const enableOutgoingOAuthConnections = (useSelector(getConfig).EnableOutgoingOAuthConnections === 'true');
     const connections = useSelector(getOutgoingOAuthConnections);
 
@@ -130,7 +129,7 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
                 />
             }
             emptyTextSearch={
-                <FormattedMarkdownMessage
+                <FormattedMessage
                     id='installed_outgoing_oauth_connections.emptySearch'
                     defaultMessage='No Outgoing OAuth Connections match {searchTerm}'
                 />

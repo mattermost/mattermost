@@ -399,8 +399,10 @@ func (a *App) findTeamIdForFilename(rctx request.CTX, post *model.Post, id, file
 	return ""
 }
 
-var fileMigrationLock sync.Mutex
-var oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+var (
+	fileMigrationLock   sync.Mutex
+	oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+)
 
 // Parse the path from the Filename of the form /{channelID}/{userID}/{uid}/{nameWithExtension}
 func parseOldFilenames(rctx request.CTX, filenames []string, channelID, userID string) [][]string {
@@ -1039,7 +1041,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 
 	var rejectionError *model.AppError
 	pluginContext := pluginContext(c)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		var newBytes bytes.Buffer
 		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
 		if rejectionReason != "" {
@@ -1397,7 +1399,6 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 			Method:   zip.Deflate,
 			Modified: time.Now(),
 		})
-
 		if err != nil {
 			return err
 		}
@@ -1511,7 +1512,7 @@ func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
 
 	lastAccessibleFileTime, err := strconv.ParseInt(system.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
+		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]any{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return lastAccessibleFileTime, nil
@@ -1593,4 +1594,66 @@ func getFileExtFromMimeType(mimeType string) string {
 		return "png"
 	}
 	return "jpg"
+}
+
+func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model.AppError {
+	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, true)
+	if err != nil {
+		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(fileInfos) == 0 {
+		rctx.Logger().Debug("No files found for post", mlog.String("post_id", postID))
+		return nil
+	}
+
+	a.RemoveFilesFromFileStore(rctx, fileInfos)
+
+	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(rctx, postID)
+	if err != nil {
+		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
+	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
+
+	return nil
+}
+
+func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) {
+	for _, info := range fileInfos {
+		a.RemoveFileFromFileStore(rctx, info.Path)
+		if info.PreviewPath != "" {
+			a.RemoveFileFromFileStore(rctx, info.PreviewPath)
+		}
+		if info.ThumbnailPath != "" {
+			a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
+		}
+	}
+}
+
+func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
+	res, appErr := a.FileExists(path)
+	if appErr != nil {
+		rctx.Logger().Warn(
+			"Error checking existence of file",
+			mlog.String("path", path),
+			mlog.Err(appErr),
+		)
+		return
+	}
+
+	if !res {
+		rctx.Logger().Warn("File not found", mlog.String("path", path))
+		return
+	}
+
+	appErr = a.RemoveFile(path)
+	if appErr != nil {
+		rctx.Logger().Warn(
+			"Unable to remove file",
+			mlog.String("path", path),
+			mlog.Err(appErr),
+		)
+		return
+	}
 }
