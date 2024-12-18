@@ -3,9 +3,9 @@
 
 import type {Store} from 'redux';
 
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
-
 import store from 'stores/redux_store';
+
+import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
 import PluginRegistry from './registry';
 

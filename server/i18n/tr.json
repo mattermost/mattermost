@@ -4307,10 +4307,6 @@
     "translation": "Kimlik geçersiz."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "İleti geçersiz."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Özgün kimlik geçersiz."
   },
@@ -4608,11 +4604,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Komut bulunamadı."
+    "translation": "{{.command_id}} komutu bulunamadı."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Gelen veriler işlenemedi."
+    "translation": "{{.hook_id}} internet kancasından gelen veriler işlenemedi."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4624,7 +4620,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Bu İnternet bağlantısının istenilen kanala gönderilmesine izin verilmiyor."
+    "translation": "Bu internet kancasının istenilen {{.channel_id}} kanalına gönderim yapmasına izin verilmiyor"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4640,7 +4636,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Kanal izinleri yeterli değil."
+    "translation": "{{.user}} kullanıcısının {{.channel}} kanalı için uygun izinleri yok"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4652,7 +4648,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Kullanıcı bulunamadı."
+    "translation": "{{.user}} kullanıcısı bulunamadı"
   },
   {
     "id": "app.channel.permanent_delete.app_error",
@@ -5696,11 +5692,11 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Var olan kanal bulunamadı."
+    "translation": "Var olan {{.channel_id}} kanalı bulunamadı."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Kanal aranırken bir sorun çıktı."
+    "translation": "{{.channel_id}} kanalı aranırken bir sorun çıktı."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
@@ -8850,10 +8846,6 @@
     "translation": "Öncelik geçersiz"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "İleti geçersiz."
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Dosya kimlikleri geçersiz."
   },
@@ -10406,5 +10398,29 @@
   {
     "id": "model.config.is_valid.storage_class.app_error",
     "translation": "{{.Value}} depolama sınıfı geçersiz."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "{{.hook_id}} gelen internet kancası için {{.media_type}} ortam türü paketi işlenemedi."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Aynı isteği yineleyen bir istemci tekilleştirildikten sonra gönderi ön belleğe alınamadı."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Okuma konumu eklenti paketinin başlangıcına sıfırlanamadı."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "{{.hook_id}} komut internet kancası işlenemedi."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "{{.hook_id}} gelen internet kancası için {{.media_type}} ortam türünün paketi çözülemedi."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "{{.hook_id}} ortam gelen internet kancası işlenemedi."
   }
 ]

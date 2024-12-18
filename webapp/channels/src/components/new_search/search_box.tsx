@@ -262,6 +262,7 @@ const SearchBox = forwardRef(
                 role='searchbox'
             >
                 <CloseIcon
+                    data-testid='searchBoxClose'
                     className='btn btn-icon btn-m'
                     onClick={closeHandler}
                 >

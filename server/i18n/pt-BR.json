@@ -1589,7 +1589,7 @@
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parâmetro requerido para adicionar o usuário ao time."
+    "translation": "Parâmetro requerido para adicionar o usuário à equipe."
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -2265,7 +2265,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Falha ao atualizar conexão websocket."
+    "translation": "URL bloqueado por causa de CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -4312,10 +4312,6 @@
     "translation": "ID inválida."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mensagem inválida."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Id original inválida."
   },
@@ -4657,7 +4653,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Não foi possível encontrar o usuário."
+    "translation": "Não foi possível encontrar o usuário {{.user}}"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -5377,11 +5373,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Encontramos um erro ao procurar o canal."
+    "translation": "Encontramos um erro ao procurar o canal {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Não foi possível encontrar o canal existente."
+    "translation": "Não foi possível encontrar o canal existente {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -8257,7 +8253,7 @@
   },
   {
     "id": "api.admin.syncables_error",
-    "translation": "falha ao adicionar usuário aos times e canais do grupo"
+    "translation": "falha ao adicionar usuário às equipes e canais do grupo"
   },
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
@@ -8942,5 +8938,569 @@
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
     "translation": "Não foi possível convidar o remoto para o canal"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "A Transferência de Autenticação não está disponível porque o registro de e-mail está desativado."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Falha ao armazenar a publicação em cache após a desduplicação de um cliente repetindo a mesma solicitação."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "O endereço de e-mail no token não corresponde ao dos dados do usuário."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Não foi possível criar usuário. O servidor excede o limite seguro de usuários. Entre em contato com o administrador com: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Erro ao verificar se um usuário tem uma imagem de perfil personalizada."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "A resposta SAML é muito longa"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Não foi possível obter tokens por tipo ao invalidar tokens de recuperação de senha"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "A Transferência de Autenticação não está disponível porque nem o login por e-mail nem o login por nome de usuário estão ativados."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "O usuário não é um usuário OAuth ou SAML."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Falha ao analisar a solicitação"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "O login falhou porque os usuários remotos não têm permissão para fazer login."
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "O campo '{{.Field}}' deve ser definido por meio do provedor de login do usuário."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Não é possível recuperar usuários para um canal arquivado"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Ocorreu um erro interno ao salvar a senha."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Você não pode modificar o status do usuário. O usuário é gerenciado pelo LDAP"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Não é possível recuperar publicações de um canal arquivado"
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Não é possível obter confirmação de recebimento."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Não foi possível excluir a confirmação de recebimento."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Falha na verificação dos limites de imagem. A resolução é muito alta."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "O campo '{{.Field}}' deve ser definido por meio do provedor de login do usuário."
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Falha ao obter membros do canal para o canal direto"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Não há membros para o canal direto"
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "A linha de dados de importação tem o tipo \"role\", mas o objeto role é nulo."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Erro durante a execução do trabalho."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} lhe enviou uma nova mensagem"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} enviou uma mensagem ao seu grupo."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} lhe enviou uma nova mensagem"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Não foi possível atualizar o bot."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Falha ao excluir a publicação agendada do banco de dados."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Você não tem permissão para excluir esse recurso."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "A publicação programada não existe."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Não foi possível encontrar o proprietário do bot"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Não foi possível buscar publicações agendadas existentes no banco de dados."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Ocorreu um erro ao buscar publicações agendadas."
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "A linha de dados de importação tem o tipo \"bot\", mas o objeto bot é nulo"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "O proprietário do bot está ausente"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Não foi possível analisar o token ao invalidar os tokens de recuperação de senha"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Não foi possível encontrar a contagem de membros."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Não foi possível encontrar os canais dos quais o usuário é membro"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Não foi possível excluir as categorias da barra lateral existentes para a MG convertida."
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "O token não é válido ou expirou"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Não é possível encontrar um usuário para este token"
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Falha ao escrever cabeçalhos CSV."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "O recurso Rascunhos está desativado."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Essas ações exigem o uso de um armazenamento de exportação dedicado."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Esse recurso é restrito por uma configuração de feature flag."
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Não foi possível atualizar o registro de data e hora do último login"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} mencionou você em uma mensagem"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Falha ao reconectar o plug-in"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "O ID da equipe especificado na solicitação de conversão não contém todos os membros das mensagens de grupo"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Não foi possível atualizar os dados de notificação dos membros do canal."
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} lhe enviou uma nova Mensagem Direta."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Não foi possível salvar os dados de notificação."
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "O canal que está sendo convertido não é uma mensagem de grupo. Você só pode converter mensagens de grupo"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Não foi possível analisar o token ao invalidar tokens de verificação de e-mail"
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Não foi possível obter o marcador."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "A lista de administradores está vazia."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Não foi possível excluir o marcador."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Não foi possível atualizar o marcador existente."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Não foi possível atualizar o membro do canal."
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Não foi possível definir o conteúdo pesquisável do arquivo."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} respondeu a um tópico"
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} respondeu a um tópico que você está seguindo em {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " e vá para Configurações > Notificações"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "A publicação não pode ser criada"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Não foi possível obter o bot do sistema"
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Não foi possível atualizar o marcador."
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Falha ao criar mensagen de grupo para publicação de conversão de canal"
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Não foi possível salvar o marcador."
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Não é possível definir o status personalizado."
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Não foi possível buscar o início dos dados GIF."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Não foi possível receber a mensagem direta do bot do sistema"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Não foi possível obter o usuário"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Se você recebeu essa notificação de teste, ela funcionou!"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Erro ao ler o status do arquivo: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Erro ao procurar o arquivo: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} respondeu a um tópico que você está seguindo."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} respondeu a um tópico em sua Mensagem Direta."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Erro ao buscar funções de usuário durante a validação."
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Não foi possível adicionar o usuário como membro do canal."
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Não foi possível contar as publicações urgentes a partir da data fornecida."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Não foi possível obter a contagem de arquivos para o canal"
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Não foi possível obter a prioridade para publicações"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Não foi possível atualizar tantos membros do canal. Somente {{.Max}} membros do canal podem ser atualizados de uma vez."
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} membros do espaço de trabalho {{.WorkspaceName}} solicitaram o início da avaliação Enterprise para acesso a: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} membros do espaço de trabalho {{.WorkspaceName}} solicitaram uma atualização do espaço de trabalho para: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "O membro {{.UsersNum}} do espaço de trabalho {{.WorkspaceName}} solicitou o início da avaliação Enterprise para acesso a: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "O membro {{.UsersNum}} do espaço de trabalho {{.WorkspaceName}} solicitou uma atualização do espaço de trabalho para: "
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Não foi possível obter os Rascunhos do usuário."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Não foi possível obter arquivos para Rascunho."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Não foi possível salvar o Rascunho."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Não foi possível verificar se o arquivo existe."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Não foi possível gerar a URL pré-assinada."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "O arquivo de exportação não foi encontrado."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Não foi possível decodificar o gif."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Serviço de autenticação inválido: {{.AuthService}}"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Faça login no Mattermost"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Não é possível enviar publicação de notificação."
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Falha ao encontrar arquivos para publicação."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Falha ao excluir permanentemente o arquivo para publicação."
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Não foi possível obter tokens por tipo ao invalidar tokens de verificação de e-mail"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Não foi possível remover o token ao invalidar os tokens de verificação de e-mail"
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Não foi possível salvar a confirmação de recebimento da publicação."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Não foi possível classificar o marcador."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Não foi possível classificar o marcador. Entrada inválida."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Não foi possível classificar o marcador. Não encontrado."
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Canal não é uma mensagen de grupo."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Não é possível verificar os não lidos e as menções"
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Não foi possível atualizar o membro do canal, o limite de tamanho dos dados de notificação foi excedido."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Seu driver de armazenamento de exportação não oferece suporte à geração de URL pré-assinado."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Não foi possível buscar o arquivo porque ele ultrapassou o limite do plano de cloud."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Não foi possível arquivar o canal importado."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Erro ao buscar a última publicação acessível"
+  },
+  {
+    "id": "app.member_count",
+    "translation": "erro ao recuperar contagem de membros"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} mencionou você no canal {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Deseja alterar suas configurações de notificações?"
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Não foi possível remover os dados oauth."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Não foi possível remover o token ao invalidar os tokens de recuperação de senha"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Não foi possível buscar equipes em comum."
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Não foi possível executar a operação para esse tipo de fonte."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} respondeu a um tópico em seu grupo."
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Falha ao obter a contagem de usuários"
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "O token não existe ou expirou"
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "o nome do grupo não é único"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "já existe um usuário com nome de usuário \"{{.Username}}\"."
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Não foi possível excluir o Rascunho."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Não foi possível encontrar a contagem de membros para os canais fonrnecidos."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Não foi possível obter confirmação de recebimento da publicação."
+  },
+  {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "O esquema do índice de canais do Elasticsearch está desatualizado. É recomendável que você gere novamente o índice de canais.\nClique no botão `Reconstruir índices de Canais` na [seção Elasticsearch no System Console]({{.ElasticsearchSection}}) para corrigir o problema.\nConsulte o registro de alterações do Mattermost para obter mais informações."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Formato de relatório não suportado."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Não foi possível obter o Rascunho."
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Não foi possível obter todos os trabalhos por tipo e status."
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Não foi possível atualizar o status do trabalho. Status inválido definido"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Erro ao buscar o último arquivo acessível"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Falha ao analisar o subcaminho do SiteURL"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Canal não encontrado"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Conteúdo da publicação inválido"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Ignorando a instalação do plug-in {{.Id}}, pois a versão existente é igual ou mais recente."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Não é possível obter o uso das equipes"
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Não foi possível redefinir a posição de leitura para o início do pacote de plug-ins."
   }
 ]

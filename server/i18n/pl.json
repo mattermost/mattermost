@@ -4312,10 +4312,6 @@
     "translation": "Nieprawidłowy identyfikator."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Nieprawidłowa wiadomość."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Nieprawidłowe id oryginału."
   },
@@ -4613,11 +4609,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Nie można znaleźć polecenia."
+    "translation": "Nie można znaleźć polecenia {{.command_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Nie można przeanalizować danych przychodzących."
+    "translation": "Nie można przeanalizować danych przychodzących dla webhooka {{.hook_id}}."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4629,7 +4625,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Ten webhook nie może publikować na żądanym kanale."
+    "translation": "Ten webhook nie może wysyłać wiadomości na żądany kanał {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4645,7 +4641,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Niewłaściwe uprawnienia do kanału."
+    "translation": "Użytkownik {{.user}} nie ma odpowiednich uprawnień do kanału {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4657,7 +4653,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Nie odnaleziono użytkownika."
+    "translation": "Nie można znaleźć użytkownika {{.user}}"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -5373,11 +5369,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Napotkaliśmy błąd podczas wyszukiwania kanału."
+    "translation": "Napotkaliśmy błąd podczas wyszukiwania kanału {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Nie można znaleźć istniejącego kanału."
+    "translation": "Nie można znaleźć istniejącego kanału {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -8836,10 +8832,6 @@
     "translation": "Nieprawidłowa wartość."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Nieprawidłowa wiadomość."
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Niepoprawne identyfikatory plików."
   },
@@ -10410,5 +10402,29 @@
   {
     "id": "model.config.is_valid.storage_class.app_error",
     "translation": "Nieprawidłowa klasa pamięci {{.Value}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Nie udało się zbuforować postu po deduplikacji klienta powtarzającego to samo żądanie."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Nie można zresetować pozycji odczytu do początku pakietu wtyczek."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Nie udało się obsłużyć polecenia webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Nie udało się zdekodować ładunku mediów typu {{.media_type}} dla przychodzącego webhooka {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Nie udało się obsłużyć ładunku mediów typu {{.media_type}} dla przychodzącego webhooka {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Nie udało się przeanalizować przychodzącego webhooka {{.hook_id}}."
   }
 ]
