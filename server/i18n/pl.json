@@ -3097,7 +3097,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Wyszukiwanie Elasticsearch nie jest włączone na tym serwerze"
+    "translation": "{{.Backend}} wyszukiwanie nie jest włączone na tym serwerze"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
