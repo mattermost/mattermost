@@ -490,7 +490,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     updateAttribute = (e: React.ChangeEvent<HTMLInputElement>) => {
         const attributeValues = Object.assign({}, this.state.customAttributeValues);
-        attributeValues[e.target.id] = e.target.value;
+        const id = e.target.id.substring(e.target.id.indexOf('_') + 1);
+        attributeValues[id] = e.target.value;
         this.setState({customAttributeValues: attributeValues});
     };
 
