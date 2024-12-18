@@ -218,7 +218,7 @@ function restart() {
 
 export function reconnect() {
     // eslint-disable-next-line
-    console.log('Reconnecting WebSocket'); //eslint-disable-line no-console
+    console.log('Reconnecting WebSocket');
 
     temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
 
