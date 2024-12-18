@@ -4081,15 +4081,15 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Otevřít dialog s uživatelským nastavením"
+    "translation": "Otevřít dialogové okno Nastavení"
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "Funkce vyhledávání není na vašem zařízení podporována."
+    "translation": "Příkaz pro vyhledávání není na vašem zařízení podporován."
   },
   {
     "id": "api.command_search.name",
-    "translation": "hledej"
+    "translation": "vyhledat"
   },
   {
     "id": "api.command_search.hint",
@@ -4117,7 +4117,7 @@
   },
   {
     "id": "api.command_remove.message.app_error",
-    "translation": "Příkaz /remove nebo /kick vyžaduje zadanou zprávu."
+    "translation": "Musíte zadat zprávu s příkazem /remove nebo /kick."
   },
   {
     "id": "api.command_remove.hint",
@@ -4125,11 +4125,11 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "Uživatel nemůže být odstraněn z tohoto kanálu, protože je členem skupiny, která je na tento kanál navázána. Pro odstranění uživatele z tohoto kanálu musíte odstranit uživatele ze skupiny svázané s tímto kanálem."
+    "translation": "Uživatele nemůžete z kanálu odstranit, protože je členem skupin propojených s tímto kanálem. Chcete-li jej z kanálu odstranit, musíte jej odebrat z propojených skupin."
   },
   {
     "id": "api.command_remove.direct_group.app_error",
-    "translation": "Nemůžeš odstranit uživatele ze soukromé komunikace."
+    "translation": "Nemůžete někoho odstranit z kanálu přímých zpráv."
   },
   {
     "id": "api.command_remove.desc",
@@ -4285,7 +4285,7 @@
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Při připojování k kanálu došlo k chybě."
+    "translation": "Došlo k chybě při připojování ke kanálu."
   },
   {
     "id": "api.command_join.desc",
@@ -4313,7 +4313,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Nelze najít kanál {{.Channel}}. K identifikaci použijte název kanálu."
+    "translation": "Nelze najít kanál {{.Channel}}. K identifikaci kanálů prosím použijte [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -4325,11 +4325,11 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Nelze najít uživatele {{.User}}. Mohl být deaktivován správcem."
+    "translation": "Uživatele {{.User}} jsme nemohli najít. Mohl být deaktivován správcem systému."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Chybí uživatelské jméno a kanál."
+    "translation": "Chybí uživatelské jméno a/nebo kanál."
   },
   {
     "id": "api.command_invite.hint",
@@ -4353,15 +4353,15 @@
   },
   {
     "id": "api.command_invite.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při získávání aktuálního kanálu."
   },
   {
     "id": "api.command_help.name",
-    "translation": "Nápověda"
+    "translation": "nápověda"
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Otevřít stránku s nápovědou Mattermost"
+    "translation": "Zobrazit nápovědu k Mattermostu"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -4373,11 +4373,11 @@
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Hromadné zprávy jsou omezeny na minimum {{.MinUsers}} uživatelů."
+    "translation": "Hromadné zprávy jsou omezeny na minimálně {{.MinUsers}} uživatelů."
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Hromadné zprávy jsou omezeny na maximum {{.MaxUsers}} uživatelů."
+    "translation": "Hromadné zprávy jsou omezeny na maximálně {{.MaxUsers}} uživatelů."
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
@@ -4401,7 +4401,7 @@
   },
   {
     "id": "api.command_groupmsg.desc",
-    "translation": "Odešle hromadnou zprávu vybraným uživatelům"
+    "translation": "Odešle skupinovou zprávu vybraným uživatelům"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -4409,11 +4409,11 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Odkazy na obrázky se nyní standartně rozbalují"
+    "translation": "Odkazy na obrázky se nyní ve výchozím nastavení rozbalí"
   },
   {
     "id": "api.command_expand.name",
-    "translation": "Rozbalit"
+    "translation": "rozbalit"
   },
   {
     "id": "api.command_expand.desc",
@@ -4425,19 +4425,19 @@
   },
   {
     "id": "api.command_echo.message.app_error",
-    "translation": "Příkaz /echo vyžaduje zadanou zprávu."
+    "translation": "Je nutné zadat zprávu s příkazem /echo."
   },
   {
     "id": "api.command_echo.hint",
-    "translation": "'zpráva' [delay in seconds]"
+    "translation": "'zpráva' [prodleva v sekundách]"
   },
   {
     "id": "api.command_echo.high_volume.app_error",
-    "translation": "Vysoké množství požadavků na echo. Nemohu zpracovat požadavek."
+    "translation": "Vysoký objem požadavků na echo, nelze zpracovat požadavek."
   },
   {
     "id": "api.command_echo.desc",
-    "translation": "Vypíše zpět text, bude odeslaný z vašeho účtu"
+    "translation": "Zpětně odešle text z vašeho účtu"
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -4605,7 +4605,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Odkazy na obrázky se standardně sbalují"
+    "translation": "Odkazy na obrázky se nyní ve výchozím nastavení sbalí"
   },
   {
     "id": "api.command_collapse.name",
@@ -4621,7 +4621,7 @@
   },
   {
     "id": "api.command_code.message.app_error",
-    "translation": "Příkaz /code vyžaduje zadanou zprávu."
+    "translation": "Je nutné zadat zprávu s příkazem /code."
   },
   {
     "id": "api.command_code.hint",
@@ -4633,7 +4633,7 @@
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při aktualizaci aktuálního kanálu."
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
@@ -4641,7 +4641,7 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Název kanálu nesmí mít více než {{.Length}} znaků."
+    "translation": "Název kanálu musí mít {{.Length}} znaků nebo méně."
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
@@ -4649,11 +4649,11 @@
   },
   {
     "id": "api.command_channel_rename.name",
-    "translation": "přejmenuj"
+    "translation": "přejmenovat"
   },
   {
     "id": "api.command_channel_rename.message.app_error",
-    "translation": "Příkaz /rename vyžaduje zadanou zprávu."
+    "translation": "Je nutné zadat zprávu s příkazem /rename."
   },
   {
     "id": "api.command_channel_rename.hint",
@@ -4661,7 +4661,7 @@
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "Nelze přejmenovat kanál přímých zpráv."
+    "translation": "Nelze přejmenovat kanály přímých zpráv."
   },
   {
     "id": "api.command_channel_rename.desc",
@@ -4669,15 +4669,15 @@
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při načítání aktuálního kanálu."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Nepodařilo se načíst aktuální kanál."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při aktualizaci účelu kanálu."
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
@@ -4685,11 +4685,11 @@
   },
   {
     "id": "api.command_channel_purpose.name",
-    "translation": "Účel"
+    "translation": "účel"
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
-    "translation": "Příkaz /purpose vyžaduje zadanou zprávu."
+    "translation": "Je nutné zadat zprávu s příkazem /purpose."
   },
   {
     "id": "api.command_channel_purpose.hint",
@@ -4701,15 +4701,15 @@
   },
   {
     "id": "api.command_channel_purpose.desc",
-    "translation": "Úprava účelu kanálu"
+    "translation": "Upravit účel kanálu"
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při načítání aktuálního kanálu."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Chyba při pokusu změnit aktuální kanál."
+    "translation": "Chyba při aktualizaci záhlaví kanálu."
   },
   {
     "id": "api.command_channel_header.permission.app_error",
@@ -4717,11 +4717,11 @@
   },
   {
     "id": "api.command_channel_header.name",
-    "translation": "hlavička"
+    "translation": "záhlaví"
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "Text musí být uvozen příkazem /echo."
+    "translation": "Text musí být zadán s příkazem /header."
   },
   {
     "id": "api.command_channel_header.hint",
@@ -4733,11 +4733,11 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při načítání aktuálního kanálu."
   },
   {
     "id": "api.command_away.success",
-    "translation": "Momentálně jsi pryč"
+    "translation": "Nyní jste \"Pryč\""
   },
   {
     "id": "api.command_away.name",
@@ -4745,19 +4745,19 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Nastav status pryč"
+    "translation": "Nastavte si status na \"Pryč\""
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Nelze aktualizovat příkazy jiných týmů."
+    "translation": "Nepodařilo se aktualizovat příkazy napříč týmy."
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "Pozvánky emailem byly odeslány"
+    "translation": "Pozvánky e-mailem byly odeslány"
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Prosím zadejte jednu nebo více emailových adres"
+    "translation": "Prosím zadejte jednu nebo více platných e-mailových adres"
   },
   {
     "id": "api.command.invite_people.name",
@@ -4765,7 +4765,7 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "Na serveru je zakázáno zakládání nových uživatelů, pozvánka nebyla poslána"
+    "translation": "Vytváření uživatelů bylo na tomto serveru zakázáno, žádné pozvánky nebyly odeslány"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -4785,27 +4785,27 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Poslat email s pozvánkou do Mattermost teamu"
+    "translation": "Odešlete e-mailovou pozvánku do svého týmu v Mattermostu"
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "Trigger příkazu nebyl nalezen."
+    "translation": "Nebylo nalezeno žádné spouštěcí slovo příkazu."
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Přepínač '{{.Trigger}}' nebyl nalezen. Pokud chceš poslat zprávu začínající znakem \"/\", vlož před tento znak nejprve mezeru."
+    "translation": "Příkaz s triggerem '{{.Trigger}}' nebyl nalezen. Pokud chcete odeslat zprávu začínající znakem \"/\", zkuste přidat mezeru na začátek zprávy."
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "Příkaz aktivovaný '{{.Trigger}}' vrátil odpověď {{.Status}}."
+    "translation": "Příkaz s triggerem '{{.Trigger}}' vrátil odpověď {{.Status}}."
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "Příkaz aktivovaný '{{.Trigger}}' vrátil prázdnou odpověď."
+    "translation": "Příkaz s triggerem '{{.Trigger}}' vrátil prázdnou odpověď."
   },
   {
     "id": "api.command.execute_command.failed.app_error",
-    "translation": "Příkaz aktivovaný '{{.Trigger}}' se nezdařil."
+    "translation": "Příkaz s triggerem '{{.Trigger}}' selhal."
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
@@ -4813,7 +4813,7 @@
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
-    "translation": "Toto klíčové slovo se již používá. Vyberte si prosím jiné slovo."
+    "translation": "Toto klíčové slovo je již používáno. Prosím, vyberte jiné slovo."
   },
   {
     "id": "api.command.disabled.app_error",
@@ -4821,11 +4821,11 @@
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "Specifikovaný uživatel není členem specifikovaného týmu."
+    "translation": "Uvedený uživatel není členem uvedeného kanálu."
   },
   {
     "id": "api.command.admin_only.app_error",
-    "translation": "Integrace byly omezeny na administrátory."
+    "translation": "Integrace byly omezeny pouze na správce."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -4833,11 +4833,11 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Neplatná aktualizace členství týmu: Nelze ručně přidat nebo odebrat roli návštěvníka."
+    "translation": "Neplatná aktualizace člena týmu: Roli hosta nelze přidávat ani odebírat ručně."
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "Nelze nastavit schéma kanálu, protože schéma není schéma kanálu."
+    "translation": "Nelze nastavit schéma kanálu, protože dodané schéma není schématem kanálu."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -4845,7 +4845,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "Výchozí kanál nemůže být nastaven jako soukromý/privátní."
+    "translation": "Výchozí kanál nemůže být nastaven jako soukromý."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
@@ -5313,7 +5313,7 @@
   },
   {
     "id": "api.image.get.app_error",
-    "translation": "Požadovanou adresu URL obrázku nelze zpracovat."
+    "translation": "Zadanou URL adresu obrázku nelze zpracovat."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -5829,7 +5829,7 @@
   },
   {
     "id": "api.cloud.app_error",
-    "translation": "Interní chyba bězem požadavku na cloud api."
+    "translation": "Vnitřní chyba během požadavku na cloudové API."
   },
   {
     "id": "model.group_syncable.group_id.app_error",
@@ -6853,11 +6853,11 @@
   },
   {
     "id": "api.invalid_redirect_url",
-    "translation": "Bylo zadáno nevalidní url pro přesměrování"
+    "translation": "Byla zadána neplatná URL adresa pro přesměrování"
   },
   {
     "id": "api.invalid_custom_url_scheme",
-    "translation": "Bylo zadáno nevalidní url schéma"
+    "translation": "Bylo zadáno neplatné vlastní URL schéma"
   },
   {
     "id": "api.file.file_mod_time.app_error",
@@ -6901,15 +6901,15 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": "Vložený text je příliš dlouhý. Délka textu účelu kanálu je omezena na maximálně {{.MaxLength}} znaky/ů."
+    "translation": "Zadaný text překračuje povolený limit znaků. Účel kanálu je omezen na {{.MaxLength}} znaků."
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": "Vložený text je příliš dlouhý. Délka textu záhlaví kanálu je omezena na maximálně {{.MaxLength}} znaky/ů."
+    "translation": "Zadaný text přesahuje maximální povolenou délku. Záhlaví kanálu je omezeno na {{.MaxLength}} znaků."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
-    "translation": "Událost z webhooku nebyla zpracována. Chybí, nebo není platná."
+    "translation": "Událost webhooku nebyla zpracována. Buď chybí, nebo není platná."
   },
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
@@ -7105,7 +7105,7 @@
   },
   {
     "id": "api.command_custom_status.name",
-    "translation": "status"
+    "translation": "stav"
   },
   {
     "id": "api.command_exportlink.driver.app_error",
@@ -7113,11 +7113,11 @@
   },
   {
     "id": "api.command_exportlink.hint",
-    "translation": "[job-id|zip jmenosouboru|{{.LatestMsg}}]"
+    "translation": "[job-id|názevsouboru zip|{{.LatestMsg}}"
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Adresa URL webu není nastavena. Nastavte to v System Console > Environment > Web Server."
+    "translation": "URL webu není nastavena. Nastavte ji v System Console > Environment > Web Server."
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
@@ -7257,7 +7257,7 @@
   },
   {
     "id": "api.command_remote.unknown_action",
-    "translation": "Neznámý úkon `{{.Action}}`"
+    "translation": "Neznámá akce `{{.Action}}`"
   },
   {
     "id": "api.command_share.available_actions",
@@ -8033,7 +8033,7 @@
   },
   {
     "id": "api.getUsersForReporting.invalid_active_filter",
-    "translation": "Nemohu skrýt zároveň aktivní i neaktivní uživatele."
+    "translation": "Nelze skrýt zároveň aktivní i neaktivní uživatele."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
@@ -8145,7 +8145,7 @@
   },
   {
     "id": "api.getUsersForReporting.invalid_team_filter",
-    "translation": "Zadáno neplatné team id."
+    "translation": "Bylo zadáno neplatné ID týmu."
   },
   {
     "id": "api.getUsersForReporting.invalid_page_size",
