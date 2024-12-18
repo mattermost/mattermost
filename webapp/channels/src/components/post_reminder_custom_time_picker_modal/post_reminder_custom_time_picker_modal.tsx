@@ -32,7 +32,8 @@ function PostReminderCustomTimePicker({userId, timezone, onExited, postId, actio
 
     const handleConfirm = useCallback((dateTime: Moment) => {
         actions.addPostReminder(userId, postId, toUTCUnix(dateTime.toDate()));
-    }, [actions, postId, userId]);
+        onExited();
+    }, [actions, postId, userId, onExited]);
 
     return (
         <DateTimePickerModal

@@ -127,6 +127,7 @@ func (b *Bot) PreSave() {
 	b.CreateAt = GetMillis()
 	b.UpdateAt = b.CreateAt
 	b.DeleteAt = 0
+	b.Username = NormalizeUsername(b.Username)
 }
 
 // PreUpdate should be run before saving an updated bot to the database.
