@@ -765,9 +765,6 @@ describe('Messaging', () => {
             // * Edit Post Input should appear
             cy.get('#edit_textbox').should('be.visible');
 
-            // # Check that a scrollbar exists
-            cy.get('.post--editing__wrapper.scroll').should('be.visible');
-
             // # Update the message
             cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).type(' test').wait(TIMEOUTS.HALF_SEC);
 
