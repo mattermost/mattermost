@@ -4001,15 +4001,15 @@
   },
   {
     "id": "api.context.token_provided.app_error",
-    "translation": "Sezení není OAuth ale v dotazu byl poskytnut token."
+    "translation": "Relace není OAuth, ale v řetězci dotazu byl poskytnut token."
   },
   {
     "id": "api.context.session_expired.app_error",
-    "translation": "Chybná session, prosím přihlaste se znova."
+    "translation": "Neplatná nebo vypršená relace, prosím přihlaste se znovu."
   },
   {
     "id": "api.context.server_busy.app_error",
-    "translation": "Servr je vytížen. Nekritické služby jsou dočasně nedostupné."
+    "translation": "Server je zaneprázdněn, nekritické služby jsou dočasně nedostupné."
   },
   {
     "id": "api.context.permissions.app_error",
@@ -4017,7 +4017,7 @@
   },
   {
     "id": "api.context.mfa_required.app_error",
-    "translation": "Tento server vyžaduje multi-faktorovou autentizaci."
+    "translation": "Na tomto serveru je vyžadována vícefaktorová autentifikace."
   },
   {
     "id": "api.context.invalid_url_param.app_error",
@@ -4025,7 +4025,7 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Neplatný token sezení={{.Token}}, err={{.Error}}"
+    "translation": "Neplatný token relace={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -4037,11 +4037,11 @@
   },
   {
     "id": "api.context.404.app_error",
-    "translation": "Sorry jako, takovou stránku nemám."
+    "translation": "Omlouváme se, stránku se nepodařilo najít."
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
-    "translation": "Nepodařilo se sloučit konfiguraci."
+    "translation": "Nepodařilo se sloučit danou konfiguraci."
   },
   {
     "id": "api.config.client.old_format.app_error",
@@ -4061,11 +4061,11 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "Funkce zkratek není na vašem zařízení podporována."
+    "translation": "Příkaz zkratek není na vašem zařízení podporován."
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "Klávesové zkratky"
+    "translation": "zkratky"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -4073,7 +4073,7 @@
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "Změna nastavení není na vašem zařízení podporována."
+    "translation": "Příkaz nastavení není na vašem zařízení podporován."
   },
   {
     "id": "api.command_settings.name",
@@ -4729,7 +4729,7 @@
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Upravit záhlaví kanálu"
+    "translation": "Upravit Záhlaví kanálu"
   },
   {
     "id": "api.command_channel_header.channel.app_error",
@@ -5373,7 +5373,7 @@
   },
   {
     "id": "api.config.migrate_config.app_error",
-    "translation": "Migrace úložiště konfigurace se nezdařila."
+    "translation": "Nepodařilo se migrovat úložiště konfigurace."
   },
   {
     "id": "api.admin.ldap.not_available.app_error",
@@ -5813,7 +5813,7 @@
   },
   {
     "id": "api.context.local_origin_required.app_error",
-    "translation": "Tento endpoint vyžaduje lokální request origin."
+    "translation": "Tento endpoint vyžaduje místní původ požadavku."
   },
   {
     "id": "api.config.get_config.restricted_merge.app_error",
@@ -7233,15 +7233,15 @@
   },
   {
     "id": "api.command_share.channel_status.help",
-    "translation": "Zobrazí stav pro tento sdílený kanál"
+    "translation": "Zobrazuje stav tohoto sdíleného kanálu"
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "Stav kanálu `{{.ChannelId}}`"
+    "translation": "Stav pro ID kanálu {{.ChannelId}}"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Nastala chyba při kontrole, zda kanál {{.ChannelID}} existuje: {{.Error}}"
+    "translation": "Chyba při ověřování, zda existuje sdílený kanál {{.ChannelID}}: {{.Error}}"
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -7249,7 +7249,7 @@
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Nastaví sdílení aktuálního kanálu s externí Mattermost instancí."
+    "translation": "Nastaví sdílení aktuálního kanálu s externí instancí Mattermostu."
   },
   {
     "id": "api.command_remote.status.help",
@@ -7261,11 +7261,11 @@
   },
   {
     "id": "api.command_share.available_actions",
-    "translation": "Dosupné úkony: {{.Actions}}"
+    "translation": "Dotsupné akce: {{.Actions}}"
   },
   {
     "id": "api.command_share.channel_invite.error",
-    "translation": "Chyba při zvaní uživatele `{{.Name}}` do kanálu: {{.Error}}"
+    "translation": "Chyba při pozvání uživatele {{.Name}} do tohoto kanálu: {{.Error}}"
   },
   {
     "id": "api.command_remote.confirm_invitation.error",
@@ -7273,11 +7273,11 @@
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
-    "translation": "Nelze zastavit sdílení kanálu, který není sdílený."
+    "translation": "Nelze zrušit sdílení kanálu, který není sdílený."
   },
   {
     "id": "api.command_share.permission_required",
-    "translation": "Je vyžadováno oprávnění `{{.Permission}}` pro editaci sdílené kanálu."
+    "translation": "K řízení sdílených kanálů potřebujete oprávnění {{.Permission}}."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -7285,7 +7285,7 @@
   },
   {
     "id": "api.command_share.name",
-    "translation": "sdilet-kanal"
+    "translation": "sdílet-kanál"
   },
   {
     "id": "api.command_share.no_remote_invited",
@@ -7297,11 +7297,11 @@
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Chcete-li zrušit pozvánku, musíte zadat platné ID zabezpečeného připojení"
+    "translation": "Musíte zadat platné ID zabezpečeného připojení pro zrušení pozvání"
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Bezpečné připojení | URL webu | Pouze pro čtení | Pozvánka přijata | Online | Poslední synchronizace |"
+    "translation": "| Zabezpečené připojení | URL webu | Pouze pro čtení | Pozvánka přijata | Online | Poslední synchronizace |"
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
@@ -7321,7 +7321,7 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Invites an external Mattermost instance to the current shared channel"
+    "translation": "Pozve externí instanci Mattermost do aktuálního sdíleného kanálu"
   },
   {
     "id": "api.command_share.missing_action",
@@ -7701,7 +7701,7 @@
   },
   {
     "id": "api.context.ip_filtering.get_ip_filters.app_error",
-    "translation": "Při načítání IP filtrů došlo k chybě"
+    "translation": "Při načítání filtrů IP došlo k chybě"
   },
   {
     "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
@@ -7725,7 +7725,7 @@
   },
   {
     "id": "api.context.ip_filtering.apply_ip_filters.app_error",
-    "translation": "Při aplikaci IP filtrů došlo k chybě"
+    "translation": "Při aplikaci filtrů IP došlo k chybě"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -8157,7 +8157,7 @@
   },
   {
     "id": "api.context.request_body_too_large.app_error",
-    "translation": "Požadavek nelze zpracovat. Požadavek je příliš obsáhlý."
+    "translation": "Nelze zpracovat požadavek. Tělo požadavku je příliš velké."
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
