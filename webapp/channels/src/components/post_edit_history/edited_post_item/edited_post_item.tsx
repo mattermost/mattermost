@@ -13,6 +13,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import FileAttachmentListContainer from 'components/file_attachment_list';
 import InfoToast from 'components/info_toast/info_toast';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostMessageContainer from 'components/post_view/post_message_view';
@@ -27,6 +28,8 @@ import {imageURLForUser} from 'utils/utils';
 import RestorePostModal from '../restore_post_modal';
 
 import type {PropsFromRedux} from './index';
+
+import './edited_post_items.scss';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -74,7 +77,9 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         actions.openModal(restorePostModalData);
     }, [actions, post]);
 
-    const togglePost = () => setOpen((prevState) => !prevState);
+    const togglePost = () => {
+        setOpen((prevState) => !prevState);
+    };
 
     if (!post) {
         return null;
@@ -160,6 +165,8 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         />
     );
 
+    const isFileDeleted = post.delete_at > 0;
+
     const messageContainer = (
         <div className='edit-post-history__content_container'>
             {postHeader}
@@ -168,6 +175,12 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                     {message}
                 </div>
             </div>
+            <FileAttachmentListContainer
+                post={post}
+                isEditHistory={isFileDeleted}
+                disableDownload={isFileDeleted}
+                disableActions={isFileDeleted}
+            />
         </div>
     );
 
@@ -212,7 +225,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                                 icon={open ? 'chevron-down' : 'chevron-right'}
                                 compact={true}
                                 aria-label='Toggle to see an old message.'
-                                className='edit-post-history__icon__button'
+                                className='edit-post-history__icon__button toggleCollapseButton'
                             />
                             <span className='edit-post-history__date'>
                                 <Timestamp
