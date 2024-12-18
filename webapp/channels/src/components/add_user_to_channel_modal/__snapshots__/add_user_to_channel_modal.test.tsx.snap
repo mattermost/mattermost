@@ -95,9 +95,7 @@ exports[`components/AddUserToChannelModal should match snapshot 1`] = `
           value=""
         />
       </div>
-      <div>
-        <br />
-      </div>
+      <div />
     </ModalBody>
     <ModalFooter
       bsClass="modal-footer"

@@ -384,7 +384,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 			}
 
 			T := i18n.GetUserTranslations(user.Locale)
-			messageHeader := T("app.scheduled_post.failed_messages", map[string]interface{}{
+			messageHeader := T("app.scheduled_post.failed_messages", map[string]any{
 				"Count": len(userFailedMessages),
 			})
 

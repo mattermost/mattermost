@@ -3310,7 +3310,6 @@
   "copied.message": "Скопировано",
   "copy.code.message": "Скопировать код",
   "copy.text.message": "Копировать текст",
-  "copyTextTooltip.copy": "Копировать",
   "create_category_modal.create": "Создать",
   "create_category_modal.createCategory": "Создать категорию",
   "create_comment.addComment": "Ответить в этой теме...",

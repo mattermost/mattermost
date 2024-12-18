@@ -32,7 +32,7 @@ import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {ActionFunc, ActionFuncAsync} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 export function submitPost(
@@ -200,7 +200,7 @@ export function onSubmit(
     };
 }
 
-export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boolean> {
+export function editLatestPost(channelId: string, rootId = ''): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const state = getState();
 

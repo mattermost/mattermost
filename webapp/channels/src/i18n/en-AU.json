@@ -3472,7 +3472,6 @@
   "copied.message": "Copied",
   "copy.code.message": "Copy code",
   "copy.text.message": "Copy text",
-  "copyTextTooltip.copy": "Copy",
   "copy_text.copied": "Copied",
   "copy_text.copy": "Copy",
   "createComment.threadFromArchivedChannelMessage": "You are viewing a thread from an <b>archived channel</b>. New messages cannot be posted.",
