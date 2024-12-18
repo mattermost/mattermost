@@ -276,8 +276,8 @@ const SearchBox = forwardRef(
                     {crossTeamSearchEnabled && (
                         <SearchTeamSelector>
                             <SelectTeam
-                                value={searchTeam}
-                                onChange={changeSearchTeam}
+                                selectedTeamId={searchTeam}
+                                onTeamSelected={changeSearchTeam}
                             />
                         </SearchTeamSelector>
                     )}
