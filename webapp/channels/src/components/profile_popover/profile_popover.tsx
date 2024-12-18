@@ -198,6 +198,7 @@ const ProfilePopover = ({
                 </div>
                 <ProfilePopoverCustomAttributes
                     customAttributes={customAttributes}
+
                     // customAttributeValues={user.custom_attributes}
                     customAttributeValues={fakeCustomAttributeValues}
                 />
