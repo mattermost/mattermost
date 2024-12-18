@@ -20,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -123,7 +124,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We do this incase we get concurrent requests, we will always have a unique directory.
 	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
 	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
-	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, outputDirectoryToUse)
+	err := c.App.CreateZipFileAndAddFiles(&request.Context{}, fileStorageBackend, fileDatas, outputZipFilename, outputDirectoryToUse)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, "", http.StatusForbidden).Wrap(err)
 		return
@@ -401,8 +402,8 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logsJSON := make(map[string][]any)
-	var result any
+	logsJSON := make(map[string][]interface{})
+	var result interface{}
 	for node, logLines := range logs {
 		for _, log := range logLines {
 			err = json.Unmarshal([]byte(log), &result)
