@@ -4330,7 +4330,7 @@
   "mfa.setup.save": "Zapisz",
   "mfa.setup.secret": "Secret: {secret}",
   "mfa.setup.step1": "<strong>1. </strong>Zeskanuj kod QR przy pomocy używanej przez Ciebie aplikacji autentyfikującej takiej jak Google Authenticator, Microsoft Authenticator albo 1Password.",
-  "mfa.setup.step2_secret": "<strong>Krok 2: </strong>Użyj Google Authenticator, aby zeskanować ten kod QR lub ręcznie wpisz tajny klucz.",
+  "mfa.setup.step2_secret": "Możesz też ręcznie wprowadzić tajny klucz wyświetlony poniżej w aplikacji uwierzytelniającej.",
   "mfa.setup.step3_code": "<strong>Krok 3: </strong>Wprowadź kod wygenerowany przez Google Authenticator.",
   "mfa.setupTitle": "Ustawienia autoryzacji wieloskładnikowej",
   "mobile.set_status.away.icon": "Ikona Nieobecny",
