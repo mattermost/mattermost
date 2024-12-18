@@ -442,6 +442,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 		assert.Equal(t, *conditions.PersistentNotifications, *post.GetPriority().PersistentNotifications)
 	}
 }
+
 func TestCreateWebhookPostLinks(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -553,7 +554,7 @@ func TestSplitWebhookPost(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			splits, err := SplitWebhookPost(tc.Post, maxPostSize)
+			splits, err := splitWebhookPost(tc.Post, maxPostSize)
 			if tc.Expected == nil {
 				require.NotNil(t, err)
 			} else {
@@ -632,7 +633,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			splits, err := SplitWebhookPost(tc.post, maxPostSize)
+			splits, err := splitWebhookPost(tc.post, maxPostSize)
 			if tc.expected == nil {
 				require.NotNil(t, err)
 			} else {
@@ -741,7 +742,6 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	getTestCases := func() map[string]TestCaseOutgoing {
 		webHookResponse := "sample response text from test server"
 		testCasesOutgoing := map[string]TestCaseOutgoing{
-
 			"Should override username and Icon": {
 				EnablePostUsernameOverride: true,
 				EnablePostIconOverride:     true,
