@@ -4302,10 +4302,6 @@
     "translation": "无效的 Id。"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "无效的消息。"
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "无效的原始 id。"
   },
@@ -4603,11 +4599,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "找不到该命令。"
+    "translation": "找不到命令 {{.command_id}}。"
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "无法解析传入数据。"
+    "translation": "无法解析 webhook {{.hook_id}} 的传入数据。"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4619,7 +4615,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "此 webhook 不允许发消息到指定的频道。"
+    "translation": "此 webhook 不允许发布到请求的频道 {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4635,7 +4631,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "不合适的频道权限。"
+    "translation": "用户 {{.user}} 没有频道 {{.channel}} 的适当权限"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4647,7 +4643,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "找不到用户。"
+    "translation": "找不到用户 {{.user}}"
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
@@ -5679,7 +5675,7 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "无法找到频道。"
+    "translation": "无法找到现有的频道 {{.channel_id}}。"
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
@@ -5707,7 +5703,7 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "我们查找该频道时遇到了错误。"
+    "translation": "查找频道 {{.channel_id}} 时遇到错误。"
   },
   {
     "id": "app.channel.get_all_channels.app_error",
@@ -8806,10 +8802,6 @@
     "translation": "不正确的优先级"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "不正确的消息。"
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "不正确的 file id。"
   },
@@ -10396,5 +10388,29 @@
   {
     "id": "model.config.is_valid.storage_class.app_error",
     "translation": "存储类别 {{.Value}} 无效。"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "客户端重复发送相同请求后，缓存消息失败。"
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "无法将读取位置重置到插件包的起始位置。"
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "处理命令 webhook {{.hook_id}} 失败。"
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "无法解码传入 webhook {{.hook_id}} 的媒体类型 {{.media_type}} 负载。"
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "处理传入 webhook {{.hook_id}} 的媒体类型 {{.media_type}} 的负载失败。"
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "解析媒体传入 webhook {{.hook_id}} 失败。"
   }
 ]

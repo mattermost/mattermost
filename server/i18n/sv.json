@@ -1,7 +1,7 @@
 [
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Kan inte hitta användaren."
+    "translation": "Kan inte hitta användaren {{.user}}"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -13,7 +13,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Opassande kanalbehörigheter."
+    "translation": "Användaren {{.user}} har inte rätt behörighet till kanalen {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Denna webhook tillåts inte posta meddelanden i angiven kanal."
+    "translation": "Denna webhook tillåts inte posta meddelanden i kanal {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -137,11 +137,11 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Kunde inte tolka inkommande data."
+    "translation": "Kunde inte tolka inkommande data för webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Kan inte hitta kommandot."
+    "translation": "Kan inte hitta kommandot {{.command_id}}."
   },
   {
     "id": "system.message.name",
@@ -1674,10 +1674,6 @@
   {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Ogiltigt originalpost-id."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ogiltigt meddelande."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -4105,11 +4101,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Ett fel uppstod då kanalen hämtades."
+    "translation": "Ett fel uppstod när kanalen {{.channel_id}} eftersöktes."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Kunde inte hämta den existerande kanalen."
+    "translation": "Kunde inte hitta den existerande kanalen {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -8870,10 +8866,6 @@
     "translation": "Ogiltig prioritet"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ogiltigt meddelande."
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Ogiltiga fil-ID:n."
   },
@@ -10224,5 +10216,13 @@
   {
     "id": "api.remote_cluster.create_invite_error",
     "translation": "Kunde inte skapa inbjudan till fjärrkluster"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Ogiltig förfrågan."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Misslyckades med att cacha inlägget efter deduplicerat av en klient som upprepat samma begäran."
   }
 ]
