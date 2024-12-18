@@ -370,7 +370,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 	})
 
-	ps.SearchEngine.UpdateConfig(ps.Config())
+	if err := ps.SearchEngine.UpdateConfig(ps.Config()); err != nil {
+		ps.logger.Error("Failed to update search engine config", mlog.Err(err))
+	}
+
 	searchConfigListenerId, searchLicenseListenerId := ps.StartSearchEngine()
 	ps.searchConfigListenerId = searchConfigListenerId
 	ps.searchLicenseListenerId = searchLicenseListenerId

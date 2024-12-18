@@ -406,7 +406,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 dialogClassName={dialogClassName}
                 animation={true}
                 backdrop={false}
-                role='dialog'
+                role='none'
                 style={{paddingLeft: 0}}
                 aria-labelledby='viewImageModalLabel'
             >

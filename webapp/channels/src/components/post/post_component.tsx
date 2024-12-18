@@ -379,14 +379,16 @@ const PostComponent = (props: Props): JSX.Element => {
         getHistory().push(`/${props.teamName}/pl/${post.id}`);
     }, [props.isMobileView, props.actions, props.teamName, post?.id]);
 
+    const {selectPostFromRightHandSideSearch} = props.actions;
+
     const handleCommentClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         if (!post) {
             return;
         }
-        props.actions.selectPostFromRightHandSideSearch(post);
-    }, [post, props.actions, props.actions.selectPostFromRightHandSideSearch]);
+        selectPostFromRightHandSideSearch(post);
+    }, [post, selectPostFromRightHandSideSearch]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
         if (props.currentTeam?.id === teamId) {
