@@ -110,7 +110,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         if (this.props.deactivatedChannel) {
             createPost = (
                 <div
-                    className='post-create__container'
+                    className='post-create__container AdvancedTextEditor__ctr'
                     id='post-create'
                 >
                     <div
@@ -171,7 +171,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 <div
                     id='post-create'
                     data-testid='post-create'
-                    className='post-create__container AdvancedTextEditor__ctr'
+                    className='post-create__container'
                 >
                     <AdvancedCreatePost/>
                 </div>

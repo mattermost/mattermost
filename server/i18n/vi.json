@@ -4724,10 +4724,6 @@
     "translation": "ID nhóm không hợp lệ"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ"
-  },
-  {
     "id": "api.templates.mfa_activated_body.title",
     "translation": "Xác thực đa yếu tố đã được thêm vào"
   },
@@ -9252,10 +9248,6 @@
   {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Id tập tin không hợp lệ."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ."
   },
   {
     "id": "model.draft.is_valid.priority.app_error",

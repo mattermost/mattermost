@@ -4302,10 +4302,6 @@
     "translation": "不正なIDです。"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "不正なメッセージです。"
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "不正なオリジナルIDです。"
   },
@@ -8812,10 +8808,6 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "不正なpropsです。"
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "不正なmessageです。"
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
