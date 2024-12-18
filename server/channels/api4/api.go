@@ -152,7 +152,7 @@ type Routes struct {
 	OutgoingOAuthConnections *mux.Router // 'api/v4/oauth/outgoing_connections'
 	OutgoingOAuthConnection  *mux.Router // 'api/v4/oauth/outgoing_connections/{outgoing_oauth_connection_id:[A-Za-z0-9]+}'
 
-	CustomProfileAttributes *mux.Router // 'api/v4/custom_profile-attributes'
+	CustomProfileAttributes *mux.Router // 'api/v4/custom_profile_attributes'
 }
 
 type API struct {

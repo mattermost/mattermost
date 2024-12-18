@@ -113,7 +113,6 @@ func (api *API) InitUser() {
 }
 
 func saveAttribs(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	var attribs map[string]string
 	if jsonErr := json.NewDecoder(r.Body).Decode(&attribs); jsonErr != nil {
 		c.SetInvalidParamWithErr("attribs", jsonErr)
