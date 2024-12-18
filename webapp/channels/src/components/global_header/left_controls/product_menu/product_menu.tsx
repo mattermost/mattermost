@@ -51,7 +51,16 @@ export const ProductMenuButton = styled.button.attrs(() => ({
     align-items: center;
     background: transparent;
     border: none;
+    border-radius: 4px;
     padding-left: 4px;
+
+    &:hover, &:focus {
+        background-color: rgba(var(--sidebar-text-rgb), 0.08);
+    }
+
+    &:active {
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
+    }
 
     > * + * {
         margin-left: 16px;
@@ -112,6 +121,7 @@ const ProductMenu = (): JSX.Element => {
                         aria-expanded={switcherOpen}
                         aria-label={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
                         aria-controls='product-switcher-menu'
+                        style={switcherOpen ? {backgroundColor: 'rgba(var(--sidebar-text-rgb), 0.16)'} : {}}
                     >
                         <ProductsIcon
                             size={20}
