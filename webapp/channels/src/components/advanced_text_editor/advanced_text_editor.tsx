@@ -699,9 +699,9 @@ const AdvancedTextEditor = ({
                 className='AdvancedTextEditor__footer'
             >
                 {postError && (
-                    <label className={classNames('post-error', {errorClass})}>
+                    <div className={classNames('post-error', {errorClass})}>
                         {postError}
-                    </label>
+                    </div>
                 )}
                 {serverError && (
                     <MessageSubmitError
