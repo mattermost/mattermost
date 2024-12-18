@@ -29,7 +29,7 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -117,7 +117,7 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -215,7 +215,7 @@ exports[`components/delete_post_modal should match snapshot for post with 1 comm
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
