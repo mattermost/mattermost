@@ -594,14 +594,12 @@ const PostComponent = (props: Props): JSX.Element => {
                                 {priority}
                                 {post.props && post.props.card &&
                                     <WithTooltip
-                                        id='post_info.info.view_additional_info'
                                         title={
                                             <FormattedMessage
                                                 id='post_info.info.view_additional_info'
                                                 defaultMessage='View additional info'
                                             />
                                         }
-                                        placement='top'
                                     >
                                         <button
                                             className={'card-icon__container icon--show style--none ' + (props.isCardOpen ? 'active' : '')}

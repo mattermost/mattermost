@@ -173,8 +173,6 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
 
     const restoreButton = isCurrent ? null : (
         <WithTooltip
-            id='editPostRestoreTooltip'
-            placement='left'
             title={formatMessage(itemMessages.helpText)}
         >
             <IconButton

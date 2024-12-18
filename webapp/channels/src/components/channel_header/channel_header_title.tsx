@@ -138,8 +138,6 @@ const ChannelHeaderTitle = ({
                     >
                         {showTooltip ? (
                             <WithTooltip
-                                id='channelHeaderTooltip'
-                                placement='bottom'
                                 title={channelTitle as string}
                             >
                                 <strong
