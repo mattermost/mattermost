@@ -255,7 +255,8 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	sort.Strings(expectedSystemAdmin)
 
 	th.ResetEmojisMigration()
-	th.App.DoEmojisPermissionsMigration()
+	err := th.App.DoEmojisPermissionsMigration()
+	require.NoError(t, err)
 
 	role3, err3 := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
 	assert.Nil(t, err3)
