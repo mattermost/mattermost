@@ -127,8 +127,9 @@ const SelectTeam = (props: Props) => {
                 id: 'searchTeamsSelectorMenuButton',
                 class: classNames('search-teams-selector-menu-button', {'search-teams-selector-menu-button__different-team': isDifferentTeamSelected}),
                 children: button,
+                dataTestId: 'searchTeamsSelectorMenuButton',
             }}
-            menu={{id: 'searchTeamSelectorMenu'}}
+            menu={{id: 'searchTeamSelectorMenu', 'aria-label': 'Select team'}}
             anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
         >
