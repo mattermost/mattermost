@@ -28,7 +28,7 @@ import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import {MenuContext, useMenuContextValue} from './menu_context';
-import {MuiMenuStyled} from './menu_styled';
+import {MuiPopoverStyled} from './menu_styled';
 
 const MENU_OPEN_ANIMATION_DURATION = 150;
 const MENU_CLOSE_ANIMATION_DURATION = 100;
@@ -60,6 +60,7 @@ type MenuProps = {
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
+    isMenuOpen?: boolean;
 }
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'};
@@ -71,6 +72,8 @@ type HorizontalOrigin = 'left' | 'center' | 'right';
 interface Props {
     menuButton: MenuButtonProps;
     menuButtonTooltip?: MenuButtonTooltipProps;
+    menuHeader?: ReactNode;
+    menuFooter?: ReactNode;
     menu: MenuProps;
     children: ReactNode[];
 
@@ -105,20 +108,17 @@ export function Menu(props: Props) {
     const dispatch = useDispatch();
 
     const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
-    const [disableAutoFocusItem, setDisableAutoFocusItem] = useState(false);
     const isMenuOpen = Boolean(anchorElement);
 
     // Callback funtion handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
         event.preventDefault();
         setAnchorElement(null);
-        setDisableAutoFocusItem(false);
     }
 
     // Handle function injected into menu items to close the menu
     const closeMenu = useCallback(() => {
         setAnchorElement(null);
-        setDisableAutoFocusItem(false);
     }, []);
 
     function handleMenuModalClose(modalId: MenuProps['id']) {
@@ -169,17 +169,14 @@ export function Menu(props: Props) {
                         onModalClose: handleMenuModalClose,
                         children: props.children,
                         onKeyDown: props.menu.onKeyDown,
+                        menuHeader: props.menuHeader,
+                        menuFooter: props.menuFooter,
                     },
                 }),
             );
         } else {
             setAnchorElement(event.currentTarget as HTMLElement);
         }
-    }
-
-    // Function to prevent focus-visible from being set on clicking menu items with the mouse
-    function handleMenuButtonMouseDown() {
-        setDisableAutoFocusItem(true);
     }
 
     // We construct the menu button so we can set onClick correctly here to support both web and mobile view
@@ -197,7 +194,6 @@ export function Menu(props: Props) {
                 aria-label={props.menuButton?.['aria-label'] ?? ''}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}
-                onMouseDown={handleMenuButtonMouseDown}
             >
                 {props.menuButton.children}
             </MenuButtonComponent>
@@ -225,6 +221,12 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
+    useEffect(() => {
+        if (props.menu.isMenuOpen === false) {
+            setAnchorElement(null);
+        }
+    }, [props.menu.isMenuOpen]);
+
     const providerValue = useMenuContextValue(closeMenu, Boolean(anchorElement));
 
     if (isMobileView) {
@@ -236,7 +238,8 @@ export function Menu(props: Props) {
         <CompassDesignProvider theme={theme}>
             {renderMenuButton()}
             <MenuContext.Provider value={providerValue}>
-                <MuiMenuStyled
+                <MuiPopoverStyled
+                    aria-label={props.menu?.['aria-label']}
                     anchorEl={anchorElement}
                     open={isMenuOpen}
                     onClose={handleMenuClose}
@@ -247,11 +250,6 @@ export function Menu(props: Props) {
                     width={props.menu.width}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
-                    disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
-                    MenuListProps={{
-                        id: props.menu.id,
-                        'aria-label': props.menu?.['aria-label'] ?? '',
-                    }}
                     TransitionProps={{
                         mountOnEnter: true,
                         unmountOnExit: true,
@@ -261,8 +259,16 @@ export function Menu(props: Props) {
                         },
                     }}
                 >
-                    {props.children}
-                </MuiMenuStyled>
+                    {props.menuHeader}
+                    <MuiMenuList
+                        id={props.menu.id}
+                        aria-label={props.menu?.['aria-label']}
+                        autoFocusItem={true}
+                    >
+                        {props.children}
+                    </MuiMenuList>
+                    {props.menuFooter}
+                </MuiPopoverStyled>
             </MenuContext.Provider>
         </CompassDesignProvider>
     );
@@ -275,6 +281,8 @@ interface MenuModalProps {
     onModalClose: (modalId: MenuProps['id']) => void;
     children: Props['children'];
     onKeyDown?: MenuProps['onKeyDown'];
+    menuHeader?: Props['menuHeader'];
+    menuFooter?: Props['menuFooter'];
 }
 
 function MenuModal(props: MenuModalProps) {
@@ -319,7 +327,9 @@ function MenuModal(props: MenuModalProps) {
                     aria-labelledby={props.menuButtonId}
                     onClick={handleModalClickCapture}
                 >
+                    {props.menuHeader}
                     {props.children}
+                    {props.menuFooter}
                 </MuiMenuList>
             </GenericModal>
         </CompassDesignProvider>
