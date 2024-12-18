@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -282,20 +281,10 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		actualManifest, appError := th.App.ch.installPluginLocally(reader, installationStrategy)
-		if actualManifest != nil {
-			require.Equal(t, manifest, actualManifest)
-		}
+		require.NoError(t, appError)
+		require.Equal(t, manifest, actualManifest)
 
-		th.App.ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
-			if _, ok := cfg.PluginSettings.Plugins[actualManifest.Id]; !ok {
-				cfg.PluginSettings.Plugins[actualManifest.Id] = make(map[string]any)
-
-				for _, pluginSetting := range manifest.SettingsSchema.Settings {
-					cfg.PluginSettings.Plugins[actualManifest.Id][strings.ToLower(pluginSetting.Key)] = pluginSetting.Default
-				}
-			}
-			mp = cfg.PluginSettings.Plugins[actualManifest.Id]
-		})
+		mp = th.App.Config().PluginSettings.Plugins[actualManifest.Id]
 		return actualManifest, mp, appError
 	}
 
@@ -303,13 +292,16 @@ func TestInstallPluginLocally(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
+		expectedMap := make(map[string]any)
+		expectedMap["id"] = "valid"
+		expectedMap["version"] = "0.0.2"
 
 		_, returnedMap, appErr := installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyAlways)
 		require.Nil(t, appErr)
 
 		//will probably have to make a separte pluginSetting struct with dummy vals to check against return plugin settign vals
-		for _, v := range returnedMap {
-			require.Equal(t, model.PluginSetting.Default, v)
+		for k, v := range returnedMap {
+			require.Equal(t, expectedMap[k], v)
 		}
 	})
 
@@ -318,17 +310,64 @@ func TestInstallPluginLocally(t *testing.T) {
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
 
-		_, returnedMap, appErr := installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
+		//create Plugin: `myplugin`
+		setupPluginAPITest(t, ` 
+		package main 
+ 
+		import ( 
+			"net/http" 
+			"encoding/json" 
+ 
+			"github.com/mattermost/mattermost/server/public/plugin" 
+			"github.com/mattermost/mattermost/server/public/model" 
+		) 
+ 
+		type MyPlugin struct {
+			plugin.MattermostPlugin,
+			enableUpload bool,
+			hasRootAccess bool,
+			likesPie bool,
+			version string,
+			id string
+		} 
+ 
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) { 
+			errReply := "some error" 
+			 if r.URL.Query().Get("abc") == "xyz" { 
+				errReply = "some other error" 
+			} 
+			response := &model.SubmitDialogResponse{ 
+				Errors: map[string]string{"name1": errReply}, 
+			} 
+			w.WriteHeader(http.StatusOK) 
+			responseJSON, _ := json.Marshal(response) 
+			_, _ = w.Write(responseJSON) 
+		} 
+ 
+		func main() { 
+			myPlug := &MyPlugin{
+				enableUpload: true, 
+				hasRootAccess: false, 
+				likesPie: true, 
+				version: "0.0.2", 
+				id: "myplugin"
+			}
+			plugin.ClientMain(myPlug) 
+		} 
+		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
+
+		expectedManifest, err2 := th.App.GetPluginsEnvironment().GetManifest("myplugin")
+		require.Nil(t, err2)
+		require.NotNil(t, expectedManifest)
+
+		//try to reinstall `myplugin`
+		_, returnedMap, appErr := installPluginUpdateConfig(t, th, "myplugin", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
 		require.Nil(t, appErr)
 
-		_, returnedMap, appErr = installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
-		require.Nil(t, appErr)
-
-		for _, v := range returnedMap {
-			require.Equalf(t, model.PluginSetting.Default, v, "it works!")
+		for k, v := range returnedMap {
+			require.Equalf(t, expectedManifest.Props[k], v, "it works!")
 		}
 	})
-
 }
 
 func TestInstallPluginAlreadyActive(t *testing.T) {
