@@ -178,5 +178,9 @@
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Kan ikke legge til bruker til denne kanaltypen."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Last ned"
   }
 ]
