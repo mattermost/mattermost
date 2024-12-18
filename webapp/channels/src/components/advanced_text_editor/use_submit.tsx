@@ -34,6 +34,7 @@ import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from '
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import {isPostDraftEmpty} from 'types/store/draft';
 
 import useGroups from './use_groups';
 
@@ -137,7 +138,7 @@ const useSubmit = (
             return;
         }
 
-        if (submittingDraft.message.trim().length === 0 && submittingDraft.fileInfos.length === 0) {
+        if (isPostDraftEmpty(draft)) {
             isDraftSubmitting.current = false;
             return;
         }

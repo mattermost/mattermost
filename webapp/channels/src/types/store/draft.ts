@@ -14,6 +14,7 @@ export type PostDraft = {
     message: string;
     message_source?: string;
     fileInfos: FileInfo[];
+    file_ids?: string[];
     uploadsInProgress: string[];
     props?: any;
     caretPosition?: number;
@@ -30,6 +31,14 @@ export type PostDraft = {
         };
     };
 };
+
+export function isPostDraftEmpty(draft: PostDraft): boolean {
+    const hasMessage = draft.message.trim() !== '';
+    const hasAttachment = draft.fileInfos.length > 0 || draft.file_ids?.length;
+    const hasUploadingFiles = draft.uploadsInProgress.length > 0;
+
+    return !hasMessage && !hasAttachment && !hasUploadingFiles;
+}
 
 export function scheduledPostToPostDraft(scheduledPost: ScheduledPost): PostDraft {
     return {
