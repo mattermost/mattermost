@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {CheckIcon, ChevronDownIcon, MagnifyIcon as SearchIcon} from '@mattermost/compass-icons/components';
@@ -115,7 +115,12 @@ const SelectTeam = (props: Props) => {
         if (currentlySelectedTeam) {
             elements.push(
                 renderTeam(currentlySelectedTeam.id, currentlySelectedTeam.display_name, currentlySelectedTeam.id, 'search-teams-selector-current-team'),
-                <Menu.Title key='your-team-title'>{'your teams'}</Menu.Title>,
+                <Menu.Title key='your-team-title'>
+                    <FormattedMessage
+                        id='search_teams_selector.your_teams'
+                        defaultMessage='Your teams'
+                    />
+                </Menu.Title>,
             );
         }
         return elements;

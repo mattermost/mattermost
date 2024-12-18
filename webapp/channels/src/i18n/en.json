@@ -4962,6 +4962,8 @@
   "search_list_option.phrases": "Messages with phrases",
   "search_results.channel-files-header": "Recent files",
   "search_teams_selector.all_teams": "All Teams",
+  "search_teams_selector.search_teams": "Search teams",
+  "search_teams_selector.your_teams": "Your teams",
   "sectionNotice.dismiss": "Dismiss notice",
   "select_team.icon": "Select Team Icon",
   "select_team.join.icon": "Join Team Icon",
