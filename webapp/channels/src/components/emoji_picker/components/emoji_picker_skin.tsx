@@ -131,6 +131,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                     onClick={() => this.hideSkinTonePicker(skin)}
                 >
                     <img
+                        alt={skinTone.label.defaultMessage}
                         src={imgTrans}
                         className={spriteClassName}
                     />
@@ -144,6 +145,8 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                         className='skin-tones__close-icon style--none'
                         onClick={() => this.hideSkinTonePicker(this.props.userSkinTone)}
                         aria-label={closeButtonLabel}
+                        aria-expanded={this.state.pickerExtended}
+                        tabIndex={0}
                     >
                         <CloseIcon
                             size={16}
@@ -182,6 +185,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                     className='style--none skin-tones__icon skin-tones__expand-icon'
                     onClick={this.showSkinTonePicker}
                     aria-label={expandButtonLabel}
+                    aria-controls='skin-tones-content'
                 >
                     <img
                         alt={'emoji skin tone picker'}
@@ -201,8 +205,13 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                 timeout={200}
             >
                 <div className={classNames('skin-tones', {'skin-tones--active': this.state.pickerExtended})}>
-                    <div className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerExtended})}>
-                        {this.state.pickerExtended ? this.extended() : this.collapsed()}
+                    <div
+                        id='skin-tones-content'
+                        className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerExtended})}
+                        aria-orientation='horizontal'
+                        aria-expanded={this.state.pickerExtended}
+                    >
+                        {this.state.pickerExtended ? this.extended() : this.collapsed() }
                     </div>
                 </div>
             </CSSTransition>
