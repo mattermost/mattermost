@@ -1704,7 +1704,7 @@ describe('Actions.Users', () => {
         const currentUser = state.entities.users.profiles[state.entities.users.currentUserId];
 
         nock(Client4.getBaseRoute()).
-            post('/users/me/custom_profile_attributes/value`').
+            post(`/users/${currentUser.id}/custom_profile_attributes/value`).
             query(true).
             reply(200, {
                 123: 'NewValue',
@@ -1712,11 +1712,12 @@ describe('Actions.Users', () => {
 
         await store.dispatch(Actions.saveAttribute(currentUser.id, '123', 'NewValue'));
 
-        const myUserCustomAttributes = store.getState().entities.users[currentUser.id];
+        const myUserCustomAttributes = store.getState().entities.users.profiles[currentUser.id];
         expect(myUserCustomAttributes).toBeTruthy();
 
-        const myUserCustomAttributeValue = store.getState().entities.users[currentUser.id]['123'];
-        expect(myUserCustomAttributeValue).toBeEqual('NewValue');
+        const myUserCustomAttributeValue = store.getState().entities.users.profiles[currentUser.id].custom_attributes['123'];
+        expect(myUserCustomAttributeValue).toBeTruthy();
+        expect(myUserCustomAttributeValue).toEqual('NewValue');
     });
 
     describe('checkForModifiedUsers', () => {

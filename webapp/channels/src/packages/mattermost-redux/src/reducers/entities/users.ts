@@ -11,6 +11,7 @@ import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '@
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
+import { adminConsoleUserManagementTablePropertiesInitialState } from 'reducers/views/admin';
 
 function profilesToSet(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction) {
     const id = action.id;
@@ -223,6 +224,8 @@ function profiles(state: UsersState['profiles'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_ME:
     case UserTypes.RECEIVED_PROFILE: {
+        console.log('profiles');
+        console.log(action.data.custom_attributes);
         const user = action.data;
 
         return receiveUserProfile(state, user);

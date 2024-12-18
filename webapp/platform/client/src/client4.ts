@@ -4278,10 +4278,11 @@ export default class Client4 {
 
     // Custom Profile Attributes
     getCustomAttributes = () => {
-        return this.doFetch<CustomAttribute[]>(
+        var test = this.doFetch<CustomAttribute[]>(
             `${this.getAttributesRoute()}/fields`,
             {method: 'get'},
         );
+        return test;
     };
 
     updateUserAttributes = (userID: string, attributeID: string, attributeValue: string) => {

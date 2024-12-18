@@ -401,7 +401,7 @@ describe('Selectors.General', () => {
         });
     });
 
-    describe('getCustomProfileAttributes', () => {
+    describe('getCustomAttributes', () => {
         test('should return empty when no attributes', () => {
             const state = {
                 entities: {
@@ -412,21 +412,21 @@ describe('Selectors.General', () => {
                 },
             } as unknown as GlobalState;
 
-            expect(Selectors.getCustomProfileAttributes(state)).toEqual({});
+            expect(Selectors.getCustomAttributes(state)).toEqual({});
         });
 
         test('should return the value of the attributes', () => {
             const state = {
                 entities: {
                     general: {
-                        customAttributes: {id: '123', name: 'test attribute', dataType: 'text'},
+                        customAttributes: [{id: '123', name: 'test attribute', dataType: 'text'}],
                     },
                 },
             } as unknown as GlobalState;
 
-            expect(Selectors.getCustomProfileAttributes(state)[0].id).toEqual('123');
+            expect(Selectors.getCustomAttributes(state)[0].id).toEqual('123');
             state.entities.general.customAttributes = [];
-            expect(Selectors.getCustomProfileAttributes(state)).toBeFalsy();
+            expect(Selectors.getCustomAttributes(state)).toEqual([]);
         });
     });
 });

@@ -167,6 +167,6 @@ export function testingEnabled(state: GlobalState): boolean {
     return state.entities.general.config.EnableTesting === 'true';
 }
 
-export function getCustomProfileAttributes(state: GlobalState): CustomAttribute[] {
+export function getCustomAttributes(state: GlobalState): CustomAttribute[] {
     return state.entities.general.customAttributes;
 }

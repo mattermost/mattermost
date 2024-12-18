@@ -13,7 +13,7 @@ import {
     uploadProfileImage,
     saveAttribute,
 } from 'mattermost-redux/actions/users';
-import {getConfig, getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomAttributes} from 'mattermost-redux/selectors/entities/general';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -23,7 +23,7 @@ import UserSettingsGeneralTab from './user_settings_general';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
-    const customAttributes = getCustomProfileAttributes(state);
+    const customAttributes = getCustomAttributes(state);
 
     const requireEmailVerification = config.RequireEmailVerification === 'true';
     const maxFileSize = parseInt(config.MaxFileSize!, 10);
