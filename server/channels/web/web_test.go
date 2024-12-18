@@ -48,7 +48,7 @@ type TestHelper struct {
 
 	TestLogger *mlog.Logger
 
-	t testing.TB
+	t *testing.TB
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
