@@ -67,7 +67,20 @@ var (
 	)
 	AcceptedTrueFalseLabels      = SliceToMapKey("true", "false")
 	AcceptedSplashScreenOrigins  = SliceToMapKey("root", "team_controller")
-	AcceptedNetworkRequestGroups = SliceToMapKey("entry", "notification", "login", "reconnection")
+	AcceptedNetworkRequestGroups = SliceToMapKey(
+		"Cold Start",
+		"Cold Start Deferred",
+		"DeepLink",
+		"DeepLink Deferred",
+		"Login",
+		"Login Deferred",
+		"Notification",
+		"Notification Deferred",
+		"Server Switch",
+		"Server Switch Deferred",
+		"WebSocket Reconnect",
+		"WebSocket Reconnect Deferred",
+	)
 )
 
 type MetricSample struct {
@@ -123,7 +136,7 @@ func (r *PerformanceReport) ProcessLabels() map[string]string {
 		"platform":              processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
 		"agent":                 processLabel(r.Labels, "agent", acceptedAgents, "other"),
 		"desktop_app_version":   r.Labels["desktop_app_version"],
-		"network_request_group": processLabel(r.Labels, "network_request_group", AcceptedNetworkRequestGroups, "entry"),
+		"network_request_group": processLabel(r.Labels, "network_request_group", AcceptedNetworkRequestGroups, "Login"),
 	}
 }
 
