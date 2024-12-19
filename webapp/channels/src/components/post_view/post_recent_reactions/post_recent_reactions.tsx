@@ -9,7 +9,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import WithTooltip from 'components/with_tooltip/with_tooltip_new';
+import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 

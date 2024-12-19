@@ -47,8 +47,6 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
         className="right-anchor"
       >
         <WithTooltip
-          id="threadListMarkRead"
-          placement="top"
           title="Mark all as read"
         >
           <Memo(Button)

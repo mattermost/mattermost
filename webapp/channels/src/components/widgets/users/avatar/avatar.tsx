@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo} from 'react';
-import type {HTMLAttributes, SyntheticEvent} from 'react';
+import React, {memo, forwardRef} from 'react';
+import type {HTMLAttributes, RefObject, SyntheticEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
@@ -50,13 +50,13 @@ type Attrs = HTMLAttributes<HTMLElement>;
 const isURLForUser = (url: string) => url.startsWith(Client4.getUsersRoute());
 const replaceURLWithDefaultImageURL = (url: string) => url.replace(/\?_=(\w+)/, '/default');
 
-const Avatar = ({
+const Avatar = forwardRef<HTMLElement, Props & Attrs>(({
     url,
     username,
     size = 'md',
     text,
     ...attrs
-}: Props & Attrs) => {
+}, ref) => {
     const {formatMessage} = useIntl();
 
     const classes = classNames(`Avatar Avatar-${size}`, attrs.className);
@@ -65,6 +65,7 @@ const Avatar = ({
         return (
             <div
                 {...attrs}
+                ref={ref as RefObject<HTMLDivElement>}
                 className={classNames(classes, 'Avatar-plain')}
                 data-content={text}
             />
@@ -82,6 +83,7 @@ const Avatar = ({
     return (
         <img
             {...attrs}
+            ref={ref as RefObject<HTMLImageElement>}
             className={classes}
             alt={formatMessage({id: 'avatar.alt', defaultMessage: '{username} profile image'}, {
                 username: username || 'user',
@@ -91,5 +93,8 @@ const Avatar = ({
             onError={handleOnError}
         />
     );
-};
+});
+
+Avatar.displayName = 'Avatar';
+
 export default memo(Avatar);
