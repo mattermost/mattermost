@@ -490,14 +490,14 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	if info.CreatorId == model.BookmarkFileOwner {
-		if !perm {
+	if !c.IsSystemAdmin() && !perm {
+		if info.CreatorId == model.BookmarkFileOwner {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		} else if info.CreatorId != c.AppContext.Session().UserId {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
-	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
 	}
 
 	fileReader, err := c.App.FileReader(info.Path)
