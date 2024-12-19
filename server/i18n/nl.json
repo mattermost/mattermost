@@ -3108,7 +3108,7 @@
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is niet gestart"
+    "translation": "{{.Backend}} is niet gestart"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -4980,7 +4980,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch zoeken is uitgeschakeld op deze server"
+    "translation": "{{.Backend}} zoeken is uitgeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -7472,7 +7472,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elastichsearch naar bestanden is op deze server uitgeschakeld"
+    "translation": "{{.Backend}} naar bestanden is op deze server uitgeschakeld"
   },
   {
     "id": "api.oauth.redirecting_back",
