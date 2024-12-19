@@ -45,6 +45,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             setDefaultProfileImage: jest.fn(),
             uploadProfileImage: jest.fn(),
             saveAttribute: jest.fn(),
+            getCustomAttributes: jest.fn(),
         },
         maxFileSize: 1024,
         ldapPositionAttributeSet: false,
