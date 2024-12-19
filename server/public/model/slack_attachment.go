@@ -125,8 +125,13 @@ func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
 		return false
 	}
 
-	if s.Value != input.Value {
-		return false
+	switch input.Value.(type) {
+	case map[string]interface{}, []interface{}:
+		return reflect.DeepEqual(s.Value, input.Value)
+	default:
+		if s.Value != input.Value {
+			return false
+		}
 	}
 
 	if s.Short != input.Short {
