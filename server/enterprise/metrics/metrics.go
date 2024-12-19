@@ -225,6 +225,7 @@ type MetricsInterfaceImpl struct {
 	MobileClientNetworkRequestsLatency             *prometheus.HistogramVec
 	MobileClientNetworkRequestsTotalSize           *prometheus.HistogramVec
 	MobileClientNetworkRequestsElapsedTime         *prometheus.HistogramVec
+	MobileClientNetworkRequestsAverageSpeed        *prometheus.HistogramVec
 
 	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
@@ -1369,7 +1370,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemClientsMobileApp,
 			Name:      "mobile_network_requests_total_compressed_size",
 			Help:      "Total compressed size of network requests in bytes",
-			Buckets:   []float64{1000, 10000, 50000, 100000, 500000, 1000000, 5000000},
+			Buckets:   []float64{0.1, 0.5, 1, 2, 5, 10, 20, 50},
 		},
 		[]string{"platform", "network_request_group"},
 	)
@@ -1424,6 +1425,18 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform", "network_request_group"},
 	)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsElapsedTime)
+
+	m.MobileClientNetworkRequestsAverageSpeed = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_average_speed",
+			Help:      "Average speed of network requests in megabytes per second (MBps)",
+			Buckets:   []float64{1000, 10000, 50000, 100000, 500000, 1000000, 5000000},
+		},
+		[]string{"platform", "network_request_group"},
+	)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsAverageSpeed)
 
 	m.MobileClientChannelSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -2040,6 +2053,10 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalSize(plat
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsElapsedTime(platform string, networkRequestGroup string, elapsedTime float64) {
 	mi.MobileClientNetworkRequestsElapsedTime.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(elapsedTime)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsAverageSpeed(platform string, networkRequestGroup string, speed float64) {
+	mi.MobileClientNetworkRequestsAverageSpeed.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(speed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version, platform string, value float64, notificationDisabled string) {

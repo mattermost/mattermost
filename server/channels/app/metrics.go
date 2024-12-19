@@ -102,23 +102,27 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 				h.Value/1000)
 		case model.MobileClientNetworkRequestsTotalCompressedSize:
 			a.Metrics().ObserveMobileClientNetworkRequestsTotalCompressedSize(commonLabels["platform"],
-				commonLabels["network_request_group"],
+				h.Labels["network_request_group"],
 				h.Value)
 		case model.MobileClientNetworkRequestsTotalRequests:
 			a.Metrics().ObserveMobileClientNetworkRequestsTotalRequests(commonLabels["platform"],
-				commonLabels["network_request_group"],
+				h.Labels["network_request_group"],
 				h.Value)
 		case model.MobileClientNetworkRequestsLatency:
 			a.Metrics().ObserveMobileClientNetworkRequestsLatency(commonLabels["platform"],
-				commonLabels["network_request_group"],
+				h.Labels["network_request_group"],
 				h.Value)
 		case model.MobileClientNetworkRequestsTotalSize:
 			a.Metrics().ObserveMobileClientNetworkRequestsTotalSize(commonLabels["platform"],
-				commonLabels["network_request_group"],
+				h.Labels["network_request_group"],
 				h.Value)
 		case model.MobileClientNetworkRequestsElapsedTime:
 			a.Metrics().ObserveMobileClientNetworkRequestsElapsedTime(commonLabels["platform"],
-				commonLabels["network_request_group"],
+				h.Labels["network_request_group"],
+				h.Value)
+		case model.MobileClientNetworkRequestsAverageSpeed:
+			a.Metrics().ObserveMobileClientNetworkRequestsAverageSpeed(commonLabels["platform"],
+				h.Labels["network_request_group"],
 				h.Value)
 		case model.DesktopClientCPUUsage:
 			a.Metrics().ObserveDesktopCpuUsage(commonLabels["platform"], commonLabels["desktop_app_version"], h.Labels["process"], h.Value)
