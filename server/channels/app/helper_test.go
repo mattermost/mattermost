@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -249,33 +248,17 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	return setupTestHelper(dbStore, true, true, nil, []Option{SetCluster(cluster)}, tb)
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
-
 func (th *TestHelper) InitBasic() *TestHelper {
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
-		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
-		th.BasicUser = th.CreateUser()
-		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
-		userCache.BasicUser = th.BasicUser.DeepCopy()
+	th.SystemAdminUser = th.CreateUser()
+	th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 
-		th.BasicUser2 = th.CreateUser()
-		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
-		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
-	})
-	// restore cached users
-	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
-	th.BasicUser = userCache.BasicUser.DeepCopy()
-	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	th.BasicUser = th.CreateUser()
+	th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
+
+	th.BasicUser2 = th.CreateUser()
+	th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
 
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
 	mainHelper.GetSQLStore().User().InsertUsers(users)
@@ -651,34 +634,34 @@ func (th *TestHelper) ConfigureInbucketMail() {
 
 func (*TestHelper) ResetRoleMigration() {
 	sqlStore := mainHelper.GetSQLStore()
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Roles"); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = ?", model.AdvancedPermissionsMigrationKey); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("DELETE from Systems where Name = ?", model.AdvancedPermissionsMigrationKey); err != nil {
 		panic(err)
 	}
 }
 
 func (*TestHelper) ResetEmojisMigration() {
 	sqlStore := mainHelper.GetSQLStore()
-	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = ?", EmojisPermissionsMigrationKey); err != nil {
+	if _, err := sqlStore.GetMasterX().Exec("DELETE from Systems where Name = ?", EmojisPermissionsMigrationKey); err != nil {
 		panic(err)
 	}
 }
