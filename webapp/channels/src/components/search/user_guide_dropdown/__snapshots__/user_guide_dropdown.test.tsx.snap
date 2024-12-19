@@ -7,8 +7,6 @@ exports[`UserGuideDropdown should match snapshot 1`] = `
   onToggle={[Function]}
 >
   <WithTooltip
-    id="userGuideHelpTooltip"
-    placement="bottom"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"
@@ -71,8 +69,6 @@ exports[`UserGuideDropdown should match snapshot for false of enableAskCommunity
   onToggle={[Function]}
 >
   <WithTooltip
-    id="userGuideHelpTooltip"
-    placement="bottom"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Help"
