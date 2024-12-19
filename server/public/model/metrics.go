@@ -37,6 +37,7 @@ const (
 	MobileClientNetworkRequestsTotalSize           MetricType = "mobile_network_requests_total_size"
 	MobileClientNetworkRequestsElapsedTime         MetricType = "mobile_network_requests_elapsed_time"
 	MobileClientNetworkRequestsAverageSpeed        MetricType = "mobile_network_requests_average_speed"
+	MobileClientNetworkRequestsEffectiveLatency    MetricType = "mobile_network_requests_effective_latency"
 
 	DesktopClientCPUUsage    MetricType = "desktop_cpu"
 	DesktopClientMemoryUsage MetricType = "desktop_memory"

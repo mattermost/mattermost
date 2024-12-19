@@ -130,6 +130,11 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 				commonLabels["agent"],
 				h.Labels["network_request_group"],
 				h.Value)
+		case model.MobileClientNetworkRequestsEffectiveLatency:
+			a.Metrics().ObserveMobileClientNetworkRequestsEffectiveLatency(commonLabels["platform"],
+				commonLabels["agent"],
+				h.Labels["network_request_group"],
+				h.Value)
 		case model.DesktopClientCPUUsage:
 			a.Metrics().ObserveDesktopCpuUsage(commonLabels["platform"], commonLabels["desktop_app_version"], h.Labels["process"], h.Value)
 		case model.DesktopClientMemoryUsage:
