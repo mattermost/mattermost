@@ -672,7 +672,7 @@ export default class Client4 {
             `${this.getUserRoute(userId)}/reset_failed_attempts`,
             {method: 'post'},
         );
-    }
+    };
 
     getKnownUsers = () => {
         return this.doFetch<Array<UserProfile['id']>>(

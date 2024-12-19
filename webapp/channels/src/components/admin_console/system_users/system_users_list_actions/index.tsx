@@ -35,12 +35,12 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import ConfirmManageUserSettingsModal from './confirm_manage_user_settings_modal';
+import ConfirmResetFailedAttemptsModal from './confirm_reset_failed_attempts_modal';
 import CreateGroupSyncablesMembershipsModal from './create_group_syncables_membership_modal';
 import DeactivateMemberModal from './deactivate_member_modal';
 import DemoteToGuestModal from './demote_to_guest_modal';
 import PromoteToMemberModal from './promote_to_member_modal';
 import RevokeSessionsModal from './revoke_sessions_modal';
-import ConfirmResetFailedAttemptsModal from './confirm_reset_failed_attempts_modal';
 
 interface Props {
     user: UserProfile;
@@ -336,7 +336,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             return false;
         }
 
-        if (user.auth_service !== Constants.LDAP_SERVICE && user.auth_service !== "") {
+        if (user.auth_service !== Constants.LDAP_SERVICE && user.auth_service !== '') {
             return false;
         }
 
@@ -344,11 +344,11 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             return false;
         }
 
-        if (user.auth_service === "" && config.ServiceSettings?.MaximumLoginAttempts !== undefined && user.failed_attempts < config.ServiceSettings?.MaximumLoginAttempts) {
+        if (user.auth_service === '' && config.ServiceSettings?.MaximumLoginAttempts !== undefined && user.failed_attempts < config.ServiceSettings?.MaximumLoginAttempts) {
             return false;
         }
 
-        return true
+        return true;
     }, [user, config.LdapSettings?.MaximumLoginAttempts, config.ServiceSettings?.MaximumLoginAttempts]);
 
     return (
