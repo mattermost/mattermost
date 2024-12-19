@@ -159,7 +159,7 @@ describe('components/global/product_switcher', () => {
         useStateSpy.mockImplementation(() => [false, setState]);
 
         wrapper.find(ProductMenuContainer).simulate('click');
-        expect(wrapper.find(ProductMenuButton).props().active).toEqual(true);
+        expect(wrapper.find(ProductMenuButton).props()['aria-expanded']).toEqual(true);
         expect(wrapper).toMatchSnapshot();
     });
 
