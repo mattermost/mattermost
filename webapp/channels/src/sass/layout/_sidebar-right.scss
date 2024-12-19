@@ -20,20 +20,9 @@
     &:not(.expanded):not(.resize-disabled) {
         min-width: 400px;
 
-        &.sidebar--right--width-holder {
-            @media screen and (min-width: 901px) and (max-width: 1200px) {
-                min-width: 304px;
-                max-width: 304px;
-            }
-        }
-
         @media screen and (min-width: 901px) {
             min-width: 304px;
             max-width: 400px;
-        }
-
-        @media screen and (min-width: 1201px) {
-            max-width: 464px;
         }
 
         @media screen and (min-width: 1681px) {
@@ -48,7 +37,7 @@
     .sidebar-right__table {
         display: table;
 
-        > div:not(.sidebar-collapse__container) {
+        >div:not(.sidebar-collapse__container) {
             display: table-cell;
             vertical-align: top;
 
@@ -191,8 +180,11 @@
         color: inherit;
         white-space: nowrap;
 
+        .sidebar--right__back+.sidebar--right__close-back {
+            display: none;
+        }
+
         .btn-icon {
-            margin: 0 !important;
             font-size: 20px;
         }
 
@@ -302,6 +294,7 @@
 
 // global header style adjustments
 @media screen and (min-width: 769px) {
+
     // adjust RHS position and height
     #sidebar-right {
         // If this is changed, the interaction with the App Bar icons must be tested
