@@ -32,7 +32,7 @@ const (
 	MobileClientChannelSwitchDuration              MetricType = "mobile_channel_switch"
 	MobileClientTeamSwitchDuration                 MetricType = "mobile_team_switch"
 	MobileClientNetworkRequestsTotalCompressedSize MetricType = "mobile_network_requests_total_compressed_size"
-	MobileClientNetworkRequestsUrlCount            MetricType = "mobile_network_requests_url_count"
+	MobileClientNetworkRequestsTotalRequests       MetricType = "mobile_network_requests_total_requests"
 	MobileClientNetworkRequestsLatency             MetricType = "mobile_network_requests_latency"
 	MobileClientNetworkRequestsTotalSize           MetricType = "mobile_network_requests_total_size"
 	MobileClientNetworkRequestsElapsedTime         MetricType = "mobile_network_requests_elapsed_time"

@@ -122,7 +122,7 @@ type MetricsInterface interface {
 	ObserveMobileClientChannelSwitchDuration(platform string, elapsed float64)
 	ObserveMobileClientTeamSwitchDuration(platform string, elapsed float64)
 	ObserveMobileClientNetworkRequestsTotalCompressedSize(platform string, contentLoadGroup string, size float64)
-	ObserveMobileClientNetworkRequestsUrlCount(platform string, contentLoadGroup string, count float64)
+	ObserveMobileClientNetworkRequestsTotalRequests(platform string, contentLoadGroup string, count float64)
 	ObserveMobileClientNetworkRequestsLatency(platform string, contentLoadGroup string, latency float64)
 	ObserveMobileClientNetworkRequestsTotalSize(platform string, contentLoadGroup string, size float64)
 	ObserveMobileClientNetworkRequestsElapsedTime(platform string, contentLoadGroup string, elapsedTime float64)

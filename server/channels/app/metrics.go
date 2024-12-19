@@ -104,8 +104,8 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 			a.Metrics().ObserveMobileClientNetworkRequestsTotalCompressedSize(commonLabels["platform"],
 				commonLabels["network_request_group"],
 				h.Value)
-		case model.MobileClientNetworkRequestsUrlCount:
-			a.Metrics().ObserveMobileClientNetworkRequestsUrlCount(commonLabels["platform"],
+		case model.MobileClientNetworkRequestsTotalRequests:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalRequests(commonLabels["platform"],
 				commonLabels["network_request_group"],
 				h.Value)
 		case model.MobileClientNetworkRequestsLatency:

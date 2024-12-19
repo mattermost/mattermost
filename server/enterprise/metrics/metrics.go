@@ -216,15 +216,15 @@ type MetricsInterfaceImpl struct {
 	ClientRHSLoadDuration           *prometheus.HistogramVec
 	ClientGlobalThreadsLoadDuration *prometheus.HistogramVec
 
-	MobileClientLoadDuration                    *prometheus.HistogramVec
-	MobileClientChannelSwitchDuration           *prometheus.HistogramVec
-	MobileClientTeamSwitchDuration              *prometheus.HistogramVec
-	MobileClientSessionMetadataGauge            *prometheus.GaugeVec
-	MobileClientNetworkRequestsTotalCompressedSize  *prometheus.HistogramVec
-	MobileClientNetworkRequestsUrlCount             *prometheus.HistogramVec
-	MobileClientNetworkRequestsLatency              *prometheus.HistogramVec
-	MobileClientNetworkRequestsTotalSize            *prometheus.HistogramVec
-	MobileClientNetworkRequestsElapsedTime          *prometheus.HistogramVec
+	MobileClientLoadDuration                       *prometheus.HistogramVec
+	MobileClientChannelSwitchDuration              *prometheus.HistogramVec
+	MobileClientTeamSwitchDuration                 *prometheus.HistogramVec
+	MobileClientSessionMetadataGauge               *prometheus.GaugeVec
+	MobileClientNetworkRequestsTotalCompressedSize *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalRequests       *prometheus.HistogramVec
+	MobileClientNetworkRequestsLatency             *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalSize           *prometheus.HistogramVec
+	MobileClientNetworkRequestsElapsedTime         *prometheus.HistogramVec
 
 	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
@@ -1374,12 +1374,12 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform", "network_request_group"},
 	)
 
-	m.MobileClientNetworkRequestsUrlCount = prometheus.NewHistogramVec(
+	m.MobileClientNetworkRequestsTotalRequests = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
-			Name:      "mobile_network_requests_url_count",
-			Help:      "Number of URLs requested during network requests",
+			Name:      "mobile_network_requests_total_requests",
+			Help:      "Total number of network requests made",
 			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
 		},
 		[]string{"platform", "network_request_group"},
@@ -1400,7 +1400,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
-			Name:      "mobile_network_requests_total_size", 
+			Name:      "mobile_network_requests_total_size",
 			Help:      "Total uncompressed size of network requests in bytes",
 			Buckets:   []float64{1000, 10000, 50000, 100000, 500000, 1000000, 5000000},
 		},
@@ -1409,7 +1409,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 
 	m.Registry.MustRegister(m.MobileClientLoadDuration)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalCompressedSize)
-	m.Registry.MustRegister(m.MobileClientNetworkRequestsUrlCount)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalRequests)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsLatency)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSize)
 
@@ -2026,8 +2026,8 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalCompresse
 	mi.MobileClientNetworkRequestsTotalCompressedSize.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(size)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsUrlCount(platform string, networkRequestGroup string, count float64) {
-	mi.MobileClientNetworkRequestsUrlCount.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(count)
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalRequests(platform string, networkRequestGroup string, count float64) {
+	mi.MobileClientNetworkRequestsTotalRequests.With(prometheus.Labels{"platform": platform, "network_request_group": networkRequestGroup}).Observe(count)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsLatency(platform string, networkRequestGroup string, latency float64) {
