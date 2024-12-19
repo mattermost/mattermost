@@ -21,6 +21,7 @@ const (
 	LinkMetadataTypeNone      LinkMetadataType = "none"
 	LinkMetadataTypeOpengraph LinkMetadataType = "opengraph"
 	LinkMetadataMaxImages     int              = 5
+	LinkMetadataMaxURLLength  int              = 2048
 )
 
 type LinkMetadataType string
@@ -89,7 +90,7 @@ func (o *LinkMetadata) PreSave() {
 }
 
 func (o *LinkMetadata) IsValid() *AppError {
-	if o.URL == "" || len(o.URL) > 2048 {
+	if o.URL == "" || len(o.URL) > LinkMetadataMaxURLLength {
 		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.url.app_error", nil, "", http.StatusBadRequest)
 	}
 
