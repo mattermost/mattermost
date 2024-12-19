@@ -1050,6 +1050,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 id: 'user.settings.security.viewHistory.icon',
                                 defaultMessage: 'Access History Icon',
                             })}
+                            aria-hidden='true'
                         />
                         <FormattedMessage
                             id='user.settings.security.viewHistory'
@@ -1068,6 +1069,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 id: 'user.settings.security.logoutActiveSessions.icon',
                                 defaultMessage: 'Active Sessions Icon',
                             })}
+                            aria-hidden='true'
                         />
                         <FormattedMessage
                             id='user.settings.security.logoutActiveSessions'
