@@ -187,7 +187,7 @@ func (a *App) CheckLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapId))
 		}
 
-		if ldapUser.Id != "" {
+		if ldapUser != nil && ldapUser.Id != "" {
 			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
 				return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 			}

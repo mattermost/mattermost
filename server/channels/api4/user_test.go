@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/dgryski/dgoogauth"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -8964,5 +8965,248 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 		resp, err := nonAdminClient.RevokeAllSessions(context.Background(), user.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestResetPasswordFailedAttempts(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.SetupLdapConfig()
+
+	user := th.BasicUser
+	sysadminUser := th.SystemAdminUser
+
+	t.Run("Reset password failed attempts for regular user", func(t *testing.T) {
+		client := th.CreateClient()
+		for i := 0; i < 10; i++ {
+			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(10), user.FailedAttempts)
+
+		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), user.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(0), user.FailedAttempts)
+	})
+
+	t.Run("Reset password failed attempts for ldap user", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.LdapSettings.MaximumLoginAttempts = 5
+		})
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockLdap := &mocks.LdapInterface{}
+
+		username := GenerateTestUsername()
+
+		ldapUser := &model.User{
+			Email:         "foobar+testdomainrestriction@mattermost.org",
+			Username:      username,
+			AuthService:   "ldap",
+			AuthData:      &username,
+			EmailVerified: true,
+		}
+		ldapUser, appErr := th.App.CreateUser(th.Context, ldapUser)
+		require.Nil(t, appErr)
+
+		client := th.CreateClient()
+		mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"}).Times(5)
+		mockLdap.Mock.On("GetUser", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).Return(ldapUser, nil).Times(5)
+
+		th.App.Channels().Ldap = mockLdap
+
+		for i := 0; i < 5; i++ {
+			_, _, err := client.LoginByLdap(context.Background(), *ldapUser.AuthData, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), ldapUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(5), user.FailedAttempts)
+
+		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), ldapUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), ldapUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(0), user.FailedAttempts)
+	})
+
+	t.Run("Regular user unable to reset failed attempts", func(t *testing.T) {
+		client := th.CreateClient()
+		for i := 0; i < 10; i++ {
+			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(10), user.FailedAttempts)
+
+		resp, err = th.Client.ResetFailedAttempts(context.Background(), user.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(10), user.FailedAttempts)
+	})
+
+	t.Run("Reset password failed attempts when user has PermissionSysconsoleWriteUserManagementUsers", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		client := th.CreateClient()
+		for i := 0; i < 10; i++ {
+			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.Client.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(10), user.FailedAttempts)
+
+		resp, err = th.Client.ResetFailedAttempts(context.Background(), user.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, resp, err = th.Client.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(0), user.FailedAttempts)
+	})
+
+	t.Run("Unable to reset password failed attempts for sysadmin when user has PermissionSysconsoleWriteUserManagementUsers", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+
+		client := th.CreateClient()
+		for i := 0; i < 10; i++ {
+			_, _, err := client.Login(context.Background(), sysadminUser.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		sysadminUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(10), sysadminUser.FailedAttempts)
+
+		resp, err = th.Client.ResetFailedAttempts(context.Background(), sysadminUser.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		sysadminUser, resp, err = th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(10), sysadminUser.FailedAttempts)
+	})
+
+	t.Run("Reset password failed attempts for sysadmin", func(t *testing.T) {
+		client := th.CreateClient()
+		for i := 0; i < 10; i++ {
+			_, _, err := client.Login(context.Background(), sysadminUser.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(10), user.FailedAttempts)
+
+		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), sysadminUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(0), user.FailedAttempts)
+	})
+
+	t.Run("Unable to reset password attempts if it's below the maximum config for an ldap user", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.LdapSettings.MaximumLoginAttempts = 5
+		})
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockLdap := &mocks.LdapInterface{}
+
+		username := GenerateTestUsername()
+
+		ldapUser := &model.User{
+			Email:         username + "@mattermost.org",
+			Username:      username,
+			AuthService:   "ldap",
+			AuthData:      &username,
+			EmailVerified: true,
+		}
+		ldapUser, appErr := th.App.CreateUser(th.Context, ldapUser)
+		require.Nil(t, appErr)
+
+		client := th.CreateClient()
+		mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"}).Times(5)
+		mockLdap.Mock.On("GetUser", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).Return(ldapUser, nil).Times(5)
+
+		th.App.Channels().Ldap = mockLdap
+
+		for i := 0; i < 4; i++ {
+			_, _, err := client.LoginByLdap(context.Background(), *ldapUser.AuthData, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), ldapUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(4), user.FailedAttempts)
+
+		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), ldapUser.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), ldapUser.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(4), user.FailedAttempts)
+	})
+
+	t.Run("Unable to reset password attempts if it's below the maximum config for a regular user", func(t *testing.T) {
+		client := th.CreateClient()
+		for i := 0; i < 9; i++ {
+			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			require.Error(t, err)
+		}
+
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(9), user.FailedAttempts)
+
+		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), user.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(9), user.FailedAttempts)
 	})
 }
