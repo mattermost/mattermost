@@ -15,6 +15,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func BenchmarkPostToJSON(b *testing.B) {
+	o := Post{Id: NewId(), Message: NewId()}
+	for i := 0; i < b.N; i++ {
+		_, _ = o.ToJSON()
+	}
+}
+
 func TestPostToJSON(t *testing.T) {
 	o := Post{Id: NewId(), Message: NewId()}
 	j, err := o.ToJSON()
@@ -912,8 +919,10 @@ func TestPostAttachments(t *testing.T) {
 
 	t.Run("a couple of actions", func(t *testing.T) {
 		p.Props["attachments"] = []any{
-			map[string]any{"actions": []any{
-				map[string]any{"id": "test1"}, map[string]any{"id": "test2"}},
+			map[string]any{
+				"actions": []any{
+					map[string]any{"id": "test1"}, map[string]any{"id": "test2"},
+				},
 			},
 		}
 
@@ -925,8 +934,10 @@ func TestPostAttachments(t *testing.T) {
 
 	t.Run("should ignore null actions", func(t *testing.T) {
 		p.Props["attachments"] = []any{
-			map[string]any{"actions": []any{
-				map[string]any{"id": "test1"}, nil, map[string]any{"id": "test2"}, nil, nil},
+			map[string]any{
+				"actions": []any{
+					map[string]any{"id": "test1"}, nil, map[string]any{"id": "test2"}, nil, nil,
+				},
 			},
 		}
 
@@ -938,11 +949,12 @@ func TestPostAttachments(t *testing.T) {
 
 	t.Run("nil fields", func(t *testing.T) {
 		p.Props["attachments"] = []any{
-			map[string]any{"fields": []any{
-				map[string]any{"value": ":emoji1:"},
-				nil,
-				map[string]any{"value": ":emoji2:"},
-			},
+			map[string]any{
+				"fields": []any{
+					map[string]any{"value": ":emoji1:"},
+					nil,
+					map[string]any{"value": ":emoji2:"},
+				},
 			},
 		}
 
