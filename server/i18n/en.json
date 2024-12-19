@@ -5183,6 +5183,10 @@
     "translation": "Unable to set the searchable content of the file."
   },
   {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Failed to undelete post file attachments."
+  },
+  {
     "id": "app.get_user_team_scheduled_posts.error",
     "translation": "Error occurred fetching scheduled posts."
   },
@@ -6357,6 +6361,14 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Failed to permanently delete post."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Failed to get the old post version."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "You do not have the appropriate permissions."
   },
   {
     "id": "app.post.save.app_error",
@@ -10443,17 +10455,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
-  },
-  {
-    "id": "app.post.restore_post_version.get_single.app_error",
-    "translation": "Failed to get the old post version."
-  },
-  {
-    "id": "app.post.restore_post_version.not_allowed.app_error",
-    "translation": "You do not have the appropriate permissions."
-  },
-  {
-    "id": "app.file_info.undelete_for_post_ids.app_error",
-    "translation": "Failed to undelete post file attachments."
   }
 ]

@@ -52,6 +52,8 @@ type TestHelper struct {
 
 type PostOptions func(*model.Post)
 
+type PostPatchOptions func(patch *model.PostPatch)
+
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
 	updateConfig func(*model.Config), options []Option, tb testing.TB) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
@@ -795,6 +797,22 @@ func (th *TestHelper) CreateFileInfo(userId, postId, channelId string) *model.Fi
 	}
 
 	return createdFileInfo
+}
+
+func (th *TestHelper) UpdatePost(post *model.Post, message string, options ...PostPatchOptions) *model.Post {
+	postPatch := &model.PostPatch{
+		Message: model.NewPointer(message),
+	}
+	for _, optionFunc := range options {
+		optionFunc(postPatch)
+	}
+
+	updatedPost, appErr := th.App.PatchPost(th.Context, post.Id, postPatch, nil)
+	if appErr != nil {
+		panic(appErr)
+	}
+
+	return updatedPost
 }
 
 // This function is copy of storetest/NewTestId
