@@ -4570,7 +4570,7 @@ func TestPostGetInfo(t *testing.T) {
 			channel:   gmChannel,
 			post:      gmPost,
 			client:    sysadminClient,
-			hasAccess: false,
+			hasAccess: true,
 		},
 
 		// DM channel
@@ -4589,7 +4589,7 @@ func TestPostGetInfo(t *testing.T) {
 			channel:   dmChannel,
 			post:      dmPost,
 			client:    sysadminClient,
-			hasAccess: false,
+			hasAccess: true,
 		},
 
 		// Open channel - Open Team
