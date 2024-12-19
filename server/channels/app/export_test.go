@@ -160,7 +160,7 @@ func TestCopyEmojiImages(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(filePath)
 
-	copyError := th.App.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
+	copyError := th.App.copyEmojiImages(th.Context, emoji.Id, emojiImagePath, pathToDir)
 	require.NoError(t, copyError)
 
 	_, err = os.Stat(pathToDir + "/" + emoji.Id + "/image")
