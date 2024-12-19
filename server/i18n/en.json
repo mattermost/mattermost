@@ -4975,6 +4975,38 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Cannot register Custom Profile Attributes property group"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Unable to create Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Unable to get Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Custom Profile Attributes field limit reached"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Unable to delete Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Custom Profile Attribute field not found"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Unable to update Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Unable to search Custom Profile Attribute fields"
+  },
+  {
     "id": "app.delete_scheduled_post.delete_error",
     "translation": "Failed to delete scheduled post from database."
   },
@@ -9787,6 +9819,58 @@
   {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "Value is too long."
+  },
+  {
+    "id": "model.property_field.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.property_field.is_valid.group_id.app_error",
+    "translation": "Invalid group id."
+  },
+  {
+    "id": "model.property_field.is_valid.id.app_error",
+    "translation": "Invalid id."
+  },
+  {
+    "id": "model.property_field.is_valid.name.app_error",
+    "translation": "Invalid name."
+  },
+  {
+    "id": "model.property_field.is_valid.type.app_error",
+    "translation": "Invalid type."
+  },
+  {
+    "id": "model.property_field.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.property_value.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.property_value.is_valid.field_id.app_error",
+    "translation": "Invalid field id."
+  },
+  {
+    "id": "model.property_value.is_valid.group_id.app_error",
+    "translation": "Invalid group id."
+  },
+  {
+    "id": "model.property_value.is_valid.id.app_error",
+    "translation": "Invalid id."
+  },
+  {
+    "id": "model.property_value.is_valid.target_id.app_error",
+    "translation": "Invalid target id."
+  },
+  {
+    "id": "model.property_value.is_valid.target_type.app_error",
+    "translation": "Invalid target type."
+  },
+  {
+    "id": "model.property_value.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
   },
   {
     "id": "model.reaction.is_valid.create_at.app_error",

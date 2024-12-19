@@ -600,6 +600,18 @@ func (c *Client4) limitsRoute() string {
 	return "/limits"
 }
 
+func (c *Client4) customProfileAttributesRoute() string {
+	return "/custom_profile_attributes"
+}
+
+func (c *Client4) customProfileAttributeFieldsRoute() string {
+	return fmt.Sprintf("%s/fields", c.customProfileAttributesRoute())
+}
+
+func (c *Client4) customProfileAttributeFieldRoute(fieldID string) string {
+	return fmt.Sprintf("%s/%s", c.customProfileAttributeFieldsRoute(), fieldID)
+}
+
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
 	if err != nil {
@@ -9368,4 +9380,63 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 		return nil, nil, NewAppError("GetFilteredUsersStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &stats, BuildResponse(r), nil
+}
+
+func (c *Client4) CreateCPAField(ctx context.Context, field *PropertyField) (*PropertyField, *Response, error) {
+	buf, err := json.Marshal(field)
+	if err != nil {
+		return nil, nil, NewAppError("CreateCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.customProfileAttributeFieldsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var pf PropertyField
+	if err := json.NewDecoder(r.Body).Decode(&pf); err != nil {
+		return nil, nil, NewAppError("CreateCPAField", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &pf, BuildResponse(r), nil
+}
+
+func (c *Client4) ListCPAFields(ctx context.Context) ([]*PropertyField, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.customProfileAttributeFieldsRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var fields []*PropertyField
+	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
+		return nil, nil, NewAppError("ListCPAFields", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return fields, BuildResponse(r), nil
+}
+
+func (c *Client4) PatchCPAField(ctx context.Context, fieldID string, patch *PropertyFieldPatch) (*PropertyField, *Response, error) {
+	buf, err := json.Marshal(patch)
+	if err != nil {
+		return nil, nil, NewAppError("PatchCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPatchBytes(ctx, c.customProfileAttributeFieldRoute(fieldID), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var pf PropertyField
+	if err := json.NewDecoder(r.Body).Decode(&pf); err != nil {
+		return nil, nil, NewAppError("PatchCPAField", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &pf, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteCPAField(ctx context.Context, fieldID string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.customProfileAttributeFieldRoute(fieldID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
