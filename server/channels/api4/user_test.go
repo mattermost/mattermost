@@ -8973,17 +8973,16 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 	defer th.TearDown()
 	th.SetupLdapConfig()
 
-	user := th.BasicUser
-	sysadminUser := th.SystemAdminUser
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	t.Run("Reset password failed attempts for regular user", func(t *testing.T) {
 		client := th.CreateClient()
 		for i := 0; i < 10; i++ {
-			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), th.BasicUser.Email, "wrongpassword")
 			require.Error(t, err)
 		}
 
-		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, int(10), user.FailedAttempts)
@@ -9049,11 +9048,11 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 	t.Run("Regular user unable to reset failed attempts", func(t *testing.T) {
 		client := th.CreateClient()
 		for i := 0; i < 10; i++ {
-			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), th.BasicUser.Email, "wrongpassword")
 			require.Error(t, err)
 		}
 
-		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, int(10), user.FailedAttempts)
@@ -9074,11 +9073,11 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		client := th.CreateClient()
 		for i := 0; i < 10; i++ {
-			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), th.BasicUser.Email, "wrongpassword")
 			require.Error(t, err)
 		}
 
-		user, resp, err := th.Client.GetUser(context.Background(), user.Id, "")
+		user, resp, err := th.Client.GetUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, int(10), user.FailedAttempts)
@@ -9099,11 +9098,11 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		client := th.CreateClient()
 		for i := 0; i < 10; i++ {
-			_, _, err := client.Login(context.Background(), sysadminUser.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), th.SystemAdminUser.Email, "wrongpassword")
 			require.Error(t, err)
 		}
 
-		sysadminUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
+		sysadminUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), th.SystemAdminUser.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, int(10), sysadminUser.FailedAttempts)
@@ -9121,23 +9120,23 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 	t.Run("Reset password failed attempts for sysadmin", func(t *testing.T) {
 		client := th.CreateClient()
 		for i := 0; i < 10; i++ {
-			_, _, err := client.Login(context.Background(), sysadminUser.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), th.SystemAdminUser.Email, "wrongpassword")
 			require.Error(t, err)
 		}
 
-		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
+		sysadminUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), th.SystemAdminUser.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, int(10), user.FailedAttempts)
+		require.Equal(t, int(10), sysadminUser.FailedAttempts)
 
 		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), sysadminUser.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
+		sysadminUser, resp, err = th.SystemAdminClient.GetUser(context.Background(), sysadminUser.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, int(0), user.FailedAttempts)
+		require.Equal(t, int(0), sysadminUser.FailedAttempts)
 	})
 
 	t.Run("Unable to reset password attempts if it's below the maximum config for an ldap user", func(t *testing.T) {
@@ -9162,9 +9161,11 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		ldapUser, appErr := th.App.CreateUser(th.Context, ldapUser)
 		require.Nil(t, appErr)
 
+		t.Log(ldapUser)
+
 		client := th.CreateClient()
-		mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"}).Times(5)
-		mockLdap.Mock.On("GetUser", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).Return(ldapUser, nil).Times(5)
+		mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"}).Times(4)
+		mockLdap.Mock.On("GetUser", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).Return(ldapUser, nil).Times(4)
 
 		th.App.Channels().Ldap = mockLdap
 
@@ -9191,11 +9192,11 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 	t.Run("Unable to reset password attempts if it's below the maximum config for a regular user", func(t *testing.T) {
 		client := th.CreateClient()
 		for i := 0; i < 9; i++ {
-			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), th.BasicUser.Email, "wrongpassword")
 			require.Error(t, err)
 		}
 
-		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Equal(t, int(9), user.FailedAttempts)
