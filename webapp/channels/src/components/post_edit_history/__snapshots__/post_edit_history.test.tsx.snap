@@ -187,7 +187,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               >
                 <button
                   aria-label="Toggle to see an old message."
-                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button"
+                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button toggleCollapseButton"
                   disabled=""
                 >
                   <i
@@ -265,6 +265,10 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                   </div>
                 </div>
               </div>
+              <div
+                class="post-image__columns clearfix"
+                data-testid="fileAttachmentList"
+              />
             </div>
           </div>
         </div>
@@ -285,7 +289,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               >
                 <button
                   aria-label="Toggle to see an old message."
-                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button"
+                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button toggleCollapseButton"
                   disabled=""
                 >
                   <i
@@ -334,7 +338,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               >
                 <button
                   aria-label="Toggle to see an old message."
-                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button"
+                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button toggleCollapseButton"
                   disabled=""
                 >
                   <i

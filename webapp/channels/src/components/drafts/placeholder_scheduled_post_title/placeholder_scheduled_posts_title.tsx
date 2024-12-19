@@ -50,8 +50,6 @@ export default function PlaceholderScheduledPostsTitle({type}: Props) {
 
     return (
         <WithTooltip
-            id='scheduled_posts__placeholder'
-            placement={'top'}
             title={tooltipText}
         >
             <div>

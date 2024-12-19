@@ -1,10 +1,104 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FileAttachment should match snapshot, after change from file to image 1`] = `
+exports[`FileAttachment should match snapshot when file is deleted 1`] = `
 <WithTooltip
   disabled={true}
   id="fileAttachmentArchivedTooltip"
   placement="top"
+  title={<ArchivedTooltip />}
+>
+  <div
+    className="post-image__column"
+  >
+    <a
+      aria-label="file thumbnail test.pdf"
+      className="post-image__thumbnail"
+      href="#"
+      onClick={[Function]}
+    >
+      <Connect(Component)
+        fileInfo={
+          Object {
+            "archived": false,
+            "clientId": "",
+            "create_at": 0,
+            "delete_at": 10000000,
+            "extension": "pdf",
+            "has_preview_image": true,
+            "height": 80,
+            "id": "thumbnail_id",
+            "mime_type": "",
+            "name": "test.pdf",
+            "size": 100,
+            "update_at": 0,
+            "user_id": "",
+            "width": 100,
+          }
+        }
+      />
+    </a>
+    <div
+      className="post-image__details"
+    >
+      <div
+        className="post-image__detail_wrapper"
+        onClick={[Function]}
+      >
+        <div
+          className="post-image__detail"
+        >
+          <span
+            className="post-image__name"
+          >
+            test.pdf
+          </span>
+          <span
+            className="post-image__type"
+          >
+            PDF
+          </span>
+          <span
+            className="post-image__size"
+          >
+            100B
+          </span>
+        </div>
+      </div>
+      <FilenameOverlay
+        canDownload={true}
+        fileInfo={
+          Object {
+            "archived": false,
+            "clientId": "",
+            "create_at": 0,
+            "delete_at": 10000000,
+            "extension": "pdf",
+            "has_preview_image": true,
+            "height": 80,
+            "id": "thumbnail_id",
+            "mime_type": "",
+            "name": "test.pdf",
+            "size": 100,
+            "update_at": 0,
+            "user_id": "",
+            "width": 100,
+          }
+        }
+        handleImageClick={[Function]}
+        iconClass="post-image__download"
+      >
+        <i
+          className="icon icon-download-outline"
+        />
+      </FilenameOverlay>
+    </div>
+  </div>
+</WithTooltip>
+`;
+
+exports[`FileAttachment should match snapshot, after change from file to image 1`] = `
+<WithTooltip
+  disabled={true}
   title={<ArchivedTooltip />}
 >
   <div
@@ -99,8 +193,6 @@ exports[`FileAttachment should match snapshot, after change from file to image 1
 exports[`FileAttachment should match snapshot, regular file 1`] = `
 <WithTooltip
   disabled={true}
-  id="fileAttachmentArchivedTooltip"
-  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -195,8 +287,6 @@ exports[`FileAttachment should match snapshot, regular file 1`] = `
 exports[`FileAttachment should match snapshot, regular image 1`] = `
 <WithTooltip
   disabled={true}
-  id="fileAttachmentArchivedTooltip"
-  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -208,8 +298,26 @@ exports[`FileAttachment should match snapshot, regular image 1`] = `
       href="#"
       onClick={[Function]}
     >
-      <div
-        className="post-image__load"
+      <Connect(Component)
+        disablePreview={true}
+        fileInfo={
+          Object {
+            "archived": false,
+            "clientId": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "extension": "png",
+            "has_preview_image": true,
+            "height": 400,
+            "id": "thumbnail_id",
+            "mime_type": "",
+            "name": "test.png",
+            "size": 100,
+            "update_at": 0,
+            "user_id": "",
+            "width": 600,
+          }
+        }
       />
     </a>
     <div
@@ -274,8 +382,6 @@ exports[`FileAttachment should match snapshot, regular image 1`] = `
 exports[`FileAttachment should match snapshot, small image 1`] = `
 <WithTooltip
   disabled={true}
-  id="fileAttachmentArchivedTooltip"
-  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -287,8 +393,26 @@ exports[`FileAttachment should match snapshot, small image 1`] = `
       href="#"
       onClick={[Function]}
     >
-      <div
-        className="post-image__load"
+      <Connect(Component)
+        disablePreview={true}
+        fileInfo={
+          Object {
+            "archived": false,
+            "clientId": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "extension": "png",
+            "has_preview_image": true,
+            "height": 16,
+            "id": "thumbnail_id",
+            "mime_type": "",
+            "name": "test.png",
+            "size": 100,
+            "update_at": 0,
+            "user_id": "",
+            "width": 16,
+          }
+        }
       />
     </a>
     <div
@@ -353,8 +477,6 @@ exports[`FileAttachment should match snapshot, small image 1`] = `
 exports[`FileAttachment should match snapshot, svg image 1`] = `
 <WithTooltip
   disabled={true}
-  id="fileAttachmentArchivedTooltip"
-  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -449,8 +571,6 @@ exports[`FileAttachment should match snapshot, svg image 1`] = `
 exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
 <WithTooltip
   disabled={true}
-  id="fileAttachmentArchivedTooltip"
-  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -462,8 +582,26 @@ exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
       href="#"
       onClick={[Function]}
     >
-      <div
-        className="post-image__load"
+      <Connect(Component)
+        disablePreview={true}
+        fileInfo={
+          Object {
+            "archived": false,
+            "clientId": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "extension": "jpg",
+            "has_preview_image": true,
+            "height": 80,
+            "id": "noLoad",
+            "mime_type": "",
+            "name": "test.pdf",
+            "size": 100,
+            "update_at": 0,
+            "user_id": "",
+            "width": 100,
+          }
+        }
       />
     </a>
     <div
@@ -528,8 +666,6 @@ exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
 exports[`FileAttachment should match snapshot, with compact display 1`] = `
 <WithTooltip
   disabled={true}
-  id="fileAttachmentArchivedTooltip"
-  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
@@ -574,8 +710,6 @@ exports[`FileAttachment should match snapshot, with compact display 1`] = `
 exports[`FileAttachment should match snapshot, without compact display and without can download 1`] = `
 <WithTooltip
   disabled={true}
-  id="fileAttachmentArchivedTooltip"
-  placement="top"
   title={<ArchivedTooltip />}
 >
   <div

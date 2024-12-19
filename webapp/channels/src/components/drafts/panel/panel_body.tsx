@@ -81,7 +81,6 @@ function PanelBody({
                                 {priority && (
                                     <PriorityLabels
                                         canRemove={false}
-                                        padding='0 0 0 8px'
                                         hasError={false}
                                         persistentNotifications={priority.persistent_notifications}
                                         priority={priority.priority}
