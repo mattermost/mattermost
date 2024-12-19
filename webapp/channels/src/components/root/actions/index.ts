@@ -61,7 +61,7 @@ export function loadConfigAndMe(): ThunkActionFunc<Promise<{isLoaded: boolean; i
 
         try {
             await Promise.all([
-                dispatch(getCustomAttributes()),
+                // dispatch(getCustomAttributes()),
                 dispatch(getMe()),
                 dispatch(getMyPreferences()),
                 dispatch(getMyTeams()),

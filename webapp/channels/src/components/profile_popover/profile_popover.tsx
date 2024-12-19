@@ -4,6 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {getAllCustomAttributes} from 'mattermost-redux/actions/general';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCustomAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -99,7 +100,7 @@ const ProfilePopover = ({
                 },
             ));
         };
-    }, []);
+    }, [returnFocus]);
 
     const handleCloseModals = useCallback(() => {
         for (const modal in modals?.modalState) {
@@ -110,7 +111,7 @@ const ProfilePopover = ({
                 dispatch(closeModal(modal));
             }
         }
-    }, [modals]);
+    }, [modals, dispatch]);
 
     const handleShowDirectChannel = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -133,7 +134,7 @@ const ProfilePopover = ({
             hide?.();
             getHistory().push(`${teamUrl}/messages/@${user.username}`);
         }
-    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl]);
+    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl, dispatch]);
 
     useEffect(() => {
         if (currentTeamId && userId) {
@@ -143,7 +144,7 @@ const ProfilePopover = ({
                 channelId,
             ));
         }
-    }, []);
+    }, [channelId, userId, currentTeamId, dispatch]);
 
     if (!user) {
         return null;
@@ -196,12 +197,15 @@ const ProfilePopover = ({
                         fromWebhook={fromWebhook}
                     />
                 </div>
-                <ProfilePopoverCustomAttributes
-                    customAttributes={customAttributes}
-
-                    // customAttributeValues={user.custom_attributes}
-                    customAttributeValues={fakeCustomAttributeValues}
-                />
+                { fakeCustomAttributeValues && (
+                // { user.custom_attributes && (
+                    <ProfilePopoverCustomAttributes
+                        customAttributes={customAttributes}
+                        // customAttributeValues={user.custom_attributes}
+                        customAttributeValues={fakeCustomAttributeValues}
+                        getCustomAttributes={getAllCustomAttributes}
+                    />
+                )}
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}
                     profileUserTimezone={user.timezone}

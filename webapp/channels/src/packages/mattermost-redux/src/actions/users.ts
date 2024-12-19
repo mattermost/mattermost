@@ -79,7 +79,7 @@ export function loadMe(): ActionFuncAsync<boolean> {
                 dispatch(getMyPreferences()),
                 dispatch(getMyTeams()),
                 dispatch(getMyTeamMembers()),
-                dispatch(getCustomAttributes()),
+                // dispatch(getCustomAttributes()),
             ]);
 
             const isCollapsedThreads = isCollapsedThreadsEnabled(getState());

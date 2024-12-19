@@ -43,7 +43,7 @@ export function getLicenseConfig() {
     });
 }
 
-export function getCustomAttributes() {
+export function getAllCustomAttributes() {
     return bindClientFunc({
         clientFunc: Client4.getCustomAttributes,
         onSuccess: [GeneralTypes.ATTRIBUTES_RECEIVED],
@@ -110,7 +110,7 @@ export function getFirstAdminSetupComplete(): ActionFuncAsync<SystemSetting> {
 export default {
     getClientConfig,
     getLicenseConfig,
-    getCustomAttributes,
+    getAllCustomAttributes,
     logClientError,
     setServerVersion,
     setUrl,

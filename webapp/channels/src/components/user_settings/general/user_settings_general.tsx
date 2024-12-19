@@ -116,6 +116,7 @@ export type Props = {
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
         saveAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult>;
+        getCustomAttributes: () => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -156,6 +157,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = this.setupInitialState(props);
+    }
+
+    componentDidMount() {
+        this.props.actions.getCustomAttributes();
     }
 
     handleEmailResend = (email: string) => {
