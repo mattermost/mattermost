@@ -70,34 +70,6 @@ const EmojiPicker = ({
         emoji: undefined,
     });
 
-    
-    const [savedCursor, setSavedCursor] = useState<EmojiCursor>({
-        rowIndex: -1,
-        emojiId: '',
-        emoji: undefined,
-    }); // State to save the cursor position
-
-    // Fetch saved cursor from sessionStorage on mount
-    useEffect(() => {
-        const savedCursorData = sessionStorage.getItem('savedCursor');
-        if (savedCursorData) {
-            setSavedCursor(JSON.parse(savedCursorData));
-        }
-    }, []);
-
-    // Save cursor to sessionStorage whenever it changes
-    useEffect(() => {
-        if (cursor.rowIndex !== -1) {
-            sessionStorage.setItem('savedCursor', JSON.stringify(cursor));
-        }
-    }, [cursor]);
-
-    useEffect(() => {
-        // Scroll to the saved cursor position when component mounts or when savedCursor is updated
-        if (savedCursor.rowIndex !== -1 && infiniteLoaderRef?.current?._listRef) {
-            infiniteLoaderRef.current._listRef.scrollToItem(savedCursor.rowIndex, 'auto');
-        }
-    }, [savedCursor]);
     // On the first load, categories doesnt contain emojiIds until later when getUpdatedCategoriesAndAllEmojis is called
     const getInitialCategories = () => (recentEmojis.length ? {...RECENT_EMOJI_CATEGORY, ...CATEGORIES} : CATEGORIES);
     const [categories, setCategories] = useState<Categories>(getInitialCategories);
@@ -149,8 +121,11 @@ const EmojiPicker = ({
         shouldRunCreateCategoryAndEmojiRows.current = false;
 
         const [updatedCategoryOrEmojisRows, updatedEmojiPositions] = createCategoryAndEmojiRows(allEmojis, categories, filter, userSkinTone);
-
-        // selectFirstEmoji(updatedEmojiPositions);
+        
+        if(activeCategory !== 'custom'){
+            selectFirstEmoji(updatedEmojiPositions);
+        }
+        
         setCategoryOrEmojisRows(updatedCategoryOrEmojisRows);
         setEmojiPositionsArray(updatedEmojiPositions);
         throttledSearchCustomEmoji.current(filter, customEmojisEnabled);
