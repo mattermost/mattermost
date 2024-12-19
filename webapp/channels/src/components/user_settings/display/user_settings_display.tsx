@@ -28,6 +28,7 @@ import {a11yFocus} from 'utils/utils';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
+import RenderEmoticonsAsEmoji from './render_emoticons_as_emoji';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -386,6 +387,24 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         this.setState({isSaving: false});
     };
+
+    renderOnOffLabel(enabled: string): JSX.Element {
+        if (enabled === 'false') {
+            return (
+                <FormattedMessage
+                    id='user.settings.advance.off'
+                    defaultMessage='Off'
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='user.settings.advance.on'
+                defaultMessage='On'
+            />
+        );
+    }
 
     createSection(props: SectionProps) {
         const {
@@ -1147,6 +1166,18 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             });
         }
 
+        const renderEmoticonsAsEmojiSection = (
+            <div>
+                <RenderEmoticonsAsEmoji
+                    active={this.props.activeSection === 'renderEmoticonsAsEmoji'}
+                    areAllSectionsInactive={this.props.activeSection === ''}
+                    renderOnOffLabel={this.renderOnOffLabel}
+                    updateSection={this.updateSection}
+                    userId={this.props.user.id}
+                />
+                <div className='divider-dark'/>
+            </div>);
+
         return (
             <div id='displaySettings'>
                 <SettingMobileHeader
@@ -1183,6 +1214,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {clickToReply}
                     {channelDisplayModeSection}
                     {oneClickReactionsOnPostsSection}
+                    {renderEmoticonsAsEmojiSection}
                     {languagesSection}
                 </div>
             </div>
