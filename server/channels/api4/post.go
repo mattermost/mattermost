@@ -881,7 +881,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rpost, err := c.App.UpdatePost(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), false)
+	rpost, err := c.App.UpdatePost(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), false, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -949,7 +949,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(&post))
+	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(&post), nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -1080,7 +1080,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewPointer(isPinned)
 
-	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch)
+	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch, nil)
 	if err != nil {
 		c.Err = err
 		return

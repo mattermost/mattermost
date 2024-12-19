@@ -28,5 +28,9 @@ func (a *App) RestorePostVersion(c request.CTX, userID, postID, restoreVersionID
 		FileIds: &toRestorePostVersion.FileIds,
 	}
 
-	return a.PatchPost(c, postID, postPatch)
+	patchPostOptions := &model.UpdatePostOptions{
+		IsRestorePost: true,
+	}
+
+	return a.PatchPost(c, postID, postPatch, patchPostOptions)
 }

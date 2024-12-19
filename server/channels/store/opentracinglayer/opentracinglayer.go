@@ -4232,6 +4232,24 @@ func (s *OpenTracingLayerFileInfoStore) SetContent(ctx request.CTX, fileID strin
 	return err
 }
 
+func (s *OpenTracingLayerFileInfoStore) UndeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.UndeleteForPostByIds")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.FileInfoStore.UndeleteForPostByIds(rctx, postId, fileIDs)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerFileInfoStore) Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.Upsert")

@@ -4758,6 +4758,27 @@ func (s *RetryLayerFileInfoStore) SetContent(ctx request.CTX, fileID string, con
 
 }
 
+func (s *RetryLayerFileInfoStore) UndeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+
+	tries := 0
+	for {
+		err := s.FileInfoStore.UndeleteForPostByIds(rctx, postId, fileIDs)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 
 	tries := 0

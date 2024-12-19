@@ -727,6 +727,7 @@ type FileInfoStore interface {
 	AttachToPost(c request.CTX, fileID string, postID string, channelID, creatorID string) error
 	DeleteForPost(c request.CTX, postID string) (string, error)
 	DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error
+	UndeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error
 	PermanentDeleteForPost(rctx request.CTX, postID string) error
 	PermanentDelete(c request.CTX, fileID string) error
 	PermanentDeleteBatch(ctx request.CTX, endTime int64, limit int64) (int64, error)

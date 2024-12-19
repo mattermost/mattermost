@@ -10451,5 +10451,9 @@
   {
     "id": "app.post.restore_post_version.not_allowed.app_error",
     "translation": "You do not have the appropriate permissions."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Failed to undelete post file attachments."
   }
 ]
