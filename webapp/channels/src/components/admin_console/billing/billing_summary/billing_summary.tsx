@@ -273,10 +273,8 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                             defaultMessage='Partial charges'
                         />
                         <WithTooltip
-                            id='BillingSubscriptions__seatOverageTooltip'
                             title={messages.partialChargesTooltipTitle}
                             hint={messages.partialChargesTooltipText}
-                            placement='bottom'
                         >
                             <i className='icon-information-outline'/>
                         </WithTooltip>

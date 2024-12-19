@@ -239,7 +239,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 <CustomStatusEmoji
                     userID={this.props.dmUser?.id}
                     showTooltip={true}
-                    tooltipDirection='bottom'
                     emojiStyle={{
                         verticalAlign: 'top',
                         margin: '0 4px 1px',
@@ -569,8 +568,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         if (channelMuted) {
             muteTrigger = (
                 <WithTooltip
-                    id='channelMutedTooltip'
-                    placement='bottom'
                     title={
                         <FormattedMessage
                             id='channelHeader.unmute'
