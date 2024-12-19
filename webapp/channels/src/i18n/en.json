@@ -1530,6 +1530,8 @@
   "admin.notices.enableAdminNoticesTitle": "Enable Admin Notices: ",
   "admin.notices.enableEndUserNoticesDescription": "When enabled, all users will receive notices about available client upgrades and relevant end user features to improve user experience. <link>Learn more about notices</link> in our documentation.",
   "admin.notices.enableEndUserNoticesTitle": "Enable End User Notices: ",
+  "admin.notifications.enableLateTimeWarnings.description": "When true, users will be warned when sending direct messages to other users during their late hours based on their timezone.",
+  "admin.notifications.enableLateTimeWarnings.title": "Enable Late Time Warnings:",
   "admin.oauth.gitlab": "GitLab",
   "admin.oauth.google": "Google Apps",
   "admin.oauth.off": "Do not allow sign-in via an OAuth 2.0 provider",

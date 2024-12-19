@@ -215,6 +215,7 @@ export type ClientConfig = {
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
     YoutubeReferrerPolicy: 'true' | 'false';
     ScheduledPosts: string;
+    EnableLateTimeWarnings: string;
 };
 
 export type License = {
