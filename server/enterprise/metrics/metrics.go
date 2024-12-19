@@ -216,19 +216,19 @@ type MetricsInterfaceImpl struct {
 	ClientRHSLoadDuration           *prometheus.HistogramVec
 	ClientGlobalThreadsLoadDuration *prometheus.HistogramVec
 
-	MobileClientLoadDuration                       *prometheus.HistogramVec
-	MobileClientChannelSwitchDuration              *prometheus.HistogramVec
-	MobileClientTeamSwitchDuration                 *prometheus.HistogramVec
-	MobileClientSessionMetadataGauge               *prometheus.GaugeVec
-	MobileClientNetworkRequestsTotalCompressedSize *prometheus.HistogramVec
-	MobileClientNetworkRequestsTotalRequests       *prometheus.HistogramVec
+	MobileClientLoadDuration                           *prometheus.HistogramVec
+	MobileClientChannelSwitchDuration                  *prometheus.HistogramVec
+	MobileClientTeamSwitchDuration                     *prometheus.HistogramVec
+	MobileClientSessionMetadataGauge                   *prometheus.GaugeVec
+	MobileClientNetworkRequestsTotalCompressedSize     *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalRequests           *prometheus.HistogramVec
 	MobileClientNetworkRequestsTotalParallelRequests   *prometheus.HistogramVec
 	MobileClientNetworkRequestsTotalSequentialRequests *prometheus.HistogramVec
-	MobileClientNetworkRequestsLatency             *prometheus.HistogramVec
-	MobileClientNetworkRequestsTotalSize           *prometheus.HistogramVec
-	MobileClientNetworkRequestsElapsedTime         *prometheus.HistogramVec
-	MobileClientNetworkRequestsAverageSpeed        *prometheus.HistogramVec
-	MobileClientNetworkRequestsEffectiveLatency    *prometheus.HistogramVec
+	MobileClientNetworkRequestsLatency                 *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalSize               *prometheus.HistogramVec
+	MobileClientNetworkRequestsElapsedTime             *prometheus.HistogramVec
+	MobileClientNetworkRequestsAverageSpeed            *prometheus.HistogramVec
+	MobileClientNetworkRequestsEffectiveLatency        *prometheus.HistogramVec
 
 	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
