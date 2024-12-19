@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from '@e2e-support/test_fixture';
+import MessagePriority from '@e2e-support/ui/components/channels/message_priority';
 
 test('MM-T5139: Message Priority - Standard message priority and system setting', async ({pw, pages}) => {
     // # Setup test environment
@@ -15,22 +16,14 @@ test('MM-T5139: Message Priority - Standard message priority and system setting'
     await channelPage.goto();
     await channelPage.toBeVisible();
 
-    // # Verify formatting bar has message priority icon
-    await expect(channelPage.centerView.postCreate.priorityButton).toBeVisible();
-
-    // # Click on the message priority icon and verify menu
+    const messagePriority = new MessagePriority(page.locator('body'));
+    
+    // Open menu
     await channelPage.centerView.postCreate.openPriorityMenu();
     
-    // # Verify menu opens with correct header
-    const priorityDialog = page.getByRole('dialog');
-    await expect(priorityDialog).toBeVisible();
-    const menuHeader = priorityDialog.locator('h4.modal-title');
-    await expect(menuHeader).toHaveText('Message priority');
-
-    // # Verify Standard option is selected by default
-    const standardOption = priorityDialog.getByRole('menuitem', { name: 'Standard' });
-    await expect(standardOption).toBeVisible();
-    await expect(standardOption.locator('svg.StyledCheckIcon-dFKfoY')).toBeVisible();
+    // Use messagePriority for dialog interactions
+    await messagePriority.verifyPriorityDialog();
+    await messagePriority.verifyStandardOptionSelected();
 
     // # Close menu and post message
     await channelPage.centerView.postCreate.priorityButton.click();

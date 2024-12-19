@@ -8,6 +8,8 @@ export default class MessagePriority {
     readonly priorityIcon: Locator;
     readonly priorityMenu: Locator;
     readonly standardPriorityOption: Locator;
+    readonly priorityDialog: Locator;
+    readonly dialogHeader: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -20,15 +22,19 @@ export default class MessagePriority {
 
         // Standard priority option in the menu (id comes from webapp implementation)
         this.standardPriorityOption = this.priorityMenu.locator('#menu-item-priority-standard');
+
+        // Priority dialog elements
+        this.priorityDialog = container.page().getByRole('dialog');
+        this.dialogHeader = this.priorityDialog.locator('h4.modal-title');
     }
 
     async clickPriorityIcon() {
-        await this.priorityIcon.waitFor();
+        await this.priorityIcon.waitFor({state: 'visible'});
         await this.priorityIcon.click();
     }
 
     async verifyPriorityIconVisible() {
-        await this.priorityIcon.waitFor();
+        await this.priorityIcon.waitFor({state: 'visible'});
         await expect(this.priorityIcon).toBeVisible();
     }
 
@@ -55,6 +61,17 @@ export default class MessagePriority {
         // Verify no priority label exists
         const priorityLabel = post.locator('[data-testid="post-priority-label"]');
         await expect(priorityLabel).toHaveCount(0);
+    }
+
+    async verifyPriorityDialog() {
+        await expect(this.priorityDialog).toBeVisible();
+        await expect(this.dialogHeader).toHaveText('Message priority');
+    }
+
+    async verifyStandardOptionSelected() {
+        const standardOption = this.priorityDialog.getByRole('menuitem', { name: 'Standard' });
+        await expect(standardOption).toBeVisible();
+        await expect(standardOption.locator('svg.StyledCheckIcon-dFKfoY')).toBeVisible();
     }
 }
 
