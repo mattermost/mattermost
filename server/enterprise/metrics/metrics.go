@@ -1367,6 +1367,50 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform"},
 	)
 
+	m.MobileClientNetworkRequestsAverageSpeed = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_average_speed",
+			Help:      "Average speed of network requests in megabytes per second (MBps)",
+			Buckets:   []float64{1000, 10000, 50000, 100000, 500000, 1000000, 5000000},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsEffectiveLatency = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_effective_latency",
+			Help:      "Effective latency of network requests in seconds",
+			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsElapsedTime = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_elapsed_time",
+			Help:      "Total elapsed time of network requests in seconds",
+			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsLatency = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_latency",
+			Help:      "Latency of network requests in seconds",
+			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
 	m.MobileClientNetworkRequestsTotalCompressedSize = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
@@ -1378,23 +1422,23 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform", "agent", "network_request_group"},
 	)
 
-	m.MobileClientNetworkRequestsTotalRequests = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemClientsMobileApp,
-			Name:      "mobile_network_requests_total_requests",
-			Help:      "Total number of network requests made",
-			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
-		},
-		[]string{"platform", "agent", "network_request_group"},
-	)
-
 	m.MobileClientNetworkRequestsTotalParallelRequests = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsMobileApp,
 			Name:      "mobile_network_requests_total_parallel_requests",
 			Help:      "Total number of parallel network requests made",
+			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsTotalRequests = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_total_requests",
+			Help:      "Total number of network requests made",
 			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
 		},
 		[]string{"platform", "agent", "network_request_group"},
@@ -1411,17 +1455,6 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform", "agent", "network_request_group"},
 	)
 
-	m.MobileClientNetworkRequestsLatency = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemClientsMobileApp,
-			Name:      "mobile_network_requests_latency",
-			Help:      "Latency of network requests in seconds",
-			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
-		},
-		[]string{"platform", "agent", "network_request_group"},
-	)
-
 	m.MobileClientNetworkRequestsTotalSize = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
@@ -1434,48 +1467,15 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 
 	m.Registry.MustRegister(m.MobileClientLoadDuration)
-	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalCompressedSize)
-	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalRequests)
-	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalParallelRequests)
-	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSequentialRequests)
-	m.Registry.MustRegister(m.MobileClientNetworkRequestsLatency)
-	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSize)
-
-	m.MobileClientNetworkRequestsElapsedTime = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemClientsMobileApp,
-			Name:      "mobile_network_requests_elapsed_time",
-			Help:      "Total elapsed time of network requests in seconds",
-			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
-		},
-		[]string{"platform", "agent", "network_request_group"},
-	)
-	m.Registry.MustRegister(m.MobileClientNetworkRequestsElapsedTime)
-
-	m.MobileClientNetworkRequestsAverageSpeed = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemClientsMobileApp,
-			Name:      "mobile_network_requests_average_speed",
-			Help:      "Average speed of network requests in megabytes per second (MBps)",
-			Buckets:   []float64{1000, 10000, 50000, 100000, 500000, 1000000, 5000000},
-		},
-		[]string{"platform", "agent", "network_request_group"},
-	)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsAverageSpeed)
-
-	m.MobileClientNetworkRequestsEffectiveLatency = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: MetricsNamespace,
-			Subsystem: MetricsSubsystemClientsMobileApp,
-			Name:      "mobile_network_requests_effective_latency",
-			Help:      "Effective latency of network requests in seconds",
-			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
-		},
-		[]string{"platform", "agent", "network_request_group"},
-	)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsEffectiveLatency)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsElapsedTime)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsLatency)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalCompressedSize)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalParallelRequests)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalRequests)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSequentialRequests)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSize)
 
 	m.MobileClientChannelSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
