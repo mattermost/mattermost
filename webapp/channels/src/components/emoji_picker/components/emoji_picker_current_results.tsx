@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import throttle from 'lodash/throttle';
-import React, {forwardRef, memo, useCallback} from 'react';
+import React, {forwardRef, memo, useCallback, useRef, useEffect} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
 import type {ListItemKeySelector, ListOnScrollProps} from 'react-window';
@@ -32,108 +32,122 @@ interface Props {
     getCustomEmojis: (page?: number, perPage?: number, sort?: string, loadUsers?: boolean) => Promise<ActionResult<CustomEmoji[]>>;
 }
 
-const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOrEmojisRows, isFiltering, activeCategory, cursorRowIndex, cursorEmojiId, customEmojisEnabled, customEmojiPage, setActiveCategory, onEmojiClick, onEmojiMouseOver, getCustomEmojis, incrementEmojiPickerPage}: Props, ref) => {
-    // Function to create unique key for each row
-    const getItemKey = (index: Parameters<ListItemKeySelector>[0], rowsData: Parameters<ListItemKeySelector<CategoryOrEmojiRow[]>>[1]) => {
-        const data = rowsData[index];
+const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(
+    (
+        {categoryOrEmojisRows, isFiltering, activeCategory, cursorRowIndex, cursorEmojiId, customEmojisEnabled, customEmojiPage, setActiveCategory, onEmojiClick, onEmojiMouseOver, getCustomEmojis, incrementEmojiPickerPage}: Props,
+        infiniteLoaderRef, // This is the ref for InfiniteLoader
+    ) => {
+        const listRef = useRef<FixedSizeList<CategoryOrEmojiRow[]> | null>(null); // Separate ref for FixedSizeList
+        const scrollPositionRef = useRef(0);
 
-        if (isCategoryHeaderRow(data)) {
-            const categoryRow = data.items[0];
-            return `${categoryRow.categoryIndex}-${categoryRow.categoryName}`;
-        }
+        const getItemKey = (index: Parameters<ListItemKeySelector>[0], rowsData: Parameters<ListItemKeySelector<CategoryOrEmojiRow[]>>[1]) => {
+            const data = rowsData[index];
 
-        const emojisRow = data.items;
-        const emojiNamesArray = emojisRow.map((emoji) => `${emoji.categoryIndex}-${emoji.emojiId}`);
-        return emojiNamesArray.join('--');
-    };
+            if (isCategoryHeaderRow(data)) {
+                const categoryRow = data.items[0];
+                return `${categoryRow.categoryIndex}-${categoryRow.categoryName}`;
+            }
 
-    const handleScroll = (scrollOffset: ListOnScrollProps['scrollOffset'], activeCategory: EmojiCategory, isFiltering: boolean, categoryOrEmojisRows: CategoryOrEmojiRow[]) => {
-        if (isFiltering) {
-            return;
-        }
+            const emojisRow = data.items;
+            const emojiNamesArray = emojisRow.map((emoji) => `${emoji.categoryIndex}-${emoji.emojiId}`);
+            return emojiNamesArray.join('--');
+        };
 
-        const approxRowsFromTop = Math.ceil(scrollOffset / ITEM_HEIGHT);
-        const closestCategory = categoryOrEmojisRows?.[approxRowsFromTop]?.items[0]?.categoryName;
+        const handleScroll = (scrollOffset: ListOnScrollProps['scrollOffset'], activeCategory: EmojiCategory, isFiltering: boolean, categoryOrEmojisRows: CategoryOrEmojiRow[]) => {
+            if (isFiltering) {
+                return;
+            }
+            scrollPositionRef.current = scrollOffset;
 
-        if (closestCategory === activeCategory || !closestCategory) {
-            return;
-        }
+            const approxRowsFromTop = Math.ceil(scrollOffset / ITEM_HEIGHT);
+            const closestCategory = categoryOrEmojisRows?.[approxRowsFromTop]?.items[0]?.categoryName;
 
-        setActiveCategory(closestCategory);
-    };
+            if (closestCategory === activeCategory || !closestCategory) {
+                return;
+            }
 
-    const throttledScroll = useCallback(throttle(({scrollOffset}: ListOnScrollProps) => {
-        handleScroll(scrollOffset, activeCategory, isFiltering, categoryOrEmojisRows);
-    }, EMOJI_SCROLL_THROTTLE_DELAY, {leading: false, trailing: true},
-    ), [activeCategory, isFiltering, categoryOrEmojisRows]);
+            setActiveCategory(closestCategory);
+        };
 
-    const handleIsItemLoaded = (index: number): boolean => {
-        return index < categoryOrEmojisRows.length;
-    };
+        const throttledScroll = useCallback(
+            throttle(({scrollOffset}: ListOnScrollProps) => {
+                handleScroll(scrollOffset, activeCategory, isFiltering, categoryOrEmojisRows);
+            }, EMOJI_SCROLL_THROTTLE_DELAY, {leading: false, trailing: true}),
+            [activeCategory, isFiltering, categoryOrEmojisRows],
+        );
 
-    const handleLoadMoreItems = async () => {
-        if (customEmojisEnabled === false) {
-            return;
-        }
+        const handleIsItemLoaded = (index: number): boolean => {
+            return index < categoryOrEmojisRows.length;
+        };
 
-        const {data} = await getCustomEmojis(customEmojiPage, CUSTOM_EMOJIS_PER_PAGE);
+        const handleLoadMoreItems = async () => {
+            if (customEmojisEnabled === false) {
+                return;
+            }
 
-        // If data came back empty, or data is less than the perPage, then we know there are no more pages
-        if (!data || data.length < CUSTOM_EMOJIS_PER_PAGE) {
-            return;
-        }
+            const {data} = await getCustomEmojis(customEmojiPage, CUSTOM_EMOJIS_PER_PAGE);
 
-        incrementEmojiPickerPage();
-    };
+            if (!data || data.length < CUSTOM_EMOJIS_PER_PAGE) {
+                return;
+            }
 
-    return (
-        <div
-            className='emoji-picker__items'
-            style={{height: EMOJI_CONTAINER_HEIGHT}}
-        >
-            <div className='emoji-picker__container'>
-                <AutoSizer>
-                    {({height, width}) => (
-                        <InfiniteLoader
-                            ref={ref}
-                            itemCount={categoryOrEmojisRows.length + 1} // +1 for the loading row
-                            isItemLoaded={handleIsItemLoaded}
-                            loadMoreItems={handleLoadMoreItems}
-                        >
-                            {({onItemsRendered, ref}) => (
-                                <FixedSizeList
-                                    ref={ref}
-                                    onItemsRendered={onItemsRendered}
-                                    height={height}
-                                    width={width}
-                                    layout='vertical'
-                                    overscanCount={EMOJI_ROWS_OVERSCAN_COUNT}
-                                    itemCount={categoryOrEmojisRows.length}
-                                    itemData={categoryOrEmojisRows}
-                                    itemKey={getItemKey}
-                                    itemSize={ITEM_HEIGHT}
-                                    onScroll={throttledScroll}
-                                >
-                                    {({index, style, data}) => (
-                                        <EmojiPickerCategoryOrEmojiRow
-                                            index={index}
-                                            style={style}
-                                            data={data}
-                                            cursorRowIndex={cursorRowIndex}
-                                            cursorEmojiId={cursorEmojiId}
-                                            onEmojiClick={onEmojiClick}
-                                            onEmojiMouseOver={onEmojiMouseOver}
-                                        />
-                                    )}
-                                </FixedSizeList>
-                            )}
-                        </InfiniteLoader>
-                    )}
-                </AutoSizer>
+            incrementEmojiPickerPage();
+        };
+
+        useEffect(() => {
+            if (listRef.current) {
+                listRef.current.scrollTo(scrollPositionRef.current);
+            }
+        }, [categoryOrEmojisRows]);
+
+        return (
+            <div
+                className='emoji-picker__items'
+                style={{height: EMOJI_CONTAINER_HEIGHT}}
+            >
+                <div className='emoji-picker__container'>
+                    <AutoSizer>
+                        {({height, width}) => (
+                            <InfiniteLoader
+                                ref={infiniteLoaderRef} // Correctly assign ref for InfiniteLoader
+                                itemCount={categoryOrEmojisRows.length + 1} // +1 for the loading row
+                                isItemLoaded={handleIsItemLoaded}
+                                loadMoreItems={handleLoadMoreItems}
+                            >
+                                {({onItemsRendered}) => (
+                                    <FixedSizeList
+                                        ref={listRef} // Correctly assign ref for FixedSizeList
+                                        onItemsRendered={onItemsRendered}
+                                        height={height}
+                                        width={width}
+                                        layout='vertical'
+                                        overscanCount={EMOJI_ROWS_OVERSCAN_COUNT}
+                                        itemCount={categoryOrEmojisRows.length}
+                                        itemData={categoryOrEmojisRows}
+                                        itemKey={getItemKey}
+                                        itemSize={ITEM_HEIGHT}
+                                        onScroll={throttledScroll}
+                                    >
+                                        {({index, style, data}) => (
+                                            <EmojiPickerCategoryOrEmojiRow
+                                                index={index}
+                                                style={style}
+                                                data={data}
+                                                cursorRowIndex={cursorRowIndex}
+                                                cursorEmojiId={cursorEmojiId}
+                                                onEmojiClick={onEmojiClick}
+                                                onEmojiMouseOver={onEmojiMouseOver}
+                                            />
+                                        )}
+                                    </FixedSizeList>
+                                )}
+                            </InfiniteLoader>
+                        )}
+                    </AutoSizer>
+                </div>
             </div>
-        </div>
-    );
-});
+        );
+    });
 
 EmojiPickerCurrentResults.displayName = 'EmojiPickerCurrentResults';
 
