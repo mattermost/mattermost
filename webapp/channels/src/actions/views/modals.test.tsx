@@ -3,15 +3,19 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
+import type {MockStoreEnhanced} from 'redux-mock-store';
 
 import {openModal, closeModal} from 'actions/views/modals';
 
 import mockStore from 'tests/test_store';
 import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
 const TestModal = () => (
     <Modal
         show={true}
+        onHide={() => {}}
     >
         <Modal.Header closeButton={true}/>
         <Modal.Body/>
@@ -19,7 +23,7 @@ const TestModal = () => (
 );
 
 describe('modals view actions', () => {
-    let store;
+    let store: MockStoreEnhanced<GlobalState>;
     beforeEach(() => {
         store = mockStore();
     });
