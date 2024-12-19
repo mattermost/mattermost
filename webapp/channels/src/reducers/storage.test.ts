@@ -104,33 +104,4 @@ describe('Reducers.Storage', () => {
             expect(nextState).toBe(state);
         });
     });
-
-    it('Storage.STORAGE_REHYDRATE', () => {
-        let nextState = storageReducer(
-            {
-                storage: {},
-            } as ReducerState,
-            {
-                type: StorageTypes.STORAGE_REHYDRATE,
-                data: {test: '123'},
-            },
-        );
-        expect(nextState.storage).toEqual({test: '123'});
-        nextState = storageReducer(
-            nextState,
-            {
-                type: StorageTypes.STORAGE_REHYDRATE,
-                data: {test: '456'},
-            },
-        );
-        expect(nextState.storage).toEqual({test: '456'});
-        nextState = storageReducer(
-            nextState,
-            {
-                type: StorageTypes.STORAGE_REHYDRATE,
-                data: {test2: '789'},
-            },
-        );
-        expect(nextState.storage).toEqual({test: '456', test2: '789'});
-    });
 });

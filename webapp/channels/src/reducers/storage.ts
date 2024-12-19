@@ -7,7 +7,6 @@ import {createMigrate, persistReducer, REHYDRATE} from 'redux-persist';
 import type {MigrationManifest, PersistedState} from 'redux-persist';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import {General} from 'mattermost-redux/constants';
 
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
@@ -78,9 +77,6 @@ function storage(state: Record<string, any> = {}, action: MMAction) {
 
         return changed ? nextState : state;
     }
-    case StorageTypes.STORAGE_REHYDRATE: {
-        return {...state, ...action.data};
-    }
 
     case UserTypes.LOGOUT_SUCCESS:
         return {};
@@ -133,7 +129,7 @@ function migrateDrafts(state: any) {
 
 function initialized(state = false, action: MMAction) {
     switch (action.type) {
-    case General.STORE_REHYDRATION_COMPLETE:
+    case StorageTypes.STORAGE_INITIALIZED:
         return state || action.complete;
 
     default:
