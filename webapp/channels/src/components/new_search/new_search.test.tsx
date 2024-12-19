@@ -75,7 +75,8 @@ describe('components/new_search/NewSearch', () => {
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
         expect(mockDispatch).toHaveBeenCalledWith({searchType: 'messages', type: 'UPDATE_RHS_SEARCH_TYPE'});
         expect(mockDispatch).toHaveBeenCalledWith({terms: '', type: 'UPDATE_RHS_SEARCH_TERMS'});
-        expect(mockDispatch).toHaveBeenCalledTimes(3);
+        expect(mockDispatch).toHaveBeenCalledWith({teamId: '', type: 'UPDATE_RHS_SEARCH_TEAM'});
+        expect(mockDispatch).toHaveBeenCalledTimes(4);
     });
 
     test('should open the search ctrl+shift+f is press on web app', () => {
