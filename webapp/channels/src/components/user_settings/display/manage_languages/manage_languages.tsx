@@ -198,6 +198,7 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                     aria-label={interfaceLanguageLabelAria}
                     className='control-label'
                     id='changeInterfaceLanguageLabel'
+                    htmlFor='displayLanguage'
                 >
                     <FormattedMessage
                         id='user.settings.languages.change'

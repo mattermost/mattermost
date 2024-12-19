@@ -232,12 +232,10 @@ const ThreadList = ({
                 right={(
                     <div className='right-anchor'>
                         <WithTooltip
-                            id='threadListMarkRead'
                             title={formatMessage({
                                 id: 'threading.threadList.markRead',
                                 defaultMessage: 'Mark all as read',
                             })}
-                            placement={'top'}
                         >
                             <Button
                                 id={'threads-list__mark-all-as-read'}

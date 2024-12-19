@@ -385,15 +385,15 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Встановити статус на \"Відсутній\""
+    "translation": "Встановити статус на \"Не на місці\""
   },
   {
     "id": "api.command_away.name",
-    "translation": "відсутній"
+    "translation": "не на місці"
   },
   {
     "id": "api.command_away.success",
-    "translation": "Зараз ваш статус \"Відсутній\""
+    "translation": "Зараз ваш статус \"Не на місці\""
   },
   {
     "id": "api.command_channel_header.channel.app_error",
@@ -4312,10 +4312,6 @@
     "translation": "Недійсний ідентифікатор."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Недійсне повідомлення."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Недійсний початковий ідентифікатор."
   },
@@ -6829,7 +6825,7 @@
   },
   {
     "id": "api.command_marketplace.name",
-    "translation": "маркетплейс"
+    "translation": "магазин плагінів"
   },
   {
     "id": "api.command_marketplace.desc",
@@ -10106,10 +10102,6 @@
   {
     "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
     "translation": "Неправильний максимальний час простою з'єднання для налаштувань SQL. Повинно бути невід'ємним числом."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Недійсне повідомлення."
   },
   {
     "id": "model.channel_bookmark.is_valid.type.app_error",

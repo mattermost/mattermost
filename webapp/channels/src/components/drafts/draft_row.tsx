@@ -34,7 +34,7 @@ import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
-import EditPost from 'components/edit_post';
+import EditScheduledPost from 'components/edit_scheduled_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
@@ -378,19 +378,15 @@ function DraftRow({
                         remote={isRemote || false}
                         error={postError || serverError?.message}
                     />
-
-                    {
-                        isEditing &&
-                        <EditPost
+                    {isEditing && (
+                        <EditScheduledPost
                             scheduledPost={item as ScheduledPost}
                             onCancel={handleCancelEdit}
                             afterSave={handleCancelEdit}
                             onDeleteScheduledPost={handleSchedulePostOnDelete}
                         />
-                    }
-
-                    {
-                        !isEditing &&
+                    )}
+                    {!isEditing && (
                         <PanelBody
                             channelId={channel?.id}
                             displayName={displayName}
@@ -402,7 +398,7 @@ function DraftRow({
                             userId={user.id}
                             username={user.username}
                         />
-                    }
+                    )}
                 </>
             )}
         </Panel>

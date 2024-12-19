@@ -180,8 +180,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div
@@ -232,8 +230,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div
@@ -434,8 +430,6 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div

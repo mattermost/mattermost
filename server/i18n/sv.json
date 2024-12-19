@@ -1676,10 +1676,6 @@
     "translation": "Ogiltigt originalpost-id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ogiltigt meddelande."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Ogiltigt id."
   },
@@ -8868,10 +8864,6 @@
   {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Ogiltig prioritet"
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ogiltigt meddelande."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

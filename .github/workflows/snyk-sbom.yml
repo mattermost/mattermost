@@ -7,5 +7,5 @@ jobs:
   sbom:
     permissions:
       contents: write
-    uses: mattermost/actions-workflows/.github/workflows/snyk-sbom.yml@8401a73d1a168f520dc08fabcfb1600dec1176ef
+    uses: mattermost/actions-workflows/.github/workflows/snyk-sbom.yml@9f3b82abb56fb8327b6b6e2d3fc16b92e45120ba
     secrets: inherit

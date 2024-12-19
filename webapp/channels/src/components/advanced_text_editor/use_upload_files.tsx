@@ -34,6 +34,7 @@ const useUploadFiles = (
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
+    isInEditMode: boolean,
 ): [React.ReactNode, React.ReactNode] => {
     const locale = useSelector(getCurrentLocale);
 
@@ -157,7 +158,7 @@ const useUploadFiles = (
         postType = isThreadView ? 'thread' : 'comment';
     }
 
-    const fileUploadJSX = isDisabled ? null : (
+    const fileUploadJSX = isDisabled || isInEditMode ? null : (
         <FileUpload
             ref={fileUploadRef}
             fileCount={getFileCount(draft)}

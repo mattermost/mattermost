@@ -233,3 +233,93 @@ func (s *MmctlE2ETestSuite) TestConfigShowCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("Get config normally", func(c client.Client) {
+		printer.Clean()
+
+		err := configExportCmdF(c, &cobra.Command{}, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		m, ok := printer.GetLines()[0].(map[string]any)
+		s.Require().True(ok)
+		if c == s.th.LocalClient {
+			// filter config is used to convert the config to a map[string]any
+			// local client has unrestricted access to the config
+			expectedConfig, err2 := model.FilterConfig(s.th.App.Config(), model.ConfigFilterOptions{GetConfigOptions: model.GetConfigOptions{}})
+			s.Require().NoError(err2)
+			s.Require().Equal(expectedConfig, m)
+		} else {
+			// filter config is used to convert the config to a map[string]any
+			// system admin client has restricted access to the config
+			expectedConfig, err2 := model.FilterConfig(s.th.App.GetSanitizedConfig(), model.ConfigFilterOptions{GetConfigOptions: model.GetConfigOptions{}})
+			s.Require().NoError(err2)
+			s.Require().Equal(expectedConfig, m)
+		}
+	})
+
+	s.Run("Should remove masked values for system admin client", func() {
+		printer.Clean()
+
+		exportCmd := &cobra.Command{}
+		exportCmd.Flags().Bool("remove-masked", true, "")
+		err := configExportCmdF(s.th.SystemAdminClient, exportCmd, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		m, ok := printer.GetLines()[0].(map[string]any)
+		s.Require().True(ok)
+		ss, ok := m["SqlSettings"].(map[string]any)
+		s.Require().True(ok)
+		_, ok = ss["DataSource"]
+		s.Require().False(ok)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should retrieve configuration as-is with local client", func() {
+		printer.Clean()
+
+		exportCmd := &cobra.Command{}
+		err := configExportCmdF(s.th.LocalClient, exportCmd, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		m, ok := printer.GetLines()[0].(map[string]any)
+		s.Require().True(ok)
+		ss, ok := m["SqlSettings"].(map[string]any)
+		s.Require().True(ok)
+		ds, ok := ss["DataSource"]
+		s.Require().True(ok)
+		cfg := s.th.App.Config()
+		s.Require().Equal(*cfg.SqlSettings.DataSource, ds)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Should remove default values", func(c client.Client) {
+		printer.Clean()
+
+		exportCmd := &cobra.Command{}
+		exportCmd.Flags().Bool("remove-defaults", true, "")
+		err := configExportCmdF(c, exportCmd, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		m, ok := printer.GetLines()[0].(map[string]any)
+		s.Require().True(ok)
+		ss, ok := m["TeamSettings"].(map[string]any)
+		s.Require().True(ok)
+		_, ok = ss["MaxUsersPerTeam"] // it's not being changed by the test suite
+		s.Require().False(ok)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get config value for a given key without permissions", func() {
+		printer.Clean()
+
+		err := configExportCmdF(s.th.Client, &cobra.Command{}, nil)
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}

@@ -333,6 +333,27 @@
         ##### Permissions
         Must have `manage_system` permission.
       operationId: GetConfig
+      parameters:
+        - name: remove_masked
+          in: query
+          description: |
+            Remove masked values from the exported configuration.
+
+            __Minimum server version__: 10.4.0
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: remove_defaults
+          in: query
+          description: |
+            Remove default values from the exported configuration.
+
+            __Minimum server version__: 10.4.0
+          required: false
+          schema:
+            type: string
+            default: false
       responses:
         "200":
           description: Configuration retrieval successful

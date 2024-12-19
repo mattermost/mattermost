@@ -64,9 +64,15 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		systemSecurityLastTime := &model.System{Name: model.SystemLastSecurityTime, Value: strconv.FormatInt(currentTime, 10)}
 		if lastSecurityTime == 0 {
-			s.Store().System().Save(systemSecurityLastTime)
+			if err := s.Store().System().Save(systemSecurityLastTime); err != nil {
+				s.Log().Error("Failed to save last security check time", mlog.Err(err))
+				return
+			}
 		} else {
-			s.Store().System().Update(systemSecurityLastTime)
+			if err := s.Store().System().Update(systemSecurityLastTime); err != nil {
+				s.Log().Error("Failed to update last security check time", mlog.Err(err))
+				return
+			}
 		}
 
 		if count, err := s.Store().User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
@@ -121,11 +127,16 @@ func (s *Server) DoSecurityUpdateCheck() {
 						mlog.Info("Sending security bulletin", mlog.String("bulletin_id", bulletin.Id), mlog.String("user_email", user.Email))
 						license := s.License()
 						mailConfig := s.MailServiceConfig()
-						mail.SendMailUsingConfig(user.Email, i18n.T("mattermost.bulletin.subject"), string(body), mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", "SecurityUpdateCheck")
+						err = mail.SendMailUsingConfig(user.Email, i18n.T("mattermost.bulletin.subject"), string(body), mailConfig, license != nil && *license.Features.Compliance, "", "", "", "", "SecurityUpdateCheck")
+						if err != nil {
+							s.Log().Error("Failed to send security bulletin email", mlog.String("user_email", user.Email), mlog.Err(err))
+						}
 					}
 
 					bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-					s.Store().System().Save(bulletinSeen)
+					if err := s.Store().System().Save(bulletinSeen); err != nil {
+						s.Log().Error("Failed to save security bulletin status", mlog.Err(err))
+					}
 				}
 			}
 		}

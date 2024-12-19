@@ -65,7 +65,7 @@ describe('Edit Message', () => {
         cy.get('#suggestionList').should('not.exist');
 
         // # In the modal click the emoji picker icon
-        cy.get('#editPostEmoji').click();
+        cy.get('div.post-edit__container button#emojiPickerButton').click();
 
         // * Assert emoji picker is visible
         cy.get('#emojiPicker').should('be.visible');
@@ -93,7 +93,7 @@ describe('Edit Message', () => {
                 cy.get(`#edit_post_${postId}`).click();
 
                 // # Edit the post
-                cy.get('#edit_textbox').type('Some text {enter}');
+                cy.get('#edit_textbox').type('Some text {enter}', {delay: 100});
 
                 // # Mouseover the post again
                 cy.get(`#post_${postId}`).trigger('mouseover');
@@ -138,7 +138,7 @@ describe('Edit Message', () => {
 
             // * Edit Post Input should appear, and edit the post
             cy.get('#edit_textbox').should('be.visible');
-            cy.get('#edit_textbox').should('have.text', secondMessage).type(' Another new message{enter}');
+            cy.get('#edit_textbox').should('have.text', secondMessage).type(' Another new message{enter}', {delay: 100});
             cy.get('#edit_textbox').should('not.exist');
 
             // * Check the second post and verify that it contains new edited message.
@@ -162,7 +162,7 @@ describe('Edit Message', () => {
             cy.get('#edit_textbox').should('be.visible');
 
             // * Press the escape key to cancel
-            cy.get('#edit_textbox').should('have.text', message).type(' Another new message{esc}');
+            cy.get('#edit_textbox').should('have.text', message).type(' Another new message{esc}', {delay: 100});
             cy.get('#edit_textbox').should('not.exist');
 
             // * Check that the message wasn't edited
@@ -195,14 +195,14 @@ describe('Edit Message', () => {
         cy.get('#edit_textbox').type(' @user');
 
         // # Press the enter key
-        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}');
+        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}', {delay: 100});
 
         // * Check if the textbox contains expected text
         cy.get('.post-body__info').should('be.visible');
         cy.get('.post-body__info').contains('span', "Editing this message with an '@mention' will not notify the recipient.");
 
         // # Press the escape key
-        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}');
+        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{enter}', {delay: 100});
 
         // # Open the RHS
         cy.getLastPostId().then((postId) => {

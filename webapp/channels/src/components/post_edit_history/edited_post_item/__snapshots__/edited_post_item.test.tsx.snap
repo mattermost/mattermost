@@ -86,8 +86,6 @@ exports[`components/post_edit_history/edited_post_item should match snapshot 1`]
           </span>
         </div>
         <WithTooltip
-          id="editPostRestoreTooltip"
-          placement="left"
           title="Restore this version"
         >
           <ForwardRef

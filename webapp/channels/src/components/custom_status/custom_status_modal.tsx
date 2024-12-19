@@ -462,7 +462,6 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                         onClear={clearHandle}
                         className='emoji-quick-input form-control'
                         clearClassName='StatusModal__clear-container'
-                        tooltipPosition='top'
                         onChange={handleTextChange}
                         placeholder={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
                         autoFocus={true}

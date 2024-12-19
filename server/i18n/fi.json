@@ -1528,10 +1528,6 @@
     "translation": "Virheellinen alkuperäinen ID"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Virheellinen viesti"
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Virheellinen ID"
   },

@@ -8,8 +8,6 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled 
   open={true}
 >
   <WithTooltip
-    id="center_post_id_1_tooltip"
-    placement="top"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Message actions"
@@ -59,8 +57,6 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
   open={true}
 >
   <WithTooltip
-    id="center_post_id_1_tooltip"
-    placement="top"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Message actions"
@@ -129,8 +125,6 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
   open={true}
 >
   <WithTooltip
-    id="center_post_id_1_tooltip"
-    placement="top"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Message actions"

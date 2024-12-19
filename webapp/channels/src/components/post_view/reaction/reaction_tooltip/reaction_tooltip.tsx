@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
-import WithTooltip from 'components/with_tooltip/with_tooltip_new';
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     canAddReactions: boolean;
@@ -122,6 +122,10 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
             id: 'reaction.clickToAdd',
             defaultMessage: '(click to add)',
         });
+    }
+
+    if (!React.isValidElement(children)) {
+        return null;
     }
 
     return (

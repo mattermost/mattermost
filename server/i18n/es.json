@@ -4308,10 +4308,6 @@
     "translation": "Id inválido."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mensaje no es válido."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Id Original inválido."
   },

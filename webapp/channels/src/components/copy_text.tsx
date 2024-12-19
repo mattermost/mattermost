@@ -30,11 +30,7 @@ const CopyText = ({
     }
 
     return (
-        <WithTooltip
-            id='copyTextTooltip'
-            placement='top'
-            title={label}
-        >
+        <WithTooltip title={label}>
             <button
                 data-testid='copyText'
                 className='btn btn-link fa fa-copy ml-2'

@@ -4312,10 +4312,6 @@
     "translation": "Недопустимый идентификатор."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Некорректный идентификатор оригинала."
   },
@@ -8834,10 +8830,6 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Некорректные свойства."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

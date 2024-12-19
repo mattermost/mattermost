@@ -27,7 +27,6 @@ import './file_preview_modal_main_actions.scss';
 const COPIED_TOOLTIP_DURATION = 2000;
 
 interface Props {
-    usedInside?: 'Header' | 'Footer';
     showOnlyClose?: boolean;
     showClose?: boolean;
     showPublicLink?: boolean;
@@ -44,7 +43,6 @@ interface Props {
 const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     const intl = useIntl();
 
-    const tooltipPlacement = props.usedInside === 'Header' ? 'bottom' : 'top';
     const selectedFilePublicLink = useSelector((state: GlobalState) => selectFilePublicLink(state)?.link);
     const dispatch = useDispatch();
     const [publicLinkCopied, setPublicLinkCopied] = useState(false);
@@ -74,9 +72,7 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     });
     const closeButton = (
         <WithTooltip
-            id='close-icon-tooltip'
             title={closeMessage}
-            placement={tooltipPlacement}
             key='publicLink'
         >
             <button
@@ -103,9 +99,7 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     }
     const publicLink = (
         <WithTooltip
-            id='link-variant-icon-tooltip.text'
             key='filePreviewPublicLink'
-            placement={tooltipPlacement}
             title={publicTooltipMessage}
         >
             <a
@@ -125,9 +119,7 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     });
     const download = (
         <WithTooltip
-            id='download-icon-tooltip.text'
             key='download'
-            placement={tooltipPlacement}
             title={downloadMessage}
         >
             <ExternalLink
@@ -146,7 +138,6 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
         <CopyButton
             className='file-preview-modal-main-actions__action-item'
             isForText={getFileType(props.fileInfo.extension) === FileTypes.TEXT}
-            placement={tooltipPlacement}
             content={props.content}
         />
     );
@@ -162,7 +153,6 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
 
 FilePreviewModalMainActions.defaultProps = {
     showOnlyClose: false,
-    usedInside: 'Header',
     showClose: true,
     showPublicLink: true,
 };

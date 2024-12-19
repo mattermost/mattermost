@@ -4307,10 +4307,6 @@
     "translation": "Ongeldig Id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Ongeldige orgineel id."
   },
@@ -8844,10 +8840,6 @@
   {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Ongeldige prioriteit"
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

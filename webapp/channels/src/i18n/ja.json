@@ -3468,7 +3468,6 @@
   "copied.message": "コピーしました",
   "copy.code.message": "コードをコピー",
   "copy.text.message": "テキストをコピー",
-  "copyTextTooltip.copy": "コピー",
   "copy_text.copied": "コピーしました",
   "copy_text.copy": "コピー",
   "createComment.threadFromArchivedChannelMessage": "<b>アーカイブされたチャンネル</b>を閲覧しています。新しいメッセージは投稿できません。",

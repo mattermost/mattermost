@@ -381,14 +381,12 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 onToggle={this.handleDropdownOpened}
             >
                 <WithTooltip
-                    id={`${this.props.location}_${this.props.post.id}_tooltip`}
                     title={
                         <FormattedMessage
                             id='post_info.tooltip.actions'
                             defaultMessage='Message actions'
                         />
                     }
-                    placement='top'
                 >
                     <button
                         key='more-actions-button'

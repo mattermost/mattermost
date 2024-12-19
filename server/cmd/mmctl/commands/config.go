@@ -120,6 +120,15 @@ var ConfigSubpathCmd = &cobra.Command{
 	RunE: configSubpathCmdF,
 }
 
+var ConfigExportCmd = &cobra.Command{
+	Use:     "export",
+	Short:   "Export the server configuration",
+	Long:    "Export the server configuration in case you want to import somewhere else.",
+	Example: "config export --remove-masked --remove-defaults",
+	Args:    cobra.NoArgs,
+	RunE:    withClient(configExportCmdF),
+}
+
 func init() {
 	ConfigResetCmd.Flags().Bool("confirm", false, "confirm you really want to reset all configuration settings to its default value")
 
@@ -127,6 +136,9 @@ func init() {
 	_ = ConfigSubpathCmd.MarkFlagRequired("assets-dir")
 	ConfigSubpathCmd.Flags().StringP("path", "p", "", "path to update the assets with")
 	_ = ConfigSubpathCmd.MarkFlagRequired("path")
+
+	ConfigExportCmd.Flags().Bool("remove-masked", true, "remove masked values from the exported configuration")
+	ConfigExportCmd.Flags().Bool("remove-defaults", false, "remove default values from the exported configuration")
 
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
@@ -138,11 +150,12 @@ func init() {
 		ConfigReloadCmd,
 		ConfigMigrateCmd,
 		ConfigSubpathCmd,
+		ConfigExportCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
 
-func getValue(path []string, obj interface{}) (interface{}, bool) {
+func getValue(path []string, obj any) (any, bool) {
 	r := reflect.ValueOf(obj)
 	var val reflect.Value
 	if r.Kind() == reflect.Map {
@@ -187,7 +200,7 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 	return nil, false
 }
 
-func setValueWithConversion(val reflect.Value, newValue interface{}) error {
+func setValueWithConversion(val reflect.Value, newValue any) error {
 	switch val.Kind() {
 	case reflect.Struct:
 		val.Set(reflect.ValueOf(newValue))
@@ -236,7 +249,7 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 	}
 }
 
-func setValue(path []string, obj reflect.Value, newValue interface{}) error {
+func setValue(path []string, obj reflect.Value, newValue any) error {
 	var val reflect.Value
 	switch obj.Kind() {
 	case reflect.Struct:
@@ -307,7 +320,7 @@ func setConfigValue(path []string, config *model.Config, newValue []string) erro
 	return setValue(path, reflect.ValueOf(config).Elem(), newValue[0])
 }
 
-func resetConfigValue(path []string, config *model.Config, newValue interface{}) error {
+func resetConfigValue(path []string, config *model.Config, newValue any) error {
 	nv := reflect.ValueOf(newValue)
 	if nv.Kind() == reflect.Ptr {
 		switch nv.Elem().Kind() {
@@ -580,4 +593,23 @@ func cloudRestrictedR(t reflect.Type, path []string) bool {
 	}
 
 	return false
+}
+
+func configExportCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	removeDefaults, _ := cmd.Flags().GetBool("remove-defaults")
+	removeMasked, _ := cmd.Flags().GetBool("remove-masked")
+	config, _, err := c.GetConfigWithOptions(context.TODO(), model.GetConfigOptions{
+		RemoveDefaults: removeDefaults,
+		RemoveMasked:   removeMasked,
+	})
+	if err != nil {
+		return err
+	}
+
+	printer.SetSingle(true)
+	printer.SetFormat(printer.FormatJSON)
+
+	printer.Print(config)
+
+	return nil
 }

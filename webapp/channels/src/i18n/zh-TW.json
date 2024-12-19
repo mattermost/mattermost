@@ -3448,7 +3448,6 @@
   "copied.message": "已複製",
   "copy.code.message": "複製代碼",
   "copy.text.message": "複製文字",
-  "copyTextTooltip.copy": "複製",
   "copy_text.copied": "已複製",
   "copy_text.copy": "複製",
   "createComment.threadFromArchivedChannelMessage": "您正檢視來自<b>已封存頻道</b>的討論串。無法張貼新的訊息。",

@@ -3461,7 +3461,6 @@
   "copied.message": "Kopierad",
   "copy.code.message": "Kopiera kod",
   "copy.text.message": "Kopiera text",
-  "copyTextTooltip.copy": "Kopiera",
   "copy_text.copied": "Kopierad",
   "copy_text.copy": "Kopiera",
   "createComment.threadFromArchivedChannelMessage": "Du tittar på en tråd från en <b>arkiverad kanal</b>. Du kan inte skapa nya meddelanden här.",

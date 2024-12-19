@@ -298,8 +298,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       handleOpenDirectMessagesModal={[Function]}
     />
     <WithTooltip
-      id="new-group-tooltip"
-      placement="top"
       title={
         <React.Fragment>
           Create new direct message
@@ -411,8 +409,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       handleOpenDirectMessagesModal={[Function]}
     />
     <WithTooltip
-      id="new-group-tooltip"
-      placement="top"
       title={
         <React.Fragment>
           Create new direct message

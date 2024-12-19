@@ -32,6 +32,7 @@ const useEmojiPicker = (
     handleDraftChange: (draft: PostDraft) => void,
     shouldShowPreview: boolean,
     focusTextbox: () => void,
+    emojiPickerOffset?: {right?: number},
 ) => {
     const intl = useIntl();
 
@@ -127,10 +128,9 @@ const useEmojiPicker = (
                     onGifClick={handleGifClick}
                     enableGifPicker={enableGifPicker}
                     topOffset={-7}
+                    rightOffset={emojiPickerOffset?.right}
                 />
                 <WithTooltip
-                    id='upload-tooltip'
-                    placement='top'
                     title={
                         <KeyboardShortcutSequence
                             shortcut={KEYBOARD_SHORTCUTS.msgShowEmojiPicker}

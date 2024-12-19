@@ -494,14 +494,14 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 inputs.push(
                     <div key='currentEmailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <span className='as-bs-label col-sm-5 control-label'>
                                 <FormattedMessage
                                     id='user.settings.general.currentEmail'
                                     defaultMessage='Current Email'
                                 />
-                            </label>
+                            </span>
                             <div className='col-sm-7'>
-                                <label className='control-label word-break--all text-left'>{this.state.originalEmail}</label>
+                                <span className='as-bs-label control-label word-break--all text-left'>{this.state.originalEmail}</span>
                             </div>
                         </div>
                     </div>,
@@ -510,7 +510,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 inputs.push(
                     <div key='emailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label
+                                className='col-sm-5 control-label'
+                                htmlFor='primaryEmail'
+                            >
                                 <FormattedMessage
                                     id='user.settings.general.newEmail'
                                     defaultMessage='New Email'
@@ -535,7 +538,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 inputs.push(
                     <div key='confirmEmailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label
+                                className='col-sm-5 control-label'
+                                htmlFor='confirmEmail'
+                            >
                                 <FormattedMessage
                                     id='user.settings.general.confirmEmail'
                                     defaultMessage='Confirm Email'
@@ -559,7 +565,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 inputs.push(
                     <div key='currentPassword'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label
+                                className='col-sm-5 control-label'
+                                htmlFor='currentPassword'
+                            >
                                 <FormattedMessage
                                     id='user.settings.general.currentPassword'
                                     defaultMessage='Current Password'
@@ -813,7 +822,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         key='firstNameSetting'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='firstName'
+                        >
                             <FormattedMessage
                                 id='user.settings.general.firstName'
                                 defaultMessage='First Name'
@@ -840,7 +852,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         key='lastNameSetting'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='lastName'
+                        >
                             <FormattedMessage
                                 id='user.settings.general.lastName'
                                 defaultMessage='Last Name'

@@ -114,11 +114,11 @@ func (ps *PlatformService) ReloadConfig() error {
 	return nil
 }
 
-func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]any {
 	return ps.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
-func (ps *PlatformService) GetEnvironmentOverrides() map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverrides() map[string]any {
 	return ps.configStore.GetEnvironmentOverrides()
 }
 
@@ -369,12 +369,7 @@ func (ps *PlatformService) IsFirstUserAccount() bool {
 }
 
 func (ps *PlatformService) MaxPostSize() int {
-	maxPostSize := ps.Store.Post().GetMaxPostSize()
-	if maxPostSize == 0 {
-		return model.PostMessageMaxRunesV1
-	}
-
-	return maxPostSize
+	return ps.Store.Post().GetMaxPostSize()
 }
 
 func (ps *PlatformService) isUpgradedFromTE() bool {

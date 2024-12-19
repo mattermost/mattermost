@@ -4307,10 +4307,6 @@
     "translation": "Ungültige Id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ungültige Nachricht."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Ungültige Original-ID."
   },
@@ -4608,11 +4604,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Der Befehl konnte nicht gefunden werden."
+    "translation": "Der Befehl {{.command_id}} konnte nicht gefunden werden."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Konnte eingehende Daten nicht verarbeiten."
+    "translation": "Eingehende Daten für den Webhook {{.hook_id}} können nicht analysiert werden."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4624,7 +4620,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Dieser Webhook ist nicht berechtigt in den angeforderten Kanal zu senden."
+    "translation": "Dieser Webhook darf nicht an den angeforderten Kanal {{.channel_id}} senden"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4640,7 +4636,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Ungültige Kanalberechtigungen."
+    "translation": "Der Benutzer {{.user}} hat keine entsprechenden Rechte für den Channel {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4652,7 +4648,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Der Benutzer konnte nicht gefunden werden."
+    "translation": "Konnte den Benutzer {{.user}} nicht finden"
   },
   {
     "id": "api.bot.create_disabled",
@@ -5412,11 +5408,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Wir konnte den Kanal nicht finden."
+    "translation": "Bei der Suche nach dem Kanal {{.channel_id}} ist ein Fehler aufgetreten."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Der bestehende Kanal konnte nicht gefunden werden."
+    "translation": "Der vorhandene Kanal {{.channel_id}} konnte nicht gefunden werden."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -8830,10 +8826,6 @@
     "translation": "Ungültige Eigenschaften."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ungültige Nachricht."
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Ungültige Datei-IDs."
   },
@@ -10406,5 +10398,29 @@
   {
     "id": "model.config.is_valid.storage_class.app_error",
     "translation": "Ungültige Speicherklasse {{.Value}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Nach der Deduplizierung eines Clients, der dieselbe Anfrage wiederholt hat, konnte der Beitrag nicht zwischengespeichert werden."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Die Leseposition kann nicht auf den Anfang des Plugin-Bündels zurückgesetzt werden."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Der Webhook-Befehl {{.hook_id}} konnte nicht verarbeitet werden."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Die Nutzdaten des Medientyps {{.media_type}} für den eingehenden Webhook {{.hook_id}} konnten nicht entschlüsselt werden."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Die Nutzlast des Medientyps {{.media_type}} für den eingehenden Webhook {{.hook_id}} konnte nicht verarbeitet werden."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Der eingehende Webhook {{.hook_id}} konnte nicht analysiert werden."
   }
 ]

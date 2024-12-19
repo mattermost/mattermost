@@ -181,8 +181,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
     className="SidebarChannelLinkLabel_wrapper"
   >
     <WithTooltip
-      id="channel-displayname__tooltip"
-      placement="top"
       title="channel_label"
     >
       <span

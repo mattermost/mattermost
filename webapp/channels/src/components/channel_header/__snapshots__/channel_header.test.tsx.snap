@@ -1664,8 +1664,6 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
             className="channel-header__icons"
           >
             <WithTooltip
-              id="channelMutedTooltip"
-              placement="bottom"
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Unmute"
@@ -2498,13 +2496,11 @@ exports[`components/ChannelHeader should render properly when custom status is s
                     }
                   }
                   showTooltip={true}
-                  tooltipDirection="bottom"
                   userID="user_id"
                 />
                 <CustomStatusText
                   className="custom-emoji__text"
                   text="In a meeting"
-                  tooltipDirection="bottom"
                 />
               </div>
             </span>
