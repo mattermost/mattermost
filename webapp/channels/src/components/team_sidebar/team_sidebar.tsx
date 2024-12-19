@@ -267,6 +267,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                     }
                     content={plusIcon}
                     switchTeam={this.props.actions.switchTeam}
+                    displayName='Other teams you can join'
                 />,
             );
         } else {
@@ -286,6 +287,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                         }
                         content={plusIcon}
                         switchTeam={this.props.actions.switchTeam}
+                        displayName='Create a Team'
                     />
                 </SystemPermissionGate>,
             );
