@@ -3092,7 +3092,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch-zoeken is niet ingeschakeld op deze server"
+    "translation": "{{.Backend}} zoeken is niet ingeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3100,7 +3100,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker is er niet in geslaagd de eindtijd te verwerken"
+    "translation": "{{.Backend}} indexing worker is er niet in geslaagd de eindtijd te verwerken"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
