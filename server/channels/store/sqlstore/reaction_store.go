@@ -30,7 +30,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 	if err := reaction.IsValid(); err != nil {
 		return nil, err
 	}
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -68,7 +68,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 func (s *SqlReactionStore) Delete(reaction *model.Reaction) (re *model.Reaction, err error) {
 	reaction.PreUpdate()
 
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -96,7 +96,7 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 		OrderBy("CreateAt")
 
 	var reactions []*model.Reaction
-	if err := s.GetReplicaX().SelectBuilder(&reactions, builder); err != nil {
+	if err := s.GetReplica().SelectBuilder(&reactions, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
 	}
 	return reactions, nil
@@ -111,7 +111,7 @@ func (s *SqlReactionStore) ExistsOnPost(postId string, emojiName string) (bool, 
 		Where(sq.Eq{"COALESCE(DeleteAt, 0)": 0})
 
 	var hasRows bool
-	if err := s.GetReplicaX().GetBuilder(&hasRows, query); err != nil {
+	if err := s.GetReplica().GetBuilder(&hasRows, query); err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
@@ -140,7 +140,7 @@ func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRe
 	}
 
 	var reactions []*model.Reaction
-	if err := s.GetReplicaX().SelectBuilder(&reactions, query); err != nil {
+	if err := s.GetReplica().SelectBuilder(&reactions, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find reactions")
 	}
 	return reactions, nil
@@ -154,7 +154,7 @@ func (s *SqlReactionStore) GetUniqueCountForPost(postId string) (int, error) {
 		Where(sq.Eq{"DeleteAt": 0})
 
 	var count int64
-	err := s.GetReplicaX().GetBuilder(&count, query)
+	err := s.GetReplica().GetBuilder(&count, query)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Reactions")
 	}
@@ -165,7 +165,7 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 	placeholder, values := constructArrayArgs(postIds)
 	var reactions []*model.Reaction
 
-	if err := s.GetReplicaX().Select(&reactions,
+	if err := s.GetReplica().Select(&reactions,
 		`SELECT
 				UserId,
 				PostId,
@@ -198,7 +198,7 @@ func (s *SqlReactionStore) GetSingle(userID, postID, remoteID, emojiName string)
 		Where(sq.Eq{"EmojiName": emojiName})
 
 	var reactions []*model.Reaction
-	if err := s.GetReplicaX().SelectBuilder(&reactions, query); err != nil {
+	if err := s.GetReplica().SelectBuilder(&reactions, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find reaction")
 	}
 	if len(reactions) == 0 {
@@ -212,7 +212,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	var reactions []*model.Reaction
 	now := model.GetMillis()
 
-	if err := s.GetReplicaX().Select(&reactions,
+	if err := s.GetReplica().Select(&reactions,
 		`SELECT
 			UserId,
 			PostId,
@@ -228,7 +228,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
 	}
 
-	_, err := s.GetMasterX().Exec(
+	_, err := s.GetMaster().Exec(
 		`UPDATE
 			Reactions
 		SET
@@ -241,7 +241,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 
 	for _, reaction := range reactions {
 		reaction := reaction
-		_, err := s.GetMasterX().Exec(UpdatePostHasReactionsOnDeleteQuery, now, reaction.PostId, reaction.PostId)
+		_, err := s.GetMaster().Exec(UpdatePostHasReactionsOnDeleteQuery, now, reaction.PostId, reaction.PostId)
 		if err != nil {
 			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
 				mlog.String("post_id", reaction.PostId),
@@ -253,7 +253,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 }
 
 func (s *SqlReactionStore) permanentDeleteReactions(userId string) ([]string, error) {
-	txn, err := s.GetMasterX().Beginx()
+	txn, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +290,7 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 		return err
 	}
 
-	transaction, err := s.GetMasterX().Beginx()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return err
 	}
@@ -313,7 +313,7 @@ func (s SqlReactionStore) PermanentDeleteByUser(userId string) error {
 }
 
 func (s *SqlReactionStore) DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error) {
-	txn, err := s.GetMasterX().Beginx()
+	txn, err := s.GetMaster().Beginx()
 	if err != nil {
 		return 0, err
 	}
@@ -353,7 +353,7 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 		query = "DELETE from Reactions WHERE CreateAt < ? LIMIT ?"
 	}
 
-	sqlResult, err := s.GetMasterX().Exec(query, endTime, limit)
+	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete Reactions")
 	}

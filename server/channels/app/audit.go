@@ -88,7 +88,7 @@ func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus stri
 	rec := &audit.Record{
 		EventName: event,
 		Status:    initialStatus,
-		Meta: map[string]interface{}{
+		Meta: map[string]any{
 			audit.KeyAPIPath:   "",
 			audit.KeyClusterID: a.GetClusterId(),
 		},
@@ -100,9 +100,9 @@ func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus stri
 			XForwardedFor: "",
 		},
 		EventData: audit.EventData{
-			Parameters:  map[string]interface{}{},
-			PriorState:  map[string]interface{}{},
-			ResultState: map[string]interface{}{},
+			Parameters:  map[string]any{},
+			PriorState:  map[string]any{},
+			ResultState: map[string]any{},
 			ObjectType:  "",
 		},
 	}

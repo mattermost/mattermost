@@ -441,7 +441,7 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 		"updateat":  updateAt,
 	}
 
-	sqlResult, err := s.GetMasterX().NamedExec(`
+	sqlResult, err := s.GetMaster().NamedExec(`
 		UPDATE
 			Reactions
 		SET
@@ -468,10 +468,10 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 }
 
 func forceNULL(reaction *model.Reaction, s SqlStore) error {
-	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
 		return err
 	}
-	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
 		return err
 	}
 	return nil

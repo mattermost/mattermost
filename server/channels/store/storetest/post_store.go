@@ -3279,7 +3279,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	require.Len(t, r4.Order, 3, "should have 3 posts")
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4314,8 +4314,7 @@ func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.EqualValues(t, o2.Id, r1.Id)
 }
 
-func testGetMaxPostSize(t *testing.T, rctx request.CTX, ss store.Store) {
-	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
+func testGetMaxPostSize(t *testing.T, _ request.CTX, ss store.Store) {
 	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
 }
 
@@ -4550,7 +4549,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, rctx request.
 	assert.Equal(t, p1.Message, r1[0].Message)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -4613,7 +4612,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 	assert.Equal(t, 1, len(r1))
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -4689,7 +4688,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 	assert.ElementsMatch(t, postIds[:100], exportedPostIds)
 
 	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMasterX().Exec("TRUNCATE Channels")
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testHasAutoResponsePostByUserSince(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4827,7 +4826,7 @@ func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 
 	t.Run("UpdateAt collisions", func(t *testing.T) {
 		// this test requires all the UpdateAt timestamps to be the same.
-		result, err := s.GetMasterX().Exec("UPDATE Posts SET UpdateAt = ?", model.GetMillis())
+		result, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ?", model.GetMillis())
 		require.NoError(t, err)
 		rows, err := result.RowsAffected()
 		require.NoError(t, err)
@@ -4934,7 +4933,7 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 
 	t.Run("CreateAt collisions", func(t *testing.T) {
 		// this test requires all the CreateAt timestamps to be the same.
-		result, err := s.GetMasterX().Exec("UPDATE Posts SET CreateAt = ?", model.GetMillis())
+		result, err := s.GetMaster().Exec("UPDATE Posts SET CreateAt = ?", model.GetMillis())
 		require.NoError(t, err)
 		rows, err := result.RowsAffected()
 		require.NoError(t, err)
@@ -4978,7 +4977,7 @@ func testSetPostReminder(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	require.NoError(t, ss.Post().SetPostReminder(reminder))
 
 	out := model.PostReminder{}
-	require.NoError(t, s.GetMasterX().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
+	require.NoError(t, s.GetMaster().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
 	assert.Equal(t, reminder, &out)
 
 	reminder.PostId = "notfound"
@@ -4994,7 +4993,7 @@ func testSetPostReminder(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	}
 
 	require.NoError(t, ss.Post().SetPostReminder(reminder))
-	require.NoError(t, s.GetMasterX().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
+	require.NoError(t, s.GetMaster().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
 	assert.Equal(t, reminder, &out)
 }
 

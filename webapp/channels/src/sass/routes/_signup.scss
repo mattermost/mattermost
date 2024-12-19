@@ -283,6 +283,7 @@ body {
         }
 
         .control-label {
+            display: block;
             width: 100%;
             padding: 0.7em 1em;
             border-radius: 3px;
@@ -290,7 +291,6 @@ body {
             background: #f2f2f2;
             color: #999;
             font-size: 14px;
-            font-weight: normal;
 
             &::before {
                 @extend %font-awesome;

@@ -11,6 +11,7 @@ export default class ChannelsPostCreate {
     readonly emojiButton;
     readonly sendMessageButton;
     readonly scheduleDraftMessageButton;
+    readonly suggestionList;
 
     constructor(container: Locator, isRHS = false) {
         this.container = container;
@@ -25,6 +26,7 @@ export default class ChannelsPostCreate {
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
+        this.suggestionList = container.getByTestId('suggestionList');
     }
 
     async toBeVisible() {

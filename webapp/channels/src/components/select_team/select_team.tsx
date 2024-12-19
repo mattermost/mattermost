@@ -201,7 +201,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             openContent = (
                 <div className='signup__content'>
                     <div className={'form-group has-error'}>
-                        <label className='control-label'>{this.state.error}</label>
+                        <div className='control-label'>{this.state.error}</div>
                     </div>
                 </div>
             );
@@ -209,12 +209,12 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             openContent = (
                 <div className='signup__content'>
                     <div className={'form-group has-error'}>
-                        <label className='control-label'>
+                        <div className='control-label'>
                             <FormattedMessage
                                 id='signup_team.guest_without_channels'
                                 defaultMessage='Your guest account has no channels assigned. Please contact an administrator.'
                             />
-                        </label>
+                        </div>
                     </div>
                 </div>
             );
