@@ -3440,6 +3440,19 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                                 {
                                     type: 'text',
+                                    key: 'LdapSettings.MaximumLoginAttempts',
+                                    label: defineMessage({id: 'admin.ldap.maximumLoginAttemptsTitle', defaultMessage: 'Maximum Login Attempts:'}),
+                                    help_text: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDesc', defaultMessage: 'The maximum number of login attempts before the account is locked. You can unlock the account in system console on the users page.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
+                                        it.all(
+                                            it.stateIsFalse('LdapSettings.Enable'),
+                                            it.stateIsFalse('LdapSettings.EnableSync'),
+                                        ),
+                                    ),
+                                },
+                                {
+                                    type: 'text',
                                     key: 'LdapSettings.LdapServer',
                                     label: defineMessage({id: 'admin.ldap.serverTitle', defaultMessage: 'AD/LDAP Server:'}),
                                     help_text: defineMessage({id: 'admin.ldap.serverDesc', defaultMessage: 'The domain or IP address of AD/LDAP server.'}),
