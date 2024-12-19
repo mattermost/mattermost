@@ -980,7 +980,11 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         const areAllSectionsInactive = this.props.activeSection === '';
 
         return (
-            <div id='notificationSettings'>
+            <div
+                id='notificationsSettings'
+                aria-labelledby='notificationsButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
