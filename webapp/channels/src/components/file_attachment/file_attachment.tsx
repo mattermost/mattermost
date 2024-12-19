@@ -220,9 +220,7 @@ export default function FileAttachment(props: Props) {
                 stopPropagationOnToggle={true}
             >
                 <WithTooltip
-                    id='file-name__tooltip'
                     title={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
-                    placement='top'
                 >
                     <button
                         ref={buttonRef}
@@ -359,8 +357,6 @@ export default function FileAttachment(props: Props) {
 
     return (
         <WithTooltip
-            id='fileAttachmentArchivedTooltip'
-            placement='top'
             title={<ArchivedTooltip/>}
             disabled={!fileInfo.archived}
         >
