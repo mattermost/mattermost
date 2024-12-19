@@ -25,8 +25,6 @@ const Badge = styled.span`
     display: flex;
     align-self: center;
     padding: 2px 6px;
-    position: relative;
-    top: 1px;
     border-radius: var(--radius-s);
     margin-left: 12px;
     background: rgba(var(--sidebar-text-rgb), 0.08);
