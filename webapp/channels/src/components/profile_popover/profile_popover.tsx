@@ -4,7 +4,9 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {getAllCustomAttributes} from 'mattermost-redux/actions/general';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getCustomAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
@@ -25,6 +27,7 @@ import * as Utils from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import ProfilePopoverAvatar from './profile_popover_avatar';
+import ProfilePopoverCustomAttributes from './profile_popover_custom_attributes';
 import ProfilePopoverCustomStatus from './profile_popover_custom_status';
 import ProfilePopoverEmail from './profile_popover_email';
 import ProfilePopoverLastActive from './profile_popover_last_active';
@@ -77,6 +80,7 @@ const ProfilePopover = ({
     const status = useSelector((state: GlobalState) => getStatusForUserId(state, userId) || UserStatuses.OFFLINE);
     const currentUserTimezone = useSelector(getCurrentTimezone);
     const currentUserId = useSelector(getCurrentUserId);
+    const customAttributes = useSelector((state: GlobalState) => getCustomAttributes(state));
 
     const [loadingDMChannel, setLoadingDMChannel] = useState<string>();
 
@@ -96,7 +100,7 @@ const ProfilePopover = ({
                 },
             ));
         };
-    }, []);
+    }, [returnFocus]);
 
     const handleCloseModals = useCallback(() => {
         for (const modal in modals?.modalState) {
@@ -107,7 +111,7 @@ const ProfilePopover = ({
                 dispatch(closeModal(modal));
             }
         }
-    }, [modals]);
+    }, [modals, dispatch]);
 
     const handleShowDirectChannel = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -130,7 +134,7 @@ const ProfilePopover = ({
             hide?.();
             getHistory().push(`${teamUrl}/messages/@${user.username}`);
         }
-    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl]);
+    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl, dispatch]);
 
     useEffect(() => {
         if (currentTeamId && userId) {
@@ -140,11 +144,16 @@ const ProfilePopover = ({
                 channelId,
             ));
         }
-    }, []);
+    }, [channelId, userId, currentTeamId, dispatch]);
 
     if (!user) {
         return null;
     }
+    const fakeCustomAttributeValues = {
+        123: 'Hello',
+        456: 'World',
+        789: 'Yes sir',
+    };
 
     const urlSrc = overwriteIcon || src;
     const haveOverrideProp = Boolean(overwriteIcon || overwriteName);
@@ -188,6 +197,15 @@ const ProfilePopover = ({
                         fromWebhook={fromWebhook}
                     />
                 </div>
+                { fakeCustomAttributeValues && (
+                // { user.custom_attributes && (
+                    <ProfilePopoverCustomAttributes
+                        customAttributes={customAttributes}
+                        // customAttributeValues={user.custom_attributes}
+                        customAttributeValues={fakeCustomAttributeValues}
+                        getCustomAttributes={getAllCustomAttributes}
+                    />
+                )}
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}
                     profileUserTimezone={user.timezone}
