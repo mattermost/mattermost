@@ -699,6 +699,7 @@ type AppIface interface {
 	GetGlobalRetentionPolicy() (*model.GlobalRetentionPolicy, *model.AppError)
 	GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *model.ViewUsersRestrictions) (*model.Group, *model.AppError)
 	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
+	GetGroupsByNames(name []string) ([]*model.Group, *model.AppError)
 	GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, *model.AppError)
 	GetGroupMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
