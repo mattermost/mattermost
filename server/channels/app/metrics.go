@@ -110,6 +110,16 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 				commonLabels["agent"],
 				h.Labels["network_request_group"],
 				h.Value)
+		case model.MobileClientNetworkRequestsTotalParallelRequests:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalParallelRequests(commonLabels["platform"],
+				commonLabels["agent"],
+				h.Labels["network_request_group"],
+				h.Value)
+		case model.MobileClientNetworkRequestsTotalSequentialRequests:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalSequentialRequests(commonLabels["platform"],
+				commonLabels["agent"],
+				h.Labels["network_request_group"],
+				h.Value)
 		case model.MobileClientNetworkRequestsLatency:
 			a.Metrics().ObserveMobileClientNetworkRequestsLatency(commonLabels["platform"],
 				commonLabels["agent"],

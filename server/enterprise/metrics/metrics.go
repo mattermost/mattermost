@@ -222,6 +222,8 @@ type MetricsInterfaceImpl struct {
 	MobileClientSessionMetadataGauge               *prometheus.GaugeVec
 	MobileClientNetworkRequestsTotalCompressedSize *prometheus.HistogramVec
 	MobileClientNetworkRequestsTotalRequests       *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalParallelRequests   *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalSequentialRequests *prometheus.HistogramVec
 	MobileClientNetworkRequestsLatency             *prometheus.HistogramVec
 	MobileClientNetworkRequestsTotalSize           *prometheus.HistogramVec
 	MobileClientNetworkRequestsElapsedTime         *prometheus.HistogramVec
@@ -1387,6 +1389,28 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"platform", "agent", "network_request_group"},
 	)
 
+	m.MobileClientNetworkRequestsTotalParallelRequests = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_total_parallel_requests",
+			Help:      "Total number of parallel network requests made",
+			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsTotalSequentialRequests = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_total_sequential_requests",
+			Help:      "Total number of sequential network requests made",
+			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
 	m.MobileClientNetworkRequestsLatency = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
@@ -1412,6 +1436,8 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	m.Registry.MustRegister(m.MobileClientLoadDuration)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalCompressedSize)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalRequests)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalParallelRequests)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSequentialRequests)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsLatency)
 	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSize)
 
@@ -2054,6 +2080,14 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalCompresse
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalRequests(platform, agent, networkRequestGroup string, count float64) {
 	mi.MobileClientNetworkRequestsTotalRequests.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(count)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalParallelRequests(platform, agent, networkRequestGroup string, count float64) {
+	mi.MobileClientNetworkRequestsTotalParallelRequests.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(count)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalSequentialRequests(platform, agent, networkRequestGroup string, count float64) {
+	mi.MobileClientNetworkRequestsTotalSequentialRequests.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(count)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsLatency(platform, agent, networkRequestGroup string, latency float64) {
