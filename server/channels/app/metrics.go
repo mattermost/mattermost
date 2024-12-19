@@ -100,33 +100,13 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 		case model.MobileClientTeamSwitchDuration:
 			a.Metrics().ObserveMobileClientTeamSwitchDuration(commonLabels["platform"],
 				h.Value/1000)
-		case model.MobileClientNetworkRequestsTotalCompressedSize:
-			a.Metrics().ObserveMobileClientNetworkRequestsTotalCompressedSize(commonLabels["platform"],
+		case model.MobileClientNetworkRequestsAverageSpeed:
+			a.Metrics().ObserveMobileClientNetworkRequestsAverageSpeed(commonLabels["platform"],
 				commonLabels["agent"],
 				h.Labels["network_request_group"],
 				h.Value)
-		case model.MobileClientNetworkRequestsTotalRequests:
-			a.Metrics().ObserveMobileClientNetworkRequestsTotalRequests(commonLabels["platform"],
-				commonLabels["agent"],
-				h.Labels["network_request_group"],
-				h.Value)
-		case model.MobileClientNetworkRequestsTotalParallelRequests:
-			a.Metrics().ObserveMobileClientNetworkRequestsTotalParallelRequests(commonLabels["platform"],
-				commonLabels["agent"],
-				h.Labels["network_request_group"],
-				h.Value)
-		case model.MobileClientNetworkRequestsTotalSequentialRequests:
-			a.Metrics().ObserveMobileClientNetworkRequestsTotalSequentialRequests(commonLabels["platform"],
-				commonLabels["agent"],
-				h.Labels["network_request_group"],
-				h.Value)
-		case model.MobileClientNetworkRequestsLatency:
-			a.Metrics().ObserveMobileClientNetworkRequestsLatency(commonLabels["platform"],
-				commonLabels["agent"],
-				h.Labels["network_request_group"],
-				h.Value)
-		case model.MobileClientNetworkRequestsTotalSize:
-			a.Metrics().ObserveMobileClientNetworkRequestsTotalSize(commonLabels["platform"],
+		case model.MobileClientNetworkRequestsEffectiveLatency:
+			a.Metrics().ObserveMobileClientNetworkRequestsEffectiveLatency(commonLabels["platform"],
 				commonLabels["agent"],
 				h.Labels["network_request_group"],
 				h.Value)
@@ -135,13 +115,33 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 				commonLabels["agent"],
 				h.Labels["network_request_group"],
 				h.Value)
-		case model.MobileClientNetworkRequestsAverageSpeed:
-			a.Metrics().ObserveMobileClientNetworkRequestsAverageSpeed(commonLabels["platform"],
+		case model.MobileClientNetworkRequestsLatency:
+			a.Metrics().ObserveMobileClientNetworkRequestsLatency(commonLabels["platform"],
 				commonLabels["agent"],
 				h.Labels["network_request_group"],
 				h.Value)
-		case model.MobileClientNetworkRequestsEffectiveLatency:
-			a.Metrics().ObserveMobileClientNetworkRequestsEffectiveLatency(commonLabels["platform"],
+		case model.MobileClientNetworkRequestsTotalCompressedSize:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalCompressedSize(commonLabels["platform"],
+				commonLabels["agent"],
+				h.Labels["network_request_group"],
+				h.Value)
+		case model.MobileClientNetworkRequestsTotalParallelRequests:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalParallelRequests(commonLabels["platform"],
+				commonLabels["agent"],
+				h.Labels["network_request_group"],
+				h.Value)
+		case model.MobileClientNetworkRequestsTotalRequests:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalRequests(commonLabels["platform"],
+				commonLabels["agent"],
+				h.Labels["network_request_group"],
+				h.Value)
+		case model.MobileClientNetworkRequestsTotalSequentialRequests:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalSequentialRequests(commonLabels["platform"],
+				commonLabels["agent"],
+				h.Labels["network_request_group"],
+				h.Value)
+		case model.MobileClientNetworkRequestsTotalSize:
+			a.Metrics().ObserveMobileClientNetworkRequestsTotalSize(commonLabels["platform"],
 				commonLabels["agent"],
 				h.Labels["network_request_group"],
 				h.Value)
