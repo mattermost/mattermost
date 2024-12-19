@@ -183,9 +183,14 @@ function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] =
                 scheduledPostsByTeamId[teamId].forEach((scheduledPost: ScheduledPost) => {
                     const id = scheduledPost.root_id || scheduledPost.channel_id;
 
+                    // Check if the entry for that channel/thread ID exists
                     if (newState[id]) {
-                        newState[id].push(scheduledPost.id);
+                        // Only add if its not already there
+                        if (!newState[id].includes(scheduledPost.id)) {
+                            newState[id] = [...newState[id], scheduledPost.id];
+                        }
                     } else {
+                        // If the entry does not exist at this moment, create it
                         newState[id] = [scheduledPost.id];
                     }
                 });
