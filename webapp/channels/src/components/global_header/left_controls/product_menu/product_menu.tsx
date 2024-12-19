@@ -124,10 +124,9 @@ const ProductMenu = (): JSX.Element => {
                         aria-label={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
                         aria-controls='product-switcher-menu'
                         style={switcherOpen ? {
-                                backgroundColor: 'rgba(var(--sidebar-text-rgb), 0.16)',
-                                color: 'rgba(var(--sidebar-text-rgb), 0.56)',
-                            } : {}
-                        }
+                            backgroundColor: 'rgba(var(--sidebar-text-rgb), 0.16)',
+                            color: 'rgba(var(--sidebar-text-rgb), 0.56)',
+                        } : {}}
                     >
                         <ProductsIcon
                             size={20}

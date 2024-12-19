@@ -14,6 +14,12 @@ exports[`components/global/product_switcher should have an active button state w
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
       >
         <ProductsIcon
           color="rgba(var(--sidebar-text-rgb), 0.56)"
@@ -82,6 +88,12 @@ exports[`components/global/product_switcher should match snapshot 1`] = `
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
       >
         <ProductsIcon
           color="rgba(var(--sidebar-text-rgb), 0.56)"
@@ -150,6 +162,12 @@ exports[`components/global/product_switcher should match snapshot with product s
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
       >
         <ProductsIcon
           color="rgba(var(--sidebar-text-rgb), 0.56)"
@@ -218,6 +236,12 @@ exports[`components/global/product_switcher should match snapshot without licens
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
       >
         <ProductsIcon
           color="rgba(var(--sidebar-text-rgb), 0.56)"
@@ -286,6 +310,12 @@ exports[`components/global/product_switcher should render once when there are no
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
       >
         <ProductsIcon
           color="rgba(var(--sidebar-text-rgb), 0.56)"
@@ -354,6 +384,12 @@ exports[`components/global/product_switcher should render the correct amount of 
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
+        style={
+          Object {
+            "backgroundColor": "rgba(var(--sidebar-text-rgb), 0.16)",
+            "color": "rgba(var(--sidebar-text-rgb), 0.56)",
+          }
+        }
       >
         <ProductsIcon
           color="rgba(var(--sidebar-text-rgb), 0.56)"
