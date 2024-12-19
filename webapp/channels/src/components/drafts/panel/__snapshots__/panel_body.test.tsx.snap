@@ -42,6 +42,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
             src="/api/v4/users/user_id/image?_=0"
             triggerComponentClass="status-wrapper"
             userId="user_id"
+            username="username"
           >
             <span
               aria-expanded="false"
@@ -268,6 +269,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
             src="/api/v4/users/user_id/image?_=0"
             triggerComponentClass="status-wrapper"
             userId="user_id"
+            username="username"
           >
             <span
               aria-expanded="false"
@@ -500,6 +502,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
             src="/api/v4/users/user_id/image?_=0"
             triggerComponentClass="status-wrapper"
             userId="user_id"
+            username="username"
           >
             <span
               aria-expanded="false"
@@ -789,6 +792,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
             src="/api/v4/users/user_id/image?_=0"
             triggerComponentClass="status-wrapper"
             userId="user_id"
+            username="username"
           >
             <span
               aria-expanded="false"
