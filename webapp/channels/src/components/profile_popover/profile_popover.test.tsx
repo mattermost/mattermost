@@ -364,4 +364,39 @@ describe('components/ProfilePopover', () => {
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.findByLabelText('Start Call')).toBeInTheDocument();
     });
+
+    test('should display attributes if attribute exists for user', async () => {
+        const [props, initialState] = getBasePropsAndState();
+
+        initialState.entities!.general!.customAttributes = [
+            {id: '123', name: 'Rank', dataType: 'text'},
+            {id: '456', name: 'CO', dataType: 'text'},
+            {id: '789', name: 'Base', dataType: 'text'},
+        ];
+        initialState.entities!.users!.profiles!.user1!.custom_attributes = {
+            123: 'Private',
+            456: 'Seargent York',
+        };
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        expect(await screen.queryByText('Rank')).toBeInTheDocument();
+        expect(await screen.findByText('Private')).toBeInTheDocument();
+        expect(await screen.findByText('CO')).toBeInTheDocument();
+        expect(await screen.findByText('Seargent York')).toBeInTheDocument();
+
+        expect(await screen.queryByText('Base')).not.toBeInTheDocument();
+    });
+
+    test('should not display attributes if user attributes is null', async () => {
+        const [props, initialState] = getBasePropsAndState();
+
+        initialState.entities!.general!.customAttributes = [
+            {id: '123', name: 'Rank', dataType: 'text'},
+            {id: '456', name: 'CO', dataType: 'text'},
+        ];
+
+        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        expect(await screen.queryByText('Rank')).not.toBeInTheDocument();
+        expect(await screen.queryByText('CO')).not.toBeInTheDocument();
+    });
 });

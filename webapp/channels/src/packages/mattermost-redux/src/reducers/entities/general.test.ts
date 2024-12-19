@@ -41,4 +41,44 @@ describe('reducers.entities.general', () => {
             expect(actualState.firstAdminVisitMarketplaceStatus).toEqual(expectedState);
         });
     });
+
+    describe('customAttributes', () => {
+        it('initial state', () => {
+            const state = {};
+            const action = {type: undefined};
+            const expectedState = {};
+
+            const actualState = reducer({firstAdminVisitMarketplaceStatus: state} as ReducerState, action);
+            expect(actualState.firstAdminVisitMarketplaceStatus).toEqual(expectedState);
+        });
+
+        it('ATTRIBUTES_RECEIVED, empty initial state', () => {
+            const state = {};
+            const testAttributeOne = {id: '123', name: 'test attribute', dataType: 'text'};
+            const action = {
+                type: GeneralTypes.ATTRIBUTES_RECEIVED,
+                data: [testAttributeOne],
+            };
+            const expectedState = [testAttributeOne];
+
+            const actualState = reducer({customAttributes: state} as ReducerState, action);
+            expect(actualState.customAttributes).toEqual(expectedState);
+        });
+
+        it('ATTRIBUTES_RECEIVED, attributes are completely replaced', () => {
+            const testAttributeOne = {id: '123', name: 'test attribute', dataType: 'text'};
+            const testAttributeTwo = {id: '456', name: 'test attribute two', dataType: 'text'};
+            const state = [testAttributeOne, testAttributeTwo];
+
+            const updatedAttributeOne = {id: '123', name: 'new name value', dataType: 'text'};
+            const action = {
+                type: GeneralTypes.ATTRIBUTES_RECEIVED,
+                data: [updatedAttributeOne],
+            };
+            const expectedState = [updatedAttributeOne];
+
+            const actualState = reducer({customAttributes: state} as ReducerState, action);
+            expect(actualState.customAttributes).toEqual(expectedState);
+        });
+    });
 });

@@ -36,6 +36,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
         isMobileView: false,
+        customAttributes: [],
         actions: {
             logError: jest.fn(),
             clearErrors: jest.fn(),
@@ -43,6 +44,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             sendVerificationEmail: jest.fn(),
             setDefaultProfileImage: jest.fn(),
             uploadProfileImage: jest.fn(),
+            saveAttribute: jest.fn(),
         },
         maxFileSize: 1024,
         ldapPositionAttributeSet: false,
@@ -168,5 +170,73 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
         await (wrapper.instance() as UserSettingsGeneralTab).submitUser(requiredProps.user, false);
         expect(wrapper.state('serverError')).toBe('This username conflicts with an existing group name.');
+    });
+
+    test('should show Custom Attribute Field with empty value', () => {
+        const props = {...requiredProps, customAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
+        props.user = {...user};
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <UserSettingsGeneral {...props}/>
+            </Provider>,
+        );
+        expect(wrapper.find('#customAttribute_1Edit').exists()).toBeTruthy();
+        expect(wrapper.find('#customAttribute_1Desc').exists()).toBeTruthy();
+        expect(wrapper.find('#customAttribute_1Desc').text()).toContain('Click \'Edit\' to add your custom attribute');
+    });
+
+    test('should show Custom Attribute Field editing with empty value', () => {
+        const props = {...requiredProps, customAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
+        props.user = {...user};
+        props.activeSection = 'customAttribute_1';
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <UserSettingsGeneral {...props}/>
+            </Provider>,
+        );
+        expect(wrapper.find('#customAttribute_1Edit').exists()).toBeFalsy();
+        expect(wrapper.find('#customAttribute_1').length).toBe(1);
+        expect(wrapper.find('#customAttribute_1').is('input')).toBeTruthy();
+    });
+
+    test('should show Custom Attribute Field with value set', () => {
+        const props = {...requiredProps, customAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
+        props.user = {
+            ...user,
+            custom_attributes: {
+                1: 'hello',
+            },
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <UserSettingsGeneral {...props}/>
+            </Provider>,
+        );
+        expect(wrapper.find('#customAttribute_1Edit').exists()).toBeTruthy();
+        expect(wrapper.find('#customAttribute_1Desc').exists()).toBeTruthy();
+        expect(wrapper.find('#customAttribute_1Desc').text()).toContain('hello');
+    });
+
+    test('submitAttribute() should have called saveAttribute', () => {
+        const saveAttribute = jest.fn().mockResolvedValue({data: true});
+        const props = {
+            ...requiredProps,
+            actions: {...requiredProps.actions, saveAttribute},
+            customAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}],
+        };
+        props.user = {
+            ...user,
+            custom_attributes: {
+                1: 'hello',
+            },
+        };
+        const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
+
+        (wrapper.instance() as UserSettingsGeneralTab).submitAttribute(['1']);
+        expect(saveAttribute).toHaveBeenCalledTimes(1);
+        expect(saveAttribute).toHaveBeenCalledWith('user_id', '1', 'hello');
     });
 });
