@@ -46,7 +46,7 @@ export default class GlobalHeader {
 
     async closeSearch() {
         await expect(this.searchBox).toBeVisible();
-        await this.searchBox.getByTestId('input-clear').click();
+        await this.searchBox.getByTestId('searchBoxClose').click();
     }
 }
 
