@@ -28,9 +28,14 @@ const (
 	ClientRHSLoadDuration           MetricType = "rhs_load"
 	ClientGlobalThreadsLoadDuration MetricType = "global_threads_load"
 
-	MobileClientLoadDuration          MetricType = "mobile_load"
-	MobileClientChannelSwitchDuration MetricType = "mobile_channel_switch"
-	MobileClientTeamSwitchDuration    MetricType = "mobile_team_switch"
+	MobileClientLoadDuration                       MetricType = "mobile_load"
+	MobileClientChannelSwitchDuration              MetricType = "mobile_channel_switch"
+	MobileClientTeamSwitchDuration                 MetricType = "mobile_team_switch"
+	MobileClientNetworkRequestsTotalCompressedSize MetricType = "mobile_network_requests_total_compressed_size"
+	MobileClientNetworkRequestsTotalRequests       MetricType = "mobile_network_requests_total_requests"
+	MobileClientNetworkRequestsLatency             MetricType = "mobile_network_requests_latency"
+	MobileClientNetworkRequestsTotalSize           MetricType = "mobile_network_requests_total_size"
+	MobileClientNetworkRequestsElapsedTime         MetricType = "mobile_network_requests_elapsed_time"
 
 	DesktopClientCPUUsage    MetricType = "desktop_cpu"
 	DesktopClientMemoryUsage MetricType = "desktop_memory"
@@ -56,8 +61,9 @@ var (
 		"modal_content",
 		"other",
 	)
-	AcceptedTrueFalseLabels     = sliceToMapKey("true", "false")
-	AcceptedSplashScreenOrigins = sliceToMapKey("root", "team_controller")
+	AcceptedTrueFalseLabels      = sliceToMapKey("true", "false")
+	AcceptedSplashScreenOrigins  = sliceToMapKey("root", "team_controller")
+	AcceptedNetworkRequestGroups = sliceToMapKey("entry", "notification", "login", "reconnection")
 )
 
 type MetricSample struct {
@@ -110,9 +116,10 @@ func (r *PerformanceReport) IsValid() error {
 
 func (r *PerformanceReport) ProcessLabels() map[string]string {
 	return map[string]string{
-		"platform":            processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
-		"agent":               processLabel(r.Labels, "agent", acceptedAgents, "other"),
-		"desktop_app_version": r.Labels["desktop_app_version"],
+		"platform":              processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
+		"agent":                 processLabel(r.Labels, "agent", acceptedAgents, "other"),
+		"desktop_app_version":   r.Labels["desktop_app_version"],
+		"network_request_group": processLabel(r.Labels, "network_request_group", AcceptedNetworkRequestGroups, "entry"),
 	}
 }
 
