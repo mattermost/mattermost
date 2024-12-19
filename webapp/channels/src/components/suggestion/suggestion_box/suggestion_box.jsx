@@ -396,7 +396,10 @@ export default class SuggestionBox extends React.PureComponent {
             return;
         }
 
-        const suffix = text.substring(caret);
+        let suffix = text.substring(caret);
+        if (term.endsWith('join')) {
+            suffix = '~';
+        }
 
         const newValue = prefix + term + ' ' + suffix;
         textbox.value = newValue;
@@ -414,7 +417,7 @@ export default class SuggestionBox extends React.PureComponent {
         // set the caret position after the next rendering
         window.requestAnimationFrame(() => {
             if (textbox.value === newValue) {
-                Utils.setCaretPosition(textbox, prefix.length + term.length + 1);
+                Utils.setCaretPosition(textbox, prefix.length + term.length + suffix.length + 1);
             }
         });
     };
