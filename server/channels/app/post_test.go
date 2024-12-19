@@ -269,7 +269,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 	post := th.BasicPost.Clone()
 
 	post.IsPinned = true
-	saved, err := th.App.UpdatePost(th.Context, post, true)
+	saved, err := th.App.UpdatePost(th.Context, post, true, nil)
 	require.Nil(t, err)
 	assert.Equal(t, saved.EditAt, post.EditAt, "shouldn't have updated post.EditAt when pinning post")
 	post = saved.Clone()
@@ -277,7 +277,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	post.Message = model.NewId()
-	saved, err = th.App.UpdatePost(th.Context, post, true)
+	saved, err = th.App.UpdatePost(th.Context, post, true, nil)
 	require.Nil(t, err)
 	assert.NotEqual(t, saved.EditAt, post.EditAt, "should have updated post.EditAt when updating post message")
 
@@ -295,7 +295,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
 	})
-	_, err := th.App.UpdatePost(th.Context, post, true)
+	_, err := th.App.UpdatePost(th.Context, post, true, nil)
 	require.Nil(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -303,14 +303,14 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	})
 	post.Message = model.NewId()
 
-	_, err = th.App.UpdatePost(th.Context, post, true)
+	_, err = th.App.UpdatePost(th.Context, post, true, nil)
 	require.Nil(t, err, "should allow you to edit the post")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = 1
 	})
 	post.Message = model.NewId()
-	_, err = th.App.UpdatePost(th.Context, post, true)
+	_, err = th.App.UpdatePost(th.Context, post, true, nil)
 	require.Nil(t, err, "should allow you to edit an old post because the time check is applied above in the call hierarchy")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -326,7 +326,7 @@ func TestUpdatePostInArchivedChannel(t *testing.T) {
 	post := th.CreatePost(archivedChannel)
 	th.App.DeleteChannel(th.Context, archivedChannel, "")
 
-	_, err := th.App.UpdatePost(th.Context, post, true)
+	_, err := th.App.UpdatePost(th.Context, post, true, nil)
 	require.NotNil(t, err)
 	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
 }
@@ -472,7 +472,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		require.Nil(t, err)
 
 		post.Message = "new message"
-		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
+		updatedPost, err := th.App.UpdatePost(th.Context, post, false, nil)
 		require.Nil(t, updatedPost)
 		require.NotNil(t, err)
 		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
@@ -539,7 +539,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		require.Nil(t, err)
 
 		post.Message = "new message"
-		updatedPost, err := th.App.UpdatePost(th.Context, post, false)
+		updatedPost, err := th.App.UpdatePost(th.Context, post, false, nil)
 		require.Nil(t, err)
 		require.NotNil(t, updatedPost)
 		require.Equal(t, "2 new message 1", updatedPost.Message)
@@ -591,7 +591,7 @@ func TestPostChannelMentions(t *testing.T) {
 	}, post.GetProp("channel_mentions"))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention2.Name)
-	result, err := th.App.UpdatePost(th.Context, post, false)
+	result, err := th.App.UpdatePost(th.Context, post, false, nil)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
 		"mention-test2": map[string]any{
@@ -601,7 +601,7 @@ func TestPostChannelMentions(t *testing.T) {
 	}, result.GetProp("channel_mentions"))
 
 	result.Message = "no more mentions!"
-	result, err = th.App.UpdatePost(th.Context, result, false)
+	result, err = th.App.UpdatePost(th.Context, result, false, nil)
 	require.Nil(t, err)
 	assert.Nil(t, result.GetProp("channel_mentions"))
 }
@@ -1123,7 +1123,7 @@ func TestCreatePost(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				post := previewPost.Clone()
-				th.App.UpdatePost(th.Context, post, false)
+				th.App.UpdatePost(th.Context, post, false, nil)
 			}()
 		}
 
@@ -1194,7 +1194,7 @@ func TestPatchPost(t *testing.T) {
 			Message: model.NewPointer("![image](" + imageURL + ")"),
 		}
 
-		rpost, err = th.App.PatchPost(th.Context, rpost.Id, patch)
+		rpost, err = th.App.PatchPost(th.Context, rpost.Id, patch, nil)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
@@ -1217,13 +1217,13 @@ func TestPatchPost(t *testing.T) {
 		t.Run("Does not set prop when user has USE_CHANNEL_MENTIONS", func(t *testing.T) {
 			patchWithNoMention := &model.PostPatch{Message: model.NewPointer("This patch has no channel mention")}
 
-			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention)
+			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention, nil)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
 			patchWithMention := &model.PostPatch{Message: model.NewPointer("This patch has a mention now @here")}
 
-			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention)
+			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention, nil)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 		})
@@ -1233,13 +1233,13 @@ func TestPatchPost(t *testing.T) {
 			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 
 			patchWithNoMention := &model.PostPatch{Message: model.NewPointer("This patch still does not have a mention")}
-			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention)
+			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention, nil)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
 			patchWithMention := &model.PostPatch{Message: model.NewPointer("This patch has a mention now @here")}
 
-			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention)
+			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithMention, nil)
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProp(model.PostPropsMentionHighlightDisabled), true)
 
@@ -1433,7 +1433,7 @@ func TestPatchPostInArchivedChannel(t *testing.T) {
 	post := th.CreatePost(archivedChannel)
 	th.App.DeleteChannel(th.Context, archivedChannel, "")
 
-	_, err := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{IsPinned: model.NewPointer(true)})
+	_, err := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{IsPinned: model.NewPointer(true)}, nil)
 	require.NotNil(t, err)
 	require.Equal(t, "api.post.patch_post.can_not_update_post_in_deleted.error", err.Id)
 }
@@ -1539,7 +1539,7 @@ func TestUpdatePost(t *testing.T) {
 		post.Id = rpost.Id
 		post.Message = "![image](" + imageURL + ")"
 
-		rpost, err = th.App.UpdatePost(th.Context, post, false)
+		rpost, err = th.App.UpdatePost(th.Context, post, false, nil)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
@@ -1578,7 +1578,7 @@ func TestUpdatePost(t *testing.T) {
 		assert.Equal(t, model.StringInterface{}, testPost.GetProps())
 
 		testPost.Message = permalink
-		testPost, err = th.App.UpdatePost(th.Context, testPost, false)
+		testPost, err = th.App.UpdatePost(th.Context, testPost, false, nil)
 		require.Nil(t, err)
 		assert.Equal(t, model.StringInterface{model.PostPropsPreviewedPost: referencedPost.Id}, testPost.GetProps())
 	})
@@ -1639,7 +1639,7 @@ func TestUpdatePost(t *testing.T) {
 
 				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 				previewPost.Message = permalink
-				previewPost, err = th.App.UpdatePost(th.Context, previewPost, false)
+				previewPost, err = th.App.UpdatePost(th.Context, previewPost, false, nil)
 				require.Nil(t, err)
 
 				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
@@ -3126,7 +3126,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err, "Creating a post should not error")
 
-		_, err = th.App.UpdatePost(th.Context, post, true)
+		_, err = th.App.UpdatePost(th.Context, post, true, nil)
 		require.Nil(t, err, "Updating a post should not error")
 
 		require.Len(t, sharedChannelService.channelNotifications, 2)
@@ -3426,7 +3426,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	patch := &model.PostPatch{
 		Message: model.NewPointer("new message edited"),
 	}
-	_, err1 := th.App.PatchPost(th.Context, rpost.Id, patch)
+	_, err1 := th.App.PatchPost(th.Context, rpost.Id, patch, nil)
 	require.Nil(t, err1)
 
 	// update the post message again
@@ -3434,7 +3434,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		Message: model.NewPointer("new message edited again"),
 	}
 
-	_, err2 := th.App.PatchPost(th.Context, rpost.Id, patch)
+	_, err2 := th.App.PatchPost(th.Context, rpost.Id, patch, nil)
 	require.Nil(t, err2)
 
 	t.Run("should return the edit history", func(t *testing.T) {
@@ -3470,19 +3470,19 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		patch := &model.PostPatch{
 			Message: model.NewPointer("new message edited"),
 		}
-		_, appErr := th.App.PatchPost(th.Context, post.Id, patch)
+		_, appErr := th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		patch = &model.PostPatch{
 			Message: model.NewPointer("new message edited 2"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		patch = &model.PostPatch{
 			Message: model.NewPointer("new message edited 3"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		edits, err := th.App.GetEditHistoryForPost(post.Id)
@@ -3516,19 +3516,19 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		patch := &model.PostPatch{
 			Message: model.NewPointer("new message edited"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		patch = &model.PostPatch{
 			Message: model.NewPointer("new message edited 2"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		patch = &model.PostPatch{
 			Message: model.NewPointer("new message edited 3"),
 		}
-		_, appErr = th.App.PatchPost(th.Context, post.Id, patch)
+		_, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
 		// now delete the file info, and it should still be include in edit history metadata

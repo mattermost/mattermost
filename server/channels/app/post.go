@@ -679,7 +679,7 @@ func (a *App) DeleteEphemeralPost(rctx request.CTX, userID, postID string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
 	receivedUpdatedPost.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
@@ -736,7 +736,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
 		var fileIds []string
-		fileIds, appErr = a.processPostFileChanges(c, receivedUpdatedPost, oldPost)
+		fileIds, appErr = a.processPostFileChanges(c, receivedUpdatedPost, oldPost, updatePostOptions)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -939,7 +939,7 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	return nil
 }
 
-func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch, patchPostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
@@ -961,7 +961,7 @@ func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*
 
 	post.Patch(patch)
 
-	updatedPost, err := a.UpdatePost(c, post, false)
+	updatedPost, err := a.UpdatePost(c, post, false, patchPostOptions)
 	if err != nil {
 		return nil, err
 	}

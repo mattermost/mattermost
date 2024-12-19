@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
@@ -36,6 +38,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchPostsInAllTeams)).Methods(http.MethodPost)
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods(http.MethodPut)
 	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods(http.MethodPut)
+	api.BaseRoutes.Post.Handle("/restore/{restore_version_id:[A-Za-z0-9]+}", api.APISessionRequired(restorePostVersion)).Methods(http.MethodPost)
 	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods(http.MethodPost)
 	api.BaseRoutes.PostForUser.Handle("/reminder", api.APISessionRequired(setPostReminder)).Methods(http.MethodPost)
 
@@ -879,7 +882,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rpost, err := c.App.UpdatePost(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), false)
+	rpost, err := c.App.UpdatePost(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), false, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -917,32 +920,37 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
-	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+	//originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	//if err != nil {
+	//	c.SetPermissionError(model.PermissionEditPost)
+	//	return
+	//}
+	//auditRec.AddEventPriorState(originalPost)
+	//auditRec.AddEventObjectType("post")
+	//
+	//var permission *model.Permission
+	//if c.AppContext.Session().UserId == originalPost.UserId {
+	//	permission = model.PermissionEditPost
+	//} else {
+	//	permission = model.PermissionEditOthersPosts
+	//}
+	//
+	//if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
+	//	c.SetPermissionError(permission)
+	//	return
+	//}
+	//
+	//if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != nil {
+	//	c.Err = model.NewAppError("patchPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
+	//	return
+	//}
+
+	postPatchChecks(c, auditRec, post.Message, true)
+	if c.Err != nil {
 		return
 	}
-	auditRec.AddEventPriorState(originalPost)
-	auditRec.AddEventObjectType("post")
 
-	var permission *model.Permission
-	if c.AppContext.Session().UserId == originalPost.UserId {
-		permission = model.PermissionEditPost
-	} else {
-		permission = model.PermissionEditOthersPosts
-	}
-
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
-		c.SetPermissionError(permission)
-		return
-	}
-
-	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != nil {
-		c.Err = model.NewAppError("patchPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
-		return
-	}
-
-	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(&post))
+	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(&post), nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -953,6 +961,34 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := patchedPost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func postPatchChecks(c *Context, auditRec *audit.Record, message *string, allowAdminEditingOthersPosts bool) {
+	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	if err != nil {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+	auditRec.AddEventPriorState(originalPost)
+	auditRec.AddEventObjectType("post")
+
+	var permission *model.Permission
+
+	if allowAdminEditingOthersPosts && c.AppContext.Session().UserId != originalPost.UserId {
+		permission = model.PermissionEditOthersPosts
+	} else {
+		permission = model.PermissionEditPost
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
+		c.SetPermissionError(permission)
+		return
+	}
+
+	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && message != nil {
+		c.Err = model.NewAppError("patchPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
+		return
 	}
 }
 
@@ -1045,7 +1081,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewPointer(isPinned)
 
-	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch)
+	patchedPost, err := c.App.PatchPost(c.AppContext, c.Params.PostId, patch, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -1281,6 +1317,49 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	props := mux.Vars(r)
+	restoreVersionId, ok := props["restore_version_id"]
+	if !ok {
+		c.SetInvalidParam("restore_version_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("restorePostVersion", audit.Fail)
+	audit.AddEventParameter(auditRec, "id", c.Params.PostId)
+	audit.AddEventParameter(auditRec, "restore_version_id", restoreVersionId)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+
+	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	if err != nil {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	postPatchChecks(c, auditRec, &post.Message, false)
+	if c.Err != nil {
+		return
+	}
+
+	updatedPost, appErr := c.App.RestorePostVersion(c.AppContext, c.AppContext.Session().UserId, c.Params.PostId, restoreVersionId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(updatedPost)
+
+	if err := updatedPost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
