@@ -3729,11 +3729,11 @@
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "server_error: Došlo k chybě při čtení uživatských dat z databáze."
+    "translation": "server_error: Došlo k chybě při čtení uživatelských dat z databáze."
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "server_error: Došlo k chybě při ukládání sezení do databáze."
+    "translation": "server_error: Došlo k chybě při ukládání relace do databáze."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
@@ -6837,7 +6837,7 @@
   },
   {
     "id": "api.oauth.close_browser",
-    "translation": "Nyní můžete zavřít tab prohlížeče."
+    "translation": "Nyní můžete zavřít tuto kartu prohlížeče."
   },
   {
     "id": "api.oauth.auth_complete",
@@ -6845,7 +6845,7 @@
   },
   {
     "id": "api.no_license",
-    "translation": "Licence E10 nebo E20 jsou vyžadovány pro tento endpoint."
+    "translation": "Licence E10 nebo E20 jsou vyžadovány pro tento koncový bod."
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -7553,7 +7553,7 @@
   },
   {
     "id": "api.license_error",
-    "translation": "API koncový bod vyžaduje licenci"
+    "translation": "koncový bod API vyžaduje licenci"
   },
   {
     "id": "api.oauth.click_redirect",
