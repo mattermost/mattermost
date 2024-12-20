@@ -2,22 +2,6 @@
 
 exports[`components/AutosizeTextarea should match snapshot, init 1`] = `
 <div>
-  <div
-    data-testid="autosize_textarea_placeholder"
-    id="autosize_textarea_placeholder"
-    style={
-      Object {
-        "background": "none",
-        "borderColor": "transparent",
-        "opacity": 0.75,
-        "overflow": "hidden",
-        "pointerEvents": "none",
-        "position": "absolute",
-        "textOverflow": "ellipsis",
-        "whiteSpace": "nowrap",
-      }
-    }
-  />
   <textarea
     data-testid="autosize_textarea"
     dir="auto"
