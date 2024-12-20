@@ -255,7 +255,6 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                         class="post-message__text"
                         dir="auto"
                         id="rhsPostMessageText_post_id"
-                        tabindex="0"
                       >
                         <p>
                           post message

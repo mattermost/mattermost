@@ -125,7 +125,6 @@ exports[`plugins/PostMessageView should match snapshot with no extended post typ
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={

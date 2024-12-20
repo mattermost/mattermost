@@ -146,7 +146,6 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                 maxHeight={maxHeight}
             >
                 <div
-                    tabIndex={0}
                     id={id}
                     className='post-message__text'
                     dir='auto'
