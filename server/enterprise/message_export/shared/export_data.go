@@ -305,7 +305,6 @@ func postToAttachmentsEntries(post *model.MessageExport, db MessageExportStore, 
 			Status:         "Completed",
 			FileInfo:       fileInfo,
 		})
-
 	}
 	return
 }

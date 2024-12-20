@@ -393,7 +393,6 @@ func postToMessage(post shared.PostExport) Message {
 
 func addAttachmentsToChannelExport(channelExport *ChannelExport, post shared.PostExport,
 	attachmentStarts []*shared.FileUploadStartExport, attachmentDeletes []shared.PostExport, removeAttachments bool) {
-
 	for _, start := range attachmentStarts {
 		var message string
 
