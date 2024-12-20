@@ -36,11 +36,12 @@ type PostExport struct {
 	UpdateAt    int64 // if this is an updated post, this is the updated time (same as deleted time for deleted posts).
 
 	// when a message is edited, the EditedOriginalMsg points to the message Id that now has the newly edited message.
-	EditedNewMsgId string
-	Message        string            // the text body of the post
-	PreviewsPost   string            // the post id of the post that is previewed by the permalink preview feature
-	Attachments    []*model.FileInfo // the post's attachments
-	FileInfo       *model.FileInfo   // if this was a file PostExport, FileInfo will contain that info. Otherwise, nil.
+	EditedNewMsgId    string
+	Message           string                   // the text body of the post
+	PreviewsPost      string                   // the post id of the post that is previewed by the permalink preview feature
+	AttachmentStarts  []*FileUploadStartExport // the post's attachments that were uploaded this export period
+	AttachmentDeletes []PostExport             // the post's attachments that were deleted
+	FileInfo          *model.FileInfo          // if this was a file PostExport, FileInfo will contain that info. Otherwise, nil.
 }
 
 type FileUploadStartExport struct {
@@ -64,7 +65,7 @@ type ChannelExport struct {
 	ChannelName  string
 	DisplayName  string
 	StartTime    int64 // utc timestamp (milliseconds), start of export period or create time of channel, whichever is greater.
-	EndTime      int64 // utc timestamp (seconds), end of export period or delete time of channel, whichever is lesser. Example: 1366611728.
+	EndTime      int64 // utc timestamp (milliseconds), end of export period or delete time of channel, whichever is lesser. Example: 1366611728.
 	Posts        []PostExport
 	Files        []*model.FileInfo
 	DeletedFiles []PostExport
@@ -129,12 +130,16 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 	uploadStopsByChannel := make(map[string][]*FileUploadStopExport)
 	deletedFilesByChannel := make(map[string][]PostExport)
 
-	processPostAttachments := func(post *model.MessageExport, postExport PostExport, ignoreDeleted bool) error {
-		// ignoreDeleted means we are recording this message's original file starts and stops, before it
-		// was deleted (we'll record that next call to this function)
+	processPostAttachments := func(post *model.MessageExport, postExport PostExport, originalPostThatWillBeDeletedLater bool) error {
+		// originalPostThatWillBeDeletedLater means we are recording this message's original file starts and stops,
+		// before it was deleted (we'll record that next call to this function)
+		//
+		// NOTE: there is an edge case here: the original post is not deleted but the attachment has been deleted.
+		//       See the note in the postToAttachmentsEntries func.
 
 		channelId := *post.ChannelId
-		uploadedFiles, startUploads, stopUploads, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db, ignoreDeleted)
+		uploadedFiles, startUploads, stopUploads, deleteFileMessages, err :=
+			postToAttachmentsEntries(post, p.Db, originalPostThatWillBeDeletedLater)
 		if err != nil {
 			return err
 		}
@@ -143,13 +148,15 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 		deletedFilesByChannel[channelId] = append(deletedFilesByChannel[channelId], deleteFileMessages...)
 		filesByChannel[channelId] = append(filesByChannel[channelId], uploadedFiles...)
 
-		postExport.Attachments = uploadedFiles
+		postExport.AttachmentStarts = startUploads
+		postExport.AttachmentDeletes = deleteFileMessages
 		postsByChannel[channelId] = append(postsByChannel[channelId], postExport)
 
 		results.UploadedFiles += len(startUploads)
 		results.DeletedFiles += len(deleteFileMessages)
 
-		if err := metadata.UpdateCounts(channelId, 1, len(uploadedFiles)); err != nil {
+		// only count uploaded files (not deleted files)
+		if err := metadata.UpdateCounts(channelId, 1, len(startUploads)); err != nil {
 			return err
 		}
 
@@ -206,6 +213,16 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 		joinEvents, leaveEvents := getJoinsAndLeaves(p.BatchStartTime, p.BatchEndTime,
 			p.ChannelMemberHistories[id], postAuthorsByChannel[id])
 
+		// We don't have teamName and teamDisplayName from the channelMetaData, but we have it from MessageExport.
+		// However, if we don't have posts for this channel (only joins and leaves), then we don't have it at all.
+		var teamName, teamDisplayName string
+		if posts, ok := postsByChannel[id]; ok {
+			if len(posts) > 0 {
+				teamName = model.SafeDereference(posts[0].TeamName)
+				teamDisplayName = model.SafeDereference(posts[0].TeamDisplayName)
+			}
+		}
+
 		channelExports = append(channelExports, ChannelExport{
 			ChannelId:       c.ChannelId,
 			ChannelType:     c.ChannelType,
@@ -221,8 +238,8 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 			JoinEvents:      joinEvents,
 			LeaveEvents:     leaveEvents,
 			TeamId:          model.SafeDereference(c.TeamId),
-			TeamName:        model.SafeDereference(c.TeamName),
-			TeamDisplayName: model.SafeDereference(c.TeamDisplayName),
+			TeamName:        teamName,
+			TeamDisplayName: teamDisplayName,
 		})
 
 		results.Joins += len(joinEvents)
@@ -239,6 +256,16 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 func postToAttachmentsEntries(post *model.MessageExport, db MessageExportStore, ignoreDeleted bool) (
 	uploadedFiles []*model.FileInfo, startUploads []*FileUploadStartExport, stopUploads []*FileUploadStopExport, deleteFileMessages []PostExport, err error) {
 	// if the post included any files, we need to add special elements to the export.
+	//
+	// NOTE: there is an edge case here: the original post is not deleted but the attachment has been deleted.
+	//  1. If  the attachment is deleted sometime later in the future but the post has not been updated (updateAt == createAt)
+	//     then we won't ever get here, there's nothing we can do.
+	//  2. If the attachment is deleted within this export period, or the post is updated this export period and we
+	//     now see that the attachment is deleted, then we have to output 2 files here:
+	//      a) the original file attachment
+	//      b) the deleted file attachment
+	//     These have to be added the start/stop and deletedFileMessages
+
 	if len(post.PostFileIds) == 0 {
 		return
 	}
@@ -254,7 +281,11 @@ func postToAttachmentsEntries(post *model.MessageExport, db MessageExportStore, 
 
 			// this was a deleted file, so do not record its start and stop. If the original message was sent in this
 			// batch, the file transfer will have been exported earlier up when the original message was exported.
-			continue
+			//
+			// However, because of the edge case above, we still need to record start and stop if the post is not deleted.
+			if IsDeletedMsg(post) {
+				continue
+			} // not deleted, so need to add start and stop below.
 		}
 
 		// insert a record of the file upload into the export file
@@ -274,6 +305,7 @@ func postToAttachmentsEntries(post *model.MessageExport, db MessageExportStore, 
 			Status:         "Completed",
 			FileInfo:       fileInfo,
 		})
+
 	}
 	return
 }
