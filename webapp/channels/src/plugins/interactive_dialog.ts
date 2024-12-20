@@ -34,8 +34,8 @@ store.subscribe(() => {
 
     previousTriggerId = currentTriggerId;
 
-    const dialog = state.entities.integrations.dialog || {};
-    if (dialog.trigger_id !== currentTriggerId) {
+    const dialog = state.entities.integrations.dialog;
+    if (!dialog || dialog.trigger_id !== currentTriggerId) {
         return;
     }
 
