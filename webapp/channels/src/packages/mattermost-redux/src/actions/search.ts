@@ -48,20 +48,16 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
     return async (dispatch, getState) => {
         const {
             channels,
-            membersInChannel,
             myMembers,
         } = getState().entities.channels;
         const promises: Array<Promise<ActionResult>> = [];
+        const processedIds: Set<string> = new Set<string>();
         Object.values(files).forEach((file) => {
             const id = file.channel_id;
-
-            if (!channels[id] || !myMembers[id]) {
+            if (!processedIds.has(id) && (!channels[id] || !myMembers[id])) {
                 promises.push(dispatch(getChannelAndMyMember(id)));
             }
-
-            if (!membersInChannel[id]) {
-                promises.push(dispatch(getChannelMembers(id)));
-            }
+            processedIds.add(id);
         });
         return Promise.all(promises);
     };
