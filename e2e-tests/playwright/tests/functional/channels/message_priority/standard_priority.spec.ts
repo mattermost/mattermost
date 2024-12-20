@@ -7,7 +7,7 @@ import MessagePriority from '@e2e-support/ui/components/channels/message_priorit
 test('MM-T5139: Message Priority - Standard message priority and system setting', async ({pw, pages}) => {
     // # Setup test environment
     const {user} = await pw.initSetup();
-    
+
     // # Log in as a user in new browser context
     const {page} = await pw.testBrowser.login(user);
 
@@ -17,10 +17,10 @@ test('MM-T5139: Message Priority - Standard message priority and system setting'
     await channelPage.toBeVisible();
 
     const messagePriority = new MessagePriority(page.locator('body'));
-    
+
     // Open menu
     await channelPage.centerView.postCreate.openPriorityMenu();
-    
+
     // Use messagePriority for dialog interactions
     await messagePriority.verifyPriorityDialog();
     await messagePriority.verifyStandardOptionSelected();
@@ -39,7 +39,7 @@ test('MM-T5139: Message Priority - Standard message priority and system setting'
     // # Open post in RHS and verify
     await lastPost.container.click();
     await channelPage.sidebarRight.toBeVisible();
-    
+
     // # Get RHS post and verify content
     const rhsPost = await channelPage.sidebarRight.getLastPost();
     await rhsPost.toBeVisible();

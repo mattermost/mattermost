@@ -57,7 +57,7 @@ export default class MessagePriority {
     async verifyNoPriorityLabel(postText: string) {
         const post = this.container.locator(`text=${postText}`);
         await expect(post).toBeVisible();
-        
+
         // Verify no priority label exists
         const priorityLabel = post.locator('[data-testid="post-priority-label"]');
         await expect(priorityLabel).toHaveCount(0);
@@ -69,7 +69,7 @@ export default class MessagePriority {
     }
 
     async verifyStandardOptionSelected() {
-        const standardOption = this.priorityDialog.getByRole('menuitem', { name: 'Standard' });
+        const standardOption = this.priorityDialog.getByRole('menuitem', {name: 'Standard'});
         await expect(standardOption).toBeVisible();
         await expect(standardOption.locator('svg.StyledCheckIcon-dFKfoY')).toBeVisible();
     }
