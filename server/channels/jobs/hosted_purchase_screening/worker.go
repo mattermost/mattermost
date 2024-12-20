@@ -42,7 +42,13 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, screenTimeSto
 		}
 
 		if now.After(time.UnixMilli(screenTime).Add(waitForScreeningDuration)) {
-			screenTimeStore.PermanentDeleteByName(model.SystemHostedPurchaseNeedsScreening)
+			_, err := screenTimeStore.PermanentDeleteByName(model.SystemHostedPurchaseNeedsScreening)
+			if err != nil {
+				logger.Warn(
+					"Failed to delete hosted purchase screening record",
+					mlog.Err(err),
+				)
+			}
 		}
 		return nil
 	}
