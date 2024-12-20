@@ -3017,7 +3017,7 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Nelze odebrat uživatele z kanálu pro omezený Tým."
+    "translation": "Nepodařilo se odebrat uživatele z týmu s omezeným přístupem."
   },
   {
     "id": "api.team.move_channel.success",
@@ -3057,7 +3057,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Chyba při zneplatňování emailových pozvánek."
+    "translation": "Chyba při zneplatnění pozvánek na e-mail."
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
@@ -3149,7 +3149,7 @@
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Nepodařilo se získat tým do importu.\r\n"
+    "translation": "Nepodařilo se získat tým do importu.\n"
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
@@ -3213,7 +3213,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nKanály přidány:\n"
+    "translation": "\nPřidané kanály:\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -3289,7 +3289,7 @@
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "Chyba při vytváření push upozornění."
+    "translation": "Při vytváření potvrzovací zprávy pro push notifikaci došlo k chybě."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -3297,11 +3297,11 @@
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": "Chyba při vytváření push upozornění."
+    "translation": "Při vytváření zprávy pro push notifikaci došlo k chybě."
   },
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
-    "translation": "Došlo k chybě při získávání push nofikace založené na ID (identifikátoru)."
+    "translation": "Při načítání push notifikace s ID došlo k chybě."
   },
   {
     "id": "api.push_notification.id_loaded.default_message",
@@ -3425,7 +3425,7 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Nepodařilo se načíst původní příspěvek, po deduplikaci klient vrátil stejný požadavek."
+    "translation": "Nepodařilo se načíst původní příspěvek po deduplikaci opakované žádosti od klienta."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -3781,7 +3781,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Chyba serializace."
+    "translation": "Nepodařilo se serializovat."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -4453,15 +4453,15 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Připojit se k týmu"
+    "translation": "Připojit se teď"
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "Pokud jste neudělali tuto změnu, kontaktujte správce."
+    "translation": "Pokud jste neudělali tuto změnu, kontaktujte svého správce systému."
   },
   {
     "id": "api.templates.email_organization",
-    "translation": "Odeslal/a "
+    "translation": "Odesláno uživatelem "
   },
   {
     "id": "api.templates.email_info3",
@@ -4469,11 +4469,11 @@
   },
   {
     "id": "api.templates.email_info2",
-    "translation": "Srdečně zdravím,"
+    "translation": "S přáním všeho nejlepšího,"
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "Jakékoli dotazy nám posílejte e-mailem: "
+    "translation": "Pokud máte jakékoliv otázky, neváhejte nám napsat na e-mail: "
   },
   {
     "id": "api.templates.email_footer",
@@ -4485,7 +4485,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Aktualizovali jste svůj e-mail"
+    "translation": "Úspěšně jste aktualizovali svůj e-mail"
   },
   {
     "id": "api.templates.email_change_verify_body.info",
@@ -4493,7 +4493,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.button",
-    "translation": "Ověřit email"
+    "translation": "Ověřit e-mail"
   },
   {
     "id": "api.templates.email_change_subject",
@@ -4513,7 +4513,7 @@
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "Pokud tato změna nebyla iniciována vámi, nebo chcete znovu aktivovat svůj účet, kontaktujte svého správce."
+    "translation": "Pokud tato změna nebyla iniciována vámi, nebo chcete znovu aktivovat svůj účet, kontaktujte svého správce systému."
   },
   {
     "id": "api.templates.deactivate_body.title",
@@ -4537,11 +4537,11 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Omezení týmu na {{ .Domain }} není povoleno v configuraci systému. Kontaktujte prosím správce systému."
+    "translation": "Omezení týmu na {{ .Domain }} není povoleno nastavením systému. Prosím, kontaktujte svého správce systému."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
-    "translation": "Specifikovaný uživatel není čen specifikovaného týmu."
+    "translation": "Uvedený uživatel není členem zadaného týmu."
   },
   {
     "id": "api.team.team_icon.update.app_error",
@@ -4589,7 +4589,7 @@
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-    "translation": "Pro vyhledávání pouze veřejných týmů není stránkování implementováno."
+    "translation": "Stránkování není implementováno pro vyhledávání pouze veřejných týmů."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
@@ -6097,7 +6097,7 @@
   },
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
-    "translation": "Selhalo zprasování těla požadavku."
+    "translation": "Nepodařilo se analyzovat tělo žádosti."
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -7617,7 +7617,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Vaše pracovní prostor je připraven k použití!"
+    "translation": "Vaše pracovní prostředí je připraveno k použití!"
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -7645,11 +7645,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} vás pozval(a) k připojení k kanálu {{ .ChannelName }} na týmu {{ .TeamDisplayName }}"
+    "translation": "{{ .SenderName }} vás pozval(a) k připojení do kanálu {{ .ChannelName }} v týmu {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval(a) k připojení k kanálu {{ .ChannelName }} na týmu {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval(a) k připojení do kanálu {{ .ChannelName }} v týmu {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
@@ -8077,7 +8077,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
-    "translation": "Neplatná úprava člena týmu: Návštěvnický účet nemůže být členem týmu, nebo administrátorem týmu, prosím nejprve změňte na běžného uživatele."
+    "translation": "Neplatná aktualizace člena týmu: Host nemůže být přidělen jako člen týmu nebo administrátor týmu, nejprve jej prosím povyšte na uživatele."
   },
   {
     "id": "api.templates.cloud_welcome_email.info2",
@@ -8097,7 +8097,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.subject",
-    "translation": "Gratulace!"
+    "translation": "Gratulujeme!"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.contact_support",
@@ -8117,11 +8117,11 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.info",
-    "translation": "Díky za vytvoření "
+    "translation": "Děkujeme za vytvoření "
   },
   {
     "id": "api.templates.cloud_welcome_email.download_mm_info",
-    "translation": "Stáhněte aplikaci Mattermost"
+    "translation": "Stáhněte si aplikaci Mattermost"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
