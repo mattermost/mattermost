@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -32,6 +33,7 @@ type TestHelper struct {
 	// BasicPost    *model.Post
 
 	SystemAdminUser *model.User
+	T               testing.TB
 }
 
 var initBasicOnce sync.Once
@@ -91,7 +93,8 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	err := mainHelper.GetSQLStore().User().InsertUsers(users)
+	require.NoError(th.T, err)
 
 	th.BasicTeam = th.CreateTeam()
 
@@ -126,9 +129,7 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	configStore := config.NewTestMemoryStore()
 
@@ -143,7 +144,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
-	configStore.Set(memoryConfig)
+	_, _, err = configStore.Set(memoryConfig)
+	require.NoError(tb, err)
 
 	options = append(options, ConfigStore(configStore))
 
@@ -151,9 +153,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		ServiceConfig{
 			Store: dbStore,
 		}, options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	th := &TestHelper{
 		Context: request.TestContext(tb),
@@ -196,17 +196,18 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	err = th.Service.Start(nil)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	return th
 }
 
 func (th *TestHelper) TearDown() {
-	th.Service.ShutdownMetrics()
-	th.Service.Shutdown()
-	th.Service.ShutdownConfig()
+	err := th.Service.ShutdownMetrics()
+	require.NoError(th.T, err)
+	err = th.Service.Shutdown()
+	require.NoError(th.T, err)
+	err = th.Service.ShutdownConfig()
+	require.NoError(th.T, err)
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {
@@ -220,9 +221,9 @@ func (th *TestHelper) CreateTeam() *model.Team {
 	}
 
 	var err error
-	if team, err = th.Service.Store.Team().Save(team); err != nil {
-		panic(err)
-	}
+	team, err = th.Service.Store.Team().Save(team)
+	require.NoError(th.T, err)
+
 	return team
 }
 
@@ -240,9 +241,7 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err error
 	user, err = th.Service.Store.User().Save(th.Context, user)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.T, err)
 
 	return user
 }
@@ -261,9 +260,7 @@ func (th *TestHelper) CreateAdmin() *model.User {
 
 	var err error
 	user, err = th.Service.Store.User().Save(th.Context, user)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.T, err)
 
 	return user
 }
@@ -292,9 +289,7 @@ func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) 
 
 	var err error
 	channel, err = th.Service.Store.Channel().Save(th.Context, channel, 999)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(th.T, err)
 
 	return channel
 }
