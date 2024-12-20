@@ -3689,7 +3689,7 @@ func (o *Config) Clone() *Config {
 }
 
 func (o *Config) ToJSONFiltered(tagType, tagValue string) ([]byte, error) {
-	filteredConfigMap := structToMapFilteredByTag(*o, tagType, tagValue)
+	filteredConfigMap := configToMapFilteredByTag(*o, tagType, tagValue)
 	for key, value := range filteredConfigMap {
 		v, ok := value.(map[string]any)
 		if ok && len(v) == 0 {
@@ -4614,8 +4614,8 @@ func FilterConfig(cfg *Config, opts ConfigFilterOptions) (map[string]any, error)
 	}
 
 	for i := range opts.TagFilters {
-		filteredCfg = structToMapFilteredByTag(filteredCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
-		filteredDefaultCfg = structToMapFilteredByTag(defaultCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
+		filteredCfg = configToMapFilteredByTag(filteredCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
+		filteredDefaultCfg = configToMapFilteredByTag(filteredDefaultCfg, opts.TagFilters[i].TagType, opts.TagFilters[i].TagName)
 	}
 
 	if opts.RemoveDefaults {
@@ -4636,8 +4636,26 @@ func FilterConfig(cfg *Config, opts ConfigFilterOptions) (map[string]any, error)
 	return filteredCfg, nil
 }
 
-// structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
+// configToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
 // as argument
+// t shall be either a Config struct value or a map[string]any
+func configToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any {
+	switch t.(type) {
+	case map[string]any:
+		var tc *Config
+		b, err := json.Marshal(t)
+		if err != nil {
+			// since this is an internal function, we can panic here
+			// because it should never happen
+			panic(err)
+		}
+		json.Unmarshal(b, &tc)
+		t = *tc
+	}
+
+	return structToMapFilteredByTag(t, typeOfTag, filterTag)
+}
+
 func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4688,6 +4706,11 @@ func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any
 // removeEmptyMapsAndSlices removes all the empty maps and slices from a map
 func removeEmptyMapsAndSlices(m map[string]any) {
 	for k, v := range m {
+		if v == nil {
+			delete(m, k)
+			continue
+		}
+
 		switch vt := v.(type) {
 		case map[string]any:
 			removeEmptyMapsAndSlices(vt)
