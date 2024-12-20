@@ -3061,7 +3061,7 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Chybná požadavek: velikost souboru není k známa."
+    "translation": "Chybný požadavek: pole filesize není k dispozici."
   },
   {
     "id": "api.team.import_team.parse.app_error",
@@ -3089,7 +3089,7 @@
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Nelze přečíst soubor s ikonou týmu."
+    "translation": "Nelze načíst soubor s ikonou týmu."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
@@ -3105,7 +3105,7 @@
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "vaše licence nepodporuje účty typu Host"
+    "translation": "Vaše licence nepodporuje účty typu Host"
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -3121,11 +3121,11 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v přidal do týmu od %v."
+    "translation": "%v byl přidán do týmu uživatelem %v."
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Tento tým je spravován skupinami. Tento uživatel není členem skupiny, která je synchronizována do tohoto týmu."
+    "translation": "Tento tým je spravován skupinami. Tento uživatel není členem skupiny, která je připojena k tomuto týmu."
   },
   {
     "id": "api.team.add_members.error",
@@ -3141,11 +3141,11 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "Název souboru {{.Filename}} v zip archivu je příliš dlouhý, není možno ho proto importovat do Slacku.\r\n"
+    "translation": "Soubor {{.Filename}} v zip archivu je příliš velký, není možno ho proto importovat do Slacku.\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Nelze otevřít komprimovaný zip soubor Slacku.\r\n"
+    "translation": "Nelze otevřít komprimovaný zip soubor Slacku.\n"
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
@@ -3153,75 +3153,75 @@
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Nelze otevřít soubor: {{.Filename}}.\r\n"
+    "translation": "Nelze otevřít soubor: {{.Filename}}.\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nPoznámky:\r\n"
+    "translation": "\nPoznámky:\n"
   },
   {
     "id": "api.slackimport.slack_import.note3",
-    "translation": "- Další chyby lze nalézt v logu serveru.\r\n"
+    "translation": "- Další chyby lze nalézt v logu serveru.\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
-    "translation": "- zprávy Slack botu nejsou momentálně podporovány.\r\n"
+    "translation": "- zprávy Slack botu nejsou momentálně podporovány.\n"
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- Některé zprávy nemusejí být importovány, protože nebyly podporovány tímto importem.\r\n"
+    "translation": "- Některé zprávy nemusejí být importovány, protože nebyly podporovány tímto importem.\n"
   },
   {
     "id": "api.slackimport.slack_import.log",
-    "translation": "Log importu ze Slacku do Mattermostu\r\n"
+    "translation": "Log importu ze Slacku do Mattermostu\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Nelze importovat uživatele Slack: {{.Username}}.\r\n"
+    "translation": "Nelze importovat uživatele Slack: {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Uživatel {{.Username}} nemá e-mailovou adresu v exportu Slacku. Používáte {{.Email}} jako zástupný symbol. Uživatel by měl aktualizovat svou e-mailovou adresu po přihlášení do systému.\r\n"
+    "translation": "Uživatel {{.Username}} nemá e-mailovou adresu v exportu Slacku. Používáte {{.Email}} jako zástupný symbol. Uživatel by měl aktualizovat svou e-mailovou adresu po přihlášení do systému.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}, avšak nemohl být přidán do týmu.\r\n"
+    "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}, avšak nemohl být přidán do týmu.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}.\r\n"
+    "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack uživatel s emailem {{.Email}} a heslem {{.Password}} byl naimportován.\r\n"
+    "translation": "Slack uživatel s emailem {{.Email}} a heslem {{.Password}} byl naimportován.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nVytvořeno uživatelů:\r\n"
+    "translation": "\nVytvořeno uživatelů:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slack kanál {{.DisplayName}} již existuje jako aktivní kanál Mattermostu. Oba kanály byly sloučeny.\r\n"
+    "translation": "Slack kanál {{.DisplayName}} již existuje jako aktivní kanál Mattermostu. Oba kanály byly sloučeny.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Nepodařilo se importovat Slack kanál {{.DisplayName}}.\r\n"
+    "translation": "Nepodařilo se importovat Slack kanál {{.DisplayName}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Do kanálu se nepodařilo přidat Slack uživatele {{.Username}}.\r\n"
+    "translation": "Do kanálu se nepodařilo přidat Slack uživatele {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nKanály přidány:\r\n"
+    "translation": "\nKanály přidány:\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Nepodařilo se naimportovat Integration/Slack Bot uživatele {{.Username}}.\r\n"
+    "translation": "Nepodařilo se naimportovat Integration/Slack Bot uživatele {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Integration/Slack Bot uživatel s emailem {{.Email}} and heslem {{.Password}} byl naimportován.\r\n"
+    "translation": "Integration/Slack Bot uživatel s emailem {{.Email}} and heslem {{.Password}} byl naimportován.\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -3233,7 +3233,7 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Nepodařilo se inicializovat rate limiting memory store. Zkontrolujte nastavení MemoryStoreSize v konfiguraci."
+    "translation": "Nelze inicializovat paměťové úložiště s omezením rychlosti. Zkontrolujte nastavení MemoryStoreSize v konfiguraci."
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
@@ -3245,7 +3245,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "Vaše licence nepodporuje aktualizování opravňovacích schémat"
+    "translation": "Vaše licence nepodporuje schémata oprávnění k aktualizaci"
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
@@ -3257,11 +3257,11 @@
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "Vaše licence nepodporuje mazání opravňovacích schémat"
+    "translation": "Vaše licence nepodporuje mazání schémat oprávnění"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": "Vaše licence nepodporuje vytváření opravňovacích schémat."
+    "translation": "Vaše licence nepodporuje vytváření schémat oprávnění."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -3309,7 +3309,7 @@
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Push upozornění jsou vypnuty na tomto servru."
+    "translation": "Push upozornění jsou vypnuty na tomto serveru."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
@@ -3349,7 +3349,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": "vám poslal zprávu."
+    "translation": "Vám poslal zprávu."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
@@ -3382,15 +3382,15 @@
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "few": "{{.Count}} obrázek odeslán: {{.Filenames}}",
-      "one": "{{.Count}} obrázků odesláno: {{.Filenames}}",
+      "few": "{{.Count}} obrázky odeslány: {{.Filenames}}",
+      "one": "{{.Count}} obrázek odeslán: {{.Filenames}}",
       "other": "{{.Count}} obrázků odesláno: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "few": "{{.Count}} souborů odeslán: {{.Filenames}}",
+      "few": "{{.Count}} soubory odeslány: {{.Filenames}}",
       "one": "{{.Count}} soubor odeslán: {{.Filenames}}",
       "other": "{{.Count}} souborů odesláno: {{.Filenames}}"
     }
@@ -3401,7 +3401,7 @@
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": "Neplatná id akce."
+    "translation": "Neplatné id akce."
   },
   {
     "id": "api.post.disabled_here",
@@ -3437,15 +3437,15 @@
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
-    "translation": "Neplatný parametr ChannelId pro parametr RootId."
+    "translation": "Neplatný ChannelId pro parametr RootId."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
-    "translation": "Nelze zaslat příspěvek do smazáného kanálu."
+    "translation": "Nelze zaslat příspěvek do smazaného kanálu."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} nebyl upozorněnt, protože není členem kanálu."
+    "translation": "@{{.Username}} nebyl upozorněn, protože není členem kanálu."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -3461,7 +3461,7 @@
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Nelze ověřit podpis zásuvného modulu."
+    "translation": "Nelze ověřit podpis modulu."
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
@@ -3477,7 +3477,7 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "Při stahování zásuvného modulu nastala chyba."
+    "translation": "Při stahování modulu nastala chyba."
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
@@ -3697,11 +3697,11 @@
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
-    "translation": "Chyba při mazání tokenu z databáze DB."
+    "translation": "Chyba při mazání tokenu z databáze."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
-    "translation": "Chyba při mazání sezení z databáze DB."
+    "translation": "Chyba při mazání relace z databáze."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -5285,7 +5285,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
-    "translation": "@{{.GroupName}} nemá členy z tohoto týmu"
+    "translation": "@{{.GroupName}} nemá žádné členy v tomto týmu"
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -6353,7 +6353,7 @@
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
-    "translation": "Jedna nebo více změn v oprávněních, které se pokušíte nastavit, není povolena"
+    "translation": "Jedna nebo více změn v oprávněních, které se pokoušíte nastavit, není povolena"
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -7349,7 +7349,7 @@
   },
   {
     "id": "api.plugin.upload.file_too_large.app_error",
-    "translation": "Velikost nahraného pluginu překračuje limit. Tento limit lze změnit v System Console pod položkou Úložiště souborů > Maximální velikost souboru"
+    "translation": "Velikost nahraného pluginu překračuje limit. Tento limit lze změnit v systémové konzoli pod položkou Úložiště souborů > Maximální velikost souboru"
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
@@ -7577,7 +7577,7 @@
   },
   {
     "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
-    "translation": "Trvalé oznámení musí mít prioritu „Urgent“."
+    "translation": "Trvalá oznámení musí mít prioritu „Urgent“."
   },
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
@@ -7597,7 +7597,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
-    "translation": "Odpovědět v Přímé Zprávě"
+    "translation": "Odpovědět v soukromé zprávě"
   },
   {
     "id": "api.remote_cluster.delete.app_error",
@@ -8045,11 +8045,11 @@
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
-    "translation": "Služba je k dispozici pouze v Mattermost Enterprise edition"
+    "translation": "Služba je k dispozici pouze v edici Enterprise"
   },
   {
     "id": "api.server.cws.disabled",
-    "translation": "Interakce s portálem uživatelské podpory Mattermostu byly vypnuty uživatelem system admin."
+    "translation": "Interakce s portálem uživatelské podpory Mattermostu byly vypnuty systémovým administrátorem."
   },
   {
     "id": "api.server.cws.health_check.app_error",
