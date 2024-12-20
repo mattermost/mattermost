@@ -305,7 +305,7 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 		mockBackend := filesStoreMocks.FileBackend{}
 		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), errors.New("only those who dare to fail greatly can ever achieve greatly"))
 
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
+		err := th.App.CreateZipFileAndAddFiles(&request.Context{}, &mockBackend, []model.FileData{}, zipName, directory)
 
 		require.Error(t, err)
 		require.Equal(t, err.Error(), "only those who dare to fail greatly can ever achieve greatly")
@@ -314,7 +314,7 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 	t.Run("write no file", func(t *testing.T) {
 		mockBackend := filesStoreMocks.FileBackend{}
 		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil)
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
+		err := th.App.CreateZipFileAndAddFiles(&request.Context{}, &mockBackend, []model.FileData{}, zipName, directory)
 		require.NoError(t, err)
 	})
 
@@ -338,7 +338,7 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, []byte("content1"), b)
 		})
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{
+		err := th.App.CreateZipFileAndAddFiles(&request.Context{}, &mockBackend, []model.FileData{
 			{
 				Filename: "file1",
 				Body:     []byte("content1"),
