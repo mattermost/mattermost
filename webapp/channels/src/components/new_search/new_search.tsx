@@ -15,7 +15,8 @@ import {getSearchTerms, getSearchType} from 'selectors/rhs';
 import Popover from 'components/widgets/popover';
 
 import a11yController from 'utils/a11y_controller_instance';
-import Constants, { A11yCustomEventTypes, A11yFocusEventDetail } from 'utils/constants';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
