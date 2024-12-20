@@ -154,6 +154,22 @@ export function autocompleteChannelsForSearch(term: string, success?: (channels:
     };
 }
 
+export function autocompleteChannelsForSearchInTeam(term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void): ActionFuncAsync {
+    return async (dispatch) => {
+        if (!teamId) {
+            return {data: false};
+        }
+
+        const {data, error: err} = await dispatch(ChannelActions.autocompleteChannelsForSearch(teamId, term));
+        if (data && success) {
+            success(data);
+        } else if (err && error) {
+            error({id: err.server_error_id, ...err});
+        }
+        return {data: true};
+    };
+}
+
 export function addUsersToChannel(channelId: Channel['id'], userIds: Array<UserProfile['id']>): ActionFuncAsync {
     return async (dispatch) => {
         const error = await dispatch(ChannelActions.addChannelMembers(channelId, userIds));
