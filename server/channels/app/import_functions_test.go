@@ -2663,6 +2663,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 						User:     &user2.Username,
 						Message:  model.NewPointer("Message reply"),
 						CreateAt: &replyTime,
+						Props:    &model.StringInterface{"key": "value"},
 					}},
 				},
 			},
@@ -2693,6 +2694,10 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		reply := replies[0]
 		replyBool := reply.Message != *(*data.Post.Replies)[0].Message || reply.CreateAt != *(*data.Post.Replies)[0].CreateAt || reply.UserId != user2.Id
 		require.False(t, replyBool, "Post properties not as expected")
+
+		v := reply.GetProp("key")
+		require.NotNil(t, v, "Post prop should exist")
+		require.Equal(t, "value", v, "Post props not as expected")
 
 		require.Equal(t, post.Id, reply.RootId, "Unexpected reply RootId")
 	})

@@ -35,7 +35,6 @@ export const SearchUserSuggestion = React.forwardRef<HTMLDivElement, SuggestionP
     if (item.remote_id) {
         sharedIcon = (
             <SharedUserIndicator
-                id={`sharedUserIndicator-${item.id}`}
                 className='mention__shared-user-icon'
             />
         );
