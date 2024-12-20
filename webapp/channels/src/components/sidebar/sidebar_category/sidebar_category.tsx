@@ -108,6 +108,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
     handleA11yKeyDown = (e: KeyboardEvent<HTMLButtonElement>['nativeEvent']) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+            e.preventDefault();
             this.handleCollapse();
         }
     };
