@@ -198,6 +198,7 @@ const AdvancedTextEditor = ({
     const draftRef = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
+    const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
     const [caretPosition, setCaretPosition] = useState(draft.message.length);
@@ -342,12 +343,12 @@ const AdvancedTextEditor = ({
     const onSubmit = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
         handleSubmit(submittingDraft, schedulingInfo, options);
         if (!errorClass) {
-            const messageStatusElement = document.getElementById('sentMessageStatus');
-            const messageStatusInnerText = messageStatusElement?.innerText;
+            const messageStatusElement = messageStatusRef.current;
+            const messageStatusInnerText = messageStatusElement?.textContent;
             if (messageStatusInnerText === 'Message Sent') {
-                messageStatusElement!.innerHTML = 'Message Sent &nbsp;';
+                messageStatusElement!.textContent = 'Message Sent &nbsp;';
             } else {
-                messageStatusElement!.innerText = 'Message Sent';
+                messageStatusElement!.textContent = 'Message Sent';
             }
         }
     }, [errorClass, handleSubmit]);
@@ -882,13 +883,10 @@ const AdvancedTextEditor = ({
                 />
             )}
             <div
-                id='sentMessageStatus'
+                ref={messageStatusRef}
                 aria-live='assertive'
-                style={{
-                    position: 'absolute',
-                    top: '-1000px',
-                }}
-            >{ }</div>
+                className='sr-only'
+            />
         </form>
     );
 };
