@@ -227,7 +227,7 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
-	return w.checkErrWithRows(w.DB.QueryxContext(ctx, query, args))
+	return w.checkErrWithRows(w.DB.QueryxContext(ctx, query, args...))
 }
 
 func (w *sqlxDBWrapper) Select(dest any, query string, args ...any) error {
@@ -423,7 +423,7 @@ func (w *sqlxTxWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
-	return w.dbw.checkErrWithRows(w.Tx.QueryxContext(ctx, query, args))
+	return w.dbw.checkErrWithRows(w.Tx.QueryxContext(ctx, query, args...))
 }
 
 func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {
