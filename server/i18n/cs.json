@@ -3021,7 +3021,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "Tento kanál byl přesunut týmem z %v."
+    "translation": "Tento kanál byl přesunut k tomuto týmu z %v."
   },
   {
     "id": "api.team.move_channel.post.error",
