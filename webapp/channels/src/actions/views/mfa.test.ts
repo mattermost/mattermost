@@ -8,10 +8,15 @@ import * as UserActions from 'mattermost-redux/actions/users';
 import {
     activateMfa,
     deactivateMfa,
-    generateMfaSecret,
+    generateMfaSecret as originalGenerateMfaSecret,
 } from 'actions/views/mfa';
 
+const updateUserMfa = jest.mocked(UserActions.updateUserMfa);
+const generateMfaSecret = jest.mocked(originalGenerateMfaSecret);
+
 import configureStore from 'tests/test_store';
+
+import type {GlobalState} from 'types/store';
 
 describe('actions/views/mfa', () => {
     describe('activateMfa', () => {
@@ -23,14 +28,14 @@ describe('actions/views/mfa', () => {
                         currentUserId,
                     },
                 },
-            });
+            } as GlobalState);
 
-            UserActions.updateUserMfa.mockImplementation(() => () => ({data: true}));
+            updateUserMfa.mockImplementation(() => () => ({data: true}) as any);
 
             const code = 'mfa code';
             await store.dispatch(activateMfa(code));
 
-            expect(UserActions.updateUserMfa).toHaveBeenCalledWith(currentUserId, true, code);
+            expect(updateUserMfa).toHaveBeenCalledWith(currentUserId, true, code);
         });
     });
 
@@ -43,13 +48,13 @@ describe('actions/views/mfa', () => {
                         currentUserId,
                     },
                 },
-            });
+            } as GlobalState);
 
-            UserActions.updateUserMfa.mockImplementation(() => () => ({data: true}));
+            updateUserMfa.mockImplementation(() => () => ({data: true}) as any);
 
             await store.dispatch(deactivateMfa());
 
-            expect(UserActions.updateUserMfa).toHaveBeenCalledWith(currentUserId, false);
+            expect(updateUserMfa).toHaveBeenCalledWith(currentUserId, false);
         });
     });
 
@@ -62,9 +67,9 @@ describe('actions/views/mfa', () => {
                         currentUserId,
                     },
                 },
-            });
+            } as GlobalState);
 
-            UserActions.generateMfaSecret.mockImplementation(() => () => ({data: '1234'}));
+            generateMfaSecret.mockImplementation(() => () => ({data: '1234'}) as any);
 
             await store.dispatch(generateMfaSecret());
 

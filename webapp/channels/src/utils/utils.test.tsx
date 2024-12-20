@@ -172,7 +172,7 @@ describe('Utils.localizeMessage', () => {
                         },
                     },
                 },
-            });
+            } as any);
         });
 
         test('with translations', () => {
@@ -200,7 +200,7 @@ describe('Utils.localizeMessage', () => {
                         translations: {},
                     },
                 },
-            });
+            } as any);
         });
 
         test('without translations', () => {
