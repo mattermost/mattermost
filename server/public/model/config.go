@@ -158,6 +158,7 @@ const (
 	LdapSettingsDefaultGroupDisplayNameAttribute = ""
 	LdapSettingsDefaultGroupIdAttribute          = ""
 	LdapSettingsDefaultPictureAttribute          = ""
+	LdapSettingsDefaultMaximumLoginAttempts      = 10
 
 	SamlSettingsDefaultIdAttribute        = ""
 	SamlSettingsDefaultGuestAttribute     = ""
@@ -2381,14 +2382,15 @@ type ClientRequirements struct {
 
 type LdapSettings struct {
 	// Basic
-	Enable             *bool   `access:"authentication_ldap"`
-	EnableSync         *bool   `access:"authentication_ldap"`
-	LdapServer         *string `access:"authentication_ldap"` // telemetry: none
-	LdapPort           *int    `access:"authentication_ldap"` // telemetry: none
-	ConnectionSecurity *string `access:"authentication_ldap"`
-	BaseDN             *string `access:"authentication_ldap"` // telemetry: none
-	BindUsername       *string `access:"authentication_ldap"` // telemetry: none
-	BindPassword       *string `access:"authentication_ldap"` // telemetry: none
+	Enable               *bool   `access:"authentication_ldap"`
+	EnableSync           *bool   `access:"authentication_ldap"`
+	LdapServer           *string `access:"authentication_ldap"` // telemetry: none
+	LdapPort             *int    `access:"authentication_ldap"` // telemetry: none
+	ConnectionSecurity   *string `access:"authentication_ldap"`
+	BaseDN               *string `access:"authentication_ldap"` // telemetry: none
+	BindUsername         *string `access:"authentication_ldap"` // telemetry: none
+	BindPassword         *string `access:"authentication_ldap"` // telemetry: none
+	MaximumLoginAttempts *int    `access:"authentication_ldap"` // telemetry: none
 
 	// Filtering
 	UserFilter        *string `access:"authentication_ldap"` // telemetry: none
@@ -2474,6 +2476,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.BindPassword == nil {
 		s.BindPassword = NewPointer("")
+	}
+
+	if s.MaximumLoginAttempts == nil {
+		s.MaximumLoginAttempts = NewPointer(LdapSettingsDefaultMaximumLoginAttempts)
 	}
 
 	if s.UserFilter == nil {
