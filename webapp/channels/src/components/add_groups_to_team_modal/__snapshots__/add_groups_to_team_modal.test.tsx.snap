@@ -196,13 +196,14 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
   <div
     className="more-modal__actions"
   >
-    <div
+    <button
+      aria-label="Add groups to team"
       className="more-modal__actions--round"
     >
       <i
         className="icon icon-plus"
       />
-    </div>
+    </button>
   </div>
 </div>
 `;
@@ -247,13 +248,14 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
   <div
     className="more-modal__actions"
   >
-    <div
+    <button
+      aria-label="Add groups to team"
       className="more-modal__actions--round"
     >
       <i
         className="icon icon-plus"
       />
-    </div>
+    </button>
   </div>
 </div>
 `;
