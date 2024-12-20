@@ -184,17 +184,23 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
             if (this.props.allowCustomThemes) {
                 inputs.push(
-                    <div
+                    <button
+                        id='standardThemes'
                         className='radio'
                         key='premadeThemeColorLabel'
+                        onClick={this.updateType.bind(this, 'premade')}
+                        aria-expanded={!displayCustom}
+                        role='radio'
+                        aria-checked={!displayCustom}
+                        aria-controls='premadeThemesSection'
                     >
                         <label>
                             <input
-                                id='standardThemes'
                                 type='radio'
                                 name='theme'
                                 checked={!displayCustom}
-                                onChange={this.updateType.bind(this, 'premade')}
+                                tabIndex={-1}
+                                readOnly={true} // the button will help the assistive technology to announce the content and preferred ARIA-properties, hence added `readonly` to avoid redundant speaking of content.
                             />
                             <FormattedMessage
                                 id='user.settings.display.theme.themeColors'
@@ -202,7 +208,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                             />
                         </label>
                         <br/>
-                    </div>,
+                    </button>,
                 );
             }
 
@@ -210,24 +216,30 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
             if (this.props.allowCustomThemes) {
                 inputs.push(
-                    <div
+                    <button
+                        id='customThemes'
                         className='radio'
                         key='customThemeColorLabel'
+                        onClick={this.updateType.bind(this, 'custom')}
+                        aria-expanded={displayCustom}
+                        aria-checked={displayCustom}
+                        aria-controls='customThemesSection'
+                        role='radio'
                     >
                         <label>
                             <input
-                                id='customThemes'
                                 type='radio'
                                 name='theme'
                                 checked={displayCustom}
-                                onChange={this.updateType.bind(this, 'custom')}
+                                tabIndex={-1}
+                                readOnly={true} // the button will help the assistive technology to announce the content and preferred ARIA-properties, hence added `readonly` to avoid redundant speaking of content.
                             />
                             <FormattedMessage
                                 id='user.settings.display.theme.customTheme'
                                 defaultMessage='Custom Theme'
                             />
                         </label>
-                    </div>,
+                    </button>,
                 );
 
                 inputs.push(custom);
