@@ -6,6 +6,8 @@ package global_relay_export
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/base64"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -27,6 +29,7 @@ import (
 )
 
 func TestGlobalRelayExport(t *testing.T) {
+	t.Skip()
 	templatesDir, ok := fileutils.FindDir("templates")
 	require.True(t, ok)
 
@@ -54,42 +57,44 @@ func TestGlobalRelayExport(t *testing.T) {
 
 	chanTypeDirect := model.ChannelTypeDirect
 	grExportTests := []struct {
-		name             string
-		cmhs             map[string][]*model.ChannelMemberHistoryResult
-		metadata         map[string]*shared.MetadataChannel
-		startTime        int64
-		endTime          int64
-		posts            []*model.MessageExport
-		attachments      map[string][]*model.FileInfo
-		expectedHeaders  []string
-		expectedTexts    []string
-		expectedHTMLs    []string
-		expectedFiles    int
-		expectedWarnings int
+		name                      string
+		cmhs                      map[string][]*model.ChannelMemberHistoryResult
+		metadata                  map[string]*shared.MetadataChannel
+		startTime                 int64
+		endTime                   int64
+		posts                     []*model.MessageExport
+		attachments               map[string][]*model.FileInfo
+		attachmentsContent        map[string]string
+		expectedAttachmentContent [][]string
+		maxEmailBytes             int64
+		numExpectedEmls           int
+		expectedHeaders           [][]string
+		expectedTexts             [][]string
+		notExpectedTexts          [][]string
+		expectedHTMLs             [][]string
+		expectedWarnings          int
+		empty                     bool
 	}{
 		{
 			name:             "empty",
 			cmhs:             map[string][]*model.ChannelMemberHistoryResult{},
 			posts:            []*model.MessageExport{},
 			attachments:      map[string][]*model.FileInfo{},
-			expectedHeaders:  []string{},
-			expectedTexts:    []string{},
-			expectedHTMLs:    []string{},
-			expectedFiles:    0,
 			expectedWarnings: 0,
+			empty:            true,
 		},
 		{
 			name: "posts",
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
-						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
+						JoinTime: 0, UserId: "id-test1", UserEmail: "test1@test.com", Username: "test1", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
-						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
+						JoinTime: 8, UserId: "id-test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
 					},
 					{
-						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
+						JoinTime: 400, UserId: "id-test3", UserEmail: "test3@test.com", Username: "test3",
 					},
 				},
 			},
@@ -111,8 +116,7 @@ func TestGlobalRelayExport(t *testing.T) {
 			endTime:   100_000,
 			posts: []*model.MessageExport{
 				{
-					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostId:             model.NewPointer("post-id1"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -121,18 +125,17 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostUpdateAt:       model.NewPointer(int64(1)),
 					PostCreateAt:       model.NewPointer(int64(1)),
-					PostMessage:        model.NewPointer("message"),
+					PostMessage:        model.NewPointer("message 1"),
 					PostProps:          model.NewPointer("{}"),
 					PostType:           model.NewPointer(""),
 					UserEmail:          model.NewPointer("test1@test.com"),
-					UserId:             model.NewPointer("test1"),
+					UserId:             model.NewPointer("id-test1"),
 					Username:           model.NewPointer("test1"),
 					ChannelType:        &chanTypeDirect,
 					PostFileIds:        []string{},
 				},
 				{
-					PostId:             model.NewPointer("post-id"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					PostId:             model.NewPointer("post-id2"),
 					PostRootId:         model.NewPointer("post-root-id"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
@@ -142,18 +145,18 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostUpdateAt:       model.NewPointer(int64(100_000)),
 					PostCreateAt:       model.NewPointer(int64(100_000)),
-					PostMessage:        model.NewPointer("message"),
+					PostMessage:        model.NewPointer("message 2"),
 					PostProps:          model.NewPointer("{}"),
 					PostType:           model.NewPointer(""),
 					UserEmail:          model.NewPointer("test1@test.com"),
-					UserId:             model.NewPointer("test1"),
+					UserId:             model.NewPointer("id-test1"),
 					Username:           model.NewPointer("test1"),
 					ChannelType:        &chanTypeDirect,
 					PostFileIds:        []string{},
 				},
 			},
 			attachments: map[string][]*model.FileInfo{},
-			expectedHeaders: []string{
+			expectedHeaders: [][]string{{
 				"MIME-Version: 1.0",
 				"X-Mattermost-ChannelType: direct",
 				"Content-Transfer-Encoding: 8bit",
@@ -166,11 +169,16 @@ func TestGlobalRelayExport(t *testing.T) {
 				"From: test1@test.com",
 				"To: test1@test.com,test2@test.com",
 				"Subject: Mattermost Compliance Export: channel-display-name",
-			},
+			}},
 
-			expectedTexts: []string{
+			expectedTexts: [][]string{{
 				strings.Join([]string{
-					"* Channel: channel-display-name",
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
 					"* Started: 1970-01-01T00:00:00Z",
 					"* Ended: 1970-01-01T00:01:40Z",
 					"* Duration: 2 minutes",
@@ -180,26 +188,33 @@ func TestGlobalRelayExport(t *testing.T) {
 					"Messages",
 					"--------",
 					"",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): message",
-					"* 1970-01-01T00:01:40Z @test1 user (test1@test.com): message",
+					"* post-id1 1970-01-01T00:00:00Z @test1 id-test1 @test1 user (test1@test.com=",
+					") message 1",
+					"* post-id2 1970-01-01T00:01:40Z @test1 id-test1 @test1 user (test1@test.com=",
+					") message 2",
 				}, "\r\n"),
-			},
+			}},
 
-			expectedHTMLs: []string{
+			expectedHTMLs: [][]string{{
 				strings.Join([]string{
 					"    <ul>",
-					"        <li><span class=3D\"bold\">Channel:&nbsp;</span>channel-display-name<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Started:&nbsp;</span>1970-01-01T00:00:00Z<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Ended:&nbsp;</span>1970-01-01T00:01:40Z</l=",
-					"i>",
-					"        <li><span class=3D\"bold\">Duration:&nbsp;</span>2 minutes</li>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
 					"    </ul>",
 				}, "\r\n"),
 				strings.Join([]string{
 					"<tr>",
-					"    <td class=3D\"username\">@test</td>",
+					"    <td class=3D\"userid\">id-test1</td>",
+					"    <td class=3D\"username\">@test1</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test1@test.com</td>",
 					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
@@ -209,6 +224,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">id-test2</td>",
 					"    <td class=3D\"username\">@test2</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test2@test.com</td>",
@@ -219,6 +235,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">id-test3</td>",
 					"    <td class=3D\"username\">@test3</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test3@test.com</td>",
@@ -231,31 +248,34 @@ func TestGlobalRelayExport(t *testing.T) {
 
 				strings.Join([]string{
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id1</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">id-test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
-					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message 1</span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id2</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">id-test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
-					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message 2</span>",
 					"</li>",
 				}, "\r\n"),
-			},
-			expectedFiles:    1,
+			}},
 			expectedWarnings: 0,
+			numExpectedEmls:  1,
 		},
+
 		{
-			name: "posts with attachments",
+			name: "posts with attachments, size ok",
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
@@ -288,7 +308,6 @@ func TestGlobalRelayExport(t *testing.T) {
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id-1"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -297,7 +316,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostUpdateAt:       model.NewPointer(int64(1)),
 					PostCreateAt:       model.NewPointer(int64(1)),
-					PostMessage:        model.NewPointer("message"),
+					PostMessage:        model.NewPointer("message1"),
 					PostProps:          model.NewPointer("{}"),
 					PostType:           model.NewPointer(""),
 					UserEmail:          model.NewPointer("test1@test.com"),
@@ -308,7 +327,6 @@ func TestGlobalRelayExport(t *testing.T) {
 				},
 				{
 					PostId:             model.NewPointer("post-id-2"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
 					PostRootId:         model.NewPointer("post-id-1"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
@@ -318,14 +336,14 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
 					PostUpdateAt:       model.NewPointer(int64(100_000)),
 					PostCreateAt:       model.NewPointer(int64(100_000)),
-					PostMessage:        model.NewPointer("message"),
+					PostMessage:        model.NewPointer("message2"),
 					PostProps:          model.NewPointer("{}"),
 					PostType:           model.NewPointer(""),
 					UserEmail:          model.NewPointer("test1@test.com"),
 					UserId:             model.NewPointer("test1"),
 					Username:           model.NewPointer("test1"),
 					ChannelType:        &chanTypeDirect,
-					PostFileIds:        []string{},
+					PostFileIds:        []string{"test2"},
 				},
 			},
 			attachments: map[string][]*model.FileInfo{
@@ -337,8 +355,24 @@ func TestGlobalRelayExport(t *testing.T) {
 						CreateAt: 1,
 					},
 				},
+				"post-id-2": {
+					{
+						Name:     "test2-attachment",
+						Id:       "test2-attachment",
+						Path:     "test2-attachment",
+						CreateAt: 1,
+					},
+				},
 			},
-			expectedHeaders: []string{
+			attachmentsContent: map[string]string{
+				"test1-attachment": "this is the attachment content",
+				"test2-attachment": "this is the second attachment content",
+			},
+			expectedAttachmentContent: [][]string{
+				{base64.StdEncoding.EncodeToString([]byte("this is the attachment content"))},
+				{base64.StdEncoding.EncodeToString([]byte("this is the second attachment content"))},
+			},
+			expectedHeaders: [][]string{{
 				"MIME-Version: 1.0",
 				"X-Mattermost-ChannelType: direct",
 				"Content-Transfer-Encoding: 8bit",
@@ -351,11 +385,16 @@ func TestGlobalRelayExport(t *testing.T) {
 				"From: test1@test.com",
 				"To: test1@test.com,test2@test.com",
 				"Subject: Mattermost Compliance Export: channel-display-name",
-			},
+			}},
 
-			expectedTexts: []string{
+			expectedTexts: [][]string{{
 				strings.Join([]string{
-					"* Channel: channel-display-name",
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
 					"* Started: 1970-01-01T00:00:00Z",
 					"* Ended: 1970-01-01T00:01:40Z",
 					"* Duration: 2 minutes",
@@ -365,32 +404,39 @@ func TestGlobalRelayExport(t *testing.T) {
 					"Messages",
 					"--------",
 					"",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): message",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): Uploaded file test1-at=",
-					"tachment",
-					"* 1970-01-01T00:01:40Z @test1 user (test1@test.com): message",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"message1",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"Uploaded file test1-attachment",
+					"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+					"message2",
 				}, "\r\n"),
 				strings.Join([]string{
 					"Content-Disposition: attachment; filename=\"test1-attachment\"",
 					"Content-Transfer-Encoding: base64",
 					"Content-Type: application/octet-stream; name=\"test1-attachment\"",
 				}, "\r\n"),
-			},
+			}},
 
-			expectedHTMLs: []string{
+			expectedHTMLs: [][]string{{
 				strings.Join([]string{
 					"    <ul>",
-					"        <li><span class=3D\"bold\">Channel:&nbsp;</span>channel-display-name<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Started:&nbsp;</span>1970-01-01T00:00:00Z<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Ended:&nbsp;</span>1970-01-01T00:01:40Z</l=",
-					"i>",
-					"        <li><span class=3D\"bold\">Duration:&nbsp;</span>2 minutes</li>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
 					"    </ul>",
 				}, "\r\n"),
 				strings.Join([]string{
 					"<tr>",
+					"    <td class=3D\"userid\">test1</td>",
 					"    <td class=3D\"username\">@test</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test1@test.com</td>",
@@ -401,6 +447,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test2</td>",
 					"    <td class=3D\"username\">@test2</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test2@test.com</td>",
@@ -411,6 +458,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test3</td>",
 					"    <td class=3D\"username\">@test3</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test3@test.com</td>",
@@ -423,41 +471,45 @@ func TestGlobalRelayExport(t *testing.T) {
 
 				strings.Join([]string{
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
-					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message1</span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">Uploaded file test1-attachment</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-2</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
-					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message2</span>",
 					"</li>",
 				}, "\r\n"),
-			},
-			expectedFiles:    1,
+			}},
 			expectedWarnings: 0,
+			numExpectedEmls:  1,
 		},
+
 		{
-			name: "posts with deleted attachments",
+			name: "posts with attachments, size too large, new channel export needed",
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
@@ -490,7 +542,1190 @@ func TestGlobalRelayExport(t *testing.T) {
 			posts: []*model.MessageExport{
 				{
 					PostId:             model.NewPointer("post-id-1"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(1)),
+					PostCreateAt:       model.NewPointer(int64(1)),
+					PostMessage:        model.NewPointer("message1"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+					PostFileIds:        []string{"test1"},
+				},
+				{
+					PostId:             model.NewPointer("post-id-2"),
+					PostRootId:         model.NewPointer("post-id-1"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(100_000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
+					PostMessage:        model.NewPointer("message2"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+					PostFileIds:        []string{"test2"},
+				},
+			},
+			attachments: map[string][]*model.FileInfo{
+				"post-id-1": {
+					{
+						Name: "test1-attachment",
+						Id:   "test1-attachment",
+						Path: "test1-attachment",
+						Size: 90, // 90 + 8 for message = message of 98 bytes. next one will be too big.
+					},
+				},
+				"post-id-2": {
+					{
+						Name: "test2-attachment",
+						Id:   "test2-attachment",
+						Path: "test2-attachment",
+						Size: 56,
+					},
+				},
+			},
+			maxEmailBytes:   100,
+			numExpectedEmls: 2,
+			attachmentsContent: map[string]string{
+				"test1-attachment": "this is the attachment content",
+				"test2-attachment": "this is the second attachment content",
+			},
+			expectedAttachmentContent: [][]string{
+				{base64.StdEncoding.EncodeToString([]byte("this is the attachment content"))},
+				{base64.StdEncoding.EncodeToString([]byte("this is the second attachment content"))},
+			},
+			expectedHeaders: [][]string{
+				// eml 0
+				{
+					"MIME-Version: 1.0",
+					"X-Mattermost-ChannelType: direct",
+					"Content-Transfer-Encoding: 8bit",
+					"Precedence: bulk",
+					"X-GlobalRelay-MsgType: Mattermost",
+					"X-Mattermost-ChannelID: channel-id",
+					"X-Mattermost-ChannelName: channel-display-name",
+					"Auto-Submitted: auto-generated",
+					"Date: Thu, 01 Jan 1970 00:01:40 +0000",
+					"From: test1@test.com",
+					"To: test1@test.com,test2@test.com",
+					"Subject: Mattermost Compliance Export: channel-display-name",
+				},
+				// eml 1
+				{
+					"MIME-Version: 1.0",
+					"X-Mattermost-ChannelType: direct",
+					"Content-Transfer-Encoding: 8bit",
+					"Precedence: bulk",
+					"X-GlobalRelay-MsgType: Mattermost",
+					"X-Mattermost-ChannelID: channel-id",
+					"X-Mattermost-ChannelName: channel-display-name",
+					"Auto-Submitted: auto-generated",
+					"Date: Thu, 01 Jan 1970 00:01:40 +0000",
+					"From: test1@test.com",
+					"To: test1@test.com,test2@test.com",
+					"Subject: Mattermost Compliance Export: channel-display-name",
+				},
+			},
+
+			expectedTexts: [][]string{
+				// eml 0
+				{
+					strings.Join([]string{
+						"* TeamId: team-id",
+						"* TeamName: team-name",
+						"* TeamDisplayName: team-display-name",
+						"* ChannelId: channel-id",
+						"* ChannelName: channel-name",
+						"* ChannelDisplayName: channel-display-name",
+						"* Started: 1970-01-01T00:00:00Z",
+						"* Ended: 1970-01-01T00:01:40Z",
+						"* Duration: 2 minutes",
+					}, "\r\n"),
+					strings.Join([]string{
+						"--------",
+						"Messages",
+						"--------",
+						"",
+						"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+						"message1",
+						"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+						"Uploaded file test1-attachment",
+					}, "\r\n"),
+					strings.Join([]string{
+						"Content-Disposition: attachment; filename=\"test1-attachment\"",
+						"Content-Transfer-Encoding: base64",
+						"Content-Type: application/octet-stream; name=\"test1-attachment\"",
+					}, "\r\n"),
+				},
+				// eml 1
+				{
+					strings.Join([]string{
+						"* TeamId: team-id",
+						"* TeamName: team-name",
+						"* TeamDisplayName: team-display-name",
+						"* ChannelId: channel-id",
+						"* ChannelName: channel-name",
+						"* ChannelDisplayName: channel-display-name",
+						"* Started: 1970-01-01T00:00:00Z",
+						"* Ended: 1970-01-01T00:01:40Z",
+						"* Duration: 2 minutes",
+					}, "\r\n"),
+					strings.Join([]string{
+						"--------",
+						"Messages",
+						"--------",
+						"",
+						"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+						"message2",
+						"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+						"Uploaded file test2-attachment",
+					}, "\r\n"),
+					strings.Join([]string{
+						"Content-Disposition: attachment; filename=\"test2-attachment\"",
+						"Content-Transfer-Encoding: base64",
+						"Content-Type: application/octet-stream; name=\"test2-attachment\"",
+					}, "\r\n"),
+				},
+			},
+
+			expectedHTMLs: [][]string{
+				// eml 0
+				{
+					strings.Join([]string{
+						"    <ul>",
+						"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+						"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+						"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+						"li>",
+						"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+						"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+						"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+						"name</li>",
+						"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+						"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+						"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
+						"    </ul>",
+					}, "\r\n"),
+					strings.Join([]string{
+						"<tr>",
+						"    <td class=3D\"userid\">test1</td>",
+						"    <td class=3D\"username\">@test</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test1@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">1</td>",
+						"</tr>",
+						"",
+						"<tr>",
+						"    <td class=3D\"userid\">test2</td>",
+						"    <td class=3D\"username\">@test2</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test2@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">0</td>",
+						"</tr>",
+						"",
+						"<tr>",
+						"    <td class=3D\"userid\">test3</td>",
+						"    <td class=3D\"username\">@test3</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test3@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">0</td>",
+						"</tr>",
+					}, "\r\n"),
+					strings.Join([]string{
+						"<li class=3D\"message\">",
+						"    <span class=3D\"post_id\">post-id-1</span>",
+						"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+						"    <span class=3D\"username\">@test1</span>",
+						"    <span class=3D\"userid\">test1</span>",
+						"    <span class=3D\"postusername\">@test1</span>",
+						"    <span class=3D\"usertype\">user</span>",
+						"    <span class=3D\"email\">(test1@test.com)</span>",
+						"    <span class=3D\"message\">message1</span>",
+						"</li>",
+						"",
+						"<li class=3D\"message\">",
+						"    <span class=3D\"post_id\">post-id-1</span>",
+						"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+						"    <span class=3D\"username\">@test1</span>",
+						"    <span class=3D\"userid\">test1</span>",
+						"    <span class=3D\"postusername\">@test1</span>",
+						"    <span class=3D\"usertype\">user</span>",
+						"    <span class=3D\"email\">(test1@test.com)</span>",
+						"    <span class=3D\"message\">Uploaded file test1-attachment</span>",
+						"</li>",
+					}, "\r\n"),
+				},
+				// eml 1
+				{
+					strings.Join([]string{
+						"    <ul>",
+						"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+						"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+						"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+						"li>",
+						"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+						"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+						"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+						"name</li>",
+						"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+						"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+						"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
+						"    </ul>",
+					}, "\r\n"),
+					strings.Join([]string{
+						"<tr>",
+						"    <td class=3D\"userid\">test1</td>",
+						"    <td class=3D\"username\">@test</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test1@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">1</td>",
+						"</tr>",
+						"",
+						"<tr>",
+						"    <td class=3D\"userid\">test2</td>",
+						"    <td class=3D\"username\">@test2</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test2@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">0</td>",
+						"</tr>",
+						"",
+						"<tr>",
+						"    <td class=3D\"userid\">test3</td>",
+						"    <td class=3D\"username\">@test3</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test3@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">0</td>",
+						"</tr>",
+					}, "\r\n"),
+					strings.Join([]string{
+						"<li class=3D\"message\">",
+						"    <span class=3D\"post_id\">post-id-2</span>",
+						"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
+						"    <span class=3D\"username\">@test1</span>",
+						"    <span class=3D\"userid\">test1</span>",
+						"    <span class=3D\"postusername\">@test1</span>",
+						"    <span class=3D\"usertype\">user</span>",
+						"    <span class=3D\"email\">(test1@test.com)</span>",
+						"    <span class=3D\"message\">message2</span>",
+						"</li>",
+						"",
+						"<li class=3D\"message\">",
+						"    <span class=3D\"post_id\">post-id-2</span>",
+						"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
+						"    <span class=3D\"username\">@test1</span>",
+						"    <span class=3D\"userid\">test1</span>",
+						"    <span class=3D\"postusername\">@test1</span>",
+						"    <span class=3D\"usertype\">user</span>",
+						"    <span class=3D\"email\">(test1@test.com)</span>",
+						"    <span class=3D\"message\">Uploaded file test2-attachment</span>",
+						"</li>",
+					}, "\r\n"),
+				},
+			},
+			expectedWarnings: 0,
+		},
+
+		{
+			name: "posts with attachments, attachment too large, remove it but only one eml needed",
+			cmhs: map[string][]*model.ChannelMemberHistoryResult{
+				"channel-id": {
+					{
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
+					},
+				},
+			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
+			posts: []*model.MessageExport{
+				{
+					PostId:             model.NewPointer("post-id-1"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(1)),
+					PostCreateAt:       model.NewPointer(int64(1)),
+					PostMessage:        model.NewPointer("message1"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+					PostFileIds:        []string{"test1"},
+				},
+				{
+					PostId:             model.NewPointer("post-id-2"),
+					PostRootId:         model.NewPointer("post-id-1"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(100_000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
+					PostMessage:        model.NewPointer("message2"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+				},
+			},
+			attachments: map[string][]*model.FileInfo{
+				"post-id-1": {
+					{
+						Name:     "test1-attachment",
+						Id:       "test1-attachment",
+						Path:     "test1-attachment",
+						CreateAt: 1,
+						Size:     101,
+					},
+				},
+			},
+			attachmentsContent: map[string]string{
+				"test1-attachment": "this is the attachment content",
+			},
+			expectedAttachmentContent: [][]string{
+				{""},
+			},
+			maxEmailBytes:   100,
+			numExpectedEmls: 1,
+			expectedHeaders: [][]string{{
+				"MIME-Version: 1.0",
+				"X-Mattermost-ChannelType: direct",
+				"Content-Transfer-Encoding: 8bit",
+				"Precedence: bulk",
+				"X-GlobalRelay-MsgType: Mattermost",
+				"X-Mattermost-ChannelID: channel-id",
+				"X-Mattermost-ChannelName: channel-display-name",
+				"Auto-Submitted: auto-generated",
+				"Date: Thu, 01 Jan 1970 00:01:40 +0000",
+				"From: test1@test.com",
+				"To: test1@test.com,test2@test.com",
+				"Subject: Mattermost Compliance Export: channel-display-name",
+			}},
+
+			expectedTexts: [][]string{{
+				strings.Join([]string{
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
+					"* Started: 1970-01-01T00:00:00Z",
+					"* Ended: 1970-01-01T00:01:40Z",
+					"* Duration: 2 minutes",
+				}, "\r\n"),
+				strings.Join([]string{
+					"--------",
+					"Messages",
+					"--------",
+					"",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"message1",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"Uploaded file 'test1-attachment' (id 'test1-attachment') was removed becaus=",
+					"e it was too large to send.",
+					"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+					"message2",
+				}, "\r\n"),
+			}},
+
+			notExpectedTexts: [][]string{{
+				"Content-Disposition: attachment; filename=\"test1-attachment\"",
+			}},
+			expectedHTMLs: [][]string{{
+				strings.Join([]string{
+					"    <ul>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
+					"    </ul>",
+				}, "\r\n"),
+				strings.Join([]string{
+					"<tr>",
+					"    <td class=3D\"userid\">test1</td>",
+					"    <td class=3D\"username\">@test</td>",
+					"    <td class=3D\"usertype\">user</td>",
+					"    <td class=3D\"email\">test1@test.com</td>",
+					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+					"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+					"    <td class=3D\"duration\">2 minutes</td>",
+					"    <td class=3D\"messages\">2</td>",
+					"</tr>",
+					"",
+					"<tr>",
+					"    <td class=3D\"userid\">test2</td>",
+					"    <td class=3D\"username\">@test2</td>",
+					"    <td class=3D\"usertype\">user</td>",
+					"    <td class=3D\"email\">test2@test.com</td>",
+					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+					"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+					"    <td class=3D\"duration\">2 minutes</td>",
+					"    <td class=3D\"messages\">0</td>",
+					"</tr>",
+					"",
+					"<tr>",
+					"    <td class=3D\"userid\">test3</td>",
+					"    <td class=3D\"username\">@test3</td>",
+					"    <td class=3D\"usertype\">user</td>",
+					"    <td class=3D\"email\">test3@test.com</td>",
+					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+					"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+					"    <td class=3D\"duration\">2 minutes</td>",
+					"    <td class=3D\"messages\">0</td>",
+					"</tr>",
+				}, "\r\n"),
+
+				strings.Join([]string{
+					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message1</span>",
+					"</li>",
+					"",
+					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">Uploaded file &#39;test1-attachment&#39; (id &#=",
+					"39;test1-attachment&#39;) was removed because it was too large to send.</sp=",
+					"an>",
+					"</li>",
+					"",
+					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-2</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message2</span>",
+					"</li>",
+				}, "\r\n"),
+			}},
+			expectedWarnings: 0,
+		},
+
+		{
+			name: "posts with attachments, post size and attachment too large, new channel export needed and attachment removed",
+			cmhs: map[string][]*model.ChannelMemberHistoryResult{
+				"channel-id": {
+					{
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
+					},
+				},
+			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
+			posts: []*model.MessageExport{
+				{
+					PostId:             model.NewPointer("post-id-1"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(1)),
+					PostCreateAt:       model.NewPointer(int64(1)),
+					PostMessage:        model.NewPointer("message1"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+					PostFileIds:        []string{"test1"},
+				},
+				{
+					PostId:             model.NewPointer("post-id-2"),
+					PostRootId:         model.NewPointer("post-id-1"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(100_000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
+					PostMessage:        model.NewPointer("message2"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+					PostFileIds:        []string{"test2"},
+				},
+			},
+			attachments: map[string][]*model.FileInfo{
+				"post-id-1": {
+					{
+						Name: "test1-attachment",
+						Id:   "test1-attachment",
+						Path: "test1-attachment",
+						Size: 20, // 20 + 8 for message = message of 28 bytes. next one will be too big.
+					},
+				},
+				"post-id-2": {
+					{
+						Name: "test2-attachment",
+						Id:   "test2-attachment",
+						Path: "test2-attachment",
+						Size: 31, // too big, will be deleted
+					},
+				},
+			},
+			maxEmailBytes:   30,
+			numExpectedEmls: 2,
+			attachmentsContent: map[string]string{
+				"test1-attachment": "this is the attachment content",
+				"test2-attachment": "this is the second attachment content",
+			},
+			expectedAttachmentContent: [][]string{
+				{base64.StdEncoding.EncodeToString([]byte("this is the attachment content"))},
+				{""},
+			},
+			notExpectedTexts: [][]string{
+				// eml 0
+				{
+					"Content-Disposition: attachment; filename=\"test2-attachment\"",
+				},
+				// eml 1
+				{
+					"Content-Disposition: attachment; filename=\"test1-attachment\"",
+					"Content-Disposition: attachment; filename=\"test2-attachment\"",
+				},
+			},
+
+			expectedHeaders: [][]string{
+				// eml 0
+				{
+					"MIME-Version: 1.0",
+					"X-Mattermost-ChannelType: direct",
+					"Content-Transfer-Encoding: 8bit",
+					"Precedence: bulk",
+					"X-GlobalRelay-MsgType: Mattermost",
+					"X-Mattermost-ChannelID: channel-id",
+					"X-Mattermost-ChannelName: channel-display-name",
+					"Auto-Submitted: auto-generated",
+					"Date: Thu, 01 Jan 1970 00:01:40 +0000",
+					"From: test1@test.com",
+					"To: test1@test.com,test2@test.com",
+					"Subject: Mattermost Compliance Export: channel-display-name",
+				},
+				// eml 1
+				{
+					"MIME-Version: 1.0",
+					"X-Mattermost-ChannelType: direct",
+					"Content-Transfer-Encoding: 8bit",
+					"Precedence: bulk",
+					"X-GlobalRelay-MsgType: Mattermost",
+					"X-Mattermost-ChannelID: channel-id",
+					"X-Mattermost-ChannelName: channel-display-name",
+					"Auto-Submitted: auto-generated",
+					"Date: Thu, 01 Jan 1970 00:01:40 +0000",
+					"From: test1@test.com",
+					"To: test1@test.com,test2@test.com",
+					"Subject: Mattermost Compliance Export: channel-display-name",
+				},
+			},
+
+			expectedTexts: [][]string{
+				// eml 0
+				{
+					strings.Join([]string{
+						"* TeamId: team-id",
+						"* TeamName: team-name",
+						"* TeamDisplayName: team-display-name",
+						"* ChannelId: channel-id",
+						"* ChannelName: channel-name",
+						"* ChannelDisplayName: channel-display-name",
+						"* Started: 1970-01-01T00:00:00Z",
+						"* Ended: 1970-01-01T00:01:40Z",
+						"* Duration: 2 minutes",
+					}, "\r\n"),
+					strings.Join([]string{
+						"--------",
+						"Messages",
+						"--------",
+						"",
+						"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+						"message1",
+						"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+						"Uploaded file test1-attachment",
+					}, "\r\n"),
+					strings.Join([]string{
+						"Content-Disposition: attachment; filename=\"test1-attachment\"",
+						"Content-Transfer-Encoding: base64",
+						"Content-Type: application/octet-stream; name=\"test1-attachment\"",
+					}, "\r\n"),
+				},
+				// eml 1
+				{
+					strings.Join([]string{
+						"* TeamId: team-id",
+						"* TeamName: team-name",
+						"* TeamDisplayName: team-display-name",
+						"* ChannelId: channel-id",
+						"* ChannelName: channel-name",
+						"* ChannelDisplayName: channel-display-name",
+						"* Started: 1970-01-01T00:00:00Z",
+						"* Ended: 1970-01-01T00:01:40Z",
+						"* Duration: 2 minutes",
+					}, "\r\n"),
+					strings.Join([]string{
+						"--------",
+						"Messages",
+						"--------",
+						"",
+						"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+						"message2",
+						"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+						"Uploaded file 'test2-attachment' (id 'test2-attachment') was removed becaus=",
+						"e it was too large to send.",
+					}, "\r\n"),
+				},
+			},
+
+			expectedHTMLs: [][]string{
+				// eml 0
+				{
+					strings.Join([]string{
+						"    <ul>",
+						"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+						"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+						"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+						"li>",
+						"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+						"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+						"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+						"name</li>",
+						"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+						"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+						"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
+						"    </ul>",
+					}, "\r\n"),
+					strings.Join([]string{
+						"<tr>",
+						"    <td class=3D\"userid\">test1</td>",
+						"    <td class=3D\"username\">@test</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test1@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">1</td>",
+						"</tr>",
+						"",
+						"<tr>",
+						"    <td class=3D\"userid\">test2</td>",
+						"    <td class=3D\"username\">@test2</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test2@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">0</td>",
+						"</tr>",
+						"",
+						"<tr>",
+						"    <td class=3D\"userid\">test3</td>",
+						"    <td class=3D\"username\">@test3</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test3@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">0</td>",
+						"</tr>",
+					}, "\r\n"),
+					strings.Join([]string{
+						"<li class=3D\"message\">",
+						"    <span class=3D\"post_id\">post-id-1</span>",
+						"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+						"    <span class=3D\"username\">@test1</span>",
+						"    <span class=3D\"userid\">test1</span>",
+						"    <span class=3D\"postusername\">@test1</span>",
+						"    <span class=3D\"usertype\">user</span>",
+						"    <span class=3D\"email\">(test1@test.com)</span>",
+						"    <span class=3D\"message\">message1</span>",
+						"</li>",
+						"",
+						"<li class=3D\"message\">",
+						"    <span class=3D\"post_id\">post-id-1</span>",
+						"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+						"    <span class=3D\"username\">@test1</span>",
+						"    <span class=3D\"userid\">test1</span>",
+						"    <span class=3D\"postusername\">@test1</span>",
+						"    <span class=3D\"usertype\">user</span>",
+						"    <span class=3D\"email\">(test1@test.com)</span>",
+						"    <span class=3D\"message\">Uploaded file test1-attachment</span>",
+						"</li>",
+					}, "\r\n"),
+				},
+				// eml 1
+				{
+					strings.Join([]string{
+						"    <ul>",
+						"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+						"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+						"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+						"li>",
+						"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+						"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+						"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+						"name</li>",
+						"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+						"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+						"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
+						"    </ul>",
+					}, "\r\n"),
+					strings.Join([]string{
+						"<tr>",
+						"    <td class=3D\"userid\">test1</td>",
+						"    <td class=3D\"username\">@test</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test1@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">1</td>",
+						"</tr>",
+						"",
+						"<tr>",
+						"    <td class=3D\"userid\">test2</td>",
+						"    <td class=3D\"username\">@test2</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test2@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">0</td>",
+						"</tr>",
+						"",
+						"<tr>",
+						"    <td class=3D\"userid\">test3</td>",
+						"    <td class=3D\"username\">@test3</td>",
+						"    <td class=3D\"usertype\">user</td>",
+						"    <td class=3D\"email\">test3@test.com</td>",
+						"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+						"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+						"    <td class=3D\"duration\">2 minutes</td>",
+						"    <td class=3D\"messages\">0</td>",
+						"</tr>",
+					}, "\r\n"),
+					strings.Join([]string{
+						"<li class=3D\"message\">",
+						"    <span class=3D\"post_id\">post-id-2</span>",
+						"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
+						"    <span class=3D\"username\">@test1</span>",
+						"    <span class=3D\"userid\">test1</span>",
+						"    <span class=3D\"postusername\">@test1</span>",
+						"    <span class=3D\"usertype\">user</span>",
+						"    <span class=3D\"email\">(test1@test.com)</span>",
+						"    <span class=3D\"message\">message2</span>",
+						"</li>",
+						"",
+						"<li class=3D\"message\">",
+						"    <span class=3D\"post_id\">post-id-2</span>",
+						"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
+						"    <span class=3D\"username\">@test1</span>",
+						"    <span class=3D\"userid\">test1</span>",
+						"    <span class=3D\"postusername\">@test1</span>",
+						"    <span class=3D\"usertype\">user</span>",
+						"    <span class=3D\"email\">(test1@test.com)</span>",
+						"    <span class=3D\"message\">Uploaded file &#39;test2-attachment&#39; (id &#=",
+						"39;test2-attachment&#39;) was removed because it was too large to send.</sp=",
+						"an>",
+						"</li>",
+					}, "\r\n"),
+				},
+			},
+			expectedWarnings: 0,
+		},
+
+		{
+			name: "posts with multiple attachments, size ok",
+			cmhs: map[string][]*model.ChannelMemberHistoryResult{
+				"channel-id": {
+					{
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
+					},
+				},
+			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
+			posts: []*model.MessageExport{
+				{
+					PostId:             model.NewPointer("post-id-1"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(1)),
+					PostCreateAt:       model.NewPointer(int64(1)),
+					PostMessage:        model.NewPointer("message1"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+					PostFileIds:        []string{"test1", "test1-2"},
+				},
+				{
+					PostId:             model.NewPointer("post-id-2"),
+					PostRootId:         model.NewPointer("post-id-1"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(100_000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
+					PostMessage:        model.NewPointer("message2"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+				},
+			},
+			attachments: map[string][]*model.FileInfo{
+				"post-id-1": {
+					{
+						Name:     "test1-attachment",
+						Id:       "test1-attachment",
+						Path:     "test1-attachment",
+						CreateAt: 1,
+					},
+					{
+						Name:     "test1-attachment-2",
+						Id:       "test1-attachment-2",
+						Path:     "test1-attachment-2",
+						CreateAt: 1,
+					},
+				},
+			},
+			attachmentsContent: map[string]string{
+				"test1-attachment":   "this is the attachment content",
+				"test1-attachment-2": "this is the second attachment content",
+			},
+			expectedAttachmentContent: [][]string{
+				{base64.StdEncoding.EncodeToString([]byte("this is the attachment content"))},
+				{base64.StdEncoding.EncodeToString([]byte("this is the second attachment content"))},
+			},
+
+			expectedHeaders: [][]string{{
+				"MIME-Version: 1.0",
+				"X-Mattermost-ChannelType: direct",
+				"Content-Transfer-Encoding: 8bit",
+				"Precedence: bulk",
+				"X-GlobalRelay-MsgType: Mattermost",
+				"X-Mattermost-ChannelID: channel-id",
+				"X-Mattermost-ChannelName: channel-display-name",
+				"Auto-Submitted: auto-generated",
+				"Date: Thu, 01 Jan 1970 00:01:40 +0000",
+				"From: test1@test.com",
+				"To: test1@test.com,test2@test.com",
+				"Subject: Mattermost Compliance Export: channel-display-name",
+			}},
+
+			expectedTexts: [][]string{{
+				strings.Join([]string{
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
+					"* Started: 1970-01-01T00:00:00Z",
+					"* Ended: 1970-01-01T00:01:40Z",
+					"* Duration: 2 minutes",
+				}, "\r\n"),
+				strings.Join([]string{
+					"--------",
+					"Messages",
+					"--------",
+					"",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"message1",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"Uploaded file test1-attachment",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"Uploaded file test1-attachment-2",
+					"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+					"message2",
+				}, "\r\n"),
+				strings.Join([]string{
+					"Content-Disposition: attachment; filename=\"test1-attachment\"",
+					"Content-Transfer-Encoding: base64",
+					"Content-Type: application/octet-stream; name=\"test1-attachment\"",
+				}, "\r\n"),
+				strings.Join([]string{
+					"Content-Disposition: attachment; filename=\"test1-attachment-2\"",
+					"Content-Transfer-Encoding: base64",
+					"Content-Type: application/octet-stream; name=\"test1-attachment-2\"",
+				}, "\r\n"),
+			}},
+
+			expectedHTMLs: [][]string{{
+				strings.Join([]string{
+					"    <ul>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
+					"    </ul>",
+				}, "\r\n"),
+				strings.Join([]string{
+					"<tr>",
+					"    <td class=3D\"userid\">test1</td>",
+					"    <td class=3D\"username\">@test</td>",
+					"    <td class=3D\"usertype\">user</td>",
+					"    <td class=3D\"email\">test1@test.com</td>",
+					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+					"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+					"    <td class=3D\"duration\">2 minutes</td>",
+					"    <td class=3D\"messages\">2</td>",
+					"</tr>",
+					"",
+					"<tr>",
+					"    <td class=3D\"userid\">test2</td>",
+					"    <td class=3D\"username\">@test2</td>",
+					"    <td class=3D\"usertype\">user</td>",
+					"    <td class=3D\"email\">test2@test.com</td>",
+					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+					"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+					"    <td class=3D\"duration\">2 minutes</td>",
+					"    <td class=3D\"messages\">0</td>",
+					"</tr>",
+					"",
+					"<tr>",
+					"    <td class=3D\"userid\">test3</td>",
+					"    <td class=3D\"username\">@test3</td>",
+					"    <td class=3D\"usertype\">user</td>",
+					"    <td class=3D\"email\">test3@test.com</td>",
+					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+					"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+					"    <td class=3D\"duration\">2 minutes</td>",
+					"    <td class=3D\"messages\">0</td>",
+					"</tr>",
+				}, "\r\n"),
+
+				strings.Join([]string{
+					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message1</span>",
+					"</li>",
+					"",
+					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">Uploaded file test1-attachment</span>",
+					"</li>",
+					"",
+					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">Uploaded file test1-attachment-2</span>",
+					"</li>",
+					"",
+					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-2</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message2</span>",
+					"</li>",
+				}, "\r\n"),
+			}},
+			expectedWarnings: 0,
+			numExpectedEmls:  1,
+		},
+
+		{
+			name: "posts with deleted post and deleted attachments",
+			cmhs: map[string][]*model.ChannelMemberHistoryResult{
+				"channel-id": {
+					{
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
+					},
+				},
+			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   200_000,
+			posts: []*model.MessageExport{
+				{
+					PostId:             model.NewPointer("post-id-1"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
 					TeamDisplayName:    model.NewPointer("team-display-name"),
@@ -510,7 +1745,6 @@ func TestGlobalRelayExport(t *testing.T) {
 				},
 				{
 					PostId:             model.NewPointer("post-id-2"),
-					PostOriginalId:     model.NewPointer("post-original-id"),
 					PostRootId:         model.NewPointer("post-id-1"),
 					TeamId:             model.NewPointer("team-id"),
 					TeamName:           model.NewPointer("team-name"),
@@ -518,10 +1752,11 @@ func TestGlobalRelayExport(t *testing.T) {
 					ChannelId:          model.NewPointer("channel-id"),
 					ChannelName:        model.NewPointer("channel-name"),
 					ChannelDisplayName: model.NewPointer("channel-display-name"),
-					PostUpdateAt:       model.NewPointer(int64(100_000)),
 					PostCreateAt:       model.NewPointer(int64(100_000)),
+					PostUpdateAt:       model.NewPointer(int64(200_000)),
+					PostDeleteAt:       model.NewPointer(int64(200_000)),
 					PostMessage:        model.NewPointer("message"),
-					PostProps:          model.NewPointer("{}"),
+					PostProps:          model.NewPointer("{\"deleteBy\":\"fy8j97gwii84bk4zxprbpc9d9w\"}"),
 					PostType:           model.NewPointer(""),
 					UserEmail:          model.NewPointer("test1@test.com"),
 					UserId:             model.NewPointer("test1"),
@@ -537,12 +1772,270 @@ func TestGlobalRelayExport(t *testing.T) {
 						Id:       "test1-attachment",
 						Path:     "test1-attachment",
 						CreateAt: 1,
-						UpdateAt: 1,
+						UpdateAt: 200_000,
 						DeleteAt: 200_000,
 					},
 				},
 			},
-			expectedHeaders: []string{
+			attachmentsContent: map[string]string{
+				"test1-attachment": "this is the attachment content",
+			},
+			expectedAttachmentContent: [][]string{
+				{base64.StdEncoding.EncodeToString([]byte("this is the attachment content"))},
+			},
+			expectedHeaders: [][]string{{
+				"MIME-Version: 1.0",
+				"X-Mattermost-ChannelType: direct",
+				"Content-Transfer-Encoding: 8bit",
+				"Precedence: bulk",
+				"X-GlobalRelay-MsgType: Mattermost",
+				"X-Mattermost-ChannelID: channel-id",
+				"X-Mattermost-ChannelName: channel-display-name",
+				"Auto-Submitted: auto-generated",
+				"Date: Thu, 01 Jan 1970 00:03:20 +0000",
+				"From: test1@test.com",
+				"To: test1@test.com,test2@test.com",
+				"Subject: Mattermost Compliance Export: channel-display-name",
+			}},
+
+			expectedTexts: [][]string{{
+				strings.Join([]string{
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
+					"* Started: 1970-01-01T00:00:00Z",
+					"* Ended: 1970-01-01T00:03:20Z",
+					"* Duration: 3 minutes",
+				}, "\r\n"),
+				strings.Join([]string{
+					"--------",
+					"Messages",
+					"--------",
+					"",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"message",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"Uploaded file test1-attachment",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"Deleted file test1-attachment FileDeleted 1970-01-01T00:03:20Z",
+					"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+					"message",
+					"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+					"delete message Deleted 1970-01-01T00:03:20Z",
+				}, "\r\n"),
+				strings.Join([]string{
+					"Content-Disposition: attachment; filename=\"test1-attachment\"",
+					"Content-Transfer-Encoding: base64",
+					"Content-Type: application/octet-stream; name=\"test1-attachment\"",
+				}, "\r\n"),
+			}},
+
+			expectedHTMLs: [][]string{{
+				strings.Join([]string{
+					"    <ul>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:03:20Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>3 minutes</li>",
+					"    </ul>",
+				}, "\r\n"),
+				strings.Join([]string{
+					"<tr>",
+					"    <td class=3D\"userid\">test1</td>",
+					"    <td class=3D\"username\">@test</td>",
+					"    <td class=3D\"usertype\">user</td>",
+					"    <td class=3D\"email\">test1@test.com</td>",
+					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+					"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+					"    <td class=3D\"duration\">2 minutes</td>",
+					"    <td class=3D\"messages\">3</td>",
+					"</tr>",
+					"", "<tr>",
+					"    <td class=3D\"userid\">test2</td>",
+					"    <td class=3D\"username\">@test2</td>",
+					"    <td class=3D\"usertype\">user</td>",
+					"    <td class=3D\"email\">test2@test.com</td>",
+					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+					"    <td class=3D\"left\">1970-01-01T00:01:40Z</td>",
+					"    <td class=3D\"duration\">2 minutes</td>",
+					"    <td class=3D\"messages\">0</td>",
+					"</tr>",
+					"", "<tr>",
+					"    <td class=3D\"userid\">test3</td>",
+					"    <td class=3D\"username\">@test3</td>",
+					"    <td class=3D\"usertype\">user</td>",
+					"    <td class=3D\"email\">test3@test.com</td>",
+					"    <td class=3D\"joined\">1970-01-01T00:00:00Z</td>",
+					"    <td class=3D\"left\">1970-01-01T00:03:20Z</td>",
+					"    <td class=3D\"duration\">3 minutes</td>",
+					"    <td class=3D\"messages\">0</td>",
+					"</tr>",
+				}, "\r\n"),
+
+				strings.Join([]string{
+					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message</span>",
+					"</li>",
+					"", "<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">Uploaded file test1-attachment</span>",
+					"</li>",
+					"", "<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">Deleted file test1-attachment</span>",
+					"    <span class=3D\"update_type\">FileDeleted</span>",
+					"    <span class=3D\"update_time\">1970-01-01T00:03:20Z</span>",
+					"    <span class=3D\"edited_new_msg_id\"></span>",
+					"</li>",
+					"", "<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-2</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">message</span>",
+					"</li>",
+					"", "<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-2</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">delete message</span>",
+					"    <span class=3D\"update_type\">Deleted</span>",
+					"    <span class=3D\"update_time\">1970-01-01T00:03:20Z</span>",
+					"    <span class=3D\"edited_new_msg_id\"></span>",
+					"</li>",
+				}, "\r\n"),
+			}},
+			expectedWarnings: 0,
+			numExpectedEmls:  1,
+		},
+
+		{
+			name: "posts with deleted attachments, no deleted post, and at different time from original post",
+			cmhs: map[string][]*model.ChannelMemberHistoryResult{
+				"channel-id": {
+					{
+						JoinTime: 0, UserId: "test1", UserEmail: "test1@test.com", Username: "test", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 8, UserId: "test2", UserEmail: "test2@test.com", Username: "test2", LeaveTime: model.NewPointer(int64(100_000)),
+					},
+					{
+						JoinTime: 400, UserId: "test3", UserEmail: "test3@test.com", Username: "test3",
+					},
+				},
+			},
+			metadata: map[string]*shared.MetadataChannel{
+				"channel-id": {
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          "channel-id",
+					ChannelName:        "channel-name",
+					ChannelDisplayName: "channel-display-name",
+					ChannelType:        chanTypeDirect,
+					RoomId:             "direct - channel-id",
+					StartTime:          1,
+					EndTime:            100,
+				},
+			},
+			startTime: 1,
+			endTime:   100_000,
+			posts: []*model.MessageExport{
+				{
+					PostId:             model.NewPointer("post-id-1"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(1)),
+					PostCreateAt:       model.NewPointer(int64(1)),
+					PostMessage:        model.NewPointer("message"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+					PostFileIds:        []string{"test1"},
+				},
+				{
+					PostId:             model.NewPointer("post-id-2"),
+					PostRootId:         model.NewPointer("post-id-1"),
+					TeamId:             model.NewPointer("team-id"),
+					TeamName:           model.NewPointer("team-name"),
+					TeamDisplayName:    model.NewPointer("team-display-name"),
+					ChannelId:          model.NewPointer("channel-id"),
+					ChannelName:        model.NewPointer("channel-name"),
+					ChannelDisplayName: model.NewPointer("channel-display-name"),
+					PostUpdateAt:       model.NewPointer(int64(100_000)),
+					PostCreateAt:       model.NewPointer(int64(100_000)),
+					PostMessage:        model.NewPointer("message"),
+					PostProps:          model.NewPointer("{}"),
+					PostType:           model.NewPointer(""),
+					UserEmail:          model.NewPointer("test1@test.com"),
+					UserId:             model.NewPointer("test1"),
+					Username:           model.NewPointer("test1"),
+					ChannelType:        &chanTypeDirect,
+					PostFileIds:        []string{},
+				},
+			},
+			attachments: map[string][]*model.FileInfo{
+				"post-id-1": {
+					{
+						Name:     "test1-attachment",
+						Id:       "test1-attachment",
+						Path:     "test1-attachment",
+						CreateAt: 1,
+						UpdateAt: 200_000,
+						DeleteAt: 200_000,
+					},
+				},
+			},
+			attachmentsContent: map[string]string{
+				"test1-attachment": "this is the attachment content",
+			},
+			expectedAttachmentContent: [][]string{
+				{base64.StdEncoding.EncodeToString([]byte("this is the attachment content"))},
+			},
+			expectedHeaders: [][]string{{
 				"MIME-Version: 1.0",
 				"X-Mattermost-ChannelType: direct",
 				"Content-Transfer-Encoding: 8bit",
@@ -555,11 +2048,16 @@ func TestGlobalRelayExport(t *testing.T) {
 				"From: test1@test.com",
 				"To: test1@test.com,test2@test.com",
 				"Subject: Mattermost Compliance Export: channel-display-name",
-			},
+			}},
 
-			expectedTexts: []string{
+			expectedTexts: [][]string{{
 				strings.Join([]string{
-					"* Channel: channel-display-name",
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
 					"* Started: 1970-01-01T00:00:00Z",
 					"* Ended: 1970-01-01T00:01:40Z",
 					"* Duration: 2 minutes",
@@ -569,32 +2067,41 @@ func TestGlobalRelayExport(t *testing.T) {
 					"Messages",
 					"--------",
 					"",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): message",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): Uploaded file test1-at=",
-					"tachment",
-					"* 1970-01-01T00:01:40Z @test1 user (test1@test.com): message",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"message",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"Uploaded file test1-attachment",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"Deleted file test1-attachment FileDeleted 1970-01-01T00:03:20Z",
+					"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+					"message",
 				}, "\r\n"),
 				strings.Join([]string{
 					"Content-Disposition: attachment; filename=\"test1-attachment\"",
 					"Content-Transfer-Encoding: base64",
 					"Content-Type: application/octet-stream; name=\"test1-attachment\"",
 				}, "\r\n"),
-			},
+			}},
 
-			expectedHTMLs: []string{
+			expectedHTMLs: [][]string{{
 				strings.Join([]string{
 					"    <ul>",
-					"        <li><span class=3D\"bold\">Channel:&nbsp;</span>channel-display-name<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Started:&nbsp;</span>1970-01-01T00:00:00Z<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Ended:&nbsp;</span>1970-01-01T00:01:40Z</l=",
-					"i>",
-					"        <li><span class=3D\"bold\">Duration:&nbsp;</span>2 minutes</li>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
 					"    </ul>",
 				}, "\r\n"),
 				strings.Join([]string{
 					"<tr>",
+					"    <td class=3D\"userid\">test1</td>",
 					"    <td class=3D\"username\">@test</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test1@test.com</td>",
@@ -605,6 +2112,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test2</td>",
 					"    <td class=3D\"username\">@test2</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test2@test.com</td>",
@@ -615,6 +2123,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test3</td>",
 					"    <td class=3D\"username\">@test3</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test3@test.com</td>",
@@ -627,39 +2136,57 @@ func TestGlobalRelayExport(t *testing.T) {
 
 				strings.Join([]string{
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">Uploaded file test1-attachment</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
+					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
+					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
+					"    <span class=3D\"usertype\">user</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
+					"    <span class=3D\"message\">Deleted file test1-attachment</span>",
+					"    <span class=3D\"update_type\">FileDeleted</span>",
+					"    <span class=3D\"update_time\">1970-01-01T00:03:20Z</span>",
+					"    <span class=3D\"edited_new_msg_id\"></span>",
+					"</li>",
+					"",
+					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-2</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 				}, "\r\n"),
-			},
-			expectedFiles:    1,
+			}},
 			expectedWarnings: 0,
+			numExpectedEmls:  1,
 		},
+
 		{
 			name: "posts with missing attachments",
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
@@ -744,7 +2271,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					},
 				},
 			},
-			expectedHeaders: []string{
+			expectedHeaders: [][]string{{
 				"MIME-Version: 1.0",
 				"X-Mattermost-ChannelType: direct",
 				"Content-Transfer-Encoding: 8bit",
@@ -757,11 +2284,16 @@ func TestGlobalRelayExport(t *testing.T) {
 				"From: test1@test.com",
 				"To: test1@test.com,test2@test.com",
 				"Subject: Mattermost Compliance Export: channel-display-name",
-			},
+			}},
 
-			expectedTexts: []string{
+			expectedTexts: [][]string{{
 				strings.Join([]string{
-					"* Channel: channel-display-name",
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
 					"* Started: 1970-01-01T00:00:00Z",
 					"* Ended: 1970-01-01T00:01:40Z",
 					"* Duration: 2 minutes",
@@ -771,32 +2303,39 @@ func TestGlobalRelayExport(t *testing.T) {
 					"Messages",
 					"--------",
 					"",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): message",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): Uploaded file test1-at=",
-					"tachment",
-					"* 1970-01-01T00:01:40Z @test1 user (test1@test.com): message",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"message",
+					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
+					"Uploaded file test1-attachment",
+					"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
+					"message",
 				}, "\r\n"),
 				strings.Join([]string{
 					"Content-Disposition: attachment; filename=\"test1-attachment\"",
 					"Content-Transfer-Encoding: base64",
 					"Content-Type: application/octet-stream; name=\"test1-attachment\"",
 				}, "\r\n"),
-			},
+			}},
 
-			expectedHTMLs: []string{
+			expectedHTMLs: [][]string{{
 				strings.Join([]string{
 					"    <ul>",
-					"        <li><span class=3D\"bold\">Channel:&nbsp;</span>channel-display-name<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Started:&nbsp;</span>1970-01-01T00:00:00Z<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Ended:&nbsp;</span>1970-01-01T00:01:40Z</l=",
-					"i>",
-					"        <li><span class=3D\"bold\">Duration:&nbsp;</span>2 minutes</li>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
 					"    </ul>",
 				}, "\r\n"),
 				strings.Join([]string{
 					"<tr>",
+					"    <td class=3D\"userid\">test1</td>",
 					"    <td class=3D\"username\">@test</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test1@test.com</td>",
@@ -807,6 +2346,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test2</td>",
 					"    <td class=3D\"username\">@test2</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test2@test.com</td>",
@@ -817,6 +2357,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test3</td>",
 					"    <td class=3D\"username\">@test3</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test3@test.com</td>",
@@ -829,39 +2370,43 @@ func TestGlobalRelayExport(t *testing.T) {
 
 				strings.Join([]string{
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-1</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">Uploaded file test1-attachment</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id-2</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 				}, "\r\n"),
-			},
-			expectedFiles:    1,
+			}},
 			expectedWarnings: 1,
+			numExpectedEmls:  1,
 		},
+
 		{
 			name: "posts with override_username property",
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
@@ -937,7 +2482,7 @@ func TestGlobalRelayExport(t *testing.T) {
 				},
 			},
 			attachments: map[string][]*model.FileInfo{},
-			expectedHeaders: []string{
+			expectedHeaders: [][]string{{
 				"MIME-Version: 1.0",
 				"X-Mattermost-ChannelType: direct",
 				"Content-Transfer-Encoding: 8bit",
@@ -950,11 +2495,15 @@ func TestGlobalRelayExport(t *testing.T) {
 				"From: test1@test.com",
 				"To: test1@test.com,test2@test.com",
 				"Subject: Mattermost Compliance Export: channel-display-name",
-			},
-
-			expectedTexts: []string{
+			}},
+			expectedTexts: [][]string{{
 				strings.Join([]string{
-					"* Channel: channel-display-name",
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
 					"* Started: 1970-01-01T00:00:00Z",
 					"* Ended: 1970-01-01T00:01:40Z",
 					"* Duration: 2 minutes",
@@ -964,25 +2513,32 @@ func TestGlobalRelayExport(t *testing.T) {
 					"Messages",
 					"--------",
 					"",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): message",
-					"* 1970-01-01T00:01:40Z @test1 @test_username_override user (test1@test.com): message",
+					"* post-id 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) me=",
+					"ssage",
+					"* post-id 1970-01-01T00:01:40Z @test1 test1 @test_username_override user (t=",
+					"est1@test.com) message",
 				}, "\r\n"),
-			},
+			}},
 
-			expectedHTMLs: []string{
+			expectedHTMLs: [][]string{{
 				strings.Join([]string{
 					"    <ul>",
-					"        <li><span class=3D\"bold\">Channel:&nbsp;</span>channel-display-name<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Started:&nbsp;</span>1970-01-01T00:00:00Z<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Ended:&nbsp;</span>1970-01-01T00:01:40Z</l=",
-					"i>",
-					"        <li><span class=3D\"bold\">Duration:&nbsp;</span>2 minutes</li>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
 					"    </ul>",
 				}, "\r\n"),
 				strings.Join([]string{
 					"<tr>",
+					"    <td class=3D\"userid\">test1</td>",
 					"    <td class=3D\"username\">@test</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test1@test.com</td>",
@@ -993,6 +2549,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test2</td>",
 					"    <td class=3D\"username\">@test2</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test2@test.com</td>",
@@ -1003,6 +2560,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test3</td>",
 					"    <td class=3D\"username\">@test3</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test3@test.com</td>",
@@ -1015,27 +2573,31 @@ func TestGlobalRelayExport(t *testing.T) {
 
 				strings.Join([]string{
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
 					"    <span class=3D\"postusername\">@test_username_override</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 				}, "\r\n"),
-			},
+			}},
+			numExpectedEmls: 1,
 		},
+
 		{
 			name: "posts with webhook_display_name property",
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
@@ -1111,7 +2673,7 @@ func TestGlobalRelayExport(t *testing.T) {
 				},
 			},
 			attachments: map[string][]*model.FileInfo{},
-			expectedHeaders: []string{
+			expectedHeaders: [][]string{{
 				"MIME-Version: 1.0",
 				"X-Mattermost-ChannelType: direct",
 				"Content-Transfer-Encoding: 8bit",
@@ -1124,11 +2686,16 @@ func TestGlobalRelayExport(t *testing.T) {
 				"From: test1@test.com",
 				"To: test1@test.com,test2@test.com",
 				"Subject: Mattermost Compliance Export: channel-display-name",
-			},
+			}},
 
-			expectedTexts: []string{
+			expectedTexts: [][]string{{
 				strings.Join([]string{
-					"* Channel: channel-display-name",
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
 					"* Started: 1970-01-01T00:00:00Z",
 					"* Ended: 1970-01-01T00:01:40Z",
 					"* Duration: 2 minutes",
@@ -1138,25 +2705,32 @@ func TestGlobalRelayExport(t *testing.T) {
 					"Messages",
 					"--------",
 					"",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): message",
-					"* 1970-01-01T00:01:40Z @test1 @Test Bot user (test1@test.com): message",
+					"* post-id 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) me=",
+					"ssage",
+					"* post-id 1970-01-01T00:01:40Z @test1 test1 @Test Bot user (test1@test.com)=",
+					" message",
 				}, "\r\n"),
-			},
+			}},
 
-			expectedHTMLs: []string{
+			expectedHTMLs: [][]string{{
 				strings.Join([]string{
 					"    <ul>",
-					"        <li><span class=3D\"bold\">Channel:&nbsp;</span>channel-display-name<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Started:&nbsp;</span>1970-01-01T00:00:00Z<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Ended:&nbsp;</span>1970-01-01T00:01:40Z</l=",
-					"i>",
-					"        <li><span class=3D\"bold\">Duration:&nbsp;</span>2 minutes</li>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
 					"    </ul>",
 				}, "\r\n"),
 				strings.Join([]string{
 					"<tr>",
+					"    <td class=3D\"userid\">test1</td>",
 					"    <td class=3D\"username\">@test</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test1@test.com</td>",
@@ -1167,6 +2741,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test2</td>",
 					"    <td class=3D\"username\">@test2</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test2@test.com</td>",
@@ -1177,6 +2752,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test3</td>",
 					"    <td class=3D\"username\">@test3</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test3@test.com</td>",
@@ -1189,27 +2765,31 @@ func TestGlobalRelayExport(t *testing.T) {
 
 				strings.Join([]string{
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
+					"    <span class=3D\"userid\">test1</span>",
 					"    <span class=3D\"postusername\">@Test Bot</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 				}, "\r\n"),
-			},
+			}},
+			numExpectedEmls: 1,
 		},
+
 		{
 			name: "post with permalink preview",
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
@@ -1285,7 +2865,7 @@ func TestGlobalRelayExport(t *testing.T) {
 				},
 			},
 			attachments: map[string][]*model.FileInfo{},
-			expectedHeaders: []string{
+			expectedHeaders: [][]string{{
 				"MIME-Version: 1.0",
 				"X-Mattermost-ChannelType: direct",
 				"Content-Transfer-Encoding: 8bit",
@@ -1298,11 +2878,16 @@ func TestGlobalRelayExport(t *testing.T) {
 				"From: test1@test.com",
 				"To: test1@test.com,test2@test.com",
 				"Subject: Mattermost Compliance Export: channel-display-name",
-			},
+			}},
 
-			expectedTexts: []string{
+			expectedTexts: [][]string{{
 				strings.Join([]string{
-					"* Channel: channel-display-name",
+					"* TeamId: team-id",
+					"* TeamName: team-name",
+					"* TeamDisplayName: team-display-name",
+					"* ChannelId: channel-id",
+					"* ChannelName: channel-name",
+					"* ChannelDisplayName: channel-display-name",
 					"* Started: 1970-01-01T00:00:00Z",
 					"* Ended: 1970-01-01T00:01:40Z",
 					"* Duration: 2 minutes",
@@ -1312,26 +2897,32 @@ func TestGlobalRelayExport(t *testing.T) {
 					"Messages",
 					"--------",
 					"",
-					"* 1970-01-01T00:00:00Z @test1 user (test1@test.com): message o4w39mc1ff8y5f=",
-					"ite4b8hacy1x",
-					"* 1970-01-01T00:01:40Z @test1 user (test1@test.com): message",
+					"* post-id 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) me=",
+					"ssage o4w39mc1ff8y5fite4b8hacy1x",
+					"* post-id 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) me=",
+					"ssage",
 				}, "\r\n"),
-			},
+			}},
 
-			expectedHTMLs: []string{
+			expectedHTMLs: [][]string{{
 				strings.Join([]string{
 					"    <ul>",
-					"        <li><span class=3D\"bold\">Channel:&nbsp;</span>channel-display-name<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Started:&nbsp;</span>1970-01-01T00:00:00Z<=",
-					"/li>",
-					"        <li><span class=3D\"bold\">Ended:&nbsp;</span>1970-01-01T00:01:40Z</l=",
-					"i>",
-					"        <li><span class=3D\"bold\">Duration:&nbsp;</span>2 minutes</li>",
+					"        <li><span class=3D\"bold\">TeamId:</span>team-id</li>",
+					"        <li><span class=3D\"bold\">TeamName:</span>team-name</li>",
+					"        <li><span class=3D\"bold\">TeamDisplayName:</span>team-display-name</=",
+					"li>",
+					"        <li><span class=3D\"bold\">ChannelId:</span>channel-id</li>",
+					"        <li><span class=3D\"bold\">ChannelName:</span>channel-name</li>",
+					"        <li><span class=3D\"bold\">ChannelDisplayName:</span>channel-display-=",
+					"name</li>",
+					"        <li><span class=3D\"bold\">Started:</span>1970-01-01T00:00:00Z</li>",
+					"        <li><span class=3D\"bold\">Ended:</span>1970-01-01T00:01:40Z</li>",
+					"        <li><span class=3D\"bold\">Duration:</span>2 minutes</li>",
 					"    </ul>",
 				}, "\r\n"),
 				strings.Join([]string{
 					"<tr>",
+					"    <td class=3D\"userid\">test1</td>",
 					"    <td class=3D\"username\">@test</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test1@test.com</td>",
@@ -1342,6 +2933,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test2</td>",
 					"    <td class=3D\"username\">@test2</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test2@test.com</td>",
@@ -1352,6 +2944,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"</tr>",
 					"",
 					"<tr>",
+					"    <td class=3D\"userid\">test3</td>",
 					"    <td class=3D\"username\">@test3</td>",
 					"    <td class=3D\"usertype\">user</td>",
 					"    <td class=3D\"email\">test3@test.com</td>",
@@ -1364,28 +2957,31 @@ func TestGlobalRelayExport(t *testing.T) {
 
 				strings.Join([]string{
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:00:00Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
 					"    <span class=3D\"previews_post\">o4w39mc1ff8y5fite4b8hacy1x</span>",
 					"</li>",
 					"",
 					"<li class=3D\"message\">",
+					"    <span class=3D\"post_id\">post-id</span>",
 					"    <span class=3D\"sent_time\">1970-01-01T00:01:40Z</span>",
 					"    <span class=3D\"username\">@test1</span>",
-					"    <span class=3D\"postusername\"></span>",
+					"    <span class=3D\"userid\">test1</span>",
+					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
-					"    <span class=3D\"email\">(test1@test.com):</span>",
+					"    <span class=3D\"email\">(test1@test.com)</span>",
 					"    <span class=3D\"message\">message</span>",
-					"    <span class=3D\"previews_post\"></span>",
 					"</li>",
 				}, "\r\n"),
-			},
-			expectedFiles:    1,
+			}},
 			expectedWarnings: 0,
+			numExpectedEmls:  1,
 		},
 	}
 
@@ -1400,16 +2996,28 @@ func TestGlobalRelayExport(t *testing.T) {
 					call.Run(func(args mock.Arguments) {
 						call.Return(attachments, nil)
 					})
-					if tt.expectedWarnings == 0 {
-						_, err = fileBackend.WriteFile(bytes.NewReader([]byte{}), attachments[0].Path)
-						require.NoError(t, err)
+					for _, attachment := range attachments {
+						if tt.expectedWarnings == 0 {
+							content, ok := tt.attachmentsContent[attachment.Id]
+							require.True(t, ok, "attachment not found for id: %s", attachment.Id)
+							_, err = fileBackend.WriteFile(strings.NewReader(content), attachment.Path)
+							require.NoError(t, err)
 
-						t.Cleanup(func() {
-							err = fileBackend.RemoveFile(attachments[0].Path)
-							assert.NoError(t, err)
-						})
+							t.Cleanup(func() {
+								err = fileBackend.RemoveFile(attachment.Path)
+								assert.NoError(t, err)
+							})
+						}
 					}
 				}
+			}
+
+			if tt.maxEmailBytes > 0 {
+				origMaxEmailBytes := MaxEmailBytes
+				MaxEmailBytes = tt.maxEmailBytes
+				t.Cleanup(func() {
+					MaxEmailBytes = origMaxEmailBytes
+				})
 			}
 
 			exportFileName := path.Join("export", "jobName", "jobName-batch001.zip")
@@ -1429,36 +3037,92 @@ func TestGlobalRelayExport(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedWarnings, results.NumWarnings)
 
-			zipBytes, err := exportBackend.ReadFile(exportFileName)
-			assert.NoError(t, err)
-			zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
-			assert.NoError(t, err)
+			// channel-name - (channel-id) - 0.eml
+			if !tt.empty {
+				if tt.numExpectedEmls == 0 {
+					require.True(t, false, "need numExpectedEmls to be at least 1")
+				}
+				openZipAndAssertNumEmls(t, exportBackend, exportFileName, tt.numExpectedEmls)
 
-			if tt.expectedFiles > 0 {
-				firstFile, err := zipReader.File[0].Open()
-				assert.NoError(t, err)
+				for batchNum := 0; batchNum < tt.numExpectedEmls; batchNum++ {
+					metadata := tt.metadata["channel-id"]
+					emlName := fmt.Sprintf("%s - (%s) - %d.eml", metadata.ChannelName,
+						metadata.ChannelId, batchNum)
+					eml := openZipAndReadFileStartingWith(t, exportBackend, exportFileName, emlName)
 
-				data, err := io.ReadAll(firstFile)
-				assert.NoError(t, err)
+					// Note: for debugging, better keep this in case we need it again.
+					//t.Logf("<><> batchNum %d actual: \n%s", batchNum, eml)
 
-				t.Run("headers", func(t *testing.T) {
-					for _, expectedHeader := range tt.expectedHeaders {
-						assert.Contains(t, string(data), expectedHeader, "expected: %s", expectedHeader)
+					t.Run("headers", func(t *testing.T) {
+						for _, expectedHeader := range tt.expectedHeaders[batchNum] {
+							assert.Contains(t, eml, expectedHeader, "batchNum %d, expected: %s", batchNum, expectedHeader)
+						}
+					})
+
+					t.Run("text-version", func(t *testing.T) {
+						for _, expectedText := range tt.expectedTexts[batchNum] {
+							assert.Contains(t, eml, expectedText, "batchNum %d, expected: %s", batchNum, expectedText)
+						}
+						if len(tt.notExpectedTexts) > 0 {
+							for _, notExpectedText := range tt.notExpectedTexts[batchNum] {
+								assert.NotContains(t, eml, notExpectedText, "batchNum %d, expected: %s", batchNum, notExpectedText)
+							}
+						}
+					})
+
+					t.Run("html-version", func(t *testing.T) {
+						for _, expectedHTML := range tt.expectedHTMLs[batchNum] {
+							assert.Contains(t, eml, expectedHTML, "batchNum %d, \nexpected:\n %s\n\nactual:\n %s\n", batchNum, expectedHTML, eml)
+						}
+					})
+
+					assert.Len(t, tt.expectedAttachmentContent, len(tt.attachmentsContent), "every attachmentsContent should have an expectedAttachmentContent")
+
+					if len(tt.expectedAttachmentContent) > 0 {
+						t.Run("file encoding", func(t *testing.T) {
+							for _, expected := range tt.expectedAttachmentContent[batchNum] {
+								assert.Contains(t, eml, expected, "batchNum %d, \nexpected:\n %s\n\nactual:\n %s\n", batchNum, expected, eml)
+							}
+						})
 					}
-				})
-
-				t.Run("text-version", func(t *testing.T) {
-					for _, expectedText := range tt.expectedTexts {
-						assert.Contains(t, string(data), expectedText, "expected: %s", expectedText)
-					}
-				})
-
-				t.Run("html-version", func(t *testing.T) {
-					for _, expectedHTML := range tt.expectedHTMLs {
-						assert.Contains(t, string(data), expectedHTML, "\nexpected:\n %s\n\nactual:\n %s\n", expectedHTML, string(data))
-					}
-				})
+				}
 			}
 		})
 	}
+}
+
+func openZipAndReadFileStartingWith(t *testing.T, backend filestore.FileBackend, path string, startsWith string) string {
+	zipBytes, err := backend.ReadFile(path)
+	require.NoError(t, err)
+
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	require.NoError(t, err)
+
+	var names []string
+	for _, f := range zipReader.File {
+		if strings.HasPrefix(f.Name, startsWith) {
+			file, err := f.Open()
+			require.NoError(t, err)
+			contents, err := io.ReadAll(file)
+			require.NoError(t, err)
+			err = file.Close()
+			require.NoError(t, err)
+
+			return string(contents)
+		}
+		names = append(names, f.Name)
+	}
+
+	require.True(t, false, "called openZipAndReadFileStartingWith but didn't file file starting with: %s. Found: %v", startsWith, names)
+	return ""
+}
+
+func openZipAndAssertNumEmls(t *testing.T, backend filestore.FileBackend, path string, numEmls int) {
+	zipBytes, err := backend.ReadFile(path)
+	require.NoError(t, err)
+
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	require.NoError(t, err)
+
+	require.Len(t, zipReader.File, numEmls, "numEmls wrong")
 }

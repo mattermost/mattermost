@@ -350,6 +350,7 @@ func attachmentToRow(post shared.PostExport) Row {
 	postType := "attachment"
 	if post.UpdatedType == shared.FileDeleted {
 		postType = "deleted attachment"
+		post.PostUpdateAt = model.NewPointer(post.FileInfo.DeleteAt)
 	}
 
 	return postToRow(post, postType, post.PostCreateAt, message)

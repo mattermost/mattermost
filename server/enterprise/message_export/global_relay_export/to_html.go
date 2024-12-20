@@ -26,7 +26,6 @@ func TimestampConvert(timestampMS int64) string {
 
 func channelExportToHTML(rctx request.CTX, channelExport *ChannelExport, t *templates.Container) (string, error) {
 	durationMilliseconds := channelExport.EndTime - channelExport.StartTime
-	// TODO CHECK IF WE NEED THE MILISECONS HERE OR WE CAN ROUND IT DIRECTLY HERE
 	duration := time.Duration(durationMilliseconds) * time.Millisecond
 
 	var participantRowsBuffer bytes.Buffer
@@ -42,7 +41,9 @@ func channelExportToHTML(rctx request.CTX, channelExport *ChannelExport, t *temp
 	var messagesBuffer bytes.Buffer
 	sort.Slice(channelExport.Messages, func(i, j int) bool {
 		if channelExport.Messages[i].SentTime == channelExport.Messages[j].SentTime {
-			return !strings.HasPrefix(channelExport.Messages[i].Message, "Uploaded file") && !strings.HasPrefix(channelExport.Messages[i].Message, "Deleted file")
+			return !strings.HasPrefix(channelExport.Messages[i].Message, "Uploaded file") &&
+				!strings.HasPrefix(channelExport.Messages[i].Message, "Deleted file") &&
+				channelExport.Messages[i].UpdateType == ""
 		}
 		return channelExport.Messages[i].SentTime < channelExport.Messages[j].SentTime
 	})
@@ -57,13 +58,18 @@ func channelExportToHTML(rctx request.CTX, channelExport *ChannelExport, t *temp
 
 	data := templates.Data{
 		Props: map[string]any{
-			"ChannelName":     channelExport.ChannelName,
-			"Started":         TimestampConvert(channelExport.StartTime),
-			"Ended":           TimestampConvert(channelExport.EndTime),
-			"Duration":        durafmt.Parse(duration.Round(time.Minute)).String(),
-			"ParticipantRows": template.HTML(participantRowsBuffer.String()),
-			"Messages":        template.HTML(messagesBuffer.String()),
-			"ExportDate":      TimestampConvert(channelExport.ExportedOn),
+			"TeamId":             channelExport.TeamId,
+			"TeamName":           channelExport.TeamName,
+			"TeamDisplayName":    channelExport.TeamDisplayName,
+			"ChannelId":          channelExport.ChannelId,
+			"ChannelName":        channelExport.ChannelName,
+			"ChannelDisplayName": channelExport.ChannelDisplayName,
+			"Started":            TimestampConvert(channelExport.StartTime),
+			"Ended":              TimestampConvert(channelExport.EndTime),
+			"Duration":           durafmt.Parse(duration.Round(time.Minute)).String(),
+			"ParticipantRows":    template.HTML(participantRowsBuffer.String()),
+			"Messages":           template.HTML(messagesBuffer.String()),
+			"ExportDate":         TimestampConvert(channelExport.ExportedOn),
 		},
 	}
 
@@ -72,11 +78,11 @@ func channelExportToHTML(rctx request.CTX, channelExport *ChannelExport, t *temp
 
 func participantToHTML(participant *ParticipantRow, t *templates.Container) (string, error) {
 	durationMilliseconds := participant.LeaveTime - participant.JoinTime
-	// TODO CHECK IF WE NEED THE MILISECONS HERE OR WE CAN ROUND IT DIRECTLY HERE
 	duration := time.Duration(durationMilliseconds) * time.Millisecond
 
 	data := templates.Data{
 		Props: map[string]any{
+			"UserId":      participant.UserId,
 			"Username":    participant.Username,
 			"UserType":    participant.UserType,
 			"Email":       participant.UserEmail,
@@ -97,14 +103,18 @@ func messageToHTML(message *Message, t *templates.Container) (string, error) {
 	}
 	data := templates.Data{
 		Props: map[string]any{
-			"SentTime":     TimestampConvert(message.SentTime),
-			"Username":     message.SenderUsername,
-			"PostUsername": postUsername,
-			"UserType":     message.SenderUserType,
-			"PostType":     message.PostType,
-			"Email":        message.SenderEmail,
-			"Message":      message.Message,
-			"PreviewsPost": message.PreviewsPost,
+			"PostId":         message.Id,
+			"SentTime":       TimestampConvert(message.SentTime),
+			"UserId":         message.SenderId,
+			"Username":       message.SenderUsername,
+			"PostUsername":   postUsername,
+			"UserType":       message.SenderUserType,
+			"Email":          message.SenderEmail,
+			"Message":        message.Message,
+			"PreviewsPost":   message.PreviewsPost,
+			"UpdateTime":     TimestampConvert(message.UpdateAt),
+			"UpdateType":     message.UpdateType,
+			"EditedNewMsgId": message.EditedNewMsgId,
 		},
 	}
 

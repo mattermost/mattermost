@@ -551,8 +551,9 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 3,\n      \"AttachmentsCount\": 0\n    }\n  },\n  \"MessagesCount\": 3,\n  \"AttachmentsCount\": 0,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
 			expectedFiles:    2,
 		},
+
 		{
-			name: "posts with attachments",
+			name: "posts with deleted attachment and deleted post, and at different time from non-deleted original post",
 			cmhs: map[string][]*model.ChannelMemberHistoryResult{
 				"channel-id": {
 					{
@@ -638,7 +639,8 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 					UserId:             model.NewPointer("user-id"),
 					Username:           model.NewPointer("username"),
 					ChannelType:        &chanTypeDirect,
-					PostFileIds:        []string{},
+					// NOTE: this post will be deleted, but the post-id-2 is not deleted.
+					PostFileIds: []string{"test3"},
 				},
 			},
 			attachments: map[string][]*model.FileInfo{
@@ -657,6 +659,14 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 						DeleteAt: 3,
 					},
 				},
+				"post-id-2": {
+					{
+						Name:     "test3",
+						Id:       "test3",
+						Path:     "test3",
+						DeleteAt: 102,
+					},
+				},
 			},
 			expectedPosts: strings.Join([]string{
 				header,
@@ -671,9 +681,11 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 				"8,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) joined the channel,enter,user,\n",
 				"80,0,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,test2,test2,test2,,,,User test2 (test2) left the channel,leave,user,\n",
 				"100,100,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-2,,post-id-1,message 2,message,user,\n",
+				"100,100,,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-2,,post-id-1,test3 (files/post-id-2/test3-test3),attachment,user,\n",
+				"100,102,FileDeleted,team-id,team-name,team-display-name,channel-id,channel-name,channel-display-name,direct,user-id,test@test.com,username,post-id-2,,post-id-1,test3 (files/post-id-2/test3-test3),deleted attachment,user,\n",
 			}, ""),
 			expectedMetadata: "{\n  \"Channels\": {\n    \"channel-id\": {\n      \"TeamId\": \"team-id\",\n      \"TeamName\": \"team-name\",\n      \"TeamDisplayName\": \"team-display-name\",\n      \"ChannelId\": \"channel-id\",\n      \"ChannelName\": \"channel-name\",\n      \"ChannelDisplayName\": \"channel-display-name\",\n      \"ChannelType\": \"D\",\n      \"RoomId\": \"direct - channel-id\",\n      \"StartTime\": 1,\n      \"EndTime\": 100,\n      \"MessagesCount\": 4,\n      \"AttachmentsCount\": 3\n    }\n  },\n  \"MessagesCount\": 4,\n  \"AttachmentsCount\": 3,\n  \"StartTime\": 1,\n  \"EndTime\": 100\n}",
-			expectedFiles:    4,
+			expectedFiles:    5,
 		},
 	}
 
@@ -683,12 +695,8 @@ func runTestCsvExportDedicatedExportFilestore(t *testing.T, exportBackend filest
 			defer mockStore.AssertExpectations(t)
 
 			if len(tt.attachments) > 0 {
-				for post_id, attachments := range tt.attachments {
-					numCallsGetPost := 2
-					if attachments[0].DeleteAt > 0 {
-						numCallsGetPost = 3
-					}
-					call := mockStore.FileInfoStore.On("GetForPost", post_id, true, true, false).Times(numCallsGetPost)
+				for postId, attachments := range tt.attachments {
+					call := mockStore.FileInfoStore.On("GetForPost", postId, true, true, false)
 					call.Run(func(args mock.Arguments) {
 						call.Return(tt.attachments[args.Get(0).(string)], nil)
 					})

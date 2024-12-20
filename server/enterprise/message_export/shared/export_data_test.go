@@ -289,8 +289,14 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 			attachments: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
 			},
-			expectedStarts: nil,
-			expectedStops:  nil,
+			expectedStarts: []*FileUploadStartExport{
+				{UserEmail: "test@test.com", UploadStartTime: 1,
+					FileInfo: &model.FileInfo{Id: "12345", Name: "test", Path: "filename.txt", DeleteAt: 2}},
+			},
+			expectedStops: []*FileUploadStopExport{
+				{UserEmail: "test@test.com", UploadStopTime: 1,
+					FileInfo: &model.FileInfo{Id: "12345", Name: "test", Path: "filename.txt", DeleteAt: 2}, Status: "Completed"},
+			},
 			expectedFileInfos: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
 			},
