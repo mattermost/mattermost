@@ -187,6 +187,8 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
                 <ul
                     className={classNames(['a11y__popup Menu dropdown-menu SubMenu', {styleSelectableItem}])}
                     style={subMenuStyle}
+                    id={id + '_submenu'}
+
                 >
                     {hasSubmenu ? subMenu!.map((s) => {
                         const hasDivider = s.id === 'ChannelMenu-moveToDivider';
@@ -233,12 +235,14 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
                 id={id + '_menuitem'}
                 ref={this.node}
                 onClick={this.onClick}
+                {...(Boolean(hasSubmenu) && {'aria-haspopup': 'menu', 'aria-controls': id + '_submenu', 'aria-expanded': this.state.show})}
             >
                 <div
                     className={classNames([{styleSelectableItemDiv: styleSelectableItem}])}
                     id={id}
                     aria-label={ariaLabel}
                     onMouseEnter={this.show}
+                    role='button'
                     onMouseLeave={this.hide}
                     tabIndex={tabIndex ?? 0}
                     onKeyDown={this.handleKeyDown}
