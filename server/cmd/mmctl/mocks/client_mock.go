@@ -763,6 +763,22 @@ func (mr *MockClientMockRecorder) GetConfig(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfig", reflect.TypeOf((*MockClient)(nil).GetConfig), arg0)
 }
 
+// GetConfigWithOptions mocks base method.
+func (m *MockClient) GetConfigWithOptions(arg0 context.Context, arg1 model.GetConfigOptions) (map[string]interface{}, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConfigWithOptions", arg0, arg1)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetConfigWithOptions indicates an expected call of GetConfigWithOptions.
+func (mr *MockClientMockRecorder) GetConfigWithOptions(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfigWithOptions", reflect.TypeOf((*MockClient)(nil).GetConfigWithOptions), arg0, arg1)
+}
+
 // GetDeletedChannelsForTeam mocks base method.
 func (m *MockClient) GetDeletedChannelsForTeam(arg0 context.Context, arg1 string, arg2, arg3 int, arg4 string) ([]*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()

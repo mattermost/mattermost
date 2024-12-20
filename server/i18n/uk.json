@@ -385,15 +385,15 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Встановити статус на \"Відсутній\""
+    "translation": "Встановити статус на \"Не на місці\""
   },
   {
     "id": "api.command_away.name",
-    "translation": "відсутній"
+    "translation": "не на місці"
   },
   {
     "id": "api.command_away.success",
-    "translation": "Зараз ваш статус \"Відсутній\""
+    "translation": "Зараз ваш статус \"Не на місці\""
   },
   {
     "id": "api.command_channel_header.channel.app_error",
@@ -2789,7 +2789,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
-    "translation": "Недійсний сповіщувач Prop Trigger для каналу користувача."
+    "translation": "Некоректна властивість Cповіщення для тригера каналу для користувача."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error",
@@ -2797,11 +2797,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": "Недійсне значення параметра \"Сповіщення про робочий стіл\" для користувача."
+    "translation": "Некоректне значення властивості Cповіщення для робочого столу для користувача."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Невірний звук робочого столу Notify Prop значення для користувача."
+    "translation": "Некоректне значення властивості Звукового сповіщення для робочого столу для користувача."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
@@ -2813,7 +2813,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
-    "translation": "Недійсний статус мобільного стану сповіщення для користувача."
+    "translation": "Некоректне значення властивості Сповіщення про статус мобільних push-сповіщень для користувача."
   },
   {
     "id": "app.import.validate_user_import_data.password_length.error",
@@ -2829,7 +2829,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
-    "translation": "Ролі користувача недійсні."
+    "translation": "Неправильні ролі користувачів."
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
@@ -2837,7 +2837,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Відсутня необхідна властивість користувача: username."
+    "translation": "Відсутня обов'язкова властивість користувача: ім'я користувача."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
@@ -2861,11 +2861,11 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] Повідомлення в {{ .TeamName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Сповіщення в {{ .TeamName}} від {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "Конфігурація плагіна у вашому файлі config.json повинна бути оновлена вручну при використанні ReadOnlyConfig з увімкненою кластеризацією."
+    "translation": "Конфігурацію плагіна у вашому файлі config.json необхідно оновлювати вручну при використанні ReadOnlyConfig з увімкненою кластеризацією."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -2877,7 +2877,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Плагіни відключені. Будь ласка, перевірте свої журнали на деталі."
+    "translation": "Плагіни були вимкнені. Будь ласка, перевірте свої логи для деталей."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -2889,7 +2889,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": "Неможливо отримати статуси плагінів з кластера."
+    "translation": "Не вдається отримати статуси плагінів від кластера."
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -2897,7 +2897,7 @@
   },
   {
     "id": "app.plugin.get_statuses.app_error",
-    "translation": "Неможливо встановити стан статусу плагіна."
+    "translation": "Не вдалося отримати статуси плагінів."
   },
   {
     "id": "app.plugin.install.app_error",
@@ -2905,11 +2905,11 @@
   },
   {
     "id": "app.plugin.install_id.app_error",
-    "translation": "Не вдається встановити плагін. Плагін з тим самим ідентифікатором вже встановлений."
+    "translation": "Не вдалося встановити плагін. Плагін з таким самим ідентифікатором вже встановлено."
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Не вдається встановити плагін. Плагін з тим самим ідентифікатором вже встановлений і його не вдалося видалити."
+    "translation": "Не вдалося встановити плагін. Плагін з таким самим ідентифікатором вже встановлено і його не вдалося видалити."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -2921,7 +2921,7 @@
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Неможливо перемістити плагін з тимчасового каталогу до кінцевого пункту призначення. Інший плагін може використовувати ту саму назву каталогу."
+    "translation": "Не вдалося перемістити плагін з тимчасового каталогу до кінцевого місця призначення. Можливо, інший плагін використовує той самий каталог."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -2933,7 +2933,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "Завантаження плагінів та / або плагінів вимкнено."
+    "translation": "Плагіни та/або завантаження плагінів вимкнено."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -2945,11 +2945,11 @@
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
-    "translation": "Ця кінцева точка API недоступна, оскільки необхідна міграція ще не завершена."
+    "translation": "Ця кінцева точка API недоступна, оскільки необхідні міграції ще не завершені."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "Виявлено помилку, яка кодує JSON для інтерактивного діалогу."
+    "translation": "Виникла помилка кодування JSON для інтерактивного діалогу."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -2957,7 +2957,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "Ця команда досягла максимальної кількості дозволених акаунтів. Зверніться до системного адміністратора, щоб встановити більшу межу."
+    "translation": "Ця команда досягла максимальної кількості дозволених акаунтів. Зверніться до системного адміністратора, щоб встановити вищий ліміт."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -2969,19 +2969,19 @@
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Неможливо декодувати дані зображення."
+    "translation": "Неможливо розшифрувати дані зображення."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": "Неможливо перетворити дані зображення у формат PNG. Будь ласка спробуйте ще раз."
+    "translation": "Не вдалося конвертувати дані зображення у формат PNG. Будь ласка, спробуйте ще раз."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": "Не вдається завантажити користувацький образ бренда. Переконайтеся, що розмір зображення менше 2 МБ, і спробуйте ще раз."
+    "translation": "Не вдалося завантажити власне зображення бренду. Переконайтеся, що розмір зображення не перевищує 2 МБ, і спробуйте ще раз."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Не вдається записати файл зображення у файловий накопичувач. Перевірте ваше з'єднання та повторіть спробу."
+    "translation": "Не вдалося записати файл зображення до вашого файлового сховища. Будь ласка, перевірте з'єднання і спробуйте ще раз."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3369,15 +3369,15 @@
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Не вдалося підписати сформований ідентифікатор тригер для інтерактивного діалогу."
+    "translation": "Не вдалося підписати згенерований ідентифікатор тригера для інтерактивного діалогу."
   },
   {
     "id": "jobs.request_cancellation.status.error",
-    "translation": "Не вдалося скасувати запит на роботу, яка не перебуває у скасовуваному стані."
+    "translation": "Не вдалося надіслати запит на скасування для завдання, яке не знаходиться в стані, що дозволяє скасування."
   },
   {
     "id": "jobs.set_job_error.update.error",
-    "translation": "Не вдалося встановити статус роботи до помилки"
+    "translation": "Не вдалося встановити статус завдання на \"помилка\""
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -3549,7 +3549,7 @@
   },
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
-    "translation": "Неможливо позначити як непрочитане: невірний рівень дозволу."
+    "translation": "Невірний рівень позначення як непрочитане."
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
@@ -3577,7 +3577,7 @@
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "Тип повинен бути встановлений."
+    "translation": "Тип повинен бути заданий."
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3673,39 +3673,39 @@
   },
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
-    "translation": "\"До\" має бути більше, ніж \"З\"."
+    "translation": "Значення \"До\" повинно бути більшим за значення \"Від\"."
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
-    "translation": "Щоб дозволити cookies для піддоменів, потрібно встановити SiteURL."
+    "translation": "Щоб дозволити файли cookie для субдоменів, потрібно встановити SiteURL."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+    "translation": "Некоректний параметр RemoteImageProxyOptions для atmos/camo. Необхідно встановити спільний ключ."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+    "translation": "Некоректний параметр RemoteImageProxyURL для atmos/camo. Необхідно встановити спільний ключ."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "Неможливо включити пакетну обробку пошти при включеній кластеризації."
+    "translation": "Неможливо увімкнути пакетну обробку електронних листів під час увімкненої кластеризації."
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Час початку роботи утримання даних повинен бути 24-годинною штампом часу у формі HH : MM."
+    "translation": "Час початку роботи зі збереження даних повинен бути 24-годинною позначкою часу у вигляді ГГ:ХВ."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Затримання файлу має тривати один день або більше."
+    "translation": "Кількість днів зберігання файлів не може бути меншою за 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Утримання повідомлення має тривати один день або більше."
+    "translation": "Кількість днів зберігання повідомлень не може бути меншою за 0."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "Схема користувацької URL-адреси {{.Scheme}} недійсна. Спеціальні схеми URL-адрес повинні починатися з літери та містити лише літери, цифри та дефіс (-)."
+    "translation": "Користувацька схема URL-адреси {{.Scheme}} є недійсною. Користувацькі схеми URL повинні починатися з літери і містити лише літери, цифри, плюс (+), крапку (.) і дефіс (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -3713,7 +3713,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Параметр Elastic Search ConnectionUrl повинен бути встановлений, якщо ввімкнено інсталяцію Elastic Search."
+    "translation": "Параметр Elasticsearch ConnectionUrl необхідно вказати, якщо індексування Elasticsearch увімкнено."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -3729,19 +3729,19 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Час очікування запиту Elasticsearch повинен бути не менше 1 секунди."
+    "translation": "Час очікування запиту Elasticsearch має бути щонайменше 1 секунда."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "Недійсний розмір буфера для доставки електронної пошти для налаштувань електронної пошти. Має бути нульовим або позитивним числом."
+    "translation": "Недійсний розмір буфера пакетної обробки електронних листів у налаштуваннях пошти. Має бути нульовим або додатним числом."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Недійсний інтервал доставки електронної пошти для налаштувань електронної пошти. Має бути 30 секунд або більше."
+    "translation": "Недійсний інтервал пакетної обробки електронних листів у налаштуваннях пошти. Має бути 30 секунд або більше."
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "Неправильний тип вмісту сповіщення електронною поштою для налаштувань електронної пошти. Має бути одним із \"повних\" або \"загальних\"."
+    "translation": "Недійсний тип вмісту сповіщень електронної пошти у налаштуваннях пошти. Має бути 'full' або 'generic'."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -3749,7 +3749,7 @@
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Невірний ключ зашифрувати в налаштуваннях SQL. Має бути 32 символів або більше."
+    "translation": "Неправильний ключ шифрування для SQL-налаштувань. Повинен містити 32 або більше символів."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -3757,19 +3757,19 @@
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
-    "translation": "Неприпустима кількість символів публічного посилання для налаштування файлу. Має бути 32 символів або більше."
+    "translation": "Неправильна сіль публічного посилання для налаштувань файлів. Повинен містити 32 або більше символів."
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
-    "translation": "Недійсні непрочитані канали групи для налаштувань сервісу. Має бути \"вимкнено\", \"default_on\" або \"default_off\"."
+    "translation": "Недійсні налаштування непрочитаних каналів для групи в налаштуваннях сервісу. Має бути \"disabled\", \"default_on\" або \"default_off\"."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+    "translation": "Неправильний тип проксі зображення. Має бути 'local' або 'atmos/camo'."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "Потрібно поле AD/LDAP \"BaseDN\"."
+    "translation": "Поле AD/LDAP \"BaseDN\" є обов'язковим."
   },
   {
     "id": "model.config.is_valid.ldap_email",
@@ -3777,15 +3777,15 @@
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "Потрібно поле AD / LDAP \"ID Attribute\"."
+    "translation": "Поле AD/LDAP \"ID Attribute\" обов'язкове."
   },
   {
     "id": "model.config.is_valid.ldap_login_id",
-    "translation": "Поле AD / LDAP \"Атрибут ідентифікатора входу\" обов'язкове."
+    "translation": "Поле AD/LDAP \"Login ID Attribute\" обов'язкове."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
-    "translation": "Невірне значення максимального розміру сторінки."
+    "translation": "Неправильне значення максимального розміру сторінки."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
@@ -3793,11 +3793,11 @@
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "Потрібно поле AD/LDAP \"AD/LDAP Server\"."
+    "translation": "Поле AD/LDAP \"Сервер AD/LDAP\" обов'язкове."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
-    "translation": "Невірний інтервал синхронізації. Повинен становити не менше однієї хвилини."
+    "translation": "Неправильний час інтервалу синхронізації. Повинен бути не менше однієї хвилини."
   },
   {
     "id": "model.config.is_valid.ldap_username",
@@ -3805,7 +3805,7 @@
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
-    "translation": "Неправильна адреса прослуховування в налаштуваннях служби. Повинен бути заданий."
+    "translation": "Адреса прослуховування в налаштуваннях сервісу недійсна. Цей пункт необхідно встановити."
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
@@ -3813,27 +3813,27 @@
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
-    "translation": "Неправильні максимальні спроби входу до службових налаштувань. Має бути позитивним числом."
+    "translation": "Неправильна максимальна кількість спроб входу для налаштувань сервісу. Повинно бути додатнім числом."
   },
   {
     "id": "model.config.is_valid.max_burst.app_error",
-    "translation": "Максимальне перевищення смуги пропускання має бути більше нуля."
+    "translation": "Максимальний розмір пакету має бути більше нуля."
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Недійсні максимальні канали для команди щодо налаштування команди. Має бути позитивним числом."
+    "translation": "Неправильно вказано максимальну кількість каналів на команду для командних налаштувань. Повинно бути додатнім числом."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Недійсний розмір максимального розміру файлу для параметрів файлу. Має бути цілим числом, більшим за нуль."
+    "translation": "Неправильний максимальний розмір файлу для налаштувань файлу. Повинно бути цілим числом, більшим за нуль."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
-    "translation": "Недійсні максимальні сповіщення на канал для налаштування команди. Має бути позитивним числом."
+    "translation": "Невірно вказано максимальну кількість сповіщень на канал для налаштувань команди. Повинно бути позитивне число."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Недійсні максимальні користувачі на команду для налаштування команди. Має бути позитивним числом."
+    "translation": "Неправильно вказано максимальну кількість користувачів у команді для налаштувань команди. Повинно бути додатнім числом."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -3841,7 +3841,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
-    "translation": "Робота з експорту повідомлень DailyRuntime повинна бути 24-годинною штампом часу у формі HH: MM."
+    "translation": "Задача експорту повідомлень DailyRuntime має бути представленою у вигляді 24-годинного формату часу ГГ:ХХ."
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
@@ -3849,7 +3849,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "Робота з експортування повідомлення ExportFromTimestamp повинна бути міткою часу (виражена в секундах з епохи unix). Лише повідомлення, надіслані після цієї позначки часу, будуть експортовані."
+    "translation": "Завдання експорту повідомлень ExportFromTimestamp має мітку часу (виражену в секундах, починаючи з епохи unix). Буде експортовано лише повідомлення, надіслані після цієї часової мітки."
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
@@ -3877,7 +3877,7 @@
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
-    "translation": "Мінімальна довжина пароля повинна бути цілим числом більшим чи рівним {{.MinLength}}, а також меншим або рівним {{.MaxLength}}."
+    "translation": "Мінімальна довжина пароля повинна бути цілим числом, більшим або рівним {{.MinLength}} і меншим або рівним {{.MaxLength}}."
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
@@ -3901,11 +3901,11 @@
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "Невірний атрибут електронної пошти. Необхідно встановити."
+    "translation": "Невірний атрибут Електронна пошта. Повинен бути встановлений."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Загальнодоступний сертифікат постачальника посвідчень відсутній. Ви забули завантажити його?"
+    "translation": "Відсутній публічний сертифікат постачальника ідентифікаційних даних. Ви забули його завантажити?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
@@ -3917,7 +3917,7 @@
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Приватний ключ постачальника служби відсутній. Ви забули його завантажити?"
+    "translation": "Відсутній приватний ключ постачальника послуг. Ви забули завантажити його?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
@@ -3925,7 +3925,7 @@
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
-    "translation": "Некоректна атрибута Username. Атрибут повинен бути заданий."
+    "translation": "Невірний атрибут Ім'я користувача. Повинен бути встановлений."
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
@@ -3933,19 +3933,19 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Неможливо включити поштові об'єднання, якщо не заданий SiteURL."
+    "translation": "Неможливо увімкнути пакетну обробку електронної пошти, якщо SiteURL не налаштовано."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
-    "translation": "Назва сайту має бути менше або дорівнює {{.MaxLength}} символів."
+    "translation": "Назва сайту має бути не більшою, ніж {{.MaxLength}} символів."
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Недійсний максимальний термін служби зв'язку для налаштувань SQL. Має бути невід'ємним числом."
+    "translation": "Неправильний максимальний час життя з'єднання для налаштувань SQL. Має бути невід'ємним числом."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
-    "translation": "Недійсний джерело даних для налаштувань SQL. Необхідно встановити."
+    "translation": "Неправильне джерело даних для налаштувань SQL. Необхідно встановити."
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
@@ -3953,15 +3953,15 @@
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
-    "translation": "Недійсне максимальне незайняте з'єднання для налаштувань SQL. Має бути позитивним числом."
+    "translation": "Неправильний максимальний час очікування з'єднання для налаштувань SQL. Повинно бути додатнім числом."
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
-    "translation": "Недійсне максимальне відкрите з'єднання для налаштувань SQL. Має бути позитивним числом."
+    "translation": "Невірна максимальна кількість відкритих з'єднань для SQL налаштувань. Має бути додатним числом."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Недійсний тайм-аут запиту для налаштувань SQL. Має бути позитивним числом."
+    "translation": "Невірний час очікування запиту для SQL налаштувань. Має бути додатним числом."
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
@@ -3969,7 +3969,7 @@
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
-    "translation": "Оновлення статусу набору тексту користувачем не може бути частіше, ніж раз у 1000 мілісекунд."
+    "translation": "Час між оновленнями введення тексту користувачем повинен бути не менше, ніж 1000 мілісекунд."
   },
   {
     "id": "model.config.is_valid.tls_cert_file_missing.app_error",
@@ -3985,7 +3985,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
-    "translation": "Неприпустиме значення налаштувань безпеки з'єднання веб-сервера."
+    "translation": "Недопустиме значення для безпеки з'єднання вебсервера."
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
@@ -3993,7 +3993,7 @@
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
-    "translation": "Неприпустиме значення для часу очікування читання."
+    "translation": "Неправильне значення таймауту запису."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -4017,7 +4017,7 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "Неприпустиме значення для часу очікування читання."
+    "translation": "Невірне значення для create_at."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
@@ -4081,7 +4081,7 @@
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "недійсний Ідентифікатор синхронізації для синхронізованої групи."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4145,11 +4145,11 @@
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": "Невірне значення для created_at при завантаженні ліцензії."
+    "translation": "Неправильне значення параметра create_at при завантаженні ліцензії."
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": "Недійсне значення ідентифікатора під час завантаження ліцензії."
+    "translation": "Невірне значення для id при завантаженні ліцензії."
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
@@ -4277,15 +4277,15 @@
   },
   {
     "id": "model.plugin_command.error.app_error",
-    "translation": "Під час спроби виконати цю команду, сталася помилка."
+    "translation": "При спробі виконати цю команду сталася помилка."
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
-    "translation": "Недійсний ключ повинен бути більше {{.Min}} і не більше {{.Max}} символів."
+    "translation": "Неправильний ключ, повинен мати довжину більше {{.Min}} і не менше {{.Max}} символів."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Невірний ідентифікатор плагіна повинен бути не більше {{.Min}} і не більше {{.Max}} символів."
+    "translation": "Неправильний ідентифікатор плагіна, повинен бути довшим за {{.Min}} і не більше {{.Max}} символів."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -4310,10 +4310,6 @@
   {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Недійсний ідентифікатор."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Недійсне повідомлення."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -4845,11 +4841,11 @@
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
-    "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
+    "translation": "Сповіщення каналів вимкнено у {{.ChannelName}}. {{.Mention}} не викликав жодних сповіщень."
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+    "translation": "Невірне старе значення, воно не повинно бути встановлене, коли операція не є атомарною."
   },
   {
     "id": "model.guest.is_valid.emails.app_error",
@@ -4869,23 +4865,23 @@
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
-    "translation": "invalid characters in the name property for group"
+    "translation": "недопустимі символи у властивості name для групи"
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-    "translation": "Invalid Signature Algorithm."
+    "translation": "Неправильний алгоритм підпису."
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Invalid Guest attribute. Must be in the form 'field=value'."
+    "translation": "Неправильний атрибут Гість. Має бути у вигляді 'field=value'."
   },
   {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
-    "translation": "Invalid Canonical Algorithm."
+    "translation": "Невірний канонічний алгоритм."
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
-    "translation": "Invalid Admin attribute. Must be in the form 'field=value'."
+    "translation": "Невірний атрибут Admin. Має бути у вигляді 'field=value'."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
@@ -4905,7 +4901,7 @@
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": "Invalid AutocompleteData"
+    "translation": "Неправильні AutocompleteData"
   },
   {
     "id": "model.channel.is_valid.name.app_error",
@@ -5013,11 +5009,11 @@
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
+    "translation": "Не вдалося закрити індекс користувача."
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
+    "translation": "Не вдалося закрити індекс допису."
   },
   {
     "id": "bleveengine.stop_channel_index.error",
@@ -5045,19 +5041,19 @@
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
+    "translation": "Не вдалося очистити індекси користувача."
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
+    "translation": "Не вдалося очистити індекси дописів."
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
+    "translation": "Не вдалося очистити індекси каналу."
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
+    "translation": "Спроба індексувати новий пакет, коли всі сутності вже були завершені."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
@@ -5069,15 +5065,15 @@
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Failed to run Bleve index job: engine is inactive."
+    "translation": "Не вдалося запустити завдання індексації Bleve: механізм неактивний."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
+    "translation": "Не вдалося проіндексувати пакет користувачів."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
+    "translation": "Не вдалося проіндексувати пакет дописів."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
@@ -5149,7 +5145,7 @@
   },
   {
     "id": "app.terms_of_service.create.existing.app_error",
-    "translation": "Необхідно зателефонувати за збереженням існуючих умов надання послуг."
+    "translation": "Не можна викликати збереження для існуючих Умов використання."
   },
   {
     "id": "app.terms_of_service.create.app_error",
@@ -5161,11 +5157,11 @@
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "Не вдалося приєднатися до команди з обмеженням групи за токеном."
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "Не вдалося приєднатися до команди з обмеженням групи за запрошенням."
   },
   {
     "id": "app.plugin.write_file.saving.app_error",
@@ -5177,27 +5173,27 @@
   },
   {
     "id": "app.plugin.webapp_bundle.app_error",
-    "translation": "Unable to generate plugin webapp bundle."
+    "translation": "Не вдалося згенерувати пакет веб-додатків плагіна."
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
-    "translation": "Error reading local plugins folder."
+    "translation": "Помилка читання локальної папки плагінів."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Error reading files from the plugins folder in the file store."
+    "translation": "Помилка читання файлів з теки плагінів у файловому сховищі."
   },
   {
     "id": "app.plugin.store_signature.app_error",
-    "translation": "Unable to store the plugin signature to the configured file store."
+    "translation": "Не вдалося зберегти підпис плагіна в налаштованому сховищі файлів."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Unable to store the plugin to the configured file store."
+    "translation": "Не вдалося зберегти плагін до налаштованого файлового сховища."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
-    "translation": "Unable to decode base64 signature."
+    "translation": "Не вдалося розшифрувати підпис у форматі base64."
   },
   {
     "id": "app.plugin.restart.app_error",
@@ -5205,39 +5201,39 @@
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
-    "translation": "Unable to remove plugin bundle from file store."
+    "translation": "Не вдається видалити пакет плагінів з файлового сховища."
   },
   {
     "id": "app.plugin.modify_saml.app_error",
-    "translation": "Can't modify saml files."
+    "translation": "Не вдалось модифікувати saml-файли."
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Failed to marshal marketplace plugins."
+    "translation": "Не вдалося впорядкувати плагіни Магазину плагінів."
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin signature."
+    "translation": "Не вдалося знайти запитуваний підпис плагіна із Магазина плагінів."
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin."
+    "translation": "Не вдалося знайти запитуваний плагін із Магазину плагінів."
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
-    "translation": "Failed to decode the marketplace plugin request."
+    "translation": "Не вдалося розшифрувати запит на плагін із маркетплейсу."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "Плагіни відключені. Будь ласка, перевірте свої журнали на деталі."
+    "translation": "Магазин плагінів було вимкнено. Будь ласка, перевірте свої журнали для отримання детальної інформації."
   },
   {
     "id": "app.plugin.marketplace_client.failed_to_fetch",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "Не вдалося отримати плагіни з сервера Магазину плагінів."
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "Не вдалося створити Магазин плагінів клієнта."
   },
   {
     "id": "app.plugin.invalid_version.app_error",
@@ -5249,11 +5245,11 @@
   },
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
-    "translation": "An error occurred while getting the public key from the store."
+    "translation": "Виникла помилка при отриманні відкритого ключа зі сховища."
   },
   {
     "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
+    "translation": "Не вдалося встановити плагін як керований файловим сховищем."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -5261,7 +5257,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-    "translation": "Invalid team theme for the User"
+    "translation": "Недійсна тема команди для користувача"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
@@ -6237,7 +6233,7 @@
   },
   {
     "id": "app.system.get_by_name.app_error",
-    "translation": "Не вдається знайти системну змінну."
+    "translation": "Не вдалося знайти системну змінну."
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
@@ -6457,7 +6453,7 @@
   },
   {
     "id": "app.team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user."
+    "translation": "Не вдається отримати список Команд користувача."
   },
   {
     "id": "app.team.get_members.app_error",
@@ -6557,11 +6553,11 @@
   },
   {
     "id": "app.post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound."
+    "translation": "Неможливо отримати повідомлення в межах часу."
   },
   {
     "id": "app.post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound."
+    "translation": "Неможливо отримати повідомлення після вказаного часу."
   },
   {
     "id": "app.post.get_flagged_posts.app_error",
@@ -6829,7 +6825,7 @@
   },
   {
     "id": "api.command_marketplace.name",
-    "translation": "маркетплейс"
+    "translation": "магазин плагінів"
   },
   {
     "id": "api.command_marketplace.desc",
@@ -7545,7 +7541,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "Обговорення з {{.NumMessages}} повідомленнями переміщено до особистого/групового повідомлення\n"
+    "translation": "Обговорення з {{.NumMessages}} повідомленнями переміщено до Приватних/Групових повідомлень\n"
   },
   {
     "id": "api.file.list_directory.app_error",
@@ -8765,7 +8761,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
-    "translation": "Повідомлення було переміщено до приватного/групового повідомлення\n"
+    "translation": "Повідомлення було переміщено до Приватного/Групового повідомлення\n"
   },
   {
     "id": "app.post_persistent_notification.delete_by_team.app_error",
@@ -10106,10 +10102,6 @@
   {
     "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
     "translation": "Неправильний максимальний час простою з'єднання для налаштувань SQL. Повинно бути невід'ємним числом."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Недійсне повідомлення."
   },
   {
     "id": "model.channel_bookmark.is_valid.type.app_error",

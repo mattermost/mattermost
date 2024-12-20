@@ -11,7 +11,7 @@ import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
 
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 import WithTooltip from 'components/with_tooltip';
-import {ShortcutKeys} from 'components/with_tooltip/shortcut';
+import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import {Mark} from 'utils/performance_telemetry';
 
@@ -153,7 +153,6 @@ export default function TeamButton({
         <WithTeamTooltip
             order={order}
             tip={tip}
-            url={url}
         >
             <div className={'team-btn ' + btnClass}>
                 {!otherProps.isInProduct && badge}
@@ -211,9 +210,8 @@ export default function TeamButton({
 function WithTeamTooltip({
     order,
     tip,
-    url,
     children,
-}: React.PropsWithChildren<Pick<Props, 'order' | 'tip' | 'url'>>) {
+}: React.PropsWithChildren<Pick<Props, 'order' | 'tip'>>) {
     const intl = useIntl();
 
     const shortcut = useMemo(() => {
@@ -227,12 +225,14 @@ function WithTeamTooltip({
         };
     }, [order]);
 
+    if (!React.isValidElement(children)) {
+        return null;
+    }
+
     return (
         <WithTooltip
-            id={`tooltip-${url}`}
             title={tip || intl.formatMessage(messages.nameUndefined)}
             shortcut={shortcut}
-            placement='right'
         >
             {children}
         </WithTooltip>

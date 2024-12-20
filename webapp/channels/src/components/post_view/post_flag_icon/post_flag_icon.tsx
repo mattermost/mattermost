@@ -82,9 +82,7 @@ const PostFlagIcon = ({
 
     return (
         <WithTooltip
-            id='flagTooltip'
             key={`flagtooltipkey${isFlagged ? 'flagged' : ''}`}
-            placement='top'
             title={
                 isFlagged ? (
                     <FormattedMessage
