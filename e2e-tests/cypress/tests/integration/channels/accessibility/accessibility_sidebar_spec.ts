@@ -165,7 +165,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
     });
 });
 
-describe.only('Accessibility tests for RHS getting focus after buttons actions', () => {
+describe('Accessibility tests for RHS getting focus after buttons actions', () => {
     let testUser;
 
     before(() => {
