@@ -373,7 +373,8 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 2, len(channels))
 
 		// Permanentley delete other user
-		th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
+		appErr := th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
+		require.Nil(t, appErr)
 
 		var b bytes.Buffer
 		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
