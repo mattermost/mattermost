@@ -2360,6 +2360,12 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.team.refreshPostStatsRunTimeExample', defaultMessage: 'E.g.: "00:00"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableLateTimeWarnings',
+                            label: defineMessage({id: 'admin.notifications.enableLateTimeWarnings.title', defaultMessage: 'Enable Late Time Warnings:'}),
+                            help_text: defineMessage({id: 'admin.notifications.enableLateTimeWarnings.description', defaultMessage: 'When true, users will be warned when sending direct messages to other users during their late hours based on their timezone.'}),
+                        },
                     ],
                 },
             },
