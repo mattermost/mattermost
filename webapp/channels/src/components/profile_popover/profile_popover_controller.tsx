@@ -44,6 +44,11 @@ interface Props<TriggerComponentType> {
     src: string;
 
     /**
+     * Username of the profile.
+     */
+    username?: string;
+
+    /**
      * This should be the trigger button for the popover, Do note that the root element of the trigger component should be passed in triggerComponentRoot
      */
     children: ReactNode;
@@ -139,6 +144,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 ref={refs.setFloating}
                                 style={combinedFloatingStyles}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
+                                aria-label={`${props.username}'s profile popover`}
                                 {...getFloatingProps()}
                             >
                                 <ProfilePopover
