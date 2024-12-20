@@ -10,9 +10,21 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {isThreadManuallyUnread, isThreadOpen} from 'selectors/views/threads';
 
-import {ActionTypes, Threads} from 'utils/constants';
+import {Threads} from 'utils/constants';
 
 import type {ThunkActionFunc} from 'types/store';
+
+export type ThreadAction = (
+    ReturnType<typeof updateThreadLastOpened> |
+    ReturnType<typeof setSelectedThreadId> |
+    {
+        type: typeof Threads.MANUALLY_UNREAD_THREAD;
+        data: {
+            threadId: string;
+        };
+    } |
+    ReturnType<typeof updateThreadToastStatus>
+);
 
 export function updateThreadLastOpened(threadId: string, lastViewedAt: number) {
     return {
@@ -46,7 +58,7 @@ export function manuallyMarkThreadAsUnread(threadId: string, lastViewedAt: numbe
 
 export function updateThreadToastStatus(status: boolean) {
     return {
-        type: ActionTypes.UPDATE_THREAD_TOAST_STATUS,
+        type: Threads.UPDATE_THREAD_TOAST_STATUS,
         data: status,
     };
 }
