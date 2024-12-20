@@ -1378,7 +1378,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         const pictureSection = this.createPictureSection();
 
         return (
-            <div id='generalSettings'>
+            <div
+                id='profileSettings'
+                aria-labelledby='profileButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
