@@ -1586,6 +1586,8 @@ func TestPushNotificationRace(t *testing.T) {
 	s.ch = ch
 
 	app := New(ServerConnector(s.Channels()))
+	ch.app = app
+
 	require.NotPanics(t, func() {
 		s.createPushNotificationsHub(th.Context)
 

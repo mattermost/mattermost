@@ -268,6 +268,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// After channel is initialized set it to the App object
 	app := New(ServerConnector(channels))
 
+	channels.app = app
+
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
 	// If you are adding a new field that is non-channels specific, please add

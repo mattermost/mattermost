@@ -853,6 +853,7 @@ func (s *apiRPCServer) LogError(args *Z_LogErrorArgs, returns *Z_LogErrorReturns
 type Z_InstallPluginArgs struct {
 	PluginStreamID uint32
 	B              bool
+	r              *http.Request
 }
 
 type Z_InstallPluginReturns struct {
@@ -860,7 +861,7 @@ type Z_InstallPluginReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool, r *http.Request) (*model.Manifest, *model.AppError) {
 	pluginStreamID := g.muxBroker.NextId()
 
 	go func() {
@@ -873,7 +874,7 @@ func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manif
 		serveIOReader(file, uploadPluginConnection)
 	}()
 
-	_args := &Z_InstallPluginArgs{pluginStreamID, replace}
+	_args := &Z_InstallPluginArgs{pluginStreamID, replace, r}
 	_returns := &Z_InstallPluginReturns{}
 	if err := g.client.Call("Plugin.InstallPlugin", _args, _returns); err != nil {
 		log.Print("RPC call InstallPlugin to plugin failed.", mlog.Err(err))
@@ -884,7 +885,7 @@ func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manif
 
 func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_InstallPluginReturns) error {
 	hook, ok := s.impl.(interface {
-		InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
+		InstallPlugin(file io.Reader, replace bool, r *http.Request) (*model.Manifest, *model.AppError)
 	})
 	if !ok {
 		return encodableError(fmt.Errorf("API InstallPlugin called but not implemented"))
@@ -898,7 +899,7 @@ func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_Insta
 	pluginReader := connectIOReader(receivePluginConnection)
 	defer pluginReader.Close()
 
-	returns.A, returns.B = hook.InstallPlugin(pluginReader, args.B)
+	returns.A, returns.B = hook.InstallPlugin(pluginReader, args.B, args.r)
 	return nil
 }
 

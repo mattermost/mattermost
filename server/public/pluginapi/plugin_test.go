@@ -24,7 +24,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 		api.On("GetServerVersion").Return("5.1.0")
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-		_, err := client.Plugin.InstallPluginFromURL("", true)
+		_, err := client.Plugin.InstallPluginFromURL("", true, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, "incompatible server version for plugin, minimum required version: 5.18.0, current version: 5.1.0", err.Error())
@@ -35,7 +35,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 		api.On("GetServerVersion").Return("5.19.0")
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-		_, err := client.Plugin.InstallPluginFromURL("http://%41:8080/", replace)
+		_, err := client.Plugin.InstallPluginFromURL("http://%41:8080/", replace, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, "error while parsing url: parse \"http://%41:8080/\": invalid URL escape \"%41\"", err.Error())
@@ -52,7 +52,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 		defer testServer.Close()
 		url := testServer.URL
 
-		_, err := client.Plugin.InstallPluginFromURL(url, replace)
+		_, err := client.Plugin.InstallPluginFromURL(url, replace, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, "received 500 status code while downloading plugin from server", err.Error())
@@ -75,7 +75,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 		defer testServer.Close()
 		url := testServer.URL
 
-		manifest, err := client.Plugin.InstallPluginFromURL(url, false)
+		manifest, err := client.Plugin.InstallPluginFromURL(url, false, nil)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "testplugin", manifest.Id)
@@ -91,7 +91,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 		defer testServer.Close()
 		url := testServer.URL
 
-		_, err := client.Plugin.InstallPluginFromURL(url, false)
+		_, err := client.Plugin.InstallPluginFromURL(url, false, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, "received 404 status code while downloading plugin from server", err.Error())

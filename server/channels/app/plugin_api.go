@@ -916,15 +916,15 @@ func (api *PluginAPI) DisablePlugin(id string) *model.AppError {
 	return api.app.DisablePlugin(id)
 }
 
-func (api *PluginAPI) RemovePlugin(id string) *model.AppError {
-	return api.app.Channels().RemovePlugin(id)
+func (api *PluginAPI) RemovePlugin(id string, r *http.Request) *model.AppError {
+	return api.app.Channels().RemovePlugin(id, r)
 }
 
 func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
 	return api.app.GetPluginStatus(id)
 }
 
-func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool, r *http.Request) (*model.Manifest, *model.AppError) {
 	if !*api.app.Config().PluginSettings.Enable || !*api.app.Config().PluginSettings.EnableUploads {
 		return nil, model.NewAppError("installPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -934,7 +934,7 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 		return nil, model.NewAppError("InstallPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.InstallPlugin(bytes.NewReader(fileBuffer), replace)
+	return api.app.InstallPlugin(bytes.NewReader(fileBuffer), replace, r)
 }
 
 // KV Store Section
@@ -1346,4 +1346,8 @@ func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID strin
 
 func (api *PluginAPI) GetPluginID() string {
 	return api.id
+}
+
+func (api *PluginAPI) GetPluginStatuses() ([]*model.PluginStatus, *model.AppError) {
+	return api.app.GetPluginStatuses()
 }

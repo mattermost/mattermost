@@ -881,7 +881,7 @@ type API interface {
 	//
 	// @tag Plugin
 	// Minimum server version: 5.6
-	RemovePlugin(id string) *model.AppError
+	RemovePlugin(id string, r *http.Request) *model.AppError
 
 	// GetPluginStatus will return the status of a plugin.
 	//
@@ -894,7 +894,7 @@ type API interface {
 	//
 	// @tag Plugin
 	// Minimum server version: 5.18
-	InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
+	InstallPlugin(file io.Reader, replace bool, r *http.Request) (*model.Manifest, *model.AppError)
 
 	// KV Store Section
 
@@ -1312,6 +1312,13 @@ type API interface {
 	// @tag Plugin
 	// Minimum server version: 10.1
 	GetPluginID() string
+
+	// GetPluginStatuses returns the statuses of all plugins of the server.
+	//
+	// @tag Plugin
+	// @tag Status
+	// Minimum server version: 10.4
+	GetPluginStatuses() ([]*model.PluginStatus, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

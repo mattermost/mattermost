@@ -72,7 +72,7 @@ func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment
 	ch.srv.Platform().SetPluginsEnvironment(ch)
 }
 
-func (ch *Channels) syncPluginsActiveState() {
+func (ch *Channels) syncPluginsActiveState(c request.CTX) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	ch.pluginsLock.RLock()
 	pluginsEnvironment := ch.pluginsEnvironment
@@ -158,7 +158,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		pluginsEnvironment.Shutdown()
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(c); err != nil {
 		ch.srv.Log().Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
 }
@@ -181,7 +181,7 @@ func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string
 	pluginsEnvironment := ch.pluginsEnvironment
 	ch.pluginsLock.RUnlock()
 	if pluginsEnvironment != nil || !*ch.cfgSvc.Config().PluginSettings.Enable {
-		ch.syncPluginsActiveState()
+		ch.syncPluginsActiveState(c)
 		if pluginsEnvironment != nil {
 			pluginsEnvironment.TogglePluginHealthCheckJob(*ch.cfgSvc.Config().PluginSettings.EnableHealthCheck)
 		}
@@ -241,7 +241,7 @@ func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string
 		// If plugin status remains unchanged, only then run this.
 		// Because (*App).InitPlugins is already run as a config change hook.
 		if *old.PluginSettings.Enable == *new.PluginSettings.Enable {
-			ch.syncPluginsActiveState()
+			ch.syncPluginsActiveState(c)
 		}
 
 		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -253,7 +253,7 @@ func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string
 	})
 	ch.pluginsLock.Unlock()
 
-	ch.syncPluginsActiveState()
+	ch.syncPluginsActiveState(c)
 }
 
 // SyncPlugins synchronizes the plugins installed locally

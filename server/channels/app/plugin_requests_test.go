@@ -52,7 +52,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		checkNoError(t, appErr)
 
 		t.Cleanup(func() {
-			appErr = th.App.ch.RemovePlugin(pluginID)
+			appErr = th.App.ch.RemovePlugin(pluginID, nil)
 			checkNoError(t, appErr)
 		})
 	}

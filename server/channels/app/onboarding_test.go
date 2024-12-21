@@ -17,7 +17,7 @@ func TestOnboardingSavesOrganizationName(t *testing.T) {
 
 	appErr := th.App.CompleteOnboarding(th.Context, &mm_model.CompleteOnboardingRequest{
 		Organization: "Mattermost In Tests",
-	})
+	}, nil)
 	require.Nil(t, appErr)
 	defer func() {
 		_, err := th.App.Srv().Store().System().PermanentDeleteByName(mm_model.SystemOrganizationName)

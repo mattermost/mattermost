@@ -93,7 +93,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		force = true
 	}
 
-	installPlugin(c, w, file, force)
+	installPlugin(c, w, file, force, r)
 	auditRec.Success()
 }
 
@@ -123,7 +123,7 @@ func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force)
+	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force, r)
 	auditRec.Success()
 }
 
@@ -157,7 +157,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	// https://mattermost.atlassian.net/browse/MM-41981
 	pluginRequest.Version = ""
 
-	manifest, appErr := c.App.Channels().InstallMarketplacePlugin(pluginRequest)
+	manifest, appErr := c.App.Channels().InstallMarketplacePlugin(pluginRequest, r)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -237,7 +237,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.Channels().RemovePlugin(c.Params.PluginId)
+	err := c.App.Channels().RemovePlugin(c.Params.PluginId, r)
 	if err != nil {
 		c.Err = err
 		return
@@ -247,7 +247,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
+func getWebappPlugins(c *Context, w http.ResponseWriter, _ *http.Request) {
 	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("getWebappPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -409,8 +409,8 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 	}, nil
 }
 
-func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {
-	manifest, appErr := c.App.InstallPlugin(plugin, force)
+func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool, r *http.Request) {
+	manifest, appErr := c.App.InstallPlugin(plugin, force, r)
 	if appErr != nil {
 		c.Err = appErr
 		return

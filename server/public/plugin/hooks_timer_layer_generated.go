@@ -291,3 +291,10 @@ func (hooks *hooksTimerLayer) GenerateSupportData(c *Context) ([]*model.FileData
 	hooks.recordTime(startTime, "GenerateSupportData", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) OnPluginStatusesChanged(c *Context) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnPluginStatusesChanged(c)
+	hooks.recordTime(startTime, "OnPluginStatusesChanged", _returnsA == nil)
+	return _returnsA
+}

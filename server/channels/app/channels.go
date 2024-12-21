@@ -84,6 +84,7 @@ type Channels struct {
 	scheduledPostMut  sync.Mutex
 	scheduledPostTask *model.ScheduledTask
 	loginAttemptsMut  sync.Mutex
+	app               AppIface
 }
 
 func NewChannels(s *Server) (*Channels, error) {
