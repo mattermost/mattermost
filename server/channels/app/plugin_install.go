@@ -85,6 +85,7 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"io"
 	"net/http"
 	"os"
@@ -158,7 +159,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(nil); err != nil {
 		logger.Error("Failed to notify plugin status changed", mlog.Err(err))
 	}
 }
@@ -174,20 +175,20 @@ func (ch *Channels) removePluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed to remove plugin locally", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(nil); err != nil {
 		logger.Error("failed to notify plugin status changed", mlog.Err(err))
 	}
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the the
 // plugin was already enabled.
-func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool, r *http.Request) (*model.Manifest, *model.AppError) {
 	installationStrategy := installPluginLocallyOnlyIfNew
 	if replace {
 		installationStrategy = installPluginLocallyAlways
 	}
 
-	return a.ch.installPlugin(pluginFile, nil, installationStrategy)
+	return a.ch.installPlugin(pluginFile, nil, installationStrategy, PluginCTX(r, a))
 }
 
 // installPlugin extracts and installs the given plugin bundle (optionally signed) for the
@@ -195,7 +196,7 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 // cluster peers to use, and then broadcasts the change to connected websockets.
 //
 // The given installation strategy decides how to handle upgrade scenarios.
-func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy, c request.CTX) (*model.Manifest, *model.AppError) {
 	manifest, appErr := ch.installPluginLocally(bundle, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
@@ -216,7 +217,7 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 		logger.Warn("Failed to notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(c); err != nil {
 		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
@@ -269,7 +270,7 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the
 // plugin bundle from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace
 // is true.
-func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
+func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest, r *http.Request) (*model.Manifest, *model.AppError) {
 	logger := ch.srv.Log().With(mlog.String("plugin_id", request.Id))
 
 	var pluginFile, signatureFile io.ReadSeeker
@@ -339,7 +340,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		return nil, appErr
 	}
 
-	manifest, appErr := ch.installPlugin(pluginFile, signatureFile, installPluginLocallyAlways)
+	manifest, appErr := ch.installPlugin(pluginFile, signatureFile, installPluginLocallyAlways, PluginCTX(r, ch.app))
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -521,7 +522,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 }
 
 // RemovePlugin removes a plugin from all servers.
-func (ch *Channels) RemovePlugin(id string) *model.AppError {
+func (ch *Channels) RemovePlugin(id string, r *http.Request) *model.AppError {
 	logger := ch.srv.Log().With(mlog.String("plugin_id", id))
 
 	// Disable plugin before removal to make sure this
@@ -557,7 +558,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 		},
 	)
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(PluginCTX(r, ch.app)); err != nil {
 		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 

@@ -61,6 +61,7 @@ const (
 	OnSharedChannelsAttachmentSyncMsgID       = 43
 	OnSharedChannelsProfileImageSyncMsgID     = 44
 	GenerateSupportDataID                     = 45
+	OnPluginStatusesChangedID                 = 46
 	TotalHooksID                              = iota
 )
 
@@ -395,4 +396,12 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.8
 	GenerateSupportData(c *Context) ([]*model.FileData, error)
+
+	// OnPluginStatusesChanged is invoked when the system calls App.notifyPluginStatusesChanged
+	// This hook event will not contain a payload: it is the responsibility of the plugin to fetch
+	// the plugin statuses to avoid race conditions with notifications going out.
+	//
+	// For getting plugin statuse use plugin API method func GetPluginStatuses() ([]*model.PluginStatus, *model.AppError)
+	// Note: This hook event is only local to the current server, and in fact the plugin statuses may vary between servers.
+	OnPluginStatusesChanged(c *Context) error
 }
