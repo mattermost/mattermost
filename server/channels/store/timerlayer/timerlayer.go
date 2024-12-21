@@ -6098,7 +6098,7 @@ func (s *TimerLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamID *string) ([]*model.PostForExport, error) {
+func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamID string) ([]*model.PostForExport, error) {
 	start := time.Now()
 
 	result, err := s.PostStore.GetParentsForExportAfter(limit, afterID, includeArchivedChannels, teamID)
