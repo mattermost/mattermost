@@ -1472,7 +1472,7 @@ func (s SqlTeamStore) GetForExport(teamID string) (*model.TeamForExport, error) 
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
-	if err = s.GetReplicaX().Get(&data, query, args...); err != nil {
+	if err = s.GetReplica().Get(&data, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Team", teamID)
 		}

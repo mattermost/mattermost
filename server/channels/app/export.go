@@ -467,7 +467,7 @@ func (a *App) exportSingleTeam(ctx request.CTX, job *model.Job, writer io.Writer
 
 	teamNames[team.Name] = true
 
-	teamLine := ImportLineFromTeam(team)
+	teamLine := importLineFromTeam(team)
 	if err := a.exportWriteLine(writer, teamLine); err != nil {
 		return nil, err
 	}
