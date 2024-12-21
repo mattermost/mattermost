@@ -2800,6 +2800,8 @@
   "pricing_modal.lookingForCloudOption": "Ser du etter et skyalternativ?",
   "pricing_modal.noitfy_cta.request_success": "Forespørsel sendt",
   "pricing_modal.or": "eller",
+  "pricing_modal.planLabel.currentPlan": "NÅVÆRENDE LISENSPLAN",
+  "pricing_modal.planLabel.currentPlanMonthly": "FOR ØYEBLIKKET PÅ MÅNEDLIG FAKTURERING",
   "pricing_modal.planSummary.enterprise": "Administrasjon, sikkerhet og compliance for store team",
   "pricing_modal.planSummary.professional": "Skalerbare løsninger {br} for voksende team",
   "pricing_modal.plan_label_trialDays": "{days} DAGER IGJEN AV PRØVEPERIODE",
