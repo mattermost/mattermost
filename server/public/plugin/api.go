@@ -1317,7 +1317,7 @@ type API interface {
 	//
 	// @tag Plugin
 	// @tag Status
-	// Minimum server version: 10.4
+	// Minimum server version: 10.7
 	GetPluginStatuses() ([]*model.PluginStatus, *model.AppError)
 }
 
