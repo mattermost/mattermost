@@ -161,6 +161,7 @@ type TeamStore interface {
 	ClearAllCustomRoleAssignments() error
 	AnalyticsGetTeamCountForScheme(schemeID string) (int64, error)
 	GetAllForExportAfter(limit int, afterID string) ([]*model.TeamForExport, error)
+	GetForExport(teamID string) (*model.TeamForExport, error)
 	GetTeamMembersForExport(userID string) ([]*model.TeamMemberForExport, error)
 	UserBelongsToTeams(userID string, teamIds []string) (bool, error)
 	GetUserTeamIds(userID string, allowFromCache bool) ([]string, error)
@@ -396,7 +397,7 @@ type PostStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
-	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error)
+	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamID string) ([]*model.PostForExport, error)
 	GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error)
 	GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error)
 	SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
