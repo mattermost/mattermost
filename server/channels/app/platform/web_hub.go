@@ -152,7 +152,7 @@ func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
 	hash.SetSeed(ps.hashSeed)
 	_, err := hash.Write([]byte(userID))
 	if err != nil {
-		ps.logger.Error("Unable to write userID to hash", mlog.Err(err))
+		ps.logger.Error("Unable to write userID to hash", mlog.String("userID", userID), mlog.Err(err))
 	}
 	index := hash.Sum64() % uint64(len(ps.hubs))
 
