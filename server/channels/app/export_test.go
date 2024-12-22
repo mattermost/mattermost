@@ -107,7 +107,8 @@ func TestExportUserChannels(t *testing.T) {
 	err := th.App.Srv().Store().Preference().Save(preferences)
 	require.NoError(t, err)
 
-	th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
+	_, appErr = th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
+	require.Nil(t, appErr)
 	exportData, appErr := th.App.buildUserChannelMemberships(th.Context, user.Id, team.Id, false)
 	require.Nil(t, appErr)
 	assert.Equal(t, len(*exportData), 3)
@@ -141,22 +142,25 @@ func TestCopyEmojiImages(t *testing.T) {
 	// Creating a dir named `exported_emoji_test` in the root of the repo
 	pathToDir := "../exported_emoji_test"
 
-	os.Mkdir(pathToDir, 0777)
+	err := os.Mkdir(pathToDir, 0777)
+	require.NoError(t, err)
 	defer os.RemoveAll(pathToDir)
 
 	filePath := "../data/emoji/" + emoji.Id
 	emojiImagePath := filePath + "/image"
 
-	var _, err = os.Stat(filePath)
+	_, err = os.Stat(filePath)
 	if os.IsNotExist(err) {
-		os.MkdirAll(filePath, 0777)
+		err = os.MkdirAll(filePath, 0777)
+		require.NoError(t, err)
 	}
 
 	// Creating a file with the name `image` to copy it to `exported_emoji_test`
-	os.OpenFile(filePath+"/image", os.O_RDONLY|os.O_CREATE, 0777)
+	_, err = os.OpenFile(filePath+"/image", os.O_RDONLY|os.O_CREATE, 0777)
+	require.NoError(t, err)
 	defer os.RemoveAll(filePath)
 
-	copyError := th.App.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
+	copyError := th.App.copyEmojiImages(th.Context, emoji.Id, emojiImagePath, pathToDir)
 	require.NoError(t, copyError)
 
 	_, err = os.Stat(pathToDir + "/" + emoji.Id + "/image")
@@ -275,7 +279,7 @@ func TestExportDMChannel(t *testing.T) {
 		// DM Channel
 		ch := th1.CreateDmChannel(th1.BasicUser2)
 
-		th1.App.Srv().Store().Preference().Save(model.Preferences{
+		err := th1.App.Srv().Store().Preference().Save(model.Preferences{
 			{
 				UserId:   th1.BasicUser2.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -283,10 +287,11 @@ func TestExportDMChannel(t *testing.T) {
 				Value:    "true",
 			},
 		})
+		require.NoError(t, err)
 
 		var b bytes.Buffer
-		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
-		require.Nil(t, err)
+		appErr := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
 
 		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
@@ -300,8 +305,9 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 0, len(channels))
 
 		// import the exported channel
-		err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
-		require.Nil(t, err)
+		var i int
+		appErr, i = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+		require.Nil(t, appErr)
 		assert.Equal(t, 0, i)
 
 		// Ensure the Members of the imported DM channel is the same was from the exported
@@ -329,8 +335,46 @@ func TestExportDMChannel(t *testing.T) {
 		require.NoError(t, nErr)
 		assert.Equal(t, 1, len(channels))
 
-		th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
-		th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser)
+		appErr := th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
+		require.Nil(t, appErr)
+		appErr = th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
+
+		th2 := Setup(t).InitBasic()
+		defer th2.TearDown()
+
+		// import the exported channel
+		appErr, _ = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
+		require.Nil(t, appErr)
+
+		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
+		require.NoError(t, nErr)
+		assert.Empty(t, channels)
+	})
+
+	t.Run("Should not export DM channel if other user is permanently deleted", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		// Create a DM Channel with another user
+		dmc1 := th1.CreateDmChannel(th1.BasicUser2)
+		th1.CreatePost(dmc1)
+
+		// Create a DM Channel with self
+		dmc2 := th1.CreateDmChannel(th1.BasicUser)
+		th1.CreatePost(dmc2)
+
+		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
+		require.NoError(t, nErr)
+		assert.Equal(t, 2, len(channels))
+
+		// Permanentley delete other user
+		appErr := th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
+		require.Nil(t, appErr)
 
 		var b bytes.Buffer
 		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
@@ -340,12 +384,21 @@ func TestExportDMChannel(t *testing.T) {
 		defer th2.TearDown()
 
 		// import the exported channel
-		err, _ = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
+		err, _ = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 		require.Nil(t, err)
 
 		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
-		assert.Empty(t, channels)
+		assert.Equal(t, 1, len(channels))
+
+		// Ensure the posts of the deleted DM channel do not leak to the self-DM channel
+		posts, nErr := th2.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{
+			ChannelId:      channels[0].Id,
+			PerPage:        1000,
+			IncludeDeleted: true,
+		}, false, nil)
+		require.NoError(t, nErr)
+		assert.Equal(t, 1, len(posts.Posts))
 	})
 }
 
@@ -481,14 +534,16 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "aa" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr := th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	p2 := &model.Post{
 		ChannelId: dmChannel.Id,
 		Message:   "bb" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p2, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr = th1.App.CreatePost(th1.Context, p2, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	// GM posts
 	p3 := &model.Post{
@@ -496,21 +551,23 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "cc" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p3, gmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr = th1.App.CreatePost(th1.Context, p3, gmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	p4 := &model.Post{
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p4, gmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr = th1.App.CreatePost(th1.Context, p4, gmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
 	assert.Equal(t, 4, len(posts))
 
 	var b bytes.Buffer
-	appErr := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
 	th1.TearDown()
@@ -566,7 +623,8 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr := th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	p2 := &model.Post{
 		ChannelId: gmChannel.Id,
@@ -576,7 +634,8 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p2, gmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr = th1.App.CreatePost(th1.Context, p2, gmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
@@ -585,7 +644,7 @@ func TestExportPostWithProps(t *testing.T) {
 	require.NotEmpty(t, posts[1].Props)
 
 	var b bytes.Buffer
-	appErr := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
 	th1.TearDown()

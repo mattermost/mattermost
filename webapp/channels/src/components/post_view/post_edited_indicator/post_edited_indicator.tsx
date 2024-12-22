@@ -95,8 +95,6 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
 
     return !postId || editedAt === 0 ? null : (
         <WithTooltip
-            placement='top'
-            id={`edited-post-tooltip_${postId}`}
             title={
                 <>
                     {`${editedText} ${formattedTime}`}

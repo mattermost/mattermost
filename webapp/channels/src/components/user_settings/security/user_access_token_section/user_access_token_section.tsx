@@ -518,7 +518,10 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             newTokenSection = (
                 <div className='pl-3'>
                     <div className='row'>
-                        <label className='col-sm-auto control-label pr-3'>
+                        <label
+                            className='col-sm-auto control-label pr-3'
+                            htmlFor='newTokenDescription'
+                        >
                             <FormattedMessage
                                 id='user.settings.tokens.name'
                                 defaultMessage='Token Description: '
@@ -526,6 +529,7 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
                         </label>
                         <div className='col-sm-5'>
                             <input
+                                id='newTokenDescription'
                                 autoFocus={true}
                                 ref={this.newtokendescriptionRef}
                                 className='form-control'

@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
 
-function hasBeenDismissed(state: Record<string, boolean> = {}, action: AnyAction) {
+import type {MMAction} from 'types/store';
+
+function hasBeenDismissed(state: Record<string, boolean> = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.DISMISS_NOTICE:
         return {...state, [action.data]: true};

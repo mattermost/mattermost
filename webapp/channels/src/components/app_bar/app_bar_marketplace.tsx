@@ -32,9 +32,8 @@ const AppBarMarketplace = () => {
 
     return (
         <WithTooltip
-            id='tooltip-app-bar-marketplace'
             title={label}
-            placement='left'
+            isVertical={false}
         >
             <button
                 key='app_bar_marketplace'

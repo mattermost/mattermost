@@ -1440,10 +1440,6 @@
     "translation": "ID asli tidak valid"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Pesan tidak valid"
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "ID tidak valid"
   },
