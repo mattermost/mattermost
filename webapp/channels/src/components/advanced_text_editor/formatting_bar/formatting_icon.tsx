@@ -76,6 +76,7 @@ interface FormattingIconProps {
     onClick?: () => void;
     className?: string;
     disabled?: boolean;
+    tabIndex?: number;
 }
 
 const MAP_MARKDOWN_MODE_TO_ICON: Record<FormattingIconProps['mode'], React.FC<IconProps>> = {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
+import {useFloating, offset, useClick, useDismiss, useInteractions, useFocus} from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
@@ -278,6 +278,9 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                                 className='control'
                                 onClick={makeFormattingHandler(mode)}
                                 disabled={disableControls}
+                                {...!showHiddenControls && {
+                                    tabIndex: -1
+                                }}
                             />
                         );
                     })}
