@@ -6,7 +6,6 @@ package app
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -150,32 +149,4 @@ func (a *App) ExportPermissions(w io.Writer) error {
 
 	_, err = w.Write(schemeExport)
 	return err
-}
-
-func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleName string) error {
-	var err *model.AppError
-
-	roleCreated, err := a.GetRoleByName(context.Background(), roleCreatedName)
-	if err != nil {
-		return errors.New(err.Message)
-	}
-
-	var roleIn *model.Role
-	for _, role := range sc.Roles {
-		if role.Name == defaultRoleName {
-			roleIn = role
-			break
-		}
-	}
-
-	roleCreated.DisplayName = roleIn.DisplayName
-	roleCreated.Description = roleIn.Description
-	roleCreated.Permissions = roleIn.Permissions
-
-	_, err = a.UpdateRole(roleCreated)
-	if err != nil {
-		return fmt.Errorf("failed to update role: %w", err)
-	}
-
-	return nil
 }
