@@ -27,7 +27,7 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 	}
 
 	s.statusSelectQuery = s.getQueryBuilder().
-		Select("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus").
+		Select("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus").
 		From("Status")
 
 	return &s
@@ -102,20 +102,19 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 func (s SqlStatusStore) updateExpiredStatuses(t *sqlxTxWrapper) ([]*model.Status, error) {
 	statuses := []*model.Status{}
 	currUnixTime := time.Now().UTC().Unix()
-	selectQuery, selectParams, err := s.getQueryBuilder().
-		Select("*").
-		From("Status").
-		Where(
-			sq.And{
-				sq.Eq{"Status": model.StatusDnd},
-				sq.Gt{"DNDEndTime": 0},
-				sq.LtOrEq{"DNDEndTime": currUnixTime},
-			},
-		).ToSql()
+	selectQuery := s.statusSelectQuery.Where(
+		sq.And{
+			sq.Eq{"Status": model.StatusDnd},
+			sq.Gt{"DNDEndTime": 0},
+			sq.LtOrEq{"DNDEndTime": currUnixTime},
+		},
+	)
+
+	selectQueryString, selectParams, err := selectQuery.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
-	err = t.Select(&statuses, selectQuery, selectParams...)
+	err = t.Select(&statuses, selectQueryString, selectParams...)
 	if err != nil {
 		return nil, errors.Wrap(err, "updateExpiredStatusesT: failed to get expired dnd statuses")
 	}
@@ -239,17 +238,12 @@ func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, error) {
 }
 
 func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
-	query := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Update("Status").
 		Set("LastActivityAt", lastActivityAt).
 		Where(sq.Eq{"UserId": userId})
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "status_tosql")
-	}
-
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return errors.Wrapf(err, "failed to update last activity for userId=%s", userId)
 	}
 
