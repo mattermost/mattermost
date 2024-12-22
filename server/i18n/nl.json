@@ -3720,11 +3720,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "De Elasticsearch PostsAggregatorJobStartTime instelling moet een tijd zijn in de notatie \"uu:mm\"."
+    "translation": "De search PostsAggregatorJobStartTime instelling moet een tijd zijn in de notatie \"uu:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Timeout Aanvraag moet ten minste 1 seconde zijn."
+    "translation": "Search Timeout Aanvraag moet ten minste 1 seconde zijn."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4728,11 +4728,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versie 17.0+"
+    "translation": "Versie 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 115+"
+    "translation": "Versie 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -10434,5 +10434,13 @@
   {
     "id": "web.incoming_webhook.media_type.app_error",
     "translation": "Kan de media voor inkomende webhook {{.hook_id}} niet verwerken."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "De eigenschap Conceptbericht is langer dan de maximaal toegestane lengte."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "De eigenschap Postbericht is langer dan de maximaal toegestane lengte."
   }
 ]
