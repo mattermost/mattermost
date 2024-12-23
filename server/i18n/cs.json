@@ -6041,11 +6041,11 @@
   },
   {
     "id": "api.upload.upload_data.invalid_content_type",
-    "translation": "Nevalidní Content-Type pro víceobsahový upload."
+    "translation": "Neplatná hodnota Content-Type pro víceobsahový upload."
   },
   {
     "id": "api.upload.upload_data.invalid_content_length",
-    "translation": "Nevalidní Content-Length."
+    "translation": "Neplatná hodnota Content-Length."
   },
   {
     "id": "app.upload.get.app_error",
@@ -6057,11 +6057,11 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
-    "translation": "Mattermost nemohl bý aktualizován na Enterprise edici. Digitální podpis staženého binárního souboru nemohl být ověřen."
+    "translation": "Mattermost nemohl být aktualizován na Enterprise edici. Digitální podpis staženého souboru nemohl být ověřen."
   },
   {
     "id": "api.upgrade_to_enterprise_status.app_error",
-    "translation": "Mattermost nemohl bý aktualizován na Enterprise edici."
+    "translation": "Mattermost nemohl být aktualizován na Enterprise edici."
   },
   {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
