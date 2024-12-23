@@ -459,7 +459,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     {
                                         this.props.showLockedManageUserSettings &&
                                         <WithTooltip
-                                            id='adminUserSettingUpdateDisabled'
                                             title={defineMessage({
                                                 id: 'generic.enterprise_feature',
                                                 defaultMessage: 'Enterprise feature',
@@ -468,7 +467,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 id: 'admin.user_item.manageSettings.disabled_tooltip',
                                                 defaultMessage: 'Please upgrade to Enterprise to manage user settings',
                                             })}
-                                            placement='top'
                                         >
                                             <button
                                                 className='manageUserSettingsBtn btn disabled'

@@ -113,7 +113,11 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	if opts.CreateArchive {
 		var err error
 		zipWr = zip.NewWriter(writer)
-		defer zipWr.Close()
+		defer func() {
+			if err = zipWr.Close(); err != nil {
+				ctx.Logger().Error("Error closing zip writer", mlog.Err(err))
+			}
+		}()
 		writer, err = zipWr.Create("import.jsonl")
 		if err != nil {
 			return model.NewAppError("BulkExport", "app.export.zip_create.error",
@@ -121,7 +125,11 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		}
 	}
 
-	if job != nil && job.Data == nil {
+	if job == nil {
+		job = &model.Job{
+			Data: make(model.StringMap),
+		}
+	} else if job.Data == nil {
 		job.Data = make(model.StringMap)
 	}
 
@@ -198,7 +206,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		emojisLen := len(emojiPaths)
 		ctx.Logger().Info("Bulk export: exporting custom emojis")
 		for _, emojiPath := range emojiPaths {
-			if err := a.exportFile(outPath, emojiPath, zipWr); err != nil {
+			if err := a.exportFile(ctx, outPath, emojiPath, zipWr); err != nil {
 				return err
 			}
 			totalExportedEmojis++
@@ -213,7 +221,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	if opts.IncludeProfilePictures {
 		ctx.Logger().Info("Bulk export: exporting profile pictures")
 		for _, profilePicture := range profilePictures {
-			if err := a.exportFile(outPath, profilePicture, zipWr); err != nil {
+			if err := a.exportFile(ctx, outPath, profilePicture, zipWr); err != nil {
 				ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
 			}
 		}
@@ -227,7 +235,7 @@ func (a *App) exportAttachments(ctx request.CTX, attachments []imports.Attachmen
 	totalExportedFiles := 0
 	attachmentsLen := len(attachments)
 	for _, attachment := range attachments {
-		if err := a.exportFile(outPath, *attachment.Path, zipWr); err != nil {
+		if err := a.exportFile(ctx, outPath, *attachment.Path, zipWr); err != nil {
 			return err
 		}
 		totalExportedFiles++
@@ -843,12 +851,13 @@ func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportDat
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
+func (a *App) exportCustomEmoji(rctx request.CTX, job *model.Job, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
 	var emojiPaths []string
 	pageNumber := 0
 	cnt := 0
 	for {
-		customEmojiList, err := a.GetEmojiList(c, pageNumber, 100, model.EmojiSortByName)
+		customEmojiList, err := a.GetEmojiList(rctx, pageNumber, 100, model.EmojiSortByName)
+
 		if err != nil {
 			return nil, err
 		}
@@ -857,7 +866,7 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 			break
 		}
 		cnt += len(customEmojiList)
-		updateJobProgress(c.Logger(), a.Srv().Store(), job, "emojis_exported", cnt)
+		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "emojis_exported", cnt)
 
 		pageNumber++
 
@@ -865,40 +874,45 @@ func (a *App) exportCustomEmoji(c request.CTX, job *model.Job, writer io.Writer,
 		pathToDir := filepath.Join(outPath, exportDir)
 		if exportFiles {
 			if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
-				os.Mkdir(pathToDir, os.ModePerm)
-			}
-		}
-
-		for _, emoji := range customEmojiList {
-			emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
-			filePath := filepath.Join(exportDir, emoji.Id, "image")
-			if exportFiles {
-				err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
-				if err != nil {
-					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
+				if err := os.Mkdir(pathToDir, os.ModePerm); err != nil {
+					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.mkdir.error", nil, "err="+err.Error(), http.StatusBadRequest)
 				}
-			} else {
-				filePath = filepath.Join("emoji", emoji.Id, "image")
-				emojiPaths = append(emojiPaths, filePath)
 			}
 
-			emojiImportObject := importLineFromEmoji(emoji, filePath)
-			if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
-				return nil, err
+			for _, emoji := range customEmojiList {
+				emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
+				filePath := filepath.Join(exportDir, emoji.Id, "image")
+				if exportFiles {
+					err := a.copyEmojiImages(rctx, emoji.Id, emojiImagePath, pathToDir)
+					if err != nil {
+						return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
+					}
+				} else {
+					filePath = filepath.Join("emoji", emoji.Id, "image")
+					emojiPaths = append(emojiPaths, filePath)
+				}
+
+				emojiImportObject := importLineFromEmoji(emoji, filePath)
+				if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
-
 	return emojiPaths, nil
 }
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
-func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string) error {
+func (a *App) copyEmojiImages(rctx request.CTX, emojiId string, emojiImagePath string, pathToDir string) error {
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
-		return errors.New("Error reading " + emojiImagePath + "file")
+		return errors.New("Error reading " + emojiImagePath + " file")
 	}
-	defer fromPath.Close()
+	defer func() {
+		if err = fromPath.Close(); err != nil {
+			rctx.Logger().Error("Error closing source file", mlog.String("path", emojiImagePath), mlog.Err(err))
+		}
+	}()
 
 	emojiDir := pathToDir + "/" + emojiId
 
@@ -916,8 +930,11 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 	if err != nil {
 		return errors.New("Error creating the image file " + err.Error())
 	}
-	defer toPath.Close()
-
+	defer func() {
+		if err = toPath.Close(); err != nil {
+			rctx.Logger().Error("Error closing destination file", mlog.String("path", emojiDir+"/image"), mlog.Err(err))
+		}
+	}()
 	_, err = io.Copy(toPath, fromPath)
 	if err != nil {
 		return errors.New("Error copying emojis " + err.Error())
@@ -944,14 +961,38 @@ func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io
 		for _, channel := range channels {
 			afterId = channel.Id
 
+			// Skip deleted.
+			if channel.DeleteAt != 0 {
+				continue
+			}
+
 			// Skip if there are no active members in the channel
 			if len(channel.Members) == 0 {
 				continue
 			}
 
-			// Skip deleted.
-			if channel.DeleteAt != 0 {
-				continue
+			// Skip if the channel member structure is not intact
+			switch channel.Type {
+			case model.ChannelTypeGroup:
+				groupMembers := make([]string, len(channel.Members))
+				for i, m := range channel.Members {
+					groupMembers[i] = m.UserId
+				}
+				if channel.Name != model.GetGroupNameFromUserIds(groupMembers) {
+					// this is the case of a group channel when other user is permanently deleted
+					// we skip this channel and inform by logging it.
+					job.Data["skipped_direct_channels"] = job.Data["skipped_direct_channels"] + "," + channel.Id
+					ctx.Logger().Warn("Skipping group channels with partially deleted members", mlog.String("channel_id", channel.Id))
+					continue
+				}
+			case model.ChannelTypeDirect:
+				if _, u2 := channel.GetBothUsersForDM(); u2 != "" && len(channel.Members) == 1 {
+					// this is the case of a direct channel when other user is permanently deleted
+					// we skip this channel and inform by logging it.
+					job.Data["skipped_direct_channels"] = job.Data["skipped_direct_channels"] + "," + channel.Id
+					ctx.Logger().Info("Skipping direct channel with one active member", mlog.String("channel_id", channel.Id), mlog.String("user_id", channel.Members[0].UserId))
+					continue
+				}
 			}
 
 			favoritedBy, err := a.buildFavoritedByList(channel.Id)
@@ -1070,12 +1111,17 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 		cnt += len(posts)
 		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "direct_posts_exported", cnt)
 
+		channelsToSkip := model.SliceToMapKey(strings.Split(job.Data["skipped_direct_channels"], ",")...)
 		for _, post := range posts {
 			afterId = post.Id
 			postProcessCount++
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {
+				continue
+			}
+
+			if _, ok := channelsToSkip[post.ChannelId]; ok {
 				continue
 			}
 
@@ -1126,17 +1172,19 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 	return attachments, nil
 }
 
-func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.AppError {
-	var wr io.Writer
-	var err error
+func (a *App) exportFile(rctx request.CTX, outPath, filePath string, zipWr *zip.Writer) *model.AppError {
 	rd, appErr := a.FileReader(filePath)
 	if appErr != nil {
 		return appErr
 	}
-	defer rd.Close()
+	defer func() {
+		if err := rd.Close(); err != nil {
+			rctx.Logger().Error("Error closing file", mlog.Err(err))
+		}
+	}()
 
 	if zipWr != nil {
-		wr, err = zipWr.CreateHeader(&zip.FileHeader{
+		wr, err := zipWr.CreateHeader(&zip.FileHeader{
 			Name:   filepath.Join(model.ExportDataDir, filePath),
 			Method: zip.Store,
 		})
@@ -1144,24 +1192,33 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.zip_create_header.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
+
+		if _, err = io.Copy(wr, rd); err != nil {
+			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
+				nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
 	} else {
 		filePath = filepath.Join(outPath, model.ExportDataDir, filePath)
-		if err = os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.mkdirall.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		wr, err = os.Create(filePath)
+		file, err := os.Create(filePath)
 		if err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.create_file.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
-		defer wr.(*os.File).Close()
-	}
+		defer func() {
+			if err = file.Close(); err != nil {
+				rctx.Logger().Error("Error closing file", mlog.Err(err))
+			}
+		}()
 
-	if _, err := io.Copy(wr, rd); err != nil {
-		return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
-			nil, "err="+err.Error(), http.StatusInternalServerError)
+		if _, err = io.Copy(file, rd); err != nil {
+			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
+				nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return nil

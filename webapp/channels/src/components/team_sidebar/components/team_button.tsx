@@ -10,8 +10,8 @@ import {Link} from 'react-router-dom';
 import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
 
 import TeamIcon from 'components/widgets/team_icon/team_icon';
-import {ShortcutKeys} from 'components/with_tooltip/shortcut';
-import WithTooltip from 'components/with_tooltip/with_tooltip_new';
+import WithTooltip from 'components/with_tooltip';
+import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import {Mark} from 'utils/performance_telemetry';
 
@@ -224,6 +224,10 @@ function WithTeamTooltip({
             mac: [ShortcutKeys.cmd, ShortcutKeys.option, order.toString()],
         };
     }, [order]);
+
+    if (!React.isValidElement(children)) {
+        return null;
+    }
 
     return (
         <WithTooltip

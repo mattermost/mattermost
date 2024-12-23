@@ -308,6 +308,7 @@ func importReplyFromPost(post *model.ReplyForExport) *imports.ReplyImportData {
 		EditAt:    &post.EditAt,
 		IsPinned:  &post.IsPinned,
 		FlaggedBy: &f,
+		Props:     &post.Props,
 	}
 }
 

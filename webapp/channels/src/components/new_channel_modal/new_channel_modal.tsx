@@ -221,7 +221,6 @@ const NewChannelModal = () => {
 
     const newBoardInfoIcon = (
         <WithTooltip
-            id='new-channel-with-board-tooltip'
             title={
                 <>
                     <div className='title'>
@@ -238,7 +237,6 @@ const NewChannelModal = () => {
                     </div>
                 </>
             }
-            placement='right'
         >
             <i className='icon-information-outline'/>
         </WithTooltip>

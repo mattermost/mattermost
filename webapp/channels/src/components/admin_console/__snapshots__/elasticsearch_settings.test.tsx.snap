@@ -478,8 +478,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div
@@ -972,8 +970,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div
