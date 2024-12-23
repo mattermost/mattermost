@@ -2516,7 +2516,7 @@
   "admin.sql.driverNameDescription": "Встановіть драйвер бази даних у файлі config.json.",
   "admin.sql.maxConnectionsDescription": "Максимальна кількість вільних підключень, відкритих до бази даних.",
   "admin.sql.maxConnectionsExample": "Наприклад: \"10\"",
-  "admin.sql.maxConnectionsTitle": "Максимальне підключення в режимі очікування:",
+  "admin.sql.maxConnectionsTitle": "Максимальна кількість з'єднань у режимі очікування:",
   "admin.sql.maxOpenDescription": "Максимальна кількість відкритих з'єднань, які залишаються відкритими для бази даних.",
   "admin.sql.maxOpenExample": "Наприклад: \"10\"",
   "admin.sql.maxOpenTitle": "Максимальне число відкритих з'єднань:",
