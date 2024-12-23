@@ -325,12 +325,12 @@ function clickPostHeaderItem(postId: string, location: string, item: string) {
     }
 
     if (postId) {
-        cy.get(`#${idPrefix}_${postId}`).trigger('mouseover', {force: true});
-        cy.wait(TIMEOUTS.HALF_SEC).get(`#${location}_${item}_${postId}`).click({force: true});
+        cy.get(`#${idPrefix}_${postId}`).trigger('mouseover', {force: true}).
+            get(`#${location}_${item}_${postId}`).should('be.visible').trigger('mouseover', {force: true}).click({force: true});
     } else {
         cy.getLastPostId().then((lastPostId) => {
-            cy.get(`#${idPrefix}_${lastPostId}`).trigger('mouseover', {force: true});
-            cy.wait(TIMEOUTS.HALF_SEC).get(`#${location}_${item}_${lastPostId}`).click({force: true});
+            cy.get(`#${idPrefix}_${lastPostId}`).trigger('mouseover', {force: true}).
+                get(`#${location}_${item}_${lastPostId}`).should('be.visible').trigger('mouseover', {force: true}).click({force: true});
         });
     }
 }
