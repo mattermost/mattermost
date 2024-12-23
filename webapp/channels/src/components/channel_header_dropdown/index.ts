@@ -23,6 +23,8 @@ import {
 import {getPenultimateViewedChannelName} from 'selectors/local_storage';
 import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 
+import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
+
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -69,6 +71,7 @@ const mapStateToProps = (state: GlobalState) => ({
     penultimateViewedChannelName: getPenultimateViewedChannelName(state) || getRedirectChannelNameForTeam(state, getCurrentTeamId(state)),
     pluginMenuItems: getChannelHeaderMenuPluginComponents(state),
     isLicensedForLDAPGroups: state.entities.general.license.LDAPGroups === 'true',
+    isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
 });
 
 const mobileMapStateToProps = (state: GlobalState) => {
