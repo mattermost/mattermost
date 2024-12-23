@@ -59,7 +59,7 @@ type Props = {
 };
 
 const PostOptions = (props: Props): JSX.Element => {
-    const dotMenuRef = useRef<HTMLDivElement>(null);
+    const dotMenuRef = useRef<HTMLUListElement>(null);
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
@@ -120,12 +120,14 @@ const PostOptions = (props: Props): JSX.Element => {
     let commentIcon;
     if (showCommentIcon) {
         commentIcon = (
+            <li key="commentIcon__listItem">
             <CommentIcon
                 handleCommentClick={props.handleCommentClick}
                 postId={post.id}
                 extraClass={commentIconExtraClass}
                 commentCount={props.collapsedThreadsEnabled ? 0 : props.replyCount}
-            />
+                />
+            </li>
         );
     }
 
@@ -144,7 +146,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 teamId={props.teamId}
                 emojis={props.recentEmojis}
                 size={showMoreReactions ? 3 : 1}
-            />
+                />
         );
     }
 
@@ -152,6 +154,7 @@ const PostOptions = (props: Props): JSX.Element => {
     let postReaction;
     if (showReactionIcon) {
         postReaction = (
+            <li key="postReaction__listItem">
             <PostReaction
                 channelId={post.channel_id}
                 location={props.location}
@@ -160,30 +163,35 @@ const PostOptions = (props: Props): JSX.Element => {
                 getDotMenuRef={getDotMenuRef}
                 showEmojiPicker={showEmojiPicker}
                 toggleEmojiPicker={toggleEmojiPicker}
-            />
+                />
+            </li>
         );
     }
 
     let flagIcon: ReactNode = null;
     if (!isMobileView && (!isEphemeral && !post.failed && !systemMessage)) {
         flagIcon = (
-            <PostFlagIcon
+            <li key="flagIcon__listItem">
+             <PostFlagIcon
                 location={props.location}
                 postId={post.id}
                 isFlagged={props.isFlagged}
-            />
+                />
+            </li>
         );
     }
 
     // Action menus
     const showActionsMenuIcon = props.shouldShowActionsMenu && (isMobileView || hoverLocal);
     const actionsMenu = showActionsMenuIcon && (
+        <li key="actionsMenu__listItem">
         <ActionsMenu
             post={post}
             location={props.location}
             handleDropdownOpened={handleActionsMenuOpened}
             isMenuOpen={showActionsMenu}
-        />
+            />
+        </li>
     );
 
     let pluginItems: ReactNode = null;
@@ -193,10 +201,11 @@ const PostOptions = (props: Props): JSX.Element => {
                 if (item.component) {
                     const Component = item.component as any;
                     return (
+                        <li key={item.id}>
                         <Component
                             post={props.post}
-                            key={item.id}
-                        />
+                            />
+                        </li>
                     );
                 }
                 return null;
@@ -204,6 +213,7 @@ const PostOptions = (props: Props): JSX.Element => {
     }
 
     const dotMenu = (
+        <li key="dotMenu__listItem">
         <DotMenu
             post={props.post}
             location={props.location}
@@ -214,7 +224,8 @@ const PostOptions = (props: Props): JSX.Element => {
             isReadOnly={isReadOnly || channelIsArchived}
             isMenuOpen={showDotMenu}
             enableEmojiPicker={props.enableEmojiPicker}
-        />
+            />
+        </li>
     );
 
     // Build post options
@@ -235,10 +246,11 @@ const PostOptions = (props: Props): JSX.Element => {
     } else if (props.location === Locations.SEARCH) {
         const hasCRTFooter = props.collapsedThreadsEnabled && !post.root_id && (post.reply_count > 0 || post.is_following);
         options = (
-            <div className='col__controls post-menu'>
+            <ul className='col__controls post-menu'>
                 {dotMenu}
                 {flagIcon}
                 {props.canReply && !hasCRTFooter &&
+                  <li key="commentIcon__listItem">
                     <CommentIcon
                         location={props.location}
                         handleCommentClick={props.handleCommentClick}
@@ -246,23 +258,26 @@ const PostOptions = (props: Props): JSX.Element => {
                         postId={post.id}
                         searchStyle={'search-item__comment'}
                         extraClass={props.replyCount ? 'icon--visible' : ''}
-                    />
+                        />
+                   </li>
                 }
+                <li key="searchItem__listItem">
                 <a
                     href='#'
                     onClick={props.handleJumpClick}
                     className='search-item__jump'
-                >
+                    >
                     <FormattedMessage
                         id='search_item.jump'
                         defaultMessage='Jump'
-                    />
+                        />
                 </a>
-            </div>
+                </li>
+            </ul>
         );
     } else if (!props.isPostBeingEdited) {
         options = (
-            <div
+            <ul
                 ref={dotMenuRef}
                 data-testid={`post-menu-${props.post.id}`}
                 className={classnames('col post-menu', {'post-menu--position': !hoverLocal && showCommentIcon})}
@@ -275,7 +290,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {actionsMenu}
                 {commentIcon}
                 {(collapsedThreadsEnabled || showRecentlyUsedReactions) && dotMenu}
-            </div>
+            </ul>
         );
     }
 
