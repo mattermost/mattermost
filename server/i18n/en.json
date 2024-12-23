@@ -9526,7 +9526,7 @@
   },
   {
     "id": "model.link_metadata.is_valid.url_length.app_error",
-    "translation": "Link metadata URL is too long."
+    "translation": "Link metadata URL is {{ .Length }} characters long, longer then the maximum of {{ .MaxLength }} characters.."
   },
   {
     "id": "model.member.is_valid.channel.app_error",
