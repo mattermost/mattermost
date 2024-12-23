@@ -5,9 +5,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
   className="file_preview_modal_main_nav"
 >
   <WithTooltip
-    id="close-icon-tooltip"
     key="previewArrowLeft"
-    placement="bottom"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Close"
@@ -40,9 +38,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
     />
   </span>
   <WithTooltip
-    id="close-icon-tooltip"
     key="publicLink"
-    placement="bottom"
     title={
       <Memo(MemoizedFormattedMessage)
         defaultMessage="Next"

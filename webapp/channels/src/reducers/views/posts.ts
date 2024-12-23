@@ -8,22 +8,29 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {ActionTypes} from 'utils/constants';
 
 import type {MMAction} from 'types/store';
+import type {ViewsState} from 'types/store/views';
 
-const defaultState = {
-    post: {},
+const editingPostDefaultState: ViewsState['posts']['editingPost'] = {
     show: false,
+    postId: '',
+    refocusId: '',
+    isRHS: false,
 };
 
-function editingPost(state = defaultState, action: MMAction) {
+function editingPost(state: ViewsState['posts']['editingPost'] = editingPostDefaultState, action: MMAction) {
     switch (action.type) {
-    case ActionTypes.TOGGLE_EDITING_POST:
-        return {
-            ...state,
-            ...action.data,
-        };
+    case ActionTypes.TOGGLE_EDITING_POST: {
+        if (action.data.show) {
+            return {
+                ...state,
+                ...action.data,
+            };
+        }
 
+        return editingPostDefaultState;
+    }
     case UserTypes.LOGOUT_SUCCESS:
-        return defaultState;
+        return editingPostDefaultState;
     default:
         return state;
     }

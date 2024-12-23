@@ -1994,6 +1994,40 @@ func TestGetPostsForChannel(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, posts.Order, 10, "expected 10 posts")
+
+		// System admin can access public channel without being member
+		adminPublicChannel := th.CreatePublicChannel()
+		th.CreateMessagePostNoClient(adminPublicChannel, "admin channel post", model.GetMillis())
+		posts, resp, err = c.GetPostsForChannel(context.Background(), adminPublicChannel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, posts.Order)
+
+		// System admin can access private channel without being member
+		privateChannel := th.CreatePrivateChannel()
+		th.CreateMessagePostNoClient(privateChannel, "private channel post", model.GetMillis())
+		posts, resp, err = c.GetPostsForChannel(context.Background(), privateChannel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, posts.Order)
+
+		// System admin can access direct messages without being member
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		th.CreateMessagePostNoClient(dmChannel, "test1", model.GetMillis())
+		posts, resp, err = c.GetPostsForChannel(context.Background(), dmChannel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, posts.Order)
+
+		// System admin can access group messages without being member
+		user3 := th.CreateUser()
+		gmChannel, _, err := th.Client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+		th.CreateMessagePostNoClient(gmChannel, "test2", model.GetMillis())
+		posts, resp, err = c.GetPostsForChannel(context.Background(), gmChannel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, posts.Order)
 	})
 }
 
@@ -3129,14 +3163,13 @@ func TestWebHubMembership(t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
-	t.Skip("MM-61780")
 	th := Setup(t).InitBasic()
 	defer func() {
 		th.TearDown()
-		// Asserting that the error message is present in the log
-		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "Error while registering to hub")
 		_, err := th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE dummy RENAME to ChannelMembers`)
 		require.NoError(t, err)
+		// Asserting that the error message is present in the log
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "Error while registering to hub")
 	}()
 
 	cli := th.CreateClient()
@@ -3148,7 +3181,7 @@ func TestWebHubCloseConnOnDBFail(t *testing.T) {
 
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
 	require.NoError(t, err)
-	defer wsClient.Close()
+	wsClient.Close()
 
 	require.NoError(t, th.TestLogger.Flush())
 }
@@ -3165,10 +3198,8 @@ func TestDeletePostEvent(t *testing.T) {
 	_, err = th.SystemAdminClient.DeletePost(context.Background(), th.BasicPost.Id)
 	require.NoError(t, err)
 
-	var received bool
-
-	for {
-		var exit bool
+	var received, exit bool
+	for !received && !exit {
 		select {
 		case event := <-WebSocketClient.EventChannel:
 			if event.EventType() == model.WebsocketEventPostDeleted {
@@ -3179,9 +3210,6 @@ func TestDeletePostEvent(t *testing.T) {
 			}
 		case <-time.After(5 * time.Second):
 			exit = true
-		}
-		if exit {
-			break
 		}
 	}
 
@@ -4542,7 +4570,7 @@ func TestPostGetInfo(t *testing.T) {
 			channel:   gmChannel,
 			post:      gmPost,
 			client:    sysadminClient,
-			hasAccess: false,
+			hasAccess: true,
 		},
 
 		// DM channel
@@ -4561,7 +4589,7 @@ func TestPostGetInfo(t *testing.T) {
 			channel:   dmChannel,
 			post:      dmPost,
 			client:    sysadminClient,
-			hasAccess: false,
+			hasAccess: true,
 		},
 
 		// Open channel - Open Team

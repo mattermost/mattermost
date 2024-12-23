@@ -39,7 +39,7 @@ func TestRemoveEnvOverrides(t *testing.T) {
 						Enable: false,
 					},
 				}
-				in.PluginSettings.Plugins = map[string]map[string]interface{}{
+				in.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.plugin-1": {
 						"key1": "value1",
 					},
@@ -71,7 +71,7 @@ func TestRemoveEnvOverrides(t *testing.T) {
 						Enable: true,
 					},
 				}
-				in.PluginSettings.Plugins = map[string]map[string]interface{}{
+				in.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.plugin-1": {
 						"key1": "other-value",
 					},
@@ -166,9 +166,9 @@ func TestRemoveEnvOverrides(t *testing.T) {
 						Enable: true,
 					},
 				}
-				in.PluginSettings.Plugins = map[string]map[string]interface{}{
+				in.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.plugin-1": {
-						"key": map[string]interface{}{
+						"key": map[string]any{
 							"key":   "(?P<key>KEY)-(?P<id>\\d{1,6})(?P<comma>[,;]*)",
 							"value": "[$key-$id](https://example.com/?$project-$id)$comma",
 						},

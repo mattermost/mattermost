@@ -319,7 +319,7 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 // Delete preference for limit_visible_dms_gms where their value is greater than "40" or less than "1"
 func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
 	var queryString string
-	var args []interface{}
+	var args []any
 	var err error
 
 	// We need to pad the value field with zeros when doing comparison's because the value is stored as a string.
