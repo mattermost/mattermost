@@ -43,36 +43,45 @@ export const useUserPropertyFields = () => {
                 const patch: UserPropertyFieldPatch = {name};
 
                 if (isCreatePending(item)) {
-                    // create
+                    // prepare:create
                     return Client4.createCustomProfileAttributeField(patch);
                 } else if (isDeletePending(item)) {
-                    // delete
+                    // prepare:delete
                     return Client4.deleteCustomProfileAttributeField(id);
                 }
 
-                // update
+                // prepare:update
                 return Client4.patchCustomProfileAttributeField(id, patch);
             }));
 
             // process operation results
             const processedCollection = fieldResults.reduce((results, op, i) => {
-                const originalItem = process[i];
+                const preparedItem = process[i];
 
                 if (op.status === 'fulfilled') {
                     if (isStatusOK(op.value)) {
-                        // deleted - remove
-                        Reflect.deleteProperty(results.data, originalItem.id);
-                        results.order = results.order.filter((id) => id !== originalItem.id);
+                        // process:data:deleted
+                        Reflect.deleteProperty(results.data, preparedItem.id);
+
+                        // process:order:deleted
+                        results.order = results.order.filter((id) => id !== preparedItem.id);
                     } else {
                         const item = op.value;
 
-                        // updated or created - update data & replace pending order id
-                        results.data[originalItem?.id ?? item?.id] = item;
-                        results.order = results.order.map((id) => (id === originalItem?.id ? item.id : id));
+                        // process:data:created, process:data:updated (set new data)
+                        results.data[item?.id] = item;
+
+                        if (item.id !== preparedItem.id) {
+                            // process:order:deleted (delete old data)
+                            Reflect.deleteProperty(results.data, preparedItem.id);
+
+                            // process:order:created (replace pending id with created id)
+                            results.order = results.order.map((id) => (id === preparedItem?.id ? item.id : id));
+                        }
                     }
                 } else if (op.status === 'rejected') {
-                    // failed
-                    results.errors[originalItem.id] = op.reason;
+                    // failed, log error
+                    results.errors[preparedItem.id] = op.reason;
                 }
 
                 return results;
@@ -83,6 +92,7 @@ export const useUserPropertyFields = () => {
             });
 
             if (Object.keys(processedCollection.errors).length) {
+                // set pendingIO master error
                 throw new Error('error processing operations', {cause: processedCollection.errors});
             } else {
                 Reflect.deleteProperty(processedCollection, 'errors');
@@ -117,7 +127,7 @@ export type ReadOperations<T> = {
 
 export type WriteOperations<T extends Record<string, unknown>, R = T, P = Partial<T>> = {
     update: (next: T, prev: T) => R | Promise<R>;
-    patch: (patch: P) => R | Promise<R>;
+    patch: (patch: P, current: T) => R | Promise<R>;
     delete: (id: string) => boolean | Promise<boolean>;
 }
 
@@ -190,10 +200,12 @@ export function usePendingCollection<T extends Record<string, unknown>>(data: T,
 
 const PENDING = 'pending_';
 export const isCreatePending = <T extends {id: string; delete_at: number; create_at: number}>(item: T) => {
+    // has not been created, is not deleted
     return item.create_at === 0 && item.delete_at === 0;
 };
 
 export const isDeletePending = <T extends {delete_at: number; create_at: number}>(item: T) => {
+    // has been created, and needs to be deleted
     return item.create_at !== 0 && item.delete_at !== 0;
 };
 

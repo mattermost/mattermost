@@ -49,6 +49,16 @@ export default function SystemProperties(props: Props) {
 
     const handleFieldChange = (field: UserPropertyField) => {
         pendingIO.apply((current) => {
+            if (field.delete_at !== 0 && field.create_at === 0) {
+                // immediately remove if deleting a field that is pending creation
+                const data = {...current.data};
+                Reflect.deleteProperty(data, field.id);
+                const order = current.order.filter((id) => id !== field.id);
+
+                return {data, order};
+            }
+
+            // else normal patch for update, delete, and create flows
             const data = {...current.data, [field.id]: field};
             const order = current.order;
 

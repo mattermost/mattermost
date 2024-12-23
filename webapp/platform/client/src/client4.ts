@@ -2077,7 +2077,7 @@ export default class Client4 {
             {method: 'GET'},
         ); */
 
-        // mock - delete
+        // TODO delete mock
         const data: UserPropertyField[] = [
             {
                 id: 'test01',
@@ -2116,11 +2116,11 @@ export default class Client4 {
         //     {method: 'POST', body: JSON.stringify(patch)},
         // );
 
-        // mock - delete
+        // TODO delete mock
         await new Promise((res) => setTimeout(res, 750));
 
         return {
-            id: Date.now().toString(),
+            id: crypto.getRandomValues(new Uint32Array(200))[Math.floor(Math.random() * 200)].toString(),
             name: patch.name,
             type: 'text',
             create_at: 1734643125001,
@@ -2134,7 +2134,7 @@ export default class Client4 {
             `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
             {method: 'PATCH', body: JSON.stringify(patch)},
         ); */
-        // mock - delete
+        // TODO delete mock
         await new Promise((res) => setTimeout(res, 750));
 
         return {
@@ -2147,13 +2147,14 @@ export default class Client4 {
         } as UserPropertyField;
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     deleteCustomProfileAttributeField = async (fieldId: string) => {
         // return this.doFetch<StatusOK>(
         //     `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
         //     {method: 'DELETE'},
         // );
 
-        // mock - delete
+        // TODO delete mock
         await new Promise((res) => setTimeout(res, 750));
 
         return {status: 'OK'} as StatusOK;

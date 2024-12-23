@@ -11,6 +11,7 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {FieldDeleteButton, FieldInput} from './controls';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
+import {isCreatePending} from './user_properties_utils';
 
 import {AdminConsoleListTable} from '../list_table';
 
@@ -153,7 +154,12 @@ const Actions = ({field, updateField}: {field: UserPropertyField; updateField: (
     const {formatMessage} = useIntl();
 
     const handleDelete = () => {
-        promptDelete(field).then(() => updateField({...field, delete_at: 1}));
+        if (isCreatePending(field)) {
+            // skip prompt when field is pending creation
+            updateField({...field, delete_at: Date.now()});
+        } else {
+            promptDelete(field).then(() => updateField({...field, delete_at: Date.now()}));
+        }
     };
 
     return (
