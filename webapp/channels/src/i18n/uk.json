@@ -1551,7 +1551,7 @@
   "admin.office365.clientIdTitle": "Ідентифікатор програми:",
   "admin.office365.clientSecretDescription": "Секретний пароль програми, який ви згенерували під час реєстрації програми в Майкрософт.",
   "admin.office365.clientSecretExample": "Наприклад: \"shAieM47sNBfgl20f8ci294\"",
-  "admin.office365.clientSecretTitle": "Приклад секретного пароля:",
+  "admin.office365.clientSecretTitle": "Пароль секрету застосунку:",
   "admin.office365.directoryIdDescription": "Ідентифікатор програми/клієнта, який ви отримали під час реєстрації вашої заявки в Microsoft.",
   "admin.office365.directoryIdExample": "Наприклад: \"adf3sfa2-ag3f-sn4n-ids0-sh1hdax192qq\"",
   "admin.office365.directoryIdTitle": "Ідентифікатор каталогу (клієнта):",
