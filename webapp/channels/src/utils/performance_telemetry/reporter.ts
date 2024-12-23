@@ -196,24 +196,32 @@ export default class PerformanceReporter {
     }
 
     private handleMeasure(entry: PerformanceMeasure) {
-        if (!entry.detail?.report) {
-            return;
-        }
+        try {
+            if (!entry.detail?.report) {
+                return;
+            }
 
-        this.histogramMeasures.push({
-            metric: entry.name,
-            value: entry.duration,
-            labels: entry.detail.labels,
-            timestamp: Date.now(),
-        });
+            this.histogramMeasures.push({
+                metric: entry.name,
+                value: entry.duration,
+                labels: entry.detail.labels,
+                timestamp: Date.now(),
+            });
+        } catch {
+            // Ignore any exceptions accessing the `PerformanceMeasure` object.
+        }
     }
 
     private handleMark(entry: PerformanceMeasure) {
-        if (!entry.detail?.report) {
-            return;
-        }
+        try {
+            if (!entry.detail?.report) {
+                return;
+            }
 
-        this.incrementCounter(entry.name);
+            this.incrementCounter(entry.name);
+        } catch {
+            // Ignore any exceptions accessing the `PerformanceMeasure` object.
+        }
     }
 
     private handleLongTask() {

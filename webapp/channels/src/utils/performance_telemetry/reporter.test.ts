@@ -181,6 +181,38 @@ describe.skip('PerformanceReporter', () => {
         reporter.disconnect();
     });
 
+    test('should silently return when accessing entry.detail.report throws', async () => {
+        const {reporter, sendBeacon} = newTestReporter();
+        reporter.observe();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+
+        const entries = {
+            getEntries: () => [
+                {
+                    entryType: 'measure',
+                    name: 'test-measure',
+                    duration: 100,
+                    detail: new Proxy({}, {
+                        get() {
+                            throw new Error('Permission denied');
+                        },
+                    }),
+                },
+            ],
+            getEntriesByName: jest.fn(),
+            getEntriesByType: jest.fn(),
+        } as unknown as PerformanceObserverEntryList;
+
+        reporter.handleObservations(entries);
+
+        await waitForReport();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+
+        reporter.disconnect();
+    });
+
     test('should report web vitals to the server as histograms', async () => {
         const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
