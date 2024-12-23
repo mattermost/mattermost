@@ -206,7 +206,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     renderDivider(type: string) {
         const id = type ? 'suggestion.' + type : 'suggestion.default';
         return (
-            <div
+            <li
                 key={type + '-divider'}
                 className='suggestion-list__divider'
                 role='separator'
@@ -214,7 +214,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 <span>
                     <FormattedMessage id={id}/>
                 </span>
-            </div>
+            </li>
         );
     }
 
@@ -278,6 +278,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
             items.push(
                 <Component
+                    data-option-index={i}
                     key={term}
                     ref={(ref: any) => this.itemRefs.set(term, ref)}
                     item={this.props.items[i]}

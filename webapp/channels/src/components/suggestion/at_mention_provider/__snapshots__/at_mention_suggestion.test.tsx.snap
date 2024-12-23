@@ -19,6 +19,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
 >
   <SuggestionContainer
     data-testid="mentionSuggestion_user2"
+    id="post_textbox_@user2"
     isSelection={false}
     item={
       Object {
@@ -32,14 +33,16 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
     matchedPretext="@"
     onClick={[MockFunction]}
     onMouseMove={[MockFunction]}
+    role="option"
     term="@user"
   >
     <li
       className="suggestion-list__item"
       data-testid="mentionSuggestion_user2"
+      id="post_textbox_@user2"
       onClick={[Function]}
       onMouseMove={[Function]}
-      role="button"
+      role="option"
       tabIndex={-1}
     >
       <span
@@ -113,6 +116,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
 >
   <SuggestionContainer
     data-testid="mentionSuggestion_user"
+    id="post_textbox_@user"
     isSelection={false}
     item={
       Object {
@@ -127,14 +131,16 @@ exports[`at mention suggestion Should not display nick name of the signed in use
     matchedPretext="@"
     onClick={[MockFunction]}
     onMouseMove={[MockFunction]}
+    role="option"
     term="@user"
   >
     <li
       className="suggestion-list__item"
       data-testid="mentionSuggestion_user"
+      id="post_textbox_@user"
       onClick={[Function]}
       onMouseMove={[Function]}
-      role="button"
+      role="option"
       tabIndex={-1}
     >
       <span
