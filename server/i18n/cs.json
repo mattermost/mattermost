@@ -2881,7 +2881,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Ověřte prosím svou e-mailovou adresu níže."
+    "translation": "Tato e-mailová adresa byla použita k vytvoření účtu v Mattermostu."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2893,7 +2893,7 @@
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .SiteName }}] Ověření Emailu"
+    "translation": "[{{ .SiteName }}] Ověření E-mailu"
   },
   {
     "id": "api.templates.verify_body.title",
@@ -2901,11 +2901,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Ověřte prosím svou e-mailovou adresu kliknutím níže."
+    "translation": "Tato e-mailová adresa byla použita k vytvoření účtu v Mattermostu."
   },
   {
     "id": "api.templates.verify_body.button",
-    "translation": "Ověření emailu"
+    "translation": "Ověřit E-mail"
   },
   {
     "id": "api.templates.username_change_subject",
@@ -2913,7 +2913,7 @@
   },
   {
     "id": "api.templates.username_change_body.title",
-    "translation": "Aktualizovali jste uživatelské jméno"
+    "translation": "Aktualizovali jste své uživatelské jméno"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2937,11 +2937,11 @@
   },
   {
     "id": "api.templates.signin_change_email.body.title",
-    "translation": "Aktualizoval jste svou metodu přihlášení"
+    "translation": "Aktualizovali jste svou metodu přihlášení"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
-    "translation": "email a heslo"
+    "translation": "e-mail a heslo"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
@@ -2949,19 +2949,19 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "[{{ .SiteName }}] Resetujte své heslo"
+    "translation": "[{{ .SiteName }}] Obnovte své heslo"
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Bylo požádáno o nastavení nového hesla"
+    "translation": "Obnovte Své Heslo"
   },
   {
     "id": "api.templates.reset_body.button",
-    "translation": "Obnovit heslo"
+    "translation": "Obnovit Heslo"
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Přejít na příspěvek"
+    "translation": "Odpovědět v Mattermostu"
   },
   {
     "id": "api.templates.password_change_subject",
@@ -2977,11 +2977,11 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Autentizace více faktory byla odstraněna"
+    "translation": "Více-faktorová autentizace byla odstraněna"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Víceúrovňové přihlášení bylo odstraněno z vašeho účtu na {{ .SiteURL }}."
+    "translation": "Více-faktorové přihlášení bylo odstraněno z vašeho účtu na {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_change_subject",
@@ -2989,7 +2989,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Vícefázové ověření bylo přidáno"
+    "translation": "Více-faktorové ověření bylo přidáno"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -5265,11 +5265,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Licence Mattermost Enterprise byla zastavena."
+    "translation": "Licence na Mattermost Enterprise byla deaktivována."
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Platnost Vaší licence Enterprise vypršela a některé funkce mohou být vypnuty. Obnovte licenci."
+    "translation": "Vaše licence na Enterprise Edition vypršela a některé funkce mohou být deaktivovány. Obnovte prosím svou licenci nyní."
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
@@ -6081,11 +6081,11 @@
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
-    "translation": "Mattermost nemohl bý aktualizován na Enterprise edici."
+    "translation": "Mattermost nemohl být aktualizován na Enterprise edici."
   },
   {
     "id": "api.upgrade_to_enterprise.app_error",
-    "translation": "Aktualizace na Mattermost Enterprise edici je již v běhu."
+    "translation": "Aktualizace na Mattermost Enterprise edici již běží."
   },
   {
     "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
@@ -6093,7 +6093,7 @@
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
-    "translation": "Již jste aktualizovali na Mattermost Enterprise edici. Prosím restartujte server k dokončení aktualizace."
+    "translation": "Již jste upgradovali na Mattermost Enterprise Edition. Prosím, restartujte server, aby byl upgrade dokončen."
   },
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
@@ -6825,7 +6825,7 @@
   },
   {
     "id": "api.unable_to_read_file_from_backend",
-    "translation": "Chyba při čtení souboru ze serveru"
+    "translation": "Chyba při čtení souboru z backendu"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -7653,7 +7653,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": "{{ .SenderName }} vás pozval(a) k připojení k {{ .ChannelsLen }} kanálům na týmu {{ .TeamDisplayName }}"
+    "translation": "{{ .SenderName }} vás pozval(a) k připojení k {{ .ChannelsLen }} kanálům v týmu {{ .TeamDisplayName }}"
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
@@ -7741,7 +7741,7 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": "Odkaz pro resetování hesla vyprší za 24 hodin."
+    "translation": "Odkaz pro obnovení hesla vyprší za 24 hodin."
   },
   {
     "id": "api.templates.reset_body.subTitle",
@@ -7749,7 +7749,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_button",
-    "translation": "Ke stažení"
+    "translation": "Stáhnout"
   },
   {
     "id": "api.templates.welcome_body.subTitle1",
@@ -7789,7 +7789,7 @@
   },
   {
     "id": "api.templates.verify_body.info1",
-    "translation": "Pokud jste o to nežádali vy, můžete tento e-mail bez obav ignorovat."
+    "translation": "Pokud jste o změnu nežádali vy, můžete tento e-mail bez obav ignorovat."
   },
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
@@ -7829,7 +7829,7 @@
   },
   {
     "id": "api.templates.verify_body.subTitle2",
-    "translation": "Klikněte níže pro ověření své e-mailové adresy."
+    "translation": "Klikněte níže pro ověření vaší e-mailové adresy."
   },
   {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
@@ -7861,7 +7861,7 @@
   },
   {
     "id": "api.unmarshal_error",
-    "translation": "Chyba při zpracování."
+    "translation": "Nepodařilo se deserializovat."
   },
   {
     "id": "api.upload.create.upload_too_large.app_error",
@@ -8009,7 +8009,7 @@
   },
   {
     "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
-    "translation": "Přihlaste se do zákaznického portálu pro resetování IP filtrování"
+    "translation": "Přihlaste se do zákaznického portálu pro reset IP filtrování"
   },
   {
     "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
@@ -8125,7 +8125,7 @@
   },
   {
     "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
-    "translation": "Odešlete email na {{ .InitiatingUserEmail }}"
+    "translation": "Odešlete e-mail na {{ .InitiatingUserEmail }}"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",
