@@ -9525,6 +9525,10 @@
     "translation": "Link metadata URL must be set."
   },
   {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Link metadata URL is too long."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Channel name is not valid"
   },
