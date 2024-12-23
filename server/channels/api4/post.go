@@ -920,32 +920,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	//originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
-	//if err != nil {
-	//	c.SetPermissionError(model.PermissionEditPost)
-	//	return
-	//}
-	//auditRec.AddEventPriorState(originalPost)
-	//auditRec.AddEventObjectType("post")
-	//
-	//var permission *model.Permission
-	//if c.AppContext.Session().UserId == originalPost.UserId {
-	//	permission = model.PermissionEditPost
-	//} else {
-	//	permission = model.PermissionEditOthersPosts
-	//}
-	//
-	//if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
-	//	c.SetPermissionError(permission)
-	//	return
-	//}
-	//
-	//if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != nil {
-	//	c.Err = model.NewAppError("patchPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
-	//	return
-	//}
-
-	postPatchChecks(c, auditRec, post.Message, true)
+	postPatchChecks(c, auditRec, post.Message)
 	if c.Err != nil {
 		return
 	}
@@ -964,7 +939,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func postPatchChecks(c *Context, auditRec *audit.Record, message *string, allowAdminEditingOthersPosts bool) {
+func postPatchChecks(c *Context, auditRec *audit.Record, message *string) {
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
@@ -975,10 +950,10 @@ func postPatchChecks(c *Context, auditRec *audit.Record, message *string, allowA
 
 	var permission *model.Permission
 
-	if allowAdminEditingOthersPosts && c.AppContext.Session().UserId != originalPost.UserId {
-		permission = model.PermissionEditOthersPosts
-	} else {
+	if c.AppContext.Session().UserId == originalPost.UserId {
 		permission = model.PermissionEditPost
+	} else {
+		permission = model.PermissionEditOthersPosts
 	}
 
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
@@ -1345,7 +1320,12 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postPatchChecks(c, auditRec, &post.Message, false)
+	if c.AppContext.Session().UserId != post.UserId {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	postPatchChecks(c, auditRec, &post.Message)
 	if c.Err != nil {
 		return
 	}

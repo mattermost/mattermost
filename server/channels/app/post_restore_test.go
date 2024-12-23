@@ -15,7 +15,9 @@ func TestRestorePostVersion(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("is able to restore a post version", func(t *testing.T) {
-		post := th.CreatePost(th.BasicChannel)
+		post := th.CreatePost(th.BasicChannel, func(p *model.Post) {
+			p.Message = "original message"
+		})
 		th.UpdatePost(post, "new message 2")
 		th.UpdatePost(post, "new message 3")
 
@@ -38,6 +40,14 @@ func TestRestorePostVersion(t *testing.T) {
 		fetchedPost, err = th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
 		require.NoError(t, err)
 		require.Equal(t, "new message 2", fetchedPost.Message)
+
+		// verify that we now have 3 items in post's edit history
+		editHistory, appErr = th.App.GetEditHistoryForPost(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 3, len(editHistory))
+		require.Equal(t, "new message 3", editHistory[0].Message)
+		require.Equal(t, "new message 2", editHistory[1].Message)
+		require.Equal(t, "original message", editHistory[2].Message)
 	})
 
 	t.Run("is able to restore a post version including its files", func(t *testing.T) {

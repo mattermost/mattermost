@@ -6375,6 +6375,14 @@
     "translation": "You do not have the appropriate permissions."
   },
   {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to any history item for the specified post."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to a post history item."
+  },
+  {
     "id": "app.post.save.app_error",
     "translation": "Unable to save the Post."
   },

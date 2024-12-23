@@ -16,12 +16,19 @@ func (a *App) RestorePostVersion(c request.CTX, userID, postID, restoreVersionID
 		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// Invalid cases-
-	// 1. If the restoreVersionID is not an old version of postId,
-	// 2. If the user is not the author of the post,
-	// 3. If the restoreVersionID post is not deleted.
-	if toRestorePostVersion.OriginalId != postID || toRestorePostVersion.UserId != userID || toRestorePostVersion.DeleteAt == 0 {
+	// restoreVersionID needs to be an old version of postID
+	if toRestorePostVersion.OriginalId != postID {
+		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_an_history_item.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// the user needs to be the author of the post
+	if toRestorePostVersion.UserId != userID {
 		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_allowed.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// the old version of post needs to be a deleted post
+	if toRestorePostVersion.DeleteAt == 0 {
+		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_valid_post_history_item.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	postPatch := &model.PostPatch{
