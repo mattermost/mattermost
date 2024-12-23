@@ -112,7 +112,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                     <hr/>
                     <div
                         aria-labelledby={'userSettingsModal.pluginPreferences.header'}
-                        role='region'
+                        role='group'
                     >
                         <div
                             id={'userSettingsModal.pluginPreferences.header'}
