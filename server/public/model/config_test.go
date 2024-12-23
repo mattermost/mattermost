@@ -1559,7 +1559,7 @@ func TestConfigFilteredByTag(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
 
-	cfgMap := structToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+	cfgMap := configToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
 
 	// Remove entire sections but the map is still there
 	clusterSettings, ok := cfgMap["SqlSettings"].(map[string]any)
@@ -2087,5 +2087,64 @@ func TestFilterConfig(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Equal(t, 1.0, m["PluginSettings"].(map[string]any)["Plugins"].(map[string]any)["com.mattermost.plugin-a"].(map[string]any)["setting"])
+	})
+
+	t.Run("should be able to filter specific tag", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{},
+			TagFilters: []FilterTag{
+				{
+					TagType: ConfigAccessTagType,
+					TagName: ConfigAccessTagCloudRestrictable,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+
+		fileSettings, ok := m["FileSettings"]
+		require.True(t, ok)
+
+		enableFileAttachments, ok := fileSettings.(map[string]any)["EnableFileAttachments"]
+		require.True(t, ok)
+		require.Equal(t, true, enableFileAttachments)
+
+		// All fields of SqlSettings are ConfigAccessTagCloudRestrictable
+		_, ok = m["SqlSettings"]
+		require.False(t, ok)
+	})
+
+	t.Run("should be able to filter multiple tags", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{},
+			TagFilters: []FilterTag{
+				{
+					TagType: ConfigAccessTagType,
+					TagName: "site_file_sharing_and_downloads",
+				},
+				{
+					TagType: ConfigAccessTagType,
+					TagName: ConfigAccessTagCloudRestrictable,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+
+		fileSettings, ok := m["FileSettings"]
+		require.True(t, ok)
+		// EnableFileAttachments has "site_file_sharing_and_downloads" tag
+		_, ok = fileSettings.(map[string]any)["EnableFileAttachments"]
+		require.False(t, ok)
+
+		// All fields of SqlSettings are ConfigAccessTagCloudRestrictable
+		_, ok = m["SqlSettings"]
+		require.False(t, ok)
 	})
 }
