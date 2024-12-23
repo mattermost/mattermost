@@ -31,9 +31,13 @@ export const useUserPropertyFields = () => {
     }), []), collectionFromArray([] as UserPropertyField[]));
 
     const [pending, pendingIO] = usePendingCollection(fieldCollection, {
-        update: async (pendingCollection) => {
-            const process = collectionToArray(pendingCollection);
+        update: async (collection, prevCollection) => {
+            const process = collectionToArray(collection).filter((field) => {
+                // process changed fields - create, delete, update
+                return field !== prevCollection.data[field.id];
+            });
 
+            // prepare operations
             const fieldResults = await Promise.allSettled(process.map((item) => {
                 const {id, name} = item;
                 const patch: UserPropertyFieldPatch = {name};
@@ -44,12 +48,10 @@ export const useUserPropertyFields = () => {
                 } else if (isDeletePending(item)) {
                     // delete
                     return Client4.deleteCustomProfileAttributeField(id);
-                } else if (item !== pending.data[id]) {
-                    // save
-                    return Client4.patchCustomProfileAttributeField(id, patch);
                 }
 
-                return Promise.resolve(id); // no-op
+                // update
+                return Client4.patchCustomProfileAttributeField(id, patch);
             }));
 
             // process operation results
@@ -57,18 +59,16 @@ export const useUserPropertyFields = () => {
                 const originalItem = process[i];
 
                 if (op.status === 'fulfilled') {
-                    if (typeof op.value === 'string') {
-                        // unchanged, no changes to apply
-                    } else if (isStatusOK(op.value)) {
+                    if (isStatusOK(op.value)) {
                         // deleted - remove
                         Reflect.deleteProperty(results.data, originalItem.id);
                         results.order = results.order.filter((id) => id !== originalItem.id);
                     } else {
-                        const newId = op.value.id;
+                        const item = op.value;
 
-                        // updated or created - update data, replace pending id
-                        results.data[newId] = op.value;
-                        results.order = results.order.map((id) => (id === originalItem.id ? id : newId));
+                        // updated or created - update data & replace pending order id
+                        results.data[originalItem?.id ?? item?.id] = item;
+                        results.order = results.order.map((id) => (id === originalItem?.id ? item.id : id));
                     }
                 } else if (op.status === 'rejected') {
                     // failed
@@ -77,13 +77,13 @@ export const useUserPropertyFields = () => {
 
                 return results;
             }, {
-                data: {...pendingCollection.data},
-                order: [...pendingCollection.order],
+                data: {...collection.data},
+                order: [...collection.order],
                 errors: {} as RelationOneToOne<UserPropertyField, Error>,
             });
 
-            if (Object.keys(processedCollection.errors)) {
-                throw new Error('error while processing operations');
+            if (Object.keys(processedCollection.errors).length) {
+                throw new Error('error processing operations', {cause: processedCollection.errors});
             } else {
                 Reflect.deleteProperty(processedCollection, 'errors');
             }
@@ -116,7 +116,7 @@ export type ReadOperations<T> = {
 }
 
 export type WriteOperations<T extends Record<string, unknown>, R = T, P = Partial<T>> = {
-    update: (item: T) => R | Promise<R>;
+    update: (next: T, prev: T) => R | Promise<R>;
     patch: (patch: P) => R | Promise<R>;
     delete: (id: string) => boolean | Promise<boolean>;
 }
@@ -182,14 +182,14 @@ export function usePendingCollection<T extends Record<string, unknown>>(data: T,
     const [save, {loading: saving, error}] = useOperation(ops.update, false);
 
     const commit = () => {
-        return save(pending);
+        return save(pending, data);
     };
 
     return [pending, {saving, error, hasChanges, apply, commit, reset}] as const;
 }
 
 const PENDING = 'pending_';
-export const isCreatePending = <T extends {delete_at: number; create_at: number}>(item: T) => {
+export const isCreatePending = <T extends {id: string; delete_at: number; create_at: number}>(item: T) => {
     return item.create_at === 0 && item.delete_at === 0;
 };
 

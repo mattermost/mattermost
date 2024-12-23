@@ -2072,6 +2072,12 @@ export default class Client4 {
     // System Properties Routes
 
     getCustomProfileAttributeFields = async () => {
+        /* return this.doFetch<UserPropertyField[]>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'GET'},
+        ); */
+
+        // mock - delete
         const data: UserPropertyField[] = [
             {
                 id: 'test01',
@@ -2099,35 +2105,58 @@ export default class Client4 {
             },
         ];
 
-        await new Promise((res) => setTimeout(res, 1500));
+        await new Promise((res) => setTimeout(res, 750));
 
         return data;
-
-        /* return this.doFetch<UserPropertyField[]>(
-            `${this.getCustomProfileAttributeFieldsRoute()}`,
-            {method: 'GET'},
-        ); */
     };
 
-    createCustomProfileAttributeField = (patch: UserPropertyFieldPatch) => {
-        return this.doFetch<UserPropertyField>(
-            `${this.getCustomProfileAttributeFieldsRoute()}`,
-            {method: 'POST', body: JSON.stringify(patch)},
-        );
+    createCustomProfileAttributeField = async (patch: UserPropertyFieldPatch) => {
+        // return this.doFetch<UserPropertyField>(
+        //     `${this.getCustomProfileAttributeFieldsRoute()}`,
+        //     {method: 'POST', body: JSON.stringify(patch)},
+        // );
+
+        // mock - delete
+        await new Promise((res) => setTimeout(res, 750));
+
+        return {
+            id: Date.now().toString(),
+            name: patch.name,
+            type: 'text',
+            create_at: 1734643125001,
+            delete_at: 0,
+            update_at: 0,
+        } as UserPropertyField;
     };
 
-    patchCustomProfileAttributeField = (fieldId: string, patch: UserPropertyFieldPatch) => {
-        return this.doFetch<UserPropertyField>(
+    patchCustomProfileAttributeField = async (fieldId: string, patch: UserPropertyFieldPatch) => {
+        /* return this.doFetch<UserPropertyField>(
             `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
             {method: 'PATCH', body: JSON.stringify(patch)},
-        );
+        ); */
+        // mock - delete
+        await new Promise((res) => setTimeout(res, 750));
+
+        return {
+            id: fieldId,
+            name: patch.name,
+            type: 'text',
+            create_at: 1734643125000,
+            delete_at: 0,
+            update_at: 1734643125001,
+        } as UserPropertyField;
     };
 
-    deleteCustomProfileAttributeField = (fieldId: string) => {
-        return this.doFetch<StatusOK>(
-            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
-            {method: 'DELETE'},
-        );
+    deleteCustomProfileAttributeField = async (fieldId: string) => {
+        // return this.doFetch<StatusOK>(
+        //     `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+        //     {method: 'DELETE'},
+        // );
+
+        // mock - delete
+        await new Promise((res) => setTimeout(res, 750));
+
+        return {status: 'OK'} as StatusOK;
     };
 
     // Post Routes
