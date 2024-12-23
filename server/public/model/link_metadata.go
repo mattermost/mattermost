@@ -90,8 +90,12 @@ func (o *LinkMetadata) PreSave() {
 }
 
 func (o *LinkMetadata) IsValid() *AppError {
-	if o.URL == "" || len(o.URL) > LinkMetadataMaxURLLength {
+	if o.URL == "" {
 		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.URL) > LinkMetadataMaxURLLength {
+		return NewAppError("LinkMetadata.IsValid", "model.linkmetadata.is_valid.url_length.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.Timestamp == 0 || !isRoundedToNearestHour(o.Timestamp) {
