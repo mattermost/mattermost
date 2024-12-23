@@ -391,7 +391,10 @@ export default function ChannelNotificationsModal(props: Props) {
             </main>
             <footer className='channel-notifications-settings-modal__footer'>
                 {serverError &&
-                    <span className='channel-notifications-settings-modal__server-error'>
+                    <span
+                        role='alert'
+                        className='channel-notifications-settings-modal__server-error'
+                    >
                         {serverError}
                     </span>
                 }
