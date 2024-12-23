@@ -5090,3 +5090,230 @@ func TestUnacknowledgePost(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
+
+func TestRestorePostVersion(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	t.Run("should restore post version successfully", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 1"),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 1", patch.Message)
+
+		patch, response, err = client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 2"),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 2", patch.Message)
+
+		// verify edit history
+		editHistory, response, err := client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 2, len(editHistory))
+		require.Equal(t, "edited message 1", editHistory[0].Message)
+		require.Equal(t, "original message", editHistory[1].Message)
+
+		// now we'll restore to the original version
+		restoredPost, response, err := client.RestorePostVersion(context.Background(), createdPost.Id, editHistory[1].Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "original message", restoredPost.Message)
+		require.Equal(t, createdPost.Id, restoredPost.Id)
+
+		// verify restored post
+		fetchedPost, response, err := client.GetPost(context.Background(), createdPost.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "original message", fetchedPost.Message)
+
+		// verify edit history after restoring
+		editHistory, response, err = client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 3, len(editHistory))
+		require.Equal(t, "edited message 2", editHistory[0].Message)
+		require.Equal(t, "edited message 1", editHistory[1].Message)
+		require.Equal(t, "original message", editHistory[2].Message)
+	})
+
+	t.Run("should restore post version successfully with files", func(t *testing.T) {
+		fileResp, _, err := client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{fileId},
+		}
+
+		createdPost, response, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		require.Equal(t, 1, len(createdPost.FileIds))
+
+		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 1"),
+			FileIds: &model.StringArray{},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 1", patch.Message)
+		require.Equal(t, 0, len(patch.FileIds))
+
+		// verify edit history
+		editHistory, response, err := client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 1, len(editHistory))
+		require.Equal(t, "original message", editHistory[0].Message)
+		require.Equal(t, 1, len(editHistory[0].FileIds))
+
+		// now we'll restore to the original version
+		restoredPost, response, err := client.RestorePostVersion(context.Background(), createdPost.Id, editHistory[0].Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "original message", restoredPost.Message)
+		require.Equal(t, createdPost.Id, restoredPost.Id)
+		require.Equal(t, 1, len(restoredPost.FileIds))
+
+		// verify restored post
+		fetchedPost, response, err := client.GetPost(context.Background(), createdPost.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "original message", fetchedPost.Message)
+		require.Equal(t, 1, len(fetchedPost.FileIds))
+
+		// verify edit history after restoring
+		editHistory, response, err = client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 2, len(editHistory))
+		require.Equal(t, "edited message 1", editHistory[0].Message)
+		require.Equal(t, 0, len(editHistory[0].FileIds))
+
+		require.Equal(t, "original message", editHistory[1].Message)
+		require.Equal(t, 1, len(editHistory[1].FileIds))
+	})
+
+	t.Run("should get error when trying to restore non existent post ori history ID", func(t *testing.T) {
+		restoredPost, response, err := client.RestorePostVersion(context.Background(), model.NewId(), model.NewId())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		require.Nil(t, restoredPost)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		restoredPost, response, err = client.RestorePostVersion(context.Background(), createdPost.Id, model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, response)
+		require.Nil(t, restoredPost)
+
+		post2 := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message 2",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err = client.CreatePost(context.Background(), post2)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		restoredPost, response, err = client.RestorePostVersion(context.Background(), createdPost.Id, post2.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, response)
+		require.Nil(t, restoredPost)
+	})
+
+	t.Run("user should not be able to restore someone else's post", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 1"),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 1", patch.Message)
+
+		// verify edit history
+		editHistory, response, err := client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 1, len(editHistory))
+		require.Equal(t, "original message", editHistory[0].Message)
+
+		// now we'll restore to the original version
+		th.LoginBasic2()
+		restoredPost, response, err := th.Client.RestorePostVersion(context.Background(), createdPost.Id, editHistory[0].Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		require.Nil(t, restoredPost)
+	})
+
+	t.Run("system admin should not be able to restore someone else's post", func(t *testing.T) {
+		th.LoginBasic()
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err := th.Client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		patch, response, err := th.Client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 1"),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 1", patch.Message)
+
+		// verify edit history
+		editHistory, response, err := th.Client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 1, len(editHistory))
+		require.Equal(t, "original message", editHistory[0].Message)
+
+		// now we'll restore to the original version
+		th.LoginSystemAdmin()
+		restoredPost, response, err := th.SystemAdminClient.RestorePostVersion(context.Background(), createdPost.Id, editHistory[0].Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		require.Nil(t, restoredPost)
+	})
+}

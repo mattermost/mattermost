@@ -4,6 +4,8 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/pkg/errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -13,7 +15,16 @@ import (
 func (a *App) RestorePostVersion(c request.CTX, userID, postID, restoreVersionID string) (*model.Post, *model.AppError) {
 	toRestorePostVersion, err := a.Srv().Store().Post().GetSingle(c, restoreVersionID, true)
 	if err != nil {
-		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, err.Error(), http.StatusInternalServerError)
+		var statusCode int
+		var notFoundErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &notFoundErr):
+			statusCode = http.StatusNotFound
+		default:
+			statusCode = http.StatusInternalServerError
+		}
+
+		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, err.Error(), statusCode)
 	}
 
 	// restoreVersionID needs to be an old version of postID
