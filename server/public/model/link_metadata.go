@@ -21,7 +21,7 @@ const (
 	LinkMetadataTypeNone      LinkMetadataType = "none"
 	LinkMetadataTypeOpengraph LinkMetadataType = "opengraph"
 	LinkMetadataMaxImages     int              = 5
-	LinkMetadataMaxURLLength  int              = 2048
+	LinkMetadataMaxURLLength  int              = 2048  // Maximum URL length in LinkMetadata table
 )
 
 type LinkMetadataType string
