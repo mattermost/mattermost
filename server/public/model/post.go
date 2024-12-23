@@ -952,5 +952,6 @@ func (o *Post) CleanPost() *Post {
 }
 
 type UpdatePostOptions struct {
+	SafeUpdate    bool
 	IsRestorePost bool
 }

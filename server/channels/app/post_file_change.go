@@ -17,7 +17,7 @@ func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.P
 
 	if len(addedFileIDs) > 0 {
 		if updatePostOptions.IsRestorePost {
-			err := a.Srv().Store().FileInfo().UndeleteForPostByIds(rctx, newPost.Id, addedFileIDs)
+			err := a.Srv().Store().FileInfo().RestoreForPostByIds(rctx, newPost.Id, addedFileIDs)
 			if err != nil {
 				return nil, model.NewAppError("app.processPostFileChanges", "app.file_info.undelete_for_post_ids.app_error", map[string]any{"post_id": newPost.Id}, "", 0).Wrap(err)
 			}

@@ -679,7 +679,7 @@ func (a *App) DeleteEphemeralPost(rctx request.CTX, userID, postID string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
 	receivedUpdatedPost.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
@@ -961,7 +961,8 @@ func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch, pa
 
 	post.Patch(patch)
 
-	updatedPost, err := a.UpdatePost(c, post, false, patchPostOptions)
+	patchPostOptions.SafeUpdate = false
+	updatedPost, err := a.UpdatePost(c, post, patchPostOptions)
 	if err != nil {
 		return nil, err
 	}

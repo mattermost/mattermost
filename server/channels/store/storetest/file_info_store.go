@@ -1370,7 +1370,7 @@ func testUndeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 
 		// now we'll un-delete the files
-		err = ss.FileInfo().UndeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
 		require.NoError(t, err)
 
 		fileInfos, err = ss.FileInfo().GetForPost(postId, true, true, false)
@@ -1405,7 +1405,7 @@ func testUndeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
 
-		err = ss.FileInfo().UndeleteForPostByIds(rctx, postId, []string{})
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{})
 		require.NoError(t, err)
 
 		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
@@ -1463,7 +1463,7 @@ func testUndeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 
 		// undelete them specifying duplicate file info ids
-		err = ss.FileInfo().UndeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id, fileInfo2.Id, fileInfo2.Id})
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id, fileInfo2.Id, fileInfo2.Id})
 		require.NoError(t, err)
 
 		// verify file infos are deleted
@@ -1480,7 +1480,7 @@ func testUndeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("non existent fileInfo IDs  and postId specified", func(t *testing.T) {
-		err := ss.FileInfo().UndeleteForPostByIds(rctx, model.NewId(), []string{model.NewId(), model.NewId()})
+		err := ss.FileInfo().RestoreForPostByIds(rctx, model.NewId(), []string{model.NewId(), model.NewId()})
 		require.NoError(t, err)
 	})
 
@@ -1518,7 +1518,7 @@ func testUndeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
 
-		err = ss.FileInfo().UndeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
 		require.NoError(t, err)
 
 		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)

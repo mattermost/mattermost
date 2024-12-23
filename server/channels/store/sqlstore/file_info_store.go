@@ -821,7 +821,7 @@ func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 	return createAt, nil
 }
 
-func (fs SqlFileInfoStore) UndeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+func (fs SqlFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
 	query := fs.getQueryBuilder().
 		Update("FileInfo").
 		Set("DeleteAt", 0).
@@ -832,11 +832,11 @@ func (fs SqlFileInfoStore) UndeleteForPostByIds(rctx request.CTX, postId string,
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "SqlFileInfoStore.UndeleteForPostByIds: failed to generate sql from query")
+		return errors.Wrap(err, "SqlFileInfoStore.RestoreForPostByIds: failed to generate sql from query")
 	}
 
 	if _, err := fs.GetMaster().Exec(queryString, args...); err != nil {
-		return errors.Wrap(err, "SqlFileInfoStore.UndeleteForPostByIds: failed to undelete FileInfo from database")
+		return errors.Wrap(err, "SqlFileInfoStore.RestoreForPostByIds: failed to undelete FileInfo from database")
 	}
 
 	return nil

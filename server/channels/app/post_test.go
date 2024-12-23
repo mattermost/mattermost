@@ -269,7 +269,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 	post := th.BasicPost.Clone()
 
 	post.IsPinned = true
-	saved, err := th.App.UpdatePost(th.Context, post, true, nil)
+	saved, err := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err)
 	assert.Equal(t, saved.EditAt, post.EditAt, "shouldn't have updated post.EditAt when pinning post")
 	post = saved.Clone()
@@ -277,7 +277,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	post.Message = model.NewId()
-	saved, err = th.App.UpdatePost(th.Context, post, true, nil)
+	saved, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err)
 	assert.NotEqual(t, saved.EditAt, post.EditAt, "should have updated post.EditAt when updating post message")
 
@@ -295,7 +295,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
 	})
-	_, err := th.App.UpdatePost(th.Context, post, true, nil)
+	_, err := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -303,14 +303,14 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	})
 	post.Message = model.NewId()
 
-	_, err = th.App.UpdatePost(th.Context, post, true, nil)
+	_, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err, "should allow you to edit the post")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = 1
 	})
 	post.Message = model.NewId()
-	_, err = th.App.UpdatePost(th.Context, post, true, nil)
+	_, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.Nil(t, err, "should allow you to edit an old post because the time check is applied above in the call hierarchy")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -326,7 +326,7 @@ func TestUpdatePostInArchivedChannel(t *testing.T) {
 	post := th.CreatePost(archivedChannel)
 	th.App.DeleteChannel(th.Context, archivedChannel, "")
 
-	_, err := th.App.UpdatePost(th.Context, post, true, nil)
+	_, err := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 	require.NotNil(t, err)
 	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
 }
@@ -472,7 +472,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		require.Nil(t, err)
 
 		post.Message = "new message"
-		updatedPost, err := th.App.UpdatePost(th.Context, post, false, nil)
+		updatedPost, err := th.App.UpdatePost(th.Context, post, nil)
 		require.Nil(t, updatedPost)
 		require.NotNil(t, err)
 		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
@@ -539,7 +539,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 		require.Nil(t, err)
 
 		post.Message = "new message"
-		updatedPost, err := th.App.UpdatePost(th.Context, post, false, nil)
+		updatedPost, err := th.App.UpdatePost(th.Context, post, nil)
 		require.Nil(t, err)
 		require.NotNil(t, updatedPost)
 		require.Equal(t, "2 new message 1", updatedPost.Message)
@@ -591,7 +591,7 @@ func TestPostChannelMentions(t *testing.T) {
 	}, post.GetProp("channel_mentions"))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention2.Name)
-	result, err := th.App.UpdatePost(th.Context, post, false, nil)
+	result, err := th.App.UpdatePost(th.Context, post, nil)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
 		"mention-test2": map[string]any{
@@ -601,7 +601,7 @@ func TestPostChannelMentions(t *testing.T) {
 	}, result.GetProp("channel_mentions"))
 
 	result.Message = "no more mentions!"
-	result, err = th.App.UpdatePost(th.Context, result, false, nil)
+	result, err = th.App.UpdatePost(th.Context, result, nil)
 	require.Nil(t, err)
 	assert.Nil(t, result.GetProp("channel_mentions"))
 }
@@ -1123,7 +1123,7 @@ func TestCreatePost(t *testing.T) {
 			go func() {
 				defer wg.Done()
 				post := previewPost.Clone()
-				th.App.UpdatePost(th.Context, post, false, nil)
+				th.App.UpdatePost(th.Context, post, nil)
 			}()
 		}
 
@@ -1539,7 +1539,7 @@ func TestUpdatePost(t *testing.T) {
 		post.Id = rpost.Id
 		post.Message = "![image](" + imageURL + ")"
 
-		rpost, err = th.App.UpdatePost(th.Context, post, false, nil)
+		rpost, err = th.App.UpdatePost(th.Context, post, nil)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
@@ -1578,7 +1578,7 @@ func TestUpdatePost(t *testing.T) {
 		assert.Equal(t, model.StringInterface{}, testPost.GetProps())
 
 		testPost.Message = permalink
-		testPost, err = th.App.UpdatePost(th.Context, testPost, false, nil)
+		testPost, err = th.App.UpdatePost(th.Context, testPost, nil)
 		require.Nil(t, err)
 		assert.Equal(t, model.StringInterface{model.PostPropsPreviewedPost: referencedPost.Id}, testPost.GetProps())
 	})
@@ -1639,7 +1639,7 @@ func TestUpdatePost(t *testing.T) {
 
 				permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 				previewPost.Message = permalink
-				previewPost, err = th.App.UpdatePost(th.Context, previewPost, false, nil)
+				previewPost, err = th.App.UpdatePost(th.Context, previewPost, nil)
 				require.Nil(t, err)
 
 				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
@@ -3126,7 +3126,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err, "Creating a post should not error")
 
-		_, err = th.App.UpdatePost(th.Context, post, true, nil)
+		_, err = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{SafeUpdate: true})
 		require.Nil(t, err, "Updating a post should not error")
 
 		require.Len(t, sharedChannelService.channelNotifications, 2)

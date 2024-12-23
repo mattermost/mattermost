@@ -3813,6 +3813,22 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postI
 	return err
 }
 
+func (s *TimerLayerFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	start := time.Now()
+
+	err := s.FileInfoStore.RestoreForPostByIds(rctx, postId, fileIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.RestoreForPostByIds", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerFileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 	start := time.Now()
 
@@ -3857,22 +3873,6 @@ func (s *TimerLayerFileInfoStore) SetContent(ctx request.CTX, fileID string, con
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.SetContent", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerFileInfoStore) UndeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
-	start := time.Now()
-
-	err := s.FileInfoStore.UndeleteForPostByIds(rctx, postId, fileIDs)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.UndeleteForPostByIds", success, elapsed)
 	}
 	return err
 }
