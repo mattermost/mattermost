@@ -29,7 +29,7 @@
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Группын товч тайлбар/уриаг өөрчлөх"
+    "translation": "Rediger kanaloverskriften"
   },
   {
     "id": "api.command.invite_people.name",
@@ -246,5 +246,21 @@
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Kontakt salgsavdelingen"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Feil ved henting av gjeldende kanal."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "borte"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Du er nå borte"
   }
 ]
