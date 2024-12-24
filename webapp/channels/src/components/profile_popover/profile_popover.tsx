@@ -4,7 +4,8 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getAllCustomAttributes} from 'mattermost-redux/actions/general';
+import {getAllCustomAttributes, getCustomAttributeValues} from 'mattermost-redux/actions/general';
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCustomAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -146,15 +147,6 @@ const ProfilePopover = ({
         }
     }, [channelId, userId, currentTeamId, dispatch]);
 
-    if (!user) {
-        return null;
-    }
-    const fakeCustomAttributeValues = {
-        123: 'Hello',
-        456: 'World',
-        789: 'Yes sir',
-    };
-
     const urlSrc = overwriteIcon || src;
     const haveOverrideProp = Boolean(overwriteIcon || overwriteName);
     const fullname = overwriteName || Utils.getFullName(user);
@@ -197,15 +189,11 @@ const ProfilePopover = ({
                         fromWebhook={fromWebhook}
                     />
                 </div>
-                { fakeCustomAttributeValues && (
-                // { user.custom_attributes && (
-                    <ProfilePopoverCustomAttributes
-                        customAttributes={customAttributes}
-                        // customAttributeValues={user.custom_attributes}
-                        customAttributeValues={fakeCustomAttributeValues}
-                        getCustomAttributes={getAllCustomAttributes}
-                    />
-                )}
+                <ProfilePopoverCustomAttributes
+                    userID={userId}
+                    customAttributes={customAttributes}
+                    getCustomAttributes={getAllCustomAttributes}
+                />
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}
                     profileUserTimezone={user.timezone}

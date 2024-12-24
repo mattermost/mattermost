@@ -81,6 +81,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
 	f.ExperimentalCrossTeamSearch = false
+	f.CustomProfileAttributes = true
 }
 
 // ToMap returns the feature flags as a map[string]string

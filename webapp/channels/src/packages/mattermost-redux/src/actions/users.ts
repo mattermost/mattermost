@@ -975,7 +975,7 @@ export function saveAttribute(userID: string, attributeID: string, attributeValu
     return async (dispatch, getState) => {
         let returnedAttributes;
         try {
-            returnedAttributes = await Client4.updateUserAttributes(userID, attributeID, attributeValue);
+            returnedAttributes = await Client4.updateUserAttributes(attributeID, attributeValue);
         } catch (error) {
             dispatch(logError(error));
             return {error};

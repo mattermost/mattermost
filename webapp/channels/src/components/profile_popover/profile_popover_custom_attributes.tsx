@@ -1,26 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
 import type {CustomAttribute} from '@mattermost/types/admin';
 
+import {Client4} from 'mattermost-redux/client';
+
 type Props = {
+    userID: string;
     customAttributes: CustomAttribute[];
-    customAttributeValues: Record<string, string>;
     getCustomAttributes: () => void;
 }
 const ProfilePopoverCustomAttributes = ({
+    userID,
     customAttributes,
-    customAttributeValues,
     getCustomAttributes,
 }: Props) => {
     const dispatch = useDispatch();
+    const [customAttributeValues, setCustomAttributeValues] = useState<Record<string, string>>({});
 
     useEffect(() => {
+        const fetchValues = async () => {
+            const response = await Client4.getUserAttributes(userID);
+            setCustomAttributeValues(response);
+        };
         dispatch(getCustomAttributes());
-    }, [getCustomAttributes, dispatch]);
+        fetchValues();
+    }, [userID, getCustomAttributes, dispatch]);
 
     const attributeSections = customAttributes.map((attribute) => {
         const value = customAttributeValues[attribute.id];

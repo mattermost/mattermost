@@ -50,6 +50,18 @@ export function getAllCustomAttributes() {
     });
 }
 
+export function getCustomAttributeValues(userID: string) {
+    return async () => {
+        let data;
+        try {
+            data = await Client4.getUserAttributes(userID);
+        } catch (error) {
+            return {error};
+        }
+        return {data};
+    };
+}
+
 export function logClientError(message: string, level = LogLevel.Error) {
     return bindClientFunc({
         clientFunc: Client4.logClientError,

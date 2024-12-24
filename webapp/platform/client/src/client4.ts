@@ -4285,14 +4285,22 @@ export default class Client4 {
         return test;
     };
 
-    updateUserAttributes = (userID: string, attributeID: string, attributeValue: string) => {
+    updateUserAttributes = (attributeID: string, attributeValue: string) => {
         const obj: { [key: string]: string } = {};
         obj[attributeID] = attributeValue;
 
         return this.doFetch<Record<string, string>>(
-            `${this.getUserRoute(userID)}/custom_profile_attributes/value`,
-            {method: 'post', body: JSON.stringify(obj)},
+            `${this.getAttributesRoute()}/values`,
+            {method: 'PATCH', body: JSON.stringify(obj)},
         );
+    };
+
+    getUserAttributes = async (userID: string) => {
+        const data = await this.doFetch<Record<string, string>>(
+            `${this.getUserRoute(userID)}/custom_profile_attributes`,
+            {method: 'get'},
+        );
+        return data;
     };
 }
 

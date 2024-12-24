@@ -948,6 +948,8 @@ type AppIface interface {
 	License() *model.License
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
+	ListCPAFields() ([]*model.PropertyField, *model.AppError)
+	ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListDirectoryRecursively(path string) ([]string, *model.AppError)
 	ListExportDirectory(path string) ([]string, *model.AppError)
@@ -973,6 +975,8 @@ type AppIface interface {
 	OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	OutgoingOAuthConnections() einterfaces.OutgoingOAuthConnectionInterface
+	PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.AppError)
+	PatchCPAValues(userID string, values map[string]string) *model.AppError
 	PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError)
 	PatchChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError)
 	PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError)

@@ -108,29 +108,6 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/notify-admin", api.APISessionRequired(handleNotifyAdmin)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods(http.MethodPost)
-
-	api.BaseRoutes.User.Handle("/custom_profile_attributes/value", api.APISessionRequired(saveAttribs)).Methods(http.MethodPost)
-}
-
-func saveAttribs(c *Context, w http.ResponseWriter, r *http.Request) {
-	var attribs map[string]string
-	if jsonErr := json.NewDecoder(r.Body).Decode(&attribs); jsonErr != nil {
-		c.SetInvalidParamWithErr("attribs", jsonErr)
-		return
-	}
-
-	// customAttributeValues := make(map[string]string)
-	// customAttributeValues["123"] = "Private"
-	// customAttributeValues["456"] = "Joe Seargent"
-	// customAttributeValues["789"] = "Lowrey AFB"
-	customAttributeValues := make(map[string]string)
-	for k, v := range attribs {
-		customAttributeValues[k] = v
-	}
-
-	if err := json.NewEncoder(w).Encode(customAttributeValues); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {

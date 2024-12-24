@@ -10,6 +10,7 @@ import type {IntlShape} from 'react-intl';
 import type {CustomAttribute} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
@@ -159,8 +160,14 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         this.state = this.setupInitialState(props);
     }
 
+    fetchValues = async () => {
+        const response = await Client4.getUserAttributes(this.props.user.id);
+        this.setState({customAttributeValues: response});
+    };
+
     componentDidMount() {
         this.props.actions.getCustomAttributes();
+        this.fetchValues();
     }
 
     handleEmailResend = (email: string) => {
@@ -508,6 +515,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     setupInitialState(props: Props) {
         const user = props.user;
+        let cav = {};
+        if (this.state !== undefined) {
+            cav = this.state.customAttributeValues;
+        }
         return {
             username: user.username,
             firstName: user.first_name,
@@ -523,7 +534,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             sectionIsSaving: false,
             showSpinner: false,
             serverError: '',
-            customAttributeValues: user.custom_attributes ? user.custom_attributes : {},
+            customAttributeValues: cav,
         };
     }
 
