@@ -35,7 +35,7 @@ func TestSetLicenseOnStart(t *testing.T) {
 	f, err := os.CreateTemp("", "TestSetLicenseOnStart")
 	require.NoError(t, err)
 	defer os.Remove(f.Name())
-	os.WriteFile(f.Name(), validTestLicense, 0777)
+	require.NoError(t, os.WriteFile(f.Name(), validTestLicense, 0777))
 
 	*cfg.ServiceSettings.LicenseFileLocation = f.Name()
 

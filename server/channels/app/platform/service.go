@@ -296,7 +296,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
-
 	// Step 8: Init License
 	if model.BuildEnterpriseReady == "true" {
 		ps.LoadLicense()
