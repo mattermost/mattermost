@@ -37,97 +37,128 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
     <div
       class="emoji-picker__categories"
       id="emojiPickerCategories"
+      role="tablist"
     >
-      <a
+      <button
+        aria-controls="emojipickercat-smileys-emotion"
         aria-label="Smileys & Emotion"
-        class="emoji-picker__category emoji-picker__category--selected"
-        href="#"
+        aria-selected="true"
+        class="style--none emoji-picker__category emoji-picker__category--selected"
+        id="emojiPickerCategoryTab-smileys-emotion"
+        role="tab"
       >
         <i
           class="icon-emoticon-happy-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
+        aria-controls="emojipickercat-people-body"
         aria-label="People & Body"
-        class="emoji-picker__category"
-        href="#"
+        aria-selected="false"
+        class="style--none emoji-picker__category"
+        id="emojiPickerCategoryTab-people-body"
+        role="tab"
       >
         <i
           class="icon-account-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
+        aria-controls="emojipickercat-animals-nature"
         aria-label="Animals & Nature"
-        class="emoji-picker__category"
-        href="#"
+        aria-selected="false"
+        class="style--none emoji-picker__category"
+        id="emojiPickerCategoryTab-animals-nature"
+        role="tab"
       >
         <i
           class="icon-leaf-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
+        aria-controls="emojipickercat-food-drink"
         aria-label="Food & Drink"
-        class="emoji-picker__category"
-        href="#"
+        aria-selected="false"
+        class="style--none emoji-picker__category"
+        id="emojiPickerCategoryTab-food-drink"
+        role="tab"
       >
         <i
           class="icon-food-apple"
         />
-      </a>
-      <a
+      </button>
+      <button
+        aria-controls="emojipickercat-travel-places"
         aria-label="Travel & Places"
-        class="emoji-picker__category"
-        href="#"
+        aria-selected="false"
+        class="style--none emoji-picker__category"
+        id="emojiPickerCategoryTab-travel-places"
+        role="tab"
       >
         <i
           class="icon-airplane-variant"
         />
-      </a>
-      <a
+      </button>
+      <button
+        aria-controls="emojipickercat-activities"
         aria-label="Activities"
-        class="emoji-picker__category"
-        href="#"
+        aria-selected="false"
+        class="style--none emoji-picker__category"
+        id="emojiPickerCategoryTab-activities"
+        role="tab"
       >
         <i
           class="icon-basketball"
         />
-      </a>
-      <a
+      </button>
+      <button
+        aria-controls="emojipickercat-objects"
         aria-label="Objects"
-        class="emoji-picker__category"
-        href="#"
+        aria-selected="false"
+        class="style--none emoji-picker__category"
+        id="emojiPickerCategoryTab-objects"
+        role="tab"
       >
         <i
           class="icon-lightbulb-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
+        aria-controls="emojipickercat-symbols"
         aria-label="Symbols"
-        class="emoji-picker__category"
-        href="#"
+        aria-selected="false"
+        class="style--none emoji-picker__category"
+        id="emojiPickerCategoryTab-symbols"
+        role="tab"
       >
         <i
           class="icon-heart-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
+        aria-controls="emojipickercat-flags"
         aria-label="Flags"
-        class="emoji-picker__category"
-        href="#"
+        aria-selected="false"
+        class="style--none emoji-picker__category"
+        id="emojiPickerCategoryTab-flags"
+        role="tab"
       >
         <i
           class="icon-flag-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
+        aria-controls="emojipickercat-custom"
         aria-label="Custom"
-        class="emoji-picker__category"
-        href="#"
+        aria-selected="false"
+        class="style--none emoji-picker__category"
+        id="emojiPickerCategoryTab-custom"
+        role="tab"
       >
         <i
           class="icon-emoticon-custom-outline"
         />
-      </a>
+      </button>
     </div>
     <div
       class="emoji-picker__items"
