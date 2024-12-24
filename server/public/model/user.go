@@ -110,7 +110,6 @@ type User struct {
 	DisableWelcomeEmail    bool        `json:"disable_welcome_email"`
 	LastLogin              int64       `json:"last_login,omitempty"`
 	MfaUsedTimestamps      StringArray `json:"mfa_used_timestamps,omitempty"`
-	CustomAttributes       StringMap   `json:"custom_attributes,omitempty"`
 }
 
 func (u *User) Auditable() map[string]interface{} {
