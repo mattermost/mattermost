@@ -11,7 +11,7 @@ import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, Use
 
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
-import {setServerVersion, getClientConfig, getLicenseConfig, getCustomAttributes} from 'mattermost-redux/actions/general';
+import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
@@ -79,7 +79,6 @@ export function loadMe(): ActionFuncAsync<boolean> {
                 dispatch(getMyPreferences()),
                 dispatch(getMyTeams()),
                 dispatch(getMyTeamMembers()),
-                // dispatch(getCustomAttributes()),
             ]);
 
             const isCollapsedThreads = isCollapsedThreadsEnabled(getState());

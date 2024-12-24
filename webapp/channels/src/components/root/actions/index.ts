@@ -8,7 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
-import {getClientConfig, getLicenseConfig, getFirstAdminSetupComplete, getCustomAttributes} from 'mattermost-redux/actions/general';
+import {getClientConfig, getLicenseConfig, getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
 import {getMyTeamMembers, getMyTeams, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
@@ -61,7 +61,6 @@ export function loadConfigAndMe(): ThunkActionFunc<Promise<{isLoaded: boolean; i
 
         try {
             await Promise.all([
-                // dispatch(getCustomAttributes()),
                 dispatch(getMe()),
                 dispatch(getMyPreferences()),
                 dispatch(getMyTeams()),

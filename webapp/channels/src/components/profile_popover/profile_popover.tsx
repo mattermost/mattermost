@@ -4,8 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getAllCustomAttributes, getCustomAttributeValues} from 'mattermost-redux/actions/general';
-import {Client4} from 'mattermost-redux/client';
+import {getAllCustomAttributes} from 'mattermost-redux/actions/general';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCustomAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
