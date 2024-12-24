@@ -42,14 +42,17 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
                 <FormattedMessage {...category.label}/>
             }
         >
-            <a
-                className={className}
-                href='#'
+            <button
+                role='tab'
+                aria-selected={selected}
+                className={classNames('style--none', className)}
+                id={`emojiPickerCategoryTab-${category.name}`}
                 onClick={handleClick}
+                aria-controls={`emojipickercat-${category.name}`}
                 aria-label={intl.formatMessage(category.label)}
             >
                 <i className={category.iconClassName}/>
-            </a>
+            </button>
         </WithTooltip>
     );
 }

@@ -21,6 +21,8 @@ function EmojiPickerCategoryRow({categoryName, style}: Props) {
             <div
                 className='emoji-picker__category-header'
                 id={`emojipickercat-${categoryName}`}
+                aria-labelledby={`emojiPickerCategoryTab-${categoryName}`}
+                role='tabpanel'
             >
                 <FormattedMessage id={`emoji_picker.${categoryName}`}/>
             </div>
