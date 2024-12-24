@@ -326,11 +326,11 @@ function clickPostHeaderItem(postId: string, location: string, item: string) {
 
     if (postId) {
         cy.get(`#${idPrefix}_${postId}`).trigger('mouseover', {force: true}).
-            get(`#${location}_${item}_${postId}`).should('be.visible').trigger('mouseover', {force: true}).click({force: true});
+            get(`#${location}_${item}_${postId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
     } else {
         cy.getLastPostId().then((lastPostId) => {
             cy.get(`#${idPrefix}_${lastPostId}`).trigger('mouseover', {force: true}).
-                get(`#${location}_${item}_${lastPostId}`).should('be.visible').trigger('mouseover', {force: true}).click({force: true});
+                get(`#${location}_${item}_${lastPostId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
         });
     }
 }
