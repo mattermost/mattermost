@@ -3213,7 +3213,7 @@
   "channel_header.lastOnline": "Last online {timestamp}",
   "channel_header.leave": "Leave Channel",
   "channel_header.manageMembers": "Manage Members",
-  "channel_header.menuAriaLabel": "Channel Menu",
+  "channel_header.menuAriaLabel": "{channelName} Channel Menu",
   "channel_header.mute": "Mute Channel",
   "channel_header.muteConversation": "Mute Conversation",
   "channel_header.openChannelInfo": "View Info",

@@ -107,8 +107,11 @@ const ChannelHeaderTitle = ({
                     aria-level={2}
                     id='channelHeaderTitle'
                     className='heading'
+                    aria-labelledby='channelHeaderTitle.bot'
                 >
-                    <span>
+                    <span
+                        id='channelHeaderTitle.bot'
+                    >
                         {archivedIcon}
                         {channelTitle}
                     </span>
@@ -142,7 +145,9 @@ const ChannelHeaderTitle = ({
                         <button
                             id='channel_header.menuAriaLabel'
                             className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
-                            aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu'}).toLowerCase()}
+                            aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: '{channelName} Channel Menu'}, {
+                                channelName: isDirect ? channel.display_name + '(you)' : channel.display_name,
+                            }).toLowerCase()}
                             aria-expanded={titleMenuOpen}
                             aria-controls='channelHeaderDropdownMenu'
                         >
@@ -166,6 +171,7 @@ const ChannelHeaderTitle = ({
                             <span
                                 id='channelHeaderDropdownIcon'
                                 className='icon icon-chevron-down header-dropdown-chevron-icon'
+                                aria-hidden='true'
                             />
                         </button>
                     </strong>
