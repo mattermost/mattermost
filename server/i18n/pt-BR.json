@@ -3065,7 +3065,7 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Agregador do Elastisearch falhou para criar os índices"
+    "translation": "{{.Backend}} O worker do agregador não conseguiu criar o trabalho de indexação"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
@@ -9934,5 +9934,21 @@
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
     "translation": "Falha ao excluir um índice desconhecido especificado"
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "O recurso de lista de purga não está disponível para o Bleve."
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Falha na verificação dos limites de imagem. A resolução é muito alta."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "O URL é muito longo"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Falha ao analisar o valor:{{.Value}} para int64"
   }
 ]
