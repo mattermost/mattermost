@@ -60,6 +60,7 @@ import type {StorageItem} from 'types/store/storage';
 import type {NewPostMessageProps} from './new_post';
 import {completePostReceive} from './new_post';
 import type {OnSubmitOptions, SubmitPostReturnType} from './views/create_comment';
+import {getFile, makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 
 export type CreatePostOptions = {
     keepDraft?: boolean;
@@ -323,9 +324,24 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean> {
 }
 
 export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean, GlobalState> {
+    const getFilesForPost = makeGetFilesForPost();
+
     return (dispatch, getState) => {
         const state = getState();
-        const post = PostSelectors.getPost(state, postId);
+        let post = PostSelectors.getPost(state, postId);
+
+        if (post.file_ids?.length) {
+            const files = getFilesForPost(state, postId);
+            post = {
+                ...post,
+                metadata: {
+                    ...post.metadata,
+                    files,
+                },
+            };
+        }
+
+        console.log('setEditingPost', {post});
 
         if (!post || post.pending_post_id === postId) {
             return {data: false};

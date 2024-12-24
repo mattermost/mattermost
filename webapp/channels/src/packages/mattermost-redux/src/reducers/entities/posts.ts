@@ -329,6 +329,7 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 }
 
 function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
+    console.log('handlePostReceived');
     let currentState = nextState;
 
     // Check if post already exists in state or if nested permalink

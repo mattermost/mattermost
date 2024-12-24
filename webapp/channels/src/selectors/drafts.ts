@@ -124,7 +124,14 @@ export function makeGetDraft() {
         }
         const key = storageKey || `${prefixStorageKey}${suffixStorageKey}`;
 
-        const retrievedDraft = getGlobalItem<PostDraft>(state, key, DEFAULT_DRAFT);
+        let retrievedDraft = getGlobalItem<PostDraft>(state, key, DEFAULT_DRAFT);
+
+        if (retrievedDraft.metadata?.files) {
+            retrievedDraft = {
+                ...retrievedDraft,
+                fileInfos: retrievedDraft.metadata.files,
+            };
+        }
 
         // Check if the draft has the required values in its properties
         const isDraftWithRequiredValues = typeof retrievedDraft.message !== 'undefined' && typeof retrievedDraft.uploadsInProgress !== 'undefined' && typeof retrievedDraft.fileInfos !== 'undefined';
@@ -136,6 +143,7 @@ export function makeGetDraft() {
             return retrievedDraft;
         }
 
+        console.log('makeGetDraft', {retrievedDraft});
         return {
             ...DEFAULT_DRAFT,
             ...retrievedDraft,

@@ -29,6 +29,7 @@ export type PostDraft = {
             requested_ack?: boolean;
             persistent_notifications?: boolean;
         };
+        files?: FileInfo[];
     };
 };
 

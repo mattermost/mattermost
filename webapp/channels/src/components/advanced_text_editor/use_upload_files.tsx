@@ -36,6 +36,7 @@ const useUploadFiles = (
     setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
     isInEditMode: boolean,
 ): [React.ReactNode, React.ReactNode] => {
+    // console.log('useUploadFiles', {draft});
     const locale = useSelector(getCurrentLocale);
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{ [clientID: string]: FilePreviewInfo }>({});
@@ -158,7 +159,7 @@ const useUploadFiles = (
         postType = isThreadView ? 'thread' : 'comment';
     }
 
-    const fileUploadJSX = isDisabled || isInEditMode ? null : (
+    const fileUploadJSX = isDisabled ? null : (
         <FileUpload
             ref={fileUploadRef}
             fileCount={getFileCount(draft)}
