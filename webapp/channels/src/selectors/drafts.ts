@@ -127,10 +127,7 @@ export function makeGetDraft() {
         let retrievedDraft = getGlobalItem<PostDraft>(state, key, DEFAULT_DRAFT);
 
         if (retrievedDraft.metadata?.files) {
-            retrievedDraft = {
-                ...retrievedDraft,
-                fileInfos: retrievedDraft.metadata.files,
-            };
+            retrievedDraft = {...retrievedDraft, fileInfos: retrievedDraft.metadata.files};
         }
 
         // Check if the draft has the required values in its properties
@@ -143,7 +140,6 @@ export function makeGetDraft() {
             return retrievedDraft;
         }
 
-        console.log('makeGetDraft', {retrievedDraft});
         return {
             ...DEFAULT_DRAFT,
             ...retrievedDraft,

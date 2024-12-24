@@ -298,7 +298,6 @@ const AdvancedTextEditor = ({
     useOrientationHandler(textboxRef, postId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
-    console.log({draft});
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,
         postId,
@@ -310,7 +309,6 @@ const AdvancedTextEditor = ({
         handleDraftChange,
         focusTextbox,
         setServerError,
-        isInEditMode,
     );
 
     const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;

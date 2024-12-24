@@ -15,6 +15,7 @@ import * as PostActions from 'mattermost-redux/actions/posts';
 import {createSchedulePost} from 'mattermost-redux/actions/scheduled_posts';
 import * as ThreadActions from 'mattermost-redux/actions/threads';
 import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -60,7 +61,6 @@ import type {StorageItem} from 'types/store/storage';
 import type {NewPostMessageProps} from './new_post';
 import {completePostReceive} from './new_post';
 import type {OnSubmitOptions, SubmitPostReturnType} from './views/create_comment';
-import {getFile, makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 
 export type CreatePostOptions = {
     keepDraft?: boolean;
@@ -332,16 +332,8 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
 
         if (post.file_ids?.length) {
             const files = getFilesForPost(state, postId);
-            post = {
-                ...post,
-                metadata: {
-                    ...post.metadata,
-                    files,
-                },
-            };
+            post = {...post, metadata: {...post.metadata, files}};
         }
-
-        console.log('setEditingPost', {post});
 
         if (!post || post.pending_post_id === postId) {
             return {data: false};

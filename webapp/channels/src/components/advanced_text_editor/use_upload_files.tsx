@@ -34,9 +34,7 @@ const useUploadFiles = (
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
-    isInEditMode: boolean,
 ): [React.ReactNode, React.ReactNode] => {
-    // console.log('useUploadFiles', {draft});
     const locale = useSelector(getCurrentLocale);
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{ [clientID: string]: FilePreviewInfo }>({});
