@@ -109,7 +109,6 @@ export const ChannelActionsMenu: React.FC<Props> = ({channel, isArchived, isRead
             icon={
                 <span style={{fontSize: '1.25rem', verticalAlign: 'middle', marginLeft: '2'}}>
                     <CogOutlineIcon
-                        color='#808080'
                         size={18}
                     />
                 </span>}

@@ -75,7 +75,7 @@ export default function MenuItemToggleMuteChannel({
             id={id}
             onClick={handleClick}
             text={text}
-            icon={<BellOffOutlineIcon color='#808080'/>}
+            icon={<BellOffOutlineIcon size={18}/>}
         />
     );
 }

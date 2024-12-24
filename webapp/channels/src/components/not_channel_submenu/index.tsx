@@ -75,7 +75,6 @@ export const NotChannelSubMenu: React.FC<Props> = ({channel, isArchived, isReado
             icon={
                 <span style={{fontSize: '1.25rem', verticalAlign: 'middle', marginLeft: '2'}}>
                     <CogOutlineIcon
-                        color='#808080'
                         size={18}
                     />
                 </span>}

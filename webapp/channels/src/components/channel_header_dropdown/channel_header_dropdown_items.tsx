@@ -3,17 +3,17 @@
 
 import React from 'react';
 
-import {AppsIcon, ArchiveOutlineIcon, BellOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
+import { AppsIcon, ArchiveOutlineIcon, BellOutlineIcon } from '@mattermost/compass-icons/components';
+import type { Channel } from '@mattermost/types/channels';
+import type { UserProfile } from '@mattermost/types/users';
 
-import {Permissions} from 'mattermost-redux/constants';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
+import { Permissions } from 'mattermost-redux/constants';
+import { isGuest } from 'mattermost-redux/utils/user_utils';
 
 import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import ChannelActionsMenu from 'components/channel_settings';
-import type {Actions} from 'components/convert_gm_to_channel_modal';
+import type { Actions } from 'components/convert_gm_to_channel_modal';
 import DeleteChannelModal from 'components/delete_channel_modal';
 import DMChannelSubMenu from 'components/dm_channel_submenu';
 import NotChannelSubMenu from 'components/not_channel_submenu';
@@ -22,10 +22,10 @@ import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 import Menu from 'components/widgets/menu/menu';
 
 import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
-import {Constants, ModalIdentifiers} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import { Constants, ModalIdentifiers } from 'utils/constants';
+import { localizeMessage } from 'utils/utils';
 
-import type {PluginComponent, Menu as PluginMenu} from 'types/store/plugins';
+import type { PluginComponent, Menu as PluginMenu } from 'types/store/plugins';
 
 import MenuItemCloseChannel from './menu_items/close_channel';
 import MenuItemCloseMessage from './menu_items/close_message';
@@ -35,6 +35,7 @@ import MenuItemToggleFavoriteChannel from './menu_items/toggle_favorite_channel'
 import MenuItemToggleInfo from './menu_items/toggle_info';
 import MenuItemToggleMuteChannel from './menu_items/toggle_mute_channel';
 import MenuItemViewPinnedPosts from './menu_items/view_pinned_posts';
+
 
 export type Props = {
     user: UserProfile;
@@ -87,7 +88,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
         if (isMobile) {
             divider = (
                 <li className='MenuGroup mobile-menu-divider'>
-                    <hr/>
+                    <hr />
                 </li>
             );
         }
@@ -122,8 +123,9 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         channel,
                         currentUser: user,
                     }}
-                    text={localizeMessage({id: 'navbar.preferences', defaultMessage: 'Notification Preferences'})}
-                    icon={<BellOutlineIcon color='#808080'/>}
+                    text={localizeMessage({ id: 'navbar.preferences', defaultMessage: 'Notification Preferences' })}
+                    icon={<BellOutlineIcon size={18} />}
+                    style={{ height: '36px' }}
                 />
                 {(channel.type === Constants.OPEN_CHANNEL || isPrivate) && (
                     <ChannelActionsMenu
@@ -172,13 +174,13 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         id='channelViewMembers'
                         channel={channel}
                         show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && (isArchived || isDefault)}
-                        text={localizeMessage({id: 'channel_header.viewMembers', defaultMessage: 'Members'})}
+                        text={localizeMessage({ id: 'channel_header.viewMembers', defaultMessage: 'Members' })}
                     />
                     <MenuItemOpenMembersRHS
                         id='channelViewMembers'
                         channel={channel}
                         show={channel.type === Constants.GM_CHANNEL}
-                        text={localizeMessage({id: 'channel_header.viewMembers', defaultMessage: 'Members'})}
+                        text={localizeMessage({ id: 'channel_header.viewMembers', defaultMessage: 'Members' })}
                     />
                     <ChannelPermissionGate
                         channelId={channel.id}
@@ -190,7 +192,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                             id='channelViewMembers'
                             channel={channel}
                             show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isDefault}
-                            text={localizeMessage({id: 'channel_header.viewMembers', defaultMessage: 'Members'})}
+                            text={localizeMessage({ id: 'channel_header.viewMembers', defaultMessage: 'Members' })}
                         />
                     </ChannelPermissionGate>
                 </Menu.Group>
@@ -204,9 +206,9 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                     <Menu.ItemSubMenu
                         id='pluginItems-submenu'
                         subMenu={pluginItems}
-                        text={localizeMessage({id: 'sidebar_left.sidebar_channel_menu.plugins ', defaultMessage: 'More Actions'})}
+                        text={localizeMessage({ id: 'sidebar_left.sidebar_channel_menu.plugins ', defaultMessage: 'More Actions' })}
                         direction='right'
-                        icon={<AppsIcon color='#808080'/>}
+                        icon={<AppsIcon size={18} />}
                     />
                 </Menu.Group>
                 <Menu.Group divider={divider}>
@@ -231,8 +233,8 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                                 channel,
                                 penultimateViewedChannelName,
                             }}
-                            text={localizeMessage({id: 'channel_header.delete', defaultMessage: 'Archive Channel'})}
-                            icon={<ArchiveOutlineIcon/>}
+                            text={localizeMessage({ id: 'channel_header.delete', defaultMessage: 'Archive Channel' })}
+                            icon={<ArchiveOutlineIcon size={18} />}
                         />
                     </ChannelPermissionGate>
                     {isMobile &&
@@ -264,7 +266,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                             dialogProps={{
                                 channel,
                             }}
-                            text={localizeMessage({id: 'channel_header.unarchive', defaultMessage: 'Unarchive Channel'})}
+                            text={localizeMessage({ id: 'channel_header.unarchive', defaultMessage: 'Unarchive Channel' })}
                         />
                     </ChannelPermissionGate>
                 </Menu.Group>
@@ -272,3 +274,5 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
         );
     }
 }
+
+

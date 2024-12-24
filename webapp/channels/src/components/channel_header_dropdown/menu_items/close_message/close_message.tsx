@@ -108,7 +108,7 @@ export default class CloseMessage extends React.PureComponent<Props> {
                 show={channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL}
                 onClick={this.handleClose}
                 text={text}
-                icon={<CloseIcon color='#808080'/>}
+                icon={<CloseIcon size={18}/>}
             />
         );
     }

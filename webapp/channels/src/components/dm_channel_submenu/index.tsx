@@ -14,7 +14,6 @@ import Menu from 'components/widgets/menu/menu';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
-
 import type {Menu as ChannelMenu} from 'types/store/plugins';
 
 type Props = {
@@ -54,11 +53,10 @@ export const DMChannelSubMenu: React.FC<Props> = ({channel, isArchived, isReadon
             icon={
                 <span style={{fontSize: '1.25rem', verticalAlign: 'middle', marginLeft: '2'}}>
                     <CogOutlineIcon
-                        color='#808080'
                         size={18}
                     />
                 </span>}
-        />
+                />
     );
 };
 export default (DMChannelSubMenu);

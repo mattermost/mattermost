@@ -47,7 +47,7 @@ const ToggleChannelMembersRHS = ({
             id={id}
             onClick={openRHSIfNotOpen}
             text={text}
-            icon={<AccountOutlineIcon color='#808080'/>}
+            icon={<AccountOutlineIcon size={18}/>}
         />
     );
 };

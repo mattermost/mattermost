@@ -1,12 +1,23 @@
 @import 'utils/variables';
 
+.SubMenuItem {
+    &.MenuItem{
+        display: inline-flex;
+        max-width: 100%;
+        padding: 5px 0;
+        line-height: 22px;
+        white-space: nowrap;
+    }
+
+}
+
 .Menu {
     .MenuItem {
         display: flex;
         width: 100%;
         align-items: center;
         font-size: 14px;
-
+        height: 36px;
         &.MenuItem--with-icon {
             .MenuItem__help-text {
                 padding-left: 28px;
@@ -44,6 +55,7 @@
             align-self: center;
             padding-right: 12px;
             line-height: 16px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
         }
 
         div.text {
@@ -86,6 +98,7 @@
         >a {
             display: block;
             overflow: hidden;
+            height: 36px;
             width: 100%;
             align-items: center;
             padding: 1px 16px;
@@ -152,7 +165,7 @@
                     pointer-events: none;
 
                     &:hover {
-                        background: none;
+                        background: nones;
                     }
 
                     .icon {
@@ -175,6 +188,10 @@
             &.MenuItem__dangerous {
                 color: var(--dnd-indicator);
 
+                .icon {
+                    color: var(--error-text) !important;
+                }
+
                 i {
                     color: var(--dnd-indicator) !important;
                 }
@@ -183,7 +200,8 @@
                     background-color: var(--dnd-indicator) !important;
                     color: var(--button-color);
 
-                    i {
+                    i,
+                    .icon {
                         color: var(--button-color) !important;
                     }
                 }
@@ -380,10 +398,10 @@
 }
 
 .SubMenu__icon-right {
-    padding-top: 3px;
     color: rgba(var(--center-channel-color-rgb), 0.64);
-    float: right;
-    font-size: 19px;
+    margin-inline-start: 35px;
+    font-size: 16px;
+    line-height: 16px;
 }
 
 .SubMenu__icon-right-empty {
@@ -392,10 +410,10 @@
     width: 0;
     padding: 0;
     margin-left: auto;
-    font-size: 19px;
+    font-size: 16px;
 }
 
 .MenuItem__divider {
     border-top: $border-gray;
-    margin: 8px 0;
+    margin-top: 8px 0;
 }

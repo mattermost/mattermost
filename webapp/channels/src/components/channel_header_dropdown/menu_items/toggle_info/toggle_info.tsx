@@ -8,7 +8,6 @@ import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import Menu from 'components/widgets/menu/menu';
-
 type Action = {
     closeRightHandSide: () => void;
     showChannelInfo: (channelId: string) => void;
@@ -44,7 +43,7 @@ const ToggleInfo = ({show, channel, rhsOpen, actions}: Props) => {
             show={show}
             onClick={toggleRHS}
             text={text}
-            icon={<InformationOutlineIcon color='#808080'/>}
+            icon={<InformationOutlineIcon size={18}/>}
         />
     );
 };

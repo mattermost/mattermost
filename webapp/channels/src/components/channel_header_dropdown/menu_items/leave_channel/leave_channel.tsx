@@ -72,7 +72,7 @@ const LeaveChannel = ({
             onClick={handleLeave}
             text={intl.formatMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'})}
             isDangerous={true}
-            icon={<LogoutVariantIcon/>}
+            icon={<LogoutVariantIcon size={18}/>}
         />
     );
 };
