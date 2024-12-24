@@ -1108,7 +1108,7 @@
         - posts
       summary: Restores a past version of a post
       description: >
-        Restores the post wirth `post_id` to its past version having the ID `restore_version_id`.
+        Restores the post with `post_id` to its past version having the ID `restore_version_id`.
 
         ##### Permissions
 
