@@ -39,6 +39,12 @@ func TestSetLicenseOnStart(t *testing.T) {
 
 	*cfg.ServiceSettings.LicenseFileLocation = f.Name()
 
+	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	if driverName == "" {
+		driverName = model.DatabaseDriverPostgres
+	}
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
+
 	configStore := config.NewTestMemoryStore()
 	_, _, err = configStore.Set(&cfg)
 	require.NoError(t, err)
