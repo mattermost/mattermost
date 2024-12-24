@@ -40,6 +40,7 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("FileInfoPermanentDeleteForPost", func(t *testing.T) { testPermanentDeleteForPost(t, rctx, ss) })
 	t.Run("FileInfoGetByIds", func(t *testing.T) { testGetByIds(t, rctx, ss) })
 	t.Run("FileInfoDeleteForPostByIds", func(t *testing.T) { testDeleteForPostByIds(t, rctx, ss) })
+	t.Run("FileInfoRestoreForPostByIds", func(t *testing.T) { testRestoreUndeleteForPostByIds(t, rctx, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1315,6 +1316,216 @@ func testDeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 			} else {
 				require.Equal(t, int64(0), fileInfo.DeleteAt)
 			}
+		}
+	})
+}
+
+func testRestoreUndeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("base case", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			if fileInfo.Id == fileInfo1.Id || fileInfo.Id == fileInfo2.Id {
+				require.Greater(t, fileInfo.DeleteAt, int64(0))
+			} else {
+				require.Equal(t, int64(0), fileInfo.DeleteAt)
+			}
+		}
+
+		// now we'll un-delete the files
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err = ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Equal(t, fileInfo.DeleteAt, int64(0))
+		}
+	})
+
+	t.Run("with empty array it should not impact any post files", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Equal(t, int64(0), fileInfo.DeleteAt)
+		}
+	})
+
+	t.Run("duplicate fileInfo Ids specified", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		// delete file infos
+		err = ss.FileInfo().DeleteForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id})
+		require.NoError(t, err)
+
+		// verify file infos are deleted
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Greater(t, fileInfo.DeleteAt, int64(0))
+		}
+
+		// undelete them specifying duplicate file info ids
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id, fileInfo2.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		// verify file infos are deleted
+		fileInfos, err = ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			if fileInfo.Id == fileInfo3.Id {
+				require.Greater(t, fileInfo.DeleteAt, int64(0))
+			} else {
+				require.Equal(t, int64(0), fileInfo.DeleteAt)
+			}
+		}
+	})
+
+	t.Run("non existent fileInfo IDs  and postId specified", func(t *testing.T) {
+		err := ss.FileInfo().RestoreForPostByIds(rctx, model.NewId(), []string{model.NewId(), model.NewId()})
+		require.NoError(t, err)
+	})
+
+	t.Run("undelete already undeleted fileInfos", func(t *testing.T) {
+		now := model.GetMillis()
+		postId := model.NewId()
+
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file2.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    postId,
+			CreatorId: model.NewId(),
+			Size:      10,
+			Path:      "file1.txt",
+			CreateAt:  now,
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		err = ss.FileInfo().RestoreForPostByIds(rctx, postId, []string{fileInfo1.Id, fileInfo2.Id})
+		require.NoError(t, err)
+
+		fileInfos, err := ss.FileInfo().GetForPost(postId, true, true, false)
+		require.NoError(t, err)
+
+		for _, fileInfo := range fileInfos {
+			require.Equal(t, int64(0), fileInfo.DeleteAt)
 		}
 	})
 }

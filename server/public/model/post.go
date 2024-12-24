@@ -950,3 +950,15 @@ func (o *Post) CleanPost() *Post {
 	o.EditAt = 0
 	return o
 }
+
+type UpdatePostOptions struct {
+	SafeUpdate    bool
+	IsRestorePost bool
+}
+
+func DefaultUpdatePostOptions() *UpdatePostOptions {
+	return &UpdatePostOptions{
+		SafeUpdate:    false,
+		IsRestorePost: false,
+	}
+}

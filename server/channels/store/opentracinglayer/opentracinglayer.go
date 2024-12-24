@@ -4178,6 +4178,24 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX,
 	return err
 }
 
+func (s *OpenTracingLayerFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.RestoreForPostByIds")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.FileInfoStore.RestoreForPostByIds(rctx, postId, fileIDs)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerFileInfoStore) Save(ctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.Save")
