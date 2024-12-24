@@ -32,11 +32,28 @@ const (
 
 type SqlSchemeStore struct {
 	*SqlStore
+	schemeSelectQuery sq.SelectBuilder
 }
 
 func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
-	return &SqlSchemeStore{sqlStore}
+    s := &SqlSchemeStore{
+        SqlStore: sqlStore,
+    }
+
+    s.schemeSelectQuery = s.getQueryBuilder().
+        Select(
+            "Id", "Name", "DisplayName", "Description", "Scope",
+            "DefaultTeamAdminRole", "DefaultTeamUserRole", "DefaultTeamGuestRole",
+            "DefaultChannelAdminRole", "DefaultChannelUserRole", "DefaultChannelGuestRole",
+            "CreateAt", "UpdateAt", "DeleteAt",
+            "DefaultPlaybookAdminRole", "DefaultPlaybookMemberRole",
+            "DefaultRunAdminRole", "DefaultRunMemberRole",
+        ).
+        From("Schemes")
+
+    return s
 }
+
 
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error) {
 	if scheme.Id == "" {
@@ -299,33 +316,32 @@ func filterModerated(permissions []string) []string {
 
 func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	var scheme model.Scheme
-	if err := s.GetReplica().Get(&scheme, "SELECT * from Schemes WHERE Id = ?", schemeId); err != nil {
+	query := s.schemeSelectQuery.Where(sq.Eq{"Id": schemeId})
+	if err := s.GetReplica().GetBuilder(&scheme, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
 		return nil, errors.Wrapf(err, "failed to get Scheme with schemeId=%s", schemeId)
 	}
-
 	return &scheme, nil
 }
 
 func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	var scheme model.Scheme
-
-	if err := s.GetReplica().Get(&scheme, "SELECT * from Schemes WHERE Name = ?", schemeName); err != nil {
+	query := s.schemeSelectQuery.Where(sq.Eq{"Name": schemeName}) 
+	if err := s.GetReplica().GetBuilder(&scheme,query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeName=%s", schemeName))
 		}
 		return nil, errors.Wrapf(err, "failed to get Scheme with schemeName=%s", schemeName)
 	}
-
 	return &scheme, nil
 }
 
 func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
-	// Get the scheme
 	scheme := model.Scheme{}
-	if err := s.GetMaster().Get(&scheme, `SELECT * from Schemes WHERE Id = ?`, schemeId); err != nil {
+	query := s.schemeSelectQuery.Where(sq.Eq{"Id": schemeId})
+	if err := s.GetMaster().GetBuilder(&scheme,query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
