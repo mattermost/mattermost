@@ -4971,6 +4971,14 @@
     "translation": "Unable to create default team membership because no more members are allowed in that team"
   },
   {
+    "id": "app.custom_attributes.createPropertyValue.app_error",
+    "translation": "Unable to create property value"
+  },
+  {
+    "id": "app.custom_attributes.getProperties.app_error",
+    "translation": "Unable to get custom properties"
+  },
+  {
     "id": "app.custom_group.unique_name",
     "translation": "group name is not unique"
   },
@@ -4989,6 +4997,14 @@
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
     "translation": "Custom Profile Attributes field limit reached"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Unable to get custom profile attribute values"
+  },
+  {
+    "id": "app.custom_profile_attributes.listcpavalues.app_error",
+    "translation": "Unable to get custom profile attribute values"
   },
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",

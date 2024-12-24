@@ -38,7 +38,7 @@ func propertyValueToInsertMap(value *model.PropertyValue) (map[string]any, error
 		"TargetType": value.TargetType,
 		"GroupID":    value.GroupID,
 		"FieldID":    value.FieldID,
-		"Value":      valueJSON,
+		"Value":      string(valueJSON),
 		"CreateAt":   value.CreateAt,
 		"UpdateAt":   value.UpdateAt,
 		"DeleteAt":   value.DeleteAt,
@@ -52,7 +52,7 @@ func propertyValueToUpdateMap(value *model.PropertyValue) (map[string]any, error
 	}
 
 	return map[string]any{
-		"Value":    valueJSON,
+		"Value":    string(valueJSON),
 		"UpdateAt": value.UpdateAt,
 		"DeleteAt": value.DeleteAt,
 	}, nil

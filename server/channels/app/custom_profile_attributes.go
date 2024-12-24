@@ -143,3 +143,73 @@ func (a *App) DeleteCPAField(id string) *model.AppError {
 
 	return nil
 }
+
+func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppError) {
+	groupID, err := a.cpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	opts := model.PropertyValueSearchOpts{
+		GroupID:        groupID,
+		TargetID:       userID,
+		Page:           0,
+		PerPage:        999999,
+		IncludeDeleted: false,
+	}
+	fields, err := a.Srv().propertyService.SearchPropertyValues(opts)
+	if err != nil {
+		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return fields, nil
+}
+
+func (a *App) PatchCPAValues(userID string, values map[string]string) *model.AppError {
+	existingValues, err := a.ListCPAValues(userID)
+	if err != nil {
+		return model.NewAppError("SaveCPAValues", "app.custom_profile_attributes.listcpavalues.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for key, value := range values {
+		exists := false
+		for _, currentValue := range existingValues {
+			if currentValue.FieldID == key {
+				if value == "" {
+					a.ch.srv.propertyService.DeletePropertyValue(currentValue.ID)
+					if err != nil {
+						return model.NewAppError("SaveCPAValues", "app.custom_attributes.getProperties.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+					}
+				} else {
+					currentValue.Value = value
+					a.ch.srv.propertyService.UpdatePropertyValue(currentValue)
+					if err != nil {
+						return model.NewAppError("SaveCPAValues", "app.custom_attributes.getProperties.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+					}
+				}
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			groupID, err := a.cpaGroupID()
+			if err != nil {
+				return model.NewAppError("SaveCPAValues", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			propertyValue := &model.PropertyValue{
+				GroupID:    groupID,
+				TargetType: "user",
+				TargetID:   userID,
+				FieldID:    key,
+				Value:      value,
+			}
+
+			a.ch.srv.propertyService.CreatePropertyValue(propertyValue)
+			if err != nil {
+				return model.NewAppError("SaveCPAValues", "app.custom_attributes.createPropertyValue.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+	}
+	return nil
+}
