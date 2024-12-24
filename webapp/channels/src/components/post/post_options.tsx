@@ -120,12 +120,12 @@ const PostOptions = (props: Props): JSX.Element => {
     let commentIcon;
     if (showCommentIcon) {
         commentIcon = (
-            <li key="commentIcon__listItem">
-            <CommentIcon
-                handleCommentClick={props.handleCommentClick}
-                postId={post.id}
-                extraClass={commentIconExtraClass}
-                commentCount={props.collapsedThreadsEnabled ? 0 : props.replyCount}
+            <li key='commentIcon__listItem'>
+                <CommentIcon
+                    handleCommentClick={props.handleCommentClick}
+                    postId={post.id}
+                    extraClass={commentIconExtraClass}
+                    commentCount={props.collapsedThreadsEnabled ? 0 : props.replyCount}
                 />
             </li>
         );
@@ -146,7 +146,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 teamId={props.teamId}
                 emojis={props.recentEmojis}
                 size={showMoreReactions ? 3 : 1}
-                />
+            />
         );
     }
 
@@ -154,15 +154,15 @@ const PostOptions = (props: Props): JSX.Element => {
     let postReaction;
     if (showReactionIcon) {
         postReaction = (
-            <li key="postReaction__listItem">
-            <PostReaction
-                channelId={post.channel_id}
-                location={props.location}
-                postId={post.id}
-                teamId={props.teamId}
-                getDotMenuRef={getDotMenuRef}
-                showEmojiPicker={showEmojiPicker}
-                toggleEmojiPicker={toggleEmojiPicker}
+            <li key='postReaction__listItem'>
+                <PostReaction
+                    channelId={post.channel_id}
+                    location={props.location}
+                    postId={post.id}
+                    teamId={props.teamId}
+                    getDotMenuRef={getDotMenuRef}
+                    showEmojiPicker={showEmojiPicker}
+                    toggleEmojiPicker={toggleEmojiPicker}
                 />
             </li>
         );
@@ -171,11 +171,11 @@ const PostOptions = (props: Props): JSX.Element => {
     let flagIcon: ReactNode = null;
     if (!isMobileView && (!isEphemeral && !post.failed && !systemMessage)) {
         flagIcon = (
-            <li key="flagIcon__listItem">
-             <PostFlagIcon
-                location={props.location}
-                postId={post.id}
-                isFlagged={props.isFlagged}
+            <li key='flagIcon__listItem'>
+                <PostFlagIcon
+                    location={props.location}
+                    postId={post.id}
+                    isFlagged={props.isFlagged}
                 />
             </li>
         );
@@ -184,12 +184,12 @@ const PostOptions = (props: Props): JSX.Element => {
     // Action menus
     const showActionsMenuIcon = props.shouldShowActionsMenu && (isMobileView || hoverLocal);
     const actionsMenu = showActionsMenuIcon && (
-        <li key="actionsMenu__listItem">
-        <ActionsMenu
-            post={post}
-            location={props.location}
-            handleDropdownOpened={handleActionsMenuOpened}
-            isMenuOpen={showActionsMenu}
+        <li key='actionsMenu__listItem'>
+            <ActionsMenu
+                post={post}
+                location={props.location}
+                handleDropdownOpened={handleActionsMenuOpened}
+                isMenuOpen={showActionsMenu}
             />
         </li>
     );
@@ -202,8 +202,8 @@ const PostOptions = (props: Props): JSX.Element => {
                     const Component = item.component as any;
                     return (
                         <li key={item.id}>
-                        <Component
-                            post={props.post}
+                            <Component
+                                post={props.post}
                             />
                         </li>
                     );
@@ -213,17 +213,17 @@ const PostOptions = (props: Props): JSX.Element => {
     }
 
     const dotMenu = (
-        <li key="dotMenu__listItem">
-        <DotMenu
-            post={props.post}
-            location={props.location}
-            isFlagged={props.isFlagged}
-            handleDropdownOpened={handleDotMenuOpened}
-            handleCommentClick={props.handleCommentClick}
-            handleAddReactionClick={toggleEmojiPicker}
-            isReadOnly={isReadOnly || channelIsArchived}
-            isMenuOpen={showDotMenu}
-            enableEmojiPicker={props.enableEmojiPicker}
+        <li key='dotMenu__listItem'>
+            <DotMenu
+                post={props.post}
+                location={props.location}
+                isFlagged={props.isFlagged}
+                handleDropdownOpened={handleDotMenuOpened}
+                handleCommentClick={props.handleCommentClick}
+                handleAddReactionClick={toggleEmojiPicker}
+                isReadOnly={isReadOnly || channelIsArchived}
+                isMenuOpen={showDotMenu}
+                enableEmojiPicker={props.enableEmojiPicker}
             />
         </li>
     );
@@ -250,7 +250,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {dotMenu}
                 {flagIcon}
                 {props.canReply && !hasCRTFooter &&
-                  <li key="commentIcon__listItem">
+                <li key='commentIcon__listItem'>
                     <CommentIcon
                         location={props.location}
                         handleCommentClick={props.handleCommentClick}
@@ -258,20 +258,20 @@ const PostOptions = (props: Props): JSX.Element => {
                         postId={post.id}
                         searchStyle={'search-item__comment'}
                         extraClass={props.replyCount ? 'icon--visible' : ''}
-                        />
-                   </li>
+                    />
+                </li>
                 }
-                <li key="searchItem__listItem">
-                <a
-                    href='#'
-                    onClick={props.handleJumpClick}
-                    className='search-item__jump'
+                <li key='searchItem__listItem'>
+                    <a
+                        href='#'
+                        onClick={props.handleJumpClick}
+                        className='search-item__jump'
                     >
-                    <FormattedMessage
-                        id='search_item.jump'
-                        defaultMessage='Jump'
+                        <FormattedMessage
+                            id='search_item.jump'
+                            defaultMessage='Jump'
                         />
-                </a>
+                    </a>
                 </li>
             </ul>
         );
