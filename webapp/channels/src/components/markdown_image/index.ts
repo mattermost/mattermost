@@ -13,6 +13,8 @@ import type {GlobalState} from 'types/store';
 
 import MarkdownImage from './markdown_image';
 import type {Props} from './markdown_image';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {Preferences} from 'utils/constants';
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const post = getPost(state, ownProps.postId);
@@ -20,6 +22,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
     return {
         isUnsafeLinksPost,
+        autoplayGifsAndEmojis: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AUTOPLAY_GIFS_AND_EMOJIS, Preferences.AUTOPLAY_GIFS_AND_EMOJIS_DEFAULT),
     };
 }
 

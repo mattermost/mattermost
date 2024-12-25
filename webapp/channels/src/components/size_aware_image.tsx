@@ -99,6 +99,11 @@ export type Props = WrappedComponentProps & {
     * Prevents display of utility buttons when image in a location that makes them inappropriate
     */
     hideUtilities?: boolean;
+
+    /**
+     * Determines if GIFs and animated emojis autoplay by default.
+     */
+    autoplayGifsAndEmojis: string;
 }
 
 type State = {
@@ -132,7 +137,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             linkCopyInProgress: false,
             error: false,
             imageWidth: 0,
-            shouldPlayGif: false,
+            shouldPlayGif: this.props.autoplayGifsAndEmojis === 'true',
         };
 
         this.heightTimeout = 0;
@@ -144,6 +149,14 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         this.mounted = false;
+    }
+
+    componentDidUpdate(prevProps: Readonly<Props>) {
+        if (prevProps.autoplayGifsAndEmojis !== this.props.autoplayGifsAndEmojis) {
+            // The 'autoplay GIFs and emojis' setting has been toggled, so update state and re-render all GIFs
+            // as either static or playing depending on the new setting.
+            this.setState({...this.state, shouldPlayGif: this.props.autoplayGifsAndEmojis === 'true'});
+        }
     }
 
     dimensionsAvailable = (dimensions?: Partial<PostImage>) => {
@@ -261,9 +274,15 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             };
         }
 
+        // Remove 'autoplayGifsAndEmojis' because the 'img' tag doesn't recognize it.
+        // This is the error you get if you don't do so.
+        // Warning: React does not recognize the `autoplayGifsAndEmojis` prop on a DOM element
+        // https://legacy.reactjs.org/warnings/unknown-prop.html
+        const {autoplayGifsAndEmojis, ...otherProps} = props;
+
         const image = (
             <img
-                {...props}
+                {...otherProps}
                 ref={this.imageRef}
                 aria-label={ariaLabelImage}
                 tabIndex={0}

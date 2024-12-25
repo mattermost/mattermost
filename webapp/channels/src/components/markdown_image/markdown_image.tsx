@@ -37,6 +37,7 @@ export type Props = {
     };
     hideUtilities?: boolean;
     isUnsafeLinksPost: boolean;
+    autoplayGifsAndEmojis: string;
 };
 
 type State = {
@@ -210,6 +211,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                             hideUtilities={hideUtilities}
                             onImageLoadFail={this.handleLoadFail}
                             onImageLoaded={this.handleImageLoaded}
+                            autoplayGifsAndEmojis={this.props.autoplayGifsAndEmojis}
                         />
                     );
 
