@@ -971,5 +971,10 @@
   "admin.gitlab.authTitle": "Сәйкестендіру эндпойнті:",
   "admin.gitlab.clientIdDescription": "Жоғарыдағы нұсқаулықтар көмегімен GitLab-қа кіру үшін бұл мәнді алып алыңыз.",
   "admin.gitlab.clientIdExample": "Мысалы: \"jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY\"",
+  "admin.gitlab.clientIdTitle": "Қолданба ID:",
+  "admin.gitlab.clientSecretDescription": "Жоғарыдағы нұсқаулықтар көмегімен GitLab-қа кіру үшін бұл мәнді алып алыңыз.",
+  "admin.gitlab.clientSecretExample": "Мысалы: \"jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY\"",
+  "admin.gitlab.clientSecretTitle": "Қолданбаның құпия кілті:",
+  "admin.gitlab.discoveryEndpointDesc": "GitLab–пен OpenID байланысы үшін тауып алу құжатының URL-і.",
   "admin_settings.save_unsaved_changes": "Алдымен сақталмаған өзгерістерді сақтауыңызды сұраймыз"
 }
