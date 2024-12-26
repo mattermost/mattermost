@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -153,4 +154,42 @@ func TestDeleteCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotZero(t, deletedField.DeleteAt)
 	}, "a user with admin permissions should be able to delete the field")
+}
+
+func TestListCPAValues(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+	defer func() {
+		th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+	}()
+
+	values := map[string]string{}
+	for i := 0; i < 3; i++ {
+		values[model.NewId()] = fmt.Sprintf("Value %d", i)
+	}
+	_, err := th.Client.PatchCPAValues(context.Background(), values)
+	require.NoError(t, err)
+
+	t.Run("any team member should be able to list values", func(t *testing.T) {
+		th.LoginBasic2()
+		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, values)
+		require.Len(t, values, 3)
+	})
+
+	t.Run("non team member should NOT be able to list values", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.RemoveTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		_, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
 }

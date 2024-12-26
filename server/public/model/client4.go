@@ -612,6 +612,10 @@ func (c *Client4) customProfileAttributeFieldRoute(fieldID string) string {
 	return fmt.Sprintf("%s/%s", c.customProfileAttributeFieldsRoute(), fieldID)
 }
 
+func (c *Client4) customProfileAttributeValuesRoute() string {
+	return fmt.Sprintf("%s/values", c.customProfileAttributesRoute())
+}
+
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
 	if err != nil {
@@ -9438,5 +9442,34 @@ func (c *Client4) DeleteCPAField(ctx context.Context, fieldID string) (*Response
 		return BuildResponse(r), err
 	}
 	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userRoute(userID)+c.customProfileAttributesRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	fields := make(map[string]string)
+	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
+		return nil, nil, NewAppError("ListCPAFields", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return fields, BuildResponse(r), nil
+}
+
+func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) (*Response, error) {
+	buf, err := json.Marshal(values)
+	if err != nil {
+		return nil, NewAppError("PatchCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPatchBytes(ctx, c.customProfileAttributeValuesRoute(), buf)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
 	return BuildResponse(r), nil
 }
