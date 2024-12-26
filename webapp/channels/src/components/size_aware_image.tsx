@@ -101,9 +101,14 @@ export type Props = WrappedComponentProps & {
     hideUtilities?: boolean;
 
     /**
-     * Determines if GIFs and animated emojis autoplay by default.
-     */
+    * Determines if GIFs and animated emojis autoplay by default.
+    */
     autoplayGifsAndEmojis: string;
+
+    /**
+    * Returns 'true' if the app is being viewed on a mobile-sized screen.
+    */
+    isMobileView: boolean;
 }
 
 type State = {
@@ -114,6 +119,7 @@ type State = {
     error: boolean;
     imageWidth: number;
     shouldPlayGif: boolean;
+    shouldShowMobileGifButton: boolean;
 }
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
@@ -138,6 +144,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             error: false,
             imageWidth: 0,
             shouldPlayGif: this.props.autoplayGifsAndEmojis === 'true',
+            shouldShowMobileGifButton: false,
         };
 
         this.heightTimeout = 0;
@@ -208,15 +215,38 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     };
 
     handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
-        this.props.onClick?.(e, this.props.src);
+        if (
+            this.props.isMobileView &&
+            this.state.shouldPlayGif &&
+            this.state.shouldShowMobileGifButton === false
+        ) {
+            this.setState({...this.state, shouldShowMobileGifButton: true});
+
+            setTimeout(() => {
+                // Since the GIF button can change 'shouldShowMobileGifButton', check if it's false first,
+                // otherwise, this would cause one extra unnecessary re-render.
+                if (this.state.shouldShowMobileGifButton === true) {
+                    this.setState({...this.state, shouldShowMobileGifButton: false});
+                }
+            }, 4000);
+        } else {
+            this.props.onClick?.(e, this.props.src);
+        }
     };
 
-    handleGifButtonClick = () => {
+    handleGifButtonClick = (e: MouseEvent) => {
+        e.stopPropagation();
+
         if (this.state.shouldPlayGif) {
-            this.setState({...this.state, shouldPlayGif: false});
+            this.setState({...this.state, shouldPlayGif: false, shouldShowMobileGifButton: false});
         } else {
             this.setState({...this.state, shouldPlayGif: true});
         }
+    };
+
+    handleStaticGifClick = (e: MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();
+        this.props.onClick?.(e, this.props.src);
     };
 
     onEnterKeyDown = (e: KeyboardEvent<HTMLImageElement>) => {
@@ -259,6 +289,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'getFilePublicLink');
         Reflect.deleteProperty(props, 'intl');
         Reflect.deleteProperty(props, 'autoplayGifsAndEmojis');
+        Reflect.deleteProperty(props, 'isMobileView');
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -332,6 +363,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         const staticGif = (
             <div
                 className={this.state.shouldPlayGif ? 'static-gif-container--none' : 'static-gif-container'}
+                onClick={this.handleStaticGifClick}
             >
                 <canvas
                     ref={this.canvasRef}
@@ -480,13 +512,24 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     {download}
                 </span>
             );
+
+        const shouldShowDesktopGifButton = this.state.shouldPlayGif && !this.props.isMobileView;
+
         return (
             <figure
                 className={classNames('image-loaded-container', this.state.shouldPlayGif && 'align-gif-button')}
             >
                 {image}
                 {this.props.dimensions?.format === 'gif' && staticGif}
-                {this.state.shouldPlayGif && playPauseGifButton}
+
+                {/*
+                    Using separate buttons for different screen sizes because tapping on the GIF on mobile
+                    devices triggers the hover state permanently, and the button can't be hidden using 'display: none'.
+                    Using a separate button on mobile ensures the GIF button is rendered/not rendered appropriately
+                    to hide/show it.
+                */}
+                {shouldShowDesktopGifButton && playPauseGifButton}
+                {this.state.shouldShowMobileGifButton && playPauseGifButton}
                 {utilityButtonsWrapper}
             </figure>
         );
