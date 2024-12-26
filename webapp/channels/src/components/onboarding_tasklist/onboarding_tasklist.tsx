@@ -254,7 +254,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                 ref={trigger}
                 open={open}
                 data-cy='onboarding-task-list-action-button'
-                aria-label={formatMessage({id:'onboardingTask.checklist.start_onboarding_process', defaultMessage:'Start the onboarding process.'})}
+                aria-label={formatMessage({id: 'onboardingTask.checklist.start_onboarding_process', defaultMessage: 'Start the onboarding process.'})}
             >
                 {open ? <CloseIcon size={20}/> : <PlaylistCheckIcon size={20}/>}
                 {itemsLeft !== 0 && (<span>{itemsLeft}</span>)}
