@@ -1713,19 +1713,18 @@
         }
 
         .gif-button {
+            position: absolute;
+            z-index: 2;
             display: flex;
-            align-items: center;
-            background-color: rgba(0, 0, 0, .72);
             height: 44px;
+            align-items: center;
             border-radius: 100px;
+            background-color: rgba(0, 0, 0, .72);
 
             font-family: 'Open Sans';
             font-size: 14px;
             font-weight: 600;
             line-height: 20px;
-
-            position: absolute;
-            z-index: 2;
 
             &__icon-container {
                 display: flex;
@@ -1735,22 +1734,22 @@
 
         .gif-button--play {
             @extend .gif-button;
-            padding: 12px;
             width: 78px;
+            padding: 12px;
             gap: 4px;
         }
 
         .gif-button--pause {
             @extend .gif-button;
             display: none;
-            padding: 10px;
             width: 44px;
+            padding: 10px;
         }
 
         .static-gif-container {
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
         }
 
         .static-gif-container--none {

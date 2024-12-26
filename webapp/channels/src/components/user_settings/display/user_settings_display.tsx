@@ -300,7 +300,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             ...sharedProperties,
             name: Preferences.AUTOPLAY_GIFS_AND_EMOJIS,
             value: this.state.autoplayGifsAndEmojis,
-        }
+        };
 
         this.setState({isSaving: true});
 

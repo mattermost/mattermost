@@ -6,15 +6,16 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 
 import {openModal} from 'actions/views/modals';
+
+import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 import MarkdownImage from './markdown_image';
 import type {Props} from './markdown_image';
-import {get} from 'mattermost-redux/selectors/entities/preferences';
-import {Preferences} from 'utils/constants';
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const post = getPost(state, ownProps.postId);

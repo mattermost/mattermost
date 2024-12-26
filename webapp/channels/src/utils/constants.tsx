@@ -1050,12 +1050,12 @@ export const UserSettings = {
     oneClickReactionsOnPosts: 'oneClickReactionsOnPosts',
 
     // endregion
-}
+};
 
 export const BoolString = {
     true: 'true',
     false: 'false',
-}
+};
 
 export const AdvancedSections = {
     CONTROL_SEND: 'advancedCtrlSend',

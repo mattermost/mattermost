@@ -14,7 +14,7 @@ import {
     LinkVariantIcon,
     CheckIcon,
     PlayIcon,
-    PauseIcon
+    PauseIcon,
 } from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
@@ -217,7 +217,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         } else {
             this.setState({...this.state, shouldPlayGif: true});
         }
-    }
+    };
 
     onEnterKeyDown = (e: KeyboardEvent<HTMLImageElement>) => {
         if (e.key === 'Enter') {
@@ -258,6 +258,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
         Reflect.deleteProperty(props, 'intl');
+        Reflect.deleteProperty(props, 'autoplayGifsAndEmojis');
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -274,15 +275,9 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             };
         }
 
-        // Remove 'autoplayGifsAndEmojis' because the 'img' tag doesn't recognize it.
-        // This is the error you get if you don't do so.
-        // Warning: React does not recognize the `autoplayGifsAndEmojis` prop on a DOM element
-        // https://legacy.reactjs.org/warnings/unknown-prop.html
-        const {autoplayGifsAndEmojis, ...otherProps} = props;
-
         const image = (
             <img
-                {...otherProps}
+                {...props}
                 ref={this.imageRef}
                 aria-label={ariaLabelImage}
                 tabIndex={0}
@@ -302,7 +297,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 // of not rendering it.
                 style={{
                     ...conditionalSVGStyleAttribute,
-                    display: !this.state.shouldPlayGif && this.props.dimensions?.format === 'gif' ? 'none' : 'block'
+                    display: !this.state.shouldPlayGif && this.props.dimensions?.format === 'gif' ? 'none' : 'block',
                 }}
             />
         );
@@ -311,28 +306,25 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             <button
                 type='button'
                 className={classNames('style--none',
-                    'gif-button',this.state.shouldPlayGif ? 'gif-button--pause' : 'gif-button--play')
+                    'gif-button', this.state.shouldPlayGif ? 'gif-button--pause' : 'gif-button--play')
                 }
                 onClick={this.handleGifButtonClick}
             >
                 {
                     this.state.shouldPlayGif ?
 
-                    <span className='gif-button__icon-container'>
-                        <PauseIcon size={24} />
-                    </span>
-
-                    :
-
-                    <>
                         <span className='gif-button__icon-container'>
-                            <PlayIcon size={24} />
-                        </span>
+                            <PauseIcon size={24}/>
+                        </span> :
+                        <>
+                            <span className='gif-button__icon-container'>
+                                <PlayIcon size={24}/>
+                            </span>
 
-                        <span>
-                            GIF
-                        </span>
-                    </>
+                            <span>
+                                {'GIF'}
+                            </span>
+                        </>
                 }
             </button>
         );
@@ -349,8 +341,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                         (this.props.handleSmallImageContainer &&
                         this.state.isSmallImage ? ' small-image--inside-container' : '')
                     }
-                >
-                </canvas>
+                />
                 {playPauseGifButton}
             </div>
         );
