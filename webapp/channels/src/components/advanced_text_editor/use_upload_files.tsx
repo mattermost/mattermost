@@ -134,6 +134,9 @@ const useUploadFiles = (
         } else {
             modifiedDraft.fileInfos = [...draft.fileInfos];
             modifiedDraft.fileInfos.splice(index, 1);
+
+            modifiedDraft.file_ids = [...draft.file_ids];
+            modifiedDraft.fileInfos.splice()
         }
 
         handleDraftChange(modifiedDraft, {instant: true});
