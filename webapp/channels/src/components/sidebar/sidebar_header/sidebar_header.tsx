@@ -104,7 +104,7 @@ const SidebarHeader = (props: Props) => {
                         <h1 className='sidebarHeader'>
                             <button className='style--none sidebar-header'>
                                 <span className='title'>{currentTeam.display_name}</span>
-                                <i className='icon icon-chevron-down'/>
+                                <i className='icon icon-chevron-down' aria-hidden/>
                             </button>
                         </h1>
                     </WithTooltip>
