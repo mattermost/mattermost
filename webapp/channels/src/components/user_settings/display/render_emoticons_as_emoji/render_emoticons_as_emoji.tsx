@@ -35,11 +35,9 @@ type Props = OwnProps & {
 const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSectionsInactive, renderEmoticonsAsEmoji, updateSection, renderOnOffLabel, actions}) => {
     const [renderEmoticonsAsEmojiState, setRenderEmoticonsAsEmojiState] = useState<string>(renderEmoticonsAsEmoji);
 
-    /* eslint-disable-next-line @typescript-eslint/no-unused-vars*/
-    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [isSaving] = useState<boolean>(false);
 
-    /* eslint-disable-next-line @typescript-eslint/no-unused-vars*/
-    const [serverError, setServerError] = useState<string | undefined>(undefined);
+    const [serverError] = useState<string | undefined>(undefined);
 
     const minRef = useRef<SettingItemMinComponent>(null);
 
