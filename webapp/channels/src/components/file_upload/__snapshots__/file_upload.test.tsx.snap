@@ -6,8 +6,6 @@ exports[`components/FileUpload should match snapshot 1`] = `
 >
   <div>
     <WithTooltip
-      id="upload-tooltip"
-      placement="top"
       title={
         <Memo(KeyboardShortcutSequence)
           hoistDescription={true}

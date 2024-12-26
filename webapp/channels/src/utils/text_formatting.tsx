@@ -571,7 +571,7 @@ export function autolinkChannelMentions(
     team?: Team,
 ) {
     function channelMentionExists(c: string) {
-        return channelNamesMap.hasOwnProperty(c);
+        return Object.hasOwn(channelNamesMap, c);
     }
     function addToken(channelName: string, teamName: string, mention: string, displayName: string) {
         const index = tokens.size;

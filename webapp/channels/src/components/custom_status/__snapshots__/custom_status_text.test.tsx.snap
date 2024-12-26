@@ -4,7 +4,6 @@ exports[`components/custom_status/custom_status_text should match snapshot 1`] =
 <CustomStatusText
   className=""
   text=""
-  tooltipDirection="bottom"
 />
 `;
 
@@ -12,6 +11,5 @@ exports[`components/custom_status/custom_status_text should match snapshot with 
 <CustomStatusText
   className=""
   text="In a meeting"
-  tooltipDirection="top"
 />
 `;

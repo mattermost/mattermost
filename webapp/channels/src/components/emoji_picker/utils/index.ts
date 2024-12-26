@@ -63,7 +63,7 @@ export function getFilteredEmojis(allEmojis: Record<string, Emoji>, filter: stri
         const aliases = isSystemEmoji(emoji) ? emoji.short_names : [emoji.name];
 
         for (let i = 0; i < aliases.length; i++) {
-            if (aliases[i].toLowerCase().includes(filter)) {
+            if (aliases[i].toLowerCase().includes(filter.toLowerCase())) {
                 return true;
             }
         }

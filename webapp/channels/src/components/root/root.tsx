@@ -47,7 +47,7 @@ import RootRedirect from './root_redirect';
 
 import type {PropsFromRedux} from './index';
 
-import 'plugins/export.js';
+import 'plugins/export';
 
 const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => import('components/mobile_view_watcher')));
 const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
@@ -293,7 +293,7 @@ export default class Root extends React.PureComponent<Props, State> {
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
                 DesktopApp.reactAppInitialized();
-                InitialLoadingScreen.stop();
+                InitialLoadingScreen.stop('root');
             }
         }
     }

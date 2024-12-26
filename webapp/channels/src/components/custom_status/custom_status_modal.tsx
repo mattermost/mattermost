@@ -217,7 +217,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         case FOUR_HOURS:
             return moment().add(4, 'hours').seconds(0).milliseconds(0).toISOString();
         case TODAY:
-            return moment().add(1, 'day').set({hour: 8, minute: 0}).toISOString();
+            return moment().endOf('day').add(1, 'minute').seconds(0).milliseconds(0).toISOString();
         case THIS_WEEK:
             return moment().endOf('week').toISOString();
         case DATE_AND_TIME:
@@ -462,7 +462,6 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                         onClear={clearHandle}
                         className='emoji-quick-input form-control'
                         clearClassName='StatusModal__clear-container'
-                        tooltipPosition='top'
                         onChange={handleTextChange}
                         placeholder={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
                         autoFocus={true}
