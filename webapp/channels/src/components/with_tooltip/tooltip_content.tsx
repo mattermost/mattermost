@@ -21,7 +21,7 @@ interface Props {
     title: string | ReactNode | MessageDescriptor;
     emoji?: string;
     isEmojiLarge?: boolean;
-    hint?: string;
+    hint?: string | ReactNode | MessageDescriptor;
     shortcut?: ShortcutDefinition;
 }
 
@@ -31,6 +31,11 @@ function TooltipContent(props: Props) {
     let title = props.title;
     if (isMessageDescriptor(title)) {
         title = formatMessage(title);
+    }
+
+    let hint = props.hint;
+    if (isMessageDescriptor(hint)) {
+        hint = formatMessage(hint);
     }
 
     return (
@@ -51,7 +56,7 @@ function TooltipContent(props: Props) {
                 <span className='tooltipContentTitle'>{title}</span>
             </span>
             {props.hint && (
-                <span className='tooltipContentHint'>{props.hint}</span>
+                <span className='tooltipContentHint'>{hint}</span>
             )}
             {props.shortcut && (
                 <span className='tooltipContentShortcut'>

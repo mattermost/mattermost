@@ -311,11 +311,13 @@ const AdvancedTextEditor = ({
         setServerError,
         isInEditMode,
     );
+
+    const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;
     const {
         emojiPicker,
         enableEmojiPicker,
         toggleEmojiPicker,
-    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
+    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox, emojiPickerOffset);
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,

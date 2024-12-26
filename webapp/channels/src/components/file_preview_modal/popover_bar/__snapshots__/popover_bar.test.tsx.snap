@@ -9,9 +9,7 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
     className="modal-column"
   >
     <WithTooltip
-      id="zoom-out-icon-tooltip"
       key="zoomOut"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Zoom Out"
@@ -28,9 +26,7 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
       </span>
     </WithTooltip>
     <WithTooltip
-      id="zoom-reset-icon-tooltip"
       key="zoomReset"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Reset Zoom"
@@ -47,9 +43,7 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
       </span>
     </WithTooltip>
     <WithTooltip
-      id="zoom-in-icon-tooltip"
       key="zoomIn"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Zoom In"

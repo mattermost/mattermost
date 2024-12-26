@@ -227,8 +227,6 @@ function ThreadItem({
                     unreadTimestamp={unreadTimestamp}
                 >
                     <WithTooltip
-                        id='threadActionMenu'
-                        placement='top'
                         title={(
                             <FormattedMessage
                                 id='threading.threadItem.menu'

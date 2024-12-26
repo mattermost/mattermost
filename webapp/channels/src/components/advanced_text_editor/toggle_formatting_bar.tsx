@@ -41,9 +41,7 @@ const ToggleFormattingBar = (props: ToggleFormattingBarProps): JSX.Element => {
 
     return (
         <WithTooltip
-            id={active ? 'toggleFormattingBarButtonTooltip_active' : 'toggleFormattingBarButtonTooltip_inactive'}
             title={title}
-            placement={'top'}
         >
             <IconContainer
                 type='button'

@@ -155,10 +155,9 @@ export function SystemUsersColumnTogglerMenu(props: Props) {
                         return (
                             <WithTooltip
                                 key={column.id}
-                                id={column.id}
                                 title={formatMessage({id: 'admin.system_users.column_toggler.mysql_unavailable.title', defaultMessage: 'Not available for servers using MySQL'})}
                                 hint={formatMessage({id: 'admin.system_users.column_toggler.mysql_unavailable.desc', defaultMessage: 'Please use the export functionality to view these values'})}
-                                placement='left'
+                                isVertical={false}
                             >
                                 <Menu.Item
                                     className='systemUsersColumnToggler__lockedItem'

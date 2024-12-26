@@ -69,11 +69,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.0+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -633,31 +633,31 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout måste vara minst 1 sekund."
+    "translation": "Search Request Timeout måste vara minst 1 sekund."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime måste vara en tid i formatet \"hh:mm\"."
+    "translation": "Search PostsAggregatorJobStartTime måste vara en tid i formatet \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size måste vara minst 1."
+    "translation": "Sök Live Indexing Batch Size måste vara minst 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Inställningen för Elasticsearch EnableIndexing måste vara aktiv när Elasticsearch EnableSearching är satt till aktiv"
+    "translation": "Inställningen fö EnableIndexing måste vara aktiv när EnableSearching är aktiverad"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Inställningen för Elasticsearch EnableIndexing måste vara aktiv när Elasticsearch EnableAutocomplete är satt till aktiv"
+    "translation": "Inställningen för EnableIndexing måste vara aktiv när Sök-EnableAutocomplete är aktiverad"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Inställningen för Elasticsearch ConnectionURL måste anges när Elasticsearch indexering är aktiverad."
+    "translation": "Inställningen för sök-ConnectionURL måste anges när indexering är aktiverad."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays måste vara större eller lika med 1."
+    "translation": "Sök AggregatePostsAfterDays måste vara större eller lika med 1."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -3001,19 +3001,19 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch är avaktiverat."
+    "translation": "{{.Backend}} är avaktiverat."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch är redan stoppad."
+    "translation": "{{.Backend}} är redan stoppad."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Det gick inte att tolka Elasticsearch-serverns versionsnummer."
+    "translation": "Det gick inte att tolka {{.Backend}}-serverns versionsnummer."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Det gick inte att hämta Elasticsearch-serverns versionsnummer."
+    "translation": "Det gick inte att hämta {{.Backend}}-serverns versionsnummer."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -3037,7 +3037,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch-sökning är avaktiverat på denna server"
+    "translation": "{{.Backend}}-sökning är avaktiverat på denna server"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -3049,7 +3049,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch-sökning är avaktiverat på denna server"
+    "translation": "{{.Backend}}-sökning är avaktiverat på denna server"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -3065,7 +3065,7 @@
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch är inte startad"
+    "translation": "{{.Backend}} är inte startad"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -3073,11 +3073,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker misslyckades att tolka starttid"
+    "translation": "{{.Backend}} indexing worker misslyckades att tolka starttiden"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker misslyckades att tolka sluttid"
+    "translation": "{{.Backend}} indexing worker misslyckades att tolka sluttiden"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
@@ -3101,7 +3101,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch är inte aktiverat på denna server"
+    "translation": "{{.Backend}} är inte aktiverat på denna server"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
@@ -7404,7 +7404,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Filsökning med Elasticsearch är avstängt på servern"
+    "translation": "Filsökning med {{.Backend}} är avaktiverat på denna server"
   },
   {
     "id": "ent.elasticsearch.index_file.error",
@@ -8571,7 +8571,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
+    "translation": "Search Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8987,7 +8987,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch-versionen {{.Version}} är högre än {{.MaxVersion}} som är den högsta versionen som stöds"
+    "translation": "{{.Backend}} versionen {{.Version}} är högre än {{.MaxVersion}} som är den högsta versionen som stöds"
   },
   {
     "id": "app.plugin.skip_installation.app_error",
