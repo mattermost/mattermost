@@ -176,14 +176,14 @@ func (a *App) PatchCPAValues(userID string, values map[string]string) *model.App
 		for _, currentValue := range existingValues {
 			if currentValue.FieldID == key {
 				if value == "" {
-					a.ch.srv.propertyService.DeletePropertyValue(currentValue.ID)
-					if err != nil {
+					appErr := a.ch.srv.propertyService.DeletePropertyValue(currentValue.ID)
+					if appErr != nil {
 						return model.NewAppError("SaveCPAValues", "app.custom_attributes.getProperties.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
 				} else {
 					currentValue.Value = value
-					a.ch.srv.propertyService.UpdatePropertyValue(currentValue)
-					if err != nil {
+					_, appErr := a.ch.srv.propertyService.UpdatePropertyValue(currentValue)
+					if appErr != nil {
 						return model.NewAppError("SaveCPAValues", "app.custom_attributes.getProperties.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
 				}
@@ -205,8 +205,8 @@ func (a *App) PatchCPAValues(userID string, values map[string]string) *model.App
 				Value:      value,
 			}
 
-			a.ch.srv.propertyService.CreatePropertyValue(propertyValue)
-			if err != nil {
+			_, appErr := a.ch.srv.propertyService.CreatePropertyValue(propertyValue)
+			if appErr != nil {
 				return model.NewAppError("SaveCPAValues", "app.custom_attributes.createPropertyValue.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
