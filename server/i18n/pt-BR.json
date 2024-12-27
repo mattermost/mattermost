@@ -3709,27 +3709,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays a configuração deve ser um número maior ou igual a 1."
+    "translation": "A configuração Search AggregatePostsAfterDays deve ser um número maior ou igual a 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "A ElasticSearch ConnectionUrl deve ser fornecida quando ElasticSearch indexing está ativado."
+    "translation": "A configuração Search ConnectionUrl deve ser fornecida quando a indexação estiver ativada."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "O opção ElasticSearch IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro"
+    "translation": "O opção Search IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size deve ser pelo menos 1."
+    "translation": "O Tamanho do Lote de Indexação do Search Live deve ser de pelo menos 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime a configuração deve ser uma hora no formato \"hh:mm\"."
+    "translation": "A configuração Search PostsAggregatorJobStartTime deve ser uma hora no formato \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "O tempo limite de Requisição Elasticsearch deve ser pelo menos 1 segundo."
+    "translation": "O tempo limite da solicitação de pesquisa deve ser de pelo menos 1 segundo."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4885,7 +4885,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "A configuração Elasticsearch EnableIndexing deve ser definida como verdadeiro quando Elasticsearch EnableAutocomplete estiver definido como verdadeiro"
+    "translation": "A configuração Search EnableIndexing deve ser definida como verdadeiro quando Elasticsearch EnableAutocomplete estiver definido como verdadeiro"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -9141,7 +9141,7 @@
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
-    "translation": "Não foi possível atualizar os dados de notificação dos membros do canal."
+    "translation": "Não foi possível atualizar as props de notificação dos membros do canal."
   },
   {
     "id": "app.notification.body.dm.subTitle",
@@ -10082,5 +10082,105 @@
   {
     "id": "app.webhooks.get_incoming_count.app_error",
     "translation": "Não foi possível obter o webhook para teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Simultaneidade de decodificador inválida {{.Value}}. Deve ser um número positivo ou -1."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Backend de pesquisa inválido. Deve ser elasticsearch ou opensearch."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "O tamanho do lote de indexação em massa Bleve deve ser de pelo menos {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Valor inválido para o tempo limite dos metadados do link. Deve ser um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow deve ser true para habilitar CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Os índices ignorados para purga não devem começar com um traço."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Os dias de retenção de arquivos e as horas de retenção de arquivos não podem ser ambos 0."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Não foi possível localizar o diretório do arquivo de soquete local."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Os dias de retenção de arquivos e as horas de retenção de arquivos não podem ser ambos maiores que 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "As horas de retenção de arquivos não podem ser inferiores a 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Os dias de retenção de mensagens e as horas de retenção de mensagens não podem ser ambos 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "As horas de retenção de mensagens não podem ser inferiores a 0"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "O tamanho do Lote de Indexação em Batelada da Pesquisa deve ser de pelo menos {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Tamanho máximo de carga útil inválido para configurações de serviço. Deve ser um número inteiro maior que zero."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "O valor de update at deve ser um horário válido."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Id de usuário inválido."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Funções de membro de canal inválidas com mais de {{.Limit}} caracteres."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Os dias de retenção de mensagens e as horas de retenção de mensagens não podem ser ambos maiores que 0."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "O nome entra em conflito com o nome emoji do sistema existente."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Formato inválido: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Valor de tempo limite inválido {{.Value}}. Deve ser um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Comprimento máximo de URL inválido para configurações de serviço. Deve ser um número inteiro maior que zero."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress deve ser especificado para o tipo de cache redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "O Redis DB deve ter um valor maior ou igual a zero."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "O tipo de cache deve ser LRU ou Redis."
   }
 ]
