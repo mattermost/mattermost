@@ -16,14 +16,25 @@ import (
 
 type SqlSystemStore struct {
 	*SqlStore
+
+	systemInsertQuery sq.InsertBuilder
 }
 
 func newSqlSystemStore(sqlStore *SqlStore) store.SystemStore {
-	return &SqlSystemStore{sqlStore}
+	s := SqlSystemStore{
+		SqlStore: sqlStore,
+	}
+
+	s.systemInsertQuery = s.getQueryBuilder().
+		Insert("Systems").
+		Columns("Name", "Value")
+
+	return &s
 }
 
 func (s SqlSystemStore) Save(system *model.System) error {
 	query := "INSERT INTO Systems (Name, Value) VALUES (:Name, :Value)"
+	// query := s.systemInsertQuery.Values(system.Name, system.Value)
 	if _, err := s.GetMaster().NamedExec(query, system); err != nil {
 		return errors.Wrapf(err, "failed to save system property with name=%s", system.Name)
 	}
@@ -32,11 +43,7 @@ func (s SqlSystemStore) Save(system *model.System) error {
 }
 
 func (s SqlSystemStore) SaveOrUpdate(system *model.System) error {
-	query := s.getQueryBuilder().
-		Insert("Systems").
-		Columns("Name", "Value").
-		Values(system.Name, system.Value)
-
+	query := s.systemInsertQuery.Values(system.Name, system.Value)
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", system.Value))
 	} else {
