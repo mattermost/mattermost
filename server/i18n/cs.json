@@ -10434,5 +10434,17 @@
   {
     "id": "model.thread.is_valid.user_id.app_error",
     "translation": "Neplatné id uživatele."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Nelze filtrovat konfiguraci."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Nelze vytvořit adresář pro obrázky vlastních emoji"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Role uživatele nejsou v souladu se stavem hosta."
   }
 ]
