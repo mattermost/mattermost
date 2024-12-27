@@ -268,7 +268,6 @@ const useSubmit = (
             return;
         }
 
-        console.log('AAA');
         const submittingDraft = setUpdatedFileIds(submittingDraftParam);
         setShowPreview(false);
         isDraftSubmitting.current = true;
