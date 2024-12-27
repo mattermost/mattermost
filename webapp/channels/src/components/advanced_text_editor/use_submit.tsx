@@ -235,6 +235,10 @@ const useSubmit = (
         isInEditMode,
     ]);
 
+    const setUpdatedFileIds = useCallback((draft: PostDraft) => {
+        draft.file_ids = draft.fileInfos.map((fileInfo) => fileInfo.id);
+    }, []);
+
     const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, onConfirm: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.NOTIFY_CONFIRM_MODAL,
@@ -257,6 +261,7 @@ const useSubmit = (
             return;
         }
 
+        setUpdatedFileIds(submittingDraft);
         setShowPreview(false);
         isDraftSubmitting.current = true;
 
