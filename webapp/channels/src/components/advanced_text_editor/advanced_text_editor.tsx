@@ -369,6 +369,8 @@ const AdvancedTextEditor = ({
         handleSubmit();
     }, [dispatch, draft, handleSubmit, isInEditMode, isRHS]);
 
+    console.log({draftFileCount: draft.file_ids?.length});
+
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
