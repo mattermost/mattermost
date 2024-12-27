@@ -209,8 +209,6 @@ const AdvancedTextEditor = ({
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
 
-    console.log({message: draft.message, fileInfos: draft.fileInfos.length, fileids: draft.file_ids?.length});
-
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
     }, []);
