@@ -3,8 +3,6 @@
 exports[`FileAttachment should match snapshot when file is deleted 1`] = `
 <WithTooltip
   disabled={true}
-  id="fileAttachmentArchivedTooltip"
-  placement="top"
   title={<ArchivedTooltip />}
 >
   <div
