@@ -213,7 +213,6 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
             >
                 <div className={classNames('skin-tones', {'skin-tones--active': this.state.pickerExtended})}>
                     <div
-                        id='skin-tones-content'
                         className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerExtended})}
                         aria-orientation='horizontal'
                     >
