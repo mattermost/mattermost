@@ -104,6 +104,13 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
                 onKeyDown(NavigationDirection.NextEmojiRow);
             }
             break;
+        case ' ': {
+            event.stopPropagation();
+            event.preventDefault();
+
+            onEnter();
+            break;
+        }
         case 'Enter': {
             event.stopPropagation();
             event.preventDefault();
