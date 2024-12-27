@@ -90,7 +90,7 @@ describe('channels > rhs > header', {testIsolation: true}, () => {
             cy.get('#rhsContainer').findByTestId('rendered-run-name').should('be.visible').contains('new run name');
 
             // * make sure the channel name remains unchanged
-            cy.get('#channelHeaderInfo').contains(playbookRunName);
+            cy.get('#channelHeaderInfo').findByRole('heading').contains(playbookRunName);
         });
     });
 
