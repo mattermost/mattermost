@@ -166,10 +166,13 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", userID)
 
-	appErr := c.App.PatchCPAValues(userID, attributeValues)
-	if appErr != nil {
-		c.Err = appErr
-		return
+	results := make(map[string]*model.PropertyValue)
+	for fieldID, value := range attributeValues {
+		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, value)
+		if appErr != nil {
+			c.Err = appErr
+		}
+		results[fieldID] = patchedValue
 	}
 
 	auditRec.Success()

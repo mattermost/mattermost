@@ -5550,6 +5550,28 @@ func (a *OpenTracingAppLayer) GetCPAField(fieldID string) (*model.PropertyField,
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetCPAValue")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetCPAValue(valueID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannel")
@@ -13499,9 +13521,9 @@ func (a *OpenTracingAppLayer) PatchCPAField(fieldID string, patch *model.Propert
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) PatchCPAValues(userID string, values map[string]string) *model.AppError {
+func (a *OpenTracingAppLayer) PatchCPAValue(userID string, fieldID string, value string) (*model.PropertyValue, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchCPAValues")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchCPAValue")
 
 	a.ctx = newCtx
 	a.app.Srv().Store().SetContext(newCtx)
@@ -13511,14 +13533,14 @@ func (a *OpenTracingAppLayer) PatchCPAValues(userID string, values map[string]st
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PatchCPAValues(userID, values)
+	resultVar0, resultVar1 := a.app.PatchCPAValue(userID, fieldID, value)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError) {

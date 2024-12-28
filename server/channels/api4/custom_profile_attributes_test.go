@@ -5,7 +5,6 @@ package api4
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 
@@ -167,10 +166,16 @@ func TestListCPAValues(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 	}()
 
-	values := map[string]string{}
-	for i := 0; i < 3; i++ {
-		values[model.NewId()] = fmt.Sprintf("Value %d", i)
+	field := &model.PropertyField{
+		Name: model.NewId(),
+		Type: model.PropertyFieldTypeText,
 	}
+	createdField, appErr := th.App.CreateCPAField(field)
+	require.Nil(t, appErr)
+	require.NotNil(t, createdField)
+
+	values := map[string]string{}
+	values[createdField.ID] = "Field Value"
 	_, err := th.Client.PatchCPAValues(context.Background(), values)
 	require.NoError(t, err)
 
@@ -180,7 +185,7 @@ func TestListCPAValues(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.NotEmpty(t, values)
-		require.Len(t, values, 3)
+		require.Len(t, values, 1)
 	})
 
 	t.Run("non team member should NOT be able to list values", func(t *testing.T) {
@@ -191,5 +196,52 @@ func TestListCPAValues(t *testing.T) {
 		_, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
+	})
+}
+
+func TestPatchCPAValues(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	field := &model.PropertyField{
+		Name: model.NewId(),
+		Type: model.PropertyFieldTypeText,
+	}
+	createdField, appErr := th.App.CreateCPAField(field)
+	require.Nil(t, appErr)
+	require.NotNil(t, createdField)
+
+	t.Run("any team member should be able to create their own values", func(t *testing.T) {
+		values := map[string]string{}
+		values[createdField.ID] = "Field Value"
+		resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, values)
+		require.Len(t, values, 1)
+	})
+
+	t.Run("any team member should be able to patch their own values", func(t *testing.T) {
+		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, values)
+		require.Len(t, values, 1)
+
+		values[createdField.ID] = "Updated Field Value"
+		resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, "Updated Field Value", values[createdField.ID])
 	})
 }

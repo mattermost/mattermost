@@ -344,3 +344,111 @@ func TestDeleteCPAField(t *testing.T) {
 		}
 	})
 }
+
+func TestGetCPAValue(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	require.NoError(t, rErr)
+	fieldID := model.NewId()
+
+	t.Run("should fail if the value doesn't exist", func(t *testing.T) {
+		pv, appErr := th.App.GetCPAValue(model.NewId())
+		require.NotNil(t, appErr)
+		require.Nil(t, pv)
+	})
+
+	t.Run("should fail if the group id is invalid", func(t *testing.T) {
+		propertyValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    model.NewId(),
+			FieldID:    fieldID,
+			Value:      "Value",
+		}
+		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
+		require.NoError(t, err)
+
+		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
+		require.NotNil(t, appErr)
+		require.Nil(t, pv)
+	})
+
+	t.Run("should succeed if id exists", func(t *testing.T) {
+		propertyValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    cpaGroup.ID,
+			FieldID:    fieldID,
+			Value:      "Value",
+		}
+		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
+		require.NoError(t, err)
+
+		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, pv)
+	})
+}
+
+func TestPatchCPAValue(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	require.NoError(t, rErr)
+
+	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
+		invalidFieldID := model.NewId()
+		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, "fieldValue")
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("should create value if new field value", func(t *testing.T) {
+		newField := &model.PropertyField{
+			GroupID: cpaGroup.ID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(newField)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedValue)
+		require.Equal(t, "test value", patchedValue.Value)
+		require.Equal(t, userID, patchedValue.TargetID)
+
+		t.Run("should correctly patch the CPA property value", func(t *testing.T) {
+			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, "new patched value")
+			require.Nil(t, appErr)
+			require.NotNil(t, patch2)
+			require.Equal(t, patchedValue.ID, patch2.ID)
+			require.Equal(t, "new patched value", patch2.Value)
+			require.Equal(t, userID, patch2.TargetID)
+		})
+	})
+
+	t.Run("should fail if field is deleted", func(t *testing.T) {
+		newField := &model.PropertyField{
+			GroupID: cpaGroup.ID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(newField)
+		require.NoError(t, err)
+		err = th.App.Srv().propertyService.DeletePropertyField(createdField.ID)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		require.NotNil(t, appErr)
+		require.Nil(t, patchedValue)
+	})
+}

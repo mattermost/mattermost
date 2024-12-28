@@ -4971,14 +4971,6 @@
     "translation": "Unable to create default team membership because no more members are allowed in that team"
   },
   {
-    "id": "app.custom_attributes.createPropertyValue.app_error",
-    "translation": "Unable to create property value"
-  },
-  {
-    "id": "app.custom_attributes.getProperties.app_error",
-    "translation": "Unable to get custom properties"
-  },
-  {
     "id": "app.custom_group.unique_name",
     "translation": "group name is not unique"
   },
@@ -5003,12 +4995,12 @@
     "translation": "Unable to get custom profile attribute values"
   },
   {
-    "id": "app.custom_profile_attributes.listcpavalues.app_error",
-    "translation": "Unable to get custom profile attribute values"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
     "translation": "Unable to delete Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_deleted.app_error",
+    "translation": "Cannot create value for deleted property field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
@@ -5017,6 +5009,14 @@
   {
     "id": "app.custom_profile_attributes.property_field_update.app_error",
     "translation": "Unable to update Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Cannot create property value"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Cannot update property value"
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
