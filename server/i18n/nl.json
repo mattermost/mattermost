@@ -10442,5 +10442,9 @@
   {
     "id": "model.post.is_valid.message_length.app_error",
     "translation": "De eigenschap Postbericht is langer dan de maximaal toegestane lengte."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Kan de configuratie niet filteren."
   }
 ]
