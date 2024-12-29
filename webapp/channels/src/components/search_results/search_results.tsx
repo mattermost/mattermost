@@ -426,7 +426,9 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                         regionTitle: formattedTitle,
                     })}
                 >
-                    {contentItems}
+                    <div id={`${searchType}Panel`}>
+                        {contentItems}
+                    </div>
                     {loadingMorePostsComponent}
                 </div>
             </Scrollbars>
