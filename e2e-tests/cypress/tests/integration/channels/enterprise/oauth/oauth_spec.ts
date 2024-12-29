@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @integrations
 
 import {getRandomId} from '../../../../utils';
@@ -107,7 +106,7 @@ describe('Integrations page', () => {
 
                 cy.contains('.item-details__token', 'Client Secret').should('exist').within(() => {
                     // * Client secret should not show
-                    cy.contains('*******************').should('exist');
+                    cy.contains('***************').should('exist');
 
                     // * Copy button should not exist
                     cy.get('.fa-copy').should('not.exist');
@@ -122,7 +121,7 @@ describe('Integrations page', () => {
 
                 cy.contains('.item-details__token', 'Client Secret').should('exist').within(() => {
                     // * Token should not be obscured
-                    cy.contains('*******************').should('not.exist');
+                    cy.contains('***************').should('not.exist');
 
                     // * Copy button should exist
                     cy.get('.fa-copy').should('exist');
@@ -246,7 +245,11 @@ describe('Integrations page', () => {
         });
 
         // # Update description
-        cy.get('#description').type('Edited');
+        cy.get('#description').invoke('val').then(($text) => {
+            if (!$text.match('Edited$')) {
+                cy.get('#description').type('Edited');
+            }
+        });
 
         // # Save
         cy.get('#saveOauthApp').click({force: true});
@@ -437,7 +440,7 @@ describe('Integrations page', () => {
         });
 
         // # Confirm Delete
-        cy.contains('#confirmModalButton', 'Delete').click();
+        cy.contains('#confirmModalButton', 'Yes, delete it').click();
 
         // # Go back to channels
         cy.visit(testChannelUrl1);

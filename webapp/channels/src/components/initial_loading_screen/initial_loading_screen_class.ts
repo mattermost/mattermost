@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Measure, measureAndReport} from 'utils/performance_telemetry';
 import {isDesktopApp} from 'utils/user_agent';
 
 const ANIMATION_CLASS_FOR_MATTERMOST_LOGO_HIDE = 'LoadingAnimation__compass-shrink';
@@ -99,7 +100,7 @@ export class InitialLoadingScreenClass {
 
     /**
      * The loading animations are always started as soon as the loading indicator is shown in the screen for the first time.
-     * But we still want to have this start method incase we need to start the loading animations manually any time.
+     * But we still want to have this start method in case we need to start the loading animations manually any time.
      * If we do want to do that then we should remove the set timeout destroy call doing above.
      */
     public start() {
@@ -115,7 +116,7 @@ export class InitialLoadingScreenClass {
         this.loadingAnimationElement.className = LOADING_CLASS_FOR_ANIMATION;
     }
 
-    public stop() {
+    public stop(pageType: string) {
         if (!this.loadingScreenElement || !this.loadingAnimationElement) {
             return;
         }
@@ -124,6 +125,15 @@ export class InitialLoadingScreenClass {
 
         this.loadingScreenElement.className = LOADING_COMPLETE_CLASS_FOR_SCREEN;
         this.loadingAnimationElement.className = LOADING_COMPLETE_CLASS_FOR_ANIMATION;
+
+        measureAndReport({
+            name: Measure.SplashScreen,
+            startMark: 0,
+            canFail: false,
+            labels: {
+                page_type: pageType,
+            },
+        });
     }
 }
 

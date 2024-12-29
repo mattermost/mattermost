@@ -173,8 +173,6 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
 
         return (
             <WithTooltip
-                id='emojiPickerSkinTooltip'
-                placement='top'
                 title={expandButtonLabel}
             >
                 <button

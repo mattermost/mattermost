@@ -45,6 +45,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/timezones", api.APISessionRequired(getSupportedTimezones)).Methods(http.MethodGet)
 
 	api.BaseRoutes.APIRoot.Handle("/audits", api.APISessionRequired(getAudits)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/notifications/test", api.APISessionRequired(testNotifications)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3)).Methods(http.MethodPost)
@@ -232,6 +233,16 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func testNotifications(c *Context, w http.ResponseWriter, r *http.Request) {
+	_, err := c.App.SendTestMessage(c.AppContext, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cfg *model.Config
 	err := json.NewDecoder(r.Body).Decode(&cfg)
@@ -390,8 +401,8 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logsJSON := make(map[string][]interface{})
-	var result interface{}
+	logsJSON := make(map[string][]any)
+	var result any
 	for node, logLines := range logs {
 		for _, log := range logLines {
 			err = json.Unmarshal([]byte(log), &result)

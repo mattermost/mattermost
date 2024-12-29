@@ -10,6 +10,10 @@ import type { UserProfile } from '@mattermost/types/users';
 import { Permissions } from 'mattermost-redux/constants';
 import { isGuest } from 'mattermost-redux/utils/user_utils';
 
+import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
+import ChannelBookmarksSubmenu from 'components/channel_bookmarks_sub_menu';
+import ChannelGroupsManageModal from 'components/channel_groups_manage_modal';
+import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import ChannelActionsMenu from 'components/channel_settings';
@@ -54,6 +58,7 @@ export type Props = {
     profilesInChannel: UserProfile[];
     teammateNameDisplaySetting: string;
     currentUserId: string;
+    isChannelBookmarksEnabled: boolean;
 }
 
 export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
@@ -68,11 +73,14 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
             isArchived,
             isMobile,
             penultimateViewedChannelName,
+
             onExited,
             actions,
             profilesInChannel,
             teammateNameDisplaySetting,
             currentUserId,
+            isLicensedForLDAPGroups,
+            isChannelBookmarksEnabled,
         } = this.props;
 
         if (!channel) {
@@ -103,7 +111,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
         });
 
         return (
-            <React.Fragment>
+            <>
                 <MenuItemToggleInfo
                     show={true}
                     channel={channel}
@@ -212,6 +220,54 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                     />
                 </Menu.Group>
                 <Menu.Group divider={divider}>
+                    {isChannelBookmarksEnabled && <ChannelBookmarksSubmenu channel={channel}/>}
+                    <ChannelPermissionGate
+                        channelId={channel.id}
+                        teamId={channel.team_id}
+                        permissions={[channelPropertiesPermission]}
+                    >
+                        <Menu.ItemToggleModalRedux
+                            id='channelEditHeader'
+                            show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isReadonly}
+                            modalId={ModalIdentifiers.EDIT_CHANNEL_HEADER}
+                            dialogType={EditChannelHeaderModal}
+                            dialogProps={{channel}}
+                            text={localizeMessage({id: 'channel_header.setHeader', defaultMessage: 'Edit Channel Header'})}
+                        />
+                        <Menu.ItemToggleModalRedux
+                            id='channelEditPurpose'
+                            show={!isArchived && !isReadonly && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
+                            modalId={ModalIdentifiers.EDIT_CHANNEL_PURPOSE}
+                            dialogType={EditChannelPurposeModal}
+                            dialogProps={{channel}}
+                            text={localizeMessage({id: 'channel_header.setPurpose', defaultMessage: 'Edit Channel Purpose'})}
+                        />
+                        <Menu.ItemToggleModalRedux
+                            id='channelRename'
+                            show={!isArchived && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL}
+                            modalId={ModalIdentifiers.RENAME_CHANNEL}
+                            dialogType={RenameChannelModal}
+                            dialogProps={{channel}}
+                            text={localizeMessage({id: 'channel_header.rename', defaultMessage: 'Rename Channel'})}
+                        />
+                    </ChannelPermissionGate>
+                    <ChannelPermissionGate
+                        channelId={channel.id}
+                        teamId={channel.team_id}
+                        permissions={[Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE]}
+                    >
+                        <Menu.ItemToggleModalRedux
+                            id='channelConvertToPrivate'
+                            show={!isArchived && !isDefault && channel.type === Constants.OPEN_CHANNEL}
+                            modalId={ModalIdentifiers.CONVERT_CHANNEL}
+                            dialogType={ConvertChannelModal}
+                            dialogProps={{
+                                channelId: channel.id,
+                                channelDisplayName: channel.display_name,
+                            }}
+                            text={localizeMessage({id: 'channel_header.convert', defaultMessage: 'Convert to Private Channel'})}
+                        />
+                    </ChannelPermissionGate>
                     <MenuItemLeaveChannel
                         id='channelLeaveChannel'
                         channel={channel}
@@ -270,7 +326,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         />
                     </ChannelPermissionGate>
                 </Menu.Group>
-            </React.Fragment>
+            </>
         );
     }
 }

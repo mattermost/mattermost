@@ -27,7 +27,7 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <Connect(Component)

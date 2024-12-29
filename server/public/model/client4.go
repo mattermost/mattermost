@@ -344,6 +344,10 @@ func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
 
+func (c *Client4) testNotificationRoute() string {
+	return "/notifications/test"
+}
+
 func (c *Client4) usageRoute() string {
 	return "/usage"
 }
@@ -4411,7 +4415,12 @@ func (c *Client4) SearchFilesWithParams(ctx context.Context, teamId string, para
 	if err != nil {
 		return nil, nil, NewAppError("SearchFilesWithParams", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(ctx, c.teamRoute(teamId)+"/files/search", string(js))
+
+	route := c.teamRoute(teamId) + "/files/search"
+	if teamId == "" {
+		route = c.filesRoute() + "/search"
+	}
+	r, err := c.DoAPIPost(ctx, route, string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4422,6 +4431,15 @@ func (c *Client4) SearchFilesWithParams(ctx context.Context, teamId string, para
 		return nil, nil, NewAppError("SearchFilesWithParams", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &list, BuildResponse(r), nil
+}
+
+// SearchFilesAcrossTeams returns any posts with matching terms string.
+func (c *Client4) SearchFilesAcrossTeams(ctx context.Context, terms string, isOrSearch bool) (*FileInfoList, *Response, error) {
+	params := SearchParameter{
+		Terms:      &terms,
+		IsOrSearch: &isOrSearch,
+	}
+	return c.SearchFilesWithParams(ctx, "", &params)
 }
 
 // SearchPosts returns any posts with matching terms string.
@@ -4820,6 +4838,15 @@ func (c *Client4) TestEmail(ctx context.Context, config *Config) (*Response, err
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) TestNotifications(ctx context.Context) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.testNotificationRoute(), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // TestSiteURL will test the validity of a site URL.
 func (c *Client4) TestSiteURL(ctx context.Context, siteURL string) (*Response, error) {
 	requestBody := make(map[string]string)
@@ -4857,6 +4884,30 @@ func (c *Client4) GetConfig(ctx context.Context) (*Config, *Response, error) {
 	var cfg *Config
 	d := json.NewDecoder(r.Body)
 	return cfg, BuildResponse(r), d.Decode(&cfg)
+}
+
+// GetConfig will retrieve the server config with some sanitized items.
+func (c *Client4) GetConfigWithOptions(ctx context.Context, options GetConfigOptions) (map[string]any, *Response, error) {
+	v := url.Values{}
+	if options.RemoveDefaults {
+		v.Set("remove_defaults", "true")
+	}
+	if options.RemoveMasked {
+		v.Set("remove_masked", "true")
+	}
+	url := c.configRoute()
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, err := c.DoAPIGet(ctx, url, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var cfg map[string]any
+	return cfg, BuildResponse(r), json.NewDecoder(r.Body).Decode(&cfg)
 }
 
 // ReloadConfig will reload the server configuration.
@@ -8279,6 +8330,17 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(ctx context.Context, userI
 	return cat, BuildResponse(r), nil
 }
 
+// DeleteSidebarCategoryForTeamForUser deletes a sidebar category for a user in a team.
+func (c *Client4) DeleteSidebarCategoryForTeamForUser(ctx context.Context, userId string, teamId string, categoryId string) (*Response, error) {
+	url := fmt.Sprintf("%s/%s", c.userCategoryRoute(userId, teamId), categoryId)
+	r, err := c.DoAPIDelete(ctx, url)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // CheckIntegrity performs a database integrity check.
 func (c *Client4) CheckIntegrity(ctx context.Context) ([]IntegrityCheckResult, *Response, error) {
 	r, err := c.DoAPIPost(ctx, "/integrity", "")
@@ -8710,6 +8772,9 @@ func (c *Client4) GetUserThreads(ctx context.Context, userId, teamId string, opt
 	}
 	if options.TotalsOnly {
 		v.Set("totalsOnly", "true")
+	}
+	if options.ExcludeDirect {
+		v.Set("excludeDirect", fmt.Sprintf("%t", options.ExcludeDirect))
 	}
 	url := c.userThreadsRoute(userId, teamId)
 	if len(v) > 0 {

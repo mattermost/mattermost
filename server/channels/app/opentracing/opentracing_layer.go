@@ -4050,7 +4050,7 @@ func (a *OpenTracingAppLayer) DoCommandRequest(rctx request.CTX, cmd *model.Comm
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) DoEmojisPermissionsMigration() {
+func (a *OpenTracingAppLayer) DoEmojisPermissionsMigration() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoEmojisPermissionsMigration")
 
@@ -4062,10 +4062,17 @@ func (a *OpenTracingAppLayer) DoEmojisPermissionsMigration() {
 	}()
 
 	defer span.Finish()
-	a.app.DoEmojisPermissionsMigration()
+	resultVar0 := a.app.DoEmojisPermissionsMigration()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DoGuestRolesCreationMigration() {
+func (a *OpenTracingAppLayer) DoGuestRolesCreationMigration() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoGuestRolesCreationMigration")
 
@@ -4077,7 +4084,14 @@ func (a *OpenTracingAppLayer) DoGuestRolesCreationMigration() {
 	}()
 
 	defer span.Finish()
-	a.app.DoGuestRolesCreationMigration()
+	resultVar0 := a.app.DoGuestRolesCreationMigration()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
@@ -16389,6 +16403,28 @@ func (a *OpenTracingAppLayer) SendSubscriptionHistoryEvent(userID string) (*mode
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.SendSubscriptionHistoryEvent(userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) SendTestMessage(c request.CTX, userID string) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendTestMessage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SendTestMessage(c, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

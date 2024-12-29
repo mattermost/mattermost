@@ -37,6 +37,7 @@ const (
 )
 
 func NewIndexerWorker(name string,
+	backend string,
 	jobServer *jobs.JobServer,
 	logger mlog.LoggerIFace,
 	fileBackend filestore.FileBackend,
@@ -47,6 +48,7 @@ func NewIndexerWorker(name string,
 ) *IndexerWorker {
 	return &IndexerWorker{
 		name:                   name,
+		backend:                backend,
 		stoppedCh:              make(chan bool, 1),
 		jobs:                   make(chan model.Job),
 		jobServer:              jobServer,
@@ -61,7 +63,8 @@ func NewIndexerWorker(name string,
 }
 
 type IndexerWorker struct {
-	name string
+	name    string
+	backend string
 	// stateMut protects stopCh and stopped and helps enforce
 	// ordering in case subsequent Run or Stop calls are made.
 	stateMut    sync.Mutex
@@ -234,7 +237,7 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 	}
 
 	worker.initEntitiesToIndex(job)
-	progress, err := initProgress(logger, worker.jobServer, job)
+	progress, err := initProgress(logger, worker.jobServer, job, worker.backend)
 	if err != nil {
 		return
 	}
@@ -663,7 +666,7 @@ func (worker *IndexerWorker) BulkIndexUsers(users []*model.UserForIndexing, prog
 	return users[len(users)-1], nil
 }
 
-func initProgress(logger mlog.LoggerIFace, jobServer *jobs.JobServer, job *model.Job) (IndexingProgress, error) {
+func initProgress(logger mlog.LoggerIFace, jobServer *jobs.JobServer, job *model.Job, backend string) (IndexingProgress, error) {
 	progress := IndexingProgress{
 		Now:          time.Now(),
 		DonePosts:    false,
@@ -674,12 +677,12 @@ func initProgress(logger mlog.LoggerIFace, jobServer *jobs.JobServer, job *model
 		EndAtTime:    model.GetMillis(),
 	}
 
-	progress, err := parseStartTime(logger, jobServer, progress, job)
+	progress, err := parseStartTime(logger, jobServer, progress, job, backend)
 	if err != nil {
 		return progress, err
 	}
 
-	progress, err = parseEndTime(logger, jobServer, progress, job)
+	progress, err = parseEndTime(logger, jobServer, progress, job, backend)
 	if err != nil {
 		return progress, err
 	}
@@ -691,13 +694,13 @@ func initProgress(logger mlog.LoggerIFace, jobServer *jobs.JobServer, job *model
 	return progress, nil
 }
 
-func parseStartTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job) (IndexingProgress, error) {
+func parseStartTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job, backend string) (IndexingProgress, error) {
 	// Extract the start time, if it is set.
 	if startString, ok := job.Data["start_time"]; ok {
 		startInt, err := strconv.ParseInt(startString, 10, 64)
 		if err != nil {
 			logger.Error("Worker: Failed to parse start_time for job", mlog.String("start_time", startString), mlog.Err(err))
-			appError := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.parse_start_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			appError := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.parse_start_time.error", map[string]any{"Backend": backend}, "", http.StatusInternalServerError).Wrap(err)
 			if err := jobServer.SetJobError(job, appError); err != nil {
 				logger.Error("Worker: Failed to set job error", mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
@@ -722,12 +725,12 @@ func parseStartTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress
 	return progress, nil
 }
 
-func parseEndTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job) (IndexingProgress, error) {
+func parseEndTime(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job, backend string) (IndexingProgress, error) {
 	if endString, ok := job.Data["end_time"]; ok {
 		endInt, err := strconv.ParseInt(endString, 10, 64)
 		if err != nil {
 			logger.Error("Worker: Failed to parse end_time for job", mlog.String("end_time", endString), mlog.Err(err))
-			appError := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.parse_end_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			appError := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.parse_end_time.error", map[string]any{"Backend": backend}, "", http.StatusInternalServerError).Wrap(err)
 			if err := jobServer.SetJobError(job, appError); err != nil {
 				logger.Error("Worker: Failed to set job errorv", mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}

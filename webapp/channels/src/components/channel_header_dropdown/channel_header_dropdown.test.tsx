@@ -31,6 +31,7 @@ describe('components/ChannelHeaderDropdown', () => {
         profilesInChannel: [],
         teammateNameDisplaySetting: 'username',
         currentUserId: 'test user-id',
+        isChannelBookmarksEnabled: false,
     };
     test('should match snapshot with no plugin items', () => {
         const wrapper = shallow(<ChannelHeaderDropdown {...defaultProps}/>);

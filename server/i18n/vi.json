@@ -3846,10 +3846,6 @@
     "translation": "Giấy phép của bạn không hỗ trợ Elaticsearch."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Không thể giải mã gói dữ liệu nhiều phần của webhook sắp tới."
-  },
-  {
     "id": "api.user.check_user_mfa.bad_code.app_error",
     "translation": "Token MFA không hợp lệ."
   },
@@ -4726,10 +4722,6 @@
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
     "translation": "ID nhóm không hợp lệ"
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -9256,10 +9248,6 @@
   {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Id tập tin không hợp lệ."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ."
   },
   {
     "id": "model.draft.is_valid.priority.app_error",

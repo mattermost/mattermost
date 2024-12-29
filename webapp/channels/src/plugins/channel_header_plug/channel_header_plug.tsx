@@ -329,8 +329,6 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                         dropdownOpen={this.state.dropdownOpen}
                     >
                         <WithTooltip
-                            id='removeIcon'
-                            placement='bottom'
                             title={
                                 <FormattedMessage
                                     id='generic_icons.plugins'
@@ -338,7 +336,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                                 />
                             }
                         >
-                            <React.Fragment>
+                            <>
                                 <PluginChannelHeaderIcon
                                     id='pluginChannelHeaderIcon'
                                     className='icon icon--standard icon__pluginChannelHeader'
@@ -350,7 +348,7 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                                 >
                                     {items.length}
                                 </span>
-                            </React.Fragment>
+                            </>
                         </WithTooltip>
                     </CustomToggle>
                     <CustomMenu

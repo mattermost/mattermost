@@ -2295,10 +2295,6 @@
     "translation": "trigger_words ya da channel_id değerleri ayarlanmış olmalıdır."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Gelen İnternet kancasının birkaç parçalı paketinin kodu çözülemedi."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "İnternet kancası takımlar arasında güncellenemez."
   },
@@ -3064,31 +3060,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch toplayıcı işlemi dizin işlemini oluşturamadı"
+    "translation": "{{.Backend}} toplayıcı işlemi dizin görevini oluşturamadı"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch toplayıcı işlemi dizinleri silemedi"
+    "translation": "{{.Backend}} toplayıcı işlemi dizinleri silemedi"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch toplayıcı işlemi dizinleri alamadı"
+    "translation": "{{.Backend}} toplayıcı işlemi dizinleri alamadı"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch toplayıcı işlemi dizin işlemi tamamlanamadığından yarım kaldı"
+    "translation": "{{.Backend}} toplayıcı işlemi dizin işlemi tamamlanamadığından yarım kaldı"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Elasticsearch istemcisi kurulamadı"
+    "translation": "{{.Backend}} istemcisi kurulamadı"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "ElasticSearch dizini silinemedi"
+    "translation": "{{.Backend}} dizini silinemedi"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Elasticsearch dizinleri oluşturulamadı"
+    "translation": "{{.Backend}} dizinleri oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3096,7 +3092,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Bu sunucu üzerinde Elasticsearch araması açılmamış"
+    "translation": "Bu sunucu üzerinde {{.Backend}} araması açılmamış"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3104,15 +3100,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch dizine ekleme işlemi bitiş zamanını işleyemedi"
+    "translation": "{{.Backend}} dizine ekleme işlemi bitiş zamanını işleyemedi"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch dizine ekleme işlemi başlangıç zamanını işleyemedi"
+    "translation": "{{.Backend}} dizine ekleme işlemi başlangıç zamanını işleyemedi"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch başlatılmamış"
+    "translation": "{{.Backend}} başlatılmamış"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3120,7 +3116,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Bu sunucu üzerine Elasticsearch arama özelliği kapalı"
+    "translation": "Bu sunucu üzerine {{.Backend}} arama özelliği kapalı"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3136,11 +3132,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch zaten durdurulmuş."
+    "translation": "{{.Backend}} zaten durdurulmuş."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch kapalı."
+    "translation": "{{.Backend}} kapalı."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3708,27 +3704,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch toplayıcı AggregatePostsAfterDays ayarının değeri 1 ya da daha büyük bir sayı olmalıdır."
+    "translation": "Arama AggregatePostsAfterDays ayarının değeri 1 ya da daha büyük bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch dizine ekleme özelliği açıldığında Elasticsearch ConnectionUrl seçeneği ayarlanmalıdır."
+    "translation": "Arama dizine ekleme özelliği açıldığında Elasticsearch ConnectionUrl seçeneği ayarlanmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch EnableSearching seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
+    "translation": "Arama EnableSearching seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live dizine ekleme toplu işlem boyutu en az 1 olmalıdır."
+    "translation": "Arama Live dizine ekleme toplu işlem boyutu en az 1 olmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime ayarının değeri \"ss:dd\" biçiminde bir zaman olmalıdır."
+    "translation": "Arama PostsAggregatorJobStartTime ayarının değeri \"ss:dd\" biçiminde bir zaman olmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch isteği zaman aşımı en az 1 saniye olmalıdır."
+    "translation": "Arama isteği zaman aşımı en az 1 saniye olmalıdır."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4311,10 +4307,6 @@
     "translation": "Kimlik geçersiz."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "İleti geçersiz."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Özgün kimlik geçersiz."
   },
@@ -4612,11 +4604,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Komut bulunamadı."
+    "translation": "{{.command_id}} komutu bulunamadı."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Gelen veriler işlenemedi."
+    "translation": "{{.hook_id}} internet kancasından gelen veriler işlenemedi."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4628,7 +4620,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Bu İnternet bağlantısının istenilen kanala gönderilmesine izin verilmiyor."
+    "translation": "Bu internet kancasının istenilen {{.channel_id}} kanalına gönderim yapmasına izin verilmiyor"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4644,7 +4636,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Kanal izinleri yeterli değil."
+    "translation": "{{.user}} kullanıcısının {{.channel}} kanalı için uygun izinleri yok"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4656,7 +4648,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Kullanıcı bulunamadı."
+    "translation": "{{.user}} kullanıcısı bulunamadı"
   },
   {
     "id": "app.channel.permanent_delete.app_error",
@@ -4944,11 +4936,11 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "İletiler için Elasticsearch kalıbı oluşturulamadı"
+    "translation": "İletiler için {{.Backend}} kalıbı oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Kullanıcılar için Elasticsearch kalıbı oluşturulamadı"
+    "translation": "Kullanıcılar için {{.Backend}} kalıbı oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -4972,7 +4964,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Bu sunucu üzerinde Elasticsearch arama özelliği kapalı"
+    "translation": "Bu sunucu üzerinde {{.Backend}} arama özelliği kapalı"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -4988,7 +4980,7 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Elasticsearch sunucusunun sürümü alınamadı."
+    "translation": "{{.Backend}} sunucusunun sürümü alınamadı."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5340,7 +5332,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Kanallar için Elasticsearch kalıbı oluşturulamadı"
+    "translation": "Kanallar için {{.Backend}} kalıbı oluşturulamadı"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -5352,7 +5344,7 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Elasticsearch sunucusunun sürümü işlenemedi."
+    "translation": "{{.Backend}} sunucusunun sürümü işlenemedi."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -5368,7 +5360,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch EnableAutocomplete seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
+    "translation": "Arama EnableAutocomplete seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5700,11 +5692,11 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Var olan kanal bulunamadı."
+    "translation": "Var olan {{.channel_id}} kanalı bulunamadı."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Kanal aranırken bir sorun çıktı."
+    "translation": "{{.channel_id}} kanalı aranırken bir sorun çıktı."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
@@ -5800,11 +5792,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 115+"
+    "translation": "Sürüm 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Sürüm 17.0+"
+    "translation": "Sürüm 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -7412,7 +7404,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Bu sunucu üzerinde Elasticsearch dosya arama özelliği kapalı"
+    "translation": "Bu sunucu üzerinde {{.Backend}} dosya arama özelliği kapalı"
   },
   {
     "id": "ent.elasticsearch.index_file.error",
@@ -7432,7 +7424,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Dosyalar için Elasticsearch kalıbı oluşturulamadı"
+    "translation": "Dosyalar için {{.Backend}} kalıbı oluşturulamadı"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8615,7 +8607,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
+    "translation": "Arama toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8823,7 +8815,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Arşivlenmiş bir kanalda onay veremezsiniz."
+    "translation": "Arşivlenmiş bir kanalda bir onay kaydedemezsiniz."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -8852,10 +8844,6 @@
   {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Öncelik geçersiz"
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "İleti geçersiz."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
@@ -8947,19 +8935,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Elasticsearch için istemci anahtar dosyası açılamadı"
+    "translation": "{{.Backend}} için istemci anahtar dosyası açılamadı"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Elasticsearch için istemci sertifika dosyası açılamadı"
+    "translation": "{{.Backend}} için istemci sertifikası dosyası açılamadı"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Elasticsearch için istemci sertifikasının kodu çözülemedi"
+    "translation": "{{.Backend}} için istemci sertifikasının kodu çözülemedi"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Elasticsearch için CA dosyası açılamadı"
+    "translation": "{{.Backend}} için CA dosyası açılamadı"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9155,7 +9143,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch {{.Version}} sürümü, desteklenen {{.MaxVersion}} sürümünden daha yeni"
+    "translation": "{{.Backend}} {{.Version}} sürümü, desteklenen {{.MaxVersion}} sürümünden daha yeni"
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
@@ -10228,5 +10216,219 @@
   {
     "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
     "translation": "Uzak kimlik geçersiz."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: İstek geçersiz."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "zamanlanmış iletiler özelliği kullanımdan kaldırılmış"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Zamanlanmış iletiler özelliğini kullanabilmek için bir lisans gereklidir"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Bot güncellenemedi."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Zamanlanmış ileti veri tabanından silinemedi."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Bu kaynağı silme izniniz yok."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Zamanlanmış ileti bulunamadı."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Var olan zamanlanmış ileti veri tabanından alınamadı."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Zamanlanmış iletiler alınırken sorun çıktı."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Botun sahibi bulunamadı"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "İçe aktarılan veri satırının türü \"bot\" ancak bot nesnesi null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot sahibi eksik"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "İleti oluşturulamadı"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "GIF verilerinin başlangıcı bulunamadı."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Zamanlanmış ileti kaydedilirken sorun çıktı."
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Arşivlenmiş bir kanalda ileti zamanlanamaz."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Güncellenen zamanlanmış ileti veri tabanına kaydedilemedi."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Zamanlanmış ileti bulunamadı."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Var olan zamanlanmış ileti veri tabanından alınamadı."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Bu kaynağı güncelleme izniniz yok."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Boş bir ileti zamanlanamaz. Zamanlanmış iletilerde en az bir içerik veya dosya eki olmalıdır."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "İşlenme zamanı geçersiz."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Gönderilme zamanı geçersiz."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Sistem botu alınamadı"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Sistem botu doğrudan iletisi alınamadı"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Kullanıcı alınamadı"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Bu deneme bildirimini aldıysanız, çalışıyor!"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Zamanlanmış iletinin bir kimliği olmalıdır."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanal arşivlendi"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanal bulunamadı"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "İleti içeriği geçersiz"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Kanalın üyesi değil"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Kanala ileti gönderme izni yok"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Konu silindi"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "İleti gönderilemedi"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Bilinmeyen bir sorun çıktı"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Kullanıcı hesabı silindi"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "{{.Count}} zamanlanmış ileti gönderilemedi.",
+      "other": "{{.Count}} zamanlanmış ileti gönderilemedi."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Kullanıcının zamanlanmış iletileri silinemedi."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Kullanıcı bulunamadı"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.ChannelName}} kanalında {{.Count}}. Nedeni: {{.ErrorReason}}",
+      "other": "- {{.ChannelName}} kanalında {{.Count}}. Nedeni: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Özel kanal"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Kanal bilinmiyor"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "{{.Value}} depolama sınıfı geçersiz."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "{{.hook_id}} gelen internet kancası için {{.media_type}} ortam türü paketi işlenemedi."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Aynı isteği yineleyen bir istemci tekilleştirildikten sonra gönderi ön belleğe alınamadı."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Okuma konumu eklenti paketinin başlangıcına sıfırlanamadı."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "{{.hook_id}} komut internet kancası işlenemedi."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "{{.hook_id}} gelen internet kancası için {{.media_type}} ortam türünün paketi çözülemedi."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "{{.hook_id}} ortam gelen internet kancası işlenemedi."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Taslak ileti özelliği izin verilen en fazla uzunluk değerini aşıyor."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Gönderilebilecek ileti özelliği izin verilen en fazla uzunluk değerini aşıyor."
   }
 ]

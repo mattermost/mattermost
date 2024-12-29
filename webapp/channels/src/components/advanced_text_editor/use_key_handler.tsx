@@ -9,7 +9,7 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
-import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {emitShortcutReactToLastPostFrom, unsetEditingPost} from 'actions/post_actions';
 import {editLatestPost} from 'actions/views/create_comment';
 import {replyToLatestPostInChannel} from 'actions/views/rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
@@ -38,6 +38,7 @@ const useKeyHandler = (
     isValidPersistentNotifications: boolean,
     location: string,
     textboxRef: React.RefObject<TextboxClass>,
+    showFormattingBar: boolean,
     focusTextbox: (forceFocus?: boolean) => void,
     applyMarkdown: (params: ApplyMarkdownOptions) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
@@ -46,6 +47,8 @@ const useKeyHandler = (
     toggleShowPreview: () => void,
     toggleAdvanceTextEditor: () => void,
     toggleEmojiPicker: () => void,
+    isInEditMode?: boolean,
+    onCancel?: () => void,
 ): [
         (e: React.KeyboardEvent<TextboxElement>) => void,
         (e: React.KeyboardEvent<TextboxElement>) => void,
@@ -170,7 +173,11 @@ const useKeyHandler = (
         }
 
         if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
+            onCancel?.();
             textboxRef.current?.blur();
+            if (isInEditMode) {
+                dispatch(unsetEditingPost());
+            }
         }
 
         const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
@@ -257,7 +264,7 @@ const useKeyHandler = (
                 e.stopPropagation();
                 e.preventDefault();
                 toggleAdvanceTextEditor();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && !UserAgent.isMac()) {
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && !UserAgent.isMac() && showFormattingBar) {
                 e.stopPropagation();
                 e.preventDefault();
                 toggleShowPreview();
@@ -311,9 +318,15 @@ const useKeyHandler = (
 
         const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
         if (lastMessageReactionKeyCombo) {
+            // we need to stop propagating and prevent default even if a
+            // post is being edited so the document level event handler doesn't trigger
             e.stopPropagation();
             e.preventDefault();
-            dispatch(emitShortcutReactToLastPostFrom(postId ? Locations.RHS_ROOT : Locations.CENTER));
+
+            if (!isInEditMode) {
+                // don't show the reaction dialog if a post is being edited
+                dispatch(emitShortcutReactToLastPostFrom(postId ? Locations.RHS_ROOT : Locations.CENTER));
+            }
         }
 
         if (!postId) {
