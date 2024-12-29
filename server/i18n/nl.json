@@ -10446,5 +10446,13 @@
   {
     "id": "api.filter_config_error",
     "translation": "Kan de configuratie niet filteren."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Kan geen map maken voor aangepaste emoji-afbeeldingen"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Gebruikersrollen zijn niet consistent met de gaststatus."
   }
 ]
