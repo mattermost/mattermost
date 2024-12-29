@@ -81,11 +81,18 @@ type Props = {
          */
         removeReaction: (postId: string, emojiName: string) => void;
     };
+
+    /**
+     * The status of the 'Autoplay GIFs and emojis' setting
+     */
+    autoplayGifsAndEmojis: string;
 }
 
 export default class Reaction extends React.PureComponent<Props, State> {
     private reactionButtonRef = React.createRef<HTMLButtonElement>();
     private reactionCountRef = React.createRef<HTMLSpanElement>();
+    private staticAnimatedReactionRef = React.createRef<HTMLCanvasElement>();
+    private reactionImageRef = React.createRef<HTMLImageElement>();
     private animating = false;
 
     constructor(props: Props) {
@@ -175,6 +182,15 @@ export default class Reaction extends React.PureComponent<Props, State> {
         this.props.actions.getMissingProfilesByIds(ids);
     };
 
+    handleAnimatedReactionLoaded = () => {
+        if (this.staticAnimatedReactionRef.current && this.reactionImageRef.current) {
+            const context = this.staticAnimatedReactionRef.current.getContext('2d');
+
+            // 16px is the height and width set in the 'Reaction__emoji' CSS rule.
+            context?.drawImage(this.reactionImageRef.current, 0, 0, 16, 16);
+        }
+    };
+
     render(): React.ReactNode {
         if (!this.props.emojiImageUrl) {
             return null;
@@ -201,11 +217,35 @@ export default class Reaction extends React.PureComponent<Props, State> {
             ariaLabelEmoji = `${Utils.localizeMessage({id: 'reaction.removeReact.ariaLabel', defaultMessage: 'remove reaction'})} ${emojiNameWithSpaces}`;
         }
 
+        const isAnimatedEmoji = !(/\/static\//).test(this.props.emojiImageUrl);
+        const shouldShowStaticAnimatedReaction = this.props.autoplayGifsAndEmojis === 'false' && isAnimatedEmoji;
+
         const emojiIcon = (
             <img
                 className='Reaction__emoji emoticon'
                 src={this.props.emojiImageUrl}
             />
+        );
+
+        // 16px is the height and width set in the 'Reaction__emoji' CSS rule.
+        const reactionWidthAndHeight = 16;
+        const staticEmojiIcon = (
+            <>
+                <img
+                    ref={this.reactionImageRef}
+                    className='Reaction__emoji emoticon'
+                    src={this.props.emojiImageUrl}
+                    onLoad={this.handleAnimatedReactionLoaded}
+                    style={{display: 'none'}}
+                />
+
+                <canvas
+                    ref={this.staticAnimatedReactionRef}
+                    id='static-emoji-reaction'
+                    height={reactionWidthAndHeight}
+                    width={reactionWidthAndHeight}
+                />
+            </>
         );
 
         return (
@@ -225,7 +265,7 @@ export default class Reaction extends React.PureComponent<Props, State> {
                     ref={this.reactionButtonRef}
                 >
                     <span className='d-flex align-items-center'>
-                        {emojiIcon}
+                        {shouldShowStaticAnimatedReaction ? staticEmojiIcon : emojiIcon}
                         <span
                             ref={this.reactionCountRef}
                             className='Reaction__count'
