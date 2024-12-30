@@ -38,7 +38,6 @@ import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsy
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError} from './errors';
-import {AnnouncementBarTypes} from 'utils/constants';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
@@ -1326,7 +1325,7 @@ export function restorePostVersion(postId: string, restoreVersionId: string, con
         } catch (error) {
             // Send to error bar if it's an edit post error about time limit.
             if (error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
-                dispatch(logError({type: AnnouncementBarTypes.ANNOUNCEMENT, message: error.message}, true));
+                dispatch(logError({type: 'announcement', message: error.message}, true));
             }
 
             forceLogoutIfNecessary(error, dispatch, getState);

@@ -4,13 +4,17 @@
 import classNames from 'classnames';
 import React, {memo, useCallback, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {Post} from '@mattermost/types/posts';
 
+import {getPostEditHistory, restorePostVersion} from 'mattermost-redux/actions/posts';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
+
+import {getConnectionId} from 'selectors/general';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import FileAttachmentListContainer from 'components/file_attachment_list';
@@ -27,12 +31,9 @@ import {imageURLForUser} from 'utils/utils';
 
 import RestorePostModal from '../restore_post_modal';
 
-import type {PropsFromRedux} from './index';
-
 import './edited_post_items.scss';
-import {useDispatch, useSelector} from 'react-redux';
-import {getPostEditHistory, restorePostVersion} from 'mattermost-redux/actions/posts';
-import {getConnectionId} from 'selectors/general';
+
+import type {PropsFromRedux} from './index';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
