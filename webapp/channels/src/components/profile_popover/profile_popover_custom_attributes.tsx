@@ -2,24 +2,23 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
-
+import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
+import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     userID: string;
-    customProfileAttributeFields: UserPropertyField[];
-    getCustomProfileAttributeFields: () => void;
 }
 const ProfilePopoverCustomAttributes = ({
     userID,
-    customProfileAttributeFields,
-    getCustomProfileAttributeFields,
 }: Props) => {
     const dispatch = useDispatch();
     const [customAttributeValues, setCustomAttributeValues] = useState<Record<string, string>>({});
+    const customProfileAttributeFields = useSelector((state: GlobalState) => getCustomProfileAttributes(state));
 
     useEffect(() => {
         const fetchValues = async () => {
@@ -28,8 +27,7 @@ const ProfilePopoverCustomAttributes = ({
         };
         dispatch(getCustomProfileAttributeFields());
         fetchValues();
-    }, [userID, getCustomProfileAttributeFields, dispatch]);
-
+    }, [userID, dispatch]);
     const attributeSections = customProfileAttributeFields.map((attribute) => {
         const value = customAttributeValues[attribute.id];
         if (!value) {

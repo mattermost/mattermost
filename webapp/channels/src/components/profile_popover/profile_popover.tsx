@@ -4,9 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
@@ -80,7 +78,6 @@ const ProfilePopover = ({
     const status = useSelector((state: GlobalState) => getStatusForUserId(state, userId) || UserStatuses.OFFLINE);
     const currentUserTimezone = useSelector(getCurrentTimezone);
     const currentUserId = useSelector(getCurrentUserId);
-    const customProfileAttributes = useSelector((state: GlobalState) => getCustomProfileAttributes(state));
 
     const [loadingDMChannel, setLoadingDMChannel] = useState<string>();
 
@@ -190,8 +187,6 @@ const ProfilePopover = ({
                 </div>
                 <ProfilePopoverCustomAttributes
                     userID={userId}
-                    customProfileAttributeFields={customProfileAttributes}
-                    getCustomProfileAttributeFields={getCustomProfileAttributeFields}
                 />
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}

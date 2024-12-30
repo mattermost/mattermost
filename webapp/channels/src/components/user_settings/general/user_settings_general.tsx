@@ -7,7 +7,7 @@ import React, {PureComponent} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -160,14 +160,14 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         this.state = this.setupInitialState(props);
     }
 
-    fetchValues = async () => {
-        const response = await Client4.getUserCustomProfileAttributesValues(this.props.user.id);
-        this.setState({customAttributeValues: response});
-    };
-
     componentDidMount() {
+        const fetchValues = async () => {
+            const response = await Client4.getUserCustomProfileAttributesValues(this.props.user.id);
+            this.setState({customAttributeValues: response});
+        };
+
         this.props.actions.getCustomProfileAttributeFields();
-        this.fetchValues();
+        fetchValues();
     }
 
     handleEmailResend = (email: string) => {
