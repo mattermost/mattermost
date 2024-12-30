@@ -71,12 +71,14 @@ func TestListCPAFields(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(t, rErr)
+	if cpaGroupID == "" {
+		_, err := th.App.cpaGroupID()
+		require.NoError(t, err)
+	}
 
 	t.Run("should list the CPA property fields", func(t *testing.T) {
 		field1 := &model.PropertyField{
-			GroupID: cpaGroup.ID,
+			GroupID: cpaGroupID,
 			Name:    "Field 1",
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -93,7 +95,7 @@ func TestListCPAFields(t *testing.T) {
 		require.NoError(t, err)
 
 		field3 := &model.PropertyField{
-			GroupID: cpaGroup.ID,
+			GroupID: cpaGroupID,
 			Name:    "Field 3",
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -118,8 +120,10 @@ func TestCreateCPAField(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(t, rErr)
+	if cpaGroupID == "" {
+		_, err := th.App.cpaGroupID()
+		require.NoError(t, err)
+	}
 
 	t.Run("should fail if the field is not valid", func(t *testing.T) {
 		field := &model.PropertyField{Name: model.NewId()}
@@ -136,14 +140,14 @@ func TestCreateCPAField(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 		}
 
-		createdField, err := th.App.CreateCPAField(field)
-		require.Nil(t, err)
-		require.Equal(t, cpaGroup.ID, createdField.GroupID)
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+		require.Equal(t, cpaGroupID, createdField.GroupID)
 	})
 
 	t.Run("should correctly create a CPA field", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: cpaGroup.ID,
+			GroupID: cpaGroupID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   map[string]any{"visibility": "hidden"},
@@ -152,7 +156,7 @@ func TestCreateCPAField(t *testing.T) {
 		createdField, err := th.App.CreateCPAField(field)
 		require.Nil(t, err)
 		require.NotZero(t, createdField.ID)
-		require.Equal(t, cpaGroup.ID, createdField.GroupID)
+		require.Equal(t, cpaGroupID, createdField.GroupID)
 		require.Equal(t, map[string]any{"visibility": "hidden"}, createdField.Attrs)
 
 		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField(createdField.ID)
@@ -351,8 +355,10 @@ func TestGetCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(t, rErr)
+	if cpaGroupID == "" {
+		_, err := th.App.cpaGroupID()
+		require.NoError(t, err)
+	}
 	fieldID := model.NewId()
 
 	t.Run("should fail if the value doesn't exist", func(t *testing.T) {
@@ -381,7 +387,7 @@ func TestGetCPAValue(t *testing.T) {
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
 			TargetType: "user",
-			GroupID:    cpaGroup.ID,
+			GroupID:    cpaGroupID,
 			FieldID:    fieldID,
 			Value:      "Value",
 		}
@@ -400,8 +406,10 @@ func TestPatchCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(t, rErr)
+	if cpaGroupID == "" {
+		_, err := th.App.cpaGroupID()
+		require.NoError(t, err)
+	}
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		invalidFieldID := model.NewId()
@@ -411,7 +419,7 @@ func TestPatchCPAValue(t *testing.T) {
 
 	t.Run("should create value if new field value", func(t *testing.T) {
 		newField := &model.PropertyField{
-			GroupID: cpaGroup.ID,
+			GroupID: cpaGroupID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -437,7 +445,7 @@ func TestPatchCPAValue(t *testing.T) {
 
 	t.Run("should fail if field is deleted", func(t *testing.T) {
 		newField := &model.PropertyField{
-			GroupID: cpaGroup.ID,
+			GroupID: cpaGroupID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
