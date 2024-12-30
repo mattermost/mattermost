@@ -128,6 +128,9 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             return;
         }
 
+        // To undo a recent restore, you need to restore the previous version of the post right before this restore.
+        // That would be the first history item in post's edit history as it is the most recent edit
+        // and edit history is sorted from most recent first to oldest.
         const result = await dispatch(getPostEditHistory(post.original_id));
         if (!result.data || result.data.length === 0) {
             return;
