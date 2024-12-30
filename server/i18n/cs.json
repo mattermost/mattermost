@@ -1757,7 +1757,7 @@
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
-    "translation": "Nevalidní {{.Name}} parametr."
+    "translation": "Neplatný {{.Name}} parametr."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -1897,7 +1897,7 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "Nemůžete se sami deaktivovat, protože tato funkce není povolena. Obraťte se na správce systému."
+    "translation": "Nemůžete si deaktivovat účet, protože tato funkce není povolena. Obraťte se na správce systému."
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
@@ -5681,7 +5681,7 @@
   },
   {
     "id": "app.channel.delete.app_error",
-    "translation": "Nemohu smazat kanál."
+    "translation": "Nepodařilo se smazat kanál."
   },
   {
     "id": "app.channel.permanent_delete.app_error",
