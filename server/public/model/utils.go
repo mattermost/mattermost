@@ -707,8 +707,10 @@ var (
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
 
-	hashtagString := ""
-	plainString := ""
+	// Use strings.Builder for better performance
+	var hashtagBuilder strings.Builder
+	var plainBuilder strings.Builder
+
 	for _, word := range words {
 		// trim off surrounding punctuation
 		word = puncStart.ReplaceAllString(word, "")
@@ -718,12 +720,19 @@ func ParseHashtags(text string) (string, string) {
 		word = hashtagStart.ReplaceAllString(word, "#")
 
 		if validHashtag.MatchString(word) {
-			hashtagString += " " + word
+			hashtagBuilder.WriteString(" ")
+			hashtagBuilder.WriteString(word)
 		} else {
-			plainString += " " + word
+			plainBuilder.WriteString(" ")
+			plainBuilder.WriteString(word)
 		}
 	}
 
+	// Get hashtag string for length limit processing
+	hashtagString := hashtagBuilder.String()
+
+	// Limit hashtag string length to 1000 chars
+	// If exceeded, trim to last space or empty
 	if len(hashtagString) > 1000 {
 		hashtagString = hashtagString[:999]
 		lastSpace := strings.LastIndex(hashtagString, " ")
@@ -734,7 +743,7 @@ func ParseHashtags(text string) (string, string) {
 		}
 	}
 
-	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString)
+	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainBuilder.String())
 }
 
 func ClearMentionTags(post string) string {
