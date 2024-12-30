@@ -3,8 +3,8 @@
 
 import {combineReducers} from 'redux';
 
-import type {UserPropertyField} from '@mattermost/types/admin';
 import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
+import type {UserPropertyField} from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';

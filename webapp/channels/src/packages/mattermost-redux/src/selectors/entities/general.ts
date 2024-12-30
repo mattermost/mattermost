@@ -3,8 +3,8 @@
 
 import {GiphyFetch} from '@giphy/js-fetch-api';
 
-import type {UserPropertyField} from '@mattermost/types/admin';
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import type {UserPropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General} from 'mattermost-redux/constants';
