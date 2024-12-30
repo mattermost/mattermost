@@ -30,6 +30,9 @@ import RestorePostModal from '../restore_post_modal';
 import type {PropsFromRedux} from './index';
 
 import './edited_post_items.scss';
+import {useDispatch, useSelector} from 'react-redux';
+import {restorePostVersion} from 'mattermost-redux/actions/posts';
+import {getConnectionId} from 'selectors/general';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -60,6 +63,10 @@ export type Props = PropsFromRedux & {
 const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, actions}: Props) => {
     const {formatMessage} = useIntl();
     const [open, setOpen] = useState(isCurrent);
+
+    const dispatch = useDispatch();
+
+    const connectionId = useSelector(getConnectionId);
 
     const openRestorePostModal = useCallback(() => {
         const restorePostModalData = {
@@ -107,13 +114,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             return;
         }
 
-        const updatedPost = {
-            message: post.message,
-            id: postCurrentVersion.id,
-            channel_id: postCurrentVersion.channel_id,
-        };
-
-        const result = await actions.editPost(updatedPost as Post);
+        const result = await dispatch(restorePostVersion(post.original_id, post.id, connectionId));
         if (result.data) {
             actions.closeRightHandSide();
             showInfoTooltip();
