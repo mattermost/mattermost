@@ -127,6 +127,7 @@ type State = {
 export class SizeAwareImage extends React.PureComponent<Props, State> {
     public heightTimeout = 0;
     public mounted = false;
+    private shouldShowStaticGif = this.props.dimensions?.format === 'gif' || (this.props.alt && (/GIF/i).test(this.props.alt));
     public timeout: NodeJS.Timeout|null = null;
     private canvasRef: React.RefObject<HTMLCanvasElement> = React.createRef();
     private imageRef: React.RefObject<HTMLImageElement> = React.createRef();
@@ -188,11 +189,11 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     this.props.onImageLoaded({height: image.naturalHeight, width: image.naturalWidth});
 
                     // Draw a static image of the GIF on the canvas to simulate it being paused.
-                    if (this.props.dimensions?.format === 'gif' && this.canvasRef.current) {
+                    if (this.shouldShowStaticGif && this.canvasRef.current) {
                         const canvasElement = this.canvasRef.current;
 
-                        canvasElement.height = this.props.dimensions.height ?? 0;
-                        canvasElement.width = this.props.dimensions.width ?? 0;
+                        canvasElement.height = image.naturalHeight;
+                        canvasElement.width = image.naturalWidth;
 
                         const context = canvasElement.getContext('2d');
 
@@ -328,7 +329,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 // of not rendering it.
                 style={{
                     ...conditionalSVGStyleAttribute,
-                    display: !this.state.shouldPlayGif && this.props.dimensions?.format === 'gif' ? 'none' : 'block',
+                    display: !this.state.shouldPlayGif && this.shouldShowStaticGif ? 'none' : 'block',
                 }}
             />
         );
@@ -520,7 +521,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 className={classNames('image-loaded-container', this.state.shouldPlayGif && 'align-gif-button')}
             >
                 {image}
-                {this.props.dimensions?.format === 'gif' && staticGif}
+                {this.shouldShowStaticGif && staticGif}
 
                 {/*
                     Using separate buttons for different screen sizes because tapping on the GIF on mobile
@@ -600,7 +601,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
                         // Setting the lineHeight to 0 to prevent the sudden increase in height when playing
                         // a GIF.
-                        lineHeight: this.props.dimensions?.format === 'gif' ? 0 : 'initial',
+                        lineHeight: this.shouldShowStaticGif ? 0 : 'initial',
                     }}
                 >
                     {this.renderImageWithContainerIfNeeded()}
