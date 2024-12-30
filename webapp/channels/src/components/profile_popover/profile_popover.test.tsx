@@ -24,6 +24,7 @@ jest.mock('@mattermost/client', () => ({
     ...jest.requireActual('@mattermost/client'),
     Client4: class MockClient4 extends jest.requireActual('@mattermost/client').Client4 {
         getCallsChannelState = jest.fn();
+        getUserCustomProfileAttributesValues = jest.fn();
     },
 }));
 

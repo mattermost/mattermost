@@ -11,7 +11,6 @@ jest.mock('mattermost-redux/actions/general', () => {
         ...original,
         getClientConfig: () => ({type: 'MOCK_GET_CLIENT_CONFIG'}),
         getLicenseConfig: () => ({type: 'MOCK_GET_LICENSE_CONFIG'}),
-        getCustomProfileAttributes: () => ({type: 'MOCK_GET_CUSTOM_ATTRIBUTES'}),
     };
 });
 
@@ -82,7 +81,6 @@ describe('loadConfigAndMe', () => {
             {type: 'MOCK_GET_CLIENT_CONFIG'},
             {type: 'MOCK_GET_LICENSE_CONFIG'},
             {type: 'RECEIVED_SERVER_VERSION', data: '1.0.0'},
-            {type: 'MOCK_GET_CUSTOM_ATTRIBUTES'},
             {type: 'MOCK_LOAD_ME'},
             {type: 'MOCK_LOAD_PREFERENCES'},
             {type: 'MOCK_GET_MY_TEAMS'},
