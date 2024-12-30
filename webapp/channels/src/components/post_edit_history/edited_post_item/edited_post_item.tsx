@@ -31,7 +31,7 @@ import type {PropsFromRedux} from './index';
 
 import './edited_post_items.scss';
 import {useDispatch, useSelector} from 'react-redux';
-import {restorePostVersion} from 'mattermost-redux/actions/posts';
+import {getPostEditHistory, restorePostVersion} from 'mattermost-redux/actions/posts';
 import {getConnectionId} from 'selectors/general';
 
 const DATE_RANGES = [
@@ -127,7 +127,13 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             return;
         }
 
-        await actions.editPost(postCurrentVersion);
+        const result = await dispatch(getPostEditHistory(post.original_id));
+        if (!result.data || result.data.length === 0) {
+            return;
+        }
+
+        const previousPostVersion = result.data[0];
+        await dispatch(restorePostVersion(previousPostVersion.original_id, previousPostVersion.id, connectionId));
     };
 
     const currentVersionIndicator = isCurrent ? (
