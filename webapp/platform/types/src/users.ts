@@ -60,7 +60,6 @@ export type UserProfile = {
     terms_of_service_create_at: number;
     remote_id?: string;
     status?: string;
-    custom_attributes?: Record<string, string>;
 };
 
 export type UserProfileWithLastViewAt = UserProfile & {

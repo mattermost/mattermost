@@ -53,6 +53,15 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         ldapPictureAttributeSet: false,
     };
 
+    const customProfileAttribute = {
+        id: '1',
+        name: 'test attribute',
+        type: 'text',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+    };
+
     let store: ReturnType<typeof configureStore>;
     beforeEach(() => {
         store = configureStore();
@@ -174,7 +183,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('should show Custom Attribute Field with empty value', () => {
-        const props = {...requiredProps, customProfileAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
+        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
         props.user = {...user};
 
         const wrapper = mountWithIntl(
@@ -188,7 +197,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('should show Custom Attribute Field editing with empty value', () => {
-        const props = {...requiredProps, customProfileAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
+        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
         props.user = {...user};
         props.activeSection = 'customAttribute_1';
 
@@ -203,12 +212,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('should show Custom Attribute Field with value set', () => {
-        const props = {...requiredProps, customProfileAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
+        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
         props.user = {
             ...user,
-            custom_attributes: {
-                1: 'hello',
-            },
         };
 
         const wrapper = mountWithIntl(
@@ -226,13 +232,10 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             actions: {...requiredProps.actions, saveCustomProfileAttribute},
-            customProfileAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}],
+            customProfileAttributes: [customProfileAttribute],
         };
         props.user = {
             ...user,
-            custom_attributes: {
-                1: 'hello',
-            },
         };
         const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
 

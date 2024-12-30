@@ -972,28 +972,12 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
 }
 
 export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        console.log('save attribute');
-        let returnedAttributes;
+    return async (dispatch) => {
         try {
-            returnedAttributes = await Client4.updateCustomProfileAttributeValues(attributeID, attributeValue);
+            await Client4.updateCustomProfileAttributeValues(attributeID, attributeValue);
         } catch (error) {
-            console.log('save attribute - error' + error);
             dispatch(logError(error));
             return {error};
-        }
-        console.log('save attribute - retur');
-
-        const profile = getState().entities.users.profiles[userID];
-        let customAttributes = profile.custom_attributes;
-        if (customAttributes === undefined) {
-            customAttributes = returnedAttributes;
-        } else {
-            customAttributes = {...customAttributes, ...returnedAttributes};
-        }
-
-        if (profile) {
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, custom_attributes: customAttributes}});
         }
         return {data: true};
     };

@@ -1710,14 +1710,9 @@ describe('Actions.Users', () => {
                 123: 'NewValue',
             });
 
-        await store.dispatch(Actions.saveCustomProfileAttribute(currentUser.id, '123', 'NewValue'));
-
-        const myUserCustomAttributes = store.getState().entities.users.profiles[currentUser.id];
-        expect(myUserCustomAttributes).toBeTruthy();
-
-        const myUserCustomAttributeValue = store.getState().entities.users.profiles[currentUser.id].custom_attributes['123'];
-        expect(myUserCustomAttributeValue).toBeTruthy();
-        expect(myUserCustomAttributeValue).toEqual('NewValue');
+        const response = await store.dispatch(Actions.saveCustomProfileAttribute(currentUser.id, '123', 'NewValue'));
+        const data = response.data!;
+        expect(data).toBeTruthy();
     });
 
     describe('checkForModifiedUsers', () => {
