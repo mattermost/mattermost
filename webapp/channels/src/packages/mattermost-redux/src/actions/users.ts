@@ -26,6 +26,7 @@ import {getCurrentUserId, getUser as selectUser, getUsers, getUsersByUsername} f
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
+import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 // Delay requests for missing profiles for up to 100ms to allow for simulataneous requests to be batched
 const missingProfilesWait = 100;
@@ -972,13 +973,16 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
 
 export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync {
     return async (dispatch, getState) => {
+        console.log('save attribute');
         let returnedAttributes;
         try {
             returnedAttributes = await Client4.updateCustomProfileAttributeValues(attributeID, attributeValue);
         } catch (error) {
+            console.log('save attribute - error' + error);
             dispatch(logError(error));
             return {error};
         }
+        console.log('save attribute - retur');
 
         const profile = getState().entities.users.profiles[userID];
         let customAttributes = profile.custom_attributes;

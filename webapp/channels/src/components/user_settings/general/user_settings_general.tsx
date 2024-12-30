@@ -7,7 +7,7 @@ import React, {PureComponent} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import type {CustomAttribute} from '@mattermost/types/admin';
+import type {PropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -108,7 +108,7 @@ export type Props = {
     collapseModal: () => void;
     isMobileView: boolean;
     maxFileSize: number;
-    customProfileAttributes: CustomAttribute[];
+    customProfileAttributes: PropertyField[];
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
         clearErrors: () => void;

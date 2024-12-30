@@ -9,7 +9,7 @@ import {
     TrackPropertyUserAgent, TrackScheduledPostsFeature,
 } from 'mattermost-webapp/src/packages/mattermost-redux/src/constants/telemetry';
 
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, CustomAttribute} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -113,6 +113,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
+import type {PropertyField} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
@@ -4286,7 +4287,7 @@ export default class Client4 {
 
     // Custom Profile Attributes
     getCustomProfileAttributeFields = () => {
-        var fields = this.doFetch<CustomAttribute[]>(
+        var fields = this.doFetch<PropertyField[]>(
             `${this.getCustomProfileAttributeFieldsRoute()}`,
             {method: 'GET'},
         );

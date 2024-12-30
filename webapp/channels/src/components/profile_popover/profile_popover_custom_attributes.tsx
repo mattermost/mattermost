@@ -4,13 +4,13 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {CustomAttribute} from '@mattermost/types/admin';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
 type Props = {
     userID: string;
-    customProfileAttributeFields: CustomAttribute[];
+    customProfileAttributeFields: PropertyField[];
     getCustomProfileAttributeFields: () => void;
 }
 const ProfilePopoverCustomAttributes = ({

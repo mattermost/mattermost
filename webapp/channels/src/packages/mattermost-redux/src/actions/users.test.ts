@@ -1703,8 +1703,8 @@ describe('Actions.Users', () => {
         const state = store.getState();
         const currentUser = state.entities.users.profiles[state.entities.users.currentUserId];
 
-        nock(Client4.getBaseRoute()).
-            post(`/users/${currentUser.id}/custom_profile_attributes/value`).
+        nock(Client4.getCustomProfileAttributeValuesRoute()).
+            patch('').
             query(true).
             reply(200, {
                 123: 'NewValue',
