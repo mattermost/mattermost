@@ -13,7 +13,7 @@ const state: GlobalState = {
             serverVersion: '',
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
-            customAttributes: [],
+            customProfileAttributes: [],
         },
         users: {
             currentUserId: '',

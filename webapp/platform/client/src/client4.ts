@@ -338,6 +338,18 @@ export default class Client4 {
         return `${this.getBaseRoute()}/remotecluster`;
     }
 
+    getCustomProfileAttributeFieldsRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/fields`;
+    }
+
+    getCustomProfileAttributeFieldRoute(propertyFieldId: string) {
+        return `${this.getCustomProfileAttributeFieldsRoute()}/${propertyFieldId}`;
+    }
+
+    getCustomProfileAttributeValuesRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/values`;
+    }
+
     getRemoteClusterRoute(remoteId: string) {
         return `${this.getRemoteClustersRoute()}/${remoteId}`;
     }
@@ -516,10 +528,6 @@ export default class Client4 {
 
     getClientMetricsRoute() {
         return `${this.getBaseRoute()}/client_perf`;
-    }
-
-    getAttributesRoute() {
-        return `${this.getBaseRoute()}/custom_profile_attributes`;
     }
 
     getCSRFFromCookie() {
@@ -4277,28 +4285,28 @@ export default class Client4 {
     };
 
     // Custom Profile Attributes
-    getCustomAttributes = () => {
-        var test = this.doFetch<CustomAttribute[]>(
-            `${this.getAttributesRoute()}/fields`,
-            {method: 'get'},
+    getCustomProfileAttributeFields = () => {
+        var fields = this.doFetch<CustomAttribute[]>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'GET'},
         );
-        return test;
+        return fields;
     };
 
-    updateUserAttributes = (attributeID: string, attributeValue: string) => {
+    updateCustomProfileAttributeValues = (attributeID: string, attributeValue: string) => {
         const obj: { [key: string]: string } = {};
         obj[attributeID] = attributeValue;
 
         return this.doFetch<Record<string, string>>(
-            `${this.getAttributesRoute()}/values`,
+            `${this.getCustomProfileAttributeValuesRoute()}`,
             {method: 'PATCH', body: JSON.stringify(obj)},
         );
     };
 
-    getUserAttributes = async (userID: string) => {
+    getUserCustomProfileAttributesValues = async (userID: string) => {
         const data = await this.doFetch<Record<string, string>>(
             `${this.getUserRoute(userID)}/custom_profile_attributes`,
-            {method: 'get'},
+            {method: 'GET'},
         );
         return data;
     };

@@ -10,7 +10,7 @@ export type GeneralState = {
     firstAdminCompleteSetup: boolean;
     license: ClientLicense;
     serverVersion: string;
-    customAttributes: CustomAttribute[];
+    customProfileAttributes: CustomAttribute[];
 };
 
 export type SystemSetting = {

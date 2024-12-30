@@ -970,11 +970,11 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
     };
 }
 
-export function saveAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync {
+export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let returnedAttributes;
         try {
-            returnedAttributes = await Client4.updateUserAttributes(attributeID, attributeValue);
+            returnedAttributes = await Client4.updateCustomProfileAttributeValues(attributeID, attributeValue);
         } catch (error) {
             dispatch(logError(error));
             return {error};

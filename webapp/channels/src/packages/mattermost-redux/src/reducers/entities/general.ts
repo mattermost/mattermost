@@ -38,9 +38,9 @@ function license(state: ClientLicense = {}, action: MMReduxAction) {
     }
 }
 
-function customAttributes(state: CustomAttribute[] = [], action: MMReduxAction) {
+function customProfileAttributes(state: CustomAttribute[] = [], action: MMReduxAction) {
     switch (action.type) {
-    case GeneralTypes.ATTRIBUTES_RECEIVED:
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_RECEIVED:
         return [...action.data];
     default:
         return state;
@@ -81,7 +81,7 @@ function firstAdminCompleteSetup(state = false, action: MMReduxAction) {
 export default combineReducers({
     config,
     license,
-    customAttributes,
+    customProfileAttributes,
     serverVersion,
     firstAdminVisitMarketplaceStatus,
     firstAdminCompleteSetup,

@@ -75,13 +75,13 @@ describe('Actions.General', () => {
         expect(firstAdminVisitMarketplaceStatus).toEqual(true);
     });
 
-    it('getCustomAttributes', async () => {
-        nock(Client4.getAttributesRoute()).
-            get('/fields').
+    it('getCustomProfileAttributes', async () => {
+        nock(Client4.getCustomProfileAttributeFieldsRoute()).
+            get('').
             query(true).
             reply(200, [{id: '123', name: 'test attribute', dataType: 'text'}]);
 
-        await store.dispatch(Actions.getCustomAttributes());
+        await store.dispatch(Actions.getCustomProfileAttributes());
 
         const customAttributes = store.getState().entities.general.customAttributes;
 

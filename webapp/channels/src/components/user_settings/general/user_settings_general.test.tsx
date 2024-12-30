@@ -44,8 +44,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             sendVerificationEmail: jest.fn(),
             setDefaultProfileImage: jest.fn(),
             uploadProfileImage: jest.fn(),
-            saveAttribute: jest.fn(),
-            getCustomAttributes: jest.fn(),
+            saveCustomProfileAttributesaveAttribute: jest.fn(),
+            getCustomProfileAttributes: jest.fn(),
         },
         maxFileSize: 1024,
         ldapPositionAttributeSet: false,
@@ -221,11 +221,11 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(wrapper.find('#customAttribute_1Desc').text()).toContain('hello');
     });
 
-    test('submitAttribute() should have called saveAttribute', () => {
-        const saveAttribute = jest.fn().mockResolvedValue({data: true});
+    test('submitAttribute() should have called saveCustomProfileAttribute', () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: true});
         const props = {
             ...requiredProps,
-            actions: {...requiredProps.actions, saveAttribute},
+            actions: {...requiredProps.actions, saveCustomProfileAttribute},
             customAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}],
         };
         props.user = {
@@ -237,7 +237,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
 
         (wrapper.instance() as UserSettingsGeneralTab).submitAttribute(['1']);
-        expect(saveAttribute).toHaveBeenCalledTimes(1);
-        expect(saveAttribute).toHaveBeenCalledWith('user_id', '1', 'hello');
+        expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', '1', 'hello');
     });
 });

@@ -116,8 +116,8 @@ export type Props = {
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
-        saveAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult>;
-        getCustomAttributes: () => Promise<ActionResult>;
+        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult>;
+        getCustomProfileAttributes: () => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -161,12 +161,12 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     }
 
     fetchValues = async () => {
-        const response = await Client4.getUserAttributes(this.props.user.id);
+        const response = await Client4.getUserCustomProfileAttributesValues(this.props.user.id);
         this.setState({customAttributeValues: response});
     };
 
     componentDidMount() {
-        this.props.actions.getCustomAttributes();
+        this.props.actions.getCustomProfileAttributes();
         this.fetchValues();
     }
 
@@ -434,7 +434,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         this.setState({sectionIsSaving: true});
 
-        this.props.actions.saveAttribute(this.props.user.id, attributeID, attributeValue).
+        this.props.actions.saveCustomProfileAttribute(this.props.user.id, attributeID, attributeValue).
             then(({data, error: err}) => {
                 if (data) {
                     this.updateSection('');

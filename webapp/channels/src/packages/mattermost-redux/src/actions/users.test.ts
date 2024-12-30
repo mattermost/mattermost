@@ -1693,7 +1693,7 @@ describe('Actions.Users', () => {
         expect(Object.values(myUserAccessTokens).length === 0).toBeTruthy();
     });
 
-    it('saveAttribute', async () => {
+    it('saveCustomProfileAttribute', async () => {
         TestHelper.mockLogin();
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
@@ -1710,7 +1710,7 @@ describe('Actions.Users', () => {
                 123: 'NewValue',
             });
 
-        await store.dispatch(Actions.saveAttribute(currentUser.id, '123', 'NewValue'));
+        await store.dispatch(Actions.saveCustomProfileAttribute(currentUser.id, '123', 'NewValue'));
 
         const myUserCustomAttributes = store.getState().entities.users.profiles[currentUser.id];
         expect(myUserCustomAttributes).toBeTruthy();

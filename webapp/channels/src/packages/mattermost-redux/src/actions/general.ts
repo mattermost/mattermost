@@ -43,18 +43,18 @@ export function getLicenseConfig() {
     });
 }
 
-export function getAllCustomAttributes() {
+export function getCustomProfileAttributeFields() {
     return bindClientFunc({
-        clientFunc: Client4.getCustomAttributes,
-        onSuccess: [GeneralTypes.ATTRIBUTES_RECEIVED],
+        clientFunc: Client4.getCustomProfileAttributeFields,
+        onSuccess: [GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_RECEIVED],
     });
 }
 
-export function getCustomAttributeValues(userID: string) {
+export function getCustomProfileAttributeValues(userID: string) {
     return async () => {
         let data;
         try {
-            data = await Client4.getUserAttributes(userID);
+            data = await Client4.getUserCustomProfileAttributesValues(userID);
         } catch (error) {
             return {error};
         }
@@ -122,7 +122,7 @@ export function getFirstAdminSetupComplete(): ActionFuncAsync<SystemSetting> {
 export default {
     getClientConfig,
     getLicenseConfig,
-    getAllCustomAttributes,
+    getCustomProfileAttributeFields,
     logClientError,
     setServerVersion,
     setUrl,

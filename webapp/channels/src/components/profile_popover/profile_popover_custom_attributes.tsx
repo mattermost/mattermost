@@ -10,27 +10,27 @@ import {Client4} from 'mattermost-redux/client';
 
 type Props = {
     userID: string;
-    customAttributes: CustomAttribute[];
-    getCustomAttributes: () => void;
+    customProfileAttributeFields: CustomAttribute[];
+    getCustomProfileAttributeFields: () => void;
 }
 const ProfilePopoverCustomAttributes = ({
     userID,
-    customAttributes,
-    getCustomAttributes,
+    customProfileAttributeFields,
+    getCustomProfileAttributeFields,
 }: Props) => {
     const dispatch = useDispatch();
     const [customAttributeValues, setCustomAttributeValues] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const fetchValues = async () => {
-            const response = await Client4.getUserAttributes(userID);
+            const response = await Client4.getUserCustomProfileAttributesValues(userID);
             setCustomAttributeValues(response);
         };
-        dispatch(getCustomAttributes());
+        dispatch(getCustomProfileAttributeFields());
         fetchValues();
-    }, [userID, getCustomAttributes, dispatch]);
+    }, [userID, getCustomProfileAttributeFields, dispatch]);
 
-    const attributeSections = customAttributes.map((attribute) => {
+    const attributeSections = customProfileAttributeFields.map((attribute) => {
         const value = customAttributeValues[attribute.id];
         if (!value) {
             return null;
