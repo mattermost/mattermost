@@ -406,7 +406,7 @@ describe('Selectors.General', () => {
             const state = {
                 entities: {
                     general: {
-                        customAttributes: {
+                        customProfileAttributes: {
                         },
                     },
                 },
@@ -419,13 +419,13 @@ describe('Selectors.General', () => {
             const state = {
                 entities: {
                     general: {
-                        customAttributes: [{id: '123', name: 'test attribute', dataType: 'text'}],
+                        customProfileAttributes: [{id: '123', name: 'test attribute', dataType: 'text'}],
                     },
                 },
             } as unknown as GlobalState;
 
             expect(Selectors.getCustomProfileAttributes(state)[0].id).toEqual('123');
-            state.entities.general.customAttributes = [];
+            state.entities.general.customProfileAttributes = [];
             expect(Selectors.getCustomProfileAttributes(state)).toEqual([]);
         });
     });

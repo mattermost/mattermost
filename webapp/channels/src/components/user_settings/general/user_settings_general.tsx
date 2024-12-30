@@ -108,7 +108,7 @@ export type Props = {
     collapseModal: () => void;
     isMobileView: boolean;
     maxFileSize: number;
-    customAttributes: CustomAttribute[];
+    customProfileAttributes: CustomAttribute[];
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
         clearErrors: () => void;
@@ -117,7 +117,7 @@ export type Props = {
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
         saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult>;
-        getCustomProfileAttributes: () => Promise<ActionResult>;
+        getCustomProfileAttributeFields: () => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -166,7 +166,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     componentDidMount() {
-        this.props.actions.getCustomProfileAttributes();
+        this.props.actions.getCustomProfileAttributeFields();
         this.fetchValues();
     }
 
@@ -407,21 +407,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         this.submitUser(user, false);
     };
-
-    // submitAttribute = () => {
-    //     const user = Object.assign({}, this.props.user);
-    //     const customAttributes = this.state.customAttributeValues;
-    //     if (user.custom_attributes === customAttributes) {
-    //         this.updateSection('');
-    //         return;
-    //     }
-
-    //     user.custom_attributes = customAttributes;
-
-    //     trackEvent('settings', 'user_settings_update', {field: 'customAttributes'});
-
-    //     this.submitUser(user, false);
-    // };
 
     submitAttribute = async (settings: string[]) => {
         const attributeID = settings[0];
@@ -1337,7 +1322,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     createCustomAttributeSection = () => {
-        const attributeSections = this.props.customAttributes.map((attribute) => {
+        const attributeSections = this.props.customProfileAttributes.map((attribute) => {
             let attributeValue = '';
             if (attribute.id in this.state.customAttributeValues) {
                 attributeValue = this.state.customAttributeValues[attribute.id];

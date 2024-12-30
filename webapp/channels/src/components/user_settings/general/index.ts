@@ -24,7 +24,7 @@ import UserSettingsGeneralTab from './user_settings_general';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
-    const customAttributes = getCustomProfileAttributes(state);
+    const customProfileAttributes = getCustomProfileAttributes(state);
 
     const requireEmailVerification = config.RequireEmailVerification === 'true';
     const maxFileSize = parseInt(config.MaxFileSize!, 10);
@@ -42,7 +42,7 @@ function mapStateToProps(state: GlobalState) {
         isMobileView: getIsMobileView(state),
         requireEmailVerification,
         maxFileSize,
-        customAttributes,
+        customProfileAttributes,
         ldapFirstNameAttributeSet,
         ldapLastNameAttributeSet,
         samlFirstNameAttributeSet,
@@ -65,7 +65,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setDefaultProfileImage,
             uploadProfileImage,
             saveCustomProfileAttribute,
-            getCustomProfileAttributes: getCustomProfileAttributeFields,
+            getCustomProfileAttributeFields,
         }, dispatch),
     };
 }

@@ -42,7 +42,7 @@ describe('reducers.entities.general', () => {
         });
     });
 
-    describe('customAttributes', () => {
+    describe('customProfileAttributes', () => {
         it('initial state', () => {
             const state = {};
             const action = {type: undefined};

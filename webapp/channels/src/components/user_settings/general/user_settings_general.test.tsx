@@ -36,7 +36,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
         isMobileView: false,
-        customAttributes: [],
+        customProfileAttributes: [],
         actions: {
             logError: jest.fn(),
             clearErrors: jest.fn(),
@@ -44,8 +44,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             sendVerificationEmail: jest.fn(),
             setDefaultProfileImage: jest.fn(),
             uploadProfileImage: jest.fn(),
-            saveCustomProfileAttributesaveAttribute: jest.fn(),
-            getCustomProfileAttributes: jest.fn(),
+            saveCustomProfileAttribute: jest.fn(),
+            getCustomProfileAttributeValues: jest.fn(),
         },
         maxFileSize: 1024,
         ldapPositionAttributeSet: false,
@@ -174,7 +174,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('should show Custom Attribute Field with empty value', () => {
-        const props = {...requiredProps, customAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
+        const props = {...requiredProps, customProfileAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
         props.user = {...user};
 
         const wrapper = mountWithIntl(
@@ -188,7 +188,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('should show Custom Attribute Field editing with empty value', () => {
-        const props = {...requiredProps, customAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
+        const props = {...requiredProps, customProfileAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
         props.user = {...user};
         props.activeSection = 'customAttribute_1';
 
@@ -203,7 +203,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('should show Custom Attribute Field with value set', () => {
-        const props = {...requiredProps, customAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
+        const props = {...requiredProps, customProfileAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}]};
         props.user = {
             ...user,
             custom_attributes: {
@@ -226,7 +226,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             actions: {...requiredProps.actions, saveCustomProfileAttribute},
-            customAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}],
+            customProfileAttributes: [{id: '1', name: 'test attribute', dataType: 'text'}],
         };
         props.user = {
             ...user,

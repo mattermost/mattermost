@@ -368,7 +368,7 @@ describe('components/ProfilePopover', () => {
     test('should display attributes if attribute exists for user', async () => {
         const [props, initialState] = getBasePropsAndState();
 
-        initialState.entities!.general!.customAttributes = [
+        initialState.entities!.general!.customProfileAttributes = [
             {id: '123', name: 'Rank', dataType: 'text'},
             {id: '456', name: 'CO', dataType: 'text'},
             {id: '789', name: 'Base', dataType: 'text'},
@@ -390,7 +390,7 @@ describe('components/ProfilePopover', () => {
     test('should not display attributes if user attributes is null', async () => {
         const [props, initialState] = getBasePropsAndState();
 
-        initialState.entities!.general!.customAttributes = [
+        initialState.entities!.general!.customProfileAttributes = [
             {id: '123', name: 'Rank', dataType: 'text'},
             {id: '456', name: 'CO', dataType: 'text'},
         ];

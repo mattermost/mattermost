@@ -81,14 +81,14 @@ describe('Actions.General', () => {
             query(true).
             reply(200, [{id: '123', name: 'test attribute', dataType: 'text'}]);
 
-        await store.dispatch(Actions.getCustomProfileAttributes());
+        await store.dispatch(Actions.getCustomProfileAttributeFields());
 
-        const customAttributes = store.getState().entities.general.customAttributes;
+        const customProfileAttributes = store.getState().entities.general.customProfileAttributes;
 
         // Check a few basic fields since they may change over time
-        expect(customAttributes.length).toEqual(1);
-        expect(customAttributes[0].id).toEqual('123');
-        expect(customAttributes[0].name).toEqual('test attribute');
-        expect(customAttributes[0].dataType).toEqual('text');
+        expect(customProfileAttributes.length).toEqual(1);
+        expect(customProfileAttributes[0].id).toEqual('123');
+        expect(customProfileAttributes[0].name).toEqual('test attribute');
+        expect(customProfileAttributes[0].dataType).toEqual('text');
     });
 });
