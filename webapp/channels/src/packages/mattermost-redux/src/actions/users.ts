@@ -26,7 +26,6 @@ import {getCurrentUserId, getUser as selectUser, getUsers, getUsersByUsername} f
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 // Delay requests for missing profiles for up to 100ms to allow for simulataneous requests to be batched
 const missingProfilesWait = 100;
