@@ -367,16 +367,18 @@ describe('components/ProfilePopover', () => {
 
     test('should display attributes if attribute exists for user', async () => {
         const [props, initialState] = getBasePropsAndState();
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => ({123: 'Private', 456: 'Seargent York'}));
 
         initialState.entities!.general!.customProfileAttributes = [
-            {id: '123', name: 'Rank', dataType: 'text'},
-            {id: '456', name: 'CO', dataType: 'text'},
-            {id: '789', name: 'Base', dataType: 'text'},
+            {id: '123', name: 'Rank', type: 'text'},
+            {id: '456', name: 'CO', type: 'text'},
+            {id: '789', name: 'Base', type: 'text'},
         ];
-        initialState.entities!.users!.profiles!.user1!.custom_attributes = {
-            123: 'Private',
-            456: 'Seargent York',
-        };
+
+        // initialState.entities!.users!.profiles!.user1!.custom_attributes = {
+        //     123: 'Private',
+        //     456: 'Seargent York',
+        // };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.queryByText('Rank')).toBeInTheDocument();
@@ -391,9 +393,10 @@ describe('components/ProfilePopover', () => {
         const [props, initialState] = getBasePropsAndState();
 
         initialState.entities!.general!.customProfileAttributes = [
-            {id: '123', name: 'Rank', dataType: 'text'},
-            {id: '456', name: 'CO', dataType: 'text'},
+            {id: '123', name: 'Rank', type: 'text'},
+            {id: '456', name: 'CO', type: 'text'},
         ];
+        (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => ({}));
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.queryByText('Rank')).not.toBeInTheDocument();

@@ -4,7 +4,7 @@
 import {GiphyFetch} from '@giphy/js-fetch-api';
 
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General} from 'mattermost-redux/constants';
@@ -167,6 +167,6 @@ export function testingEnabled(state: GlobalState): boolean {
     return state.entities.general.config.EnableTesting === 'true';
 }
 
-export function getCustomProfileAttributes(state: GlobalState): UserPropertyField[] {
+export function getCustomProfileAttributes(state: GlobalState): PropertyField[] {
     return state.entities.general.customProfileAttributes;
 }
