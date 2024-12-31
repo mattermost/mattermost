@@ -309,7 +309,6 @@ const AdvancedTextEditor = ({
         handleDraftChange,
         focusTextbox,
         setServerError,
-        isInEditMode,
     );
 
     const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;

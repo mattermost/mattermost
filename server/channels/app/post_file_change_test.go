@@ -99,6 +99,8 @@ func TestProcessPostFileChanges(t *testing.T) {
 			FileIds:   []string{fileInfo1.Id, fileInfo2.Id},
 		}
 
+		th.Context.Session().UserId = th.BasicUser.Id
+
 		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost, nil)
 		require.Nil(t, appErr)
 		require.Equal(t, 2, len(fileIds))

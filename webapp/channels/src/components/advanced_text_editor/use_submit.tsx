@@ -235,6 +235,17 @@ const useSubmit = (
         isInEditMode,
     ]);
 
+    const setUpdatedFileIds = useCallback((draft: PostDraft) => {
+        // new object creation is needed here to support sending a draft with files.
+        // In case of draft, the PostDraft object is fetched from the redux store, which is immutable.
+        // When user clicks 'Send Now' in drafts list, it will otherwise try to seta  field on an immutable object.
+        // Hence, creating a new object here.
+        return {
+            ...draft,
+            file_ids: draft.fileInfos.map((fileInfo) => fileInfo.id),
+        };
+    }, []);
+
     const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, onConfirm: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.NOTIFY_CONFIRM_MODAL,
@@ -248,7 +259,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const handleSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+    const handleSubmit = useCallback(async (submittingDraftParam = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
         if (!channel) {
             return;
         }
@@ -257,6 +268,7 @@ const useSubmit = (
             return;
         }
 
+        const submittingDraft = setUpdatedFileIds(submittingDraftParam);
         setShowPreview(false);
         isDraftSubmitting.current = true;
 

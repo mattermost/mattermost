@@ -44,7 +44,16 @@ func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.P
 
 func (a *App) attachNewFilesToPost(rctx request.CTX, post *model.Post, addedFileIDs, unchangedFileIDs []string) {
 	// for newly added files, we need to attach them to the post
-	attachedFileIDs := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, addedFileIDs)
+
+	// intentionally using UserID from session instead of post.UserID
+	// to support admin attaching files in someone else's post.
+	// Admins can edit other's posts, including message, removing existing files,
+	// and attaching new files.
+	// When an admin uploads new files, they are associated with their user ID. So, when attaching
+	// these file to a post, we need to search for their FileInfo entry
+	// by the admin's user ID and not the post author's user ID.
+	userId := rctx.Session().UserId
+	attachedFileIDs := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, userId, addedFileIDs)
 	if len(attachedFileIDs) != len(addedFileIDs) {
 		// if not all files could be attached, the final list of files
 		// is those that could be attached + the existing, unchanged files

@@ -431,8 +431,6 @@ exports[`components/post_edit_history/edited_post_item should match snapshot wit
           </span>
         </div>
         <WithTooltip
-          id="editPostRestoreTooltip"
-          placement="left"
           title="Restore this version"
         >
           <ForwardRef
@@ -585,8 +583,6 @@ exports[`components/post_edit_history/edited_post_item should match snapshot wit
           </span>
         </div>
         <WithTooltip
-          id="editPostRestoreTooltip"
-          placement="left"
           title="Restore this version"
         >
           <ForwardRef
