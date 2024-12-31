@@ -98,7 +98,7 @@ function postMessageAndWait(textboxSelector: string, message: string, isComment 
         waitForCommentDraft(message);
     }
 
-    cy.get(textboxSelector).should('have.value', message).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+    cy.get(textboxSelector).should('have.value', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
     cy.get(textboxSelector).invoke('val').then((value: string) => {
         if (value.length > 0 && value === message) {
