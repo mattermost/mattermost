@@ -45,10 +45,11 @@ const PostEmoji = ({children, name, imageUrl, autoplayGifsAndEmojis}: Props) => 
         >
             {
                 shouldShowStaticAnimatedEmoji ?
-                    <span>
+                    <span data-testid='static-animated-post-emoji-container'>
                         <img
                             ref={imageRef}
                             src={imageUrl}
+                            data-testid='canvas-image-reference'
                             style={{display: 'none'}}
                             onLoad={handleImageLoad}
                         />

@@ -12,6 +12,7 @@ describe('PostEmoji', () => {
         children: ':emoji:',
         imageUrl: '/api/v4/emoji/1234/image',
         name: 'emoji',
+        autoplayGifsAndEmojis: 'true',
     };
 
     test('should render image when imageUrl is provided', () => {
@@ -37,5 +38,32 @@ describe('PostEmoji', () => {
 
         expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).not.toBeInTheDocument();
         expect(screen.getByText(`:${props.name}:`)).toBeInTheDocument();
+    });
+
+    test('should render animated emoji when the autoplay GIFs and emojis setting is on', () => {
+        renderWithContext(<PostEmoji {...baseProps}/>);
+
+        expect(screen.queryByTestId('static-animated-post-emoji-container')).not.toBeInTheDocument();
+
+        expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).toBeInTheDocument();
+        expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).toHaveStyle(`backgroundImage: url(${baseProps.imageUrl})`);
+    });
+
+    test('should render static emoji when the autoplay GIFs and emojis setting is off', () => {
+        const props = {
+            ...baseProps,
+            autoplayGifsAndEmojis: 'false',
+        };
+
+        const canvasImageReference = 'canvas-image-reference';
+
+        renderWithContext(<PostEmoji {...props}/>);
+
+        expect(screen.queryByTestId('static-animated-post-emoji-container')).toBeInTheDocument();
+        expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).not.toBeInTheDocument();
+
+        expect(screen.queryByTestId(canvasImageReference)).toBeInTheDocument();
+        expect(screen.queryByTestId(canvasImageReference)).toHaveStyle('display: none');
+        expect(screen.queryByTestId(canvasImageReference)).toHaveAttribute('src', `${baseProps.imageUrl}`);
     });
 });

@@ -43,6 +43,7 @@ describe('components/post_view/Reaction', () => {
         reactions,
         emojiImageUrl: 'emoji_image_url',
         actions,
+        autoplayGifsAndEmojis: 'true',
     };
 
     test('should match snapshot', () => {
@@ -100,5 +101,20 @@ describe('components/post_view/Reaction', () => {
 
         expect(actions.getMissingProfilesByIds).toHaveBeenCalledTimes(1);
         expect(actions.getMissingProfilesByIds).toHaveBeenCalledWith([reactions[0].user_id, reactions[1].user_id]);
+    });
+
+    test('should render animated emoji reaction when the autoplay GIFs and emojis setting is on', () => {
+        const wrapper = shallow<Reaction>(<Reaction {...baseProps}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should render static emoji reaction when the autoplay GIFs and emojis setting is off', () => {
+        const props = {
+            ...baseProps,
+            autoplayGifsAndEmojis: 'false',
+        };
+
+        const wrapper = shallow<Reaction>(<Reaction {...props}/>);
+        expect(wrapper).toMatchSnapshot();
     });
 });

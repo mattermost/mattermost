@@ -230,7 +230,7 @@ export default class Reaction extends React.PureComponent<Props, State> {
         // 16px is the height and width set in the 'Reaction__emoji' CSS rule.
         const reactionWidthAndHeight = 16;
         const staticEmojiIcon = (
-            <>
+            <span data-testid='static-emoji-reaction-container'>
                 <img
                     ref={this.reactionImageRef}
                     className='Reaction__emoji emoticon'
@@ -245,7 +245,7 @@ export default class Reaction extends React.PureComponent<Props, State> {
                     height={reactionWidthAndHeight}
                     width={reactionWidthAndHeight}
                 />
-            </>
+            </span>
         );
 
         return (
