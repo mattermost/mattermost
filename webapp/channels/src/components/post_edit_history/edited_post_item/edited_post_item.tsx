@@ -69,7 +69,11 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
 
     const connectionId = useSelector(getConnectionId);
 
-    const openRestorePostModal = useCallback(() => {
+    const openRestorePostModal = useCallback((e) => {
+        // this prevents history item from
+        // collapsing and closing when clicking on restore button
+        e.stopPropagation();
+
         const restorePostModalData = {
             modalId: ModalIdentifiers.RESTORE_POST_MODAL,
             dialogType: RestorePostModal,
@@ -199,14 +203,14 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
         <WithTooltip
             title={formatMessage(itemMessages.helpText)}
         >
-            <IconButton
+            <button
+                role={'button'}
                 className='edit-post-history__icon__button restore-icon'
-                size={'sm'}
-                icon={'restore'}
                 onClick={openRestorePostModal}
-                compact={true}
                 aria-label={formatMessage(itemMessages.ariaLabelMessage)}
-            />
+            >
+                <i className={'icon icon-restore'}/>
+            </button>
         </WithTooltip>
     );
 
@@ -226,16 +230,14 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
                 >
                     <div
                         className='edit-post-history__title__container'
-                        aria-hidden='true'
                     >
                         <div className='edit-post-history__date__badge__container'>
-                            <IconButton
-                                size={'sm'}
-                                icon={open ? 'chevron-down' : 'chevron-right'}
-                                compact={true}
+                            <button
                                 aria-label='Toggle to see an old message.'
                                 className='edit-post-history__icon__button toggleCollapseButton'
-                            />
+                            >
+                                <i className={`icon ${open ? 'icon-chevron-down' : 'icon-chevron-right'}`}/>
+                            </button>
                             <span className='edit-post-history__date'>
                                 <Timestamp
                                     value={timeStampValue}

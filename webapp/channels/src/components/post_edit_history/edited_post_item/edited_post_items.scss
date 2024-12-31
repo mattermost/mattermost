@@ -4,5 +4,25 @@
 .edit-post-history__container {
     .edit-post-history__icon__button.toggleCollapseButton {
         pointer-events: none;
+        background: none;
+        border: none;
+    }
+
+    .edit-post-history__icon__button.restore-icon {
+        background: none;
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+
+        i.icon.icon-restore {
+            width: 16px;
+            height: 16px;
+        }
     }
 }
