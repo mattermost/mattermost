@@ -4,15 +4,16 @@
 import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {ModalIdentifiers} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
+import {renderWithContext} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import EditedPostItem from './edited_post_item';
 
 import RestorePostModal from '../restore_post_modal';
-import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/post_edit_history/edited_post_item', () => {
     const baseProps: ComponentProps<typeof EditedPostItem> = {
