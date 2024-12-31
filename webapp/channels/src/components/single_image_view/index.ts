@@ -17,6 +17,10 @@ import SingleImageView from 'components/single_image_view/single_image_view';
 
 import type {GlobalState} from 'types/store';
 
+import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsMobileView} from 'selectors/views/browser';
+import {Preferences} from 'utils/constants';
+
 function mapStateToProps(state: GlobalState) {
     const isRhsOpen = getIsRhsOpen(state);
     const config = getConfig(state);
@@ -24,6 +28,8 @@ function mapStateToProps(state: GlobalState) {
     return {
         isRhsOpen,
         enablePublicLink: config.EnablePublicLink === 'true',
+        autoplayGifsAndEmojis: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AUTOPLAY_GIFS_AND_EMOJIS, Preferences.AUTOPLAY_GIFS_AND_EMOJIS_DEFAULT),
+        isMobileView: getIsMobileView(state),
     };
 }
 

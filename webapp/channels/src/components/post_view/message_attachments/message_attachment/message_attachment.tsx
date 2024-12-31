@@ -62,6 +62,10 @@ type Props = {
     };
 
     currentRelativeTeamUrl: string;
+
+    autoplayGifsAndEmojis: string;
+
+    isMobileView: boolean;
 }
 
 type State = {
@@ -475,6 +479,8 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                                 src={imageUrl}
                                 dimensions={imageMetadata}
                                 onClick={this.showModal}
+                                autoplayGifsAndEmojis={this.props.autoplayGifsAndEmojis}
+                                isMobileView={this.props.isMobileView}
                             />
                         )}
                     </ExternalImage>
@@ -529,6 +535,8 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                                 onImageLoaded={this.handleHeightReceivedForThumbUrl}
                                 src={thumbUrl}
                                 dimensions={thumbMetadata}
+                                autoplayGifsAndEmojis={this.props.autoplayGifsAndEmojis}
+                                isMobileView={this.props.isMobileView}
                             />
                         )}
                     </ExternalImage>

@@ -2000,7 +2000,7 @@
     .file-view--single {
         .file__image {
             .image-loaded {
-                img {
+                img, canvas {
                     max-width: 100%;
                 }
             }
