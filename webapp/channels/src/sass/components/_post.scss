@@ -1390,6 +1390,12 @@
         padding-top: 5px;
         transition: max-height 500ms ease;
 
+        .image-loaded-container.align-gif-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         &[hidden] {
             max-height: 0;
         }

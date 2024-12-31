@@ -188,21 +188,32 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 if (this.props.onImageLoaded && image.naturalHeight) {
                     this.props.onImageLoaded({height: image.naturalHeight, width: image.naturalWidth});
 
-                    // Draw a static image of the GIF on the canvas to simulate it being paused.
-                    if (this.shouldShowStaticGif && this.canvasRef.current) {
-                        const canvasElement = this.canvasRef.current;
-
-                        canvasElement.height = image.naturalHeight;
-                        canvasElement.width = image.naturalWidth;
-
-                        const context = canvasElement.getContext('2d');
-
-                        if (this.imageRef.current) {
-                            context?.drawImage(this.imageRef.current, 0, 0);
-                        }
-                    }
+                    // Draw a static im\age of the GIF on the canvas to simulate it being paused.
+                    this.drawStaticGif(image);
+                } else {
+                    this.drawStaticGif();
                 }
             });
+        }
+    };
+
+    drawStaticGif = (image?: HTMLImageElement) => {
+        if (this.shouldShowStaticGif && this.canvasRef.current) {
+            const canvasElement = this.canvasRef.current;
+
+            if (image !== undefined) {
+                canvasElement.height = image.naturalHeight;
+                canvasElement.width = image.naturalWidth;
+            } else {
+                canvasElement.height = this.props.dimensions?.height ?? 0;
+                canvasElement.width = this.props.dimensions?.width ?? 0;
+            }
+
+            const context = canvasElement.getContext('2d');
+
+            if (this.imageRef.current) {
+                context?.drawImage(this.imageRef.current, 0, 0);
+            }
         }
     };
 
