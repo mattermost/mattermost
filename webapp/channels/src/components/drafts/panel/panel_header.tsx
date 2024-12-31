@@ -62,8 +62,6 @@ function PanelHeader({
                     {remote && (
                         <div className='PanelHeader__sync-icon'>
                             <WithTooltip
-                                id='drafts-sync-tooltip'
-                                placement='top'
                                 title={
                                     <FormattedMessage
                                         id='drafts.info.sync'

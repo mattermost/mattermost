@@ -28,7 +28,7 @@ exports[`components/RenameChannelModal should match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -59,6 +59,7 @@ exports[`components/RenameChannelModal should match snapshot 1`] = `
       >
         <label
           className="control-label"
+          htmlFor="display_name"
         >
           <MemoizedFormattedMessage
             defaultMessage="Display Name"
@@ -81,6 +82,7 @@ exports[`components/RenameChannelModal should match snapshot 1`] = `
       >
         <label
           className="control-label"
+          htmlFor="channel_name"
         >
           URL
         </label>
@@ -88,8 +90,6 @@ exports[`components/RenameChannelModal should match snapshot 1`] = `
           className="input-group input-group--limit"
         >
           <WithTooltip
-            id="renameChannelModalShortUrlTooltip"
-            placement="top"
             title="fake-channel/channels"
           >
             <span

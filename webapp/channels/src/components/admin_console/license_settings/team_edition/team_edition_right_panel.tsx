@@ -101,13 +101,12 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                 {upgradeError && (
                     <div className='upgrade-error'>
                         <div className='form-group has-error'>
-                            <label className='control-label'>
-                                <span
-                                    dangerouslySetInnerHTML={{
-                                        __html: format(upgradeError),
-                                    }}
-                                />
-                            </label>
+                            <div
+                                className='as-bs-label control-label'
+                                dangerouslySetInnerHTML={{
+                                    __html: format(upgradeError),
+                                }}
+                            />
                         </div>
                     </div>
                 )}
@@ -140,17 +139,17 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                                 defaultMessage='Restart Server'
                             />
                         </LoadingWrapper>
-                        {restartError && (
-                            <div className='col-sm-12'>
-                                <div className='form-group has-error'>
-                                    <label className='control-label'>
-                                        {restartError}
-                                    </label>
-                                </div>
-                            </div>
-                        )}
                     </button>
                 </p>
+                {restartError && (
+                    <div className='upgrade-error'>
+                        <div className='form-group has-error'>
+                            <div className='as-bs-label control-label'>
+                                {restartError}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }

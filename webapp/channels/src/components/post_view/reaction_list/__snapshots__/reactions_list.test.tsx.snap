@@ -72,8 +72,6 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
         teamId="teamId"
       >
         <WithTooltip
-          id="addReactionTooltip"
-          placement="top"
           title={
             Object {
               "defaultMessage": "Add a reaction",
