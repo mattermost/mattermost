@@ -32,13 +32,15 @@ func propertyValueToInsertMap(value *model.PropertyValue) (map[string]any, error
 		return nil, errors.Wrap(err, "property_value_to_insert_map_marshal_value")
 	}
 
+	// todo: investigate/handle string(attrsJSON) similar to
+	// https://github.com/mattermost/mattermost/pull/19898
 	return map[string]any{
 		"ID":         value.ID,
 		"TargetID":   value.TargetID,
 		"TargetType": value.TargetType,
 		"GroupID":    value.GroupID,
 		"FieldID":    value.FieldID,
-		"Value":      valueJSON,
+		"Value":      string(valueJSON),
 		"CreateAt":   value.CreateAt,
 		"UpdateAt":   value.UpdateAt,
 		"DeleteAt":   value.DeleteAt,
@@ -52,7 +54,7 @@ func propertyValueToUpdateMap(value *model.PropertyValue) (map[string]any, error
 	}
 
 	return map[string]any{
-		"Value":    valueJSON,
+		"Value":    string(valueJSON),
 		"UpdateAt": value.UpdateAt,
 		"DeleteAt": value.DeleteAt,
 	}, nil

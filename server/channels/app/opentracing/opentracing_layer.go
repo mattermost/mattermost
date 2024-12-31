@@ -5550,6 +5550,28 @@ func (a *OpenTracingAppLayer) GetCPAField(fieldID string) (*model.PropertyField,
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetCPAValue")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetCPAValue(valueID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannel")
@@ -12765,6 +12787,28 @@ func (a *OpenTracingAppLayer) ListCPAFields() ([]*model.PropertyField, *model.Ap
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListCPAValues")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.ListCPAValues(userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) ListDirectory(path string) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListDirectory")
@@ -13468,6 +13512,28 @@ func (a *OpenTracingAppLayer) PatchCPAField(fieldID string, patch *model.Propert
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.PatchCPAField(fieldID, patch)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) PatchCPAValue(userID string, fieldID string, value string) (*model.PropertyValue, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchCPAValue")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.PatchCPAValue(userID, fieldID, value)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

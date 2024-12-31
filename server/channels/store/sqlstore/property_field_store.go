@@ -28,17 +28,22 @@ var propertyFieldColumns = []string{
 }
 
 func propertyFieldToInsertMap(field *model.PropertyField) (map[string]any, error) {
+	if field.Attrs == nil {
+		field.Attrs = make(map[string]any)
+	}
 	attrsJSON, err := json.Marshal(field.Attrs)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_to_insert_map_marshal_attrs")
 	}
 
+	// todo: investigate/handle string(attrsJSON) similar to
+	// https://github.com/mattermost/mattermost/pull/19898
 	return map[string]any{
 		"ID":         field.ID,
 		"GroupID":    field.GroupID,
 		"Name":       field.Name,
 		"Type":       field.Type,
-		"Attrs":      attrsJSON,
+		"Attrs":      string(attrsJSON),
 		"TargetID":   field.TargetID,
 		"TargetType": field.TargetType,
 		"CreateAt":   field.CreateAt,
@@ -48,15 +53,20 @@ func propertyFieldToInsertMap(field *model.PropertyField) (map[string]any, error
 }
 
 func propertyFieldToUpdateMap(field *model.PropertyField) (map[string]any, error) {
+	if field.Attrs == nil {
+		field.Attrs = make(map[string]any)
+	}
 	attrsJSON, err := json.Marshal(field.Attrs)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_to_update_map_marshal_attrs")
 	}
 
+	// todo: investigate/handle string(attrsJSON) similar to
+	// https://github.com/mattermost/mattermost/pull/19898
 	return map[string]any{
 		"Name":       field.Name,
 		"Type":       field.Type,
-		"Attrs":      attrsJSON,
+		"Attrs":      string(attrsJSON),
 		"TargetID":   field.TargetID,
 		"TargetType": field.TargetType,
 		"UpdateAt":   field.UpdateAt,

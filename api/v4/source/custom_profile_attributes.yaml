@@ -205,4 +205,48 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/custom_profile_attributes":
+    get:
+      tags:
+        - custom profile attributes
+      summary: List Custom Profile Attribute values
+      description: |
+        List all the Custom Profile Attributes values for specified user.
+
+        _This endpoint is experimental._
+
+        __Minimum server version__: 10.5
+
+        ##### Permissions
+        Must have `view members` permission.
+      operationId: ListCPAValues
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Custom Profile Attribute values fetch successful. Result may be empty.
+          content:
+            application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  field_id:
+                    type: string
+                  value:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+
 

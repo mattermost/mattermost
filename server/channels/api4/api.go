@@ -155,6 +155,7 @@ type Routes struct {
 	CustomProfileAttributes       *mux.Router // 'api/v4/custom_profile_attributes'
 	CustomProfileAttributesFields *mux.Router // 'api/v4/custom_profile_attributes/fields'
 	CustomProfileAttributesField  *mux.Router // 'api/v4/custom_profile_attributes/fields/{field_id:[A-Za-z0-9]+}'
+	CustomProfileAttributesValues *mux.Router // 'api/v4/custom_profile_attributes/values'
 }
 
 type API struct {
@@ -295,6 +296,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.CustomProfileAttributes = api.BaseRoutes.APIRoot.PathPrefix("/custom_profile_attributes").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesFields = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/fields").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesField = api.BaseRoutes.CustomProfileAttributesFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.CustomProfileAttributesValues = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/values").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -432,6 +434,7 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.CustomProfileAttributes = api.BaseRoutes.APIRoot.PathPrefix("/custom_profile_attributes").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesFields = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/fields").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesField = api.BaseRoutes.CustomProfileAttributesFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.CustomProfileAttributesValues = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/values").Subrouter()
 
 	api.InitUserLocal()
 	api.InitTeamLocal()

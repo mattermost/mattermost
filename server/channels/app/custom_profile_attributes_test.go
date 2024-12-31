@@ -71,12 +71,14 @@ func TestListCPAFields(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(t, rErr)
+	if cpaGroupID == "" {
+		_, err := th.App.cpaGroupID()
+		require.NoError(t, err)
+	}
 
 	t.Run("should list the CPA property fields", func(t *testing.T) {
 		field1 := &model.PropertyField{
-			GroupID: cpaGroup.ID,
+			GroupID: cpaGroupID,
 			Name:    "Field 1",
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -93,7 +95,7 @@ func TestListCPAFields(t *testing.T) {
 		require.NoError(t, err)
 
 		field3 := &model.PropertyField{
-			GroupID: cpaGroup.ID,
+			GroupID: cpaGroupID,
 			Name:    "Field 3",
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -118,8 +120,10 @@ func TestCreateCPAField(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(t, rErr)
+	if cpaGroupID == "" {
+		_, err := th.App.cpaGroupID()
+		require.NoError(t, err)
+	}
 
 	t.Run("should fail if the field is not valid", func(t *testing.T) {
 		field := &model.PropertyField{Name: model.NewId()}
@@ -136,14 +140,14 @@ func TestCreateCPAField(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 		}
 
-		createdField, err := th.App.CreateCPAField(field)
-		require.Nil(t, err)
-		require.Equal(t, cpaGroup.ID, createdField.GroupID)
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+		require.Equal(t, cpaGroupID, createdField.GroupID)
 	})
 
 	t.Run("should correctly create a CPA field", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: cpaGroup.ID,
+			GroupID: cpaGroupID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   map[string]any{"visibility": "hidden"},
@@ -152,7 +156,7 @@ func TestCreateCPAField(t *testing.T) {
 		createdField, err := th.App.CreateCPAField(field)
 		require.Nil(t, err)
 		require.NotZero(t, createdField.ID)
-		require.Equal(t, cpaGroup.ID, createdField.GroupID)
+		require.Equal(t, cpaGroupID, createdField.GroupID)
 		require.Equal(t, map[string]any{"visibility": "hidden"}, createdField.Attrs)
 
 		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField(createdField.ID)
@@ -342,5 +346,117 @@ func TestDeleteCPAField(t *testing.T) {
 		for _, value := range values {
 			require.NotZero(t, value.DeleteAt)
 		}
+	})
+}
+
+func TestGetCPAValue(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	if cpaGroupID == "" {
+		_, err := th.App.cpaGroupID()
+		require.NoError(t, err)
+	}
+	fieldID := model.NewId()
+
+	t.Run("should fail if the value doesn't exist", func(t *testing.T) {
+		pv, appErr := th.App.GetCPAValue(model.NewId())
+		require.NotNil(t, appErr)
+		require.Nil(t, pv)
+	})
+
+	t.Run("should fail if the group id is invalid", func(t *testing.T) {
+		propertyValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    model.NewId(),
+			FieldID:    fieldID,
+			Value:      "Value",
+		}
+		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
+		require.NoError(t, err)
+
+		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
+		require.NotNil(t, appErr)
+		require.Nil(t, pv)
+	})
+
+	t.Run("should succeed if id exists", func(t *testing.T) {
+		propertyValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    cpaGroupID,
+			FieldID:    fieldID,
+			Value:      "Value",
+		}
+		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
+		require.NoError(t, err)
+
+		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, pv)
+	})
+}
+
+func TestPatchCPAValue(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	if cpaGroupID == "" {
+		_, err := th.App.cpaGroupID()
+		require.NoError(t, err)
+	}
+
+	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
+		invalidFieldID := model.NewId()
+		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, "fieldValue")
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("should create value if new field value", func(t *testing.T) {
+		newField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(newField)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedValue)
+		require.Equal(t, "test value", patchedValue.Value)
+		require.Equal(t, userID, patchedValue.TargetID)
+
+		t.Run("should correctly patch the CPA property value", func(t *testing.T) {
+			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, "new patched value")
+			require.Nil(t, appErr)
+			require.NotNil(t, patch2)
+			require.Equal(t, patchedValue.ID, patch2.ID)
+			require.Equal(t, "new patched value", patch2.Value)
+			require.Equal(t, userID, patch2.TargetID)
+		})
+	})
+
+	t.Run("should fail if field is deleted", func(t *testing.T) {
+		newField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(newField)
+		require.NoError(t, err)
+		err = th.App.Srv().propertyService.DeletePropertyField(createdField.ID)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		require.NotNil(t, appErr)
+		require.Nil(t, patchedValue)
 	})
 }

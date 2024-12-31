@@ -18,6 +18,8 @@ func (api *API) InitCustomProfileAttributes() {
 		api.BaseRoutes.CustomProfileAttributesFields.Handle("", api.APISessionRequired(createCPAField)).Methods(http.MethodPost)
 		api.BaseRoutes.CustomProfileAttributesField.Handle("", api.APISessionRequired(patchCPAField)).Methods(http.MethodPatch)
 		api.BaseRoutes.CustomProfileAttributesField.Handle("", api.APISessionRequired(deleteCPAField)).Methods(http.MethodDelete)
+		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(listCPAValues)).Methods(http.MethodGet)
+		api.BaseRoutes.CustomProfileAttributesValues.Handle("", api.APISessionRequired(patchCPAValues)).Methods(http.MethodPatch)
 	}
 }
 
@@ -143,4 +145,71 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("property_field")
 
 	ReturnStatusOK(w)
+}
+
+func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
+	var attributeValues map[string]string
+	if jsonErr := json.NewDecoder(r.Body).Decode(&attributeValues); jsonErr != nil {
+		c.SetInvalidParamWithErr("attribs", jsonErr)
+		return
+	}
+
+	// This check is unnecessary for now
+	// Will be required when/if admins can patch other's values
+	userID := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("patchCPAValues", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "user_id", userID)
+
+	results := make(map[string]*model.PropertyValue)
+	for fieldID, value := range attributeValues {
+		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, value)
+		if appErr != nil {
+			c.Err = appErr
+		}
+		results[fieldID] = patchedValue
+	}
+
+	auditRec.Success()
+	auditRec.AddEventObjectType("patchCPAValues")
+
+	ReturnStatusOK(w)
+}
+
+func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	userID := c.Params.UserId
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userID)
+	if err != nil {
+		c.SetPermissionError(model.PermissionViewMembers)
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PermissionViewMembers)
+		return
+	}
+
+	values, appErr := c.App.ListCPAValues(userID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	returnValue := make(map[string]string)
+	for _, value := range values {
+		returnValue[value.FieldID] = value.Value
+	}
+	if err := json.NewEncoder(w).Encode(returnValue); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
