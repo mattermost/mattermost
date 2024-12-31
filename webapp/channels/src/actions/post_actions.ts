@@ -330,7 +330,9 @@ export function setEditingPost(postId = '', refocusId = '', isRHS = false): Acti
         const state = getState();
         let post = PostSelectors.getPost(state, postId);
 
+        // getPost selectors doesn't include post's file metadata, so we need to add it manually
         if (post.file_ids?.length) {
+            // if the post has files, get their metadata and  insert it into the post object
             const files = getFilesForPost(state, postId);
             post = {...post, metadata: {...post.metadata, files}};
         }
