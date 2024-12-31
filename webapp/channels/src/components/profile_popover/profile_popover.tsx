@@ -143,6 +143,10 @@ const ProfilePopover = ({
         }
     }, [channelId, userId, currentTeamId, dispatch]);
 
+    if (!user) {
+        return null;
+    }
+
     const urlSrc = overwriteIcon || src;
     const haveOverrideProp = Boolean(overwriteIcon || overwriteName);
     const fullname = overwriteName || Utils.getFullName(user);
