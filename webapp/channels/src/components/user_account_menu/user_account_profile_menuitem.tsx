@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AccountOutlineIcon} from '@mattermost/compass-icons/components';
@@ -27,8 +27,6 @@ interface Props {
 
 export default function UserAccountProfileMenuItem(props: Props) {
     const dispatch = useDispatch();
-
-    const {formatMessage} = useIntl();
 
     const onboardingTaskStep = useSelector((state: GlobalState) => getInt(state, OnboardingTaskCategory, OnboardingTasksName.COMPLETE_YOUR_PROFILE, 0));
     const isCompleteYourProfileTaskPending = onboardingTaskStep === TaskNameMapToSteps[OnboardingTasksName.COMPLETE_YOUR_PROFILE].STARTED;
@@ -75,10 +73,6 @@ export default function UserAccountProfileMenuItem(props: Props) {
                     <CompleteYourProfileTour/>
                 </div>
             )}
-            aria-label={formatMessage({
-                id: 'userAccountMenu.profileMenuItem.ariaLabel',
-                defaultMessage: 'Open user\'s settings',
-            })}
             onClick={handleClick}
         />
     );

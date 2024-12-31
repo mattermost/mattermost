@@ -306,7 +306,6 @@ export const MenuItemStyled = styled(MuiMenuItem, {
                     justifyContent: 'flex-end',
                     color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--error-text)',
                     gap: '4px',
-                    marginInlineStart: '24px',
                     fontSize: '12px',
                     lineHeight: '16px',
                     alignItems: 'center',

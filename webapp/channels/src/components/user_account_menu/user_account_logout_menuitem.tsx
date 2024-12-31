@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
 import {ExitToAppIcon} from '@mattermost/compass-icons/components';
 
@@ -11,8 +11,6 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import * as Menu from 'components/menu';
 
 export default function UserAccountLogoutMenuItem() {
-    const {formatMessage} = useIntl();
-
     function handleClick() {
         emitUserLoggedOutEvent();
     }
@@ -31,10 +29,6 @@ export default function UserAccountLogoutMenuItem() {
                     defaultMessage='Log out'
                 />
             }
-            aria-label={formatMessage({
-                id: 'userAccountMenu.logoutMenuItem.ariaLabel',
-                defaultMessage: 'Log out from the account',
-            })}
             onClick={handleClick}
         />
     );

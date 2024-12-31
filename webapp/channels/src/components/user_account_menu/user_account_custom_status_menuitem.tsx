@@ -42,18 +42,7 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
     const hasStatusWithNoExpiry = props.customStatus?.duration === CustomStatusDuration.DONT_CLEAR;
 
     let label;
-    let trailingElement: ReactNode = showPulsatingDot ? <PulsatingDot/> : (
-        <WithTooltip
-            title={formatMessage({id: 'userAccountMenu.setCustomStatusMenuItem.clearTooltip', defaultMessage: 'Clear custom status'})}
-        >
-            <i
-                className='icon icon-close-circle userAccountMenu_menuItemTrailingIconClear'
-                aria-hidden='true'
-                onClick={handleClear}
-            />
-        </WithTooltip>
-    );
-    let ariaLabel: string;
+    let ariaDescription: string;
     if (hasStatusWithText && hasStatusWithExpiry) {
         label = (
             <>
@@ -67,8 +56,8 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
                 />
             </>
         );
-        ariaLabel = formatMessage({
-            id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithTextAndExpiry.ariaLabel',
+        ariaDescription = formatMessage({
+            id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithTextAndExpiry.ariaDescription',
             defaultMessage: 'Status is "{text}" and expires at {time}. Set a custom status.',
         }, {
             text: props.customStatus?.text,
@@ -80,8 +69,8 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
                 text={props.customStatus?.text}
             />
         );
-        ariaLabel = formatMessage({
-            id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithTextAndNoExpiry.ariaLabel',
+        ariaDescription = formatMessage({
+            id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithTextAndNoExpiry.ariaDescription',
             defaultMessage: 'Status is "{text}". Set a custom status.',
         }, {
             text: props.customStatus?.text,
@@ -94,8 +83,8 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
                 withinBrackets={true}
             />
         );
-        ariaLabel = formatMessage({
-            id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithExpiryAndNoText.ariaLabel',
+        ariaDescription = formatMessage({
+            id: 'userAccountMenu.setCustomStatusMenuItem.hasStatusWithExpiryAndNoText.ariaDescription',
             defaultMessage: 'Status expires at {time}. Set a custom status.',
         }, {
             time: `${formatTime(props.customStatus?.expires_at)} ${formatDate(props.customStatus?.expires_at)}`,
@@ -107,11 +96,27 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
                 defaultMessage='Set custom status text'
             />
         );
-        ariaLabel = formatMessage({
+        ariaDescription = formatMessage({
             id: 'userAccountMenu.setCustomStatusMenuItem.noStatusTextSet',
             defaultMessage: 'Set custom status text',
         });
-        trailingElement = showPulsatingDot ? <PulsatingDot/> : null;
+    }
+
+    let trailingElement: ReactNode | null = null;
+    if (showPulsatingDot) {
+        trailingElement = <PulsatingDot/>;
+    } else if (hasStatusWithText || hasStatusWithExpiry || hasStatusWithNoExpiry) {
+        trailingElement = (
+            <WithTooltip
+                title={formatMessage({id: 'userAccountMenu.setCustomStatusMenuItem.clearTooltip', defaultMessage: 'Clear custom status'})}
+            >
+                <i
+                    className='icon icon-close-circle userAccountMenu_menuItemTrailingIconClear'
+                    aria-hidden='true'
+                    onClick={handleClear}
+                />
+            </WithTooltip>
+        );
     }
 
     return (
@@ -128,7 +133,7 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
             }
             labels={label}
             trailingElements={trailingElement}
-            aria-label={ariaLabel}
+            aria-description={ariaDescription}
             onClick={props.openCustomStatusModal}
         />
     );

@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import * as reactRedux from 'react-redux';
+
+import * as modalActions from 'actions/views/modals';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import UserAccountOutOfOfficeMenuItem, {type Props} from './user_account_out_of_office_menuitem';
@@ -33,14 +35,23 @@ describe('UserAccountOutOfOfficeMenuItem', () => {
         expect(screen.getAllByText(/Automatic replies are enabled/).length).toBe(1);
     });
 
-    test('should try to open reset status modal', async () => {
-        jest.spyOn(reactRedux, 'useDispatch').mockReturnValue(jest.fn());
+    test('should open reset status modal when confirming before status change option is true', async () => {
+        jest.spyOn(modalActions, 'openModal');
 
+        // Work around since in mobile menu's onClick get executed immediately and not so on non-mobile
+        // see handleClick func of webapp/channels/src/components/menu/menu_item.tsx
+        const initialState = {
+            views: {
+                browser: {
+                    windowSize: WindowSizes.MOBILE_VIEW,
+                },
+            },
+        };
         const props = {...defaultProps, shouldConfirmBeforeStatusChange: true};
-        renderWithContext(<UserAccountOutOfOfficeMenuItem {...props}/>);
+        renderWithContext(<UserAccountOutOfOfficeMenuItem {...props}/>, initialState);
 
         userEvent.click(screen.getByRole('menuitem'));
 
-        expect(reactRedux.useDispatch).toHaveBeenCalledTimes(1);
+        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
     });
 });

@@ -1,13 +1,5 @@
 @import "utils/_mixins";
 
-// This is the override we must do to align the menu as per UX guidelines
-// This is not ideal and should not be used as a reference for positioning menus
-// as it throws positioning out of wack
-.userAccountMenuRoot {
-    right: 4px !important;
-    left: unset !important;
-}
-
 #userAccountMenu {
     .userAccountMenu_nameMenuItem {
         align-items: center;
@@ -22,16 +14,17 @@
             gap: 0;
         }
 
-        h2.userAccountMenu_nameMenuItem_primaryLabel {
+        span.userAccountMenu_nameMenuItem_primaryLabel {
             max-width: 150px;
             margin: 0;
+            font-family: 'Metropolis', sans-serif;
             font-size: 16px;
             font-weight: 600;
             line-height: 22px;
             @include textEllipsis;
         }
 
-        .userAccountMenu_nameMenuItem_secondaryLabel {
+        span.userAccountMenu_nameMenuItem_secondaryLabel {
             max-width: 150px;
             font-size: 14px;
             line-height: 18px;

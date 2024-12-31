@@ -63,7 +63,6 @@ export default function UserAccountMenu(props: Props) {
                 id: 'userAccountMenu',
                 width: '264px',
             }}
-            menuRootClass='userAccountMenuRoot'
             anchorOrigin={{
                 vertical: 'bottom',
                 horizontal: 'right',
@@ -72,6 +71,7 @@ export default function UserAccountMenu(props: Props) {
                 vertical: 'top',
                 horizontal: 'right',
             }}
+            marginThreshold={0}
         >
             <UserAccountNameMenuItem
                 profilePicture={props.profilePicture}

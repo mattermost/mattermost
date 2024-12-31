@@ -43,9 +43,9 @@ export default function UserAccountNameMenuItem({profilePicture, ...rest}: Props
 
             return (
                 <>
-                    <h2 className='userAccountMenu_nameMenuItem_primaryLabel'>
+                    <span className='userAccountMenu_nameMenuItem_primaryLabel'>
                         {name}
-                    </h2>
+                    </span>
                     <span className='userAccountMenu_nameMenuItem_secondaryLabel'>
                         {'@' + currentUser?.username}
                     </span>

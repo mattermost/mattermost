@@ -88,9 +88,9 @@ interface Props {
     hideTooltipWhenDisabled?: boolean;
 
     /**
-     * @deprecated This is not needed except for cases where you want to override positioning completely.
+     * This is not needed except for cases where you want to apply certain manual margin around positioning
      */
-    menuRootClass?: string;
+    marginThreshold?: number;
 }
 
 /**
@@ -250,9 +250,7 @@ export function Menu(props: Props) {
                     onKeyDown={handleMenuKeyDown}
                     className={A11yClassNames.POPUP}
                     width={props.menu.width}
-                    classes={{
-                        paper: props.menuRootClass,
-                    }}
+                    marginThreshold={props.marginThreshold}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
