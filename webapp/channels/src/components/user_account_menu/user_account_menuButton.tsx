@@ -72,7 +72,6 @@ export default function UserAccountMenuButton({
         <>
             <CustomStatusEmoji
                 showTooltip={true}
-                tooltipDirection={'bottom'}
                 emojiStyle={{marginRight: '6px'}}
                 aria-hidden={true}
                 onClick={openCustomStatusModal}

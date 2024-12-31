@@ -44,8 +44,6 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
     let label;
     let trailingElement: ReactNode = showPulsatingDot ? <PulsatingDot/> : (
         <WithTooltip
-            id='userAccountMenu.setCustomStatusMenuItem.clearTooltip'
-            placement='left'
             title={formatMessage({id: 'userAccountMenu.setCustomStatusMenuItem.clearTooltip', defaultMessage: 'Clear custom status'})}
         >
             <i
