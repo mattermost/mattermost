@@ -49,8 +49,7 @@ describe('components/post_edit_history/edited_post_item', () => {
     });
 
     test('clicking on the restore button should call openRestorePostModal', () => {
-        const {container} = renderWithContext(<EditedPostItem {...baseProps}/>);
-        console.log(container.innerHTML);
+        renderWithContext(<EditedPostItem {...baseProps}/>);
 
         // find the button with restore icon and click it
         const restoreButton = screen.getByRole('button', {name: /restore/i});
