@@ -6,13 +6,15 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
+import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {
     updateMe,
     sendVerificationEmail,
     setDefaultProfileImage,
     uploadProfileImage,
+    saveCustomProfileAttribute,
 } from 'mattermost-redux/actions/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -22,6 +24,7 @@ import UserSettingsGeneralTab from './user_settings_general';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
+    const customProfileAttributes = getCustomProfileAttributes(state);
 
     const requireEmailVerification = config.RequireEmailVerification === 'true';
     const maxFileSize = parseInt(config.MaxFileSize!, 10);
@@ -39,6 +42,7 @@ function mapStateToProps(state: GlobalState) {
         isMobileView: getIsMobileView(state),
         requireEmailVerification,
         maxFileSize,
+        customProfileAttributes,
         ldapFirstNameAttributeSet,
         ldapLastNameAttributeSet,
         samlFirstNameAttributeSet,
@@ -60,6 +64,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             sendVerificationEmail,
             setDefaultProfileImage,
             uploadProfileImage,
+            saveCustomProfileAttribute,
+            getCustomProfileAttributeFields,
         }, dispatch),
     };
 }
