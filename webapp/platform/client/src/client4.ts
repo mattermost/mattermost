@@ -2073,29 +2073,6 @@ export default class Client4 {
         );
     };
 
-    // System Properties Routes
-    createCustomProfileAttributeField = async (patch: UserPropertyFieldPatch) => {
-        return this.doFetch<UserPropertyField>(
-            `${this.getCustomProfileAttributeFieldsRoute()}`,
-            {method: 'POST', body: JSON.stringify(patch)},
-        );
-    };
-
-    patchCustomProfileAttributeField = async (fieldId: string, patch: UserPropertyFieldPatch) => {
-        return this.doFetch<UserPropertyField>(
-            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
-            {method: 'PATCH', body: JSON.stringify(patch)},
-        );
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    deleteCustomProfileAttributeField = async (fieldId: string) => {
-        return this.doFetch<StatusOK>(
-            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
-            {method: 'DELETE'},
-        );
-    };
-
     // Post Routes
 
     createPost = async (post: Post) => {
@@ -4309,6 +4286,35 @@ export default class Client4 {
     };
 
     // Custom Profile Attributes
+    getCustomProfileAttributeFields = async () => {
+        return this.doFetch<PropertyField[]>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'GET'},
+        );
+    };
+
+    createCustomProfileAttributeField = async (patch: UserPropertyFieldPatch) => {
+        return this.doFetch<UserPropertyField>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'POST', body: JSON.stringify(patch)},
+        );
+    };
+
+    patchCustomProfileAttributeField = async (fieldId: string, patch: UserPropertyFieldPatch) => {
+        return this.doFetch<UserPropertyField>(
+            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    deleteCustomProfileAttributeField = async (fieldId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+            {method: 'DELETE'},
+        );
+    };
+
     updateCustomProfileAttributeValues = (attributeID: string, attributeValue: string) => {
         const obj: { [key: string]: string } = {};
         obj[attributeID] = attributeValue;
