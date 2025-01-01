@@ -31,6 +31,8 @@ export type StatusOK = {
     status: 'OK';
 };
 
+export const isStatusOK = (x: StatusOK | Record<string, unknown>): x is StatusOK => (x as StatusOK)?.status === 'OK';
+
 export type FetchPaginatedThreadOptions = {
     fetchThreads?: boolean;
     collapsedThreads?: boolean;
