@@ -25,6 +25,7 @@ import * as Utils from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import ProfilePopoverAvatar from './profile_popover_avatar';
+import ProfilePopoverCustomAttributes from './profile_popover_custom_attributes';
 import ProfilePopoverCustomStatus from './profile_popover_custom_status';
 import ProfilePopoverEmail from './profile_popover_email';
 import ProfilePopoverLastActive from './profile_popover_last_active';
@@ -96,7 +97,7 @@ const ProfilePopover = ({
                 },
             ));
         };
-    }, []);
+    }, [returnFocus]);
 
     const handleCloseModals = useCallback(() => {
         for (const modal in modals?.modalState) {
@@ -107,7 +108,7 @@ const ProfilePopover = ({
                 dispatch(closeModal(modal));
             }
         }
-    }, [modals]);
+    }, [modals, dispatch]);
 
     const handleShowDirectChannel = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -130,7 +131,7 @@ const ProfilePopover = ({
             hide?.();
             getHistory().push(`${teamUrl}/messages/@${user.username}`);
         }
-    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl]);
+    }, [user, loadingDMChannel, handleCloseModals, isMobileView, hide, teamUrl, dispatch]);
 
     useEffect(() => {
         if (currentTeamId && userId) {
@@ -140,7 +141,7 @@ const ProfilePopover = ({
                 channelId,
             ));
         }
-    }, []);
+    }, [channelId, userId, currentTeamId, dispatch]);
 
     if (!user) {
         return null;
@@ -188,6 +189,9 @@ const ProfilePopover = ({
                         fromWebhook={fromWebhook}
                     />
                 </div>
+                <ProfilePopoverCustomAttributes
+                    userID={userId}
+                />
                 <ProfilePopoverTimezone
                     currentUserTimezone={currentUserTimezone}
                     profileUserTimezone={user.timezone}

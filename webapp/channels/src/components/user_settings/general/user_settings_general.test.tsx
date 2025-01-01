@@ -36,6 +36,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
         isMobileView: false,
+        customProfileAttributes: [],
         actions: {
             logError: jest.fn(),
             clearErrors: jest.fn(),
@@ -43,11 +44,22 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             sendVerificationEmail: jest.fn(),
             setDefaultProfileImage: jest.fn(),
             uploadProfileImage: jest.fn(),
+            saveCustomProfileAttribute: jest.fn(),
+            getCustomProfileAttributeFields: jest.fn(),
         },
         maxFileSize: 1024,
         ldapPositionAttributeSet: false,
         samlPositionAttributeSet: false,
         ldapPictureAttributeSet: false,
+    };
+
+    const customProfileAttribute = {
+        id: '1',
+        name: 'test attribute',
+        type: 'text',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
     };
 
     let store: ReturnType<typeof configureStore>;
@@ -168,5 +180,67 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
         await (wrapper.instance() as UserSettingsGeneralTab).submitUser(requiredProps.user, false);
         expect(wrapper.state('serverError')).toBe('This username conflicts with an existing group name.');
+    });
+
+    test('should show Custom Attribute Field with empty value', () => {
+        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
+        props.user = {...user};
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <UserSettingsGeneral {...props}/>
+            </Provider>,
+        );
+        expect(wrapper.find('#customAttribute_1Edit').exists()).toBeTruthy();
+        expect(wrapper.find('#customAttribute_1Desc').exists()).toBeTruthy();
+        expect(wrapper.find('#customAttribute_1Desc').text()).toContain('Click \'Edit\' to add your custom attribute');
+    });
+
+    test('should show Custom Attribute Field editing with empty value', () => {
+        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
+        props.user = {...user};
+        props.activeSection = 'customAttribute_1';
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <UserSettingsGeneral {...props}/>
+            </Provider>,
+        );
+        expect(wrapper.find('#customAttribute_1Edit').exists()).toBeFalsy();
+        expect(wrapper.find('#customAttribute_1').length).toBe(1);
+        expect(wrapper.find('#customAttribute_1').is('input')).toBeTruthy();
+    });
+
+    test('should show Custom Attribute Field with value set', () => {
+        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
+        props.user = {
+            ...user,
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <UserSettingsGeneral {...props}/>
+            </Provider>,
+        );
+        expect(wrapper.find('#customAttribute_1Edit').exists()).toBeTruthy();
+        expect(wrapper.find('#customAttribute_1Desc').exists()).toBeTruthy();
+        expect(wrapper.find('#customAttribute_1Desc').text()).toContain('hello');
+    });
+
+    test('submitAttribute() should have called saveCustomProfileAttribute', () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: true});
+        const props = {
+            ...requiredProps,
+            actions: {...requiredProps.actions, saveCustomProfileAttribute},
+            customProfileAttributes: [customProfileAttribute],
+        };
+        props.user = {
+            ...user,
+        };
+        const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
+
+        (wrapper.instance() as UserSettingsGeneralTab).submitAttribute(['1']);
+        expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
+        expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', '1', 'hello');
     });
 });
