@@ -4,29 +4,27 @@
 import {
     useFloating,
     autoUpdate,
-    offset,
+    safePolygon,
     useHover,
-    useFocus,
     useDismiss,
-    useRole,
     useInteractions,
     FloatingPortal,
+    autoPlacement,
+    inline,
     useTransitionStyles,
+    FloatingOverlay,
+    FloatingFocusManager,
+    arrow,
+    offset,
+    FloatingArrow,
 } from '@floating-ui/react';
-import classNames from 'classnames';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {ReactElement} from 'react';
 
 import Pluggable from 'plugins/pluggable';
-import {Constants} from 'utils/constants';
+import {RootHtmlPortalId, OverlaysTimings, OverlayArrow} from 'utils/constants';
 
 import './plugin_link_tooltip.scss';
-
-const ARROW_OFFSET = 8; // in px
-
-const TOOLTIP_REST_TIME_BEFORE_OPEN = 400; // in ms
-const TOOLTIP_APPEAR_DURATION = 250; // in ms
-const TOOLTIP_DISAPPEAR_DURATION = 200; // in ms
 
 interface Props {
     href: string;
@@ -37,36 +35,30 @@ interface Props {
 }
 
 function PluginLinkTooltip(props: Props) {
-    const [open, setOpen] = useState(false);
+    const [isOpen, setOpen] = useState(false);
 
-    function handleChange(open: boolean) {
-        setOpen(open);
-    }
+    const arrowRef = useRef(null);
 
-    const {refs: {setReference, setFloating}, floatingStyles, context} = useFloating({
-        open,
-        onOpenChange: handleChange,
+    const {refs: {setReference, setFloating}, floatingStyles, context: floatingContext} = useFloating({
+        open: isOpen,
+        onOpenChange: setOpen,
         whileElementsMounted: autoUpdate,
         middleware: [
-            offset(ARROW_OFFSET),
+            offset(OverlayArrow.OFFSET),
+            inline(),
+            autoPlacement({
+                allowedPlacements: ['top', 'bottom'],
+            }),
+            arrow({
+                element: arrowRef,
+            }),
         ],
     });
 
-    const hover = useHover(context, {
-        restMs: TOOLTIP_REST_TIME_BEFORE_OPEN,
-        delay: {
-            open: Constants.OVERLAY_TIME_DELAY,
-        },
-    });
-    const focus = useFocus(context);
-    const dismiss = useDismiss(context);
-    const role = useRole(context, {role: 'tooltip'});
-
-    const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, dismiss, role]);
-    const {isMounted, styles: transitionStyles} = useTransitionStyles(context, {
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, {
         duration: {
-            open: TOOLTIP_APPEAR_DURATION,
-            close: TOOLTIP_DISAPPEAR_DURATION,
+            open: OverlaysTimings.FADE_IN_DURATION,
+            close: OverlaysTimings.FADE_OUT_DURATION,
         },
         initial: {
             opacity: 0,
@@ -75,6 +67,23 @@ function PluginLinkTooltip(props: Props) {
             opacity: 1,
         },
     });
+
+    const combinedFloatingStyles = Object.assign({}, floatingStyles, transitionStyles);
+
+    const hoverInteractions = useHover(floatingContext, {
+        restMs: OverlaysTimings.CURSOR_REST_TIME_BEFORE_OPEN,
+        move: false,
+        handleClose: safePolygon({
+            requireIntent: false,
+            blockPointerEvents: true,
+        }),
+    });
+    const dismissInteraction = useDismiss(floatingContext);
+
+    const {getReferenceProps, getFloatingProps} = useInteractions([
+        hoverInteractions,
+        dismissInteraction,
+    ]);
 
     return (
         <>
@@ -88,26 +97,33 @@ function PluginLinkTooltip(props: Props) {
                 {props.children}
             </span>
             {isMounted && (
-                <FloatingPortal
-                    id='root-portal' // This is the global portal container id
-                >
-                    <div
-                        className='tooltipContainer'
-                        ref={setFloating}
-                        style={floatingStyles}
-                        {...getFloatingProps()}
-                    >
-                        <div
-                            className={classNames('tooltipContentContainer')}
-                            style={transitionStyles}
-                        >
-                            <Pluggable
-                                href={props.href}
-                                show={true}
-                                pluggableName='LinkTooltip'
-                            />
-                        </div>
-                    </div>
+                <FloatingPortal id={RootHtmlPortalId}>
+                    <FloatingOverlay className='plugin-link-tooltip-floating-overlay'>
+                        <FloatingFocusManager context={floatingContext}>
+                            <div
+                                ref={setFloating}
+                                style={combinedFloatingStyles}
+                                className='plugin-link-tooltip-container'
+                                {...getFloatingProps()}
+                            >
+                                <Pluggable
+                                    href={props.href}
+                                    show={true}
+                                    pluggableName='LinkTooltip'
+                                />
+                                <FloatingArrow
+                                    ref={arrowRef}
+                                    context={floatingContext}
+                                    width={OverlayArrow.WIDTH}
+                                    height={OverlayArrow.HEIGHT}
+                                    className='plugin-link-tooltip-arrow'
+
+                                    // Shift so the border of base of arrow triangle merges with the popover container
+                                    style={{transform: 'translateY(-1px'}}
+                                />
+                            </div>
+                        </FloatingFocusManager>
+                    </FloatingOverlay>
                 </FloatingPortal>
             )}
         </>

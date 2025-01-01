@@ -150,19 +150,11 @@ exports[`messageHtmlToComponent link with enabled a tooltip plugin 1`] = `
     rel="noreferrer"
     target="_blank"
   >
-    <LinkTooltip
-      attributes={
-        Object {
-          "class": "theme markdown__link",
-          "href": "http://www.dolor.com",
-          "rel": "noreferrer",
-          "target": "_blank",
-        }
-      }
+    <PluginLinkTooltip
       href="http://www.dolor.com"
     >
       www.dolor.com
-    </LinkTooltip>
+    </PluginLinkTooltip>
   </a>
    sit amet
 </p>
