@@ -65,8 +65,9 @@
     justify-content: center;
     margin: 0;
     color: rgba(var(--center-channel-color-rgb), 0.64);
-    cursor: pointer;
     font-size: 16px;
+    border: none;
+    background: none;
     visibility: hidden;
 
     &:hover {

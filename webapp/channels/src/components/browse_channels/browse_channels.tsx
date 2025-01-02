@@ -371,9 +371,9 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         return (
             <GenericModal
-                onExited={this.handleExit}
                 id='browseChannelsModal'
                 aria-labelledby='browseChannelsModalLabel'
+                onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}
                 headerButton={createNewChannelButton('btn-secondary btn-sm')}
