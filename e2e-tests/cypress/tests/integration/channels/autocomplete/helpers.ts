@@ -119,7 +119,7 @@ function getPostTextboxInput() {
 }
 
 function getQuickChannelSwitcherInput() {
-    cy.findByRole('textbox', {name: 'quick switch input'}).
+    cy.findByRole('combobox', {name: 'quick switch input'}).
         should('be.visible').
         as('input').
         clear();
@@ -158,7 +158,7 @@ function searchForChannel(name: string) {
     cy.typeCmdOrCtrl().type('k').wait(TIMEOUTS.ONE_SEC);
 
     // # Clear out and type in the name
-    cy.findByRole('textbox', {name: 'quick switch input'}).
+    cy.findByRole('combobox', {name: 'quick switch input'}).
         should('be.visible').
         as('input').
         clear().

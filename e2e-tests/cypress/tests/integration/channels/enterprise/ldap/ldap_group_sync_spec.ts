@@ -408,7 +408,7 @@ context('ldap', () => {
                 cy.wait(TIMEOUTS.THREE_SEC);
 
                 // # Type channel display name on Channel switcher input
-                cy.findByRole('textbox', {name: 'quick switch input'}).type(publicChannel.display_name);
+                cy.findByRole('combobox', {name: 'quick switch input'}).type(publicChannel.display_name);
                 cy.wait(TIMEOUTS.HALF_SEC);
 
                 // * Should open up suggestion list for channels
@@ -433,7 +433,7 @@ context('ldap', () => {
                 cy.wait(TIMEOUTS.THREE_SEC);
 
                 // # Type channel display name on Channel switcher input
-                cy.findByRole('textbox', {name: 'quick switch input'}).type(publicChannel.display_name);
+                cy.findByRole('combobox', {name: 'quick switch input'}).type(publicChannel.display_name);
                 cy.wait(TIMEOUTS.HALF_SEC);
 
                 // * Should open up suggestion list for channels
