@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
@@ -60,7 +60,6 @@ const SyncGroupsToggle: React.SFC<Props> = (props: Props): JSX.Element => {
 
 const AllowAllToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
     const {isPublic, isSynced, isDefault, onToggle, isDisabled} = props;
-    const {formatMessage} = useIntl();
     if (isSynced) {
         return null;
     }
