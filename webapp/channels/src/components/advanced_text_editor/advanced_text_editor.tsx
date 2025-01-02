@@ -714,7 +714,7 @@ const AdvancedTextEditor = ({
                 {
                     isInEditMode &&
                     <FileUploadOverlay
-                        overlayType='center'
+                        overlayType={isRHS ? 'right' : 'center'}
                         editMode={isInEditMode}
                         id={'editPostFileDropOverlay'}
                     />
@@ -722,9 +722,9 @@ const AdvancedTextEditor = ({
                 {
                     !isInEditMode &&
                     <FileUploadOverlay
-                        overlayType='center'
+                        overlayType={isRHS ? 'right' : 'center'}
                         editMode={isInEditMode}
-                        id={'createPostFileDropOverlay'}
+                        id={isRHS ? 'createCommentFileDropOverlay' : 'createPostFileDropOverlay'}
                     />
                 }
                 {!wasNotifiedOfLogIn && (

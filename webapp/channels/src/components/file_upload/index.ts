@@ -26,8 +26,6 @@ function mapStateToProps(state: GlobalState) {
     const centerChannelPostBeingEdited = editingPost.show && !editingPost.isRHS;
     const rhsPostBeingEdited = editingPost.show && editingPost.isRHS;
 
-    console.log({centerChannelPostBeingEdited, rhsPostBeingEdited});
-
     return {
         maxFileSize,
         canUploadFiles: canUploadFiles(config),

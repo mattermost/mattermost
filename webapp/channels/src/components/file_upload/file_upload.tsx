@@ -211,12 +211,12 @@ export class FileUpload extends PureComponent<Props, State> {
         }
         case 'edit_post': {
             containerSelector = '.post--editing';
-            overlaySelector = this.props.centerChannelPostBeingEdited ? '#editpost' : '.right-file-overlay.post_edit_mode';
+            overlaySelector = '#editPostFileDropOverlay';
 
             if (this.props.centerChannelPostBeingEdited) {
-                if (this.props.centerChannelPostBeingEdited) {
-                    this.registerDragEvents('form#create_post .AdvancedTextEditor', '#createPostFileDropOverlay');
-                }
+                this.registerDragEvents('.AdvancedTextEditor__body:has(#post_textbox)', '#createPostFileDropOverlay');
+            } else if (this.props.rhsPostBeingEdited) {
+                this.registerDragEvents('.AdvancedTextEditor__body:has(#reply_textbox)', '#createCommentFileDropOverlay');
             }
 
             break;
