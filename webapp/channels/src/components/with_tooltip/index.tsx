@@ -29,7 +29,7 @@ import {Constants} from 'utils/constants';
 import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
 
-import './tooltip.scss';
+import './with_tooltip.scss';
 
 const ARROW_WIDTH = 10; // in px
 const ARROW_HEIGHT = 6; // in px
