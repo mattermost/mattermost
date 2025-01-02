@@ -24,12 +24,20 @@ import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 
-import {OverlayArrow, OverlaysTimings} from 'utils/constants';
+import {Constants} from 'utils/constants';
 
 import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
 
-import './with_tooltip.scss';
+import './tooltip.scss';
+
+const ARROW_WIDTH = 10; // in px
+const ARROW_HEIGHT = 6; // in px
+const ARROW_OFFSET = 8; // in px
+
+const TOOLTIP_REST_TIME_BEFORE_OPEN = 400; // in ms
+const TOOLTIP_APPEAR_DURATION = 250; // in ms
+const TOOLTIP_DISAPPEAR_DURATION = 200; // in ms
 
 export const ShortcutKeys = {
     alt: defineMessage({
@@ -114,7 +122,7 @@ function WithTooltip({
         whileElementsMounted: autoUpdate,
         placement: placements.initial,
         middleware: [
-            offset(OverlayArrow.OFFSET),
+            offset(ARROW_OFFSET),
             flip({
                 fallbackPlacements: placements.fallback,
             }),
@@ -125,7 +133,10 @@ function WithTooltip({
     });
 
     const hover = useHover(context, {
-        restMs: OverlaysTimings.CURSOR_REST_TIME_BEFORE_OPEN,
+        restMs: TOOLTIP_REST_TIME_BEFORE_OPEN,
+        delay: {
+            open: Constants.OVERLAY_TIME_DELAY,
+        },
     });
     const focus = useFocus(context);
     const dismiss = useDismiss(context);
@@ -134,8 +145,8 @@ function WithTooltip({
     const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, dismiss, role]);
     const {isMounted, styles: transitionStyles} = useTransitionStyles(context, {
         duration: {
-            open: OverlaysTimings.FADE_IN_DURATION,
-            close: OverlaysTimings.FADE_OUT_DURATION,
+            open: TOOLTIP_APPEAR_DURATION,
+            close: TOOLTIP_DISAPPEAR_DURATION,
         },
         initial: {
             opacity: 0,
@@ -186,8 +197,8 @@ function WithTooltip({
                             <FloatingArrow
                                 ref={arrowRef}
                                 context={context}
-                                width={OverlayArrow.WIDTH}
-                                height={OverlayArrow.HEIGHT}
+                                width={ARROW_WIDTH}
+                                height={ARROW_HEIGHT}
                             />
                         </div>
                     </div>
