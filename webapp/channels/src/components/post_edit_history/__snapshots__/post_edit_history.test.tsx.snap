@@ -303,7 +303,6 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               <button
                 aria-label="Select to restore an old message."
                 class="edit-post-history__icon__button restore-icon"
-                role="button"
               >
                 <i
                   class="icon icon-restore"
@@ -347,7 +346,6 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               <button
                 aria-label="Select to restore an old message."
                 class="edit-post-history__icon__button restore-icon"
-                role="button"
               >
                 <i
                   class="icon icon-restore"
