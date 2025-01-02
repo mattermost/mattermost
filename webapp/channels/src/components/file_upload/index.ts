@@ -16,10 +16,17 @@ import type {GlobalState} from 'types/store';
 import type {FilesWillUploadHook} from 'types/store/plugins';
 
 import FileUpload from './file_upload';
+import {getEditingPostDetailsAndPost, getIsPostBeingEdited} from 'selectors/posts';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
     const maxFileSize = parseInt(config.MaxFileSize || '', 10);
+
+    const editingPost = getEditingPostDetailsAndPost(state);
+    const centerChannelPostBeingEdited = editingPost.show && !editingPost.isRHS;
+    const rhsPostBeingEdited = editingPost.show && editingPost.isRHS;
+
+    console.log({centerChannelPostBeingEdited, rhsPostBeingEdited});
 
     return {
         maxFileSize,
@@ -27,6 +34,8 @@ function mapStateToProps(state: GlobalState) {
         locale: getCurrentLocale(state),
         pluginFileUploadMethods: state.plugins.components.FileUploadMethod,
         pluginFilesWillUploadHooks: state.plugins.components.FilesWillUploadHook as unknown as FilesWillUploadHook[],
+        centerChannelPostBeingEdited,
+        rhsPostBeingEdited,
     };
 }
 

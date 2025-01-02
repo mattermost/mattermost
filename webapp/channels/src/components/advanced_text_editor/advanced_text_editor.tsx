@@ -80,6 +80,7 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
+import FileUploadOverlay from 'components/file_upload_overlay';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
@@ -309,6 +310,7 @@ const AdvancedTextEditor = ({
         handleDraftChange,
         focusTextbox,
         setServerError,
+        isInEditMode,
     );
 
     const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;
@@ -709,6 +711,22 @@ const AdvancedTextEditor = ({
                     'formatting-bar': showFormattingBar,
                 })}
             >
+                {
+                    isInEditMode &&
+                    <FileUploadOverlay
+                        overlayType='center'
+                        editMode={isInEditMode}
+                        id={'editPostFileDropOverlay'}
+                    />
+                }
+                {
+                    !isInEditMode &&
+                    <FileUploadOverlay
+                        overlayType='center'
+                        editMode={isInEditMode}
+                        id={'createPostFileDropOverlay'}
+                    />
+                }
                 {!wasNotifiedOfLogIn && (
                     <div
                         aria-live='assertive'

@@ -219,7 +219,10 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                 <div className={classNames('ThreadViewer', this.props.className)}>
                     <div className='post-right-comments-container'>
                         <>
-                            <FileUploadOverlay overlayType='right'/>
+                            <FileUploadOverlay
+                                overlayType='right'
+                                id={'threadView'}
+                            />
                             {this.props.selected && (
                                 <DeferredThreadViewerVirt
                                     inputPlaceholder={this.props.inputPlaceholder}

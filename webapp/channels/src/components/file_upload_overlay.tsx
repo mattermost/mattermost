@@ -9,6 +9,8 @@ import overlayLogoImage from 'images/logoWhite.png';
 
 type Props = {
     overlayType: string;
+    id: string;
+    editMode?: boolean;
 }
 
 const FileUploadOverlay = (props: Props) => {
@@ -21,8 +23,15 @@ const FileUploadOverlay = (props: Props) => {
         overlayClass += ' center-file-overlay';
     }
 
+    if (props.editMode) {
+        overlayClass += ' post_edit_mode';
+    }
+
     return (
-        <div className={overlayClass}>
+        <div
+            id={props.id}
+            className={overlayClass}
+        >
             <div className='overlay__indent'>
                 <div className='overlay__circle'>
                     <img

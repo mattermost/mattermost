@@ -75,6 +75,8 @@ const customStyles = {
     top: 'auto',
 };
 
+export type PostType = 'post' | 'comment' | 'thread' | 'edit_post';
+
 export type Props = {
     channelId: string;
 
@@ -125,7 +127,7 @@ export type Props = {
     /**
      * Type of the object which the uploaded file is attached to
      */
-    postType: string;
+    postType: PostType;
 
     /**
      * The maximum uploaded file size.
@@ -147,6 +149,10 @@ export type Props = {
      * Function called when xhr fires progress event.
      */
     onUploadProgress: (filePreviewInfo: FilePreviewInfo) => void;
+
+    centerChannelPostBeingEdited: boolean;
+    rhsPostBeingEdited: boolean;
+
     actions: {
 
         /**
@@ -179,17 +185,71 @@ export class FileUpload extends PureComponent<Props, State> {
         this.fileInput = React.createRef();
     }
 
-    componentDidMount() {
-        if (this.props.postType === 'post') {
-            this.registerDragEvents('.row.main', '.center-file-overlay');
-        } else if (this.props.postType === 'comment') {
-            this.registerDragEvents('.post-right__container', '.right-file-overlay');
-        } else if (this.props.postType === 'thread') {
-            this.registerDragEvents('.ThreadPane', '.right-file-overlay');
+    registerDragsterEvents = () => {
+        console.log({postType: this.props.postType});
+
+        let containerSelector: string;
+        let overlaySelector: string;
+
+        console.log('registerDragsterEvents', {postType: this.props.postType, centerChannelPostBeingEdited: this.props.centerChannelPostBeingEdited, rhsPostBeingEdited: this.props.rhsPostBeingEdited});
+
+        switch (this.props.postType) {
+        case 'post': {
+            containerSelector = this.props.centerChannelPostBeingEdited ? '.post--editing' : '.row.main';
+            overlaySelector = this.props.centerChannelPostBeingEdited ? '.center-file-overlay.post_edit_mode' : '.center-file-overlay';
+            break;
         }
+        case 'comment': {
+            containerSelector = this.props.rhsPostBeingEdited ? '.post--editing' : '.post-right__container';
+            overlaySelector = this.props.rhsPostBeingEdited ? '.right-file-overlay.post_edit_mode' : '.right-file-overlay';
+            break;
+        }
+        case 'thread': {
+            containerSelector = this.props.rhsPostBeingEdited ? '.post--editing' : '.ThreadPane';
+            overlaySelector = this.props.rhsPostBeingEdited ? '.right-file-overlay.post_edit_mode' : '.right-file-overlay';
+            break;
+        }
+        case 'edit_post': {
+            containerSelector = '.post--editing';
+            overlaySelector = this.props.centerChannelPostBeingEdited ? '#editpost' : '.right-file-overlay.post_edit_mode';
+
+            if (this.props.centerChannelPostBeingEdited) {
+                if (this.props.centerChannelPostBeingEdited) {
+                    this.registerDragEvents('form#create_post .AdvancedTextEditor', '#createPostFileDropOverlay');
+                }
+            }
+
+            break;
+        }
+        }
+
+        // if (this.props.postType === 'post') {
+        //     this.registerDragEvents('.row.main', '.center-file-overlay');
+        // } else if (this.props.postType === 'comment') {
+        //     this.registerDragEvents('.post-right__container', '.right-file-overlay');
+        // } else if (this.props.postType === 'thread') {
+        //     this.registerDragEvents('.ThreadPane', '.right-file-overlay');
+        // } else if (this.props.postType === 'edit_post') {
+        //     // TODO
+        // }
+
+        this.registerDragEvents(containerSelector, overlaySelector);
+    };
+
+    componentDidMount() {
+        this.registerDragsterEvents();
+
+        // todo add edit_post case here
 
         document.addEventListener('paste', this.pasteUpload);
         document.addEventListener('keydown', this.keyUpload);
+    }
+
+    componentDidUpdate(prevProps: Readonly<Props>) {
+        if (prevProps.centerChannelPostBeingEdited !== this.props.centerChannelPostBeingEdited || prevProps.rhsPostBeingEdited !== this.props.rhsPostBeingEdited) {
+            this.unbindDragsterEvents?.();
+            this.registerDragsterEvents();
+        }
     }
 
     componentWillUnmount() {
@@ -368,13 +428,20 @@ export class FileUpload extends PureComponent<Props, State> {
     };
 
     registerDragEvents = (containerSelector: string, overlaySelector: string) => {
-        const overlay = document.querySelector(overlaySelector);
+        console.log('registerDragEvents');
+
+        let overlay = document.querySelector(overlaySelector);
 
         const dragTimeout = new DelayedAction(() => {
             overlay?.classList.add('hidden');
         });
 
         const enter = (e: CustomEvent) => {
+            console.log('enter', {containerSelector, overlaySelector});
+            if (!overlay) {
+                overlay = document.querySelector(overlaySelector);
+            }
+
             const files = e.detail.dataTransfer;
             if (!isUriDrop(files) && isFileTransfer(files)) {
                 overlay?.classList.remove('hidden');
@@ -383,6 +450,8 @@ export class FileUpload extends PureComponent<Props, State> {
         };
 
         const leave = (e: CustomEvent) => {
+            console.log('leave');
+
             const files = e.detail.dataTransfer;
 
             if (!isUriDrop(files) && isFileTransfer(files)) {
@@ -395,6 +464,8 @@ export class FileUpload extends PureComponent<Props, State> {
         };
 
         const over = (e: CustomEvent) => {
+            console.log('over');
+
             dragTimeout.fireAfter(OVERLAY_TIMEOUT);
             if (!isTextDroppableEvent(e.detail)) {
                 e.detail.preventDefault();
@@ -412,6 +483,8 @@ export class FileUpload extends PureComponent<Props, State> {
         };
 
         const drop = (e: CustomEvent) => {
+            console.log('drop');
+
             this.handleDrop(e.detail);
 
             if (!isTextDroppableEvent(e.detail)) {
