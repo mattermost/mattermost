@@ -69,11 +69,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.0+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -1125,31 +1125,31 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Search Request Timeout must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format 'hh:mm'."
+    "translation": "Search PostsAggregatorJobStartTime setting must be a time in the format 'hh:mm'."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1."
+    "translation": "Search Live Indexing Batch Size must be at least 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
+    "translation": "Search EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableAutocomplete is set to true"
+    "translation": "Search EnableIndexing setting must be set to true when Elasticsearch EnableAutocomplete is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
+    "translation": "Search ConnectionUrl setting must be provided when indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1."
+    "translation": "Search AggregatePostsAfterDays setting must be a number greater than or equal to 1."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -3205,19 +3205,19 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "{{.Backend}} is disabled."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped."
+    "translation": "{{.Backend}} is already stopped."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version."
+    "translation": "Failed to parse {{.Backend}} server version."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version."
+    "translation": "Failed to get {{.Backend}} server version."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -3241,7 +3241,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "{{.Backend}} searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
@@ -3253,7 +3253,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elasticsearch files searching is disabled on this server"
+    "translation": "{{.Backend}} files searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -3265,7 +3265,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "{{.Backend}} searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -3285,7 +3285,7 @@
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is not started"
+    "translation": "{{.Backend}} is not started"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -3293,11 +3293,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "{{.Backend}} indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "{{.Backend}} indexing worker failed to parse the end time"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
@@ -3325,7 +3325,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch search is not enabled on this server"
+    "translation": "{{.Backend}} search is not enabled on this server"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
@@ -8604,7 +8604,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+    "translation": "Search Bulk Indexing Batch Size must be at least {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -9000,7 +9000,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+    "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
   },
   {
     "id": "model.config.is_valid.local_mode_socket.app_error",
@@ -10419,5 +10419,13 @@
   {
     "id": "web.incoming_webhook.media_type.app_error",
     "translation": "Failed to parse media incoming webhook {{.hook_id}}."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Draft Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Post Message property is longer than the maximum permitted length."
   }
 ]

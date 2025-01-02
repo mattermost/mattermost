@@ -3087,7 +3087,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "このサーバーではElasticsearchによる検索は有効化されていません"
+    "translation": "このサーバーでは {{.Backend}} による検索は有効化されていません"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3095,15 +3095,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearchインデックス付与ワーカーが終了時刻を解析できませんでした"
+    "translation": "{{.Backend}} インデックス付与ワーカーが終了時刻を解析できませんでした"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearchインデックス付与ワーカーが開始時刻を解析できませんでした"
+    "translation": "{{.Backend}} インデックス付与ワーカーが開始時刻を解析できませんでした"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearchが起動されていません"
+    "translation": "{{.Backend}}が起動されていません"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3111,7 +3111,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "このサーバーではElasticsearchによる検索は無効です"
+    "translation": "このサーバーでは {{.Backend}} による検索は無効です"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3127,11 +3127,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearchは既に停止されています。"
+    "translation": "{{.Backend}} は既に停止されています。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearchは無効です。"
+    "translation": "{{.Backend}} は無効です。"
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3699,27 +3699,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "ElasticsearchのAggregatePostsAfterDays設定は1以上でなくてはなりません。"
+    "translation": "検索設定 AggregatePostsAfterDays は1以上でなくてはなりません。"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Searchインデックスが有効な場合、Elastic SearchのConnectionUrl設定は必須です。"
+    "translation": "インデックスが有効な場合、検索設定 ConnectionUrl は必須です。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search検索有効化に有効が設定されている場合、Elastic Searchインデックス有効化設定は有効でなければなりません"
+    "translation": "Elasticsearchの検索有効化に有効が設定されている場合、検索インデックス有効化設定は有効でなければなりません"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Sizeは1以上でなければなりません。"
+    "translation": "検索の Live Indexing Batch Sizeは1以上でなければなりません。"
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "ElasticsearchのPostsAggregatorJobStartTime設定は \"hh:mm\" の形式でなくてはなりません。"
+    "translation": "検索設定 PostsAggregatorJobStartTime は \"hh:mm\" の形式でなくてはなりません。"
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearchリクエストタイムアウトは1秒以上でなくてはなりません。"
+    "translation": "検索のリクエストタイムアウトは1秒以上でなくてはなりません。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4599,11 +4599,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "コマンドが見付かりません。"
+    "translation": "コマンド {{.command_id}} が見つかりません。"
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "外部からのデータを解析できません。"
+    "translation": "ウェブフック {{.hook_id}} に送信されたデータを解析できませんでした。"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4615,7 +4615,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "このウェブフックは要求されたチャンネルに投稿する権限がありません。"
+    "translation": "このウェブフックは要求されたチャンネル {{.channel_id}} に投稿する権限がありません"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4631,7 +4631,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "チャンネルへの権限が足りません。"
+    "translation": "ユーザー {{.user}} はチャンネル {{.channel}} に対する適切な権限を持っていません"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4643,7 +4643,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "ユーザーが見付かりません。"
+    "translation": "ユーザー {{.user}} が見つかりません"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -4699,11 +4699,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.0+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4875,7 +4875,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch 自動補完が有効に設定されている場合、Elasticsearch インデックス有効化設定は有効でなければなりません"
+    "translation": "Elasticsearch 自動補完が有効に設定されている場合、検索のインデックス有効化設定は有効でなければなりません"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4927,11 +4927,11 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Elasticsearchサーバーのバージョンを解析できませんでした。"
+    "translation": "{{.Backend}} サーバーのバージョンを解析できませんでした。"
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Elasticsearchサーバーのバージョンを取得できませんでした。"
+    "translation": "{{.Backend}} サーバーのバージョンを取得できませんでした。"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4951,7 +4951,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "このサーバーではElasticsearchによる検索は無効です"
+    "translation": "このサーバーでは {{.Backend}} による検索は無効です"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -5363,11 +5363,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "チャンネルを探す際にエラーが発生しました。"
+    "translation": "チャンネル {{.channel_id}} を探す際にエラーが発生しました。"
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "既存のチャンネルが見付かりませんでした。"
+    "translation": "既存のチャンネル {{.channel_id}} が見つかりませんでした。"
   },
   {
     "id": "app.channel.delete.app_error",
@@ -7395,7 +7395,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elasticsearchによるファイル検索はこのサーバーでは無効化されています"
+    "translation": "{{.Backend}} によるファイル検索はこのサーバーでは無効化されています"
   },
   {
     "id": "ent.elasticsearch.index_file.error",
@@ -8595,7 +8595,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexing Batch Sizeは{{.BatchSize}}以上である必要があります。"
+    "translation": "検索の Bulk Indexing Batch Sizeは{{.BatchSize}}以上である必要があります。"
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8979,7 +8979,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch バージョン{{.Version}}は、サポートされている最新バージョン{{.MaxVersion}}より高いバージョンです"
+    "translation": "{{.Backend}} バージョン{{.Version}}は、サポートされている最新バージョン{{.MaxVersion}}より高いバージョンです"
   },
   {
     "id": "app.plugin.skip_installation.app_error",
@@ -10388,5 +10388,37 @@
   {
     "id": "model.config.is_valid.storage_class.app_error",
     "translation": "{{.Value}} は不正なストレージクラスです。"
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "下書きメッセージのプロパティが許容される最大長より長い値です。"
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "投稿メッセージのプロパティが許容される最大長より長い値です。"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "同じリクエストを繰り返すクライアントを重複を排除した後、投稿のキャッシュできませんでした。"
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "読み取り位置をプラグインバンドルの開始位置にリセットできませんでした。"
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "コマンドウェブフック {{.hook_id}} を処理できませんでした。"
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "内向きのウェブフック {{.hook_id}} のメディアタイプ {{.media_type}} のペイロードをデコードできませんでした。"
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "内向きのウェブフック {{.hook_id}} のメディアタイプ {{.media_type}} のペイロードを処理できませんでした。"
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "内向きのウェブフック {{.hook_id}} のメディアを解析できませんでした。"
   }
 ]
