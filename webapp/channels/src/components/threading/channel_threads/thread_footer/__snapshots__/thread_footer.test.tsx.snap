@@ -76,13 +76,13 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           <ProfilePopoverController
             src="/api/v4/users/5/image?_=0"
             triggerComponentAs="button"
-            triggerComponentClass="style--none rounded-button"
+            triggerComponentClass="style--none btn-round"
             userId="5"
           >
             <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="style--none rounded-button"
+              className="style--none btn-round"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}
@@ -147,13 +147,13 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           <ProfilePopoverController
             src="/api/v4/users/4/image?_=0"
             triggerComponentAs="button"
-            triggerComponentClass="style--none rounded-button"
+            triggerComponentClass="style--none btn-round"
             userId="4"
           >
             <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="style--none rounded-button"
+              className="style--none btn-round"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}
@@ -218,13 +218,13 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           <ProfilePopoverController
             src="/api/v4/users/3/image?_=0"
             triggerComponentAs="button"
-            triggerComponentClass="style--none rounded-button"
+            triggerComponentClass="style--none btn-round"
             userId="3"
           >
             <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="style--none rounded-button"
+              className="style--none btn-round"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}
@@ -587,13 +587,13 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           <ProfilePopoverController
             src="/api/v4/users/5/image?_=0"
             triggerComponentAs="button"
-            triggerComponentClass="style--none rounded-button"
+            triggerComponentClass="style--none btn-round"
             userId="5"
           >
             <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="style--none rounded-button"
+              className="style--none btn-round"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}
@@ -658,13 +658,13 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           <ProfilePopoverController
             src="/api/v4/users/4/image?_=0"
             triggerComponentAs="button"
-            triggerComponentClass="style--none rounded-button"
+            triggerComponentClass="style--none btn-round"
             userId="4"
           >
             <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="style--none rounded-button"
+              className="style--none btn-round"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}
@@ -729,13 +729,13 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           <ProfilePopoverController
             src="/api/v4/users/3/image?_=0"
             triggerComponentAs="button"
-            triggerComponentClass="style--none rounded-button"
+            triggerComponentClass="style--none btn-round"
             userId="3"
           >
             <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="style--none rounded-button"
+              className="style--none btn-round"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}

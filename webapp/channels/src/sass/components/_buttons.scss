@@ -21,7 +21,7 @@
     }
 }
 
-.rounded-button {
+.btn-round {
     border-radius: 50%;
 }
 
@@ -50,6 +50,10 @@ button {
     gap: 8px;
     outline: none !important;
     transition: all 0.15s ease;
+
+    &.btn-round {
+        border-radius: 50%;
+    }
 
     &.btn-icon {
         width: 40px;
