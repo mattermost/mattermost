@@ -63,11 +63,11 @@
     height: 100%;
     align-items: center;
     justify-content: center;
+    border: none;
     margin: 0;
+    background: none;
     color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 16px;
-    border: none;
-    background: none;
     visibility: hidden;
 
     &:hover {

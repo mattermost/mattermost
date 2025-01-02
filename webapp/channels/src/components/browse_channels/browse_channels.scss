@@ -25,10 +25,10 @@
 
         #searchChannelsTextbox {
             height: 48px;
-            padding-inline: 40px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             box-shadow: none;
             font-size: 16px;
+            padding-inline: 40px;
 
             &::placeholder {
                 color: var(--center-channel-color);

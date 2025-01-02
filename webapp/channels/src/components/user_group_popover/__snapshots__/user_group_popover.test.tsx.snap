@@ -194,7 +194,6 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                   onChange={[Function]}
                   onClear={[Function]}
                   placeholder="Search members"
-                  tooltipPosition="bottom"
                   type="text"
                   value=""
                 >
