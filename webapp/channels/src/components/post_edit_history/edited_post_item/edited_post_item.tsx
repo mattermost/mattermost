@@ -203,7 +203,6 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             title={formatMessage(itemMessages.helpText)}
         >
             <button
-                role={'button'}
                 className='edit-post-history__icon__button restore-icon'
                 onClick={openRestorePostModal}
                 aria-label={formatMessage(itemMessages.ariaLabelMessage)}

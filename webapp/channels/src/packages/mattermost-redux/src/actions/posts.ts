@@ -1326,10 +1326,11 @@ export function restorePostVersion(postId: string, restoreVersionId: string, con
             // Send to error bar if it's an edit post error about time limit.
             if (error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
                 dispatch(logError({type: 'announcement', message: error.message}, true));
+            } else {
+                dispatch(logError(error));
             }
 
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
             return {error};
         }
 
