@@ -12,12 +12,13 @@ type Props = {
     saveNeeded: boolean;
     onClick: () => void;
     cancelLink: string;
+    onCancel?: () => void;
     serverError?: JSX.Element | string;
     isDisabled?: boolean;
     savingMessage?: string;
 };
 
-const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, isDisabled, savingMessage}: Props) => {
+const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, onCancel, isDisabled, savingMessage}: Props) => {
     const {formatMessage} = useIntl();
     return (
         <div className='admin-console-save'>
@@ -33,6 +34,7 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                         id='cancelButtonSettings'
                         className='btn btn-quaternary'
                         to={cancelLink}
+                        onClick={onCancel}
                     >
                         <FormattedMessage
                             id='admin.team_channel_settings.cancel'
