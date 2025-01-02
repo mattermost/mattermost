@@ -4,6 +4,7 @@
 import React from 'react';
 import {Provider} from 'react-redux';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -63,7 +64,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         ldapPictureAttributeSet: false,
     };
 
-    const customProfileAttribute = {
+    const customProfileAttribute: UserPropertyField = {
         id: '1',
         name: 'Test Attribute',
         type: 'text',
