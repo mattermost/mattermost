@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
@@ -60,6 +60,7 @@ const SyncGroupsToggle: React.SFC<Props> = (props: Props): JSX.Element => {
 
 const AllowAllToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
     const {isPublic, isSynced, isDefault, onToggle, isDisabled} = props;
+    const {formatMessage} = useIntl();
     if (isSynced) {
         return null;
     }
@@ -89,7 +90,8 @@ const AllowAllToggle: React.SFC<Props> = (props: Props): JSX.Element | null => {
             ) : (
                 <FormattedMessage
                     id='admin.channel_settings.channel_details.isPublicDescr'
-                    defaultMessage='If `public` the channel is discoverable and any user can join, or if `private` invitations are required. Toggle to convert public channels to private. When Group Sync is enabled, private channels cannot be converted to public.'
+                    defaultMessage='Select Public for a channel any user can find and join. {br}Select Private to require channel invitations to join. {br}Use this switch to change this channel from public to private or from private to public.'
+                    values={{br: (<br/>)}}
                 />
             )
             }
