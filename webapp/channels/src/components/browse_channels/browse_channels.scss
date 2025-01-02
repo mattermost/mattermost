@@ -1,5 +1,3 @@
-@use 'utils/_mixins';
-
 #browseChannelsModal {
     .modal-dialog {
         margin-top: calc(45vh - 240px) !important;
@@ -252,7 +250,7 @@
         margin-top: 8px;
         color: var(--center-channel-color);
         line-height: 28px;
-        @include mixins.textEllipsis;
+        word-wrap: break-word;
     }
 
     .secondary-message {
