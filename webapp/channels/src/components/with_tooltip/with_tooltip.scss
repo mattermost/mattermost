@@ -1,8 +1,10 @@
+@use 'utils/variables';
+
 .tooltipContainer {
-    z-index: 1070;
+    z-index: variables.$z-index-popover;
 
     > .tooltipContentContainer {
-        z-index: 1070;
+        z-index: variables.$z-index-popover;
         max-width: 220px;
         padding: 4px 8px;
         border-radius: 4px;
