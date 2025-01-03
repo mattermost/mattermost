@@ -179,7 +179,6 @@ exports[`components/post_edit_history should match snapshot 1`] = `
             id="searchResult_post_id"
           >
             <div
-              aria-hidden="true"
               class="edit-post-history__title__container"
             >
               <div
@@ -187,13 +186,10 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               >
                 <button
                   aria-label="Toggle to see an old message."
-                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button toggleCollapseButton"
-                  disabled=""
+                  class="edit-post-history__icon__button toggleCollapseButton"
                 >
                   <i
-                    class="IconRoot-jSSaqj bQHSub  icon-chevron-down"
-                    color="inherit"
-                    size="16"
+                    class="icon icon-chevron-down"
                   />
                 </button>
                 <span
@@ -281,7 +277,6 @@ exports[`components/post_edit_history should match snapshot 1`] = `
             id="searchResult_post_id_1"
           >
             <div
-              aria-hidden="true"
               class="edit-post-history__title__container"
             >
               <div
@@ -289,13 +284,10 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               >
                 <button
                   aria-label="Toggle to see an old message."
-                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button toggleCollapseButton"
-                  disabled=""
+                  class="edit-post-history__icon__button toggleCollapseButton"
                 >
                   <i
-                    class="IconRoot-jSSaqj bQHSub  icon-chevron-right"
-                    color="inherit"
-                    size="16"
+                    class="icon icon-chevron-right"
                   />
                 </button>
                 <span
@@ -310,12 +302,10 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               </div>
               <button
                 aria-label="Select to restore an old message."
-                class="IconButtonRoot-hOPlUx gBoGLw edit-post-history__icon__button restore-icon"
+                class="edit-post-history__icon__button restore-icon"
               >
                 <i
-                  class="IconRoot-jSSaqj bQHSub  icon-restore"
-                  color="inherit"
-                  size="16"
+                  class="icon icon-restore"
                 />
               </button>
             </div>
@@ -330,7 +320,6 @@ exports[`components/post_edit_history should match snapshot 1`] = `
             id="searchResult_post_id_2"
           >
             <div
-              aria-hidden="true"
               class="edit-post-history__title__container"
             >
               <div
@@ -338,13 +327,10 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               >
                 <button
                   aria-label="Toggle to see an old message."
-                  class="IconButtonRoot-hOPlUx gmplBN edit-post-history__icon__button toggleCollapseButton"
-                  disabled=""
+                  class="edit-post-history__icon__button toggleCollapseButton"
                 >
                   <i
-                    class="IconRoot-jSSaqj bQHSub  icon-chevron-right"
-                    color="inherit"
-                    size="16"
+                    class="icon icon-chevron-right"
                   />
                 </button>
                 <span
@@ -359,12 +345,10 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               </div>
               <button
                 aria-label="Select to restore an old message."
-                class="IconButtonRoot-hOPlUx gBoGLw edit-post-history__icon__button restore-icon"
+                class="edit-post-history__icon__button restore-icon"
               >
                 <i
-                  class="IconRoot-jSSaqj bQHSub  icon-restore"
-                  color="inherit"
-                  size="16"
+                  class="icon icon-restore"
                 />
               </button>
             </div>
