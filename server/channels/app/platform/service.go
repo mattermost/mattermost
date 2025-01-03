@@ -5,6 +5,7 @@ package platform
 
 import (
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"hash/maphash"
 	"net/http"
@@ -556,7 +557,7 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 
 func (ps *PlatformService) getPluginManifests() ([]*model.Manifest, error) {
 	if ps.pluginEnv == nil {
-		return nil, nil
+		return nil, errors.New("plugin environment not initialized")
 	}
 
 	pluginsEnvironment := ps.pluginEnv.GetPluginsEnvironment()
