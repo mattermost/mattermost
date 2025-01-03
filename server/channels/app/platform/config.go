@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -41,13 +42,14 @@ func (ps *PlatformService) Config() *model.Config {
 }
 
 // getSanitizedConfig gets the configuration without any secrets.
-func (ps *PlatformService) getSanitizedConfig() *model.Config {
+func (ps *PlatformService) getSanitizedConfig(rctx request.CTX) *model.Config {
 	cfg := ps.Config().Clone()
 
 	manifests, err := ps.getPluginManifests()
 	if err != nil {
 		// getPluginManifests might error, e.g. when plugins are disabled.
 		// Sanitize all plugin settings in this case.
+		rctx.Logger().Warn("Failed to get plugin manifests for config sanitization. Will sanitize all plugin settings.", mlog.Err(err))
 		cfg.Sanitize(nil)
 	} else {
 		cfg.Sanitize(manifests)

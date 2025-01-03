@@ -191,8 +191,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	return fileData, rErr.ErrorOrNil()
 }
 
-func (ps *PlatformService) getSanitizedConfigFile(_ request.CTX) (*model.FileData, error) {
-	config := ps.getSanitizedConfig()
+func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.FileData, error) {
+	config := ps.getSanitizedConfig(rctx)
 	spConfig := model.SupportPacketConfig{
 		Config:       config,
 		FeatureFlags: *config.FeatureFlags,
