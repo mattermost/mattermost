@@ -610,5 +610,9 @@ func (a *App) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, 
 			return nil, model.NewAppError("CreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+	if err := a.RevokeAllSessions(rctx, user.Id); err != nil {
+		return nil, err
+	}
+
 	return bot, nil
 }

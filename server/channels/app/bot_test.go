@@ -820,9 +820,17 @@ func TestConvertUserToBot(t *testing.T) {
 		})
 	})
 
-	t.Run("valid user", func(t *testing.T) {
+	t.Run("valid user and session revoked", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+
+		// make sure session is valid
+		testSession, err := th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, testSession.IsExpired())
 
 		bot, err := th.App.ConvertUserToBot(th.Context, &model.User{
 			Username: "username",
@@ -832,6 +840,11 @@ func TestConvertUserToBot(t *testing.T) {
 		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+
+		// make sure session is no longer valid
+		_, err = th.App.GetSession(session.Token)
+		require.NotNil(t, err)
+		require.Equal(t, "api.context.invalid_token.error", err.Id)
 	})
 }
 
