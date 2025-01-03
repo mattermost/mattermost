@@ -49,12 +49,13 @@ export default function Footer({
                     handleSubmit={noArgumentHandleSubmit}
                 />
             )}
-            {!isInEditMode && (
+            {
+                !isInEditMode &&
                 <MsgTyping
                     channelId={channelId}
                     postId={postId}
                 />
-            )}
+            }
         </div>
     );
 }
