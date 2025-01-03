@@ -215,9 +215,10 @@ export class FileUpload extends PureComponent<Props, State> {
             break;
         }
         case 'thread': {
+            console.log('thread', {rhsPostBeingEdited: this.props.rhsPostBeingEdited});
             // containerSelector = this.props.rhsPostBeingEdited ? '.post--editing' : '.ThreadPane';
-            containerSelector = '.ThreadPane';
-            overlaySelector = this.props.rhsPostBeingEdited ? '.right-file-overlay.post_edit_mode' : '.right-file-overlay';
+            containerSelector = this.props.rhsPostBeingEdited ? '.post-create__container .AdvancedTextEditor__body' : '.ThreadPane';
+            overlaySelector = this.props.rhsPostBeingEdited ? '#createPostFileDropOverlay' : '.right-file-overlay';
             break;
         }
         case 'edit_post': {
