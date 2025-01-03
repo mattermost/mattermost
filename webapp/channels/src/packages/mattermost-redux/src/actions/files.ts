@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import type {FileSearchResultItem} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
@@ -10,6 +7,8 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+
+import CryptoJS from 'crypto-js/aes';
 
 export function receivedFiles(files: Map<string, FileSearchResultItem>) {
     return {
@@ -45,6 +44,10 @@ export function getFilesForPost(postId: string): ActionFuncAsync {
 
         try {
             files = await Client4.getFileInfosForPost(postId);
+            files = files.map((file) => {
+                const decryptedData = decryptAES256(file.data);
+                return {...file, data: decryptedData};
+            });
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -69,4 +72,13 @@ export function getFilePublicLink(fileId: string) {
             fileId,
         ],
     });
+}
+
+function encryptAES256(data: string): string {
+    return CryptoJS.AES.encrypt(data, 'secret key 123').toString();
+}
+
+function decryptAES256(data: string): string {
+    const bytes = CryptoJS.AES.decrypt(data, 'secret key 123');
+    return bytes.toString(CryptoJS.enc.Utf8);
 }

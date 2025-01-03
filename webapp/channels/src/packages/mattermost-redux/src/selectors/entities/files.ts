@@ -1,19 +1,24 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import type {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
+import {decryptAES256} from 'utils/encryption_utils'; // Import the AES256 decryption utility
 
 function getAllFiles(state: GlobalState) {
     return state.entities.files.files;
 }
 
 export function getFile(state: GlobalState, id: string) {
-    return state.entities.files.files?.[id];
+    const file = state.entities.files.files?.[id];
+    if (file) {
+        return {
+            ...file,
+            content: decryptAES256(file.content), // Decrypt the file content
+        };
+    }
+    return file;
 }
 
 function getAllFilesFromSearch(state: GlobalState) {
@@ -39,7 +44,16 @@ export function makeGetFilesForPost(): (state: GlobalState, postId: string) => F
         getFilesIdsForPost,
         getCurrentUserLocale,
         (allFiles, fileIdsForPost, locale) => {
-            const fileInfos = fileIdsForPost.map((id) => allFiles[id]).filter((id) => Boolean(id));
+            const fileInfos = fileIdsForPost.map((id) => {
+                const file = allFiles[id];
+                if (file) {
+                    return {
+                        ...file,
+                        content: decryptAES256(file.content), // Decrypt the file content
+                    };
+                }
+                return file;
+            }).filter((id) => Boolean(id));
 
             return sortFileInfos(fileInfos, locale);
         },
@@ -55,7 +69,15 @@ export const getSearchFilesResults: (state: GlobalState) => FileSearchResultItem
             return [];
         }
 
-        return fileIds.map((id) => files[id]);
+        return fileIds.map((id) => {
+            const file = files[id];
+            if (file) {
+                return {
+                    ...file,
+                    content: decryptAES256(file.content), // Decrypt the file content
+                };
+            }
+            return file;
+        });
     },
 );
-
