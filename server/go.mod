@@ -7,13 +7,13 @@ toolchain go1.22.6
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.2.1
+	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20240501094946-ca0c4d1e541b
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/blang/semver/v4 v4.0.0
 	github.com/blevesearch/bleve/v2 v2.4.1
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
-	github.com/disintegration/imaging v1.6.2
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/elastic/go-elasticsearch/v8 v8.14.0
 	github.com/fatih/color v1.17.0
