@@ -24,7 +24,7 @@ import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 
-import {OverlayArrow, OverlaysTimings, RootHtmlPortalId} from 'utils/constants';
+import {OverlayArrow, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 
 import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
@@ -148,12 +148,7 @@ function WithTooltip({
             open: OverlaysTimings.FADE_IN_DURATION,
             close: OverlaysTimings.FADE_OUT_DURATION,
         },
-        initial: {
-            opacity: 0,
-        },
-        common: {
-            opacity: 1,
-        },
+        initial: OverlayTransitionStyles.START,
     });
 
     if (!isValidElement(children)) {

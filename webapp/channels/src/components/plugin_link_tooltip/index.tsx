@@ -22,7 +22,7 @@ import React, {useRef, useState} from 'react';
 import type {ReactElement} from 'react';
 
 import Pluggable from 'plugins/pluggable';
-import {RootHtmlPortalId, OverlaysTimings, OverlayArrow} from 'utils/constants';
+import {RootHtmlPortalId, OverlaysTimings, OverlayArrow, OverlayTransitionStyles} from 'utils/constants';
 
 import './plugin_link_tooltip.scss';
 
@@ -60,12 +60,7 @@ function PluginLinkTooltip(props: Props) {
             open: OverlaysTimings.FADE_IN_DURATION,
             close: OverlaysTimings.FADE_OUT_DURATION,
         },
-        initial: {
-            opacity: 0,
-        },
-        common: {
-            opacity: 1,
-        },
+        initial: OverlayTransitionStyles.START,
     });
 
     const combinedFloatingStyles = Object.assign({}, floatingStyles, transitionStyles);
