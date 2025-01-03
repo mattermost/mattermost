@@ -335,7 +335,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     };
 
     setStateValue = (key: string, value: string | boolean): void => {
-        const data: {[key: string]: string | boolean } = {};
+        const data: { [key: string]: string | boolean } = {};
         data[key] = value;
         this.setState((prevState) => ({...prevState, ...data}));
     };
@@ -597,7 +597,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             Menu: () => null,
                             MenuList: () => null,
                         }}
-                        aria-labelledby='notificationTriggerCustom'
+                        aria-labelledby='settingTitle'
+                        aria-describedby='extraInfo'
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
                         inputValue={this.state.customKeysWithNotificationInputValue}
@@ -747,7 +748,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 tooltipMessageBlocked={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipMessage',
                     defaultMessage:
-                    'This feature is available on the Professional plan',
+                        'This feature is available on the Professional plan',
                 })}
                 titleAdminPreTrial={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleAdminPreTrial',
