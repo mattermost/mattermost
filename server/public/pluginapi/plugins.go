@@ -91,8 +91,8 @@ func (p *PluginService) Disable(id string) error {
 // Remove will disable and delete a plugin.
 //
 // Minimum server version: 5.6
-func (p *PluginService) Remove(id string) error {
-	appErr := p.api.RemovePlugin(id)
+func (p *PluginService) Remove(id string, r *http.Request) error {
+	appErr := p.api.RemovePlugin(id, r)
 
 	return normalizeAppErr(appErr)
 }

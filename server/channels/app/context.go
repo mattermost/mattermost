@@ -4,13 +4,14 @@
 package app
 
 import (
-	"context"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+
+	serverContext "context"
 	"net/http"
 )
 
@@ -37,7 +38,7 @@ func PluginCTX(r *http.Request, app AppIface) request.CTX {
 	} else {
 		t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
 		c = request.NewContext(
-			context.Background(),
+			serverContext.Background(),
 			model.NewId(),
 			utils.GetIPAddress(r, app.Config().ServiceSettings.TrustedProxyIPHeader),
 			r.Header.Get("X-Forwarded-For"),

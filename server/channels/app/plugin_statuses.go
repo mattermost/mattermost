@@ -4,12 +4,12 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"net/http"
 
-	"github.com/mattermost/mattermost/server/public/model"
+	"net/http"
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.
