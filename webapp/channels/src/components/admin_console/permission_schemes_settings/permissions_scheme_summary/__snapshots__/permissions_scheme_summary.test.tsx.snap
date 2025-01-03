@@ -273,8 +273,6 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
       Team 8
     </span>
     <WithTooltip
-      id="id-extra-teams-overlay"
-      placement="bottom"
       title="Team 9, Team 10"
     >
       <span

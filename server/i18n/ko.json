@@ -4300,10 +4300,6 @@
     "translation": "잘못된 ID"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message"
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Invalid original id"
   },
