@@ -23,7 +23,7 @@ describe('Custom Theme - Sidebar Styles', () => {
             // # Go to Theme > Custom > Sidebar Styles
             cy.uiOpenSettingsModal('Display');
             cy.get('#themeTitle').scrollIntoView().click();
-            cy.uiGetRadioButton('Custom Theme').click();
+            cy.get('[role="radio"]#customThemes').click();
             cy.findByText('Sidebar Styles').scrollIntoView().click({force: true});
         });
     });

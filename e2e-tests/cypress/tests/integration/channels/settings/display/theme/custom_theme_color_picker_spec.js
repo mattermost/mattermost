@@ -86,11 +86,11 @@ function verifyColorPickerChange(stylesText, iconButtonId, inputId, iconValueId)
     cy.get('#standardThemes').
         scrollIntoView().
         should('be.visible').
-        check();
+        click().should('have.attr', 'aria-checked', 'true');
     cy.get('#customThemes').
         scrollIntoView().
         should('be.visible').
-        check();
+        click().should('have.attr', 'aria-checked', 'true');
 
     // # Re-open styles section
     cy.findByText(stylesText).
