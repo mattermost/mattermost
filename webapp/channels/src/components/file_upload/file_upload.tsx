@@ -16,7 +16,7 @@ import type {UploadFile} from 'actions/file_actions';
 import {
     DropOverlayIDCreateComment,
     DropOverlayIDCreatePost,
-    DropOverlayIDEditPost,
+    DropOverlayIDEditPost, DropOverlayRHS
 } from 'components/advanced_text_editor/advanced_text_editor';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -211,7 +211,7 @@ export class FileUpload extends PureComponent<Props, State> {
         case 'comment': {
             // containerSelector = this.props.rhsPostBeingEdited ? '.post--editing' : '.post-right__container';
             containerSelector = '.post-right__container';
-            overlaySelector = this.props.rhsPostBeingEdited ? '.right-file-overlay.post_edit_mode' : '.right-file-overlay';
+            overlaySelector = this.props.rhsPostBeingEdited ? '#' + DropOverlayIDCreateComment : '#' + DropOverlayRHS;
             break;
         }
         case 'thread': {
