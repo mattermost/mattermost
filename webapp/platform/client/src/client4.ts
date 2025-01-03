@@ -113,6 +113,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
+import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
@@ -340,6 +341,14 @@ export default class Client4 {
 
     getRemoteClusterRoute(remoteId: string) {
         return `${this.getRemoteClustersRoute()}/${remoteId}`;
+    }
+
+    getCustomProfileAttributeFieldsRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/fields`;
+    }
+
+    getCustomProfileAttributeFieldRoute(propertyFieldId: string) {
+        return `${this.getCustomProfileAttributeFieldsRoute()}/${propertyFieldId}`;
     }
 
     getPostsRoute() {
@@ -2058,6 +2067,97 @@ export default class Client4 {
             `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/uninvite`,
             {method: 'POST'},
         );
+    };
+
+    // System Properties Routes
+
+    getCustomProfileAttributeFields = async () => {
+        /* return this.doFetch<UserPropertyField[]>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'GET'},
+        ); */
+
+        // TODO delete mock
+        const data: UserPropertyField[] = [
+            {
+                id: 'test01',
+                name: 'testone',
+                type: 'text',
+                create_at: 1734643125000,
+                delete_at: 0,
+                update_at: 0,
+            },
+            {
+                id: 'test02',
+                name: 'testtwo',
+                type: 'text',
+                create_at: 1734643125000,
+                delete_at: 0,
+                update_at: 0,
+            },
+            {
+                id: 'test03',
+                name: 'testthree',
+                type: 'text',
+                create_at: 1734643125000,
+                delete_at: 0,
+                update_at: 0,
+            },
+        ];
+
+        await new Promise((res) => setTimeout(res, 750));
+
+        return data;
+    };
+
+    createCustomProfileAttributeField = async (patch: UserPropertyFieldPatch) => {
+        // return this.doFetch<UserPropertyField>(
+        //     `${this.getCustomProfileAttributeFieldsRoute()}`,
+        //     {method: 'POST', body: JSON.stringify(patch)},
+        // );
+
+        // TODO delete mock
+        await new Promise((res) => setTimeout(res, 750));
+
+        return {
+            id: crypto.getRandomValues(new Uint32Array(200))[Math.floor(Math.random() * 200)].toString(),
+            name: patch.name,
+            type: 'text',
+            create_at: 1734643125001,
+            delete_at: 0,
+            update_at: 0,
+        } as UserPropertyField;
+    };
+
+    patchCustomProfileAttributeField = async (fieldId: string, patch: UserPropertyFieldPatch) => {
+        /* return this.doFetch<UserPropertyField>(
+            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        ); */
+        // TODO delete mock
+        await new Promise((res) => setTimeout(res, 750));
+
+        return {
+            id: fieldId,
+            name: patch.name,
+            type: 'text',
+            create_at: 1734643125000,
+            delete_at: 0,
+            update_at: 1734643125001,
+        } as UserPropertyField;
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    deleteCustomProfileAttributeField = async (fieldId: string) => {
+        // return this.doFetch<StatusOK>(
+        //     `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+        //     {method: 'DELETE'},
+        // );
+
+        // TODO delete mock
+        await new Promise((res) => setTimeout(res, 750));
+
+        return {status: 'OK'} as StatusOK;
     };
 
     // Post Routes
