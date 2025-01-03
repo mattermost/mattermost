@@ -85,7 +85,6 @@ package app
 import (
 	"bytes"
 	"fmt"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"io"
 	"net/http"
 	"os"
@@ -95,6 +94,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	httpRequest "github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -196,7 +196,7 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool, r *http.Requ
 // cluster peers to use, and then broadcasts the change to connected websockets.
 //
 // The given installation strategy decides how to handle upgrade scenarios.
-func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy, c request.CTX) (*model.Manifest, *model.AppError) {
+func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy, c httpRequest.CTX) (*model.Manifest, *model.AppError) {
 	manifest, appErr := ch.installPluginLocally(bundle, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
