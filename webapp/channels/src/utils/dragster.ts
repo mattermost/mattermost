@@ -49,7 +49,6 @@ export default function dragster(query: string, options: Options) {
         }
         if (!first && !second) {
             const leaveEvent = new CustomEvent('dragster:leave', {detail: event});
-            console.log('dispatch drop event');
             node.dispatchEvent(leaveEvent);
         }
     };
@@ -67,7 +66,6 @@ export default function dragster(query: string, options: Options) {
         }
         if (!first && !second) {
             const dropEvent = new CustomEvent('dragster:drop', {detail: event});
-            console.log('dispatchj drop event', {target: event.target});
             node.dispatchEvent(dropEvent);
         }
     };
