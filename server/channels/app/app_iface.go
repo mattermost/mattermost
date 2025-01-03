@@ -918,7 +918,6 @@ type AppIface interface {
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string
 	ImageProxyRemover() (f func(string) string)
-	ImportPermissions(jsonl io.Reader) error
 	InitPlugins(c request.CTX, pluginDir, webappPluginDir string)
 	InvalidateAllEmailInvites(c request.CTX) *model.AppError
 	InvalidateAllResendInviteEmailJobs(c request.CTX) *model.AppError
