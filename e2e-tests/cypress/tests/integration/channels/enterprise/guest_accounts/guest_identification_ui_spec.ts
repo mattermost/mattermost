@@ -133,7 +133,7 @@ describe('Verify Guest User Identification in different screens', () => {
         cy.uiOpenFindChannels();
 
         // # Type the guest user name on Channel switcher input
-        cy.findByRole('textbox', {name: 'quick switch input'}).type(guestUser.username).wait(TIMEOUTS.HALF_SEC);
+        cy.findByRole('combobox', {name: 'quick switch input'}).type(guestUser.username).wait(TIMEOUTS.HALF_SEC);
 
         // * Verify if Guest badge is displayed for the guest user in the Switch Channel Dialog
         cy.get('#suggestionList').should('be.visible');
