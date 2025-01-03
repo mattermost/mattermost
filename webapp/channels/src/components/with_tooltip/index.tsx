@@ -161,8 +161,6 @@ function WithTooltip({
         console.error('Children must be a valid React element for WithTooltip');
     }
 
-    const combinedFloatingStyles = Object.assign({}, floatingStyles, transitionStyles);
-
     const mergedRefs = useMergeRefs([(children as any)?.ref, setReference]);
 
     const trigger = cloneElement(children, {
@@ -180,7 +178,7 @@ function WithTooltip({
                     <div
                         className={classNames('tooltipContainer', className)}
                         ref={setFloating}
-                        style={combinedFloatingStyles}
+                        style={{...floatingStyles, ...transitionStyles}}
                         {...getFloatingProps()}
                     >
                         <TooltipContent
