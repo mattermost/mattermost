@@ -30,13 +30,13 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       <ProfilePopoverController
         src="/api/v4/users/1/image?_=0"
         triggerComponentAs="button"
-        triggerComponentClass="style--none rounded-button"
+        triggerComponentClass="style--none btn-round"
         userId="1"
       >
         <button
           aria-expanded="false"
           aria-haspopup="dialog"
-          className="style--none rounded-button"
+          className="style--none btn-round"
           onClick={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -101,13 +101,13 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       <ProfilePopoverController
         src="/api/v4/users/6/image?_=0"
         triggerComponentAs="button"
-        triggerComponentClass="style--none rounded-button"
+        triggerComponentClass="style--none btn-round"
         userId="6"
       >
         <button
           aria-expanded="false"
           aria-haspopup="dialog"
-          className="style--none rounded-button"
+          className="style--none btn-round"
           onClick={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -172,13 +172,13 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       <ProfilePopoverController
         src="/api/v4/users/7/image?_=0"
         triggerComponentAs="button"
-        triggerComponentClass="style--none rounded-button"
+        triggerComponentClass="style--none btn-round"
         userId="7"
       >
         <button
           aria-expanded="false"
           aria-haspopup="dialog"
-          className="style--none rounded-button"
+          className="style--none btn-round"
           onClick={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -302,13 +302,13 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       <ProfilePopoverController
         src="/api/v4/users/1/image?_=0"
         triggerComponentAs="button"
-        triggerComponentClass="style--none rounded-button"
+        triggerComponentClass="style--none btn-round"
         userId="1"
       >
         <button
           aria-expanded="false"
           aria-haspopup="dialog"
-          className="style--none rounded-button"
+          className="style--none btn-round"
           onClick={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -373,13 +373,13 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       <ProfilePopoverController
         src="/api/v4/users/2/image?_=0"
         triggerComponentAs="button"
-        triggerComponentClass="style--none rounded-button"
+        triggerComponentClass="style--none btn-round"
         userId="2"
       >
         <button
           aria-expanded="false"
           aria-haspopup="dialog"
-          className="style--none rounded-button"
+          className="style--none btn-round"
           onClick={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -444,13 +444,13 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       <ProfilePopoverController
         src="/api/v4/users/3/image?_=0"
         triggerComponentAs="button"
-        triggerComponentClass="style--none rounded-button"
+        triggerComponentClass="style--none btn-round"
         userId="3"
       >
         <button
           aria-expanded="false"
           aria-haspopup="dialog"
-          className="style--none rounded-button"
+          className="style--none btn-round"
           onClick={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -572,13 +572,13 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
       <ProfilePopoverController
         src="/api/v4/users/1/image?_=0"
         triggerComponentAs="button"
-        triggerComponentClass="style--none rounded-button"
+        triggerComponentClass="style--none btn-round"
         userId="1"
       >
         <button
           aria-expanded="false"
           aria-haspopup="dialog"
-          className="style--none rounded-button"
+          className="style--none btn-round"
           onClick={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -643,13 +643,13 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
       <ProfilePopoverController
         src="/api/v4/users/2/image?_=0"
         triggerComponentAs="button"
-        triggerComponentClass="style--none rounded-button"
+        triggerComponentClass="style--none btn-round"
         userId="2"
       >
         <button
           aria-expanded="false"
           aria-haspopup="dialog"
-          className="style--none rounded-button"
+          className="style--none btn-round"
           onClick={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -714,13 +714,13 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
       <ProfilePopoverController
         src="/api/v4/users/3/image?_=0"
         triggerComponentAs="button"
-        triggerComponentClass="style--none rounded-button"
+        triggerComponentClass="style--none btn-round"
         userId="3"
       >
         <button
           aria-expanded="false"
           aria-haspopup="dialog"
-          className="style--none rounded-button"
+          className="style--none btn-round"
           onClick={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}

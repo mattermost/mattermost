@@ -3,6 +3,7 @@
 
 import type {GlobalState} from 'types/store';
 
+// remove redux state
 export function isAddChannelDropdownOpen(state: GlobalState) {
     return state.views.addChannelDropdown.isOpen;
 }

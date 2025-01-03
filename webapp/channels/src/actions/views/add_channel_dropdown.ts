@@ -3,6 +3,7 @@
 
 import {ActionTypes} from 'utils/constants';
 
+// remove this as well
 export function setAddChannelDropdown(open: boolean) {
     return {
         type: ActionTypes.ADD_CHANNEL_DROPDOWN_TOGGLE,
