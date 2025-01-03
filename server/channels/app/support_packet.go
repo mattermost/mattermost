@@ -287,7 +287,7 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 		if len(schemes) < perPage {
 			break
 		}
-		page += 1
+		page++
 	}
 
 	for _, s := range allSchemes {

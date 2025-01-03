@@ -251,16 +251,18 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 		found := false
 		for _, f := range fileDatas {
-			if f.Filename == "sanitized_config.json" {
-				var config model.Config
-				err = json.Unmarshal(f.Body, &config)
-				require.NoError(t, err)
-
-				assert.Equal(t, "foo_value", config.PluginSettings.Plugins[pluginID]["foo"])
-				assert.Equal(t, model.FakeSetting, config.PluginSettings.Plugins[pluginID]["bar"])
-
-				found = true
+			if f.Filename != "sanitized_config.json" {
+				continue
 			}
+
+			var config model.Config
+			err = json.Unmarshal(f.Body, &config)
+			require.NoError(t, err)
+
+			assert.Equal(t, "foo_value", config.PluginSettings.Plugins[pluginID]["foo"])
+			assert.Equal(t, model.FakeSetting, config.PluginSettings.Plugins[pluginID]["bar"])
+
+			found = true
 		}
 		assert.True(t, found)
 	})
@@ -292,7 +294,7 @@ func TestGetPluginsFile(t *testing.T) {
 		assert.Len(t, pl.Disabled, 0)
 	})
 
-	t.Run("no errors if no plugins are installed", func(t *testing.T) {
+	t.Run("two plugins are installed", func(t *testing.T) {
 		path, _ := fileutils.FindDir("tests")
 
 		bundle1, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
