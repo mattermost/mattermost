@@ -17,20 +17,20 @@ import {
     arrow,
     offset,
     FloatingArrow,
+    useFocus,
+    useRole,
 } from '@floating-ui/react';
+import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
-import type {ReactElement} from 'react';
+import type {AnchorHTMLAttributes, ReactElement} from 'react';
 
 import Pluggable from 'plugins/pluggable';
-import {RootHtmlPortalId, OverlaysTimings, OverlayArrow, OverlayTransitionStyles} from 'utils/constants';
+import {RootHtmlPortalId, OverlaysTimings, OverlayArrow, OverlayTransitionStyles, A11yClassNames} from 'utils/constants';
 
 import './plugin_link_tooltip.scss';
 
 interface Props {
-    href: string;
-    attributeDataHashtag?: string;
-    attributeDataLink?: string;
-    attributeDataChannelMention?: string;
+    nodeAttributes: AnchorHTMLAttributes<HTMLAnchorElement>;
     children: ReactElement;
 }
 
@@ -73,24 +73,26 @@ function PluginLinkTooltip(props: Props) {
             blockPointerEvents: true,
         }),
     });
+    const focusInteractions = useFocus(floatingContext);
     const dismissInteraction = useDismiss(floatingContext);
+    const roleProps = useRole(floatingContext, {role: 'tooltip'});
 
     const {getReferenceProps, getFloatingProps} = useInteractions([
         hoverInteractions,
+        focusInteractions,
         dismissInteraction,
+        roleProps,
     ]);
 
     return (
         <>
-            <span
+            <a
                 ref={setReference}
-                data-hashtag={props.attributeDataHashtag}
-                data-link={props.attributeDataLink}
-                data-channel-mention={props.attributeDataChannelMention}
+                {...props.nodeAttributes}
                 {...getReferenceProps()}
             >
                 {props.children}
-            </span>
+            </a>
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
                     <FloatingOverlay className='plugin-link-tooltip-floating-overlay'>
@@ -98,12 +100,12 @@ function PluginLinkTooltip(props: Props) {
                             <div
                                 ref={setFloating}
                                 style={combinedFloatingStyles}
-                                className='plugin-link-tooltip-container'
+                                className={classNames('plugin-link-tooltip-container', A11yClassNames.POPUP)}
                                 {...getFloatingProps()}
                             >
                                 <Pluggable
-                                    href={props.href}
-                                    show={true}
+                                    href={props.nodeAttributes.href}
+                                    show={isMounted}
                                     pluggableName='LinkTooltip'
                                 />
                                 <FloatingArrow

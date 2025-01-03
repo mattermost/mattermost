@@ -108,16 +108,11 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
 
     if (options.hasPluginTooltips) {
         processingInstructions.push({
-            replaceChildren: true,
+            replaceChildren: false,
             shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs.href,
             processNode: (node: any, children: any) => {
                 return (
-                    <PluginLinkTooltip
-                        href={node.attribs.href}
-                        attributeDataHashtag={node.attribs['data-hashtag']}
-                        attributeDataLink={node.attribs['data-link']}
-                        attributeDataChannelMention={node.attribs['data-channel-mention']}
-                    >
+                    <PluginLinkTooltip nodeAttributes={node.attribs}>
                         {children}
                     </PluginLinkTooltip>
                 );
