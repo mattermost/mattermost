@@ -47,7 +47,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
         isMobileView: false,
-        customProfileAttributes: [],
+        customProfileAttributeFields: {},
         actions: {
             logError: jest.fn(),
             clearErrors: jest.fn(),
@@ -62,6 +62,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         ldapPositionAttributeSet: false,
         samlPositionAttributeSet: false,
         ldapPictureAttributeSet: false,
+        enableCustomProfileAttributes: false,
     };
 
     const customProfileAttribute: UserPropertyField = {
@@ -197,7 +198,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
             return {};
         });
-        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
+        const props = {...requiredProps, enableCustomProfileAttributes: true, customProfileAttributeFields: {1: customProfileAttribute}};
         props.user = {...user};
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
@@ -212,7 +213,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 1: '',
             };
         });
-        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
+        const props = {...requiredProps, enableCustomProfileAttributes: true, customProfileAttributeFields: {1: customProfileAttribute}};
         props.user = {...user};
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
@@ -225,7 +226,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => {
             return {1: 'Custom Attribute Value'};
         });
-        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
+        const props = {...requiredProps, enableCustomProfileAttributes: true, customProfileAttributeFields: {1: customProfileAttribute}};
         props.user = {...user};
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
@@ -235,7 +236,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('should show Custom Attribute Field editing with empty value', async () => {
-        const props = {...requiredProps, customProfileAttributes: [customProfileAttribute]};
+        const props = {...requiredProps, enableCustomProfileAttributes: true, customProfileAttributeFields: {1: customProfileAttribute}};
         props.user = {...user};
         props.activeSection = 'customAttribute_1';
 
@@ -248,8 +249,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: true});
         const props = {
             ...requiredProps,
+            enableCustomProfileAttributes: true,
             actions: {...requiredProps.actions, saveCustomProfileAttribute},
-            customProfileAttributes: [customProfileAttribute],
+            customProfileAttributeFields: {1: customProfileAttribute},
             user: {...user},
             activeSection: 'customAttribute_1',
         };

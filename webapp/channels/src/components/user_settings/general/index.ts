@@ -14,7 +14,7 @@ import {
     uploadProfileImage,
     saveCustomProfileAttribute,
 } from 'mattermost-redux/actions/users';
-import {getConfig, getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -24,7 +24,7 @@ import UserSettingsGeneralTab from './user_settings_general';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
-    const customProfileAttributes = getCustomProfileAttributes(state);
+    const customProfileAttributeFields = getCustomProfileAttributes(state);
 
     const requireEmailVerification = config.RequireEmailVerification === 'true';
     const maxFileSize = parseInt(config.MaxFileSize!, 10);
@@ -37,12 +37,13 @@ function mapStateToProps(state: GlobalState) {
     const samlPositionAttributeSet = config.SamlPositionAttributeSet === 'true';
     const ldapPositionAttributeSet = config.LdapPositionAttributeSet === 'true';
     const ldapPictureAttributeSet = config.LdapPictureAttributeSet === 'true';
+    const enableCustomProfileAttributes = getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true';
 
     return {
         isMobileView: getIsMobileView(state),
         requireEmailVerification,
         maxFileSize,
-        customProfileAttributes,
+        customProfileAttributeFields,
         ldapFirstNameAttributeSet,
         ldapLastNameAttributeSet,
         samlFirstNameAttributeSet,
@@ -52,6 +53,7 @@ function mapStateToProps(state: GlobalState) {
         samlPositionAttributeSet,
         ldapPositionAttributeSet,
         ldapPictureAttributeSet,
+        enableCustomProfileAttributes,
     };
 }
 

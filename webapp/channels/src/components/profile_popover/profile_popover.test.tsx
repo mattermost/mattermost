@@ -385,11 +385,12 @@ describe('components/ProfilePopover', () => {
             };
         });
 
-        initialState.entities!.general!.customProfileAttributes = [
-            {id: '123', name: 'Rank', type: 'text'},
-            {id: '456', name: 'CO', type: 'text'},
-            {id: '789', name: 'Base', type: 'text'},
-        ];
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {id: '123', name: 'Rank', type: 'text'},
+            456: {id: '456', name: 'CO', type: 'text'},
+            789: {id: '789', name: 'Base', type: 'text'},
+        };
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         await act(async () => {
@@ -404,10 +405,11 @@ describe('components/ProfilePopover', () => {
     test('should not display attributes if user attributes is null', async () => {
         const [props, initialState] = getBasePropsAndState();
 
-        initialState.entities!.general!.customProfileAttributes = [
-            {id: '123', name: 'Rank', type: 'text'},
-            {id: '456', name: 'CO', type: 'text'},
-        ];
+        initialState.entities!.general!.config!.FeatureFlagCustomProfileAttributes = 'true';
+        initialState.entities!.general!.customProfileAttributes = {
+            123: {id: '123', name: 'Rank', type: 'text'},
+            456: {id: '456', name: 'CO', type: 'text'},
+        };
         (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => ({}));
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);

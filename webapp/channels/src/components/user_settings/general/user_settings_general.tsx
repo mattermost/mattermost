@@ -9,6 +9,7 @@ import type {IntlShape} from 'react-intl';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -108,7 +109,7 @@ export type Props = {
     collapseModal: () => void;
     isMobileView: boolean;
     maxFileSize: number;
-    customProfileAttributes: UserPropertyField[];
+    customProfileAttributeFields: IDMappedObjects<UserPropertyField>;
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
         clearErrors: () => void;
@@ -129,6 +130,7 @@ export type Props = {
     ldapPositionAttributeSet?: boolean;
     samlPositionAttributeSet?: boolean;
     ldapPictureAttributeSet?: boolean;
+    enableCustomProfileAttributes: boolean;
 }
 
 type State = {
@@ -161,13 +163,15 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        const fetchValues = async () => {
-            const response = await Client4.getUserCustomProfileAttributesValues(this.props.user.id);
-            this.setState({customAttributeValues: response});
-        };
+        if (this.props.enableCustomProfileAttributes) {
+            const fetchValues = async () => {
+                const response = await Client4.getUserCustomProfileAttributesValues(this.props.user.id);
+                this.setState({customAttributeValues: response});
+            };
 
-        this.props.actions.getCustomProfileAttributeFields();
-        fetchValues();
+            this.props.actions.getCustomProfileAttributeFields();
+            fetchValues();
+        }
     }
 
     handleEmailResend = (email: string) => {
@@ -410,8 +414,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     submitAttribute = async (settings: string[]) => {
         const attributeID = settings[0];
-        const attributeValue = this.state.customAttributeValues[attributeID];
-        if (!this.state.customAttributeValues && !this.state.customAttributeValues[attributeID]) {
+        const attributeValue = this.state.customAttributeValues?.[attributeID];
+        if (attributeValue == null) {
             return;
         }
 
@@ -425,18 +429,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     this.updateSection('');
                 } else if (err) {
                     const serverError = err;
-
-                    // let serverError = err;
-                    // if (err.server_error_id &&
-                    //     err.server_error_id === 'api.user.check_user_password.invalid.app_error') {
-                    //     serverError = formatMessage(holders.incorrectPassword);
-                    // } else if (err.server_error_id === 'app.user.group_name_conflict') {
-                    //     serverError = formatMessage(holders.usernameGroupNameUniqueness);
-                    // } else if (err.message) {
-                    //     serverError = err.message;
-                    // } else {
-                    //     serverError = err;
-                    // }
                     this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
                 }
             });
@@ -1337,11 +1329,12 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     createCustomAttributeSection = () => {
-        const attributeSections = this.props.customProfileAttributes.map((attribute) => {
-            let attributeValue = '';
-            if (attribute.id in this.state.customAttributeValues) {
-                attributeValue = this.state.customAttributeValues[attribute.id];
-            }
+        if (this.props.customProfileAttributeFields == null) {
+            return <></>;
+        }
+
+        const attributeSections = Object.values(this.props.customProfileAttributeFields).map((attribute) => {
+            const attributeValue = this.state.customAttributeValues?.[attribute.id] ?? '';
             const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
@@ -1349,57 +1342,44 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             if (active) {
                 const inputs = [];
 
-                let extraInfo: JSX.Element|string;
-                const isHandled = this.props.samlPositionAttributeSet;
-                if (isHandled === true) {
-                    extraInfo = (
-                        <span>
-                            <FormattedMessage
-                                id='user.settings.general.field_handled_externally'
-                                defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
-                            />
-                        </span>
-                    );
-                } else {
-                    let attributeLabel: JSX.Element | string = (
-                        attribute.name
-                    );
-                    if (this.props.isMobileView) {
-                        attributeLabel = '';
-                    }
-
-                    inputs.push(
-                        <div
-                            key={sectionName}
-                            className='form-group'
-                        >
-                            <label className='col-sm-5 control-label'>{attributeLabel}</label>
-                            <div className='col-sm-7'>
-                                <input
-                                    id={sectionName}
-                                    autoFocus={true}
-                                    className='form-control'
-                                    type='text'
-                                    onChange={this.updateAttribute}
-                                    value={attributeValue}
-                                    maxLength={Constants.MAX_POSITION_LENGTH}
-                                    autoCapitalize='off'
-                                    onFocus={Utils.moveCursorToEnd}
-                                    aria-label={attribute.name}
-                                />
-                            </div>
-                        </div>,
-                    );
-
-                    extraInfo = (
-                        <span>
-                            <FormattedMessage
-                                id='user.settings.general.attributeExtra'
-                                defaultMessage='This will be shown in your profile popover.'
-                            />
-                        </span>
-                    );
+                let attributeLabel: JSX.Element | string = (
+                    attribute.name
+                );
+                if (this.props.isMobileView) {
+                    attributeLabel = '';
                 }
+
+                inputs.push(
+                    <div
+                        key={sectionName}
+                        className='form-group'
+                    >
+                        <label className='col-sm-5 control-label'>{attributeLabel}</label>
+                        <div className='col-sm-7'>
+                            <input
+                                id={sectionName}
+                                autoFocus={true}
+                                className='form-control'
+                                type='text'
+                                onChange={this.updateAttribute}
+                                value={attributeValue}
+                                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                                autoCapitalize='off'
+                                onFocus={Utils.moveCursorToEnd}
+                                aria-label={attribute.name}
+                            />
+                        </div>
+                    </div>,
+                );
+
+                const extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.general.attributeExtra'
+                            defaultMessage='This will be shown in your profile popover.'
+                        />
+                    </span>
+                );
 
                 max = (
                     <SettingItemMax

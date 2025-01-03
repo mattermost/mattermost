@@ -425,8 +425,8 @@ describe('Selectors.General', () => {
             } as unknown as GlobalState;
 
             expect(Selectors.getCustomProfileAttributes(state)[0].id).toEqual('123');
-            state.entities.general.customProfileAttributes = [];
-            expect(Selectors.getCustomProfileAttributes(state)).toEqual([]);
+            state.entities.general.customProfileAttributes = {};
+            expect(Selectors.getCustomProfileAttributes(state)).toEqual({});
         });
     });
 });
