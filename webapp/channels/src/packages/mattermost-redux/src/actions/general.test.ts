@@ -86,9 +86,9 @@ describe('Actions.General', () => {
         const customProfileAttributes = store.getState().entities.general.customProfileAttributes;
 
         // Check a few basic fields since they may change over time
-        expect(customProfileAttributes.length).toEqual(1);
-        expect(customProfileAttributes[0].id).toEqual('123');
-        expect(customProfileAttributes[0].name).toEqual('test attribute');
-        expect(customProfileAttributes[0].dataType).toEqual('text');
+        expect(Object.keys(customProfileAttributes).length).toEqual(1);
+        expect(customProfileAttributes[123].id).toEqual('123');
+        expect(customProfileAttributes[123].name).toEqual('test attribute');
+        expect(customProfileAttributes[123].dataType).toEqual('text');
     });
 });
