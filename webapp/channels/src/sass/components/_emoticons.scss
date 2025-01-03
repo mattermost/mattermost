@@ -538,7 +538,9 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     height: 36px;
     align-items: center;
     justify-content: center;
+    border: none;
     border-radius: 3px;
+    background-color: transparent;
     cursor: pointer;
     vertical-align: middle;
 
