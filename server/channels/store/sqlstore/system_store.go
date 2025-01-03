@@ -16,14 +16,25 @@ import (
 
 type SqlSystemStore struct {
 	*SqlStore
+
+	systemInsertQuery sq.InsertBuilder
 }
 
 func newSqlSystemStore(sqlStore *SqlStore) store.SystemStore {
-	return &SqlSystemStore{sqlStore}
+	s := SqlSystemStore{
+		SqlStore: sqlStore,
+	}
+
+	s.systemInsertQuery = s.getQueryBuilder().
+		Insert("Systems").
+		Columns("Name", "Value")
+
+	return &s
 }
 
 func (s SqlSystemStore) Save(system *model.System) error {
 	query := "INSERT INTO Systems (Name, Value) VALUES (:Name, :Value)"
+	// query := s.systemInsertQuery.Values(system.Name, system.Value)
 	if _, err := s.GetMaster().NamedExec(query, system); err != nil {
 		return errors.Wrapf(err, "failed to save system property with name=%s", system.Name)
 	}
@@ -32,11 +43,7 @@ func (s SqlSystemStore) Save(system *model.System) error {
 }
 
 func (s SqlSystemStore) SaveOrUpdate(system *model.System) error {
-	query := s.getQueryBuilder().
-		Insert("Systems").
-		Columns("Name", "Value").
-		Values(system.Name, system.Value)
-
+	query := s.systemInsertQuery.Values(system.Name, system.Value)
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Value = ?", system.Value))
 	} else {
@@ -67,8 +74,11 @@ func (s SqlSystemStore) Update(system *model.System) error {
 func (s SqlSystemStore) Get() (model.StringMap, error) {
 	systems := []model.System{}
 	props := make(model.StringMap)
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Systems")
 
-	if err := s.GetReplica().Select(&systems, "SELECT * FROM Systems"); err != nil {
+	if err := s.GetReplica().SelectBuilder(&systems, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get System list")
 	}
 
@@ -81,7 +91,11 @@ func (s SqlSystemStore) Get() (model.StringMap, error) {
 
 func (s SqlSystemStore) GetByName(name string) (*model.System, error) {
 	var system model.System
-	if err := s.GetMaster().Get(&system, "SELECT * FROM Systems WHERE Name = ?", name); err != nil {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Systems").
+		Where(sq.Eq{"Name": name})
+	if err := s.GetMaster().GetBuilder(&system, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("System", fmt.Sprintf("name=%s", system.Name))
 		}
@@ -112,8 +126,11 @@ func (s SqlSystemStore) InsertIfExists(system *model.System) (_ *model.System, e
 	defer finalizeTransactionX(tx, &err)
 
 	var origSystem model.System
-	if err := tx.Get(&origSystem, `SELECT * FROM Systems
-		WHERE Name = ?`, system.Name); err != nil && err != sql.ErrNoRows {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Systems").
+		Where(sq.Eq{"Name": system.Name})
+	if err := tx.GetBuilder(&origSystem, query); err != nil && err != sql.ErrNoRows {
 		return nil, errors.Wrapf(err, "failed to get system property with name=%s", system.Name)
 	}
 
