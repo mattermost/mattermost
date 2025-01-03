@@ -122,7 +122,7 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                 cy.apiAddUserToChannel(testChannel.id, user.id).then(() => {
                     // * Verify Accessibility support in post input field
-                    cy.uiGetPostTextBox().should('have.attr', 'aria-label', `write to ${testChannel.display_name}`).clear().focus();
+                    cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).clear().focus();
 
                     // # Ensure User list is cached once in UI
                     cy.uiGetPostTextBox().type('@').wait(TIMEOUTS.FIVE_SEC);
@@ -168,7 +168,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     it('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
         cy.get('#advancedTextEditorCell').within(() => {
             // * Verify Accessibility Support in Main Post input
-            cy.uiGetPostTextBox().should('have.attr', 'aria-label', `write to ${testChannel.display_name}`).and('have.attr', 'role', 'textbox').clear().focus().type('test');
+            cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).and('have.attr', 'role', 'textbox').clear().focus().type('test');
 
             // # Set a11y focus on the textbox
             cy.get('#FormattingControl_bold').focus().tab({shift: true});
@@ -231,7 +231,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         cy.get('#rhsContainer').within(() => {
             // * Verify Accessibility Support in RHS input
-            cy.uiGetReplyTextBox().should('have.attr', 'aria-label', 'reply to this thread...').and('have.attr', 'role', 'textbox').focus().type('test').tab({shift: true}).tab().tab();
+            cy.uiGetReplyTextBox().should('have.attr', 'placeholder', 'Reply to this thread...').and('have.attr', 'role', 'textbox').focus().type('test').tab({shift: true}).tab().tab();
 
             // * Verify if the focus is on the preview button
             cy.get('#PreviewInputTextButton').should('be.focused').and('have.attr', 'aria-label', 'preview').tab();
