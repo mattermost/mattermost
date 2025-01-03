@@ -20,12 +20,12 @@ $profilePopoverBorderWidth: 1px;
 
     .user-profile-popover-title {
         display: flex;
+        max-width: calc($profilePopoverWidth - 40px);
         flex-wrap: nowrap;
-        justify-content: flex-start;
         align-items: center;
+        justify-content: flex-start;
         justify-content: end;
         padding: 12px 8px 12px 8px;
-        max-width: calc($profilePopoverWidth - 40px);
 
         .user-popover__role {
             flex-grow: 1;
@@ -149,10 +149,10 @@ $profilePopoverBorderWidth: 1px;
 
         .user-profile-popover__email {
             display: flex;
+            width: calc($profilePopoverWidth - (2 * $profilePopoverBorderWidth));
             align-items: center;
             padding: 0 16px 10px 16px;
             justify-self: start;
-            width: calc($profilePopoverWidth - (2 * $profilePopoverBorderWidth));
 
             i.icon-email-outline {
                 margin-inline-end: 8px;
