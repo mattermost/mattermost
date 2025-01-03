@@ -24,7 +24,7 @@ import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 
-import {Constants} from 'utils/constants';
+import {OverlaysTimings} from 'utils/constants';
 
 import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
@@ -135,7 +135,7 @@ function WithTooltip({
     const hover = useHover(context, {
         restMs: TOOLTIP_REST_TIME_BEFORE_OPEN,
         delay: {
-            open: Constants.OVERLAY_TIME_DELAY,
+            open: OverlaysTimings.FADE_IN_DURATION,
         },
     });
     const focus = useFocus(context);

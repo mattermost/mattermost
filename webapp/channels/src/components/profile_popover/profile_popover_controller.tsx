@@ -21,7 +21,7 @@ import React, {useCallback, useState} from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {A11yClassNames} from 'utils/constants';
+import {A11yClassNames, RootHtmlPortalId} from 'utils/constants';
 
 import ProfilePopover from './profile_popover';
 
@@ -128,7 +128,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
             </TriggerComponent>
 
             {isMounted && (
-                <FloatingPortal id='root-portal'>
+                <FloatingPortal id={RootHtmlPortalId}>
                     <FloatingOverlay
                         id='user-profile-popover-floating-overlay'
                         className='user-profile-popover-floating-overlay'
