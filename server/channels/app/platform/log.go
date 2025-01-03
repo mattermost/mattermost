@@ -262,24 +262,25 @@ func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, er
 
 	var ret []*model.FileData
 	for _, t := range cfg {
-		if t.Type == "file" {
-			var fileOption struct {
-				Filename string `json:"filename"`
-			}
-			if err := json.Unmarshal(t.Options, &fileOption); err != nil {
-				return nil, errors.Wrap(err, "error decoding file target options")
-			}
-			data, err := os.ReadFile(fileOption.Filename)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed read notifcation log file at path %s", fileOption.Filename)
-			}
-
-			fileName := path.Base(fileOption.Filename)
-			ret = append(ret, &model.FileData{
-				Filename: fileName,
-				Body:     data,
-			})
+		if t.Type != "file" {
+			continue
 		}
+		var fileOption struct {
+			Filename string `json:"filename"`
+		}
+		if err := json.Unmarshal(t.Options, &fileOption); err != nil {
+			return nil, errors.Wrap(err, "error decoding file target options")
+		}
+		data, err := os.ReadFile(fileOption.Filename)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed read notifcation log file at path %s", fileOption.Filename)
+		}
+
+		fileName := path.Base(fileOption.Filename)
+		ret = append(ret, &model.FileData{
+			Filename: fileName,
+			Body:     data,
+		})
 	}
 
 	return ret, nil
