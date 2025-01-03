@@ -32,10 +32,10 @@ describe('Settings > Display > Theme > Custom Theme Colors', () => {
             navigateToThemeSettings();
 
             // # Check Custom Themes
-            cy.get('#customThemes').check().should('be.checked');
+            cy.get('#customThemes').click().should('have.attr', 'aria-checked', 'true');
 
             // # Open Center Channel Styles section
-            cy.get('#centerChannelStyles').click({force: true}).wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
+            cy.get('#centerChannelStylesAccordion').click({force: true}).wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
 
             // # Select custom code theme
             cy.get('#codeThemeSelect').should('be.visible').scrollIntoView().select(theme.name);
