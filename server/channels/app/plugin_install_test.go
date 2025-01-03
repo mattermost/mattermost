@@ -281,14 +281,14 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		actualManifest, appError := th.App.ch.installPluginLocally(reader, installationStrategy)
-		require.NoError(t, appError)
+		require.Nil(t, appError)
 		require.Equal(t, manifest, actualManifest)
 
 		mp = th.App.Config().PluginSettings.Plugins[actualManifest.Id]
 		return actualManifest, mp, appError
 	}
 
-	t.Run("Config updates beacuse manifest ID does not exist in map", func(t *testing.T) {
+	t.Run("Config updates because manifest ID does not exist in map", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
@@ -305,7 +305,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		}
 	})
 
-	t.Run("Config does not update beacuse manifest ID already exist in map", func(t *testing.T) {
+	t.Run("Config does not update because manifest ID already exist in map", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
@@ -357,7 +357,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		`, `{"id": "myplugin", "server": {"executable": "backend.exe"}}`, "myplugin", th.App, th.Context)
 
 		expectedManifest, err2 := th.App.GetPluginsEnvironment().GetManifest("myplugin")
-		require.Nil(t, err2)
+		require.NoError(t, err2)
 		require.NotNil(t, expectedManifest)
 
 		//try to reinstall `myplugin`
