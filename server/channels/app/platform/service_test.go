@@ -203,7 +203,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	databaseType, mattermostVersion, err := th.Service.DatabaseTypeAndSchemaVersion()
+	databaseType, schemaVersion, err := th.Service.DatabaseTypeAndSchemaVersion()
 	require.NoError(t, err)
 	if *th.Service.Config().SqlSettings.DriverName == model.DatabaseDriverPostgres {
 		assert.Equal(t, "postgres", databaseType)
@@ -211,5 +211,5 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 		assert.Equal(t, "mysql", databaseType)
 	}
 
-	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
+	assert.GreaterOrEqual(t, schemaVersion, strconv.Itoa(1))
 }
