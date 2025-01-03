@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
@@ -107,6 +108,7 @@ export default class CloseMessage extends React.PureComponent<Props> {
                 show={channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL}
                 onClick={this.handleClose}
                 text={text}
+                icon={<CloseIcon size={18}/>}
             />
         );
     }
