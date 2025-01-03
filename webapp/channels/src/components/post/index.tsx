@@ -27,7 +27,7 @@ import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPo
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
-import {getIsMobileView} from 'selectors/views/browser';
+import {getIsMobileView, getIsTabletView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
@@ -195,6 +195,7 @@ function makeMapStateToProps() {
             isExpanded: state.views.rhs.isSidebarExpanded,
             isPostBeingEdited: ownProps.location === Locations.CENTER ? !getIsPostBeingEditedInRHS(state, post.id) && getIsPostBeingEdited(state, post.id) : getIsPostBeingEditedInRHS(state, post.id),
             isMobileView: getIsMobileView(state),
+            isTabletView: getIsTabletView(state),
             previewCollapsed,
             previewEnabled,
             post,
