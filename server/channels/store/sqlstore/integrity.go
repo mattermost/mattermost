@@ -4,6 +4,9 @@
 package sqlstore
 
 import (
+	"context"
+	"strings"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -520,6 +523,7 @@ func checkUsersIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult
 	results <- checkUsersStatusIntegrity(ss)
 	results <- checkUsersTeamMembersIntegrity(ss)
 	results <- checkUsersUserAccessTokensIntegrity(ss)
+	results <- validateDMChannelPattern(ss)
 }
 
 func checkThreadsTeamsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
@@ -543,4 +547,68 @@ func CheckRelationalIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckR
 	checkUsersIntegrity(ss, results)
 	mlog.Info("Done with relational integrity checks")
 	close(results)
+}
+
+func validateDMChannelPattern(ss *SqlStore) model.IntegrityCheckResult {
+	type data struct {
+		invalidChannels []string
+		invalidIDs      []string
+	}
+	dt := data{}
+	records := []model.OrphanedRecord{}
+	dirtyIDs := []string{}
+	result := model.IntegrityCheckResult{}
+
+	err := ss.GetMaster().SelectBuilder(&records, ss.getQueryBuilder().
+		Select().
+		Column("CT.name AS ParentId").
+		From("Channels AS CT").
+		Where(sq.Eq{"CT.Type": []model.ChannelType{model.ChannelTypeDirect}}))
+	if err != nil {
+		mlog.Error("There is an issue with querying the DM channel names", mlog.Err(err))
+		return result
+	}
+
+	for k := range records {
+		if records[k].ParentId != nil {
+			dirtyIDs = append(dirtyIDs, *records[k].ParentId)
+		}
+	}
+
+	userIDs := []string{}
+	invalidChannels := []string{}
+	for _, v := range dirtyIDs {
+		if strings.Contains(v, "__") {
+			temp := strings.Split(v, "__")
+			userIDs = append(userIDs, temp[1])
+			if temp[0] == temp[1] {
+				invalidChannels = append(invalidChannels, v)
+			}
+		} else {
+			invalidChannels = append(invalidChannels, v)
+		}
+	}
+
+	usersFromTable, err := ss.User().GetProfileByIds(context.Background(), userIDs, nil, false)
+	if err != nil {
+		mlog.Error("There is an issue with fetching valid users IDs", mlog.Err(err))
+		return result
+	}
+
+	invalidIDs := make([]string, 0)
+	validIDSet := make(map[string]bool)
+	for _, v := range usersFromTable {
+		validIDSet[v.Id] = true
+	}
+
+	for _, v := range userIDs {
+		if _, ok := validIDSet[v]; !ok {
+			invalidIDs = append(invalidIDs, v)
+		}
+	}
+
+	dt.invalidIDs = invalidIDs
+	dt.invalidChannels = invalidChannels
+	result.Data = dt
+	return result
 }
