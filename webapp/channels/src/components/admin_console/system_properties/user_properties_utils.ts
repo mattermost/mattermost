@@ -40,7 +40,7 @@ export const useUserPropertyFields = () => {
             // prepare operations
             const fieldResults = await Promise.allSettled(process.map((item) => {
                 const {id, name} = item;
-                const patch: UserPropertyFieldPatch = {name};
+                const patch: UserPropertyFieldPatch = {name, type: 'text'};
 
                 if (isCreatePending(item)) {
                     // prepare:create
