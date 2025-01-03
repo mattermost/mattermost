@@ -12096,7 +12096,6 @@ func (a *OpenTracingAppLayer) InstallPlugin(pluginFile io.ReadSeeker, replace bo
 	}()
 
 	defer span.Finish()
-
 	resultVar0, resultVar1 := a.app.InstallPlugin(pluginFile, replace, r)
 
 	if resultVar1 != nil {
