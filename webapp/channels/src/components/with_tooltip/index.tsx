@@ -24,21 +24,17 @@ import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 
-import {OverlaysTimings} from 'utils/constants';
+import {OverlayArrow, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 
 import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
 
-import './tooltip.scss';
+import './with_tooltip.scss';
 
-const ARROW_WIDTH = 10; // in px
-const ARROW_HEIGHT = 6; // in px
-const ARROW_OFFSET = 8; // in px
-
-const TOOLTIP_REST_TIME_BEFORE_OPEN = 400; // in ms
-const TOOLTIP_APPEAR_DURATION = 250; // in ms
-const TOOLTIP_DISAPPEAR_DURATION = 200; // in ms
-
+/**
+ * Shortcut keys map to translations that can be used in the tooltip
+ * when shortcut definition is provided
+ */
 export const ShortcutKeys = {
     alt: defineMessage({
         id: 'shortcuts.generic.alt',
@@ -68,7 +64,11 @@ interface Props {
      * This doesn't always guarantee the tooltip will be vertical, it just determines the initial placement and fallback placements
     */
     isVertical?: boolean;
-    tooltipContentContainerClassName?: string;
+
+    /**
+     * Additional class name to be added to the tooltip container
+     */
+    className?: string;
     disabled?: boolean;
 
     /**
@@ -87,7 +87,7 @@ function WithTooltip({
     hint,
     shortcut,
     isVertical = true,
-    tooltipContentContainerClassName,
+    className,
     onOpen,
     disabled,
 }: Props) {
@@ -122,7 +122,7 @@ function WithTooltip({
         whileElementsMounted: autoUpdate,
         placement: placements.initial,
         middleware: [
-            offset(ARROW_OFFSET),
+            offset(OverlayArrow.OFFSET),
             flip({
                 fallbackPlacements: placements.fallback,
             }),
@@ -133,7 +133,7 @@ function WithTooltip({
     });
 
     const hover = useHover(context, {
-        restMs: TOOLTIP_REST_TIME_BEFORE_OPEN,
+        restMs: OverlaysTimings.CURSOR_REST_TIME_BEFORE_OPEN,
         delay: {
             open: OverlaysTimings.FADE_IN_DURATION,
         },
@@ -145,15 +145,10 @@ function WithTooltip({
     const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, dismiss, role]);
     const {isMounted, styles: transitionStyles} = useTransitionStyles(context, {
         duration: {
-            open: TOOLTIP_APPEAR_DURATION,
-            close: TOOLTIP_DISAPPEAR_DURATION,
+            open: OverlaysTimings.FADE_IN_DURATION,
+            close: OverlaysTimings.FADE_OUT_DURATION,
         },
-        initial: {
-            opacity: 0,
-        },
-        common: {
-            opacity: 1,
-        },
+        initial: OverlayTransitionStyles.START,
     });
 
     if (!isValidElement(children)) {
@@ -174,33 +169,26 @@ function WithTooltip({
         <>
             {trigger}
             {isMounted && (
-                <FloatingPortal
-                    id='root-portal' // This is the global portal container id
-                >
+                <FloatingPortal id={RootHtmlPortalId}>
                     <div
-                        className='tooltipContainer'
+                        className={classNames('tooltipContainer', className)}
                         ref={setFloating}
-                        style={floatingStyles}
+                        style={{...floatingStyles, ...transitionStyles}}
                         {...getFloatingProps()}
                     >
-                        <div
-                            className={classNames('tooltipContentContainer', tooltipContentContainerClassName)}
-                            style={transitionStyles}
-                        >
-                            <TooltipContent
-                                title={title}
-                                emoji={emoji}
-                                isEmojiLarge={isEmojiLarge}
-                                hint={hint}
-                                shortcut={shortcut}
-                            />
-                            <FloatingArrow
-                                ref={arrowRef}
-                                context={context}
-                                width={ARROW_WIDTH}
-                                height={ARROW_HEIGHT}
-                            />
-                        </div>
+                        <TooltipContent
+                            title={title}
+                            emoji={emoji}
+                            isEmojiLarge={isEmojiLarge}
+                            hint={hint}
+                            shortcut={shortcut}
+                        />
+                        <FloatingArrow
+                            ref={arrowRef}
+                            context={context}
+                            width={OverlayArrow.WIDTH}
+                            height={OverlayArrow.HEIGHT}
+                        />
                     </div>
                 </FloatingPortal>
             )}
