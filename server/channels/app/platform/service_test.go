@@ -211,5 +211,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 		assert.Equal(t, "mysql", databaseType)
 	}
 
+	// It's hard to check wheather the schema version is correct or not.
+	// So, we just check if it's greater than 1.
 	assert.GreaterOrEqual(t, schemaVersion, strconv.Itoa(1))
 }
