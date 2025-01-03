@@ -13,6 +13,12 @@ export type RelationOneToManyUnique<E1 extends {id: string}, E2 extends {id: str
 
 export type IDMappedObjects<E extends {id: string}> = RelationOneToOne<E, E>;
 
+export type IDMappedCollection<T extends {id: string}> = {
+    data: IDMappedObjects<T>;
+    order: Array<T['id']>;
+    errors?: RelationOneToOne<T, Error>;
+};
+
 export type DeepPartial<T> = {
 
     // For each field of T, make it optional and...
@@ -73,3 +79,17 @@ export function isRecordOf<T>(v: unknown, check: (e: unknown) => boolean): v is 
 
     return true;
 }
+
+export const collectionFromArray = <T extends {id: string}>(arr: T[] = []): IDMappedCollection<T> => {
+    const order: string[] = [];
+    const data = arr.reduce((current, item) => {
+        order.push(item.id);
+        return {...current, [item.id]: item};
+    }, {} as IDMappedObjects<T>);
+
+    return {data, order};
+};
+
+export const collectionToArray = <T extends {id: string}>({data, order}: IDMappedCollection<T>): T[] => {
+    return order.map((id) => data[id]);
+};

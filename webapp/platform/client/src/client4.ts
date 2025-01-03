@@ -339,6 +339,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/remotecluster`;
     }
 
+    getRemoteClusterRoute(remoteId: string) {
+        return `${this.getRemoteClustersRoute()}/${remoteId}`;
+    }
+
     getCustomProfileAttributeFieldsRoute() {
         return `${this.getBaseRoute()}/custom_profile_attributes/fields`;
     }
@@ -349,10 +353,6 @@ export default class Client4 {
 
     getCustomProfileAttributeValuesRoute() {
         return `${this.getBaseRoute()}/custom_profile_attributes/values`;
-    }
-
-    getRemoteClusterRoute(remoteId: string) {
-        return `${this.getRemoteClustersRoute()}/${remoteId}`;
     }
 
     getPostsRoute() {
