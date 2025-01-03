@@ -202,17 +202,21 @@ export class FileUpload extends PureComponent<Props, State> {
 
         switch (this.props.postType) {
         case 'post': {
-            containerSelector = this.props.centerChannelPostBeingEdited ? '.post--editing' : '.row.main';
-            overlaySelector = this.props.centerChannelPostBeingEdited ? '.center-file-overlay.post_edit_mode' : '.center-file-overlay';
+            // containerSelector = this.props.centerChannelPostBeingEdited ? '.post--editing' : '.row.main';
+            // containerSelector = '.row.main';
+            containerSelector = this.props.centerChannelPostBeingEdited ? 'form#create_post .AdvancedTextEditor__body' : '.row.main';
+            overlaySelector = this.props.centerChannelPostBeingEdited ? '#createPostFileDropOverlay' : '.center-file-overlay';
             break;
         }
         case 'comment': {
-            containerSelector = this.props.rhsPostBeingEdited ? '.post--editing' : '.post-right__container';
+            // containerSelector = this.props.rhsPostBeingEdited ? '.post--editing' : '.post-right__container';
+            containerSelector = '.post-right__container';
             overlaySelector = this.props.rhsPostBeingEdited ? '.right-file-overlay.post_edit_mode' : '.right-file-overlay';
             break;
         }
         case 'thread': {
-            containerSelector = this.props.rhsPostBeingEdited ? '.post--editing' : '.ThreadPane';
+            // containerSelector = this.props.rhsPostBeingEdited ? '.post--editing' : '.ThreadPane';
+            containerSelector = '.ThreadPane';
             overlaySelector = this.props.rhsPostBeingEdited ? '.right-file-overlay.post_edit_mode' : '.right-file-overlay';
             break;
         }
@@ -223,11 +227,11 @@ export class FileUpload extends PureComponent<Props, State> {
             // when a post is being edited, we need to display an additional drop overlay
             // for the 'create post' or 'create comment' box at the bottom in addition to displaying
             // overlay for the post being edited. The below code does that.
-            if (this.props.centerChannelPostBeingEdited) {
-                this.registerDragEvents('.AdvancedTextEditor__body:has(#post_textbox)', '#' + DropOverlayIDCreatePost);
-            } else if (this.props.rhsPostBeingEdited) {
-                this.registerDragEvents('.AdvancedTextEditor__body:has(#reply_textbox)', '#' + DropOverlayIDCreateComment);
-            }
+            // if (this.props.centerChannelPostBeingEdited) {
+            //     this.registerDragEvents('.AdvancedTextEditor__body:has(#post_textbox)', '#' + DropOverlayIDCreatePost);
+            // } else if (this.props.rhsPostBeingEdited) {
+            //     this.registerDragEvents('.AdvancedTextEditor__body:has(#reply_textbox)', '#' + DropOverlayIDCreateComment);
+            // }
 
             break;
         }
@@ -253,6 +257,8 @@ export class FileUpload extends PureComponent<Props, State> {
             this.unbindAllDragsterEvents();
             this.registerDragsterEvents();
         }
+
+        console.log({dragsterHandlerCount: this.unbindDragsterEvents?.length});
     }
 
     componentWillUnmount() {
@@ -388,6 +394,7 @@ export class FileUpload extends PureComponent<Props, State> {
     };
 
     handleDrop = (e: DragEvent<HTMLInputElement>) => {
+        console.log('handleDrop');
         if (!this.props.canUploadFiles) {
             this.props.onUploadError(localizeMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
             return;
@@ -427,10 +434,12 @@ export class FileUpload extends PureComponent<Props, State> {
             this.checkPluginHooksAndUploadFiles(files);
         }
 
-        this.props.onFileUploadChange();
+        // this.props.onFileUploadChange();
     };
 
     registerDragEvents = (containerSelector: string, overlaySelector: string) => {
+        console.log('registerDragEvents', {containerSelector, overlaySelector});
+
         let overlay = document.querySelector(overlaySelector);
 
         const dragTimeout = new DelayedAction(() => {
@@ -438,6 +447,8 @@ export class FileUpload extends PureComponent<Props, State> {
         });
 
         const enter = (e: CustomEvent) => {
+            console.log('enter');
+
             if (!overlay) {
                 overlay = document.querySelector(overlaySelector);
             }
@@ -447,9 +458,12 @@ export class FileUpload extends PureComponent<Props, State> {
                 overlay?.classList.remove('hidden');
             }
             e.detail.preventDefault();
+            e.detail.stopPropagation();
         };
 
         const leave = (e: CustomEvent) => {
+            console.log('leave');
+
             const files = e.detail.dataTransfer;
 
             if (!isUriDrop(files) && isFileTransfer(files)) {
@@ -459,15 +473,21 @@ export class FileUpload extends PureComponent<Props, State> {
             dragTimeout.cancel();
 
             e.detail.preventDefault();
+            e.detail.stopPropagation();
         };
 
         const over = (e: CustomEvent) => {
+            console.log('over');
+
             dragTimeout.fireAfter(OVERLAY_TIMEOUT);
             if (!isTextDroppableEvent(e.detail)) {
                 e.detail.preventDefault();
+                e.detail.stopPropagation();
             }
         };
         const dropWithHiddenClass = (e: CustomEvent) => {
+            console.log('dropWithHiddenClass');
+
             overlay?.classList.add('hidden');
             dragTimeout.cancel();
 
@@ -475,14 +495,17 @@ export class FileUpload extends PureComponent<Props, State> {
 
             if (!isTextDroppableEvent(e.detail)) {
                 e.detail.preventDefault();
+                e.detail.stopPropagation();
             }
         };
 
         const drop = (e: CustomEvent) => {
+            console.log('drop');
             this.handleDrop(e.detail);
 
             if (!isTextDroppableEvent(e.detail)) {
                 e.detail.preventDefault();
+                e.detail.stopPropagation();
             }
         };
 
@@ -546,6 +569,7 @@ export class FileUpload extends PureComponent<Props, State> {
                 // Prevent default will stop event propagation to other handlers such as those in advanced text editor
                 // so we do that here because we want to only paste the files from the clipboard and not other content.
                 e.preventDefault();
+                e.stopPropagation();
 
                 this.checkPluginHooksAndUploadFiles(fileList);
                 this.props.onFileUploadChange();
@@ -556,6 +580,7 @@ export class FileUpload extends PureComponent<Props, State> {
     keyUpload = (e: KeyboardEvent) => {
         if (cmdOrCtrlPressed(e) && !e.shiftKey && isKeyPressed(e, Constants.KeyCodes.U)) {
             e.preventDefault();
+            e.stopPropagation();
 
             if (!this.props.canUploadFiles) {
                 this.props.onUploadError(localizeMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
@@ -586,6 +611,7 @@ export class FileUpload extends PureComponent<Props, State> {
     handleMaxUploadReached = (e: MouseEvent<HTMLInputElement>) => {
         if (e) {
             e.preventDefault();
+            e.stopPropagation();
         }
 
         const {onUploadError} = this.props;

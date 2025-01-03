@@ -4,6 +4,8 @@
 import {StorageTypes} from 'utils/constants';
 
 export function setGlobalItem(name: string, value: any) {
+    console.log('setGlobalItem', {name, value});
+
     return {
         type: StorageTypes.SET_GLOBAL_ITEM,
         data: {name, value, timestamp: new Date()},
