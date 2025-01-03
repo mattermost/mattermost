@@ -523,7 +523,6 @@ const PostComponent = (props: Props): JSX.Element => {
                 ref={postRef}
                 id={getTestId()}
                 data-testid={postAriaLabelDivTestId}
-                tabIndex={0}
                 post={post}
                 className={getClassName()}
                 onClick={handlePostClick}
