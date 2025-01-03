@@ -3093,7 +3093,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "La ricerca Elasticsearch è disabilitata su questo server"
+    "translation": "La ricerca {{.Backend}} è disabilitata su questo server"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3101,15 +3101,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Il lavoro di indicizzazione di Elasticsearch non è riuscito a calcolare l'ora di inizio e di fine"
+    "translation": "Il lavoro di indicizzazione di {{.Backend}} non è riuscito a calcolare l'ora di inizio e di fine"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Il lavoro di indicizzazione di Elasticsearch non è riuscito a calcolare l'ora d'inizio"
+    "translation": "Il lavoro di indicizzazione di {{.Backend}} non è riuscito a calcolare l'ora d'inizio"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch non è in esecuzione"
+    "translation": "{{.Backend}} non è in esecuzione"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3133,11 +3133,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch è già fermo."
+    "translation": "{{.Backend}} è già fermo."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch non è attivo."
+    "translation": "{{.Backend}} non è attivo."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3713,11 +3713,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "L'impostazione Elastich Search IndexingEnabled deve essere abilitata quando l'impostazione Elastic Search SearchEnabled è abilitata"
+    "translation": "L'impostazione EnableIndexing deve essere abilitata quando l'impostazione Elastic Search EnableSearching è abilitata"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "La coda di indicizzazione in tempo reale di Elasticsearch deve contenere almeno 1 elemento."
+    "translation": "La coda di indicizzazione in tempo reale deve contenere almeno 1 elemento."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
@@ -3725,7 +3725,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Il timeout per le richieste di Elasticsearch deve essere almeno di 1 secondo."
+    "translation": "Il timeout per le ricerche deve essere almeno di 1 secondo."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4965,7 +4965,7 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Errore interpretando la versione del server Elasticsearch."
+    "translation": "Errore interpretando la versione del server {{.Backend}}."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5333,7 +5333,7 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Impossibile trovato la versione del server Elasticsearch."
+    "translation": "Impossibile trovare la versione del server {{.Backend}}."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
@@ -8049,7 +8049,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": " "
+    "translation": "La ricerca {{.Backend}} di file è disabilitata su questo server"
   },
   {
     "id": "api.command_share.channel_status_id",
