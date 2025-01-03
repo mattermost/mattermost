@@ -45,9 +45,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	genMockLogFiles := func() {
 		d1 := []byte("hello\ngo\n")
-		genErr := os.WriteFile(logLocation, d1, 0777)
+		genErr := os.WriteFile(logLocation, d1, 0600)
 		require.NoError(t, genErr)
-		genErr = os.WriteFile(notificationsLogLocation, d1, 0777)
+		genErr = os.WriteFile(notificationsLogLocation, d1, 0600)
 		require.NoError(t, genErr)
 	}
 	genMockLogFiles()
