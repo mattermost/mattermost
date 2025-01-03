@@ -21,7 +21,7 @@ describe('component/ConvertChannelModal', () => {
         },
     };
 
-    test('should match snapshot for convert_channel_modal', () => {
+    test('should render the title and buttons correctly', () => {
         renderWithContext(<ConvertChannelModal {...baseProps}/>);
 
         expect(screen.getByText('Convert Channel Display Name to a Private Channel?')).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe('component/ConvertChannelModal', () => {
         expect(updateChannelPrivacy).toHaveBeenCalledWith(baseProps.channelId, General.PRIVATE_CHANNEL);
     });
 
-    test('should match not call updateChannelPrivacy when cancel is called', async () => {
+    test('should not call updateChannelPrivacy when Close button is clicked', async () => {
         renderWithContext(<ConvertChannelModal {...baseProps}/>);
         fireEvent.click(screen.getByRole('button', {name: 'Close'}));
 
@@ -45,7 +45,7 @@ describe('component/ConvertChannelModal', () => {
         expect(updateChannelPrivacy).not.toHaveBeenCalled();
     });
 
-    test('should match not call updateChannelPrivacy when other cancel is called', async () => {
+    test('should not call updateChannelPrivacy when other Cancel is clicked', async () => {
         renderWithContext(<ConvertChannelModal {...baseProps}/>);
         fireEvent.click(screen.getByRole('button', {name: 'No, cancel'}));
 
