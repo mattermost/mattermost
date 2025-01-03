@@ -51,11 +51,6 @@ export type Props = {
     clearClassName?: string;
 
     /**
-     * Position in which the tooltip will be displayed
-     */
-    tooltipPosition?: 'top' | 'bottom';
-
-    /**
      * Callback to handle the change event of the input
      */
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -165,7 +160,6 @@ export class QuickInput extends React.PureComponent<Props> {
             inputComponent,
             clearable,
             clearClassName,
-            tooltipPosition,
             clearableWithoutValue,
             ...props
         } = this.props;
@@ -204,9 +198,7 @@ export class QuickInput extends React.PureComponent<Props> {
                 role='button'
             >
                 <WithTooltip
-                    id='inputClearTooltip'
                     title={clearableTooltipText}
-                    placement={tooltipPosition}
                 >
                     <span
                         className='input-clear-x'

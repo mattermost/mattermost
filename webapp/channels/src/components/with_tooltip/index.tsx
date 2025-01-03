@@ -1,59 +1,211 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
-import type {ComponentProps} from 'react';
+import type {Placement} from '@floating-ui/react';
+import {
+    useFloating,
+    autoUpdate,
+    offset,
+    useHover,
+    useFocus,
+    useDismiss,
+    useRole,
+    useInteractions,
+    arrow,
+    FloatingPortal,
+    useTransitionStyles,
+    FloatingArrow,
+    flip,
+    useMergeRefs,
+} from '@floating-ui/react';
+import classNames from 'classnames';
+import React, {useRef, useState, useMemo, cloneElement, isValidElement} from 'react';
+import type {ReactElement, ReactNode} from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {defineMessage} from 'react-intl';
 
-import Constants from 'utils/constants';
+import {Constants} from 'utils/constants';
 
-import type {CommonTooltipProps} from './create_tooltip';
-import {createTooltip} from './create_tooltip';
-import OverlayTrigger from './overlay_trigger';
+import TooltipContent from './tooltip_content';
+import type {ShortcutDefinition} from './tooltip_shortcut';
 
-type OverlayTriggerProps = ComponentProps<typeof OverlayTrigger>;
+import './tooltip.scss';
 
-type WithTooltipProps = {
-    children: OverlayTriggerProps['children'];
-    placement: OverlayTriggerProps['placement'];
-    onShow?: () => void;
-    delayHide?: number;
+const ARROW_WIDTH = 10; // in px
+const ARROW_HEIGHT = 6; // in px
+const ARROW_OFFSET = 8; // in px
+
+const TOOLTIP_REST_TIME_BEFORE_OPEN = 400; // in ms
+const TOOLTIP_APPEAR_DURATION = 250; // in ms
+const TOOLTIP_DISAPPEAR_DURATION = 200; // in ms
+
+export const ShortcutKeys = {
+    alt: defineMessage({
+        id: 'shortcuts.generic.alt',
+        defaultMessage: 'Alt',
+    }),
+    cmd: '⌘',
+    ctrl: defineMessage({
+        id: 'shortcuts.generic.ctrl',
+        defaultMessage: 'Ctrl',
+    }),
+    option: '⌥',
+    shift: defineMessage({
+        id: 'shortcuts.generic.shift',
+        defaultMessage: 'Shift',
+    }),
+};
+
+interface Props {
+    title: string | ReactNode | MessageDescriptor;
+    emoji?: string;
+    isEmojiLarge?: boolean;
+    hint?: string | ReactNode | MessageDescriptor;
+    shortcut?: ShortcutDefinition;
+
+    /**
+     * Whether the tooltip should be vertical or horizontal, by default it is vertical
+     * This doesn't always guarantee the tooltip will be vertical, it just determines the initial placement and fallback placements
+    */
+    isVertical?: boolean;
+    tooltipContentContainerClassName?: string;
     disabled?: boolean;
-} & CommonTooltipProps;
 
-const WithTooltip = ({
-    id,
+    /**
+    * @deprecated Do not use this except for special cases
+    * Callback when the tooltip appears
+   */
+    onOpen?: () => void;
+    children: ReactElement;
+}
+
+function WithTooltip({
+    children,
     title,
     emoji,
-    emojiStyle,
+    isEmojiLarge = false,
     hint,
     shortcut,
-    placement,
-    onShow,
-    delayHide,
-    children,
-    disabled = false,
-}: WithTooltipProps) => {
-    const ThisTooltip = useMemo(() => createTooltip({
-        id,
-        title,
-        emoji,
-        emojiStyle,
-        hint,
-        shortcut,
-    }), [id, title, emoji, emojiStyle, hint, shortcut]);
+    isVertical = true,
+    tooltipContentContainerClassName,
+    onOpen,
+    disabled,
+}: Props) {
+    const [open, setOpen] = useState(false);
+
+    const arrowRef = useRef(null);
+
+    function handleChange(open: boolean) {
+        setOpen(open);
+
+        if (onOpen && open) {
+            onOpen();
+        }
+    }
+
+    const placements = useMemo<{initial: Placement; fallback: Placement[]}>(() => {
+        let initial: Placement;
+        let fallback: Placement[];
+        if (isVertical) {
+            initial = 'top';
+            fallback = ['bottom', 'right', 'left'];
+        } else {
+            initial = 'right';
+            fallback = ['left', 'top', 'bottom'];
+        }
+        return {initial, fallback};
+    }, [isVertical]);
+
+    const {refs: {setReference, setFloating}, floatingStyles, context} = useFloating({
+        open: disabled ? false : open,
+        onOpenChange: handleChange,
+        whileElementsMounted: autoUpdate,
+        placement: placements.initial,
+        middleware: [
+            offset(ARROW_OFFSET),
+            flip({
+                fallbackPlacements: placements.fallback,
+            }),
+            arrow({
+                element: arrowRef,
+            }),
+        ],
+    });
+
+    const hover = useHover(context, {
+        restMs: TOOLTIP_REST_TIME_BEFORE_OPEN,
+        delay: {
+            open: Constants.OVERLAY_TIME_DELAY,
+        },
+    });
+    const focus = useFocus(context);
+    const dismiss = useDismiss(context);
+    const role = useRole(context, {role: 'tooltip'});
+
+    const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, dismiss, role]);
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(context, {
+        duration: {
+            open: TOOLTIP_APPEAR_DURATION,
+            close: TOOLTIP_DISAPPEAR_DURATION,
+        },
+        initial: {
+            opacity: 0,
+        },
+        common: {
+            opacity: 1,
+        },
+    });
+
+    if (!isValidElement(children)) {
+        // eslint-disable-next-line no-console
+        console.error('Children must be a valid React element for WithTooltip');
+    }
+
+    const mergedRefs = useMergeRefs([(children as any)?.ref, setReference]);
+
+    const trigger = cloneElement(children, {
+        ...getReferenceProps({
+            ref: mergedRefs,
+            ...children.props,
+        }),
+    });
 
     return (
-        <OverlayTrigger
-            delay={Constants.OVERLAY_TIME_DELAY}
-            overlay={<ThisTooltip/>}
-            placement={placement}
-            onEnter={onShow}
-            delayHide={delayHide}
-            disabled={disabled}
-        >
-            {children}
-        </OverlayTrigger>
+        <>
+            {trigger}
+            {isMounted && (
+                <FloatingPortal
+                    id='root-portal' // This is the global portal container id
+                >
+                    <div
+                        className='tooltipContainer'
+                        ref={setFloating}
+                        style={floatingStyles}
+                        {...getFloatingProps()}
+                    >
+                        <div
+                            className={classNames('tooltipContentContainer', tooltipContentContainerClassName)}
+                            style={transitionStyles}
+                        >
+                            <TooltipContent
+                                title={title}
+                                emoji={emoji}
+                                isEmojiLarge={isEmojiLarge}
+                                hint={hint}
+                                shortcut={shortcut}
+                            />
+                            <FloatingArrow
+                                ref={arrowRef}
+                                context={context}
+                                width={ARROW_WIDTH}
+                                height={ARROW_HEIGHT}
+                            />
+                        </div>
+                    </div>
+                </FloatingPortal>
+            )}
+        </>
     );
-};
+}
 
 export default WithTooltip;

@@ -4302,10 +4302,6 @@
     "translation": "无效的 Id。"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "无效的消息。"
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "无效的原始 id。"
   },
@@ -8804,10 +8800,6 @@
   {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "不正确的优先级"
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "不正确的消息。"
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

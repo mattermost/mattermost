@@ -14,7 +14,7 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
-import WithTooltip from 'components/with_tooltip/with_tooltip_new';
+import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 
