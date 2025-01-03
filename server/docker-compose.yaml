@@ -1,3 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    image: mattermost/mattermost-team-edition:latest
+    ports:
+      - "8065:8065"
+    environment:
+      - MM_USERNAME=admin
+      - MM_PASSWORD=yourpassword
+      - MM_DBTYPE=postgres
+      - MM_DBUSERNAME=mmuser
+      - MM_DBPASSWORD=mmuser_password
+      - MM_DBNAME=mattermost
+      - MM_DBHOST=db:5432
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=mmuser
+      - POSTGRES_PASSWORD=mmuser_password
+      - POSTGRES_DB=mattermost
+    volumes:
+      - mattermost-db:/var/lib/postgresql/data
+
+volumes:
+  mattermost-db:
+
 version: '2.4'
 services:
   mysql:
