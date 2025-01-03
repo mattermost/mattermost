@@ -6,6 +6,24 @@ import React, {PureComponent} from 'react';
 import type {ChangeEvent, DragEvent, MouseEvent, TouchEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
+
+import {PaperclipIcon} from '@mattermost/compass-icons/components';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
+
+import type {UploadFile} from 'actions/file_actions';
+
+import {
+    DropOverlayIDCreateComment,
+    DropOverlayIDCreatePost,
+    DropOverlayIDEditPost,
+} from 'components/advanced_text_editor/advanced_text_editor';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
+
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import dragster from 'utils/dragster';
@@ -23,18 +41,6 @@ import {
     localizeMessage,
     isTextDroppableEvent,
 } from 'utils/utils';
-
-import {PaperclipIcon} from '@mattermost/compass-icons/components';
-import type {ServerError} from '@mattermost/types/errors';
-import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
-
-import type {UploadFile} from 'actions/file_actions';
-
-import type {FilePreviewInfo} from 'components/file_preview/file_preview';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 import type {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
 
@@ -191,12 +197,8 @@ export class FileUpload extends PureComponent<Props, State> {
     };
 
     registerDragsterEvents = () => {
-        console.log({postType: this.props.postType});
-
         let containerSelector: string;
         let overlaySelector: string;
-
-        console.log('registerDragsterEvents', {postType: this.props.postType, centerChannelPostBeingEdited: this.props.centerChannelPostBeingEdited, rhsPostBeingEdited: this.props.rhsPostBeingEdited});
 
         switch (this.props.postType) {
         case 'post': {
@@ -216,27 +218,20 @@ export class FileUpload extends PureComponent<Props, State> {
         }
         case 'edit_post': {
             containerSelector = '.post--editing';
-            overlaySelector = '#editPostFileDropOverlay';
+            overlaySelector = '#' + DropOverlayIDEditPost;
 
+            // when a post is being edited, we need to display an additional drop overlay
+            // for the 'create post' or 'create comment' box at the bottom in addition to displaying
+            // overlay for the post being edited. The below code does that.
             if (this.props.centerChannelPostBeingEdited) {
-                this.registerDragEvents('.AdvancedTextEditor__body:has(#post_textbox)', '#createPostFileDropOverlay');
+                this.registerDragEvents('.AdvancedTextEditor__body:has(#post_textbox)', '#' + DropOverlayIDCreatePost);
             } else if (this.props.rhsPostBeingEdited) {
-                this.registerDragEvents('.AdvancedTextEditor__body:has(#reply_textbox)', '#createCommentFileDropOverlay');
+                this.registerDragEvents('.AdvancedTextEditor__body:has(#reply_textbox)', '#' + DropOverlayIDCreateComment);
             }
 
             break;
         }
         }
-
-        // if (this.props.postType === 'post') {
-        //     this.registerDragEvents('.row.main', '.center-file-overlay');
-        // } else if (this.props.postType === 'comment') {
-        //     this.registerDragEvents('.post-right__container', '.right-file-overlay');
-        // } else if (this.props.postType === 'thread') {
-        //     this.registerDragEvents('.ThreadPane', '.right-file-overlay');
-        // } else if (this.props.postType === 'edit_post') {
-        //     // TODO
-        // }
 
         this.registerDragEvents(containerSelector, overlaySelector);
     };
@@ -244,14 +239,17 @@ export class FileUpload extends PureComponent<Props, State> {
     componentDidMount() {
         this.registerDragsterEvents();
 
-        // todo add edit_post case here
-
         document.addEventListener('paste', this.pasteUpload);
         document.addEventListener('keydown', this.keyUpload);
     }
 
     componentDidUpdate(prevProps: Readonly<Props>) {
-        if (prevProps.centerChannelPostBeingEdited !== this.props.centerChannelPostBeingEdited || prevProps.rhsPostBeingEdited !== this.props.rhsPostBeingEdited) {
+        // when a post starts or finishes being edited, we need to
+        // clear existing drag handlers and register fresh ones in the right place.
+        if (
+            prevProps.centerChannelPostBeingEdited !== this.props.centerChannelPostBeingEdited ||
+            prevProps.rhsPostBeingEdited !== this.props.rhsPostBeingEdited
+        ) {
             this.unbindAllDragsterEvents();
             this.registerDragsterEvents();
         }
@@ -433,8 +431,6 @@ export class FileUpload extends PureComponent<Props, State> {
     };
 
     registerDragEvents = (containerSelector: string, overlaySelector: string) => {
-        console.log('registerDragEvents');
-
         let overlay = document.querySelector(overlaySelector);
 
         const dragTimeout = new DelayedAction(() => {
@@ -442,7 +438,6 @@ export class FileUpload extends PureComponent<Props, State> {
         });
 
         const enter = (e: CustomEvent) => {
-            console.log('enter', {containerSelector, overlaySelector});
             if (!overlay) {
                 overlay = document.querySelector(overlaySelector);
             }
@@ -455,8 +450,6 @@ export class FileUpload extends PureComponent<Props, State> {
         };
 
         const leave = (e: CustomEvent) => {
-            console.log('leave');
-
             const files = e.detail.dataTransfer;
 
             if (!isUriDrop(files) && isFileTransfer(files)) {
@@ -469,8 +462,6 @@ export class FileUpload extends PureComponent<Props, State> {
         };
 
         const over = (e: CustomEvent) => {
-            console.log('over');
-
             dragTimeout.fireAfter(OVERLAY_TIMEOUT);
             if (!isTextDroppableEvent(e.detail)) {
                 e.detail.preventDefault();
@@ -488,8 +479,6 @@ export class FileUpload extends PureComponent<Props, State> {
         };
 
         const drop = (e: CustomEvent) => {
-            console.log('drop');
-
             this.handleDrop(e.detail);
 
             if (!isTextDroppableEvent(e.detail)) {

@@ -5,6 +5,7 @@ import React, {lazy} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {DropOverlayCenterChannel} from 'components/advanced_text_editor/advanced_text_editor';
 import {makeAsyncComponent} from 'components/async_load';
 import deferComponentRender from 'components/deferComponentRender';
 import PostView from 'components/post_view';
@@ -186,7 +187,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 id='app-content'
                 className='app__content'
             >
-                <FileUploadOverlay overlayType='center'/>
+                <FileUploadOverlay
+                    overlayType='center'
+                    id={DropOverlayCenterChannel}
+                />
                 <ChannelHeader {...this.props}/>
                 {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <DeferredPostView
