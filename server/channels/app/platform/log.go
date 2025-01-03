@@ -273,7 +273,7 @@ func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, er
 		}
 		data, err := os.ReadFile(fileOption.Filename)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed read notifcation log file at path %s", fileOption.Filename)
+			return nil, errors.Wrapf(err, "failed to read notifcation log file at path %s", fileOption.Filename)
 		}
 
 		fileName := path.Base(fileOption.Filename)
