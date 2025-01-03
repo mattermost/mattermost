@@ -364,13 +364,22 @@ export default function ChannelNotificationsModal(props: Props) {
                 handleClose={handleHide}
             />
             <main className='channel-notifications-settings-modal__body'>
-                <ModalSection
-                    title={formatMessage({
-                        id: 'channel_notifications.muteAndIgnore',
-                        defaultMessage: 'Mute or ignore',
-                    })}
-                    content={muteOrIgnoreSectionContent}
-                />
+                <fieldset aria-labelledby='channel-notifications-settings-modal-legend'>
+                    <ModalSection
+                        title={
+                            <legend
+                                style={{all: 'unset'}}
+                                id='channel-notifications-settings-modal-legend'
+                            >
+                                {formatMessage({
+                                    id: 'channel_notifications.muteAndIgnore',
+                                    defaultMessage: 'Mute or ignore',
+                                })}
+                            </legend>
+                        }
+                        content={muteOrIgnoreSectionContent}
+                    />
+                </fieldset>
                 {desktopAndMobileNotificationSectionContent}
                 {props.collapsedReplyThreads &&
                     <>
