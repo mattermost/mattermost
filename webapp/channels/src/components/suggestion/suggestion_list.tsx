@@ -50,6 +50,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
     currentLabel: string | null;
     currentItem: any;
     maxHeight: number;
+    suggestedResultStatusRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
         super(props);
@@ -60,6 +61,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
         this.currentLabel = '';
         this.currentItem = {};
         this.maxHeight = 0;
+        this.suggestedResultStatusRef = React.createRef();
     }
 
     componentDidMount() {
@@ -244,6 +246,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
         }
 
         const clonedItems = cloneDeep(this.props.items);
+        const suggestedResultStatusElement = this.suggestedResultStatusRef.current;
 
         const items = [];
         if (clonedItems.length === 0) {
@@ -288,6 +291,14 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 />,
             );
         }
+        if (suggestedResultStatusElement) {
+            const firstItem = this.props.items[0];
+            if (firstItem.type === 'mention.morechannels') {
+                suggestedResultStatusElement.textContent = `No result for ${this.props.pretext}`;
+            } else {
+                suggestedResultStatusElement.textContent = `${this.props.items.length} results available`;
+            }
+        }
         const mainClass = 'suggestion-list suggestion-list--' + this.props.position;
         const contentClass = 'suggestion-list__content suggestion-list__content--' + this.props.position;
 
@@ -310,6 +321,12 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 >
                     {items}
                 </div>
+                <div
+                    ref={this.suggestedResultStatusRef}
+                    aria-live='polite'
+                    role='status'
+                    className='sr-only'
+                />
             </div>
         );
     }
