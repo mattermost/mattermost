@@ -2254,6 +2254,7 @@ func (s *ThemeSettings) SetDefaults() {
 type TeamSettings struct {
 	SiteName                        *string `access:"site_customization"`
 	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
+	EnableRenderEmoticonsAsEmoji    *bool   `access:"site_users_and_teams"`
 	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
 	EnableUserCreation              *bool   `access:"authentication_signup"`
 	EnableOpenServer                *bool   `access:"authentication_signup"`
@@ -2285,6 +2286,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.MaxUsersPerTeam == nil {
 		s.MaxUsersPerTeam = NewPointer(TeamSettingsDefaultMaxUsersPerTeam)
+	}
+
+	if (s.EnableRenderEmoticonsAsEmoji == nil) {
+		s.EnableRenderEmoticonsAsEmoji = NewPointer(true)
 	}
 
 	if s.EnableJoinLeaveMessageByDefault == nil {

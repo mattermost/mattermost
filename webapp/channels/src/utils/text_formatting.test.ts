@@ -85,9 +85,19 @@ describe('formatText', () => {
 
         for (let i = 0; i < 3; i++) {
             spaces += ' ';
-            const output = formatText(`${spaces}${emoji}`, {}, emptyEmojiMap);
+            const output = formatText(`${spaces}${emoji}`, {renderEmoticonsAsEmoji: true}, emptyEmojiMap);
             expect(output).toBe(`<span class="all-emoji"><p>${spaces}<span data-emoticon="slightly_smiling_face">${emoji}</span></p></span>`);
         }
+    });
+
+    test('emoticons should not be rendered as emojis when renderEmoticonsAsEmoji is undefined', () => {
+        const output = formatText(`:)`, {}, emptyEmojiMap);
+        expect(output).toBe(`<p>:)</p>`);
+    });
+
+    test('emoticons should not be rendered as emojis when renderEmoticonsAsEmoji is false', () => {
+        const output = formatText(`:)`, {renderEmoticonsAsEmoji: false}, emptyEmojiMap);
+        expect(output).toBe(`<p>:)</p>`);
     });
 
     test('code blocks newlines are not converted into <br/> with inline markdown image in the post', () => {
