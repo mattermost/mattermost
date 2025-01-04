@@ -4,7 +4,7 @@
 import type {Instance} from '@popperjs/core';
 import debounce from 'lodash/debounce';
 import type React from 'react';
-import {useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import {useEffect, useLayoutEffect, useMemo, useState} from 'react';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
@@ -12,8 +12,8 @@ type WideMode = 'wide' | 'normal' | 'narrow' | 'min';
 
 const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>): WideMode => {
     const [wideMode, setWideMode] = useState<WideMode>('wide');
-    const handleResize = useCallback(debounce(() => {
-        if (ref.current?.clientWidth === undefined) {
+    const handleResize = useMemo(() => debounce(() => {
+        if (ref.current?.clientWidth == null) {
             return;
         }
         if (ref.current.clientWidth > 640) {
@@ -29,7 +29,7 @@ const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>): WideM
         if (ref.current.clientWidth < 310) {
             setWideMode('min');
         }
-    }, 10), []);
+    }, 10), [ref]);
 
     useLayoutEffect(() => {
         if (!ref.current) {
