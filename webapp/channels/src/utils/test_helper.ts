@@ -99,6 +99,7 @@ export class TestHelper {
             user_id: 'user_id',
             description: 'token_description',
             is_active: true,
+            expires_at: 0,
         };
         return Object.assign({}, defaultUserAccessToken, override);
     }
