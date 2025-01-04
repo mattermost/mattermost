@@ -6781,6 +6781,14 @@
     "translation": "We could not get all teams."
   },
   {
+    "id": "app.team.get.app_error",
+    "translation": "We could not get the requested team."
+  },
+  {
+    "id": "app.team.get.deleted.app_error",
+    "translation": "The requested team was deleted."
+  },
+  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "We could not get all private teams."
   },
