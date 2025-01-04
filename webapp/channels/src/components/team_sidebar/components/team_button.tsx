@@ -164,7 +164,7 @@ export default function TeamButton({
     const teamButton = (
         <Link
             id={`${url.slice(1)}TeamButton`}
-            aria-label={ariaLabel}
+            aria-label={isNotCreateTeamButton ? ariaLabel : displayName}
             to={url}
             onClick={handleSwitch}
         >
