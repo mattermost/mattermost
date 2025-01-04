@@ -131,12 +131,10 @@ test('Post actions tab support', async ({pw, pages, axe}) => {
     // # Press arrow right
     await channelsPage.postDotMenu.remindMenuItem.press('ArrowRight');
 
-    // * Reminder menu should be visible and have focused
-    channelsPage.postReminderMenu.toBeVisible();
-    await expect(channelsPage.postReminderMenu.container).toBeFocused();
+    // * Reminder menu should be visible
+    expect(channelsPage.postReminderMenu.container).toBeVisible();
 
-    // * Should move focus to 30 mins after arrow down
-    await channelsPage.postReminderMenu.container.press('ArrowDown');
+    // * Should have focus on 30 mins after submenu opens
     expect(await channelsPage.postReminderMenu.thirtyMinsMenuItem).toBeFocused();
 
     // * Should move focus to 1 hour after arrow down
