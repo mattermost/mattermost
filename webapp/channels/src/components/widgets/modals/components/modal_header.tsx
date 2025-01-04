@@ -28,7 +28,10 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
                 className='mm-modal-header__ctr'
                 onClick={handleClose}
             >
-                <button className='btn btn-icon'>
+                <button
+                    className='btn btn-icon'
+                    aria-label='Close'
+                >
                     <i className='icon icon-close'/>
                 </button>
             </div>
