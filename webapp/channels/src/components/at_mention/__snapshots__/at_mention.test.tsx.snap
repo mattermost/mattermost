@@ -96,7 +96,8 @@ exports[`components/AtMention should match snapshot when mentioning current user
   <ProfilePopoverController
     returnFocus={[Function]}
     src="/api/v4/users/abc1/image"
-    triggerComponentClass="mention--highlight"
+    triggerComponentAs="button"
+    triggerComponentClass="style--none mention--highlight"
     userId="abc1"
   >
     <a
@@ -115,7 +116,8 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
   <ProfilePopoverController
     returnFocus={[Function]}
     src="/api/v4/users/abc2/image"
-    triggerComponentClass=""
+    triggerComponentAs="button"
+    triggerComponentClass="style--none"
     userId="abc2"
   >
     <a
@@ -134,7 +136,8 @@ exports[`components/AtMention should match snapshot when mentioning user contain
   <ProfilePopoverController
     returnFocus={[Function]}
     src="/api/v4/users/abc3/image"
-    triggerComponentClass=""
+    triggerComponentAs="button"
+    triggerComponentClass="style--none"
     userId="abc3"
   >
     <a
@@ -154,7 +157,8 @@ exports[`components/AtMention should match snapshot when mentioning user contain
   <ProfilePopoverController
     returnFocus={[Function]}
     src="/api/v4/users/abc3/image"
-    triggerComponentClass=""
+    triggerComponentAs="button"
+    triggerComponentClass="style--none"
     userId="abc3"
   >
     <a
@@ -173,7 +177,8 @@ exports[`components/AtMention should match snapshot when mentioning user followe
   <ProfilePopoverController
     returnFocus={[Function]}
     src="/api/v4/users/abc2/image"
-    triggerComponentClass=""
+    triggerComponentAs="button"
+    triggerComponentClass="style--none"
     userId="abc2"
   >
     <a
@@ -193,7 +198,8 @@ exports[`components/AtMention should match snapshot when mentioning user with di
   <ProfilePopoverController
     returnFocus={[Function]}
     src="/api/v4/users/abc2/image"
-    triggerComponentClass=""
+    triggerComponentAs="button"
+    triggerComponentClass="style--none"
     userId="abc2"
   >
     <a
@@ -212,7 +218,8 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
   <ProfilePopoverController
     returnFocus={[Function]}
     src="/api/v4/users/abc2/image"
-    triggerComponentClass=""
+    triggerComponentAs="button"
+    triggerComponentClass="style--none"
     userId="abc2"
   >
     <a
