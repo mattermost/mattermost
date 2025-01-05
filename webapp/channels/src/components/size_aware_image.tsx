@@ -348,6 +348,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         const playPauseGifButton = (
             <button
                 type='button'
+                data-testid='play-pause-gif-button'
                 className={classNames('style--none',
                     'gif-button', this.state.shouldPlayGif ? 'gif-button--pause' : 'gif-button--play')
                 }
@@ -380,6 +381,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 <canvas
                     ref={this.canvasRef}
                     id='static-gif-canvas'
+                    data-testid='static-gif-canvas'
                     className={
                         this.props.className +
                         (this.props.handleSmallImageContainer &&
