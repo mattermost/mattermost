@@ -187,8 +187,8 @@ function toggleAutoplayGifsAndEmojisSetting(toggleOff = true) {
     // # Open the Settings modal.
     cy.uiOpenSettingsModal('Display').within(() => {
         // # Open 'Autoplay GIFs and Emojis' and toggle it on/off.
-        cy.findByRole('heading', { name: 'Autoplay GIFs and Emojis' }).click();
-        cy.findByRole('radio', { name: toggleOff ? 'Off' : 'On' }).click();
+        cy.findByRole('heading', {name: 'Autoplay GIFs and Emojis'}).click();
+        cy.findByRole('radio', {name: toggleOff ? 'Off' : 'On'}).click();
 
         // # Save and close the modal
         cy.uiSave();
@@ -214,6 +214,9 @@ function verifyAnimatedEmojiStatus(isStaticEmoji = true) {
         cy.getLastPostId().as('postId').then((postId) => {
             // * Verify the static emoji is not rendered.
             cy.get(`#post_${postId}`).find(staticEmojiContainerSelector).should('not.exist');
+
+            // * Verify animated emoji is rendered and is visible.
+            cy.get(`#post_${postId}`).find('[data-testid*="postEmoji"]').should('exist').and('be.visible');
         });
     }
 }
@@ -223,7 +226,7 @@ function addAndPostCustomEmoji(animatedGifEmojiFile, testTeam, offTopicUrl, cust
     cy.uiOpenCustomEmoji();
 
     // # Click on add custom emoji
-    cy.findByRole('button', { name: 'Add Custom Emoji' }).should('be.visible').click();
+    cy.findByRole('button', {name: 'Add Custom Emoji'}).should('be.visible').click();
 
     // # Type emoji name
     cy.get('#name').should('be.visible').type(customEmojiWithColons);

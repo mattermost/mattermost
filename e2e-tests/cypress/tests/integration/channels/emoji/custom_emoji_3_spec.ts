@@ -128,41 +128,36 @@ describe('Custom emojis', () => {
     it('MM-T2187 Custom emoji reaction', () => {
         const {customEmoji, customEmojiWithColons} = getCustomEmoji();
 
-        const messageText = 'test message';
-
-        // # Open custom emoji
-        cy.uiOpenCustomEmoji();
-
-        // # Click on add new emoji
-        cy.findByText('Add Custom Emoji').should('be.visible').click();
-
-        // # Type emoji name
-        cy.get('#name').type(customEmojiWithColons);
-
-        // # Select emoji image
-        cy.get('input#select-emoji').attachFile(largeEmojiFile).wait(TIMEOUTS.THREE_SEC);
-
-        // # Click on Save
-        cy.uiSave().wait(TIMEOUTS.THREE_SEC);
-
-        // # Go back to home channel
-        cy.visit(townsquareLink);
-
-        // # Post a message
-        cy.postMessage(messageText);
+        // # Add a custom emoji and post a message.
+        addCustomEmojiAndPostMessage(customEmojiWithColons, largeEmojiFile, townsquareLink);
 
         cy.getLastPostId().then((postId) => {
-            cy.clickPostReactionIcon(postId);
+            // # React to a post using the custom emoji added.
+            addCustomEmojiReactionToPost(postId, customEmoji);
+        });
+    });
 
-            // # Search for the emoji name text in emoji searching input
-            cy.findByPlaceholderText('Search emojis').should('be.visible').type(customEmoji, {delay: TIMEOUTS.HALF_SEC});
+    it('MM-{Zephyr number here} Toggling autoplay GIFs and emojis off or on shows a static or animated emoji reaction respectively', () => {
+        const {customEmoji, customEmojiWithColons} = getCustomEmoji();
 
-            // * Get list of emojis based on the search text
-            cy.findAllByTestId('emojiItem').children().should('have.length', 1);
-            cy.findAllByTestId('emojiItem').children('img').first().should('have.class', 'emoji-category--custom');
+        // # Add a custom emoji and post a message.
+        addCustomEmojiAndPostMessage(customEmojiWithColons, largeEmojiFile, townsquareLink);
 
-            // # Select the custom emoji
-            cy.findAllByTestId('emojiItem').children().click();
+        cy.getLastPostId().then((postId) => {
+            // # React to a post using the custom emoji added.
+            addCustomEmojiReactionToPost(postId, customEmoji);
+
+            // # Toggle autoplay off.
+            toggleAutoplayGifsAndEmojisSetting();
+
+            // * Verify a static reaction is shown.
+            verifyAnimatedReactionStatus(postId);
+
+            // # Toggle autoplay on.
+            toggleAutoplayGifsAndEmojisSetting(false);
+
+            // * Verify an animated reaction is shown.
+            verifyAnimatedReactionStatus(postId, false);
         });
     });
 
@@ -315,3 +310,76 @@ describe('Custom emojis', () => {
         });
     });
 });
+
+function toggleAutoplayGifsAndEmojisSetting(toggleOff = true) {
+    // # Open the Settings modal.
+    cy.uiOpenSettingsModal('Display').within(() => {
+        // # Open 'Autoplay GIFs and Emojis' and toggle it on/off.
+        cy.findByRole('heading', {name: 'Autoplay GIFs and Emojis'}).click();
+        cy.findByRole('radio', {name: toggleOff ? 'Off' : 'On'}).click();
+
+        // # Save and close the modal
+        cy.uiSave();
+        cy.uiClose();
+    });
+}
+
+function verifyAnimatedReactionStatus(postId, isStaticReaction = true) {
+    const staticReactionContainerSelector = '[data-testid="static-emoji-reaction-container"]';
+    const imageReferenceSelector = '.Reaction__emoji';
+
+    if (isStaticReaction) {
+        // * Verify the static emoji is visible.
+        cy.get(`#post_${postId}`).find(staticReactionContainerSelector).should('be.visible').within(() => {
+            cy.get('#static-emoji-reaction').should('be.visible');
+        });
+
+        // * Ensure the canvas' image reference is hidden.
+        cy.get(`#post_${postId}`).find(imageReferenceSelector).should('have.css', 'display', 'none');
+    } else {
+        // * Verify the static emoji reaction is not rendered.
+        cy.get(`#post_${postId}`).find(staticReactionContainerSelector).should('not.exist');
+
+        // * Verify the animated emoji is rendered.
+        cy.get(`#post_${postId}`).find(imageReferenceSelector).should('exist').and('be.visible');
+    }
+}
+
+function addCustomEmojiAndPostMessage(customEmojiWithColons, largeEmojiFile, townsquareLink) {
+    const messageText = 'test message';
+
+    // # Open custom emoji
+    cy.uiOpenCustomEmoji();
+
+    // # Click on add new emoji
+    cy.findByText('Add Custom Emoji').should('be.visible').click();
+
+    // # Type emoji name
+    cy.get('#name').type(customEmojiWithColons);
+
+    // # Select emoji image
+    cy.get('input#select-emoji').attachFile(largeEmojiFile).wait(TIMEOUTS.THREE_SEC);
+
+    // # Click on Save
+    cy.uiSave().wait(TIMEOUTS.THREE_SEC);
+
+    // # Go back to home channel
+    cy.visit(townsquareLink);
+
+    // # Post a message
+    cy.postMessage(messageText);
+}
+
+function addCustomEmojiReactionToPost(postId, customEmoji) {
+    cy.clickPostReactionIcon(postId);
+
+    // # Search for the emoji name text in emoji searching input
+    cy.findByPlaceholderText('Search emojis').should('be.visible').type(customEmoji, {delay: TIMEOUTS.HALF_SEC});
+
+    // * Get list of emojis based on the search text
+    cy.findAllByTestId('emojiItem').children().should('have.length', 1);
+    cy.findAllByTestId('emojiItem').children('img').first().should('have.class', 'emoji-category--custom');
+
+    // # Select the custom emoji
+    cy.findAllByTestId('emojiItem').children().click();
+}
