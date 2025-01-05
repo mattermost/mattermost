@@ -101,27 +101,8 @@ describe('Custom emojis', () => {
     it('MM-T2182 Custom emoji - animated gif', () => {
         const {customEmojiWithColons} = getCustomEmoji();
 
-        // # Open custom emoji
-        cy.uiOpenCustomEmoji();
-
-        // # Click on add custom emoji
-        cy.findByRole('button', {name: 'Add Custom Emoji'}).should('be.visible').click();
-
-        // # Type emoji name
-        cy.get('#name').should('be.visible').type(customEmojiWithColons);
-
-        // # Attached image file and wait to be loaded
-        cy.get('input#select-emoji').attachFile(animatedGifEmojiFile);
-        cy.wait(TIMEOUTS.FIVE_SEC);
-
-        // # Save custom emoji
-        saveCustomEmoji(testTeam.name);
-
-        // # Go back to home channel
-        cy.visit(offTopicUrl);
-
-        // # Post a message with the emoji
-        cy.postMessage(customEmojiWithColons);
+        // # Add and post custom emoji.
+        addAndPostCustomEmoji(animatedGifEmojiFile, testTeam, offTopicUrl, customEmojiWithColons);
 
         // # Open emoji picker
         cy.uiOpenEmojiPicker();
@@ -132,6 +113,25 @@ describe('Custom emojis', () => {
         // * Get list of emojis based on search text
         cy.findAllByTestId('emojiItem').children().should('have.length', 1);
         cy.findAllByTestId('emojiItem').children('img').first().should('have.class', 'emoji-category--custom');
+    });
+
+    it('MM-{Zephyr number here} Toggling autoplay GIFs and emojis off or on shows a static or animated emoji respectively', () => {
+        const {customEmojiWithColons} = getCustomEmoji();
+
+        // # Add and post custom emoji.
+        addAndPostCustomEmoji(animatedGifEmojiFile, testTeam, offTopicUrl, customEmojiWithColons);
+
+        // Turn autoplay off.
+        toggleAutoplayGifsAndEmojisSetting();
+
+        // * Verify a static emoji is shown.
+        verifyAnimatedEmojiStatus();
+
+        // Turn autoplay on.
+        toggleAutoplayGifsAndEmojisSetting(false);
+
+        // * Verify an animated emoji is shown.
+        verifyAnimatedEmojiStatus(false);
     });
 
     it('MM-T2183 Custom emoji - try to add too large', () => {
@@ -181,4 +181,63 @@ function saveCustomEmoji(teamName) {
     // * Should return to list of custom emojis
     cy.url().should('include', `${teamName}/emoji`);
     cy.findByRole('button', {name: 'Add Custom Emoji'}).should('be.visible');
+}
+
+function toggleAutoplayGifsAndEmojisSetting(toggleOff = true) {
+    // # Open the Settings modal.
+    cy.uiOpenSettingsModal('Display').within(() => {
+        // # Open 'Autoplay GIFs and Emojis' and toggle it on/off.
+        cy.findByRole('heading', { name: 'Autoplay GIFs and Emojis' }).click();
+        cy.findByRole('radio', { name: toggleOff ? 'Off' : 'On' }).click();
+
+        // # Save and close the modal
+        cy.uiSave();
+        cy.uiClose();
+    });
+}
+
+function verifyAnimatedEmojiStatus(isStaticEmoji = true) {
+    const staticEmojiContainerSelector = '[data-testid="static-animated-post-emoji-container"]';
+    const imageReferenceSelector = '[data-testid="canvas-image-reference"]';
+
+    if (isStaticEmoji) {
+        cy.getLastPostId().as('postId').then((postId) => {
+            // * Verify the static emoji is visible.
+            cy.get(`#post_${postId}`).find(staticEmojiContainerSelector).should('be.visible').within(() => {
+                cy.get('#static-animated-emoji').should('be.visible');
+            });
+
+            // * Ensure the canvas' image reference is hidden.
+            cy.get(`#post_${postId}`).find(imageReferenceSelector).should('have.css', 'display', 'none');
+        });
+    } else {
+        cy.getLastPostId().as('postId').then((postId) => {
+            // * Verify the static emoji is not rendered.
+            cy.get(`#post_${postId}`).find(staticEmojiContainerSelector).should('not.exist');
+        });
+    }
+}
+
+function addAndPostCustomEmoji(animatedGifEmojiFile, testTeam, offTopicUrl, customEmojiWithColons) {
+    // # Open custom emoji
+    cy.uiOpenCustomEmoji();
+
+    // # Click on add custom emoji
+    cy.findByRole('button', { name: 'Add Custom Emoji' }).should('be.visible').click();
+
+    // # Type emoji name
+    cy.get('#name').should('be.visible').type(customEmojiWithColons);
+
+    // # Attached image file and wait to be loaded
+    cy.get('input#select-emoji').attachFile(animatedGifEmojiFile);
+    cy.wait(TIMEOUTS.FIVE_SEC);
+
+    // # Save custom emoji
+    saveCustomEmoji(testTeam.name);
+
+    // # Go back to home channel
+    cy.visit(offTopicUrl);
+
+    // # Post a message with the emoji
+    cy.postMessage(customEmojiWithColons);
 }

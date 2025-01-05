@@ -302,7 +302,7 @@ describe('Show GIF images properly', () => {
 function toggleAutoplayGifsAndEmojisSetting(toggleOff = true) {
     // # Open the Settings modal.
     cy.uiOpenSettingsModal('Display').within(() => {
-        // # Open 'Enable Join/Leave Messages' and turn it off
+        // # Open 'Autoplay GIFs and Emojis' and toggle it on/off.
         cy.findByRole('heading', {name: 'Autoplay GIFs and Emojis'}).click();
         cy.findByRole('radio', {name: toggleOff ? 'Off' : 'On'}).click();
 
