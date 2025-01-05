@@ -78,10 +78,7 @@ describe('Show GIF images properly', () => {
 
         cy.getLastPostId().as('postId').then((postId) => {
             // * Verify the static GIF is visible and has the right dimensions.
-            cy.get(`#post_${postId}`).find(selector.staticGifCanvas)
-                .should('be.visible')
-                .and('have.attr', 'width', '189')
-                .and('have.attr', 'height', '200');
+            cy.get(`#post_${postId}`).find(selector.staticGifCanvas).should('be.visible').and('have.attr', 'width', '189').and('have.attr', 'height', '200');
 
             // * Ensure the play button is visible.
             cy.get(`#post_${postId}`).find(selector.gifButton).should('be.visible');
@@ -95,10 +92,7 @@ describe('Show GIF images properly', () => {
 
         cy.getLastPostId().as('postId').then((postId) => {
             // * Validate static GIF is visible and has the right dimensions.
-            cy.get(`#post_${postId}`).find(selector.staticGifCanvas)
-                .should('be.visible')
-                .and('have.attr', 'width', '500')
-                .and('have.attr', 'height', '280');
+            cy.get(`#post_${postId}`).find(selector.staticGifCanvas).should('be.visible').and('have.attr', 'width', '500').and('have.attr', 'height', '280');
 
             // * Ensure the play button is visible.
             cy.get(`#post_${postId}`).find(selector.gifButton).should('be.visible');
@@ -211,7 +205,7 @@ describe('Show GIF images properly', () => {
         postGiphyGif();
 
         // * Click the pause button and verify the static GIF is shown.
-        clickGifButtonAndVerify(undefined,  false);
+        clickGifButtonAndVerify(undefined, false);
     });
 
     it('MM-{Zephyr Test Number here} Clicking a GIF\'s play button shows a playing GIF for GIFs posted as links', () => {
@@ -267,29 +261,18 @@ describe('Show GIF images properly', () => {
         cy.reload();
 
         cy.getLastPostId().as('postId').then((postId) => {
-            cy.get(`#post_${postId}`)
-                .as('lastPost')
-                .find('img.markdown-inline-img')
-                .then((image) => {
-                    // # Click the static GIF.
-                    cy.get('@lastPost')
-                        .find(selector.staticGifCanvas)
-                        .should('be.visible')
-                        .parent()
-                        .click('right');
+            cy.get(`#post_${postId}`).as('lastPost').find('img.markdown-inline-img').then((image) => {
+                // # Click the static GIF.
+                cy.get('@lastPost').find(selector.staticGifCanvas).should('be.visible').parent().click('right');
 
-                    // * Verify the dialog is opened and the image preview shows the correct GIF.
-                    cy.findByRole('dialog')
-                        .should('exist')
-                        .within(() => {
-                            cy.get('[data-testid="imagePreview"]')
-                                .should('be.visible')
-                                .and('have.attr', 'src', `${image[0].getAttribute('src')}`);
+                // * Verify the dialog is opened and the image preview shows the correct GIF.
+                cy.findByRole('dialog').should('exist').within(() => {
+                    cy.get('[data-testid="imagePreview"]').should('be.visible').and('have.attr', 'src', `${image[0].getAttribute('src')}`);
 
-                            // # Close the modal.
-                            cy.findByLabelText('Close').click();
-                        });
-                })
+                    // # Close the modal.
+                    cy.findByLabelText('Close').click();
+                });
+            });
         });
     });
 
@@ -330,7 +313,7 @@ function toggleAutoplayGifsAndEmojisSetting(toggleOff = true) {
 }
 
 function postGiphyGif() {
-     // # Open the emoji picker.
+    // # Open the emoji picker.
     cy.get('#emojiPickerButton').click();
 
     // # Click the GIF tab.
@@ -339,7 +322,7 @@ function postGiphyGif() {
     // # Click the first GIF from GIPHY.
     cy.get('.giphy-grid').within(() => {
         cy.get('a').eq(0).click();
-    })
+    });
 
     // # Post the GIF.
     cy.get('[data-testid="SendMessageButton"]').click();
@@ -361,14 +344,10 @@ function clickGifButtonAndVerify(imageSelector = 'img.markdown-inline-img', shou
     if (shouldPlayGif) {
         cy.getLastPostId().as('postId').then((postId) => {
             // # Click the play button.
-            cy.get(`#post_${postId}`)
-                .find(gifButtonSelector)
-                .should('have.text', gifText)
-                .click();
+            cy.get(`#post_${postId}`).find(gifButtonSelector).should('have.text', gifText).click();
 
             // * Verify static GIF is not visible.
-            cy.get(`#post_${postId}`).find(staticGifCanvasSelector)
-                .should('not.be.visible');
+            cy.get(`#post_${postId}`).find(staticGifCanvasSelector).should('not.be.visible');
 
             // * Verify the playing GIF is visible.
             cy.get(`#post_${postId}`).find(imageSelector).should('have.css', 'display', 'block');
@@ -379,14 +358,10 @@ function clickGifButtonAndVerify(imageSelector = 'img.markdown-inline-img', shou
     } else {
         cy.getLastPostId().as('postId').then((postId) => {
             // # Click the pause button.
-            cy.get(`#post_${postId}`)
-                .find(`.image-loaded-container>${gifButtonSelector}`)
-                .should('not.have.text', gifText)
-                .click({force: true});
+            cy.get(`#post_${postId}`).find(`.image-loaded-container>${gifButtonSelector}`).should('not.have.text', gifText).click({force: true});
 
             // * Verify static GIF is visible.
-            cy.get(`#post_${postId}`).find(staticGifCanvasSelector)
-                .should('be.visible');
+            cy.get(`#post_${postId}`).find(staticGifCanvasSelector).should('be.visible');
 
             // * Verify the playing GIF is hidden.
             cy.get(`#post_${postId}`).find(imageSelector).should('have.css', 'display', 'none');
@@ -404,8 +379,7 @@ function verifyGifStatus(imageSelector = '.attachment__image', isStaticGif = tru
     if (isStaticGif) {
         cy.getLastPostId().as('postId').then((postId) => {
             // * Verify the static GIF is visible.
-            cy.get(`#post_${postId}`).find(staticGifCanvasSelector)
-                .should('be.visible');
+            cy.get(`#post_${postId}`).find(staticGifCanvasSelector).should('be.visible');
 
             // * Ensure the play button is visible.
             cy.get(`#post_${postId}`).find(gifButtonSelector).should('be.visible');
@@ -416,8 +390,7 @@ function verifyGifStatus(imageSelector = '.attachment__image', isStaticGif = tru
     } else {
         cy.getLastPostId().as('postId').then((postId) => {
             // * Verify the static GIF is not visible.
-            cy.get(`#post_${postId}`).find(staticGifCanvasSelector)
-                .should('not.be.visible');
+            cy.get(`#post_${postId}`).find(staticGifCanvasSelector).should('not.be.visible');
 
             // * Ensure the pause button is initially hidden.
             cy.get(`#post_${postId}`).find(gifButtonSelector).should('not.be.visible');
@@ -436,29 +409,21 @@ function verifyThreadGifStatus(channelGifIsStatic, imageSelector) {
                 cy.wrap(lastPost).click();
 
                 // * Verify RHS is opened.
-                cy.get('#rhsContainer')
-                    .should('be.visible')
-                    .within(() => {
-                        // * Verify the user is viewing a thread.
-                        cy.get('.ThreadViewer').should('exist');
+                cy.get('#rhsContainer').should('be.visible').within(() => {
+                    // * Verify the user is viewing a thread.
+                    cy.get('.ThreadViewer').should('exist');
 
-                        // * Verify the thread's original post GIF is the same as the GIF in the channel and either
-                        // plays or is static accordingly.
-                        cy.findByLabelText('file thumbnail')
-                            .should('have.attr', 'src', channelGif[0].getAttribute('src'))
-                            .and(channelGifIsStatic ? 'not.be.visible' : 'be.visible')
-                            .then(() => {
-
-                                // * Verify the correct GIF is shown.
-                                cy.get('[data-testid="static-gif-canvas"]')
-                                    .should('exist')
-                                    .and(channelGifIsStatic ? 'be.visible' : 'not.be.visible');
-                            })
-
-                        // # Close the RHS.
-                        cy.get('#rhsCloseButton').click();
+                    // * Verify the thread's original post GIF is the same as the GIF in the channel and either
+                    // plays or is static accordingly.
+                    cy.findByLabelText('file thumbnail').should('have.attr', 'src', channelGif[0].getAttribute('src')).and(channelGifIsStatic ? 'not.be.visible' : 'be.visible').then(() => {
+                        // * Verify the correct GIF is shown.
+                        cy.get('[data-testid="static-gif-canvas"]').should('exist').and(channelGifIsStatic ? 'be.visible' : 'not.be.visible');
                     });
-            })
-        })
+
+                    // # Close the RHS.
+                    cy.get('#rhsCloseButton').click();
+                });
+            });
+        });
     });
 }

@@ -8,18 +8,18 @@ import type {Dispatch} from 'redux';
 
 import {getFilePublicLink} from 'mattermost-redux/actions/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
 import {getIsRhsOpen} from 'selectors/rhs';
+import {getIsMobileView} from 'selectors/views/browser';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
 
-import type {GlobalState} from 'types/store';
-
-import {get} from 'mattermost-redux/selectors/entities/preferences';
-import {getIsMobileView} from 'selectors/views/browser';
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 function mapStateToProps(state: GlobalState) {
     const isRhsOpen = getIsRhsOpen(state);

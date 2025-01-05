@@ -201,12 +201,12 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         if (this.isImageAGif && this.canvasRef.current) {
             const canvasElement = this.canvasRef.current;
 
-            if (image !== undefined) {
-                canvasElement.height = image.naturalHeight;
-                canvasElement.width = image.naturalWidth;
-            } else {
+            if (image === undefined) {
                 canvasElement.height = this.props.dimensions?.height ?? 0;
                 canvasElement.width = this.props.dimensions?.width ?? 0;
+            } else {
+                canvasElement.height = image.naturalHeight;
+                canvasElement.width = image.naturalWidth;
             }
 
             const context = canvasElement.getContext('2d');
