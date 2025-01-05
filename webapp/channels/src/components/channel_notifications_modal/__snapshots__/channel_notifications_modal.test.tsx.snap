@@ -195,7 +195,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="All new messages (default)"
                             type="radio"
                             value="all"
                           />
@@ -208,7 +208,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="Mentions, direct messages, and keywords only "
                             type="radio"
                             value="mention"
                           />
@@ -220,7 +220,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="Nothing "
                             type="radio"
                             value="none"
                           />
@@ -614,7 +614,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="All new messages (default)"
                             type="radio"
                             value="all"
                           />
@@ -627,7 +627,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="Mentions, direct messages, and keywords only "
                             type="radio"
                             value="mention"
                           />
@@ -639,7 +639,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="Nothing "
                             type="radio"
                             value="none"
                           />
@@ -810,7 +810,7 @@ Object {
                           <input
                             data-testid="MobileNotification-all"
                             id="MobileNotification-all"
-                            name="MobileNotification-all"
+                            name="All new messages "
                             type="radio"
                             value="all"
                           />
@@ -823,7 +823,7 @@ Object {
                             checked=""
                             data-testid="MobileNotification-mention"
                             id="MobileNotification-mention"
-                            name="MobileNotification-mention"
+                            name="Mentions, direct messages, and keywords only (default)"
                             type="radio"
                             value="mention"
                           />
@@ -836,7 +836,7 @@ Object {
                           <input
                             data-testid="MobileNotification-none"
                             id="MobileNotification-none"
-                            name="MobileNotification-none"
+                            name="Nothing "
                             type="radio"
                             value="none"
                           />
@@ -1475,7 +1475,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="All new messages (default)"
                             type="radio"
                             value="all"
                           />
@@ -1488,7 +1488,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="Mentions, direct messages, and keywords only "
                             type="radio"
                             value="mention"
                           />
@@ -1500,7 +1500,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="Nothing "
                             type="radio"
                             value="none"
                           />
@@ -1975,7 +1975,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="All new messages (default)"
                             type="radio"
                             value="all"
                           />
@@ -1988,7 +1988,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="Mentions, direct messages, and keywords only "
                             type="radio"
                             value="mention"
                           />
@@ -2000,7 +2000,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="Nothing "
                             type="radio"
                             value="none"
                           />
@@ -2475,7 +2475,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="All new messages (default)"
                             type="radio"
                             value="all"
                           />
@@ -2488,7 +2488,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="Mentions, direct messages, and keywords only "
                             type="radio"
                             value="mention"
                           />
@@ -2500,7 +2500,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="Nothing "
                             type="radio"
                             value="none"
                           />
