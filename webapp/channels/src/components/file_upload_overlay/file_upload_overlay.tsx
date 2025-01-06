@@ -9,6 +9,13 @@ import fileOverlayImage from 'images/filesOverlay.png';
 
 import './file_upload_overlay.scss';
 
+export const DropOverlayIdEditPost = 'editPostFileDropOverlay';
+export const DropOverlayIdCreateComment = 'createCommentFileDropOverlay';
+export const DropOverlayIdCreatePost = 'createPostFileDropOverlay';
+export const DropOverlayIdThreads = 'threadView';
+export const DropOverlayIdCenterChannel = 'centerChannelFileDropOverlay';
+export const DropOverlayIdRHS = 'rhsFileDropOverlay';
+
 type Props = {
     overlayType: string;
     id: string;

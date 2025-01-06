@@ -15,6 +15,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
+import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_upload_overlay';
 
 const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
 const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay/file_upload_overlay')));
@@ -189,7 +190,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             >
                 <FileUploadOverlay
                     overlayType='center'
-                    id={DropOverlayCenterChannel}
+                    id={DropOverlayIdCenterChannel}
                 />
                 <ChannelHeader {...this.props}/>
                 {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}

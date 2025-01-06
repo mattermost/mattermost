@@ -13,10 +13,6 @@ import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
 
 import type {UploadFile} from 'actions/file_actions';
 
-import {
-    DropOverlayIDCreateComment,
-    DropOverlayIDEditPost, DropOverlayRHS,
-} from 'components/advanced_text_editor/advanced_text_editor';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import Menu from 'components/widgets/menu/menu';
@@ -42,6 +38,11 @@ import {
 } from 'utils/utils';
 
 import type {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
+import {
+    DropOverlayIdCreateComment,
+    DropOverlayIdEditPost,
+    DropOverlayIdRHS
+} from 'components/file_upload_overlay/file_upload_overlay';
 
 const holders = defineMessages({
     limited: {
@@ -207,7 +208,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
         case 'comment': {
             containerSelector = this.props.rhsPostBeingEdited ? '#sidebar-right .post-create__container .AdvancedTextEditor__body' : '.post-right__container';
-            overlaySelector = this.props.rhsPostBeingEdited ? '#' + DropOverlayIDCreateComment : '#' + DropOverlayRHS;
+            overlaySelector = this.props.rhsPostBeingEdited ? '#' + DropOverlayIdCreateComment : '#' + DropOverlayIdRHS;
             break;
         }
         case 'thread': {
@@ -217,7 +218,7 @@ export class FileUpload extends PureComponent<Props, State> {
         }
         case 'edit_post': {
             containerSelector = '.post--editing';
-            overlaySelector = '#' + DropOverlayIDEditPost;
+            overlaySelector = '#' + DropOverlayIdEditPost;
             break;
         }
         }

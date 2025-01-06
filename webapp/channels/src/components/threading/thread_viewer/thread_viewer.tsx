@@ -11,9 +11,8 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {DropOverlayIDThreads} from 'components/advanced_text_editor/advanced_text_editor';
 import deferComponentRender from 'components/deferComponentRender';
-import FileUploadOverlay from 'components/file_upload_overlay/file_upload_overlay';
+import FileUploadOverlay, {DropOverlayIdThreads} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -222,7 +221,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                         <>
                             <FileUploadOverlay
                                 overlayType='right'
-                                id={DropOverlayIDThreads}
+                                id={DropOverlayIdThreads}
                             />
                             {this.props.selected && (
                                 <DeferredThreadViewerVirt

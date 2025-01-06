@@ -8,7 +8,7 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {General} from 'mattermost-redux/constants';
 
-import FileUpload, {type PostType, type FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
+import FileUpload, {type PostType, type FileUpload as FileUploadClass} from './file_upload';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {clearFileInput} from 'utils/utils';

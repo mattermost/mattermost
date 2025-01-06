@@ -34,7 +34,10 @@ import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import DeletePostModal from 'components/delete_post_modal';
-import FileUploadOverlay from 'components/file_upload_overlay/file_upload_overlay';
+import FileUploadOverlay, {
+    DropOverlayIdCreateComment, DropOverlayIdCreatePost,
+    DropOverlayIdEditPost
+} from 'components/file_upload_overlay/file_upload_overlay';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -81,13 +84,6 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
-
-export const DropOverlayIDEditPost = 'editPostFileDropOverlay';
-export const DropOverlayIDCreateComment = 'createCommentFileDropOverlay';
-export const DropOverlayIDCreatePost = 'createPostFileDropOverlay';
-export const DropOverlayIDThreads = 'threadView';
-export const DropOverlayCenterChannel = 'centerChannelFileDropOverlay';
-export const DropOverlayRHS = 'rhsFileDropOverlay';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
@@ -738,7 +734,7 @@ const AdvancedTextEditor = ({
                         <FileUploadOverlay
                             overlayType={isRHS ? 'right' : 'center'}
                             editMode={true}
-                            id={DropOverlayIDEditPost}
+                            id={DropOverlayIdEditPost}
                             mode={'horizontal'}
                         />
                     }
@@ -747,7 +743,7 @@ const AdvancedTextEditor = ({
                         <FileUploadOverlay
                             overlayType={isRHS ? 'right' : 'center'}
                             editMode={false}
-                            id={isRHS ? DropOverlayIDCreateComment : DropOverlayIDCreatePost}
+                            id={isRHS ? DropOverlayIdCreateComment : DropOverlayIdCreatePost}
                             mode={'horizontal'}
                         />
                     }
