@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import fileOverlayImage from 'images/filesOverlay.png';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import fileOverlayImage from 'images/filesOverlay.png';
 
 import './file_upload_overlay.scss';
 

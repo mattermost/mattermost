@@ -23,8 +23,8 @@
         @include mixins.alpha-property(background-color, variables.$black, 0.75);
 
         position: relative;
-        height: 100%;
         display: flex;
+        height: 100%;
         align-items: center;
         justify-content: center;
     }
@@ -45,29 +45,29 @@
     }
 
     .overlay__circle {
-        width: max-content;
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        max-height: 100%;
+        width: max-content;
         height: max-content;
+        max-height: 100%;
+        flex-direction: column;
         flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
         gap: 20px;
         pointer-events: none;
-        justify-content: center;
 
         &.horizontal {
-            flex-direction: row;
             width: max-content;
+            flex-direction: row;
 
             .overlay__files {
-                height: 96px;
                 width: auto;
+                height: 96px;
             }
 
             span {
-                height: 100px;
                 display: flex;
+                height: 100px;
                 align-items: center;
             }
         }
