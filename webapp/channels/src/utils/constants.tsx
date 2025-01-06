@@ -1029,34 +1029,6 @@ export const UserSettingsNotificationSections = {
     AUTO_RESPONDER: 'autoResponder',
 };
 
-export const UserSettings = {
-    displayIdAnchorText: 'user.settings.display.',
-
-    // region The following constants ensure each section's display name
-    // name matches the one in state, otherwise, a user won't be able to change options
-    // because the radio button's 'handleOnChange()' relies on the 'display' string
-    // to match the state name to update the selected option. Code is in 'user_settings_display.tsx'.
-    collapseDisplay: 'collapseDisplay',
-    linkPreviewDisplay: 'linkPreviewDisplay',
-    autoplayGifsAndEmojis: 'autoplayGifsAndEmojis',
-    lastActiveDisplay: 'lastActiveDisplay',
-    militaryTime: 'militaryTime',
-    teammateNameDisplay: 'teammateNameDisplay',
-    availabilityStatusOnPosts: 'availabilityStatusOnPosts',
-    messageDisplay: 'messageDisplay',
-    collapsedReplyThreads: 'collapsedReplyThreads',
-    clickToReply: 'clickToReply',
-    channelDisplayMode: 'channelDisplayMode',
-    oneClickReactionsOnPosts: 'oneClickReactionsOnPosts',
-
-    // endregion
-};
-
-export const BoolString = {
-    true: 'true',
-    false: 'false',
-};
-
 export const AdvancedSections = {
     CONTROL_SEND: 'advancedCtrlSend',
     FORMATTING: 'formatting',
@@ -1509,8 +1481,6 @@ export const Constants = {
     FileTypes,
     Locations,
     PostListRowListIds,
-    UserSettings,
-    BoolString,
     MAX_POST_VISIBILITY: 1000000,
     REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY: 22,
     REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY: 6,
