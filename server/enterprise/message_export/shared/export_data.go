@@ -39,7 +39,7 @@ type PostExport struct {
 	EditedNewMsgId    string
 	Message           string                   // the text body of the post
 	PreviewsPost      string                   // the post id of the post that is previewed by the permalink preview feature
-	AttachmentStarts  []*FileUploadStartExport // the post's attachments that were uploaded this export period
+	AttachmentCreates []*FileUploadStartExport // the post's attachments that were uploaded this export period
 	AttachmentDeletes []PostExport             // the post's attachments that were deleted
 	FileInfo          *model.FileInfo          // if this was a file PostExport, FileInfo will contain that info. Otherwise, nil.
 }
@@ -65,7 +65,7 @@ type ChannelExport struct {
 	ChannelName  string
 	DisplayName  string
 	StartTime    int64 // utc timestamp (milliseconds), start of export period or create time of channel, whichever is greater.
-	EndTime      int64 // utc timestamp (milliseconds), end of export period or delete time of channel, whichever is lesser. Example: 1366611728.
+	EndTime      int64 // utc timestamp (milliseconds), end of export period or delete time of channel, whichever is lesser.
 	Posts        []PostExport
 	Files        []*model.FileInfo
 	DeletedFiles []PostExport
@@ -148,7 +148,7 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 		deletedFilesByChannel[channelId] = append(deletedFilesByChannel[channelId], deleteFileMessages...)
 		filesByChannel[channelId] = append(filesByChannel[channelId], uploadedFiles...)
 
-		postExport.AttachmentStarts = startUploads
+		postExport.AttachmentCreates = startUploads
 		postExport.AttachmentDeletes = deleteFileMessages
 		postsByChannel[channelId] = append(postsByChannel[channelId], postExport)
 

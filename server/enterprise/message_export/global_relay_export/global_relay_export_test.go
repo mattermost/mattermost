@@ -14,22 +14,20 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
-
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
 func TestGlobalRelayExport(t *testing.T) {
-	t.Skip()
 	templatesDir, ok := fileutils.FindDir("templates")
 	require.True(t, ok)
 
@@ -982,7 +980,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
 					"message1",
 					"* post-id-1 1970-01-01T00:00:00Z @test1 test1 @test1 user (test1@test.com) =",
-					"Uploaded file 'test1-attachment' (id 'test1-attachment') was removed becaus=",
+					"Uploaded file \"test1-attachment\" (id 'test1-attachment') was removed becaus=",
 					"e it was too large to send.",
 					"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
 					"message2",
@@ -1063,7 +1061,7 @@ func TestGlobalRelayExport(t *testing.T) {
 					"    <span class=3D\"postusername\">@test1</span>",
 					"    <span class=3D\"usertype\">user</span>",
 					"    <span class=3D\"email\">(test1@test.com)</span>",
-					"    <span class=3D\"message\">Uploaded file &#39;test1-attachment&#39; (id &#=",
+					"    <span class=3D\"message\">Uploaded file &#34;test1-attachment&#34; (id &#=",
 					"39;test1-attachment&#39;) was removed because it was too large to send.</sp=",
 					"an>",
 					"</li>",
@@ -1279,7 +1277,7 @@ func TestGlobalRelayExport(t *testing.T) {
 						"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
 						"message2",
 						"* post-id-2 1970-01-01T00:01:40Z @test1 test1 @test1 user (test1@test.com) =",
-						"Uploaded file 'test2-attachment' (id 'test2-attachment') was removed becaus=",
+						"Uploaded file \"test2-attachment\" (id 'test2-attachment') was removed becaus=",
 						"e it was too large to send.",
 					}, "\r\n"),
 				},
@@ -1432,7 +1430,7 @@ func TestGlobalRelayExport(t *testing.T) {
 						"    <span class=3D\"postusername\">@test1</span>",
 						"    <span class=3D\"usertype\">user</span>",
 						"    <span class=3D\"email\">(test1@test.com)</span>",
-						"    <span class=3D\"message\">Uploaded file &#39;test2-attachment&#39; (id &#=",
+						"    <span class=3D\"message\">Uploaded file &#34;test2-attachment&#34; (id &#=",
 						"39;test2-attachment&#39;) was removed because it was too large to send.</sp=",
 						"an>",
 						"</li>",

@@ -35,7 +35,7 @@ const (
 )
 
 // MaxEmailBytes is a var because it needs to be set in tests. Otherwise it shouldn't be touched.
-var MaxEmailBytes int64 = 250 << (10 * 2)
+var MaxEmailBytes int64 = 250 * 1024 * 1024 // 250MB
 
 type ChannelExport struct {
 	TeamId             string
@@ -95,7 +95,11 @@ func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExpor
 			attachmentsRemovedPostIDs = append(attachmentsRemovedPostIDs, attachmentsRemoved...)
 		}
 		if len(channel.Posts) == 0 {
-			addChannelWithNoPostsToExports(rctx, allExports, channel)
+			// channel has no posts, but it was exported anyway, so it must have joins and leaves.
+			if _, present := allExports[channel.ChannelId]; !present {
+				// we found a new channel
+				allExports[channel.ChannelId] = []*ChannelExport{genericChannelToChannelExport(channel)}
+			}
 		}
 		joinsByChannel[channel.ChannelId] = channel.JoinEvents
 	}
@@ -180,8 +184,8 @@ func addToExports(rctx request.CTX, allExports map[string][]*ChannelExport, gene
 
 	// Create a new ChannelExport if it would be too many bytes to add the post.
 	// NOTE: we are only exporting attachment starts.
-	attachmentStarts := make([]*model.FileInfo, 0, len(post.AttachmentStarts))
-	for _, start := range post.AttachmentStarts {
+	attachmentStarts := make([]*model.FileInfo, 0, len(post.AttachmentCreates))
+	for _, start := range post.AttachmentCreates {
 		attachmentStarts = append(attachmentStarts, start.FileInfo)
 	}
 	fileBytes := fileInfoListBytes(attachmentStarts)
@@ -206,19 +210,9 @@ func addToExports(rctx request.CTX, allExports map[string][]*ChannelExport, gene
 	addPostToChannelExport(rctx, channelExport, post)
 
 	// if this post includes files, add them to the collection
-	addAttachmentsToChannelExport(channelExport, post, post.AttachmentStarts, post.AttachmentDeletes, attachmentsAloneTooLargeToSend)
+	addAttachmentsToChannelExport(channelExport, post, post.AttachmentCreates, post.AttachmentDeletes, attachmentsAloneTooLargeToSend)
 	channelExport.bytes += postBytes
 	return attachmentsRemovedPostIDs
-}
-
-// addChannelWithNoPostsToExports is for channels that don't have posts, but we exported it anyway, so we need to track
-// it. It has joins and leaves.
-func addChannelWithNoPostsToExports(rctx request.CTX, allExports map[string][]*ChannelExport,
-	genericChannel shared.ChannelExport) {
-	if _, present := allExports[genericChannel.ChannelId]; !present {
-		// we found a new channel
-		allExports[genericChannel.ChannelId] = []*ChannelExport{genericChannelToChannelExport(genericChannel)}
-	}
 }
 
 func genericChannelToChannelExport(genericChannel shared.ChannelExport) *ChannelExport {
@@ -397,7 +391,7 @@ func addAttachmentsToChannelExport(channelExport *ChannelExport, post shared.Pos
 		var message string
 
 		if removeAttachments {
-			message = fmt.Sprintf("Uploaded file '%s' (id '%s') was removed because it was too large to send.",
+			message = fmt.Sprintf("Uploaded file %q (id '%s') was removed because it was too large to send.",
 				start.FileInfo.Name, start.FileInfo.Id)
 		} else {
 			channelExport.uploadedFiles = append(channelExport.uploadedFiles, start.FileInfo)
