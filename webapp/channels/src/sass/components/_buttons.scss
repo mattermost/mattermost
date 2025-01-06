@@ -302,6 +302,20 @@ button {
             }
         }
     }
+    &.btn-tertiary.btn-inverted {
+        background-color: rgba(var(--sidebar-text-rgb), 0.12);
+        color: rgba(var(--sidebar-text-rgb), 1);
+
+        &:hover {
+            background-color: rgb(var(--sidebar-text-rgb), 0.16);
+        }
+
+        &:active,
+        &[aria-expanded="true"][aria-haspopup="true"] {
+            background-color: rgb(var(--sidebar-text-rgb), 0.24);
+            outline: none;
+        }
+    }
 
     &.btn-quaternary {
         background: transparent;

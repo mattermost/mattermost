@@ -47,6 +47,7 @@ export default function BrowserOrAddChannelMenu(props: Props) {
                         defaultMessage='Create new channel'
                     />
                 )}
+                trailingElements={props.showCreateAndJoinChannelsTutorialTip && <CreateAndJoinChannelsTour/>}
             />
         );
     }
@@ -64,7 +65,6 @@ export default function BrowserOrAddChannelMenu(props: Props) {
                         defaultMessage='Browse channels'
                     />
                 )}
-                trailingElements={props.showCreateAndJoinChannelsTutorialTip && <CreateAndJoinChannelsTour/>}
             />
         );
     }
@@ -146,7 +146,7 @@ export default function BrowserOrAddChannelMenu(props: Props) {
                     id: 'sidebarLeft.browserOrCreateChannel.title',
                     defaultMessage: 'Browse or create channels',
                 }),
-                class: 'btn btn-icon btn-sm btn-tertiary btn-round',
+                class: 'btn btn-icon btn-sm btn-tertiary btn-inverted btn-round',
                 children: <PlusIcon size={18}/>,
             }}
             menuButtonTooltip={{
@@ -161,7 +161,9 @@ export default function BrowserOrAddChannelMenu(props: Props) {
             {browseChannelsMenuItem}
             {createDirectMessageMenuItem}
             {createUserGroupMenuItem}
-            {createNewCategoryMenuItem && <Menu.Separator/>}
+            {Boolean(createNewCategoryMenuItem) &&
+                <Menu.Separator/>
+            }
             {createNewCategoryMenuItem}
             <Menu.Separator/>
             {invitePeopleMenuItem}
