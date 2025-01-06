@@ -8969,7 +8969,7 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 }
 
 func TestResetPasswordFailedAttempts(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
 	th.SetupLdapConfig()
 
@@ -9020,12 +9020,14 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client := th.CreateClient()
-		mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"}).Times(5)
 		mockLdap.Mock.On("GetUser", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).Return(ldapUser, nil).Times(5)
 
 		th.App.Channels().Ldap = mockLdap
 
 		for i := 0; i < 5; i++ {
+			mockedLdapUser := ldapUser
+			mockedLdapUser.FailedAttempts = i
+			mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(mockedLdapUser, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"})
 			_, _, err := client.LoginByLdap(context.Background(), *ldapUser.AuthData, "wrongpassword")
 			require.Error(t, err)
 		}
@@ -9164,13 +9166,16 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		t.Log(ldapUser)
 
 		client := th.CreateClient()
-		mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"}).Times(4)
 		mockLdap.Mock.On("GetUser", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).Return(ldapUser, nil).Times(4)
 
 		th.App.Channels().Ldap = mockLdap
 
 		for i := 0; i < 4; i++ {
+			mockedLdapUser := ldapUser
+			mockedLdapUser.FailedAttempts = i
+			mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(mockedLdapUser, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"})
 			_, _, err := client.LoginByLdap(context.Background(), *ldapUser.AuthData, "wrongpassword")
+			t.Log(err)
 			require.Error(t, err)
 		}
 

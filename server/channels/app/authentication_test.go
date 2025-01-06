@@ -14,6 +14,7 @@ import (
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -157,10 +158,15 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 }
 
 func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
 
-	maxFailedLoginAttempts := *th.App.Config().ServiceSettings.MaximumLoginAttempts
+	// update config
+	const maxFailedLoginAttempts = 3
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.LdapSettings.MaximumLoginAttempts = maxFailedLoginAttempts
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+	})
 
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -201,7 +207,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			password:      "wrongpassword",
 			expectedErrID: "api.user.check_user_password.invalid.app_error",
 			mockDoLogin: func() {
-				mockLdap.Mock.On("DoLogin", th.Context, authData, "wrongpassword").Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"})
+				mockLdap.Mock.On("DoLogin", th.Context, authData, "wrongpassword").Return(user, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"})
 			},
 		},
 		{
@@ -209,7 +215,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			password:      "wrongpassword",
 			expectedErrID: "api.user.check_user_login_attempts.too_many_ldap.app_error",
 			mockDoLogin: func() {
-				mockLdap.Mock.On("DoLogin", th.Context, authData, "wrongpassword").Return(nil, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"}).Times(maxFailedLoginAttempts + 1)
+				mockLdap.Mock.On("DoLogin", th.Context, authData, "wrongpassword").Return(ldapUser, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"}).Once()
 			},
 		},
 	}
@@ -222,17 +228,22 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 
 			tc.mockDoLogin()
 
+			ldapUser := user
+
 			// Simulate failed login attempts if necessary
 			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
-				for i := 0; i < maxFailedLoginAttempts; i++ {
-					_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, user, "wrongpassword", "")
-					require.NotNil(t, appErr)
-					require.Equal(t, "api.user.check_user_password.invalid.app_error", appErr.Id)
-				}
+				ldapUser.FailedAttempts = maxFailedLoginAttempts - 1
+
+				_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, ldapUser, "wrongpassword", "")
+				require.NotNil(t, appErr)
+				require.Equal(t, "api.user.check_user_password.invalid.app_error", appErr.Id)
 			}
 
+			ldapUser, err = th.App.GetUser(ldapUser.Id)
+			require.Nil(t, err)
+
 			// Call the method with the test case parameters
-			_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, user, tc.password, "")
+			_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, ldapUser, tc.password, "")
 
 			// Verify the returned error matches the expected error
 			if tc.expectedErrID == "" {
@@ -242,10 +253,124 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			}
 
 			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
-				updatedUser, err := th.App.GetUser(user.Id)
+				updatedUser, err := th.App.GetUser(ldapUser.Id)
 				require.Nil(t, err)
 				require.Equal(t, maxFailedLoginAttempts, updatedUser.FailedAttempts)
 			}
 		})
 	}
+}
+
+func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic()
+	defer th.TearDown()
+
+	// update config
+	const maxFailedLoginAttempts = 1
+	const concurrentAttempts = 10
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.LdapSettings.MaximumLoginAttempts = maxFailedLoginAttempts
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+	})
+
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	authData := model.NewRandomString(32)
+
+	// create an ldap user by calling createUser
+	ldapUser := &model.User{
+		Email:         "ldapuser@mattermost-customer.com",
+		Username:      "ldapuser",
+		AuthService:   model.UserAuthServiceLdap,
+		AuthData:      &authData,
+		EmailVerified: true,
+	}
+	user, appErr := th.App.CreateUser(th.Context, ldapUser)
+	require.Nil(t, appErr)
+
+	// setup MFA
+	secret, appErr := th.App.GenerateMfaSecret(user.Id)
+	require.Nil(t, appErr)
+	err := th.Server.Store().User().UpdateMfaActive(user.Id, true)
+	require.NoError(t, err)
+	err = th.Server.Store().User().UpdateMfaSecret(user.Id, secret.Secret)
+	require.NoError(t, err)
+
+	user, appErr = th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	user.AuthData = &authData
+
+	t.Run("validate concurrent failed attempts to bypass checks", func(t *testing.T) {
+		testCases := []struct {
+			name                 string
+			password             string
+			mfaToken             string
+			expectedErrID        string
+			doLoginExpectedErrID string
+		}{
+			{
+				name:                 "should not breach max. login attempts when password is wrong",
+				password:             "wrong password",
+				mfaToken:             "",
+				doLoginExpectedErrID: "ent.ldap.do_login.invalid_password.app_error",
+				expectedErrID:        "ent.ldap.do_login.invalid_password.app_error",
+			},
+			{
+				name:                 "should not breach max. login attempts when MFA is wrong",
+				password:             "password",
+				mfaToken:             "123456",
+				doLoginExpectedErrID: "",
+				expectedErrID:        "api.user.check_user_mfa.bad_code.app_error",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				mockLdap := &mocks.LdapInterface{}
+				th.App.Channels().Ldap = mockLdap
+				// Reset login attempts
+				err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
+				require.NoError(t, err)
+
+				// Capture all concurrent errors
+				appErrs := make([]*model.AppError, concurrentAttempts)
+
+				// Wait to complete the test
+				var completeWG sync.WaitGroup
+				completeWG.Add(concurrentAttempts)
+
+				for i := 0; i < concurrentAttempts; i++ {
+					go func(i int) {
+						defer completeWG.Done()
+
+						if tc.doLoginExpectedErrID == "ent.ldap.do_login.invalid_password.app_error" {
+							mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(user, &model.AppError{Id: tc.doLoginExpectedErrID})
+						} else {
+							mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), tc.password).Return(user, nil)
+						}
+						_, appErrs[i] = th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, user, tc.password, tc.mfaToken)
+					}(i)
+				}
+
+				completeWG.Wait()
+
+				expectedErrsCount := 0
+				for i := 0; i < concurrentAttempts; i++ {
+					if appErrs[i] != nil && appErrs[i].Id == tc.expectedErrID {
+						expectedErrsCount++
+						continue
+					}
+
+					if appErrs[i] != nil {
+						require.Equal(t, "api.user.check_user_login_attempts.too_many_ldap.app_error", appErrs[i].Id, "All other errors should be of too many login attempts only.")
+					}
+				}
+
+				// Password/MFA failure attempts should not breach the maxFailedAttempts
+				// even during concurrent access by the same user.
+				require.Equal(t, maxFailedLoginAttempts, expectedErrsCount)
+			})
+		}
+	})
 }
