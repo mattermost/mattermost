@@ -239,8 +239,8 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 				require.Equal(t, "api.user.check_user_password.invalid.app_error", appErr.Id)
 			}
 
-			ldapUser, err = th.App.GetUser(ldapUser.Id)
-			require.NoError(t, err)
+			ldapUser, appErr = th.App.GetUser(ldapUser.Id)
+			require.Nil(t, appErr)
 
 			// Call the method with the test case parameters
 			_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, ldapUser, tc.password, "")
