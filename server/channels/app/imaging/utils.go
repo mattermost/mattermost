@@ -153,32 +153,6 @@ func CropCenter(img image.Image, w, h int) image.Image {
 	return transform.Crop(img, b)
 }
 
-// cropAndResize crops the image to the smallest possible size that has the required aspect ratio using
-// a centered anchor point, then scales it to the specified dimensions and returns the transformed image.
-//
-// This is generally faster than resizing first, but may result in inaccuracies when used on small source images.
-// Adapted from github.com/disintegration/imaging
-func cropAndResizeCenter(img image.Image, width, height int) image.Image {
-	dstW, dstH := width, height
-
-	srcBounds := img.Bounds()
-	srcW := srcBounds.Dx()
-	srcH := srcBounds.Dy()
-	srcAspectRatio := float64(srcW) / float64(srcH)
-	dstAspectRatio := float64(dstW) / float64(dstH)
-
-	var tmp image.Image
-	if srcAspectRatio < dstAspectRatio {
-		cropH := float64(srcW) * float64(dstH) / float64(dstW)
-		tmp = CropCenter(img, srcW, int(math.Max(1, cropH)+0.5))
-	} else {
-		cropW := float64(srcH) * float64(dstW) / float64(dstH)
-		tmp = CropCenter(img, int(math.Max(1, cropW)+0.5), srcH)
-	}
-
-	return Resize(tmp, dstW, dstH, transform.Lanczos)
-}
-
 // resizeAndCrop resizes the image to the smallest possible size that will cover the specified dimensions,
 // crops the resized image to the specified dimensions using a centered anchor point and returns
 // the transformed image.
@@ -221,10 +195,6 @@ func FillCenter(img image.Image, dstW, dstH int) image.Image {
 
 	if srcW == dstW && srcH == dstH {
 		return clone.AsShallowRGBA(img)
-	}
-
-	if srcW >= 100 && srcH >= 100 {
-		return cropAndResizeCenter(img, dstW, dstH)
 	}
 
 	return resizeAndCropCenter(img, dstW, dstH)

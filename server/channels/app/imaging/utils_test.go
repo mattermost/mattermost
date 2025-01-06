@@ -341,7 +341,9 @@ func TestFillCenter(t *testing.T) {
 			require.Equal(t, "png", format)
 
 			filledImg := FillCenter(inputImg, tc.width, tc.height)
-			require.Equal(t, expectedImg.Bounds(), filledImg.Bounds())
+			require.Equal(t, expectedImg.Bounds().Dx(), filledImg.Bounds().Dx())
+			require.Equal(t, expectedImg.Bounds().Dy(), filledImg.Bounds().Dy())
+			require.Equal(t, expectedImg.(*image.RGBA).Pix, filledImg.(*image.RGBA).Pix)
 		})
 	}
 }
