@@ -36,7 +36,7 @@ import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import DeletePostModal from 'components/delete_post_modal';
 import FileUploadOverlay, {
     DropOverlayIdCreateComment, DropOverlayIdCreatePost,
-    DropOverlayIdEditPost
+    DropOverlayIdEditPost,
 } from 'components/file_upload_overlay/file_upload_overlay';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';

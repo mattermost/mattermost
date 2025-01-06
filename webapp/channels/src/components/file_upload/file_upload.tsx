@@ -14,6 +14,11 @@ import type {FileInfo, FileUploadResponse} from '@mattermost/types/files';
 import type {UploadFile} from 'actions/file_actions';
 
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+import {
+    DropOverlayIdCreateComment,
+    DropOverlayIdEditPost,
+    DropOverlayIdRHS,
+} from 'components/file_upload_overlay/file_upload_overlay';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -38,11 +43,6 @@ import {
 } from 'utils/utils';
 
 import type {FilesWillUploadHook, PluginComponent} from 'types/store/plugins';
-import {
-    DropOverlayIdCreateComment,
-    DropOverlayIdEditPost,
-    DropOverlayIdRHS
-} from 'components/file_upload_overlay/file_upload_overlay';
 
 const holders = defineMessages({
     limited: {
@@ -428,6 +428,8 @@ export class FileUpload extends PureComponent<Props, State> {
         });
 
         const enter = (e: CustomEvent) => {
+            // this null check is to deal with the race condition between rendering the post edit advanced text editor
+            // and this hook querying the same in DOM to register event handler on it.
             if (!overlay) {
                 overlay = document.querySelector(overlaySelector);
             }

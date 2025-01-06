@@ -15,6 +15,7 @@ import {canUploadFiles} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
 import type {FilesWillUploadHook} from 'types/store/plugins';
+
 import FileUpload from './file_upload';
 
 function mapStateToProps(state: GlobalState) {
