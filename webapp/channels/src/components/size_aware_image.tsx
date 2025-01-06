@@ -366,7 +366,12 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                             </span>
 
                             <span>
-                                {'GIF'}
+                                {
+                                    <FormattedMessage
+                                        id='single_image_view.gif_button'
+                                        defaultMessage={'GIF'}
+                                    />
+                                }
                             </span>
                         </>
                 }

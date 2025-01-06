@@ -1719,7 +1719,6 @@
         }
 
         .gif-button {
-            color: white;
             position: absolute;
             z-index: 2;
             display: flex;
@@ -1727,7 +1726,8 @@
             align-items: center;
             border-radius: 100px;
             background-color: rgba(0, 0, 0, .72);
-
+            
+            color: white;
             font-family: 'Open Sans';
             font-size: 14px;
             font-weight: 600;
