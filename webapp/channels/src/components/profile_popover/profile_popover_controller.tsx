@@ -21,9 +21,12 @@ import React, {useCallback, useState} from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {A11yClassNames, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
+import {A11yClassNames} from 'utils/constants';
 
 import ProfilePopover from './profile_popover';
+
+const PROFILE_POPOVER_OPENING_DELAY = 300;
+const PROFILE_POPOVER_CLOSING_DELAY = 500;
 
 interface Props<TriggerComponentType> {
 
@@ -87,11 +90,12 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
 
     const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, {
         duration: {
-            open: OverlaysTimings.FADE_IN_DURATION,
-            close: OverlaysTimings.FADE_OUT_DURATION,
+            open: PROFILE_POPOVER_OPENING_DELAY,
+            close: PROFILE_POPOVER_CLOSING_DELAY,
         },
-        initial: OverlayTransitionStyles.START,
     });
+
+    const combinedFloatingStyles = Object.assign({}, floatingStyles, transitionStyles);
 
     const clickInteractions = useClick(floatingContext);
 
@@ -124,7 +128,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
             </TriggerComponent>
 
             {isMounted && (
-                <FloatingPortal id={RootHtmlPortalId}>
+                <FloatingPortal id='root-portal'>
                     <FloatingOverlay
                         id='user-profile-popover-floating-overlay'
                         className='user-profile-popover-floating-overlay'
@@ -133,7 +137,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                         <FloatingFocusManager context={floatingContext}>
                             <div
                                 ref={refs.setFloating}
-                                style={{...floatingStyles, ...transitionStyles}}
+                                style={combinedFloatingStyles}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
                                 {...getFloatingProps()}
                             >

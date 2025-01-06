@@ -2009,6 +2009,8 @@ export const Constants = {
         COMMAND_SUGGESTION_CHANNEL: 'channel',
         COMMAND_SUGGESTION_USER: 'user',
     },
+    OVERLAY_TIME_DELAY_SMALL: 100,
+    OVERLAY_TIME_DELAY: 400,
     PERMALINK_FADEOUT: 5000,
     DEFAULT_MAX_USERS_PER_TEAM: 50,
     DEFAULT_MAX_CHANNELS_PER_TEAM: 2000,
@@ -2238,6 +2240,9 @@ export const RootHtmlPortalId = 'root-portal';
 
 export const OverlaysTimings = {
     CURSOR_REST_TIME_BEFORE_OPEN: 400, // in ms
+    CURSOR_MOUSEOVER_TO_OPEN: 400, // in ms
+    CURSOR_MOUSEOUT_TO_CLOSE: 0,
+    CURSOR_MOUSEOUT_TO_CLOSE_WITH_DELAY: 200, // in ms
     FADE_IN_DURATION: 250, // in ms
     FADE_OUT_DURATION: 150, // in ms
 };

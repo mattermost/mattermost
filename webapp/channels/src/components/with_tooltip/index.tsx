@@ -66,6 +66,12 @@ interface Props {
     isVertical?: boolean;
 
     /**
+     * If closing of the tooltip should be delayed,
+     * Useful if tooltips contains links that need to be clicked
+     */
+    delayClose?: boolean;
+
+    /**
      * Additional class name to be added to the tooltip container
      */
     className?: string;
@@ -87,6 +93,7 @@ function WithTooltip({
     hint,
     shortcut,
     isVertical = true,
+    delayClose = false,
     className,
     onOpen,
     disabled,
@@ -116,7 +123,7 @@ function WithTooltip({
         return {initial, fallback};
     }, [isVertical]);
 
-    const {refs: {setReference, setFloating}, floatingStyles, context} = useFloating({
+    const {refs: {setReference, setFloating}, floatingStyles, context: floatingContext} = useFloating({
         open: disabled ? false : open,
         onOpenChange: handleChange,
         whileElementsMounted: autoUpdate,
@@ -132,18 +139,19 @@ function WithTooltip({
         ],
     });
 
-    const hover = useHover(context, {
+    const hover = useHover(floatingContext, {
         restMs: OverlaysTimings.CURSOR_REST_TIME_BEFORE_OPEN,
         delay: {
-            open: OverlaysTimings.FADE_IN_DURATION,
+            open: OverlaysTimings.CURSOR_MOUSEOVER_TO_OPEN,
+            close: delayClose ? OverlaysTimings.CURSOR_MOUSEOUT_TO_CLOSE_WITH_DELAY : OverlaysTimings.CURSOR_MOUSEOUT_TO_CLOSE,
         },
     });
-    const focus = useFocus(context);
-    const dismiss = useDismiss(context);
-    const role = useRole(context, {role: 'tooltip'});
+    const focus = useFocus(floatingContext);
+    const dismiss = useDismiss(floatingContext);
+    const role = useRole(floatingContext, {role: 'tooltip'});
 
     const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, dismiss, role]);
-    const {isMounted, styles: transitionStyles} = useTransitionStyles(context, {
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, {
         duration: {
             open: OverlaysTimings.FADE_IN_DURATION,
             close: OverlaysTimings.FADE_OUT_DURATION,
@@ -156,23 +164,25 @@ function WithTooltip({
         console.error('Children must be a valid React element for WithTooltip');
     }
 
-    const mergedRefs = useMergeRefs([(children as any)?.ref, setReference]);
+    const mergedRefs = useMergeRefs([setReference, (children as any)?.ref]);
 
-    const trigger = cloneElement(children, {
-        ...getReferenceProps({
+    const trigger = cloneElement(
+        children,
+        getReferenceProps({
             ref: mergedRefs,
             ...children.props,
         }),
-    });
+    );
 
     return (
         <>
             {trigger}
+
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
                     <div
-                        className={classNames('tooltipContainer', className)}
                         ref={setFloating}
+                        className={classNames('tooltipContainer', className)}
                         style={{...floatingStyles, ...transitionStyles}}
                         {...getFloatingProps()}
                     >
@@ -185,7 +195,7 @@ function WithTooltip({
                         />
                         <FloatingArrow
                             ref={arrowRef}
-                            context={context}
+                            context={floatingContext}
                             width={OverlayArrow.WIDTH}
                             height={OverlayArrow.HEIGHT}
                         />

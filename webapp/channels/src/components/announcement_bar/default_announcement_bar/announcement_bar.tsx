@@ -196,6 +196,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                 <WithTooltip
                     title={this.props.tooltipMsg ? this.props.tooltipMsg : message}
                     className='announcementBarTooltip'
+                    delayClose={true}
                 >
                     {barContent}
 

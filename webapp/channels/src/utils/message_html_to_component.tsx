@@ -10,8 +10,8 @@ import AtSumOfMembersMention from 'components/at_sum_members_mention';
 import CodeBlock from 'components/code_block/code_block';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
+import LinkTooltip from 'components/link_tooltip/link_tooltip';
 import MarkdownImage from 'components/markdown_image';
-import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
@@ -107,14 +107,18 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
     ];
 
     if (options.hasPluginTooltips) {
+        const hrefAttrib = 'href';
         processingInstructions.push({
-            replaceChildren: false,
-            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs.href,
+            replaceChildren: true,
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs[hrefAttrib],
             processNode: (node: any, children: any) => {
                 return (
-                    <PluginLinkTooltip nodeAttributes={node.attribs}>
+                    <LinkTooltip
+                        href={node.attribs[hrefAttrib]}
+                        attributes={node.attribs}
+                    >
                         {children}
-                    </PluginLinkTooltip>
+                    </LinkTooltip>
                 );
             },
         });
