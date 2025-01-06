@@ -1039,7 +1039,7 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 
 	var postIDs []string
 	if err = s.GetReplica().SelectBuilder(&postIDs, orphanedMembershipsQuery); err != nil {
-		return 
+		return
 	}
 
 	if len(postIDs) == 0 {
@@ -1056,7 +1056,6 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 	}
 
 	return result.RowsAffected()
-
 }
 
 // return number of unread replies for a single thread
