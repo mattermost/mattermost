@@ -1065,6 +1065,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 
 	// Now attempt to delete all the root posts for a user. This will also
 	// delete all the comments for each post
+	const maxLoops = 10
 	count := 0
 	for {
 		var ids []string
@@ -1083,8 +1084,8 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 
 		// This is a fail safe, give up if more than 10k messages
 		count++
-		if count >= 10 {
-			return errors.Wrapf(err, "too many Posts to delete with userId=%s", userId)
+		if count >= maxLoops {
+			return store.NewErrLimitExceeded("permanently deleting posts for user", maxLoops*1000, "userId="+userId)
 		}
 	}
 
