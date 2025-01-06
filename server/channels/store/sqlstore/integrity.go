@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
@@ -80,15 +79,6 @@ func checkParentChildIntegrity(ss *SqlStore, config relationalCheckConfig) model
 	data.ParentIdAttr = config.parentIdAttr
 	data.ChildIdAttr = config.childIdAttr
 	result.Data = data
-
-	fmt.Println("****8888****")
-	fmt.Println("****8888****")
-	fmt.Println("****8888****")
-	fmt.Println(result)
-	fmt.Println("****8888****")
-	fmt.Println("****8888****")
-	fmt.Println("****8888****")
-
 	return result
 }
 
@@ -625,17 +615,5 @@ func validateDMChannelPattern(ss *SqlStore) model.IntegrityCheckResult {
 	}
 
 	result.Data = relationalData
-	fmt.Println("***********")
-	fmt.Println("***********")
-	fmt.Println("***********")
-
-	fmt.Printf("%+v\n", relationalData)
-	fmt.Println("////")
-	fmt.Println("////")
-	fmt.Printf("%+v\n", result)
-
-	fmt.Println("***********")
-	fmt.Println("***********")
-	fmt.Println("***********")
 	return result
 }
