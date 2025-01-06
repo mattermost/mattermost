@@ -55,13 +55,12 @@ const fetchFromNetwork = async (request) => {
 const precachedAssets = [
     '/',
     '/static/css/initial_loading_screen.css',
+    '/static/images/favicon/favicon-default-16x16.png',
+    '/static/images/favicon/favicon-default-24x24.png',
+    '/static/images/favicon/favicon-default-32x32.png',
+    '/static/images/favicon/favicon-default-64x64.png',
+    '/static/images/favicon/favicon-default-96x96.png',
 ];
-
-self.addEventListener('install', (event) => {
-    event.waitUntil(caches.open(cacheName).then((cache) => {
-        return cache.addAll(precachedAssets);
-    }));
-});
 
 self.addEventListener('fetch', (event) => {
     // https://issues.chromium.org/issues/40895772
@@ -69,10 +68,13 @@ self.addEventListener('fetch', (event) => {
 
     const url = new URL(event.request.url);
     const isPrecachedRequest = precachedAssets.includes(url.pathname);
+    const isDocumentRequest = event.request.destination === 'document';
+    const isFontRequest = event.request.destination === 'font';
 
     // We need the event.request.destination == 'document' condition
     // to match other URLs which return the same root.html.
-    if (isPrecachedRequest || event.request.destination === 'document') {
+    // Also cache font requests to reduce janky re-render.
+    if (isPrecachedRequest || isDocumentRequest || isFontRequest) {
         event.respondWith(handleCacheRequest(event.request));
     }
 });
