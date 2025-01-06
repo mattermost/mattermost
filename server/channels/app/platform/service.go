@@ -266,7 +266,37 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
 
-	// Step 7: Init License
+	// Step 7: initialize status and session cache.
+	// We need to do this because ps.LoadLicense() called in step 8, could
+	// end up calling InvalidateAllCaches, so the status and session caches
+	// need to be initialized before that.
+
+	// Note: we hardcode the session and status cache to LRU because they lead
+	// to a lot of SCAN calls in case of Redis. We could potentially have a
+	// reverse mapping to avoid the scan, but this needs more complicated code.
+	// Leaving this for now.
+	ps.statusCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
+		Name:           "Status",
+		Size:           model.StatusCacheSize,
+		Striped:        true,
+		StripedBuckets: max(runtime.NumCPU()-1, 1),
+		DefaultExpiry:  30 * time.Minute,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to create status cache: %w", err)
+	}
+
+	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
+		Name:           "Session",
+		Size:           model.SessionCacheSize,
+		Striped:        true,
+		StripedBuckets: max(runtime.NumCPU()-1, 1),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create session cache: %w", err)
+	}
+
+	// Step 8: Init License
 	if model.BuildEnterpriseReady == "true" {
 		ps.LoadLicense()
 	}
@@ -280,7 +310,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("Redis cannot be used in an instance without a license or a license without clustering")
 	}
 
-	// Step 8: Initialize filestore
+	// Step 9: Initialize filestore
 	if ps.filestore == nil {
 		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
 		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
@@ -304,33 +334,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 	}
 
-	// Note: we hardcode the session and status cache to LRU because they lead
-	// to a lot of SCAN calls in case of Redis. We could potentially have a
-	// reverse mapping to avoid the scan, but this needs more complicated code.
-	// Leaving this for now.
-
-	ps.statusCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
-		Name:           "Status",
-		Size:           model.StatusCacheSize,
-		Striped:        true,
-		StripedBuckets: max(runtime.NumCPU()-1, 1),
-		DefaultExpiry:  30 * time.Minute,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("unable to create status cache: %w", err)
-	}
-
-	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{
-		Name:           "Session",
-		Size:           model.SessionCacheSize,
-		Striped:        true,
-		StripedBuckets: max(runtime.NumCPU()-1, 1),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("could not create session cache: %w", err)
-	}
-
-	// Step 9: Init Metrics Server depends on step 6 (store) and 7 (license)
+	// Step 10: Init Metrics Server depends on step 6 (store) and 8 (license)
 	if ps.startMetrics {
 		if mErr := ps.resetMetrics(); mErr != nil {
 			return nil, mErr
@@ -345,7 +349,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		})
 	}
 
-	// Step 10: Init AsymmetricSigningKey depends on step 6 (store)
+	// Step 11: Init AsymmetricSigningKey depends on step 6 (store)
 	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
 		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}
@@ -497,10 +501,6 @@ func (ps *PlatformService) Shutdown() error {
 
 func (ps *PlatformService) CacheProvider() cache.Provider {
 	return ps.cacheProvider
-}
-
-func (ps *PlatformService) StatusCache() cache.Cache {
-	return ps.statusCache
 }
 
 // SetSqlStore is used for plugin testing
