@@ -387,7 +387,9 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                         (this.props.handleSmallImageContainer &&
                         this.state.isSmallImage ? ' small-image--inside-container' : '')
                     }
-                />
+                >
+                    {this.props.alt && this.props.alt}
+                </canvas>
                 {playPauseGifButton}
             </div>
         );

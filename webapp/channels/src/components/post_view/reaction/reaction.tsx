@@ -244,7 +244,9 @@ export default class Reaction extends React.PureComponent<Props, State> {
                     id='static-emoji-reaction'
                     height={reactionWidthAndHeight}
                     width={reactionWidthAndHeight}
-                />
+                >
+                    {emojiName}
+                </canvas>
             </span>
         );
 

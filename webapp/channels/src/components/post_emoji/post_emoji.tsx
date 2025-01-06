@@ -60,7 +60,9 @@ const PostEmoji = ({children, name, imageUrl, autoplayGifsAndEmojis}: Props) => 
                             // 32px is the height and width specified in the 'emoticon' CSS rule.
                             width={emoticonWidthAndHeight}
                             height={emoticonWidthAndHeight}
-                        />
+                        >
+                            {emojiText}
+                        </canvas>
                     </span> :
                     <span
                         className='emoticon'
