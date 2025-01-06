@@ -1,0 +1,95 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
+
+.file-overlay {
+    position: absolute;
+    z-index: 13;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    color: variables.$white;
+    font-size: functions.em(20px);
+    font-weight: 600;
+    pointer-events: none;
+    text-align: center;
+
+    .overlay__indent {
+        @include mixins.clearfix;
+        @include mixins.alpha-property(background-color, variables.$black, 0.75);
+
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &.right-file-overlay {
+        font-size: functions.em(18px);
+
+        .overlay__circle {
+            width: 300px;
+            height: 300px;
+            //margin: -150px 0 0 -150px;
+        }
+
+        .overlay__files {
+            width: 150px;
+            //margin: 60px auto 15px;
+        }
+    }
+
+    .overlay__circle {
+        width: max-content;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-height: 100%;
+        height: max-content;
+        flex-wrap: wrap;
+        gap: 20px;
+        pointer-events: none;
+        justify-content: center;
+
+        &.horizontal {
+            flex-direction: row;
+            width: max-content;
+
+            .overlay__files {
+                height: 96px;
+                width: auto;
+            }
+
+            span {
+                height: 100px;
+                display: flex;
+                align-items: center;
+            }
+        }
+    }
+
+    .overlay__files {
+        display: block;
+        width: 128px;
+    }
+
+    .overlay__logo {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        width: 100px;
+        margin-left: -50px;
+        opacity: 0.3;
+    }
+
+    .fa {
+        display: inline-block;
+        margin-right: 8px;
+        font-size: 1.1em;
+    }
+}

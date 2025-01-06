@@ -34,7 +34,7 @@ import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import DeletePostModal from 'components/delete_post_modal';
-import FileUploadOverlay from 'components/file_upload_overlay';
+import FileUploadOverlay from 'components/file_upload_overlay/file_upload_overlay';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -718,22 +718,6 @@ const AdvancedTextEditor = ({
                     'formatting-bar': showFormattingBar,
                 })}
             >
-                {
-                    isInEditMode &&
-                    <FileUploadOverlay
-                        overlayType={isRHS ? 'right' : 'center'}
-                        editMode={true}
-                        id={DropOverlayIDEditPost}
-                    />
-                }
-                {
-                    !isInEditMode &&
-                    <FileUploadOverlay
-                        overlayType={isRHS ? 'right' : 'center'}
-                        editMode={false}
-                        id={isRHS ? DropOverlayIDCreateComment : DropOverlayIDCreatePost}
-                    />
-                }
                 {!wasNotifiedOfLogIn && (
                     <div
                         aria-live='assertive'
@@ -749,6 +733,24 @@ const AdvancedTextEditor = ({
                     className={'AdvancedTextEditor__body'}
                     disabled={isDisabled}
                 >
+                    {
+                        isInEditMode &&
+                        <FileUploadOverlay
+                            overlayType={isRHS ? 'right' : 'center'}
+                            editMode={true}
+                            id={DropOverlayIDEditPost}
+                            mode={'horizontal'}
+                        />
+                    }
+                    {
+                        !isInEditMode &&
+                        <FileUploadOverlay
+                            overlayType={isRHS ? 'right' : 'center'}
+                            editMode={false}
+                            id={isRHS ? DropOverlayIDCreateComment : DropOverlayIDCreatePost}
+                            mode={'horizontal'}
+                        />
+                    }
                     <div
                         ref={editorBodyRef}
                         role='application'

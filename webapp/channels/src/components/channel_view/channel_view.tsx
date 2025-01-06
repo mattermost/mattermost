@@ -17,7 +17,7 @@ import InputLoading from './input_loading';
 import type {PropsFromRedux} from './index';
 
 const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
-const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
+const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay/file_upload_overlay')));
 const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
 const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
 
