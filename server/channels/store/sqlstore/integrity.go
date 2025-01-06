@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
@@ -79,6 +80,14 @@ func checkParentChildIntegrity(ss *SqlStore, config relationalCheckConfig) model
 	data.ParentIdAttr = config.parentIdAttr
 	data.ChildIdAttr = config.childIdAttr
 	result.Data = data
+
+	fmt.Println("****8888****")
+	fmt.Println("****8888****")
+	fmt.Println("****8888****")
+	fmt.Println(result)
+	fmt.Println("****8888****")
+	fmt.Println("****8888****")
+	fmt.Println("****8888****")
 
 	return result
 }
@@ -550,11 +559,7 @@ func CheckRelationalIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckR
 }
 
 func validateDMChannelPattern(ss *SqlStore) model.IntegrityCheckResult {
-	type data struct {
-		invalidChannels []string
-		invalidIDs      []string
-	}
-	dt := data{}
+	relationalData := model.RelationalIntegrityCheckData{}
 	records := []model.OrphanedRecord{}
 	dirtyIDs := []string{}
 	result := model.IntegrityCheckResult{}
@@ -591,7 +596,7 @@ func validateDMChannelPattern(ss *SqlStore) model.IntegrityCheckResult {
 
 	usersFromTable, err := ss.User().GetProfileByIds(context.Background(), userIDs, nil, false)
 	if err != nil {
-		mlog.Error("There is an issue with fetching valid users IDs", mlog.Err(err))
+		mlog.Error("There is an issue with fetching valid user IDs", mlog.Err(err))
 		return result
 	}
 
@@ -607,8 +612,30 @@ func validateDMChannelPattern(ss *SqlStore) model.IntegrityCheckResult {
 		}
 	}
 
-	dt.invalidIDs = invalidIDs
-	dt.invalidChannels = invalidChannels
-	result.Data = dt
+	relationalData.ParentName = "invalidChannels"
+	relationalData.ChildName = "invalidIDs"
+	idx := 0
+	for idx < len(invalidIDs) {
+		rec := model.OrphanedRecord{
+			ParentId: &invalidChannels[idx],
+			ChildId:  &invalidIDs[idx],
+		}
+		relationalData.Records = append(relationalData.Records, rec)
+		idx++
+	}
+
+	result.Data = relationalData
+	fmt.Println("***********")
+	fmt.Println("***********")
+	fmt.Println("***********")
+
+	fmt.Printf("%+v\n", relationalData)
+	fmt.Println("////")
+	fmt.Println("////")
+	fmt.Printf("%+v\n", result)
+
+	fmt.Println("***********")
+	fmt.Println("***********")
+	fmt.Println("***********")
 	return result
 }
