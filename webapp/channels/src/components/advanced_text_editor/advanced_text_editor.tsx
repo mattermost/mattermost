@@ -822,12 +822,6 @@ const AdvancedTextEditor = ({
                     }</span>
                 </div>) : null
             }
-            {isInEditMode && (
-                <EditPostFooter
-                    onSave={handleSubmitWrapper}
-                    onCancel={handleCancel}
-                />
-            )}
             <Footer
                 postError={postError}
                 errorClass={errorClass}
@@ -837,6 +831,12 @@ const AdvancedTextEditor = ({
                 noArgumentHandleSubmit={handleSubmitWrapper}
                 isInEditMode={isInEditMode}
             />
+            {isInEditMode && (
+                <EditPostFooter
+                    onSave={handleSubmitWrapper}
+                    onCancel={handleCancel}
+                />
+            )}
         </form>
     );
 };
