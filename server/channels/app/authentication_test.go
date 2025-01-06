@@ -240,7 +240,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			}
 
 			ldapUser, err = th.App.GetUser(ldapUser.Id)
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			// Call the method with the test case parameters
 			_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, ldapUser, tc.password, "")
