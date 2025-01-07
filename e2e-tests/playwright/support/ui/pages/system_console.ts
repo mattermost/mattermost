@@ -21,6 +21,10 @@ class SystemConsolePage {
     readonly systemUsersColumnToggleMenu;
     readonly systemUsersActionMenus;
 
+    // modal
+    readonly confirmModal;
+    readonly exportModal;
+
     constructor(page: Page) {
         this.page = page;
 
@@ -46,6 +50,9 @@ class SystemConsolePage {
         this.systemUsersActionMenus = Array.from(Array(10).keys()).map(
             (index) => new components.SystemUsersFilterMenu(page.locator(`#actionMenu-systemUsersTable-${index}`)),
         );
+
+        this.confirmModal = new components.GenericConfirmModal(page.locator('#confirmModal'));
+        this.exportModal = new components.GenericConfirmModal(page.getByRole('dialog', {name: 'Export user data'}));
     }
 
     async toBeVisible() {

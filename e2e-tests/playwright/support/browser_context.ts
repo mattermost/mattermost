@@ -7,6 +7,7 @@ import {request, Browser, BrowserContext} from '@playwright/test';
 
 import {UserProfile} from '@mattermost/types/users';
 import testConfig from '@e2e-test.config';
+import pages from '@e2e-support/ui/pages';
 
 export class TestBrowser {
     readonly browser: Browser;
@@ -29,9 +30,14 @@ export class TestBrowser {
         const context = await this.browser.newContext(options);
         const page = await context.newPage();
 
+        const channelsPage = new pages.ChannelsPage(page);
+        const systemConsolePage = new pages.SystemConsolePage(page);
+        const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+        const draftPage = new pages.DraftPage(page);
+
         this.context = context;
 
-        return {context, page};
+        return {context, page, channelsPage, systemConsolePage, scheduledDraftPage, draftPage};
     }
 
     async close() {
