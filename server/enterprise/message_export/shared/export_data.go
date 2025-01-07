@@ -129,23 +129,14 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 	uploadStopsByChannel := make(map[string][]*FileUploadStopExport)
 	deletedFilesByChannel := make(map[string][]PostExport)
 
-	for _, post := range p.Posts {
+	processPostAttachments := func(post *model.MessageExport, postExport PostExport, ignoreDeleted bool) error {
+		// ignoreDeleted means we are recording this message's original file starts and stops, before it
+		// was deleted (we'll record that next call to this function)
+
 		channelId := *post.ChannelId
-		channelsInThisBatch[channelId] = true
-
-		// Was the post deleted (not an edited post), and originally posted during the current job window?
-		// If so, we need to record it. It may actually belong in an earlier batch, but there's no way to know that
-		// before now because of the way we export posts (by updateAt).
-		if IsDeletedMsg(post) && !isEditedOriginalMsg(post) && *post.PostCreateAt >= p.JobStartTime {
-			results.CreatedPosts++
-			postsByChannel[channelId] = append(postsByChannel[channelId], createdPostToExportEntry(post))
-		}
-		var postExport PostExport
-		postExport, results = getPostExport(post, results)
-
-		uploadedFiles, startUploads, stopUploads, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db)
+		uploadedFiles, startUploads, stopUploads, deleteFileMessages, err := postToAttachmentsEntries(post, p.Db, ignoreDeleted)
 		if err != nil {
-			return GenericExportData{}, err
+			return err
 		}
 		uploadStartsByChannel[channelId] = append(uploadStartsByChannel[channelId], startUploads...)
 		uploadStopsByChannel[channelId] = append(uploadStopsByChannel[channelId], stopUploads...)
@@ -155,10 +146,34 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 		postExport.Attachments = uploadedFiles
 		postsByChannel[channelId] = append(postsByChannel[channelId], postExport)
 
-		results.UploadedFiles += len(uploadStartsByChannel[channelId])
-		results.DeletedFiles += len(deletedFilesByChannel[channelId])
+		results.UploadedFiles += len(startUploads)
+		results.DeletedFiles += len(deleteFileMessages)
 
 		if err := metadata.UpdateCounts(channelId, 1, len(uploadedFiles)); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	for _, post := range p.Posts {
+		channelId := *post.ChannelId
+		channelsInThisBatch[channelId] = true
+
+		// Was the post deleted (not an edited post), and originally posted during the current job window?
+		// If so, we need to record it. It may actually belong in an earlier batch, but there's no way to know that
+		// before now because of the way we export posts (by updateAt).
+		if IsDeletedMsg(post) && !isEditedOriginalMsg(post) && *post.PostCreateAt >= p.JobStartTime {
+			results.CreatedPosts++
+			postExport := createdPostToExportEntry(post)
+			if err := processPostAttachments(post, postExport, true); err != nil {
+				return GenericExportData{}, err
+			}
+		}
+		var postExport PostExport
+		postExport, results = getPostExport(post, results)
+
+		if err := processPostAttachments(post, postExport, false); err != nil {
 			return GenericExportData{}, err
 		}
 
@@ -219,8 +234,9 @@ func GetGenericExportData(p ExportParams) (GenericExportData, error) {
 
 // postToAttachmentsEntries returns every fileInfo as uploadedFiles. It also adds each file into the lists:
 //
-//	startUploads, stopUploads, and deleteFileMessages (for ActianceExport).
-func postToAttachmentsEntries(post *model.MessageExport, db MessageExportStore) (
+//		startUploads, stopUploads, and deleteFileMessages (for ActianceExport).
+//	 If onlyDeleted = true, only export the deleted entry (if it exists).
+func postToAttachmentsEntries(post *model.MessageExport, db MessageExportStore, ignoreDeleted bool) (
 	uploadedFiles []*model.FileInfo, startUploads []*FileUploadStartExport, stopUploads []*FileUploadStopExport, deleteFileMessages []PostExport, err error) {
 	// if the post included any files, we need to add special elements to the export.
 	if len(post.PostFileIds) == 0 {
@@ -233,6 +249,14 @@ func postToAttachmentsEntries(post *model.MessageExport, db MessageExportStore) 
 	}
 
 	for _, fileInfo := range uploadedFiles {
+		if fileInfo.DeleteAt > 0 && !ignoreDeleted {
+			deleteFileMessages = append(deleteFileMessages, deleteFileToExportEntry(post, fileInfo))
+
+			// this was a deleted file, so do not record its start and stop. If the original message was sent in this
+			// batch, the file transfer will have been exported earlier up when the original message was exported.
+			continue
+		}
+
 		// insert a record of the file upload into the export file
 		// path to exported file is relative to the fileAttachmentFilestore root,
 		// which could be different from the exportFilestore root
@@ -250,10 +274,6 @@ func postToAttachmentsEntries(post *model.MessageExport, db MessageExportStore) 
 			Status:         "Completed",
 			FileInfo:       fileInfo,
 		})
-
-		if fileInfo.DeleteAt > 0 {
-			deleteFileMessages = append(deleteFileMessages, deleteFileToExportEntry(post, fileInfo))
-		}
 	}
 	return
 }
