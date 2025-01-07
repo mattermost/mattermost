@@ -45,7 +45,6 @@ type MenuButtonProps = {
 }
 
 type MenuButtonTooltipProps = {
-    id: string;
     isVertical?: boolean;
     class?: string;
     text: string;

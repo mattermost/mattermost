@@ -5159,6 +5159,7 @@
   "sidebar_left.sidebar_category_menu.viewCategory": "Kategorie als gelesen markieren",
   "sidebar_left.sidebar_channel.selectedCount": "{count} ausgewählt",
   "sidebar_left.sidebar_channel_menu.addMembers": "Mitglieder hinzufügen",
+  "sidebar_left.sidebar_channel_menu.bookmarks": "Lesezeichenleiste",
   "sidebar_left.sidebar_channel_menu.channels": "Kanäle",
   "sidebar_left.sidebar_channel_menu.copyLink": "Link kopieren",
   "sidebar_left.sidebar_channel_menu.dropdownAriaLabel": "Kanalmenü bearbeiten",
