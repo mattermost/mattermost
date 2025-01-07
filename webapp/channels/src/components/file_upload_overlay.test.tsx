@@ -11,6 +11,7 @@ describe('components/FileUploadOverlay', () => {
         const wrapper = shallow(
             <FileUploadOverlay
                 overlayType=''
+                id={'fileUploadOverlay'}
             />,
         );
 
@@ -21,6 +22,7 @@ describe('components/FileUploadOverlay', () => {
         const wrapper = shallow(
             <FileUploadOverlay
                 overlayType='right'
+                id={'fileUploadOverlay'}
             />,
         );
 
@@ -31,6 +33,7 @@ describe('components/FileUploadOverlay', () => {
         const wrapper = shallow(
             <FileUploadOverlay
                 overlayType='center'
+                id={'fileUploadOverlay'}
             />,
         );
 

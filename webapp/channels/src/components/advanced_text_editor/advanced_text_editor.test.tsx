@@ -412,4 +412,62 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         expect(screen.getByText('Editing this message with an \'@mention\' will not notify the recipient.')).toBeVisible();
     });
+
+    it('should have file upload overlay', () => {
+        const props = {
+            ...baseProps,
+        };
+
+        let {container} = renderWithContext(
+            <AdvancedTextEditor
+                {...props}
+            />,
+        );
+
+        expect(container.querySelector('#createPostFileDropOverlay')).toBeVisible();
+
+        // in RHS create comment
+        container = renderWithContext(
+            <AdvancedTextEditor
+                {...props}
+                postId={'post_id_1'}
+            />,
+        ).container;
+
+        expect(container.querySelector('#createCommentFileDropOverlay')).toBeVisible();
+
+        // in center channel editing a post
+        container = renderWithContext(
+            <AdvancedTextEditor
+                {...props}
+                postId={'post_id_1'}
+                isInEditMode={true}
+            />,
+        ).container;
+
+        expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+
+        // in RHS editing a post
+        container = renderWithContext(
+            <AdvancedTextEditor
+                {...props}
+                postId={'post_id_1'}
+                isInEditMode={true}
+            />,
+        ).container;
+
+        expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+
+        // in threads
+        container = renderWithContext(
+            <AdvancedTextEditor
+                {...props}
+                postId={'post_id_1'}
+                isInEditMode={true}
+                isThreadView={true}
+            />,
+        ).container;
+
+        expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+    });
 });
