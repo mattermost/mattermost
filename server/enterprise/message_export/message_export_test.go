@@ -994,7 +994,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					UserType:    "user",
 					CreateAt:    posts[3].CreateAt,
 					Message:     "delete " + posts[3].Message,
-					UpdateAt:    type3Ret.message3DeleteAt,
+					UpdateAt:    type3Ret.message3AndFileInfoDeleteAt,
 					UpdatedType: shared.Deleted,
 				}, messages[5])
 
@@ -1006,7 +1006,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 					UserType:    "user",
 					CreateAt:    posts[3].CreateAt,
 					Message:     "delete " + attachments[0].Path,
-					UpdateAt:    type3Ret.deletedPost3.DeleteAt,
+					UpdateAt:    type3Ret.message3AndFileInfoDeleteAt,
 					UpdatedType: shared.FileDeleted,
 				}, messages[6])
 
@@ -1077,7 +1077,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		}
 	})
 
-	t.Run("GlobalRelay e2e 3 - test create, update, delete xml fields", func(t *testing.T) {
+	t.Run("GlobalRelay e2e 3 - test create, update, delete fields", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
 
@@ -1103,7 +1103,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 5                       6                         7                       8
 				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
 				// 9                                   10  original            11  edited
-				conv(type3Ret.deletedPost3.CreateAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
+				conv(type3Ret.message3AndFileInfoDeleteAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
 				// 12 original
 				conv(posts[6].CreateAt)),
 
@@ -1114,7 +1114,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 5                       6                         7                       8
 				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
 				// 9                                    10  edited              11  original
-				conv(type3Ret.deletedPost3.CreateAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
+				conv(type3Ret.message3AndFileInfoDeleteAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
 				// 12 original
 				conv(posts[6].CreateAt)),
 
@@ -1125,7 +1125,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 5                       6                         7                       8
 				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
 				// 9                                   10  original            11  edited
-				conv(type3Ret.deletedPost3.CreateAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
+				conv(type3Ret.message3AndFileInfoDeleteAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
 				// 12 edited
 				conv(posts[6].CreateAt)),
 
@@ -1136,7 +1136,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 5                       6                         7                       8
 				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
 				// 9                                    10  edited              11  original
-				conv(type3Ret.deletedPost3.CreateAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
+				conv(type3Ret.message3AndFileInfoDeleteAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
 				// 12 edited
 				conv(posts[6].CreateAt)),
 		}
@@ -1151,7 +1151,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 5                       6                         7                       8
 				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
 				// 9                                   10  original            11  edited
-				conv(type3Ret.deletedPost3.CreateAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
+				conv(type3Ret.message3AndFileInfoDeleteAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
 				// 12 original            13
 				conv(posts[6].CreateAt), conv(jobStartTime)),
 
@@ -1162,7 +1162,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 5                       6                         7                       8
 				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
 				// 9                                    10  edited              11  original
-				conv(type3Ret.deletedPost3.CreateAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
+				conv(type3Ret.message3AndFileInfoDeleteAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
 				// 12 original            13
 				conv(posts[6].CreateAt), conv(jobStartTime)),
 
@@ -1173,7 +1173,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 5                       6                         7                       8
 				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
 				// 9                                   10  original            11  edited
-				conv(type3Ret.deletedPost3.CreateAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
+				conv(type3Ret.message3AndFileInfoDeleteAt), conv(posts[4].CreateAt), conv(posts[5].CreateAt),
 				// 12 edited              13
 				conv(posts[7].CreateAt), conv(jobStartTime)),
 
@@ -1184,7 +1184,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 5                       6                         7                       8
 				conv(posts[0].CreateAt), conv(posts[1].CreateAt), conv(posts[2].CreateAt), conv(posts[3].CreateAt),
 				// 9                                    10  edited              11  original
-				conv(type3Ret.deletedPost3.CreateAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
+				conv(type3Ret.message3AndFileInfoDeleteAt), conv(posts[5].CreateAt), conv(posts[4].CreateAt),
 				// 12 edited              13
 				conv(posts[7].CreateAt), conv(jobStartTime)),
 		}
@@ -1276,7 +1276,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 14         15                  16                17                        18
 				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
 				// 19                     20                   21                  22               23
-				posts[3].CreateAt, ret3.message3DeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt,
+				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt,
 				// 24 this is the editedBy for message 6
 				posts[7].Id),
 
@@ -1291,7 +1291,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 14         15                  16                17                        18
 				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
 				// 19                     20                21                  22               23
-				posts[3].CreateAt, ret3.message3DeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt,
+				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt,
 				// 24 this is the editedBy for message 6
 				posts[7].Id),
 
@@ -1306,7 +1306,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 14         15                  16                17                        18
 				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
 				// 19                     20                   21                  22               23
-				posts[3].CreateAt, ret3.message3DeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt),
+				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt),
 
 			// edited, original, edited
 			fmt.Sprintf(csvE2E3Batch1Perm4,
@@ -1319,7 +1319,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// 14         15                  16                17                        18
 				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
 				// 19                     20                  21                  22               23
-				posts[3].CreateAt, ret3.message3DeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt),
+				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt),
 		}
 
 		export := openZipAndReadFirstFile(t, exportBackend, batches[0])
@@ -1946,12 +1946,6 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				message:  posts[2].Message,
 			},
 			// post deleted ONLY (not its created post, because that was in the previous job)
-			// except that CSV doesn't have this logic, needs fix, MM-61718
-			{
-				createAt: posts[0].CreateAt,
-				postId:   posts[0].Id,
-				message:  posts[0].Message,
-			},
 			{
 				createAt: message0DeleteAt,
 				postId:   posts[0].Id,

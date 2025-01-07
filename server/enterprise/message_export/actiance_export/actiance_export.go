@@ -75,6 +75,15 @@ type Sortable interface {
 	SortVal() (int64, string)
 }
 
+func SortableSort(a, b Sortable) int {
+	aTimestamp, aId := a.SortVal()
+	bTimestamp, bId := b.SortVal()
+	if aTimestamp == bTimestamp {
+		return strings.Compare(aId, bId)
+	}
+	return int(aTimestamp - bTimestamp)
+}
+
 // The Message element indicates the message sent by a user
 type PostExport struct {
 	XMLName   xml.Name        `xml:"Message"`
@@ -146,15 +155,15 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 	start := time.Now()
 
 	// Build the channel exports for the channels that had post or user join/leave activity this batch.
-	genericChannelExports, results, err := shared.GetGenericExportData(p)
+	exportData, err := shared.GetGenericExportData(p)
 	if err != nil {
-		return results, err
+		return exportData.Results, err
 	}
 	var allUploadedFiles []*model.FileInfo
 
 	// Convert the generic shared.ChannelExports to the Actiance-specific ChannelExports data.
-	channelExports := make([]ChannelExport, 0, len(genericChannelExports))
-	for _, channel := range genericChannelExports {
+	channelExports := make([]ChannelExport, 0, len(exportData.Exports))
+	for _, channel := range exportData.Exports {
 		joinEvents := make([]JoinExport, 0, len(channel.JoinEvents))
 		leaveEvents := make([]LeaveExport, 0, len(channel.LeaveEvents))
 
@@ -178,10 +187,10 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 		elements := make([]Sortable, 0, len(channel.Posts)+len(channel.DeletedFiles)+len(channel.UploadStarts)+len(channel.UploadStops))
 		for _, p := range channel.Posts {
 			elements = append(elements, PostExport{
-				MessageId:      p.MessageId,
-				UserEmail:      p.UserEmail,
+				MessageId:      *p.PostId,
+				UserEmail:      *p.UserEmail,
 				UserType:       p.UserType,
-				CreateAt:       p.CreateAt,
+				CreateAt:       *p.PostCreateAt,
 				UpdatedType:    p.UpdatedType,
 				UpdateAt:       p.UpdateAt,
 				EditedNewMsgId: p.EditedNewMsgId,
@@ -191,10 +200,10 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 		}
 		for _, p := range channel.DeletedFiles {
 			elements = append(elements, PostExport{
-				MessageId:      p.MessageId,
-				UserEmail:      p.UserEmail,
+				MessageId:      *p.PostId,
+				UserEmail:      *p.UserEmail,
 				UserType:       p.UserType,
-				CreateAt:       p.CreateAt,
+				CreateAt:       *p.PostCreateAt,
 				UpdatedType:    p.UpdatedType,
 				UpdateAt:       p.UpdateAt,
 				EditedNewMsgId: p.EditedNewMsgId,
@@ -206,29 +215,22 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 			elements = append(elements, FileUploadStartExport{
 				UserEmail:       u.UserEmail,
 				UploadStartTime: u.UploadStartTime,
-				Filename:        u.Filename,
-				FilePath:        u.FilePath,
+				Filename:        u.FileInfo.Name,
+				FilePath:        u.FileInfo.Path,
 			})
 		}
 		for _, u := range channel.UploadStops {
 			elements = append(elements, FileUploadStopExport{
 				UserEmail:      u.UserEmail,
 				UploadStopTime: u.UploadStopTime,
-				Filename:       u.Filename,
-				FilePath:       u.FilePath,
+				Filename:       u.FileInfo.Name,
+				FilePath:       u.FileInfo.Path,
 				Status:         u.Status,
 			})
 		}
 
 		// We need to sort all the elements by (updateAt, messageId) because they were added by type above.
-		slices.SortStableFunc(elements, func(a, b Sortable) int {
-			aTimestamp, aId := a.SortVal()
-			bTimestamp, bId := b.SortVal()
-			if aTimestamp == bTimestamp {
-				return strings.Compare(aId, bId)
-			}
-			return int(aTimestamp - bTimestamp)
-		})
+		slices.SortStableFunc(elements, SortableSort)
 
 		channelExports = append(channelExports, ChannelExport{
 			Perspective: channel.DisplayName,
@@ -250,6 +252,7 @@ func ActianceExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportRe
 		Channels: channelExports,
 	}
 
+	results := exportData.Results
 	results.ProcessingPostsMs = time.Since(start).Milliseconds()
 
 	results.WriteExportResult, err = writeExport(rctx, export, allUploadedFiles, p.ExportBackend, p.FileAttachmentBackend, p.BatchPath)
