@@ -225,7 +225,7 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 		if _, ok := cfg.PluginSettings.Plugins[manifest.Id]; !ok {
 			cfg.PluginSettings.Plugins[manifest.Id] = make(map[string]any)
 
-			if ok := manifest.SettingsSchema.Settings; ok != nil {
+			if ok := manifest.SettingsSchema; ok != nil {
 				for _, pluginSetting := range manifest.SettingsSchema.Settings {
 					cfg.PluginSettings.Plugins[manifest.Id][strings.ToLower(pluginSetting.Key)] = pluginSetting.Default
 				}
