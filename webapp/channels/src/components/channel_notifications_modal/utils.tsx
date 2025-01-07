@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import { defineMessage, defineMessages, FormattedMessage, type IntlShape } from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage, type IntlShape} from 'react-intl';
 
-import type { FieldsetCheckbox } from 'components/widgets/modals/components/checkbox_setting_item';
-import type { FieldsetRadio } from 'components/widgets/modals/components/radio_setting_item';
-import type { FieldsetReactSelect } from 'components/widgets/modals/components/react_select_item';
+import type {FieldsetCheckbox} from 'components/widgets/modals/components/checkbox_setting_item';
+import type {FieldsetRadio} from 'components/widgets/modals/components/radio_setting_item';
+import type {FieldsetReactSelect} from 'components/widgets/modals/components/react_select_item';
 
-import { NotificationLevels } from 'utils/constants';
-import { optionsOfMessageNotificationSoundsSelect } from 'utils/notification_sounds';
+import {NotificationLevels} from 'utils/constants';
+import {optionsOfMessageNotificationSoundsSelect} from 'utils/notification_sounds';
 
 const MuteChannelInputFieldData: FieldsetCheckbox = {
     name: 'mute channel',
