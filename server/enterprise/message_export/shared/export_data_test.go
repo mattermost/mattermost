@@ -4,6 +4,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -17,6 +18,37 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
+
+func postToMessageExport(t *testing.T, p *model.Post, u *model.User, c *model.Channel, team *model.Team) model.MessageExport {
+	t.Helper()
+	props, err := json.Marshal(p.GetProps())
+	assert.NoError(t, err)
+
+	return model.MessageExport{
+		TeamId:             &team.Id,
+		TeamName:           &team.Name,
+		TeamDisplayName:    &team.DisplayName,
+		ChannelId:          &c.Id,
+		ChannelName:        &c.Name,
+		ChannelDisplayName: &c.DisplayName,
+		ChannelType:        &c.Type,
+		UserId:             &u.Id,
+		UserEmail:          model.NewPointer(u.Email),
+		Username:           &u.Username,
+		IsBot:              false,
+		PostId:             model.NewPointer(p.Id),
+		PostCreateAt:       model.NewPointer(p.CreateAt),
+		PostUpdateAt:       &p.UpdateAt,
+		PostDeleteAt:       &p.DeleteAt,
+		PostEditAt:         &p.EditAt,
+		PostMessage:        &p.Message,
+		PostType:           &p.Type,
+		PostRootId:         &p.RootId,
+		PostProps:          model.NewPointer(string(props)),
+		PostOriginalId:     &p.OriginalId,
+		PostFileIds:        p.FileIds,
+	}
+}
 
 func Test_getPostExport(t *testing.T) {
 	if testing.Short() {
@@ -93,33 +125,27 @@ func Test_getPostExport(t *testing.T) {
 		// the messages can be in any order because all have equal `updateAt`s
 		expectedExports := []PostExport{
 			{
-				MessageId:      posts[0].Id,
-				UserEmail:      th.BasicUser.Email,
+				MessageExport:  postToMessageExport(t, posts[0], th.BasicUser, th.BasicChannel, th.BasicTeam),
 				UserType:       "user",
-				CreateAt:       posts[0].CreateAt,
 				Message:        posts[0].Message,
 				UpdateAt:       posts[1].UpdateAt, // the edit update at
 				UpdatedType:    EditedOriginalMsg,
 				EditedNewMsgId: posts[1].Id,
 			},
 			{
-				MessageId:   posts[1].Id,
-				UserEmail:   th.BasicUser.Email,
-				UserType:    "user",
-				CreateAt:    posts[1].CreateAt,
-				Message:     posts[1].Message,
-				UpdateAt:    posts[1].UpdateAt,
-				UpdatedType: EditedNewMsg,
+				MessageExport: postToMessageExport(t, posts[1], th.BasicUser, th.BasicChannel, th.BasicTeam),
+				UserType:      "user",
+				Message:       posts[1].Message,
+				UpdateAt:      posts[1].UpdateAt,
+				UpdatedType:   EditedNewMsg,
 			},
 		}
 
 		for j := 2; j < 10; j++ {
 			expectedExports = append(expectedExports, PostExport{
-				MessageId: posts[j].Id,
-				UserEmail: th.BasicUser.Email,
-				UserType:  "user",
-				CreateAt:  posts[j].CreateAt,
-				Message:   posts[j].Message,
+				MessageExport: postToMessageExport(t, posts[j], th.BasicUser, th.BasicChannel, th.BasicTeam),
+				UserType:      "user",
+				Message:       posts[j].Message,
 			})
 		}
 
@@ -135,9 +161,9 @@ func Test_getPostExport(t *testing.T) {
 		results := RunExportResults{}
 		var actualExports []PostExport
 
-		for i := range actualMessageExports {
+		for _, m := range actualMessageExports {
 			var postExport PostExport
-			postExport, results = getPostExport(actualMessageExports, i, results)
+			postExport, results = getPostExport(m, results)
 			actualExports = append(actualExports, postExport)
 		}
 
@@ -194,10 +220,12 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 				{Name: "test", Id: "12345", Path: "filename.txt"},
 			},
 			expectedStarts: []*FileUploadStartExport{
-				{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test", FilePath: "filename.txt"},
+				{UserEmail: "test@test.com", UploadStartTime: 1,
+					FileInfo: &model.FileInfo{Id: "12345", Name: "test", Path: "filename.txt"}},
 			},
 			expectedStops: []*FileUploadStopExport{
-				{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test", FilePath: "filename.txt", Status: "Completed"},
+				{UserEmail: "test@test.com", UploadStopTime: 1,
+					FileInfo: &model.FileInfo{Id: "12345", Name: "test", Path: "filename.txt"}, Status: "Completed"},
 			},
 			expectedFileInfos: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt"},
@@ -224,12 +252,16 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 				{Name: "test2", Id: "54321", Path: "filename2.txt"},
 			},
 			expectedStarts: []*FileUploadStartExport{
-				{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test", FilePath: "filename.txt"},
-				{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test2", FilePath: "filename2.txt"},
+				{UserEmail: "test@test.com", UploadStartTime: 1,
+					FileInfo: &model.FileInfo{Id: "12345", Name: "test", Path: "filename.txt"}},
+				{UserEmail: "test@test.com", UploadStartTime: 1,
+					FileInfo: &model.FileInfo{Id: "54321", Name: "test2", Path: "filename2.txt"}},
 			},
 			expectedStops: []*FileUploadStopExport{
-				{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test", FilePath: "filename.txt", Status: "Completed"},
-				{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test2", FilePath: "filename2.txt", Status: "Completed"},
+				{UserEmail: "test@test.com", UploadStopTime: 1,
+					FileInfo: &model.FileInfo{Id: "12345", Name: "test", Path: "filename.txt"}, Status: "Completed"},
+				{UserEmail: "test@test.com", UploadStopTime: 1,
+					FileInfo: &model.FileInfo{Id: "54321", Name: "test2", Path: "filename2.txt"}, Status: "Completed"},
 			},
 			expectedFileInfos: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt"},
@@ -257,16 +289,24 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
 			},
 			expectedStarts: []*FileUploadStartExport{
-				{UserEmail: "test@test.com", UploadStartTime: 1, Filename: "test", FilePath: "filename.txt"},
+				{UserEmail: "test@test.com", UploadStartTime: 1,
+					FileInfo: &model.FileInfo{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2}},
 			},
 			expectedStops: []*FileUploadStopExport{
-				{UserEmail: "test@test.com", UploadStopTime: 1, Filename: "test", FilePath: "filename.txt", Status: "Completed"},
+				{UserEmail: "test@test.com", UploadStopTime: 1,
+					FileInfo: &model.FileInfo{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2}, Status: "Completed"},
 			},
 			expectedFileInfos: []*model.FileInfo{
 				{Name: "test", Id: "12345", Path: "filename.txt", DeleteAt: 2},
 			},
 			expectedDeleteFileMessages: []PostExport{
-				{MessageId: "test", UserEmail: "test@test.com", UserType: "user", CreateAt: 1, UpdatedType: FileDeleted, UpdateAt: 2, Message: "delete " + "filename.txt"},
+				{
+					UserType:    "user",
+					UpdatedType: FileDeleted,
+					UpdateAt:    2,
+					Message:     "delete " + "filename.txt",
+					FileInfo:    &model.FileInfo{Id: "12345", Name: "test", Path: "filename.txt", DeleteAt: 2},
+				},
 			},
 			expectError: false,
 		},
@@ -289,10 +329,155 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 			}
+
+			// Need to add the post to the expected starts (to save from copy pasting in the test cases above)
+			for _, s := range tc.expectedStarts {
+				s.MessageExport = tc.post
+			}
+
+			// Need to add the post to the expected stops
+			for _, s := range tc.expectedStops {
+				s.MessageExport = tc.post
+			}
+
+			// Need to add the post to the expected deleted
+			var expectedDeleted []PostExport
+			for _, s := range tc.expectedDeleteFileMessages {
+				s.MessageExport = tc.post
+				expectedDeleted = append(expectedDeleted, s)
+			}
+
 			assert.Equal(t, tc.expectedStarts, uploadStarts)
 			assert.Equal(t, tc.expectedStops, uploadStops)
 			assert.Equal(t, tc.expectedFileInfos, files)
-			assert.Equal(t, tc.expectedDeleteFileMessages, deleteFileMessages)
+			assert.Equal(t, expectedDeleted, deleteFileMessages)
 		})
 	}
+}
+
+func TestGetJoinLeavePosts(t *testing.T) {
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	// This would have been retrieved during CalculateChannelExports
+	channelMemberHistories := map[string][]*model.ChannelMemberHistoryResult{
+		"good-request-1": {
+			{JoinTime: 1, UserId: "test1", UserEmail: "test1", Username: "test1"},
+			{JoinTime: 2, LeaveTime: model.NewPointer(int64(3)), UserId: "test2", UserEmail: "test2", Username: "test2"},
+			{JoinTime: 3, UserId: "test3", UserEmail: "test3", Username: "test3"},
+		},
+		"good-request-2": {
+			{JoinTime: 4, UserId: "test4", UserEmail: "test4", Username: "test4"},
+			{JoinTime: 5, LeaveTime: model.NewPointer(int64(6)), UserId: "test5", UserEmail: "test5", Username: "test5"},
+			{JoinTime: 6, UserId: "test6", UserEmail: "test6", Username: "test6"},
+		},
+	}
+
+	var joins []JoinExport
+	var leaves []LeaveExport
+	for _, id := range []string{"good-request-1", "good-request-2"} {
+		newJoins, newLeaves := getJoinsAndLeaves(
+			1,
+			7,
+			channelMemberHistories[id],
+			nil,
+		)
+		joins = append(joins, newJoins...)
+		leaves = append(leaves, newLeaves...)
+	}
+
+	assert.Len(t, joins, 6)
+	assert.Equal(t, JoinExport{
+		UserId:    "test1",
+		Username:  "test1",
+		UserEmail: "test1",
+		UserType:  User,
+		JoinTime:  1,
+	}, joins[0])
+	assert.Equal(t, JoinExport{
+		UserId:    "test2",
+		Username:  "test2",
+		UserEmail: "test2",
+		UserType:  User,
+		JoinTime:  2,
+	}, joins[1])
+	assert.Equal(t, JoinExport{
+		UserId:    "test3",
+		Username:  "test3",
+		UserEmail: "test3",
+		UserType:  User,
+		JoinTime:  3,
+	}, joins[2])
+	assert.Equal(t, JoinExport{
+		UserId:    "test4",
+		Username:  "test4",
+		UserEmail: "test4",
+		UserType:  User,
+		JoinTime:  4,
+	}, joins[3])
+	assert.Equal(t, JoinExport{
+		UserId:    "test5",
+		Username:  "test5",
+		UserEmail: "test5",
+		UserType:  User,
+		JoinTime:  5,
+	}, joins[4])
+	assert.Equal(t, JoinExport{
+		UserId:    "test6",
+		Username:  "test6",
+		UserEmail: "test6",
+		UserType:  User,
+		JoinTime:  6,
+	}, joins[5])
+
+	// remember that getJoinsAndLeaves sorts _for each channel_
+	assert.Len(t, leaves, 6)
+	// 1st channel:
+	assert.Equal(t, LeaveExport{
+		UserId:    "test2",
+		Username:  "test2",
+		UserEmail: "test2",
+		UserType:  User,
+		LeaveTime: 3,
+	}, leaves[0])
+	assert.Equal(t, LeaveExport{
+		UserId:    "test1",
+		Username:  "test1",
+		UserEmail: "test1",
+		UserType:  User,
+		LeaveTime: 7,
+		ClosedOut: true,
+	}, leaves[1])
+	assert.Equal(t, LeaveExport{
+		UserId:    "test3",
+		Username:  "test3",
+		UserEmail: "test3",
+		UserType:  User,
+		LeaveTime: 7,
+		ClosedOut: true,
+	}, leaves[2])
+	// 2nd channel:
+	assert.Equal(t, LeaveExport{
+		UserId:    "test5",
+		Username:  "test5",
+		UserEmail: "test5",
+		UserType:  User,
+		LeaveTime: 6,
+	}, leaves[3])
+	assert.Equal(t, LeaveExport{
+		UserId:    "test4",
+		Username:  "test4",
+		UserEmail: "test4",
+		UserType:  User,
+		LeaveTime: 7,
+		ClosedOut: true,
+	}, leaves[4])
+	assert.Equal(t, LeaveExport{
+		UserId:    "test6",
+		Username:  "test6",
+		UserEmail: "test6",
+		UserType:  User,
+		LeaveTime: 7,
+		ClosedOut: true,
+	}, leaves[5])
 }
