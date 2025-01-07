@@ -3,7 +3,7 @@
 
 import React, {useMemo} from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
 import {CheckCircleIcon, ClockIcon, MinusCircleIcon, RadioboxBlankIcon} from '@mattermost/compass-icons/components';
 
@@ -23,6 +23,8 @@ export default function UserAccountMenuButton({
     openCustomStatusModal,
     status,
 }: Props) {
+    const {formatMessage} = useIntl();
+
     const statusIcon = useMemo(() => {
         if (status && status === UserStatuses.ONLINE) {
             return (
@@ -79,6 +81,12 @@ export default function UserAccountMenuButton({
             >
                 {statusIcon}
             </div>
+            <p
+                id='userAccountMenuButtonDescribedBy'
+                className='sr-only'
+            >
+                {formatMessage(getMenuButtonAriaDescription(status))}
+            </p>
         </>
     );
 }
@@ -106,7 +114,7 @@ const ariaDescriptionsDefineMessages = defineMessages({
     },
 });
 
-export function getMenuButtonAriaDescription(status?: string) {
+function getMenuButtonAriaDescription(status?: string) {
     let ariaLabel;
     switch (status) {
     case UserStatuses.OUT_OF_OFFICE:

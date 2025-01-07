@@ -37,7 +37,6 @@ type MenuButtonProps = {
     id: string;
     dateTestId?: string;
     'aria-label'?: string;
-    'aria-description'?: string;
     'aria-describedby'?: string;
     disabled?: boolean;
     class?: string;
@@ -196,8 +195,8 @@ export function Menu(props: Props) {
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
                 disabled={props.menuButton?.disabled ?? false}
-                aria-label={props.menuButton?.['aria-label'] ?? ''}
-                aria-description={props.menuButton?.['aria-description'] ?? ''}
+                aria-label={props.menuButton?.['aria-label']}
+                aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}
                 onMouseDown={handleMenuButtonMouseDown}
