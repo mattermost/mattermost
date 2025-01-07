@@ -302,7 +302,9 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 	// jobs do not get rescheduled properly yet, and when they are run again it means that new day's worth of messages
 	// need to be exported.
 	if _, exists := job.Data[shared.JobDataJobEndTime]; !exists {
-		job.Data[shared.JobDataJobEndTime] = strconv.FormatInt(model.GetMillisForTime(now), 10)
+		millis := strconv.FormatInt(model.GetMillisForTime(now), 10)
+		logger.Info("Worker: JobDataJobEndTime not found in previous job, using now", mlog.String("job_data_job_end_time", millis))
+		job.Data[shared.JobDataJobEndTime] = millis
 	}
 
 	if _, exists := job.Data[shared.JobDataBatchStartTime]; !exists {
