@@ -14,7 +14,7 @@ import (
 
 func (api *API) InitImport() {
 	api.BaseRoutes.Imports.Handle("", api.APISessionRequired(listImports)).Methods(http.MethodGet)
-	api.BaseRoutes.Imports.Handle("", api.APISessionRequired(deleteImport)).Methods(http.MethodDelete)
+	api.BaseRoutes.Import.Handle("", api.APISessionRequired(deleteImport)).Methods(http.MethodDelete)
 }
 
 func listImports(c *Context, w http.ResponseWriter, r *http.Request) {
