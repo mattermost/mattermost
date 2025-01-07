@@ -85,7 +85,7 @@ interface Props {
     children: ReactElement;
 }
 
-function WithTooltip({
+export default function WithTooltip({
     children,
     title,
     emoji,
@@ -139,6 +139,8 @@ function WithTooltip({
         ],
     });
 
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);
+
     const hover = useHover(floatingContext, {
         restMs: OverlaysTimings.CURSOR_REST_TIME_BEFORE_OPEN,
         delay: {
@@ -151,13 +153,6 @@ function WithTooltip({
     const role = useRole(floatingContext, {role: 'tooltip'});
 
     const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, dismiss, role]);
-    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, {
-        duration: {
-            open: OverlaysTimings.FADE_IN_DURATION,
-            close: OverlaysTimings.FADE_OUT_DURATION,
-        },
-        initial: OverlayTransitionStyles.START,
-    });
 
     if (!isValidElement(children)) {
         // eslint-disable-next-line no-console
@@ -206,4 +201,10 @@ function WithTooltip({
     );
 }
 
-export default WithTooltip;
+const TRANSITION_STYLE_PROPS = {
+    duration: {
+        open: OverlaysTimings.FADE_IN_DURATION,
+        close: OverlaysTimings.FADE_OUT_DURATION,
+    },
+    initial: OverlayTransitionStyles.START,
+};
