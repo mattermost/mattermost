@@ -2062,7 +2062,7 @@ export default class Client4 {
 
     // Post Routes
 
-    createPost = async (post: Post) => {
+    createPost = async (post: Partial<Post> & {channel_id: string}) => {
         const result = await this.doFetch<Post>(
             `${this.getPostsRoute()}`,
             {method: 'post', body: JSON.stringify(post)},
