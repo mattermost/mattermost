@@ -120,7 +120,7 @@ describe('Show GIF images properly', () => {
         // # Post a GIF from GIPHY using the emoji picker.
         postGiphyGif();
 
-        // * Verify the play button is visible and the canvas image reference is hidden.
+        // * Verify a static GIF is shown.
         verifyGifStatus(selector.markdownImage, true);
     });
 
@@ -134,7 +134,7 @@ describe('Show GIF images properly', () => {
         // # Toggle autoplay on.
         toggleAutoplayGifsAndEmojisSetting(false);
 
-        // * Verify the play button is visible and the canvas image reference is hidden.
+        // * Verify a playing GIF is shown.
         verifyGifStatus(undefined, false);
 
         // # Toggle autoplay off.
@@ -146,7 +146,7 @@ describe('Show GIF images properly', () => {
         // # Toggle autoplay on.
         toggleAutoplayGifsAndEmojisSetting(false);
 
-        // * Verify the play button is visible and the canvas image reference is hidden.
+        // * Verify a playing GIF is shown.
         verifyGifStatus(undefined, false);
     });
 
