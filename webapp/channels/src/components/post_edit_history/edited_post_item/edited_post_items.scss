@@ -25,4 +25,10 @@
             height: 16px;
         }
     }
+
+    .post-image__columns {
+        .post-image__column, .post-image__thumbnail {
+            cursor: default;
+        }
+    }
 }
