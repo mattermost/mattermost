@@ -50,7 +50,7 @@ describe('UserAccountOutOfOfficeMenuItem', () => {
         const props = {...defaultProps, shouldConfirmBeforeStatusChange: true};
         renderWithContext(<UserAccountOutOfOfficeMenuItem {...props}/>, initialState);
 
-        userEvent.click(screen.getByRole('menuitem'));
+        userEvent.click(screen.getByRole('menuitemradio'));
 
         expect(modalActions.openModal).toHaveBeenCalledTimes(1);
     });

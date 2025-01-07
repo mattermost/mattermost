@@ -15,7 +15,7 @@ import UserAccountAwayMenuItem from './user_account_away_menuitem';
 import UserAccountCustomStatusMenuItem from './user_account_custom_status_menuitem';
 import UserAccountDndMenuItem from './user_account_dnd_menuitem';
 import UserAccountLogoutMenuItem from './user_account_logout_menuitem';
-import UserAccountMenuButton, {getMenuButtonAriaLabel} from './user_account_menuButton';
+import UserAccountMenuButton, {getMenuButtonAriaDescription} from './user_account_menuButton';
 import UserAccountNameMenuItem from './user_account_name_menuitem';
 import UserAccountOfflineMenuItem from './user_account_offline_menuitem';
 import UserAccountOnlineMenuItem from './user_account_online_menuitem';
@@ -50,7 +50,8 @@ export default function UserAccountMenu(props: Props) {
                 class: classNames('userAccountMenu_menuButton', {
                     withCustomStatus: isCustomStatusSet,
                 }),
-                'aria-label': formatMessage(getMenuButtonAriaLabel(props.status)),
+                'aria-label': formatMessage({id: 'userAccountMenu.menuButton.ariaLabel', defaultMessage: 'User\'s account menu'}),
+                'aria-description': formatMessage(getMenuButtonAriaDescription(props.status)),
                 children: (
                     <UserAccountMenuButton
                         profilePicture={props.profilePicture}
@@ -71,7 +72,6 @@ export default function UserAccountMenu(props: Props) {
                 vertical: 'top',
                 horizontal: 'right',
             }}
-            marginThreshold={0}
         >
             <UserAccountNameMenuItem
                 profilePicture={props.profilePicture}

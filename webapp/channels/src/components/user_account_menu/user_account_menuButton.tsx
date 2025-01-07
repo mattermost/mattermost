@@ -51,19 +51,11 @@ export default function UserAccountMenuButton({
             );
         }
 
-        if (status && status === UserStatuses.OFFLINE) {
-            return (
-                <RadioboxBlankIcon
-                    size='16'
-                    className='userAccountMenu_offlineMenuItem_icon'
-                />
-            );
-        }
-
+        // Defaults to offline
         return (
-            <ClockIcon
+            <RadioboxBlankIcon
                 size='16'
-                className='userAccountMenu_awayMenuItem_icon'
+                className='userAccountMenu_offlineMenuItem_icon'
             />
         );
     }, [status]);
@@ -91,53 +83,48 @@ export default function UserAccountMenuButton({
     );
 }
 
-const ariaLabelsDefineMessages = defineMessages({
+const ariaDescriptionsDefineMessages = defineMessages({
     outOfOffice: {
-        id: 'userAccountMenu.menuButton.ariaLabel.ooo',
-        defaultMessage: 'Status is "Out of office". Open user\'s account menu.',
+        id: 'userAccountMenu.menuButton.ariaDescription.ooo',
+        defaultMessage: 'Status is "Out of office".',
     },
     online: {
-        id: 'userAccountMenu.menuButton.ariaLabel.online',
-        defaultMessage: 'Status is "Online". Open user\'s account menu.',
+        id: 'userAccountMenu.menuButton.ariaDescription.online',
+        defaultMessage: 'Status is "Online".',
     },
     away: {
-        id: 'userAccountMenu.menuButton.ariaLabel.away',
-        defaultMessage: 'Status is "Away". Open user\'s account menu.',
+        id: 'userAccountMenu.menuButton.ariaDescription.away',
+        defaultMessage: 'Status is "Away".',
     },
     dnd: {
-        id: 'userAccountMenu.menuButton.ariaLabel.dnd',
-        defaultMessage: 'Status is "Do not disturb". Open user\'s account menu.',
+        id: 'userAccountMenu.menuButton.ariaDescription.dnd',
+        defaultMessage: 'Status is "Do not disturb".',
     },
     offline: {
-        id: 'userAccountMenu.menuButton.ariaLabel.offline',
-        defaultMessage: 'Status is "Offline". Open user\'s account menu.',
-    },
-    notSet: {
-        id: 'userAccountMenu.menuButton.ariaLabel',
-        defaultMessage: 'Open user\'s account menu.',
+        id: 'userAccountMenu.menuButton.ariaDescription.offline',
+        defaultMessage: 'Status is "Offline".',
     },
 });
 
-export function getMenuButtonAriaLabel(status?: string) {
+export function getMenuButtonAriaDescription(status?: string) {
     let ariaLabel;
     switch (status) {
     case UserStatuses.OUT_OF_OFFICE:
-        ariaLabel = ariaLabelsDefineMessages.outOfOffice;
+        ariaLabel = ariaDescriptionsDefineMessages.outOfOffice;
         break;
     case UserStatuses.ONLINE:
-        ariaLabel = ariaLabelsDefineMessages.online;
+        ariaLabel = ariaDescriptionsDefineMessages.online;
         break;
     case UserStatuses.AWAY:
-        ariaLabel = ariaLabelsDefineMessages.away;
+        ariaLabel = ariaDescriptionsDefineMessages.away;
         break;
     case UserStatuses.DND:
-        ariaLabel = ariaLabelsDefineMessages.dnd;
+        ariaLabel = ariaDescriptionsDefineMessages.dnd;
         break;
     case UserStatuses.OFFLINE:
-        ariaLabel = ariaLabelsDefineMessages.offline;
-        break;
     default:
-        ariaLabel = ariaLabelsDefineMessages.notSet;
+        ariaLabel = ariaDescriptionsDefineMessages.offline;
+        break;
     }
 
     return ariaLabel;

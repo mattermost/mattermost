@@ -7,6 +7,7 @@ Object {
     <div>
       <button
         aria-controls="CENTER_dropdown_post_id_1"
+        aria-description=""
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="more"
@@ -32,6 +33,7 @@ Object {
   "container": <div>
     <button
       aria-controls="CENTER_dropdown_post_id_1"
+      aria-description=""
       aria-expanded="false"
       aria-haspopup="true"
       aria-label="more"
@@ -116,6 +118,7 @@ Object {
     <div>
       <button
         aria-controls="CENTER_dropdown_post_id_1"
+        aria-description=""
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="more"
@@ -141,6 +144,7 @@ Object {
   "container": <div>
     <button
       aria-controls="CENTER_dropdown_post_id_1"
+      aria-description=""
       aria-expanded="false"
       aria-haspopup="true"
       aria-label="more"
@@ -225,6 +229,7 @@ Object {
     <div>
       <button
         aria-controls="CENTER_dropdown_post_id_1"
+        aria-description=""
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="more"
@@ -250,6 +255,7 @@ Object {
   "container": <div>
     <button
       aria-controls="CENTER_dropdown_post_id_1"
+      aria-description=""
       aria-expanded="false"
       aria-haspopup="true"
       aria-label="more"

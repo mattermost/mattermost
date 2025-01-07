@@ -41,10 +41,12 @@ interface Props {
     labels: MenuItemProps['labels'];
     trailingElements?: MenuItemProps['trailingElements'];
     isDestructive?: MenuItemProps['isDestructive'];
+    role?: MenuItemProps['role'];
 
     // Menu props
     menuId: string;
     menuAriaLabel?: string;
+    menuAriaDescribedBy?: string;
     forceOpenOnLeft?: boolean; // Most of the times this is not needed, since submenu position is calculated and placed
 
     children: ReactNode;
@@ -57,8 +59,10 @@ export function SubMenu(props: Props) {
         labels,
         trailingElements,
         isDestructive,
+        role,
         menuId,
         menuAriaLabel,
+        menuAriaDescribedBy,
         forceOpenOnLeft,
         children,
         ...rest
@@ -148,6 +152,7 @@ export function SubMenu(props: Props) {
         labels,
         trailingElements,
         isDestructive,
+        role,
         onClick: isMobileView ? handleOnClick : undefined, // OnClicks on parent menuItem of subMenu is only needed in mobile view
     };
 
@@ -178,6 +183,7 @@ export function SubMenu(props: Props) {
                     id={menuId}
                     component='ul'
                     aria-label={menuAriaLabel}
+                    aria-describedby={menuAriaDescribedBy}
                     className={A11yClassNames.POPUP}
                     onKeyDown={handleSubMenuKeyDown}
                     sx={{

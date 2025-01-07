@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
@@ -21,8 +20,6 @@ interface Props extends Menu.FirstMenuItemProps {
 
 export default function UserAccountNameMenuItem({profilePicture, ...rest}: Props) {
     const dispatch = useDispatch();
-
-    const {formatMessage} = useIntl();
 
     const currentUser = useSelector(getCurrentUser);
 
@@ -73,13 +70,6 @@ export default function UserAccountNameMenuItem({profilePicture, ...rest}: Props
                 />
             }
             labels={getLabel()}
-            aria-label={formatMessage(
-                {
-                    id: 'userAccountMenu.nameMenuItem.ariaLabel',
-                    defaultMessage: 'Logged in as {username}. Open user\'s settings',
-                },
-                {username: currentUser?.username},
-            )}
             onClick={handleClick}
             {...rest}
         />

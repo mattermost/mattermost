@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckCircleIcon, CheckIcon} from '@mattermost/compass-icons/components';
@@ -25,8 +25,6 @@ interface Props {
 
 export default function UserAccountOnlineMenuItem(props: Props) {
     const dispatch = useDispatch();
-
-    const {formatMessage} = useIntl();
 
     function handleClick() {
         if (props.shouldConfirmBeforeStatusChange) {
@@ -59,20 +57,6 @@ export default function UserAccountOnlineMenuItem(props: Props) {
         return null;
     }, [props.isStatusOnline]);
 
-    const ariaLabel = useMemo(() => {
-        if (props.isStatusOnline) {
-            return formatMessage({
-                id: 'userAccountMenu.onlineMenuItem.ariaLabelChecked',
-                defaultMessage: 'Status is "Online"',
-            });
-        }
-
-        return formatMessage({
-            id: 'userAccountMenu.onlineMenuItem.ariaLabelUnchecked',
-            defaultMessage: 'Set status as "Online"',
-        });
-    }, [props.isStatusOnline, formatMessage]);
-
     return (
         <Menu.Item
             leadingElement={
@@ -89,7 +73,8 @@ export default function UserAccountOnlineMenuItem(props: Props) {
                 />
             }
             trailingElements={trailingElement}
-            aria-label={ariaLabel}
+            role='menuitemradio'
+            aria-checked={props.isStatusOnline}
             onClick={handleClick}
         />
     );

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CancelIcon, CheckIcon} from '@mattermost/compass-icons/components';
@@ -24,8 +24,6 @@ export interface Props {
 
 export default function UserAccountOutOfOfficeMenuItem(props: Props) {
     const dispatch = useDispatch();
-
-    const {formatMessage} = useIntl();
 
     function handleClick() {
         if (props.shouldConfirmBeforeStatusChange) {
@@ -71,10 +69,8 @@ export default function UserAccountOutOfOfficeMenuItem(props: Props) {
                     aria-hidden='true'
                 />
             }
-            aria-label={formatMessage({
-                id: 'userAccountMenu.oooMenuItem.ariaLabel',
-                defaultMessage: 'Status is "Out of office". Set status as "Online"',
-            })}
+            role='menuitemradio'
+            aria-checked='true'
             onClick={handleClick}
         />
     );

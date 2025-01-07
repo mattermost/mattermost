@@ -37,6 +37,8 @@ type MenuButtonProps = {
     id: string;
     dateTestId?: string;
     'aria-label'?: string;
+    'aria-description'?: string;
+    'aria-describedby'?: string;
     disabled?: boolean;
     class?: string;
     as?: keyof JSX.IntrinsicElements;
@@ -85,12 +87,6 @@ interface Props {
         vertical: VerticalOrigin;
         horizontal: HorizontalOrigin;
     };
-    hideTooltipWhenDisabled?: boolean;
-
-    /**
-     * This is not needed except for cases where you want to apply certain manual margin around positioning
-     */
-    marginThreshold?: number;
 }
 
 /**
@@ -132,7 +128,7 @@ export function Menu(props: Props) {
         setAnchorElement(null);
     }
 
-    // Stop sythetic events from bubbling up to the parent
+    // Stop synthetic events from bubbling up to the parent
     // @see https://github.com/mui/material-ui/issues/32064
     function handleMenuClick(e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         e.stopPropagation();
@@ -201,6 +197,7 @@ export function Menu(props: Props) {
                 aria-expanded={isMenuOpen}
                 disabled={props.menuButton?.disabled ?? false}
                 aria-label={props.menuButton?.['aria-label'] ?? ''}
+                aria-description={props.menuButton?.['aria-description'] ?? ''}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}
                 onMouseDown={handleMenuButtonMouseDown}
@@ -250,7 +247,7 @@ export function Menu(props: Props) {
                     onKeyDown={handleMenuKeyDown}
                     className={A11yClassNames.POPUP}
                     width={props.menu.width}
-                    marginThreshold={props.marginThreshold}
+                    marginThreshold={0}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown

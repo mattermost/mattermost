@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckIcon, RadioboxBlankIcon} from '@mattermost/compass-icons/components';
@@ -25,8 +25,6 @@ interface Props {
 
 export default function UserAccountOfflineMenuItem(props: Props) {
     const dispatch = useDispatch();
-
-    const {formatMessage} = useIntl();
 
     function handleClick() {
         if (props.shouldConfirmBeforeStatusChange) {
@@ -59,20 +57,6 @@ export default function UserAccountOfflineMenuItem(props: Props) {
         return null;
     }, [props.isStatusOffline]);
 
-    const ariaLabel = useMemo(() => {
-        if (props.isStatusOffline) {
-            return formatMessage({
-                id: 'userAccountMenu.offlineMenuItem.ariaLabelChecked',
-                defaultMessage: 'Status is "Offline"',
-            });
-        }
-
-        return formatMessage({
-            id: 'userAccountMenu.offlineMenuItem.ariaLabelUnchecked',
-            defaultMessage: 'Set status as "Offline"',
-        });
-    }, [props.isStatusOffline, formatMessage]);
-
     return (
         <Menu.Item
             leadingElement={
@@ -89,7 +73,8 @@ export default function UserAccountOfflineMenuItem(props: Props) {
                 />
             }
             trailingElements={trailingElement}
-            aria-label={ariaLabel}
+            role='menuitemradio'
+            aria-checked={props.isStatusOffline}
             onClick={handleClick}
         />
     );

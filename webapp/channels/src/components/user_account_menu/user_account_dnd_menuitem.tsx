@@ -174,26 +174,11 @@ export default function UserAccountDndMenuItem(props: Props) {
         });
     }
 
-    const menuItemAriaLabel = useMemo(() => {
-        if (!props.isStatusDnd) {
-            return formatMessage({
-                id: 'userAccountMenu.dndMenuItem.ariaLabelUnchecked',
-                defaultMessage: 'Set status as "Do not disturb", it disables all notifications',
-            });
-        }
-
-        return formatMessage({
-            id: 'userAccountMenu.dndMenuItem.ariaLabelChecked',
-            defaultMessage: 'Status is "Do not disturb", {untilNthTime}',
-        }, {
-            untilNthTime: getSecondaryLabel(props.isStatusDnd, dndEndTime, props.timezone).toLowerCase(),
-        });
-    }, [props.isStatusDnd, dndEndTime, props.timezone]);
-
     return (
         <Menu.SubMenu
             id='userAccountMenu.dndMenuItem'
             menuId='userAccountMenu.dndSubMenu'
+            menuAriaDescribedBy='userAccountMenu_dndSubMenuTitle'
             leadingElement={
                 <MinusCircleIcon
                     size='18'
@@ -211,10 +196,12 @@ export default function UserAccountDndMenuItem(props: Props) {
                     </span>
                 </>
             }
-            aria-label={menuItemAriaLabel}
+            role='menuitemradio'
+            aria-checked={props.isStatusDnd}
             trailingElements={trailingElement}
         >
             <h5
+                id='userAccountMenu_dndSubMenuTitle'
                 className='userAccountMenu_dndMenuItem_subMenuTitle'
                 aria-hidden={true}
             >
@@ -231,10 +218,6 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage="Don't clear"
                     />
                 }
-                aria-label={formatMessage({
-                    id: 'userAccountMenu.dndSubMenuItem.doNotClear.ariaLabel',
-                    defaultMessage: 'Set status as "Do not disturb" and do not clear automatically',
-                })}
                 onClick={handleSubMenuItemClick}
             />
             <Menu.Item
@@ -245,10 +228,6 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='30 mins'
                     />
                 }
-                aria-label={formatMessage({
-                    id: 'userAccountMenu.dndSubMenuItem.30Minutes.ariaLabel',
-                    defaultMessage: 'Set status as "Do not disturb" and clear after 30 minutes',
-                })}
                 onClick={handleSubMenuItemClick}
             />
             <Menu.Item
@@ -259,10 +238,6 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='1 hour'
                     />
                 }
-                aria-label={formatMessage({
-                    id: 'userAccountMenu.dndSubMenuItem.1Hour.ariaLabel',
-                    defaultMessage: 'Set status as "Do not disturb" and clear after 1 hour',
-                })}
                 onClick={handleSubMenuItemClick}
             />
             <Menu.Item
@@ -273,10 +248,6 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='2 hours'
                     />
                 }
-                aria-label={formatMessage({
-                    id: 'userAccountMenu.dndSubMenuItem.2Hours.ariaLabel',
-                    defaultMessage: 'Set status as "Do not disturb" and clear after 2 hours',
-                })}
                 onClick={handleSubMenuItemClick}
             />
             <Menu.Item
@@ -287,10 +258,6 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='Tomorrow'
                     />
                 }
-                aria-label={formatMessage({
-                    id: 'userAccountMenu.dndSubMenuItem.tomorrow.ariaLabel',
-                    defaultMessage: 'Set status as "Do not disturb" and clear tomorrow at 9 AM',
-                })}
                 trailingElements={
                     <FormattedMessage
                         id='userAccountMenu.dndSubMenuItem.tomorrowsDateTime'
@@ -323,10 +290,6 @@ export default function UserAccountDndMenuItem(props: Props) {
                         defaultMessage='Choose date and time'
                     />
                 }
-                aria-label={formatMessage({
-                    id: 'userAccountMenu.dndSubMenuItem.custom.ariaLabel',
-                    defaultMessage: 'Set status as "Do not disturb" and clear at a custom date and time',
-                })}
                 onClick={openCustomTimePicker}
             />
         </Menu.SubMenu>
