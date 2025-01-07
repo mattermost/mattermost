@@ -389,7 +389,7 @@ func addAttachmentToChannelExport(channelExport *ChannelExport, post shared.Post
 			SenderEmail:    *post.UserEmail,
 		}
 
-		// if the file was deleted, this could be the initial upload of the file.
+		// If the file was deleted, this could be the initial upload of the file.
 		// If the post is not marked deleted, it's the initial upload -- we're finished.
 		// If the post is marked deleted, it's the deleted upload -- update it to be deleted.
 		//
