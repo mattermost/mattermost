@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -38,12 +37,7 @@ const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
     return (
         <GenericModal
-            modalHeaderText={
-                <FormattedMessage
-                    id='EE_license_modal.defaultMsg'
-                    defaultMessage='Enterprise Edition License'
-                />
-            }
+            modalHeaderText={'Enterprise Edition License'}
             compassDesign={true}
             className={'EELicenseModal'}
             show={show}
