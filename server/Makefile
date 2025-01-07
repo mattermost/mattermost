@@ -683,7 +683,7 @@ config-saml: ## Configures SAML.
 	# Check if jq is installed
 	@jq --version > /dev/null 2>&1 || (echo "jq is not installed. Please install jq to continue." && exit 1)
 
-	@cp build/docker/keycloak/keycloak.crt ./config/saml-idp.crt
+	cp build/docker/keycloak/keycloak.crt ../config/saml-idp.crt
 
 	$(eval TMPDIR := $(shell mktemp -d))
 	jq --slurp '.[0] * .[1]' ${CONFIG_FILE_PATH} build/docker/keycloak/saml.mmsettings.json > ${TMPDIR}/config.json
