@@ -66,7 +66,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 		tarData, err := os.ReadFile(filepath.Join("../../tests", "testplugin.tar.gz"))
 		require.NoError(t, err)
 		expectedManifest := &model.Manifest{Id: "testplugin"}
-		api.On("InstallPlugin", mock.Anything, false).Return(expectedManifest, nil)
+		api.On("InstallPlugin", mock.Anything, false, mock.Anything).Return(expectedManifest, nil)
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
