@@ -49,16 +49,16 @@ const defaultMessage = defineMessage({
 export const desktopNotificationInputFieldData = (defaultOption: string, formatMessage: IntlShape['formatMessage']): FieldsetRadio => {
     const messages = defineMessages({
         allMessages: {
-            id: 'channelNotifications.mobileNotification.allMessages',
+            id: 'channelNotifications.desktopNotification.allMessages',
             defaultMessage: 'All new messages {optionalDefault}',
 
         },
         mention: {
-            id: 'channelNotifications.mobileNotification.mention',
+            id: 'channelNotifications.desktopNotification.mention',
             defaultMessage: 'Mentions, direct messages, and keywords only {optionalDefault}',
         },
         nothing: {
-            id: 'channelNotifications.mobileNotification.nothing',
+            id: 'channelNotifications.desktopNotification.nothing',
             defaultMessage: 'Nothing {optionalDefault}',
         },
     });
