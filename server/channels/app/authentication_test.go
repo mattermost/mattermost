@@ -234,7 +234,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
 				ldapUser.FailedAttempts = maxFailedLoginAttempts - 1
 
-				_, appErr := th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, ldapUser, "wrongpassword", "")
+				_, appErr = th.App.CheckLdapUserPasswordAndAllCriteria(th.Context, ldapUser, "wrongpassword", "")
 				require.NotNil(t, appErr)
 				require.Equal(t, "api.user.check_user_password.invalid.app_error", appErr.Id)
 			}
