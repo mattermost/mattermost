@@ -7938,7 +7938,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Your Mattermost license doesn't support indexed search for ElasticSearch or OpenSearch."
+    "translation": "Your Mattermost license doesn't support indexed search."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
@@ -8874,11 +8874,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Search EnableIndexing setting must be set to true when {{.SettingName}} is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Search EnableIndexing setting must be set to true when EnableSearching is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Searching}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
