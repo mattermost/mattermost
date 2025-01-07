@@ -4719,6 +4719,8 @@
   "post.ariaLabel.replyMessage": "At {time} {date}, {authorName} replied, {message}",
   "post.reminder.acknowledgement": "You will be reminded at {reminderTime}, {reminderDate} about this message from {username}: {permaLink}",
   "post.reminder.systemBot": "Hi there, here's your reminder about this message from {username}: {permaLink}",
+  "post.renderError.message": "An error occurred while rendering this post.",
+  "post.renderError.tryAgain": "Try again?",
   "postlist.toast.history": "Viewing message history",
   "postlist.toast.newMessages": "{count, number} new {count, plural, one {message} other {messages}}",
   "postlist.toast.newMessagesSince": "{count, number} new {count, plural, one {message} other {messages}} {isToday, select, true {} other {since}} {date}",
