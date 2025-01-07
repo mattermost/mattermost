@@ -176,7 +176,7 @@ func addToExports(rctx request.CTX, allExports map[string][]*ChannelExport, gene
 
 	msgBytes := int64(len(*post.PostMessage))
 
-	// For now we're not exporting deleted messages (MM-62059), but we ARE exported the deleted files...
+	// For now we're not exporting deleted messages (MM-62059), but we ARE exporting the deleted files...
 	if post.UpdatedType == shared.Deleted {
 		msgBytes = 0
 	}
