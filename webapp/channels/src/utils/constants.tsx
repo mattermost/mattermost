@@ -2011,7 +2011,6 @@ export const Constants = {
     },
     OVERLAY_TIME_DELAY_SMALL: 100,
     OVERLAY_TIME_DELAY: 400,
-    OVERLAY_DEFAULT_TRIGGER: ['hover', 'focus'],
     PERMALINK_FADEOUT: 5000,
     DEFAULT_MAX_USERS_PER_TEAM: 50,
     DEFAULT_MAX_CHANNELS_PER_TEAM: 2000,
@@ -2231,6 +2230,24 @@ export const SCHEDULED_POST_URL_SUFFIX = 'scheduled_posts';
 export const scheduledPosts = {
     RECENTLY_USED_CUSTOM_TIME: 'recently_used_custom_time',
     SCHEDULED_POSTS: 'scheduled_posts',
+};
+
+/**
+ * This is the ID of the root portal container that is used to render modals and other components
+ * that need to be rendered outside of the main app container.
+ */
+export const RootHtmlPortalId = 'root-portal';
+
+export const OverlaysTimings = {
+    CURSOR_REST_TIME_BEFORE_OPEN: 400, // in ms
+    FADE_IN_DURATION: 250, // in ms
+    FADE_OUT_DURATION: 150, // in ms
+};
+
+export const OverlayTransitionStyles = {
+    START: {
+        opacity: 0,
+    },
 };
 
 export default Constants;
