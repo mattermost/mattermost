@@ -92,3 +92,14 @@ const deleteOldCaches = async () => {
 self.addEventListener('activate', (event) => {
     event.waitUntil(deleteOldCaches());
 });
+
+// Export for testing
+if (typeof module !== 'undefined') {
+    module.exports = {
+        putInCache,
+        handleCacheRequest,
+        deleteOldCaches,
+        cacheName,
+        HTML_REQUEST,
+    };
+}
