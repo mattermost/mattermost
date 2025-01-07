@@ -4304,7 +4304,7 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 	}
 
 	if *s.EnableAutocomplete && !*s.EnableIndexing {
-		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_autocomplete.app_error", map[string]any{"SettingName": "ElasticsearchSettings.EnableIndexing"}, "", http.StatusBadRequest)
 	}
 
 	if *s.AggregatePostsAfterDays < 1 {
