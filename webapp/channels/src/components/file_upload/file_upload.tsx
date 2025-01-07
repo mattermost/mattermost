@@ -80,7 +80,7 @@ const customStyles = {
     top: 'auto',
 };
 
-export type PostType = 'post' | 'comment' | 'thread' | 'edit_post';
+export type TextEditorLocationType = 'post' | 'comment' | 'thread' | 'edit_post';
 
 export type Props = {
     channelId: string;
@@ -132,7 +132,7 @@ export type Props = {
     /**
      * Type of the object which the uploaded file is attached to
      */
-    postType: PostType;
+    postType: TextEditorLocationType;
 
     /**
      * The maximum uploaded file size.
@@ -174,7 +174,7 @@ type State = {
 
 export class FileUpload extends PureComponent<Props, State> {
     fileInput: RefObject<HTMLInputElement>;
-    unbindDragsterEvents?: Array<() => void>;
+    unbindDragsterEvents?: () => void;
 
     static defaultProps = {
         pluginFileUploadMethods: [],
@@ -188,13 +188,7 @@ export class FileUpload extends PureComponent<Props, State> {
             menuOpen: false,
         };
         this.fileInput = React.createRef();
-        this.unbindDragsterEvents = [];
     }
-
-    unbindAllDragsterEvents = () => {
-        this.unbindDragsterEvents?.forEach((unbindFunc) => unbindFunc());
-        this.unbindDragsterEvents = [];
-    };
 
     registerDragsterEvents = () => {
         let containerSelector: string;
@@ -240,7 +234,7 @@ export class FileUpload extends PureComponent<Props, State> {
             prevProps.centerChannelPostBeingEdited !== this.props.centerChannelPostBeingEdited ||
             prevProps.rhsPostBeingEdited !== this.props.rhsPostBeingEdited
         ) {
-            this.unbindAllDragsterEvents();
+            this.unbindDragsterEvents?.();
             this.registerDragsterEvents();
         }
     }
@@ -249,7 +243,7 @@ export class FileUpload extends PureComponent<Props, State> {
         document.removeEventListener('paste', this.pasteUpload);
         document.removeEventListener('keydown', this.keyUpload);
 
-        this.unbindAllDragsterEvents();
+        this.unbindDragsterEvents?.();
     }
 
     fileUploadSuccess = (data: FileUploadResponse, channelId: string, currentRootId: string) => {
@@ -497,7 +491,7 @@ export class FileUpload extends PureComponent<Props, State> {
             };
         }
 
-        this.unbindDragsterEvents?.push(dragster(containerSelector, dragsterActions));
+        this.unbindDragsterEvents = dragster(containerSelector, dragsterActions);
     };
 
     containsEventTarget = (targetElement: HTMLInputElement | null, eventTarget: EventTarget | null) => targetElement && targetElement.contains(eventTarget as Node);

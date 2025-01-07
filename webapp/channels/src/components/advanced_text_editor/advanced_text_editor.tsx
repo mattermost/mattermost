@@ -671,6 +671,27 @@ const AdvancedTextEditor = ({
         />
     );
 
+    const fileUploadOverlay = useMemo(() => {
+        const overlayType = isRHS ? 'right' : 'center';
+        const mode = 'horizontal';
+
+        return isInEditMode ? (
+            <FileUploadOverlay
+                overlayType={overlayType}
+                editMode={true}
+                id={DropOverlayIdEditPost}
+                mode={mode}
+            />
+        ) : (
+            <FileUploadOverlay
+                overlayType={overlayType}
+                editMode={false}
+                id={isRHS ? DropOverlayIdCreateComment : DropOverlayIdCreatePost}
+                mode={mode}
+            />
+        );
+    }, [isInEditMode, isRHS]);
+
     const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
 
     const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
@@ -716,24 +737,7 @@ const AdvancedTextEditor = ({
                     className={'AdvancedTextEditor__body'}
                     disabled={isDisabled}
                 >
-                    {
-                        isInEditMode &&
-                        <FileUploadOverlay
-                            overlayType={isRHS ? 'right' : 'center'}
-                            editMode={true}
-                            id={DropOverlayIdEditPost}
-                            mode={'horizontal'}
-                        />
-                    }
-                    {
-                        !isInEditMode &&
-                        <FileUploadOverlay
-                            overlayType={isRHS ? 'right' : 'center'}
-                            editMode={false}
-                            id={isRHS ? DropOverlayIdCreateComment : DropOverlayIdCreatePost}
-                            mode={'horizontal'}
-                        />
-                    }
+                    {fileUploadOverlay}
                     <div
                         ref={editorBodyRef}
                         role='application'
