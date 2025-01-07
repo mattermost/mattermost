@@ -410,7 +410,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        expect(screen.getByTestId('editPostAtMentionWarning')).toBeVisible();
+        expect(screen.getByText('Editing this message with an \'@mention\' will not notify the recipient.')).toBeVisible();
     });
 
     it('should have file upload overlay', () => {
