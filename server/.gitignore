@@ -9,17 +9,11 @@ jobserver
 npm-debug.log
 webapp/yarn-error.log
 mattermost.mattermost-license
-config/mattermost.mattermost-license
-config/config*.json
-config/*.crt
-config/*.key
 
 web/static/js/bundle*.js
 web/static/js/bundle*.js.map
 web/static/js/libs*.js
 
-config/active.dat
-config/logging.json
 /plugins
 
 # go.work file
