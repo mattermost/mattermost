@@ -34,23 +34,23 @@ import (
 //go:embed testdata/actianceXMLHeader.tmpl
 var actianceXMLHeader string
 
-//go:embed testdata/batch1ch2.tmpl
-var batch1ch2tmpl string
+//go:embed testdata/actianceE2E1Batch1ch2.tmpl
+var actianceE2E1Batch1ch2tmpl string
 
-//go:embed testdata/batch1ch3.tmpl
-var batch1ch3tmpl string
+//go:embed testdata/actianceE2E1Batch1ch3.tmpl
+var actianceE2E1Batch1ch3tmpl string
 
-//go:embed testdata/batch2xml.tmpl
-var batch2xmptmpl string
+//go:embed testdata/actianceE2E1Batch2.tmpl
+var actianceE2E1Batch2tmpl string
 
-//go:embed testdata/batch3ch2.tmpl
-var batch3ch2tmpl string
+//go:embed testdata/actianceE2E1Batch3ch2.tmpl
+var actianceE2E1Batch3ch2tmpl string
 
-//go:embed testdata/batch3ch4.tmpl
-var batch3ch4tmpl string
+//go:embed testdata/actianceE2E1Batch3ch4.tmpl
+var actianceE2E1Batch3ch4tmpl string
 
-//go:embed testdata/e2eXml2.tmpl
-var e2eXml2 string
+//go:embed testdata/actianceE2E2.tmpl
+var actianceE2E2 string
 
 //go:embed testdata/grE2E1Batch1Summary.tmpl
 var grE2E1Batch1Summary string
@@ -456,19 +456,58 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				// Expected data:
 				//  - batch1 has two channels, and we're not sure which will come first. What a pain.
 
-				batch1ch2 := fmt.Sprintf(batch1ch2tmpl, channel2.Id, start, jl[0].join, jl[1].join, jl[2].join,
+				// actiance exports, for batch 1:
+				//       for ch2:
+				// 3 participants entered
+				//  message 0
+				//  file for message 0 (start and ended)
+				//  message 1
+				//  file for message 1 (start and ended)
+				//  message 2
+				//  file for message 2 (start and ended)
+				// 3 participants left
+				//       for ch3:
+				// 1 participant entered
+				// 1 participant left
+
+				// actiance exports, for batch 2:
+				//       for ch2:
+				// 2 participants entered
+				//  message 3
+				//  file for message 3 (start and ended)
+				//  message 4
+				//  file for message 4 (start and ended)
+				//  message 5
+				//  file for message 5 (start and ended)
+				// 2 participants left
+
+				// actiance exports, for batch 3:
+				//       for ch2:
+				// 3 participants entered
+				//  message 6
+				//  file for message 6 (start and ended)
+				//  message 7
+				//  file for message 7 (start and ended)
+				//  message 8
+				//  file for message 8 (start and ended)
+				// 3 participants left
+				//       for ch4:
+				// 1 participant entered
+				// 1 participant left
+
+				batch1ch2 := fmt.Sprintf(actianceE2E1Batch1ch2tmpl, channel2.Id, start, jl[0].join, jl[1].join, jl[2].join,
 					posts[0].Id, createUpdateTimes[0], createUpdateTimes[0], createUpdateTimes[0],
 					posts[1].Id, createUpdateTimes[1], createUpdateTimes[1], createUpdateTimes[1],
 					posts[2].Id, createUpdateTimes[2], createUpdateTimes[2], createUpdateTimes[2],
 					jl[1].leave, jl[2].leave, createUpdateTimes[2], createUpdateTimes[2])
 
-				batch1ch3 := fmt.Sprintf(batch1ch3tmpl, channel3.Id, start, jl[6].join, jl[6].leave, createUpdateTimes[2])
+				batch1ch3 := fmt.Sprintf(actianceE2E1Batch1ch3tmpl, channel3.Id, start, jl[6].join, jl[6].leave, createUpdateTimes[2])
 
 				xmlHeader := strings.TrimSpace(actianceXMLHeader)
 				batch1Possibility1 := fmt.Sprintf(xmlHeader, batch1ch2, batch1ch3)
 				batch1Possibility2 := fmt.Sprintf(xmlHeader, batch1ch3, batch1ch2)
 
-				batch2xml := fmt.Sprintf(batch2xmptmpl, channel2.Id, createUpdateTimes[2], jl[0].join, jl[3].join,
+				batch2xml := fmt.Sprintf(actianceE2E1Batch2tmpl, channel2.Id, createUpdateTimes[2], jl[0].join, jl[3].join,
 					posts[3].Id, createUpdateTimes[3], createUpdateTimes[3], createUpdateTimes[3],
 					posts[4].Id, createUpdateTimes[4], createUpdateTimes[4], createUpdateTimes[4],
 					posts[5].Id, createUpdateTimes[5], createUpdateTimes[5], createUpdateTimes[5],
@@ -476,13 +515,13 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				batch2xml = strings.TrimSpace(batch2xml)
 
 				//  Batch3 has two channels, and we're not sure which will come first. What a pain.
-				batch3ch2 := fmt.Sprintf(batch3ch2tmpl, channel2.Id, createUpdateTimes[5], jl[0].join, jl[4].join, jl[5].join,
+				batch3ch2 := fmt.Sprintf(actianceE2E1Batch3ch2tmpl, channel2.Id, createUpdateTimes[5], jl[0].join, jl[4].join, jl[5].join,
 					posts[6].Id, createUpdateTimes[6], createUpdateTimes[6], createUpdateTimes[6],
 					posts[7].Id, createUpdateTimes[7], createUpdateTimes[7], createUpdateTimes[7],
 					posts[8].Id, createUpdateTimes[8], createUpdateTimes[8], createUpdateTimes[8],
 					jl[4].leave, jl[5].leave, jobEndTime, jobEndTime)
 
-				batch3ch4 := fmt.Sprintf(batch3ch4tmpl, channel4.Id, createUpdateTimes[5], jl[7].join, jobEndTime, jobEndTime)
+				batch3ch4 := fmt.Sprintf(actianceE2E1Batch3ch4tmpl, channel4.Id, createUpdateTimes[5], jl[7].join, jobEndTime, jobEndTime)
 
 				batch3Possibility1 := fmt.Sprintf(xmlHeader, batch3ch2, batch3ch4)
 
@@ -715,7 +754,45 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				channels := ret.channels
 				teams := ret.teams
 				batches := ret.batches
-				//batchTimes := ret.batchTimes
+
+				// aligned with actiance exports, for batch 1:
+				// ** except that there is no closed-out leaves at batch end
+				//       for ch2:
+				// 3 participants entered
+				//  message 0
+				//  file for message 0 (start and ended)
+				//  message 1
+				//  file for message 1 (start and ended)
+				//  message 2
+				//  file for message 2 (start and ended)
+				// 1 participants left
+				//       for ch3:
+				// 1 participant entered
+				// 1 participant left
+
+				// for batch 2:
+				//       for ch2:
+				// 2 participants entered
+				//  message 3
+				//  file for message 3 (start and ended)
+				//  message 4
+				//  file for message 4 (start and ended)
+				//  message 5
+				//  file for message 5 (start and ended)
+				// 1 participant left
+
+				// for batch 3:
+				//       for ch2:
+				// 3 participants entered
+				//  message 6
+				//  file for message 6 (start and ended)
+				//  message 7
+				//  file for message 7 (start and ended)
+				//  message 8
+				//  file for message 8 (start and ended)
+				// 2 participants left
+				//       for ch4:
+				// 1 participant entered
 
 				expectedBatchExport := []string{
 					// batch 1
@@ -726,7 +803,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 						users[0].Id, users[1].Id, users[2].Id, users[6].Id,
 						// 10         11           12           13           14           15
 						posts[0].Id, posts[1].Id, posts[2].Id, files[0].Id, files[1].Id, files[2].Id,
-						// 16   17           18          19     20          21     22
+						// 16         17           18          19     20          21     22
 						jl[0].join, jl[1].join, jl[1].leave, cu[0], jl[2].join, cu[1], jl[2].leave,
 						// 23            24       25
 						jl[6].join, jl[6].leave, cu[2]),
@@ -796,8 +873,14 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		jobEndTime := ret.jobEndTime
 		batches := ret.batches
 
+		// actiance export:
+		// 2 participants entered
+		//  message 1
+		//  message 2
+		// 2 participants left
+
 		// Expected data:
-		batch1xml := fmt.Sprintf(strings.TrimSpace(e2eXml2), channel2.Id, start, jl[0].join, start,
+		batch1xml := fmt.Sprintf(strings.TrimSpace(actianceE2E2), channel2.Id, start, jl[0].join, start,
 			posts[0].Id, createUpdateTimes[0],
 			posts[1].Id, createUpdateTimes[1],
 			jobEndTime, jobEndTime, jobEndTime)
@@ -876,6 +959,11 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		teams := ret.teams
 		batchStartTime := batchTimes[0].start
 
+		// to align with actiance export:  (remember no close-out message on batch end)o
+		// 2 participants entered
+		//  message 1
+		//  message 2
+
 		expectedExport := fmt.Sprintf(csvE2E2Batch1,
 			// 1           2              3                      4              5
 			teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
@@ -896,6 +984,22 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		users := ret.users
 		attachments := ret.attachments
 		contents := ret.contents
+
+		// actiance export:
+		//  message 0
+		//  message 1
+		//  message 1 deleted
+		//  message 2 updated (reaction): post2 createdAt, updatedPost2 updateAt
+		//  message 3 created
+		//  file 3 upload start and stopped
+		//  message 3 deleted
+		//  file 3 deleted
+		//  message 4           -- same update at as below
+		//  edited message 4    -- same update at as above
+		//  message 6           -- same update at as below
+		//  edited message 6    -- same update at as above
+
+		// 2 participants left
 
 		for b, batchName := range batches {
 			xmlContents := openZipAndReadFile(t, exportBackend, batchName, "actiance_export.xml")
@@ -931,6 +1035,12 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				assert.Len(t, exportedChannels, 1)
 				messages := exportedChannels[0].Messages
 				require.Len(t, messages, 10) // batch size 7 + deleted msg1, deleted ms3, 1 deleted file msg
+
+				// message 3's deleted file was uploaded in this batch period
+				fileTransferStarted := exportedChannels[0].FileStarts
+				require.Len(t, fileTransferStarted, 1)
+				fileTransferStopped := exportedChannels[0].FileStops
+				require.Len(t, fileTransferStopped, 1)
 
 				// 0 - post create
 				assert.Equal(t, &actiance_export.PostExport{
@@ -1262,6 +1372,20 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		teams := ret.teams
 		attachments := ret.attachments
 
+		// aligned with actiance export:
+		//  message 0
+		//  message 1
+		//  message 1 deleted
+		//  message 2 updated (reaction): post2 createdAt, updatedPost2 updateAt
+		//  message 3 created
+		//  file 3 upload start and stopped
+		//  message 3 deleted
+		//  file 3 deleted
+		//  message 4           -- same update at as below
+		//  edited message 4    -- same update at as above
+		//  message 6           -- same update at as below
+		//  edited message 6    -- same update at as above
+
 		// NOTE: the comments describe the order of the last three messages (21 22 23),
 		// eg in perm1: message 4, edited message 4, and message 6
 		expectedExports := []string{
@@ -1275,10 +1399,10 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				posts[6].Id, attachments[0].Id,
 				// 14         15                  16                17                        18
 				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
-				// 19                     20                   21                  22               23
-				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt,
-				// 24 this is the editedBy for message 6
-				posts[7].Id),
+				// 19                     20                               21                  22               23
+				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].UpdateAt, posts[6].CreateAt,
+				// 24 editedBy for message 6,     25        26
+				posts[7].Id, ret3.updatedPost2.UpdateAt, posts[6].UpdateAt),
 
 			// edited, original, original
 			fmt.Sprintf(csvE2E3Batch1Perm2,
@@ -1290,10 +1414,10 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				posts[6].Id, attachments[0].Id,
 				// 14         15                  16                17                        18
 				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
-				// 19                     20                21                  22               23
-				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt,
-				// 24 this is the editedBy for message 6
-				posts[7].Id),
+				// 19                     20                                   21                  22               23
+				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].UpdateAt, posts[6].CreateAt,
+				// 24 editedBy for message 6,     25        26
+				posts[7].Id, ret3.updatedPost2.UpdateAt, posts[6].UpdateAt),
 
 			// original, edited, edited
 			fmt.Sprintf(csvE2E3Batch1Perm3,
@@ -1305,8 +1429,10 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				posts[7].Id, attachments[0].Id,
 				// 14         15                  16                17                        18
 				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
-				// 19                     20                   21                  22               23
-				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt),
+				// 19                     20                                 21                  22               23
+				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].UpdateAt, posts[6].CreateAt,
+				// 24                                25                   26
+				ret3.updatedPost2.UpdateAt, posts[6].CreateAt, posts[6].UpdateAt),
 
 			// edited, original, edited
 			fmt.Sprintf(csvE2E3Batch1Perm4,
@@ -1318,8 +1444,10 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				posts[7].Id, attachments[0].Id,
 				// 14         15                  16                17                        18
 				jl[0].join, posts[0].CreateAt, posts[1].CreateAt, ret3.message1DeleteAt, posts[2].CreateAt,
-				// 19                     20                  21                  22               23
-				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].CreateAt, posts[6].CreateAt),
+				// 19                     20                            21                  22
+				posts[3].CreateAt, ret3.message3AndFileInfoDeleteAt, posts[4].CreateAt, posts[4].UpdateAt,
+				// 23                  24                        25                 26
+				posts[6].CreateAt, ret3.updatedPost2.UpdateAt, posts[6].CreateAt, posts[6].UpdateAt),
 		}
 
 		export := openZipAndReadFirstFile(t, exportBackend, batches[0])
@@ -1342,15 +1470,15 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 				posts[6].Id,
 				// 7 this is the editedBy for message 6 -- editedBy is confusing (cause it's the original id), but it is what it is
 				posts[7].Id,
-				// 8                 9
-				posts[6].CreateAt, jl[0].join),
+				// 8                 9            10
+				posts[6].CreateAt, jl[0].join, posts[6].UpdateAt),
 
 			// edited message 6  (which says "edited message 6" in the message, and has original id)
 			fmt.Sprintf(csvE2E3Batch2Perm2,
 				// 1           2              3                      4              5
 				teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
-				// 6          7                  8
-				posts[7].Id, posts[6].CreateAt, jl[0].join),
+				// 6          7                  8             9
+				posts[7].Id, posts[6].CreateAt, jl[0].join, posts[6].UpdateAt),
 		}
 
 		export = openZipAndReadFirstFile(t, exportBackend, batches[1])
@@ -1506,8 +1634,8 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			teams[0].Id, teams[0].Name, teams[0].DisplayName, channels[0].Id, users[0].Id,
 			// 6          7              8           9          10
 			posts[0].Id, posts[1].Id, posts[2].Id, posts[3].Id, posts[4].Id,
-			// 11         12                13
-			jl[0].join, posts[0].CreateAt, posts[2].CreateAt)
+			// 11         12                13                 14
+			jl[0].join, posts[0].CreateAt, posts[2].CreateAt, posts[1].UpdateAt)
 
 		allExpected := strings.Split(tmpl, "\n")
 
@@ -1809,9 +1937,11 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 
 	t.Run("CSV e2e 5 - test delete and update semantics", func(t *testing.T) {
 		type msgDetailsToCheck struct {
-			createAt int64
-			postId   string
-			message  string
+			createAt    int64
+			updateAt    int64
+			updatedType shared.PostUpdatedType
+			postId      string
+			message     string
 		}
 
 		assertContainsAllMsgs := func(msg string, allExpected []msgDetailsToCheck, tag string) {
@@ -1829,7 +1959,8 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 			for _, expected := range allExpected {
 				found := false
 				for _, msg := range msgLines {
-					if strings.HasPrefix(msg, fmt.Sprintf("%d", expected.createAt)) &&
+					if strings.HasPrefix(msg, fmt.Sprintf("%d,%d,%s,",
+						expected.createAt, expected.updateAt, expected.updatedType)) &&
 						strings.Contains(msg, expected.postId+",,,"+expected.message) {
 						found = true
 						break
@@ -1858,13 +1989,16 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
 			{
 				createAt: posts[0].CreateAt,
+				updateAt: message0DeleteAt,
 				postId:   posts[0].Id,
 				message:  posts[0].Message,
 			},
 			{
-				createAt: message0DeleteAt,
-				postId:   posts[0].Id,
-				message:  "delete " + posts[0].Message,
+				createAt:    posts[0].CreateAt,
+				updateAt:    message0DeleteAt,
+				updatedType: shared.Deleted,
+				postId:      posts[0].Id,
+				message:     "delete " + posts[0].Message,
 			},
 		}, "Job 1")
 
@@ -1882,10 +2016,11 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
 			{
 				createAt: posts[1].CreateAt,
+				updateAt: posts[1].UpdateAt,
 				postId:   posts[1].Id,
 				message:  posts[1].Message,
 			},
-		}, "Job 1")
+		}, "Job 2 batch 1")
 
 		export = readFirstFileFromZip(t, zipBytes2)
 
@@ -1893,15 +2028,18 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
 			{
 				createAt: posts[0].CreateAt,
+				updateAt: message0DeleteAt,
 				postId:   posts[0].Id,
 				message:  posts[0].Message,
 			},
 			{
-				createAt: message0DeleteAt,
-				postId:   posts[0].Id,
-				message:  "delete " + posts[0].Message,
+				createAt:    posts[0].CreateAt,
+				updateAt:    message0DeleteAt,
+				updatedType: shared.Deleted,
+				postId:      posts[0].Id,
+				message:     "delete " + posts[0].Message,
 			},
-		}, "Job 2")
+		}, "Job 2 batch 2")
 
 		// Job 3
 		//
@@ -1914,11 +2052,13 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
 			{
 				createAt: posts[0].CreateAt,
+				updateAt: posts[0].UpdateAt,
 				postId:   posts[0].Id,
 				message:  posts[0].Message,
 			},
 			{
 				createAt: posts[1].CreateAt,
+				updateAt: posts[1].UpdateAt,
 				postId:   posts[1].Id,
 				message:  posts[1].Message,
 			},
@@ -1928,6 +2068,7 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		// Job 4
 		//
 		posts = rets[3].posts
+		updatedPost1 := ret5s[3].updatedPost1
 		message0DeleteAt = ret5s[3].message0DeleteAt
 		zipBytes = ret5s[3].zipBytes[0]
 
@@ -1937,20 +2078,25 @@ func testRunExportJobE2E(t *testing.T, exportBackend filestore.FileBackend, expo
 		assertContainsAllMsgs(export, []msgDetailsToCheck{
 			{
 				createAt: posts[2].CreateAt,
+				updateAt: posts[2].UpdateAt,
 				postId:   posts[2].Id,
 				message:  posts[2].Message,
 			},
 			// post deleted ONLY (not its created post, because that was in the previous job)
 			{
-				createAt: message0DeleteAt,
-				postId:   posts[0].Id,
-				message:  "delete " + posts[0].Message,
+				createAt:    posts[0].CreateAt,
+				updateAt:    message0DeleteAt,
+				updatedType: shared.Deleted,
+				postId:      posts[0].Id,
+				message:     "delete " + posts[0].Message,
 			},
 			// post updated ONLY (not its created post, because that was in the previous job)
 			{
-				createAt: posts[1].CreateAt,
-				postId:   posts[1].Id,
-				message:  posts[1].Message,
+				createAt:    posts[1].CreateAt,
+				updateAt:    updatedPost1.UpdateAt,
+				updatedType: shared.UpdatedNoMsgChange,
+				postId:      posts[1].Id,
+				message:     posts[1].Message,
 			},
 		}, "Job 4")
 	})
