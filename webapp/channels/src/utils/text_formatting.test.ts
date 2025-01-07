@@ -91,13 +91,13 @@ describe('formatText', () => {
     });
 
     test('emoticons should not be rendered as emojis when renderEmoticonsAsEmoji is undefined', () => {
-        const output = formatText(`:)`, {}, emptyEmojiMap);
-        expect(output).toBe(`<p>:)</p>`);
+        const output = formatText('':)', {}, emptyEmojiMap);
+        expect(output).toBe('<p>:)</p>');
     });
 
     test('emoticons should not be rendered as emojis when renderEmoticonsAsEmoji is false', () => {
-        const output = formatText(`:)`, {renderEmoticonsAsEmoji: false}, emptyEmojiMap);
-        expect(output).toBe(`<p>:)</p>`);
+        const output = formatText(':)', {renderEmoticonsAsEmoji: false}, emptyEmojiMap);
+        expect(output).toBe('<p>:)</p>');
     });
 
     test('code blocks newlines are not converted into <br/> with inline markdown image in the post', () => {
