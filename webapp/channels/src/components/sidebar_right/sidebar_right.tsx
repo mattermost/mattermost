@@ -12,7 +12,8 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
-import FileUploadOverlay, {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
+import FileUploadOverlay from 'components/file_upload_overlay';
+import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 import PostEditHistory from 'components/post_edit_history';
 import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';

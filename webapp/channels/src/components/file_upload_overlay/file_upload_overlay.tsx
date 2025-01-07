@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import fileOverlayImage from 'images/filesOverlay.png';
+import fileOverlayImage from 'images/fileOverlay.svg';
 
 import './file_upload_overlay.scss';
 
@@ -19,11 +19,11 @@ export const DropOverlayIdRHS = 'rhsFileDropOverlay';
 type Props = {
     overlayType: string;
     id: string;
-    editMode?: boolean;
-    mode?: 'horizontal' | 'vertical';
+    isInEditMode?: boolean;
+    direction?: 'horizontal' | 'vertical';
 }
 
-const FileUploadOverlay = (props: Props) => {
+export const FileUploadOverlay = (props: Props) => {
     let overlayClass = 'file-overlay hidden';
     if (props.overlayType === 'right') {
         overlayClass += ' right-file-overlay';
@@ -31,11 +31,11 @@ const FileUploadOverlay = (props: Props) => {
         overlayClass += ' center-file-overlay';
     }
 
-    if (props.editMode) {
+    if (props.isInEditMode) {
         overlayClass += ' post_edit_mode';
     }
 
-    const mode = props.mode || 'vertical';
+    const mode = props.direction || 'vertical';
 
     return (
         <div
@@ -59,5 +59,3 @@ const FileUploadOverlay = (props: Props) => {
         </div>
     );
 };
-
-export default FileUploadOverlay;

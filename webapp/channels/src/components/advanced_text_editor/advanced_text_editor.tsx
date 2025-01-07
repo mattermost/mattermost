@@ -33,9 +33,10 @@ import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import DeletePostModal from 'components/delete_post_modal';
-import FileUploadOverlay, {
-    DropOverlayIdCreateComment, DropOverlayIdCreatePost,
-    DropOverlayIdEditPost,
+import {
+    DropOverlayIdCreateComment,
+    DropOverlayIdCreatePost,
+    DropOverlayIdEditPost, FileUploadOverlay,
 } from 'components/file_upload_overlay/file_upload_overlay';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
@@ -673,21 +674,21 @@ const AdvancedTextEditor = ({
 
     const fileUploadOverlay = useMemo(() => {
         const overlayType = isRHS ? 'right' : 'center';
-        const mode = 'horizontal';
+        const direction = 'horizontal';
 
         return isInEditMode ? (
             <FileUploadOverlay
                 overlayType={overlayType}
-                editMode={true}
+                isInEditMode={true}
                 id={DropOverlayIdEditPost}
-                mode={mode}
+                direction={direction}
             />
         ) : (
             <FileUploadOverlay
                 overlayType={overlayType}
-                editMode={false}
+                isInEditMode={false}
                 id={isRHS ? DropOverlayIdCreateComment : DropOverlayIdCreatePost}
-                mode={mode}
+                direction={direction}
             />
         );
     }, [isInEditMode, isRHS]);

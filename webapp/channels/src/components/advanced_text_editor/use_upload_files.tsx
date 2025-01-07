@@ -14,7 +14,7 @@ import {getCurrentLocale} from 'selectors/i18n';
 import FilePreview from 'components/file_preview';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
-import {FileUpload as FileUploadClass, TextEditorLocationType} from 'components/file_upload/file_upload';
+import type {FileUpload as FileUploadClass, TextEditorLocationType} from 'components/file_upload/file_upload';
 import type TextboxClass from 'components/textbox/textbox';
 
 import type {PostDraft} from 'types/store/draft';
