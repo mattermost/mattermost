@@ -1774,7 +1774,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJSON(r.Body)
 
 	var userIds []string
-	interfaceIds, ok := props["user_ids"].([]interface{})
+	interfaceIds, ok := props["user_ids"].([]any)
 	if ok {
 		if len(interfaceIds) > maxListSize {
 			c.SetInvalidParam("user_ids")

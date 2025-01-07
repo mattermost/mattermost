@@ -29,7 +29,7 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -154,7 +154,7 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -302,7 +302,7 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -442,7 +442,7 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -572,7 +572,7 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
   onKeyDown={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

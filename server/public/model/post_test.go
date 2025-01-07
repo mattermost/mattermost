@@ -59,6 +59,11 @@ func TestPostIsValid(t *testing.T) {
 	appErr = o.IsValid(maxPostSize)
 	require.NotNil(t, appErr)
 
+	// In case message property length is too long.
+	o.Message = strings.Repeat("0", maxPostSize+1)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
+
 	o.Message = strings.Repeat("0", maxPostSize)
 	appErr = o.IsValid(maxPostSize)
 	require.Nil(t, appErr)

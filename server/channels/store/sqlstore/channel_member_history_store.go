@@ -32,7 +32,7 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 		JoinTime:  joinTime,
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`INSERT INTO ChannelMemberHistory
+	if _, err := s.GetMaster().NamedExec(`INSERT INTO ChannelMemberHistory
 		(UserId, ChannelId, JoinTime)
 		VALUES
 		(:UserId, :ChannelId, :JoinTime)`, channelMemberHistory); err != nil {
@@ -53,7 +53,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 	if err != nil {
 		return errors.Wrap(err, "channel_member_history_to_sql")
 	}
-	sqlResult, err := s.GetMasterX().Exec(query, params...)
+	sqlResult, err := s.GetMaster().Exec(query, params...)
 	if err != nil {
 		return errors.Wrapf(err, "LogLeaveEvent userId=%s channelId=%s leaveTime=%d", userId, channelId, leaveTime)
 	}
@@ -99,7 +99,7 @@ func (s SqlChannelMemberHistoryStore) hasDataAtOrBefore(time int64) (bool, error
 		return false, errors.Wrap(err, "channel_member_history_to_sql")
 	}
 	var result NullableCountResult
-	if err := s.GetReplicaX().Get(&result, query); err != nil {
+	if err := s.GetReplica().Get(&result, query); err != nil {
 		return false, err
 	} else if result.Min.Valid {
 		return result.Min.Int64 <= time, nil
@@ -127,7 +127,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 		return nil, errors.Wrap(err, "channel_member_history_to_sql")
 	}
 	histories := []*model.ChannelMemberHistoryResult{}
-	if err := s.GetReplicaX().Select(&histories, query, args...); err != nil {
+	if err := s.GetReplica().Select(&histories, query, args...); err != nil {
 		return nil, err
 	}
 
@@ -147,7 +147,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 	}
 
 	histories := []*model.ChannelMemberHistoryResult{}
-	if err := s.GetReplicaX().Select(&histories, query, args...); err != nil {
+	if err := s.GetReplica().Select(&histories, query, args...); err != nil {
 		return nil, err
 	}
 	// we have to fill in the join/leave times, because that data doesn't exist in the channel members table
@@ -190,7 +190,7 @@ func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int
 			LIMIT ?
 		) AS A
 	)`
-	result, err := s.GetMasterX().Exec(query, limit)
+	result, err := s.GetMaster().Exec(query, limit)
 	if err != nil {
 		return 0, err
 	}
@@ -235,7 +235,7 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 	if err != nil {
 		return 0, errors.Wrap(err, "channel_member_history_to_sql")
 	}
-	sqlResult, err := s.GetMasterX().Exec(query, args...)
+	sqlResult, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
 		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
 	}
@@ -260,7 +260,7 @@ func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since 
 		return nil, errors.Wrap(err, "channel_member_history_to_sql")
 	}
 	channelIds := []string{}
-	err = s.GetReplicaX().Select(&channelIds, query, params...)
+	err = s.GetReplica().Select(&channelIds, query, params...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "GetChannelsLeftSince userId=%s since=%d", userID, since)
 	}

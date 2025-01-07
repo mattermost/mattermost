@@ -13,25 +13,25 @@ describe('messageHtmlToComponent wrapper', () => {
     const isRHS = false;
 
     test('should call messageHtmlToComponent properly with only message', () => {
-        window.PostUtils.messageHtmlToComponent(message);
+        (window as any).PostUtils.messageHtmlToComponent(message);
 
         expect(messageHtmlToComponent).toHaveBeenCalledWith(message, undefined);
     });
 
     test('should call messageHtmlToComponent properly with message and options', () => {
-        window.PostUtils.messageHtmlToComponent(message, options);
+        (window as any).PostUtils.messageHtmlToComponent(message, options);
 
         expect(messageHtmlToComponent).toHaveBeenCalledWith(message, options);
     });
 
     test('should call messageHtmlToComponent properly with only message when deprecated isRHS parameter is passed', () => {
-        window.PostUtils.messageHtmlToComponent(message, isRHS);
+        (window as any).PostUtils.messageHtmlToComponent(message, isRHS);
 
         expect(messageHtmlToComponent).toHaveBeenCalledWith(message, undefined);
     });
 
     test('should call messageHtmlToComponent properly with message and options when deprecated isRHS parameter is passed', () => {
-        window.PostUtils.messageHtmlToComponent(message, isRHS, options);
+        (window as any).PostUtils.messageHtmlToComponent(message, isRHS, options);
 
         expect(messageHtmlToComponent).toHaveBeenCalledWith(message, options);
     });

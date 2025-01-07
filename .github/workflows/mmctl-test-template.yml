@@ -28,6 +28,10 @@ jobs:
         id: go
         working-directory: ./server
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Store required variables for publishing results
+        run: |
+          echo "${{ inputs.name }}" > server/test-name
+          echo "${{ github.event.pull_request.number }}" > server/pr-number        
       - name: Setup Go
         uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
         with:
@@ -80,10 +84,5 @@ jobs:
           path: |
             server/gotestsum.json
             server/report.xml
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@992d97d6eb2e5f3de985fbf9df6a04386874114d # v5.1.0
-        if: success() || failure() # always run even if the previous step fails
-        with:
-          report_paths: server/report.xml
-          check_name: ${{ inputs.name }} (Results)
-          job_name: ${{ inputs.name }}
+            server/test-name
+            server/pr-number

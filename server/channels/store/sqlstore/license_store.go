@@ -47,7 +47,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) error {
 		return errors.Wrap(err, "license_tosql")
 	}
 
-	if _, err := ls.GetMasterX().Exec(queryString, args...); err != nil {
+	if _, err := ls.GetMaster().Exec(queryString, args...); err != nil {
 		return errors.Wrapf(err, "failed to insert License with licenseId=%s", license.Id)
 	}
 
@@ -86,7 +86,7 @@ func (ls SqlLicenseStore) GetAll() ([]*model.LicenseRecord, error) {
 	}
 
 	licenses := []*model.LicenseRecord{}
-	if err := ls.GetReplicaX().Select(&licenses, queryString); err != nil {
+	if err := ls.GetReplica().Select(&licenses, queryString); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch licenses")
 	}
 
