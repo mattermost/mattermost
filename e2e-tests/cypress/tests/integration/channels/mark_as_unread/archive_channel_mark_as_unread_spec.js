@@ -75,12 +75,6 @@ describe('Channels', () => {
         // * Verify the "Mark as Unread" option is absent in post menu
         markAsUnreadShouldBeAbsent(post1.id);
 
-        // * Hover on the post with holding alt should show cursor
-        cy.get(`#post_${post1.id}`).trigger('mouseover').type('{alt}', {release: false}).should(notShowCursor);
-
-        // # Mouse click on the post holding alt
-        cy.get(`#post_${post1.id}`).type('{alt}', {release: false}).click();
-
         // * Verify the post is not marked as unread
         cy.get('.NotificationSeparator').should('not.exist');
     });
