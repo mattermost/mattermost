@@ -158,6 +158,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	th := &TestHelper{
 		Context: request.TestContext(tb),
 		Service: ps,
+		T:       tb,
 		Suite:   &mockSuite{},
 	}
 
