@@ -55,7 +55,7 @@ function TeamController(props: Props) {
     useTelemetryIdentitySync();
 
     useEffect(() => {
-        InitialLoadingScreen.stop();
+        InitialLoadingScreen.stop('team_controller');
         DesktopApp.reactAppInitialized();
         async function fetchAllChannels() {
             await props.fetchAllMyTeamsChannels();

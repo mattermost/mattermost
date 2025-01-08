@@ -59,7 +59,7 @@ function Drafts({
     const isScheduledPostsTab = useRouteMatch('/:team/' + SCHEDULED_POST_URL_SUFFIX);
 
     const currentTeamId = useSelector(getCurrentTeamId);
-    const getScheduledPostsByTeam = makeGetScheduledPostsByTeam();
+    const getScheduledPostsByTeam = useMemo(() => makeGetScheduledPostsByTeam(), []);
     const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 

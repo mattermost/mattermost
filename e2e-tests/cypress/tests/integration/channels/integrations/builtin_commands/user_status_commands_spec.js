@@ -27,6 +27,11 @@ describe('Integrations', () => {
         });
     });
 
+    beforeEach(() => {
+        // Ensure that the user is set to 'online' before starting each testcase
+        cy.apiUpdateUserStatus('online');
+    });
+
     it('I18456 Built-in slash commands: change user status via post', () => {
         cy.apiSaveMessageDisplayPreference('compact');
         cy.visit(offTopicUrl);

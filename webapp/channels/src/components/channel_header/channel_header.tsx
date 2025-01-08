@@ -4,6 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent, ReactNode, RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {OverlayTrigger as BaseOverlayTrigger} from 'react-bootstrap';
 import {Overlay} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
@@ -18,7 +20,6 @@ import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import Markdown from 'components/markdown';
-import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import Timestamp from 'components/timestamp';
 import Popover from 'components/widgets/popover';
@@ -43,6 +44,10 @@ import HeaderIconWrapper from './components/header_icon_wrapper';
 
 const headerMarkdownOptions = {singleline: true, mentionHighlight: false, atMentions: true};
 const popoverMarkdownOptions = {singleline: false, mentionHighlight: false, atMentions: true};
+
+export type OverlayTrigger = BaseOverlayTrigger & {
+    hide: () => void;
+};
 
 export type Props = {
     teamId: string;
@@ -94,7 +99,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
     toggleFavoriteRef: RefObject<HTMLButtonElement>;
     headerDescriptionRef: RefObject<HTMLSpanElement>;
     headerPopoverTextMeasurerRef: RefObject<HTMLDivElement>;
-    headerOverlayRef: RefObject<BaseOverlayTrigger>;
+    headerOverlayRef: RefObject<OverlayTrigger>;
     getHeaderMarkdownOptions: (channelNamesMap: Record<string, any>) => Record<string, any>;
     getPopoverMarkdownOptions: (channelNamesMap: Record<string, any>) => Record<string, any>;
 

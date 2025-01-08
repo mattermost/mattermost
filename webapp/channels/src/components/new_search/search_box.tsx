@@ -144,7 +144,7 @@ const SearchBox = forwardRef(
                 const caretPosition = getCaretPosition();
                 const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
                 setSearchTerms(
-                    searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$'), '') +
+                    searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$', 'i'), '') +
                     value +
                     extraSpace +
                     searchTerms.slice(caretPosition),
@@ -225,6 +225,7 @@ const SearchBox = forwardRef(
                 role='searchbox'
             >
                 <CloseIcon
+                    data-testid='searchBoxClose'
                     className='btn btn-icon btn-m'
                     onClick={closeHandler}
                 >

@@ -128,7 +128,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
             </TriggerComponent>
 
             {isMounted && (
-                <FloatingPortal id='user-profile-popover-portal'>
+                <FloatingPortal id='root-portal'>
                     <FloatingOverlay
                         id='user-profile-popover-floating-overlay'
                         className='user-profile-popover-floating-overlay'

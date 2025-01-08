@@ -2260,7 +2260,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			go func() {
 				_, appErr := th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), addCreatePosts)
 				require.Nil(t, appErr)
-				_, err = th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), removeCreatePosts)
+				_, appErr = th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), removeCreatePosts)
 				require.Nil(t, appErr)
 				wg.Done()
 			}()

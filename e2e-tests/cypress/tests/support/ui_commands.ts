@@ -172,7 +172,7 @@ Cypress.Commands.add('getLastPostId', getLastPostId);
 
 function uiWaitUntilMessagePostedIncludes(message: string): ChainableT<any> {
     const checkFn = () => {
-        return cy.getLastPost().then((el) => {
+        return cy.getLastPost().scrollIntoView().then((el) => {
             const postedMessageEl = el.find('.post-message__text')[0];
             return Boolean(postedMessageEl && postedMessageEl.textContent.includes(message));
         });

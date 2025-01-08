@@ -265,6 +265,8 @@ function createLinkBookmark({
     // # Enter link
     editTextInput('linkInput', link);
 
+    cy.wait(TIMEOUTS.HALF_SEC);
+
     if (displayName) {
         // # Enter displayname
         editTextInput('titleInput', displayName);

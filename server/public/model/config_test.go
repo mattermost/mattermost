@@ -1968,3 +1968,124 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 		require.True(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
 	})
 }
+
+func TestFilterConfig(t *testing.T) {
+	t.Run("should clear default values", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.Empty(t, m)
+
+		cfg.ServiceSettings = ServiceSettings{
+			EnableLocalMode: NewPointer(true),
+		}
+
+		m, err = FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.Equal(t, true, m["ServiceSettings"].(map[string]any)["EnableLocalMode"])
+	})
+
+	t.Run("should clear masked config values", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		dsn := "somedb://user:password@localhost:5432/mattermost"
+		cfg.SqlSettings.DataSource = NewPointer(dsn)
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.Equal(t, dsn, m["SqlSettings"].(map[string]any)["DataSource"])
+
+		cfg.Sanitize(nil)
+		m, err = FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.Equal(t, FakeSetting, m["SqlSettings"].(map[string]any)["DataSource"])
+
+		cfg.Sanitize(nil)
+		m, err = FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+				RemoveMasked:   true,
+			},
+		})
+		require.NoError(t, err)
+		require.Empty(t, m)
+
+		cfg.SqlSettings.DriverName = NewPointer("mysql")
+		m, err = FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+				RemoveMasked:   true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.Equal(t, "mysql", m["SqlSettings"].(map[string]any)["DriverName"])
+	})
+
+	t.Run("should not clear non primitive types", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		cfg.TeamSettings.ExperimentalDefaultChannels = []string{"ch-a", "ch-b"}
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.ElementsMatch(t, []string{"ch-a", "ch-b"}, m["TeamSettings"].(map[string]any)["ExperimentalDefaultChannels"])
+	})
+
+	t.Run("should be able to handle nil values", func(t *testing.T) {
+		var cfg *Config
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.Empty(t, m)
+	})
+
+	t.Run("should be able to handle float64 values", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.PluginSettings.Plugins = map[string]map[string]any{
+			"com.mattermost.plugin-a": {
+				"setting": 1.0,
+			},
+		}
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1.0, m["PluginSettings"].(map[string]any)["Plugins"].(map[string]any)["com.mattermost.plugin-a"].(map[string]any)["setting"])
+	})
+}

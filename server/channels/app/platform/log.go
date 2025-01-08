@@ -112,13 +112,17 @@ func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
 	timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancelCtx()
 
-	ps.logger.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
+	if err := ps.logger.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
 		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
-	})
+	}); err != nil {
+		mlog.Error("Failed to remove log targets", mlog.Err(err))
+	}
 
-	ps.notificationsLogger.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
+	if err := ps.notificationsLogger.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
 		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
-	})
+	}); err != nil {
+		mlog.Error("Failed to remove notification log targets", mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {

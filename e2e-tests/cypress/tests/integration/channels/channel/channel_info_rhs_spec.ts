@@ -91,6 +91,31 @@ describe('Channel Info RHS', () => {
 
     describe('regular channel', () => {
         describe('top buttons', () => {
+            it('should show correct tooltips for all buttons', () => {
+                // # Go to test channel
+                cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+
+                // # Click on the channel info button
+                cy.get('#channel-info-btn').click();
+
+                // * Verify tooltips appear with correct text
+                cy.uiGetRHS().findByText('Favorite').trigger('mouseover');
+                cy.get('#favorite-tooltip').should('be.visible').and('have.text', 'Add this channel to favorites');
+                cy.uiGetRHS().findByText('Favorite').trigger('mouseout');
+
+                cy.uiGetRHS().findByText('Mute').trigger('mouseover');
+                cy.get('#mute-tooltip').should('be.visible').and('have.text', 'Mute notifications for this channel');
+                cy.uiGetRHS().findByText('Mute').trigger('mouseout');
+
+                cy.uiGetRHS().findByText('Add People').trigger('mouseover');
+                cy.get('#add-people-tooltip').should('be.visible').and('have.text', 'Add team members to this channel');
+                cy.uiGetRHS().findByText('Add People').trigger('mouseout');
+
+                cy.uiGetRHS().findByText('Copy Link').trigger('mouseover');
+                cy.get('#copy-link-tooltip').should('be.visible').and('have.text', 'Copy link to this channel');
+                cy.uiGetRHS().findByText('Copy Link').trigger('mouseout');
+            });
+
             it('should be able to toggle favorite on a channel', () => {
                 // # Go to test channel
                 cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);

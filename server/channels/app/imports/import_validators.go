@@ -501,14 +501,18 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			ValidateReactionImportData(&reaction, *data.CreateAt)
+			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
+				return err
+			}
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -617,14 +621,18 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			ValidateReactionImportData(&reaction, *data.CreateAt)
+			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
+				return err
+			}
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
+				return err
+			}
 		}
 	}
 

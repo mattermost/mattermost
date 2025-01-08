@@ -39,7 +39,8 @@ func (api *API) InitFile() {
 	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods(http.MethodGet)
 	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods(http.MethodGet)
 
-	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFiles)).Methods(http.MethodPost)
+	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods(http.MethodPost)
+	api.BaseRoutes.Files.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchFilesInAllTeams)).Methods(http.MethodPost)
 
 	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods(http.MethodGet, http.MethodHead)
 }
@@ -736,7 +737,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	web.WriteFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, false, w, r)
 }
 
-func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
+func searchFilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -747,6 +748,14 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	searchFiles(c, w, r, c.Params.TeamId)
+}
+
+func searchFilesInAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+	searchFiles(c, w, r, "")
+}
+
+func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID string) {
 	var params model.SearchParameter
 	jsonErr := json.NewDecoder(r.Body).Decode(&params)
 	if jsonErr != nil {
@@ -787,7 +796,7 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchFilesInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	results, err := c.App.SearchFilesInTeamForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()

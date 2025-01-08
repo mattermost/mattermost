@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {FileTypes, PostTypes, UserTypes, ChannelBookmarkTypes} from 'mattermost-redux/action_types';
 
-export function files(state: Record<string, FileInfo> = {}, action: AnyAction) {
+export function files(state: Record<string, FileInfo> = {}, action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_UPLOAD_FILES:
     case FileTypes.RECEIVED_FILES_FOR_POST: {
@@ -98,7 +98,7 @@ export function files(state: Record<string, FileInfo> = {}, action: AnyAction) {
     }
 }
 
-export function filesFromSearch(state: Record<string, FileSearchResultItem> = {}, action: AnyAction) {
+export function filesFromSearch(state: Record<string, FileSearchResultItem> = {}, action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_FILES_FOR_SEARCH: {
         return {...state,
@@ -150,7 +150,7 @@ function storeFilesForPost(state: Record<string, FileInfo>, post: Post) {
     }, state);
 }
 
-export function fileIdsByPostId(state: Record<string, string[]> = {}, action: AnyAction) {
+export function fileIdsByPostId(state: Record<string, string[]> = {}, action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_FILES_FOR_POST: {
         const {data, postId} = action;
@@ -204,7 +204,7 @@ function storeFilesIdsForPost(state: Record<string, string[]>, post: Post) {
     };
 }
 
-function filePublicLink(state: {link: string} = {link: ''}, action: AnyAction) {
+function filePublicLink(state: {link: string} = {link: ''}, action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_FILE_PUBLIC_LINK: {
         return action.data;

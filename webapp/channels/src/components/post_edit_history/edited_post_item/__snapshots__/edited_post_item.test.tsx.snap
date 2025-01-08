@@ -216,6 +216,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot whe
           >
             <Connect(UserProfile)
               disablePopover={true}
+              overwriteName=""
               userId="user_id"
             />
           </div>

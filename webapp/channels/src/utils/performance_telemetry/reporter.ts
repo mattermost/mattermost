@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Store} from 'redux';
-import {onCLS, onFCP, onINP, onLCP, onTTFB} from 'web-vitals/attribution';
+import {onCLS, onFCP, onINP, onLCP} from 'web-vitals/attribution';
 import type {INPMetricWithAttribution, LCPMetricWithAttribution, Metric} from 'web-vitals/attribution';
 
 import type {Client4} from '@mattermost/client';
@@ -114,16 +114,15 @@ export default class PerformanceReporter {
             entryTypes: observedEntryTypes,
         });
 
-        // Record the page load separately because it arrived before we were observing and because you can't use
+        // Record the page navigation separately because it arrived before we were observing and because you can't use
         // the buffered option for PerformanceObserver with multiple entry types.
-        this.measurePageLoad();
+        this.measurePageNavigation();
 
         // Register handlers for standard metrics and Web Vitals
         onCLS((metric) => this.handleWebVital(metric));
         onFCP((metric) => this.handleWebVital(metric));
         onINP((metric) => this.handleWebVital(metric));
         onLCP((metric) => this.handleWebVital(metric));
-        onTTFB((metric) => this.handleWebVital(metric));
 
         // Periodically send performance telemetry to the server, roughly every minute but with some randomness to
         // avoid overloading the server every minute.
@@ -138,17 +137,35 @@ export default class PerformanceReporter {
         }
     }
 
-    private measurePageLoad() {
+    private measurePageNavigation() {
         const entries = performance.getEntriesByType('navigation');
 
         if (entries.length === 0) {
             return;
         }
 
+        const entry = entries[0];
+        const ts = Date.now();
+
+        this.histogramMeasures.push({
+            metric: Measure.TTFB,
+            value: entry.responseStart,
+            timestamp: ts,
+        });
+        this.histogramMeasures.push({
+            metric: Measure.TTLB,
+            value: entry.responseEnd,
+            timestamp: ts,
+        });
+        this.histogramMeasures.push({
+            metric: Measure.DomInteractive,
+            value: entry.domInteractive,
+            timestamp: ts,
+        });
         this.histogramMeasures.push({
             metric: Measure.PageLoad,
-            value: entries[0].duration,
-            timestamp: Date.now(),
+            value: entry.duration,
+            timestamp: ts,
         });
     }
 

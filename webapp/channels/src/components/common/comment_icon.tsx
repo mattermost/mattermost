@@ -5,7 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import ReplyIcon from 'components/widgets/icons/reply_icon';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'components/with_tooltip/with_tooltip_new';
 
 import type {Locations} from 'utils/constants';
 
@@ -41,18 +41,18 @@ const CommentIcon = ({
         iconStyle = `${iconStyle} ${searchStyle}`;
     }
 
+    const replyTitle = intl.formatMessage({
+        id: 'post_info.comment_icon.tooltip.reply',
+        defaultMessage: 'Reply',
+    });
+
     return (
         <WithTooltip
-            id='comment-icon-tooltip'
-            placement='top'
-            title={intl.formatMessage({
-                id: 'post_info.comment_icon.tooltip.reply',
-                defaultMessage: 'Reply',
-            })}
+            title={replyTitle}
         >
             <button
                 id={`${location}_commentIcon_${postId}`}
-                aria-label={intl.formatMessage({id: 'post_info.comment_icon.tooltip.reply', defaultMessage: 'Reply'}).toLowerCase()}
+                aria-label={replyTitle.toLowerCase()}
                 className={`${iconStyle} ${extraClass}`}
                 onClick={handleCommentClick}
             >

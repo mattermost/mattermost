@@ -21,6 +21,7 @@ export default keyMirror({
     WEBSOCKET_FAILURE: null,
     WEBSOCKET_CLOSED: null,
     SET_CONNECTION_ID: null,
+    SET_SERVER_HOSTNAME: null,
 
     SET_CONFIG_AND_LICENSE: null,
 

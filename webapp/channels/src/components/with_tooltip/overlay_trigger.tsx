@@ -18,7 +18,7 @@ type Props = OverlayTriggerProps & {
 };
 
 /**
- * @deprecated Use (and expand when extrictly needed) WithTooltip instead
+ * @deprecated Use (and expand when strictly needed) WithTooltip instead
  */
 const OverlayTrigger = React.forwardRef((props: Props, ref?: React.Ref<OriginalOverlayTrigger>) => {
     const {overlay, disabled, ...otherProps} = props;

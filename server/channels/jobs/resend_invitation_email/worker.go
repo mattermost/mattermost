@@ -171,7 +171,10 @@ func (rseworker *ResendInvitationEmailWorker) GetDurations(job *model.Job) (int6
 }
 
 func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, job *model.Job) {
-	rseworker.store.System().PermanentDeleteByName(job.Id)
+	if _, err := rseworker.store.System().PermanentDeleteByName(job.Id); err != nil {
+		logger.Error("Worker: Failed to tear down data", mlog.Err(err))
+	}
+
 	rseworker.setJobSuccess(logger, job)
 }
 

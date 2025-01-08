@@ -2300,10 +2300,6 @@
     "translation": "Должны быть заданы trigger_words или channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не удалось декодировать многочастную полезную нагрузку входящего вебхука."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Не удалось обновить вебхук в разных командах."
   },
@@ -4314,10 +4310,6 @@
   {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Недопустимый идентификатор."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -8838,10 +8830,6 @@
   {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Некорректные свойства."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Неверное сообщение."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",

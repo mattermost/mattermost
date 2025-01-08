@@ -31,7 +31,7 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
         event.preventDefault();
 
         // remove trailing and leading colons
-        const value = event.target.value.toLowerCase().replace(/^:|:$/g, '');
+        const value = event.target.value.replace(/^:|:$/g, '');
         onChange(value);
 
         resetCursorPosition();

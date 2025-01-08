@@ -2043,7 +2043,8 @@ func TestGetLinkMetadata(t *testing.T) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		})
 
-		platform.PurgeLinkCache()
+		err := platform.PurgeLinkCache()
+		require.NoError(t, err)
 
 		return th
 	}
@@ -2195,7 +2196,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		th.App.saveLinkMetadataToDatabase(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
 
 		t.Run("should use database if saved entry exists", func(t *testing.T) {
-			platform.PurgeLinkCache()
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2212,7 +2214,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should use database if saved entry exists near time", func(t *testing.T) {
-			platform.PurgeLinkCache()
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2229,7 +2232,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if URL is different", func(t *testing.T) {
-			platform.PurgeLinkCache()
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			differentURL := requestURL + "/other"
 
@@ -2247,7 +2251,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if timestamp is different", func(t *testing.T) {
-			platform.PurgeLinkCache()
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
 
 			differentTimestamp := timestamp + 60*60*1000
 
@@ -2455,7 +2460,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.True(t, ok, "data should now exist in in-memory cache")
 
-		platform.PurgeLinkCache()
+		err = platform.PurgeLinkCache()
+		require.NoError(t, err)
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should no longer exist in in-memory cache")
 
@@ -2748,6 +2754,70 @@ func TestParseImages(t *testing.T) {
 				Width:  408,
 				Height: 336,
 				Format: "png",
+			},
+		},
+		"jpg-1": {
+			FileName: "orientation_test_1.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-2": {
+			FileName: "orientation_test_2.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-3": {
+			FileName: "orientation_test_3.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-4": {
+			FileName: "orientation_test_4.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-5": {
+			FileName: "orientation_test_5.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-6": {
+			FileName: "orientation_test_6.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-7": {
+			FileName: "orientation_test_7.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
+			},
+		},
+		"jpg-8": {
+			FileName: "orientation_test_8.jpeg",
+			Expected: &model.PostImage{
+				Width:  2860,
+				Height: 1578,
+				Format: "jpeg",
 			},
 		},
 		"animated gif": {

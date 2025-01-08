@@ -64,6 +64,17 @@
         max-width: 920px;
     }
 
+    .admin-console__checkbox-list {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+
+        li > .alert {
+            margin-top: 4px;
+            margin-bottom: 10px;
+        }
+    }
+
     mark {
         border-radius: 5%;
         background-color: variables.$highlight-color;

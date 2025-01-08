@@ -20,7 +20,7 @@ import (
 
 func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Cleanup(func() {
-		s.GetMasterX().Exec("TRUNCATE FileInfo")
+		s.GetMaster().Exec("TRUNCATE FileInfo")
 	})
 	t.Run("FileInfoSaveGet", func(t *testing.T) { testFileInfoSaveGet(t, rctx, ss) })
 	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, rctx, ss) })

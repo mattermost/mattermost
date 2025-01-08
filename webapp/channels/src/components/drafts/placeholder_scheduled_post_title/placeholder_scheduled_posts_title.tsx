@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import WithTooltip from 'components/with_tooltip';
+
 type Props = {
     type: 'channel' | 'thread';
 }
@@ -14,6 +16,13 @@ export default function PlaceholderScheduledPostsTitle({type}: Props) {
     const icon = (
         <i
             className='icon icon-pencil-outline'
+        />
+    );
+
+    const tooltipText = (
+        <FormattedMessage
+            id='scheduled_posts.row_title_thread.placeholder_tooltip'
+            defaultMessage={'The channel either doesn’t exist or you do not have access to it.'}
         />
     );
 
@@ -39,5 +48,15 @@ export default function PlaceholderScheduledPostsTitle({type}: Props) {
         );
     }
 
-    return title;
+    return (
+        <WithTooltip
+            id='scheduled_posts__placeholder'
+            placement={'top'}
+            title={tooltipText}
+        >
+            <div>
+                {title}
+            </div>
+        </WithTooltip>
+    );
 }

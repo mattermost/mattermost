@@ -45,3 +45,31 @@ export type Intersection<T1, T2> =
 Omit<Omit<T1&T2, keyof(Omit<T1, keyof(T2)>)>, keyof(Omit<T2, keyof(T1)>)>;
 
 export type PartialExcept<T extends Record<string, unknown>, TKeysNotPartial extends keyof T> = Partial<T> & Pick<T, TKeysNotPartial>;
+
+export function isArrayOf<T>(v: unknown, check: (e: unknown) => boolean): v is T[] {
+    if (!Array.isArray(v)) {
+        return false;
+    }
+
+    return v.every(check);
+}
+
+export function isStringArray(v: unknown): v is string[] {
+    return isArrayOf(v, (e) => typeof e === 'string');
+}
+
+export function isRecordOf<T>(v: unknown, check: (e: unknown) => boolean): v is Record<string, T> {
+    if (typeof v !== 'object' || !v) {
+        return false;
+    }
+
+    if (!(Object.keys(v).every((k) => typeof k === 'string'))) {
+        return false;
+    }
+
+    if (!(Object.values(v).every(check))) {
+        return false;
+    }
+
+    return true;
+}

@@ -151,7 +151,21 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
 	})
 
-	t.Run("no LDAP vendor info", func(t *testing.T) {
+	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
+		ldapMock := &emocks.LdapInterface{}
+		th.App.Channels().Ldap = ldapMock
+
+		packet := generateSupportPacket(t)
+
+		assert.Equal(t, "", packet.LdapVendorName)
+		assert.Equal(t, "", packet.LdapVendorVersion)
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.LdapSettings.EnableSync = model.NewPointer(true)
+	})
+
+	t.Run("no LDAP vendor info found", func(t *testing.T) {
 		ldapMock := &emocks.LdapInterface{}
 		ldapMock.On(
 			"GetVendorNameAndVendorVersion",

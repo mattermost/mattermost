@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ScheduledPost, ScheduledPostsState} from '@mattermost/types/schedule_post';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ScheduledPostTypes, UserTypes} from 'mattermost-redux/action_types';
 
-function byId(state: ScheduledPostsState['byId'] = {}, action: AnyAction) {
+function byId(state: ScheduledPostsState['byId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
         const newState = {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
-            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
                 scheduledPostsByTeamId[teamId].forEach((scheduledPost: ScheduledPost) => {
                     newState[scheduledPost.id] = scheduledPost;
                 });
@@ -51,14 +51,14 @@ function byId(state: ScheduledPostsState['byId'] = {}, action: AnyAction) {
     }
 }
 
-function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction) {
+function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
         const newState = {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
-            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
                 newState[teamId] = scheduledPostsByTeamId[teamId].map((scheduledPost: ScheduledPost) => scheduledPost.id);
             }
         });
@@ -111,14 +111,14 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: AnyAction
     }
 }
 
-function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, action: AnyAction) {
+function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
         const newState = {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
-            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
                 const teamScheduledPosts = scheduledPostsByTeamId[teamId] as ScheduledPost[];
                 newState[teamId] = teamScheduledPosts.filter((scheduledPost) => scheduledPost.error_code).map((scheduledPost) => scheduledPost.id);
             }
@@ -172,14 +172,14 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
     }
 }
 
-function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] = {}, action: AnyAction) {
+function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
         const newState = {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
-            if (scheduledPostsByTeamId.hasOwnProperty(teamId)) {
+            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
                 scheduledPostsByTeamId[teamId].forEach((scheduledPost: ScheduledPost) => {
                     const id = scheduledPost.root_id || scheduledPost.channel_id;
 
