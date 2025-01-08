@@ -92,7 +92,7 @@ test('MM-T5520-2 should change user roles', async ({pw, pages}) => {
     const systemAdmin = systemConsolePage.page.locator('input[name="systemadmin"]');
     await systemAdmin.waitFor();
     await systemAdmin.click();
-    await systemConsolePage.page.locator('button.btn-primary').click();
+    systemConsolePage.saveRoleChange();
 
     // * Verify that the modal closed and no error showed
     await systemAdmin.waitFor({state: 'detached'});
@@ -111,7 +111,7 @@ test('MM-T5520-2 should change user roles', async ({pw, pages}) => {
     const systemMember = systemConsolePage.page.locator('input[name="systemmember"]');
     await systemMember.waitFor();
     await systemMember.click();
-    await systemConsolePage.page.locator('button.btn-primary').click();
+    await systemConsolePage.saveRoleChange();
 
     // * Verify that the modal closed and no error showed
     await systemMember.waitFor({state: 'detached'});
@@ -168,7 +168,7 @@ test('MM-T5520-4 should reset the users password', async ({pw, pages}) => {
     // # Enter a random password and click Save
     const passwordInput = systemConsolePage.page.locator('input[type="password"]');
     await passwordInput.fill(getRandomId());
-    await systemConsolePage.page.locator('button.btn-primary').click();
+    await systemConsolePage.clickResetButton();
 
     // * Verify that the modal closed and no error showed
     await passwordInput.waitFor({state: 'detached'});
@@ -186,7 +186,7 @@ test('MM-T5520-5 should change the users email', async ({pw, pages}) => {
     // # Enter a random password and click Save
     const emailInput = await systemConsolePage.page.locator('input[type="email"]');
     await emailInput.fill(newEmail);
-    await systemConsolePage.page.locator('button.btn-primary').click();
+    await systemConsolePage.clickResetButton();
 
     // * Verify that the modal closed
     await emailInput.waitFor({state: 'detached'});
