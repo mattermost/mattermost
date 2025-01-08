@@ -11,6 +11,7 @@ import (
 type LdapInterface interface {
 	DoLogin(c request.CTX, id string, password string) (*model.User, *model.AppError)
 	GetUser(c request.CTX, id string) (*model.User, *model.AppError)
+	GetLDAPUserForSAMLUser(rctx request.CTX, samlUser *model.User) (*model.User, *model.AppError)
 	GetUserAttributes(rctx request.CTX, id string, attributes []string) (map[string]string, *model.AppError)
 	CheckPassword(c request.CTX, id string, password string) *model.AppError
 	CheckPasswordAuthData(c request.CTX, authData string, password string) *model.AppError
@@ -24,7 +25,5 @@ type LdapInterface interface {
 	GetAllGroupsPage(rctx request.CTX, page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
 	FirstLoginSync(c request.CTX, user *model.User, userAuthService, userAuthData, email string) *model.AppError
 	UpdateProfilePictureIfNecessary(request.CTX, model.User, model.Session)
-	GetADLdapIdFromSAMLId(c request.CTX, authData string) string
-	GetSAMLIdFromADLdapId(c request.CTX, authData string) string
 	GetVendorNameAndVendorVersion(rctx request.CTX) (string, string, error)
 }

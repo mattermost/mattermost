@@ -125,24 +125,6 @@ func (_m *LdapInterface) FirstLoginSync(c request.CTX, user *model.User, userAut
 	return r0
 }
 
-// GetADLdapIdFromSAMLId provides a mock function with given fields: c, authData
-func (_m *LdapInterface) GetADLdapIdFromSAMLId(c request.CTX, authData string) string {
-	ret := _m.Called(c, authData)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetADLdapIdFromSAMLId")
-	}
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
-		r0 = rf(c, authData)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
 // GetAllGroupsPage provides a mock function with given fields: rctx, page, perPage, opts
 func (_m *LdapInterface) GetAllGroupsPage(rctx request.CTX, page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
 	ret := _m.Called(rctx, page, perPage, opts)
@@ -246,22 +228,36 @@ func (_m *LdapInterface) GetGroup(rctx request.CTX, groupUID string) (*model.Gro
 	return r0, r1
 }
 
-// GetSAMLIdFromADLdapId provides a mock function with given fields: c, authData
-func (_m *LdapInterface) GetSAMLIdFromADLdapId(c request.CTX, authData string) string {
-	ret := _m.Called(c, authData)
+// GetLDAPUserForSAMLUser provides a mock function with given fields: rctx, samlUser
+func (_m *LdapInterface) GetLDAPUserForSAMLUser(rctx request.CTX, samlUser *model.User) (*model.User, *model.AppError) {
+	ret := _m.Called(rctx, samlUser)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSAMLIdFromADLdapId")
+		panic("no return value specified for GetLDAPUserForSAMLUser")
 	}
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(request.CTX, string) string); ok {
-		r0 = rf(c, authData)
+	var r0 *model.User
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User) (*model.User, *model.AppError)); ok {
+		return rf(rctx, samlUser)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User) *model.User); ok {
+		r0 = rf(rctx, samlUser)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User) *model.AppError); ok {
+		r1 = rf(rctx, samlUser)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetUser provides a mock function with given fields: c, id

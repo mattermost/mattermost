@@ -8289,6 +8289,10 @@
     "translation": "Your license does not support SAML authentication."
   },
   {
+    "id": "ent.saml.login.ldap_user_missing",
+    "translation": "No user registered on AD/LDAP server that matches the SAML user."
+  },
+  {
     "id": "ent.saml.metadata.app_error",
     "translation": "An error occurred while building Service Provider Metadata."
   },
