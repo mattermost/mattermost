@@ -7,9 +7,8 @@ CREATE TABLE IF NOT EXISTS PropertyValues (
 	Value jsonb NOT NULL,
 	CreateAt bigint,
 	UpdateAt bigint,
-	DeleteAt bigint,
-	UNIQUE(GroupID, TargetID, FieldID)
+	DeleteAt bigint
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_propertyvalues_unique ON PropertyValues (GroupID, TargetID, FieldID) WHERE DeleteAt = 0;
 CREATE INDEX IF NOT EXISTS idx_propertyvalues_targetid_groupid ON PropertyValues (TargetID, GroupID);
-CREATE INDEX IF NOT EXISTS idx_propertyvalues_groupid_targetid ON PropertyValues (GroupID, TargetID);

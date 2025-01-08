@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS PropertyValues (
 	CreateAt bigint(20),
 	UpdateAt bigint(20),
 	DeleteAt bigint(20),
-	UNIQUE(GroupID, TargetID, FieldID)
+	UNIQUE(GroupID, TargetID, FieldID, DeleteAt)
 );
 
 
@@ -21,21 +21,6 @@ SET @preparedStatement = (SELECT IF(
     ) > 0,
     'SELECT 1',
     'CREATE INDEX idx_propertyvalues_targetid_groupid ON PropertyValues (TargetID, GroupID);'
-));
-
-PREPARE createIndexIfNotExists FROM @preparedStatement;
-EXECUTE createIndexIfNotExists;
-DEALLOCATE PREPARE createIndexIfNotExists;
-
-SET @preparedStatement = (SELECT IF(
-    (
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'PropertyValues'
-        AND table_schema = DATABASE()
-        AND index_name = 'idx_propertyvalues_groupid_targetid'
-    ) > 0,
-    'SELECT 1',
-    'CREATE INDEX idx_propertyvalues_groupid_targetid ON PropertyValues (GroupID, TargetID);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;
