@@ -610,19 +610,16 @@ func (a *App) getAddDownloadComplianceExportResult() (permissionsMap, error) {
 }
 
 func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) {
-	permissionsExperimentalRead := []string{model.PermissionSysconsoleReadExperimentalBleve.Id, model.PermissionSysconsoleReadExperimentalFeatures.Id, model.PermissionSysconsoleReadExperimentalFeatureFlags.Id}
-	permissionsExperimentalWrite := []string{model.PermissionSysconsoleWriteExperimentalBleve.Id, model.PermissionSysconsoleWriteExperimentalFeatures.Id, model.PermissionSysconsoleWriteExperimentalFeatureFlags.Id}
-
 	return permissionsMap{
 		// Give the new subsection READ permissions to any user with READ_EXPERIMENTAL
 		permissionTransformation{
 			On:  permissionExists(model.PermissionSysconsoleReadExperimental.Id),
-			Add: permissionsExperimentalRead,
+			Add: []string{model.PermissionSysconsoleReadExperimentalBleve.Id, model.PermissionSysconsoleReadExperimentalFeatures.Id, model.PermissionSysconsoleReadExperimentalFeatureFlags.Id},
 		},
 		// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
 		permissionTransformation{
 			On:  permissionExists(model.PermissionSysconsoleWriteExperimental.Id),
-			Add: permissionsExperimentalWrite,
+			Add: []string{model.PermissionSysconsoleWriteExperimentalBleve.Id, model.PermissionSysconsoleWriteExperimentalFeatures.Id, model.PermissionSysconsoleWriteExperimentalFeatureFlags.Id},
 		},
 		// Give the ancillary permissions MANAGE_JOBS and PURGE_BLEVE_INDEXES to anyone with WRITE_EXPERIMENTAL_BLEVE
 		permissionTransformation{
