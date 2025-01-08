@@ -350,7 +350,7 @@ func TestInstallPluginLocally(t *testing.T) {
 				hasRootAccess: false, 
 				likesPie: true, 
 				version: "0.0.2", 
-				id: "myplugin"
+				id: "myplugin",
 			}
 			plugin.ClientMain(myPlug) 
 		} 
