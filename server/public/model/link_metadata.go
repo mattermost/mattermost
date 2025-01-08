@@ -95,7 +95,7 @@ func (o *LinkMetadata) IsValid() *AppError {
 	}
 
 	if len(o.URL) > LinkMetadataMaxURLLength {
-		return NewAppError("LinkMetadata.IsValid", "model.linkmetadata.is_valid.url_length.app_error", map[string]any{"MaxLength": LinkMetadataMaxURLLength, "Length": len(o.URL)}, "", http.StatusBadRequest)
+		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.url_length.app_error", map[string]any{"MaxLength": LinkMetadataMaxURLLength, "Length": len(o.URL)}, "", http.StatusBadRequest)
 	}
 
 	if o.Timestamp == 0 || !isRoundedToNearestHour(o.Timestamp) {
