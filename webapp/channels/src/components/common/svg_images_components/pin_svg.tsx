@@ -105,7 +105,7 @@ export function PinSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                         cx='78.002'
                         cy='19'
                         r='19'
-                        fill='var(--indigo-300)'
+                        fill='#32539A'
                     />
                     <path
                         d='M79.9922 9L87.9922 17'
