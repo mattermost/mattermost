@@ -47,7 +47,7 @@ describe('Link tooltips', () => {
         cy.uiWaitUntilMessagePostedIncludes(url);
 
         // # Hover over the plugin link
-        cy.findByText(url).should('exist').trigger('mouseenter');
+        cy.findByText(url).should('exist').focus();
 
         // * Check tooltip has appeared
         cy.findByText('This is a custom tooltip from the Demo Plugin').should('be.visible');

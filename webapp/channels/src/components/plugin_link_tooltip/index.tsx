@@ -104,11 +104,9 @@ const TRANSITION_STYLE_PROPS = {
 
 const HOVER_PROPS = {
     restMs: OverlaysTimings.CURSOR_REST_TIME_BEFORE_OPEN,
-    delay: {
-        open: OverlaysTimings.CURSOR_MOUSEOVER_TO_OPEN,
-        close: OverlaysTimings.CURSOR_MOUSEOUT_TO_CLOSE,
-    },
+    move: false,
     handleClose: safePolygon({
         requireIntent: false,
+        blockPointerEvents: true,
     }),
 };
