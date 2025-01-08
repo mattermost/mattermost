@@ -38,6 +38,7 @@ const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     return (
         <GenericModal
             modalHeaderText={'Enterprise Edition License'}
+            footerContent={<div/>}
             compassDesign={true}
             className={'EELicenseModal'}
             show={show}

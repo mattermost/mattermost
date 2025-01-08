@@ -96,13 +96,6 @@
 
                     &.padding {
                         padding: 8px 32px 0;
-
-                        // This adds some 'padding-bottom' to the modal when no button is rendered at the bottom.
-                        // The modal header has 16px of 'padding-top' in addition to the header text's
-                        // 8px 'margin-top',thus, we get 24px;
-                        &.paddingBottom {
-                            padding-bottom: 24px;
-                        }
                     }
                 }
             }
