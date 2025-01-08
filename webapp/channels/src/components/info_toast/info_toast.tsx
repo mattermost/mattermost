@@ -65,6 +65,7 @@ function InfoToast({content, onExited, className}: Props): JSX.Element {
                 <button
                     className='info-toast__icon_button'
                     onClick={closeToast}
+                    aria-label='close'
                 >
                     <i className='icon icon-close'/>
                 </button>
