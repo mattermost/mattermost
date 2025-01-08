@@ -472,7 +472,7 @@ const PostComponent = (props: Props): JSX.Element => {
         />
     );
 
-    const showSlot = props.isPostBeingEdited ? AutoHeightSlots.SLOT2 : AutoHeightSlots.SLOT1;
+    const slotBasedOnEditOrMessageView = props.isPostBeingEdited ? AutoHeightSlots.SLOT2 : AutoHeightSlots.SLOT1;
     const threadFooter = props.location !== Locations.RHS_ROOT && props.isCollapsedThreadsEnabled && !post.root_id && (props.hasReplies || post.is_following) ? (
         <ThreadFooter
             threadId={post.id}
@@ -594,14 +594,12 @@ const PostComponent = (props: Props): JSX.Element => {
                                 {priority}
                                 {post.props && post.props.card &&
                                     <WithTooltip
-                                        id='post_info.info.view_additional_info'
                                         title={
                                             <FormattedMessage
                                                 id='post_info.info.view_additional_info'
                                                 defaultMessage='View additional info'
                                             />
                                         }
-                                        placement='top'
                                     >
                                         <button
                                             className={'card-icon__container icon--show style--none ' + (props.isCardOpen ? 'active' : '')}
@@ -639,7 +637,7 @@ const PostComponent = (props: Props): JSX.Element => {
                         >
                             {post.failed && <FailedPostOptions post={post}/>}
                             <AutoHeightSwitcher
-                                showSlot={showSlot}
+                                showSlot={slotBasedOnEditOrMessageView}
                                 shouldScrollIntoView={props.isPostBeingEdited}
                                 slot1={message}
                                 slot2={<EditPost/>}

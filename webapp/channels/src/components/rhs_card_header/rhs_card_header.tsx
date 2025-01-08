@@ -115,9 +115,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
         if (title) {
             back = (
                 <WithTooltip
-                    id='backToResultsTooltip'
                     title={title}
-                    placement='top'
                 >
                     <button
                         className='sidebar--right__back btn btn-icon btn-sm'
@@ -143,9 +141,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                 </span>
                 <div className='pull-right'>
                     <WithTooltip
-                        id={this.props.isExpanded ? 'shrinkSidebarTooltip' : 'expandSidebarTooltip'}
                         title={this.props.isExpanded ? shrinkSidebarTooltip : expandSidebarTooltip}
-                        placement='bottom'
                     >
                         <button
                             type='button'
@@ -164,14 +160,12 @@ class RhsCardHeader extends React.PureComponent<Props> {
                         </button>
                     </WithTooltip>
                     <WithTooltip
-                        id='closeSidebarTooltip'
                         title={
                             <FormattedMessage
                                 id='rhs_header.closeSidebarTooltip'
                                 defaultMessage='Close'
                             />
                         }
-                        placement={'top'}
                     >
                         <button
                             type='button'

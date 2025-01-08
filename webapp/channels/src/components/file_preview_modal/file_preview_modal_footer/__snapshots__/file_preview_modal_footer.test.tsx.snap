@@ -69,7 +69,6 @@ exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModa
     showOnlyClose={false}
     showPublicLink={false}
     totalFiles={3}
-    usedInside="Footer"
   />
 </div>
 `;
@@ -143,7 +142,6 @@ exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModa
     showOnlyClose={false}
     showPublicLink={false}
     totalFiles={3}
-    usedInside="Footer"
   />
 </div>
 `;
