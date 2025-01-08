@@ -26,6 +26,11 @@
             background: #ffffac !important;
             color: #d04444 !important;
         }
+
+        &::placeholder {
+            text-overflow: ellipsis;
+            white-space: pre;
+        }
     }
 }
 
