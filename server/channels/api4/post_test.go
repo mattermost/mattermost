@@ -38,7 +38,12 @@ func TestCreatePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}, DeleteAt: 101}
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "#hashtag a" + model.NewId() + "a",
+		Props:     model.StringInterface{model.PropsAddChannelMember: "no good"},
+		DeleteAt:  101,
+	}
 
 	rpost, resp, err2 := client.CreatePost(context.Background(), post)
 	require.NoError(t, err2)
@@ -119,12 +124,12 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
-		t.Skip("MM-62079")
 		WebSocketClient, err := th.CreateWebSocketClient()
 		WebSocketClient.Listen()
 		require.NoError(t, err)
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 
 		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
 
@@ -161,16 +166,17 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 
 		timeout = time.After(5 * time.Second)
-		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
-		for eventsToGo > 0 {
+		expectedEvents := 3 // 3 Posts created with @ mentions should result in 3 websocket events
+		gotEvents := 0
+		for gotEvents < expectedEvents {
 			select {
 			case event := <-WebSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventEphemeralMessage {
-					eventsToGo = eventsToGo - 1
+					gotEvents++
 				}
 			case <-timeout:
-				require.Fail(t, "Should have received ephemeral message event and not timedout")
-				eventsToGo = 0
+				require.Fail(t, fmt.Sprintf("Got %d ephemeral messages, expected: %d", gotEvents, expectedEvents))
+				break
 			}
 		}
 	})
@@ -1666,7 +1672,8 @@ func TestPatchPost(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		// Add permission to edit others'
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.RemovePermissionFromRole(model.PermissionEditPost.Id, model.ChannelUserRoleId)
 		th.AddPermissionToRole(model.PermissionEditOthersPosts.Id, model.ChannelUserRoleId)
 
@@ -4422,7 +4429,8 @@ func TestPostGetInfo(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+	defaultPerms := th.SaveDefaultRolePermissions()
+	defer th.RestoreDefaultRolePermissions(defaultPerms)
 	th.RemovePermissionFromRole(model.PermissionManagePrivateChannelMembers.Id, model.SystemUserRoleId)
 	th.RemovePermissionFromRole(model.PermissionManagePrivateChannelMembers.Id, model.ChannelUserRoleId)
 	th.RemovePermissionFromRole(model.PermissionManagePrivateChannelMembers.Id, model.TeamUserRoleId)
