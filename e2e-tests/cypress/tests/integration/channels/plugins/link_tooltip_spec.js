@@ -52,6 +52,7 @@ describe('Link tooltips', () => {
         // * Check tooltip has appeared
         cy.findByText('This is a custom tooltip from the Demo Plugin').should('be.visible');
 
+        // # Close the tooltip
         cy.get('body').type('{esc}');
     });
 });
