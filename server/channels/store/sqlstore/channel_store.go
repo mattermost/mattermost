@@ -711,7 +711,8 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 		dupChannel := model.Channel{}
 		query := s.tableSelectQuery.Where(sq.Eq{"TeamId": channel.TeamId, "Name": channel.Name})
 
-		if err := s.GetMaster().GetBuilder(&dupChannel, query); err != nil {
+		err := s.GetMaster().GetBuilder(&dupChannel, query)
+		if err != nil {
 			return nil, errors.Wrapf(err, "error while retrieving existing channel %s", channel.Name) // do not return this as a *store.ErrConflict as it would be treated as a recoverable error
 		}
 		return &dupChannel, store.NewErrConflict("Channel", err, "id="+channel.Id)
