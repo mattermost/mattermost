@@ -51,8 +51,6 @@ export default function PluginLinkTooltip(props: Props) {
 
     const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);
 
-    const combinedFloatingStyles = Object.assign({}, floatingStyles, transitionStyles);
-
     const hoverInteractions = useHover(floatingContext, HOVER_PROPS);
     const focusInteractions = useFocus(floatingContext);
     const dismissInteraction = useDismiss(floatingContext);
@@ -79,7 +77,7 @@ export default function PluginLinkTooltip(props: Props) {
                         <FloatingFocusManager context={floatingContext}>
                             <div
                                 ref={setFloating}
-                                style={combinedFloatingStyles}
+                                style={{...floatingStyles, ...transitionStyles}}
                                 {...getFloatingProps()}
                             >
                                 <Pluggable
