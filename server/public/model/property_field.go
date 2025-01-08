@@ -12,8 +12,8 @@ const (
 	PropertyFieldTypeSelect      PropertyFieldType = "select"
 	PropertyFieldTypeMultiselect PropertyFieldType = "multiselect"
 	PropertyFieldTypeDate        PropertyFieldType = "date"
-	PropertyFieldTypePerson      PropertyFieldType = "person"
-	PropertyFieldTypeMultiperson PropertyFieldType = "multiperson"
+	PropertyFieldTypeUser        PropertyFieldType = "user"
+	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
 )
 
 type PropertyField struct {

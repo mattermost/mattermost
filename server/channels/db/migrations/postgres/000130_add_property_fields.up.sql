@@ -10,8 +10,8 @@ BEGIN
         'select',
         'multiselect',
         'date',
-        'person',
-        'multiperson'
+        'user',
+        'multiuser'
     );
   END IF;
 END;
