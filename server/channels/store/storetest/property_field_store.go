@@ -48,8 +48,8 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		GroupID: model.NewId(),
 		Name:    "My new property field",
 		Type:    model.PropertyFieldTypeText,
-		Attrs: map[string]any{
-			"locked":  true,
+		Attrs: model.StringMap{
+			"locked":  "true",
 			"special": "value",
 		},
 	}
@@ -83,8 +83,8 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			GroupID: model.NewId(),
 			Name:    "My new property field",
 			Type:    model.PropertyFieldTypeText,
-			Attrs: map[string]any{
-				"locked":  true,
+			Attrs: model.StringMap{
+				"locked":  "true",
 				"special": "value",
 			},
 		}
@@ -95,7 +95,7 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field, err := ss.PropertyField().Get(newField.ID)
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
-		require.True(t, field.Attrs["locked"].(bool))
+		require.Equal(t, "true", field.Attrs["locked"])
 		require.Equal(t, "value", field.Attrs["special"])
 	})
 }
@@ -177,8 +177,8 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			GroupID: model.NewId(),
 			Name:    "First field",
 			Type:    model.PropertyFieldTypeText,
-			Attrs: map[string]any{
-				"locked":  true,
+			Attrs: model.StringMap{
+				"locked":  "true",
 				"special": "value",
 			},
 		}
@@ -187,8 +187,8 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			GroupID: model.NewId(),
 			Name:    "Second field",
 			Type:    model.PropertyFieldTypeSelect,
-			Attrs: map[string]any{
-				"options": []string{"a", "b"},
+			Attrs: model.StringMap{
+				"options": "a,b",
 			},
 		}
 
@@ -201,14 +201,14 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 
 		field1.Name = "Updated first"
 		field1.Type = model.PropertyFieldTypeSelect
-		field1.Attrs = map[string]any{
-			"locked":    false,
+		field1.Attrs = model.StringMap{
+			"locked":    "false",
 			"new_field": "new_value",
 		}
 
 		field2.Name = "Updated second"
-		field2.Attrs = map[string]any{
-			"options": []string{"x", "y", "z"},
+		field2.Attrs = model.StringMap{
+			"options": "x,y,z",
 		}
 
 		_, err := ss.PropertyField().Update([]*model.PropertyField{field1, field2})
@@ -219,7 +219,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "Updated first", updated1.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updated1.Type)
-		require.False(t, updated1.Attrs["locked"].(bool))
+		require.Equal(t, "false", updated1.Attrs["locked"])
 		require.NotContains(t, updated1.Attrs, "special")
 		require.Equal(t, "new_value", updated1.Attrs["new_field"])
 		require.Greater(t, updated1.UpdateAt, updated1.CreateAt)
@@ -229,7 +229,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "Updated second", updated2.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updated2.Type)
-		require.ElementsMatch(t, []string{"x", "y", "z"}, updated2.Attrs["options"])
+		require.Equal(t, "x,y,z", updated2.Attrs["options"])
 		require.Greater(t, updated2.UpdateAt, updated2.CreateAt)
 	})
 
@@ -240,7 +240,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			GroupID: groupID,
 			Name:    "Field 1",
 			Type:    model.PropertyFieldTypeText,
-			Attrs: map[string]any{
+			Attrs: model.StringMap{
 				"key": "value",
 			},
 		}
@@ -249,7 +249,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			GroupID: groupID,
 			Name:    "Field 2",
 			Type:    model.PropertyFieldTypeText,
-			Attrs: map[string]any{
+			Attrs: model.StringMap{
 				"key": "value",
 			},
 		}

@@ -27,10 +27,14 @@ var propertyFieldColumns = []string{
 	"DeleteAt",
 }
 
-func propertyFieldToInsertMap(field *model.PropertyField) (map[string]any, error) {
+func (s *SqlPropertyFieldStore) propertyFieldToInsertMap(field *model.PropertyField) (map[string]any, error) {
 	attrsJSON, err := json.Marshal(field.Attrs)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_to_insert_map_marshal_attrs")
+	}
+
+	if s.IsBinaryParamEnabled() {
+		attrsJSON = AppendBinaryFlag(attrsJSON)
 	}
 
 	return map[string]any{
@@ -47,10 +51,14 @@ func propertyFieldToInsertMap(field *model.PropertyField) (map[string]any, error
 	}, nil
 }
 
-func propertyFieldToUpdateMap(field *model.PropertyField) (map[string]any, error) {
+func (s *SqlPropertyFieldStore) propertyFieldToUpdateMap(field *model.PropertyField) (map[string]any, error) {
 	attrsJSON, err := json.Marshal(field.Attrs)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_to_update_map_marshal_attrs")
+	}
+
+	if s.IsBinaryParamEnabled() {
+		attrsJSON = AppendBinaryFlag(attrsJSON)
 	}
 
 	return map[string]any{
@@ -129,7 +137,7 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 		return nil, errors.Wrap(err, "property_field_create_isvalid")
 	}
 
-	insertMap, err := propertyFieldToInsertMap(field)
+	insertMap, err := s.propertyFieldToInsertMap(field)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +279,7 @@ func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField) (_ []*mode
 			return nil, errors.Wrap(err, "property_field_update_isvalid")
 		}
 
-		updateMap, err := propertyFieldToUpdateMap(field)
+		updateMap, err := s.propertyFieldToUpdateMap(field)
 		if err != nil {
 			return nil, err
 		}
