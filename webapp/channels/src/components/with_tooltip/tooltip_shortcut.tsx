@@ -1,20 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 
 import {isMessageDescriptor} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';
-
-export type ShortcutDefinition = {
-    default: ShortcutKeyDescriptor[];
-    mac?: ShortcutKeyDescriptor[];
-}
-export type ShortcutKeyDescriptor = string | MessageDescriptor;
 
 export const ShortcutKeys = {
     alt: defineMessage({
@@ -33,11 +27,18 @@ export const ShortcutKeys = {
     }),
 };
 
+type ShortcutKeyDescriptor = string | MessageDescriptor;
+
+export type ShortcutDefinition = {
+    default: ShortcutKeyDescriptor[];
+    mac?: ShortcutKeyDescriptor[];
+}
+
 type Props = {
     shortcut: ShortcutDefinition;
 }
 
-export function TooltipShortcutSequence(props: Props) {
+function TooltipShortcut(props: Props) {
     let shortcut = props.shortcut.default;
     if (props.shortcut.mac && isMac()) {
         shortcut = props.shortcut.mac;
@@ -45,15 +46,15 @@ export function TooltipShortcutSequence(props: Props) {
 
     return (
         <>
-            {shortcut.map((v) => {
+            {shortcut.map((shortcutKey) => {
                 let key;
                 let content;
-                if (isMessageDescriptor(v)) {
-                    key = v.id;
-                    content = <FormattedMessage {...v}/>;
+                if (isMessageDescriptor(shortcutKey)) {
+                    key = shortcutKey.id;
+                    content = <FormattedMessage {...shortcutKey}/>;
                 } else {
-                    key = v;
-                    content = v;
+                    key = shortcutKey;
+                    content = shortcutKey;
                 }
 
                 return (
@@ -68,3 +69,5 @@ export function TooltipShortcutSequence(props: Props) {
         </>
     );
 }
+
+export default memo(TooltipShortcut);

@@ -239,24 +239,12 @@
         }
 
         .file__upload {
-            position: relative;
             display: inline-block;
+            width: fit-content;
             margin: 0 10px 10px 0;
 
             input {
-                position: absolute;
-                z-index: 5;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                padding-left: 100%;
-                cursor: pointer;
-                opacity: 0;
-
-                &[disabled] {
-                    cursor: not-allowed;
-                }
+                display: none;
             }
         }
 
@@ -1087,6 +1075,12 @@
 
 .password__group-addon-space {
     margin-bottom: 20px;
+}
+
+.password-settings__preview-heading {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
 }
 
 #error-tooltip {

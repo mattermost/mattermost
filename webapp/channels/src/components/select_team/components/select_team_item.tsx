@@ -40,9 +40,7 @@ const SelectTeamItem = ({
 
         return (
             <WithTooltip
-                id='team-description__tooltip'
                 title={team.description}
-                placement='top'
             >
                 <TeamInfoIcon className='icon icon--info'/>
             </WithTooltip>

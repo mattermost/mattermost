@@ -21,6 +21,41 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
+// A copy of validTestLicense from channels/utils/license_test.go
+var validTestLicense = []byte("eyJpZCI6InpvZ3c2NW44Z2lmajVkbHJoYThtYnUxcGl3IiwiaXNzdWVkX2F0IjoxNjg0Nzg3MzcxODY5LCJzdGFydHNfYXQiOjE2ODQ3ODczNzE4NjksImV4cGlyZXNfYXQiOjIwMDA0MDY1MzgwMDAsInNrdV9uYW1lIjoiUHJvZmVzc2lvbmFsIiwic2t1X3Nob3J0X25hbWUiOiJwcm9mZXNzaW9uYWwiLCJjdXN0b21lciI6eyJpZCI6InA5dW4zNjlhNjdnaW1qNHlkNmk2aWIzOXdoIiwibmFtZSI6Ik1hdHRlcm1vc3QiLCJlbWFpbCI6ImpvcmFtQG1hdHRlcm1vc3QuY29tIiwiY29tcGFueSI6Ik1hdHRlcm1vc3QifSwiZmVhdHVyZXMiOnsidXNlcnMiOjIwMDAwMCwibGRhcCI6dHJ1ZSwibGRhcF9ncm91cHMiOmZhbHNlLCJtZmEiOnRydWUsImdvb2dsZV9vYXV0aCI6dHJ1ZSwib2ZmaWNlMzY1X29hdXRoIjp0cnVlLCJjb21wbGlhbmNlIjpmYWxzZSwiY2x1c3RlciI6dHJ1ZSwibWV0cmljcyI6dHJ1ZSwibWhwbnMiOnRydWUsInNhbWwiOnRydWUsImVsYXN0aWNfc2VhcmNoIjp0cnVlLCJhbm5vdW5jZW1lbnQiOnRydWUsInRoZW1lX21hbmFnZW1lbnQiOmZhbHNlLCJlbWFpbF9ub3RpZmljYXRpb25fY29udGVudHMiOmZhbHNlLCJkYXRhX3JldGVudGlvbiI6ZmFsc2UsIm1lc3NhZ2VfZXhwb3J0IjpmYWxzZSwiY3VzdG9tX3Blcm1pc3Npb25zX3NjaGVtZXMiOmZhbHNlLCJjdXN0b21fdGVybXNfb2Zfc2VydmljZSI6ZmFsc2UsImd1ZXN0X2FjY291bnRzIjp0cnVlLCJndWVzdF9hY2NvdW50c19wZXJtaXNzaW9ucyI6dHJ1ZSwiaWRfbG9hZGVkIjpmYWxzZSwibG9ja190ZWFtbWF0ZV9uYW1lX2Rpc3BsYXkiOmZhbHNlLCJjbG91ZCI6ZmFsc2UsInNoYXJlZF9jaGFubmVscyI6ZmFsc2UsInJlbW90ZV9jbHVzdGVyX3NlcnZpY2UiOmZhbHNlLCJvcGVuaWQiOnRydWUsImVudGVycHJpc2VfcGx1Z2lucyI6dHJ1ZSwiYWR2YW5jZWRfbG9nZ2luZyI6dHJ1ZSwiZnV0dXJlX2ZlYXR1cmVzIjpmYWxzZX0sImlzX3RyaWFsIjp0cnVlLCJpc19nb3Zfc2t1IjpmYWxzZX0bEOVk2GdE1kSWKJ3dENWnkj0htY6QyXTtNA5hqnQ71Uc6teqXc7htHAxrnT/hV42xu+G24OMrAIsQtX4NjFSX6jvehIMRL5II3RPXYhHKUd2wruQ5ITEh1htFb5DgOJW3tvBdMmXt09nXjLRS1UYJ7ZsX3mU0uQndt7qfMriGAkk71veYuUJgztB3MsV7lRWB+8ZTp6WJ7RH+uWnuDspiA8B85mLnyuoCDokYksF2uIb+CtPGBTUB6qSOgxBBJxu5qftQXISCDAWY4O8lCrN3p5HCA/zf/rSRRNtet06QFobbjUDI4B7ZEAescKBKoHpP6nZPhg4KmhnkUi/o04ox")
+
+func TestSetLicenseOnStart(t *testing.T) {
+	oldValue := model.BuildEnterpriseReady
+	defer func() { model.BuildEnterpriseReady = oldValue }()
+	model.BuildEnterpriseReady = "true"
+
+	cfg := model.Config{}
+	cfg.SetDefaults()
+
+	f, err := os.CreateTemp("", "TestSetLicenseOnStart")
+	require.NoError(t, err)
+	defer os.Remove(f.Name())
+	require.NoError(t, os.WriteFile(f.Name(), validTestLicense, 0777))
+
+	*cfg.ServiceSettings.LicenseFileLocation = f.Name()
+
+	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	if driverName == "" {
+		driverName = model.DatabaseDriverPostgres
+	}
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
+
+	configStore := config.NewTestMemoryStore()
+	_, _, err = configStore.Set(&cfg)
+	require.NoError(t, err)
+	// It should not panic when ps.LoadLicense gets called from platform.New
+	_, err = New(
+		ServiceConfig{},
+		ConfigStore(configStore),
+	)
+	require.NoError(t, err)
+}
+
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	cfg := model.Config{}
 	cfg.SetDefaults()

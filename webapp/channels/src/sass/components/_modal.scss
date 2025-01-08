@@ -117,11 +117,10 @@
 }
 
 .modal__error {
+    display: inline-block;
     margin-top: 6px;
     color: variables.$red;
-    float: left;
     font-size: 0.95em;
-    font-weight: normal;
 }
 
 .more-table {
