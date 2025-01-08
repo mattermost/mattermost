@@ -10,11 +10,16 @@ Cypress.Commands.add('uiGetRHS', (options = {visible: true}) => {
 });
 
 Cypress.Commands.add('uiCloseRHS', () => {
-    cy.get('body').then(($body) => {
-        const closeButton = $body.find('[aria-label="Close Sidebar Icon"]');
-        if (closeButton.length > 0) {
-            cy.findByLabelText('Close Sidebar Icon').click();
+    // here is the try to find all the possible "Close Sidebar Icon" elements
+    // Use of the findAllByLabelText to avoid failure if the element doesn't exist in the screen yet
+    // or RHS is closed with a timeout to guarantee its not a timing problem
+    cy.findAllByLabelText('Close Sidebar Icon', {timeout: 1000}).then(($icons) => {
+        if ($icons.length > 0) {
+            // If it is found, click on the first one
+            cy.wrap($icons[0]).click();
         }
+
+        // If the icon is not found, the we do nothing (RHS is most already probably closed)
     });
 });
 
