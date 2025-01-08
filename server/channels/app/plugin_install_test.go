@@ -323,12 +323,12 @@ func TestInstallPluginLocally(t *testing.T) {
 		) 
  
 		type MyPlugin struct {
-			plugin.MattermostPlugin,
-			enableUpload bool,
-			hasRootAccess bool,
-			likesPie bool,
-			version string,
-			id string
+			plugin.MattermostPlugin
+			enableUpload  bool
+			hasRootAccess bool
+			likesPie      bool
+			version       string
+			id            string
 		} 
  
 		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) { 
