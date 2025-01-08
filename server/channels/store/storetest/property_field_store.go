@@ -44,22 +44,30 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "model.property_field.is_valid.name.app_error")
 	})
 
+	newField := &model.PropertyField{
+		GroupID: model.NewId(),
+		Name:    "My new property field",
+		Type:    model.PropertyFieldTypeText,
+		Attrs: map[string]any{
+			"locked":  true,
+			"special": "value",
+		},
+	}
+
 	t.Run("should be able to create a property field", func(t *testing.T) {
-		newField := &model.PropertyField{
-			GroupID: model.NewId(),
-			Name:    "My new property field",
-			Type:    model.PropertyFieldTypeText,
-			Attrs: map[string]any{
-				"locked":  true,
-				"special": "value",
-			},
-		}
 		field, err := ss.PropertyField().Create(newField)
 		require.NoError(t, err)
 		require.NotZero(t, field.ID)
 		require.NotZero(t, field.CreateAt)
 		require.NotZero(t, field.UpdateAt)
 		require.Zero(t, field.DeleteAt)
+	})
+
+	t.Run("should enforce the field's uniqueness", func(t *testing.T) {
+		newField.ID = ""
+		field, err := ss.PropertyField().Create(newField)
+		require.Error(t, err)
+		require.Empty(t, field)
 	})
 }
 
@@ -282,12 +290,13 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorAs(t, err, &enf)
 	})
 
+	newField := &model.PropertyField{
+		GroupID: model.NewId(),
+		Name:    "My property field",
+		Type:    model.PropertyFieldTypeText,
+	}
+
 	t.Run("should be able to delete an existing property field", func(t *testing.T) {
-		newField := &model.PropertyField{
-			GroupID: model.NewId(),
-			Name:    "My property field",
-			Type:    model.PropertyFieldTypeText,
-		}
 		field, err := ss.PropertyField().Create(newField)
 		require.NoError(t, err)
 		require.NotEmpty(t, field.ID)
@@ -299,6 +308,13 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		deletedField, err := ss.PropertyField().Get(field.ID)
 		require.NoError(t, err)
 		require.NotZero(t, deletedField.DeleteAt)
+	})
+
+	t.Run("should be able to create a new field with the same details as the deleted one", func(t *testing.T) {
+		newField.ID = ""
+		field, err := ss.PropertyField().Create(newField)
+		require.NoError(t, err)
+		require.NotEmpty(t, field.ID)
 	})
 }
 
