@@ -97,6 +97,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         emojiPickerEnabled: true,
         clickToReply: '',
         lastActiveTimeEnabled: true,
+        autoplayGifsAndEmojis: 'true',
     };
 
     let store: ReturnType<typeof configureStore>;

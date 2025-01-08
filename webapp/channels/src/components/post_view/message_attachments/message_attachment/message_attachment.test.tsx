@@ -47,6 +47,8 @@ describe('components/post_view/MessageAttachment', () => {
                 width: 200,
             } as PostImage,
         } as Record<string, PostImage>,
+        autoplayGifsAndEmojis: 'true',
+        isMobileView: false,
     };
 
     test('should match snapshot', () => {

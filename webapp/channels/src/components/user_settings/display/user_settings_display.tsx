@@ -48,7 +48,7 @@ function getDisplayStateFromProps(props: Props) {
         lastActiveDisplay: props.lastActiveDisplay.toString(),
         oneClickReactionsOnPosts: props.oneClickReactionsOnPosts,
         clickToReply: props.clickToReply,
-        autoplayGifsAndEmojis: props.autoplayGifsAndEmoji,
+        autoplayGifsAndEmojis: props.autoplayGifsAndEmojis,
     };
 }
 
@@ -116,7 +116,7 @@ type Props = OwnProps & {
     collapsedReplyThreadsAllowUserPreference: boolean;
     clickToReply: string;
     linkPreviewDisplay: string;
-    autoplayGifsAndEmoji: string;
+    autoplayGifsAndEmojis: string;
     oneClickReactionsOnPosts: string;
     emojiPickerEnabled: boolean;
     timezoneLabel: string;
