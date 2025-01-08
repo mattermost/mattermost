@@ -10,13 +10,15 @@
     padding: 8px;
     border-radius: 4px;
     background: rgb(var(--center-channel-color-rgb));
-    color: rgb(var(--center-channel-bg-rgb));
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+    color: rgb(var(--center-channel-bg-rgb));
     font-weight: 600;
     grid-template-columns: min-content auto min-content auto;
     line-height: 20px;
 
     .info-toast__icon_button {
+        border: none;
+        background: none;
         color: inherit;
     }
 

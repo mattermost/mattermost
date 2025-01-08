@@ -6,8 +6,6 @@ import React, {useEffect, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
-
 import './info_toast.scss';
 
 type Props = {
@@ -64,13 +62,12 @@ function InfoToast({content, onExited, className}: Props): JSX.Element {
                         })}
                     </button>
                 )}
-                <IconButton
+                <button
                     className='info-toast__icon_button'
                     onClick={closeToast}
-                    icon='close'
-                    size='sm'
-                    inverted={true}
-                />
+                >
+                    <i className='icon icon-close'/>
+                </button>
             </div>
         </CSSTransition>
     );
