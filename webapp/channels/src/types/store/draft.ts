@@ -35,7 +35,7 @@ export type PostDraft = {
 
 export function isPostDraftEmpty(draft: PostDraft): boolean {
     const hasMessage = draft.message.trim() !== '';
-    const hasAttachment = draft.fileInfos?.length > 0 || draft.file_ids?.length;
+    const hasAttachment = draft.fileInfos?.length > 0;
     const hasUploadingFiles = draft.uploadsInProgress?.length > 0;
 
     return !hasMessage && !hasAttachment && !hasUploadingFiles;
