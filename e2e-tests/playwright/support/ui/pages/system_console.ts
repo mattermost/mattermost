@@ -20,6 +20,7 @@ class SystemConsolePage {
     readonly systemUsersDateRangeMenu;
     readonly systemUsersColumnToggleMenu;
     readonly systemUsersActionMenus;
+    readonly saveChangesModal;
 
     constructor(page: Page) {
         this.page = page;
@@ -46,6 +47,7 @@ class SystemConsolePage {
         this.systemUsersActionMenus = Array.from(Array(10).keys()).map(
             (index) => new components.SystemUsersFilterMenu(page.locator(`#actionMenu-systemUsersTable-${index}`)),
         );
+        this.saveChangesModal = new components.SystemUsers(page.locator('div.modal-content'));
     }
 
     async toBeVisible() {
@@ -57,6 +59,14 @@ class SystemConsolePage {
 
     async goto() {
         await this.page.goto('/admin_console');
+    }
+
+    async saveRoleChange() {
+        await this.saveChangesModal.container.locator('button.btn-primary:has-text("Save")').click();
+    }
+
+    async clickResetButton() {
+        await this.saveChangesModal.container.locator('button.btn-primary:has-text("Reset")').click();
     }
 }
 

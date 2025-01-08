@@ -47,7 +47,6 @@ const SidebarCategoryGenericMenu = ({
                     children: <DotsVerticalIcon size={16}/>,
                 }}
                 menuButtonTooltip={{
-                    id: `SidebarCategoryMenu-ButtonTooltip-${id}`,
                     text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
                     class: 'hidden-xs',
                 }}

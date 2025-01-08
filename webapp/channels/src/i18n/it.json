@@ -2577,6 +2577,8 @@
   "integrations.add": "Aggiungi",
   "integrations.command.description": "I comandi slash inviano eventi alle integrazioni esterne",
   "integrations.command.title": "Comandi Slash",
+  "integrations.copy_url": "Copia l'URL",
+  "integrations.copy_username": "Copia il Nome Utente",
   "integrations.delete.confirm.button": "Cancella",
   "integrations.delete.confirm.title": "Cancella integrazione",
   "integrations.done": "Fatto",

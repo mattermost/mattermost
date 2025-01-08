@@ -10434,5 +10434,9 @@
   {
     "id": "model.draft.is_valid.message_length.app_error",
     "translation": "Властивість Draft Message довша за максимально допустиму довжину."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Неможливо відфільтрувати конфігурацію."
   }
 ]
