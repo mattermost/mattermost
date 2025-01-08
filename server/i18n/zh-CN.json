@@ -3087,7 +3087,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "ElasticSearch 搜索未在本服务器启用"
+    "translation": "{{.Backend}} 搜索未在本服务器启用"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3095,15 +3095,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch 索引工作者解析中止时间失败"
+    "translation": "{{.Backend}} 索引工作者解析结束时间失败"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch 索引工作者解析开始时间失败"
+    "translation": "{{.Backend}} 索引工作者解析开始时间失败"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "ElasticSearch没有启动"
+    "translation": "{{.Backend}} 没有启动"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3111,7 +3111,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch 搜索已在本服务器禁用"
+    "translation": "{{.Backend}} 搜索已在本服务器禁用"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3127,11 +3127,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "ElasticSearch 已停止。"
+    "translation": "{{.Backend}} 已停止。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch 已停用。"
+    "translation": "{{.Backend}} 已禁用。"
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3699,27 +3699,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays 设定必须为大于或等于 1 的数字。"
+    "translation": "搜索的 AggregatePostsAfterDays 设置必须为大于或等于 1 的数字。"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search ConnectionUrl 设定。"
+    "translation": "当索引开启时必须提供搜索的 ConnectionUrl 设置。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "当 Elastic Search SearchEnabled 设为是时必须设定 Elastic Search IndexingEnabled 为是"
+    "translation": "Elasticsearch SearchEnabled 设为是时必须设定搜索的 IndexingEnabled 为是"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch 即时索引批量大小必须至少为 1。"
+    "translation": "搜索即时索引批量大小必须至少为 1。"
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime 设置必须为“hh:mm”格式的时间。"
+    "translation": "搜索的 PostsAggregatorJobStartTime 设置必须为“hh:mm”格式的时间。"
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch 请求超时必须至少 1 秒。"
+    "translation": "搜索请求超时必须为至少 1 秒。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4995,7 +4995,7 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "获取 Elasticsearch 服务器版本失败。"
+    "translation": "获取 {{.Backend}} 服务器版本失败。"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5027,7 +5027,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "当 Elasticsearch EnableAutocomplete 设为是时必须设定 Elasticsearch EnableIndexing 为是"
+    "translation": "Elasticsearch EnableAutocomplete 设为是时必须设定搜索的 EnableIndexing 为是"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5299,11 +5299,11 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "ElasticSearch 搜索已在本服务器停用"
+    "translation": "{{.Backend}} 搜索已在本服务器禁用"
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "解析 Elasticsearch 服务器版本失败。"
+    "translation": "解析 {{.Backend}} 服务器版本失败。"
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
@@ -5763,11 +5763,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 17.0+"
+    "translation": "版本 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 115+"
+    "translation": "版本 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -7483,7 +7483,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elasticsearch 文件搜索已在本服务器禁用"
+    "translation": "{{.Backend}} 文件搜索已在本服务器禁用"
   },
   {
     "id": "ent.elasticsearch.index_file.error",
@@ -8683,7 +8683,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch 批量索引的批量大小必须至少是 {{.BatchSize}}."
+    "translation": "搜索的批量索引的批量大小必须至少是 {{.BatchSize}}。"
   },
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
@@ -8991,7 +8991,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch 版本 {{.Version}} 高于最大支持版本 {{.MaxVersion}}"
+    "translation": "{{.Backend}} 版本 {{.Version}} 高于最高支持版本 {{.MaxVersion}}"
   },
   {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
@@ -10412,5 +10412,25 @@
   {
     "id": "web.incoming_webhook.media_type.app_error",
     "translation": "解析媒体传入 webhook {{.hook_id}} 失败。"
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "发送消息属性比最大允许长度更长。"
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "无法为自定义表情符创建目录"
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "草稿消息属性比最大允许长度更长。"
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "无法过滤配置。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "用户角色和访客状态不一致。"
   }
 ]
