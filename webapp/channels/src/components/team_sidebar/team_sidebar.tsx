@@ -204,7 +204,6 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
 
     render() {
         const {intl} = this.props;
-
         const root: Element | null = document.querySelector('#root');
         if (this.props.myTeams.length <= 1) {
             root!.classList.remove('multi-teams');
@@ -267,7 +266,10 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                     }
                     content={plusIcon}
                     switchTeam={this.props.actions.switchTeam}
-                    displayName='Other teams you can join'
+                    displayName={intl.formatMessage({
+                        id: 'team_sidebar.join',
+                        defaultMessage: 'Other teams you can join',
+                    })}
                 />,
             );
         } else {
