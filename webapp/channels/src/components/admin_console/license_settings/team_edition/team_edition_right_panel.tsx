@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import WomanUpArrowsAndCloudsSvg from 'components/common/svg_images_components/woman_up_arrows_and_clouds_svg';
+import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {format} from 'utils/markdown';
@@ -157,7 +157,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
     return (
         <div className='TeamEditionRightPanel'>
             <div className='svg-image'>
-                <WomanUpArrowsAndCloudsSvg
+                <SetupSystemSvg
                     width={200}
                     height={200}
                 />
