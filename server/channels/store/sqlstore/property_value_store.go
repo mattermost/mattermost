@@ -35,15 +35,13 @@ func (s *SqlPropertyValueStore) propertyValueToInsertMap(value *model.PropertyVa
 		valueJSON = AppendBinaryFlag(valueJSON)
 	}
 
-	// todo: investigate/handle string(attrsJSON) similar to
-	// https://github.com/mattermost/mattermost/pull/19898
 	return map[string]any{
 		"ID":         value.ID,
 		"TargetID":   value.TargetID,
 		"TargetType": value.TargetType,
 		"GroupID":    value.GroupID,
 		"FieldID":    value.FieldID,
-		"Value":      string(valueJSON),
+		"Value":      valueJSON,
 		"CreateAt":   value.CreateAt,
 		"UpdateAt":   value.UpdateAt,
 		"DeleteAt":   value.DeleteAt,
@@ -60,7 +58,7 @@ func (s *SqlPropertyValueStore) propertyValueToUpdateMap(value *model.PropertyVa
 	}
 
 	return map[string]any{
-		"Value":    string(valueJSON),
+		"Value":    valueJSON,
 		"UpdateAt": value.UpdateAt,
 		"DeleteAt": value.DeleteAt,
 	}, nil
