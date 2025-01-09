@@ -62,15 +62,8 @@ export default class ChannelsPostEdit {
         }
     }
 
-    async getInputValue() {
-        await expect(this.input).toBeVisible();
-        return await this.input.inputValue();
-    }
-
     async sendMessage() {
         await expect(this.input).toBeVisible();
-        // const messageInputValue = await this.getInputValue();
-        // expect(messageInputValue).not.toBe('');
 
         await expect(this.sendMessageButton).toBeVisible();
         await expect(this.sendMessageButton).toBeEnabled();

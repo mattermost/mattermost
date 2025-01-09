@@ -118,8 +118,6 @@ export default class ChannelsCenterView {
         const messageLocator = this.scheduledDraftChannelInfoMessage.first();
         await expect(messageLocator).toContainText('Message scheduled for');
     }
-
-
 }
 
 export {ChannelsCenterView};
