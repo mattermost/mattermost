@@ -227,7 +227,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        expect(screen.getByLabelText('write to test channel')).toHaveValue('original draft');
+        expect(screen.getByPlaceholderText('Write to Test Channel')).toHaveValue('original draft');
 
         rerender(
             <AdvancedTextEditor
@@ -235,7 +235,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 channelId={otherChannelId}
             />,
         );
-        expect(screen.getByLabelText('write to other channel')).toHaveValue('a different draft');
+        expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
     });
 
     it('should save a new draft when changing channels', () => {
@@ -246,7 +246,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             initialState,
         );
 
-        userEvent.type(screen.getByLabelText('write to test channel'), 'some text');
+        userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), 'some text');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
@@ -312,7 +312,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        userEvent.type(screen.getByLabelText('write to test channel'), ' plus some new text');
+        userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), ' plus some new text');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
@@ -348,7 +348,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        userEvent.clear(screen.getByLabelText('write to test channel'));
+        userEvent.clear(screen.getByPlaceholderText('Write to Test Channel'));
 
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
