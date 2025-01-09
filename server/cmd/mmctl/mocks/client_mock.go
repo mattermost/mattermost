@@ -214,6 +214,22 @@ func (mr *MockClientMockRecorder) CreateCommand(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCommand", reflect.TypeOf((*MockClient)(nil).CreateCommand), arg0, arg1)
 }
 
+// CreateDirectChannel mocks base method.
+func (m *MockClient) CreateDirectChannel(arg0 context.Context, arg1, arg2 string) (*model.Channel, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateDirectChannel", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// CreateDirectChannel indicates an expected call of CreateDirectChannel.
+func (mr *MockClientMockRecorder) CreateDirectChannel(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDirectChannel", reflect.TypeOf((*MockClient)(nil).CreateDirectChannel), arg0, arg1, arg2)
+}
+
 // CreateIncomingWebhook mocks base method.
 func (m *MockClient) CreateIncomingWebhook(arg0 context.Context, arg1 *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -971,6 +987,22 @@ func (m *MockClient) GetMarketplacePlugins(arg0 context.Context, arg1 *model.Mar
 func (mr *MockClientMockRecorder) GetMarketplacePlugins(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarketplacePlugins", reflect.TypeOf((*MockClient)(nil).GetMarketplacePlugins), arg0, arg1)
+}
+
+// GetMe mocks base method.
+func (m *MockClient) GetMe(arg0 context.Context, arg1 string) (*model.User, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMe", arg0, arg1)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetMe indicates an expected call of GetMe.
+func (mr *MockClientMockRecorder) GetMe(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMe", reflect.TypeOf((*MockClient)(nil).GetMe), arg0, arg1)
 }
 
 // GetOAuthApps mocks base method.

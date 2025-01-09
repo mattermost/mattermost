@@ -86,7 +86,7 @@ func init() {
 
 func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	message, _ := cmd.Flags().GetString("message")
-	if args[1]!=""{
+	if args[1] != "" {
 		message = args[1]
 	}
 
@@ -106,33 +106,31 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	channelID := ""
-	if strings.HasPrefix(args[0], "@"){
+	if strings.HasPrefix(args[0], "@") {
+		me, _, err := c.GetMe(context.TODO(), "")
+		if err != nil {
+			return fmt.Errorf("could not get current user: %s", err.Error())
+		}
 
-	me,_, err := c.GetMe(context.TODO(), "")
-	if err!=nil{
-		return fmt.Errorf("could not get current user: %s", err.Error())
+		userArgString := strings.Split(args[0], "@")[1]
+		user := getUserFromUserArg(c, userArgString)
+		if user == nil {
+			return fmt.Errorf("unable to find user %q", userArgString)
+		}
+
+		directChannel, _, err := c.CreateDirectChannel(context.TODO(), me.Id, user.Id)
+		if err != nil {
+			return fmt.Errorf("could not create direct channel: %s", err.Error())
+		}
+		channelID = directChannel.Id
+	} else {
+		channel := getChannelFromChannelArg(c, args[0])
+		if channel == nil {
+			return fmt.Errorf("unable to find channel %q", args[0])
+		}
+		channelID = channel.Id
 	}
 
-	userArgString := strings.Split(args[0], "@")[1]
-	user := getUserFromUserArg(c,userArgString)
-	if user == nil {
-    return fmt.Errorf("unable to find user %q", userArgString)
-  }
-
-	directChannel,_,err := c.CreateDirectChannel(context.TODO(),me.Id,user.Id)
-	if err!=nil{
-    return fmt.Errorf("could not create direct channel: %s", err.Error())
-  }
-	channelID = directChannel.Id
-	}else{
-
-	channel := getChannelFromChannelArg(c, args[0])
-	if channel == nil {
-		return fmt.Errorf("unable to find channel %q",args[0])
-	}
-	channelID = channel.Id
-	}
-	
 	post := &model.Post{
 		ChannelId: channelID,
 		Message:   message,
@@ -150,88 +148,6 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 	return nil
 }
-
-
-// func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-// 	message, _ := cmd.Flags().GetString("message")
-// 	if message == "" {
-// 		return errors.New("message cannot be empty")
-// 	}
-
-// 	replyTo, _ := cmd.Flags().GetString("reply-to")
-// 	if replyTo != "" {
-// 		replyToPost, _, err := c.GetPost(context.TODO(), replyTo, "")
-// 		if err != nil {
-// 			return err
-// 		}
-// 		if replyToPost.RootId != "" {
-// 			replyTo = replyToPost.RootId
-// 		}
-// 	}
-
-// 	channel := getChannelFromChannelArg(c, args[0])
-// 	if channel == nil {
-// 		return errors.New("Unable to find channel '" + args[0] + "'")
-// 	}
-
-// 	post := &model.Post{
-// 		ChannelId: channel.Id,
-// 		Message:   message,
-// 		RootId:    replyTo,
-// 	}
-
-// 	url := "/posts" + "?set_online=false"
-// 	data, err := post.ToJSON()
-// 	if err != nil {
-// 		return fmt.Errorf("could not decode post: %w", err)
-// 	}
-
-// 	if _, err := c.DoAPIPost(context.TODO(), url, data); err != nil {
-// 		return fmt.Errorf("could not create post: %s", err.Error())
-// 	}
-// 	return nil
-// }
-
-// func postCreateDMCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-// 	ctx := context.TODO()
-// 	message := args[1]
-// 	if message == "" {
-// 		return errors.New("message cannot be empty")
-// 	}
-
-// 	me,_, err := c.GetMe(ctx, "")
-// 	if err!=nil{
-// 		return fmt.Errorf("could not get current user: %s", err.Error())
-// 	}
-	
-// 	otherUser, err := getUserFromArg(c, args[0])
-// 	if err != nil {
-// 		return fmt.Errorf("could not find user: %s", err.Error())
-// 	}
-
-// 	directChannel,_, err := c.CreateDirectChannel(ctx, otherUser.Id, me.Id)
-// 	if err != nil {
-// 		return fmt.Errorf("could not create direct channel:  %w", err)
-// 	}
-
-// 	post := &model.Post{
-// 		Message:   message,
-// 		ChannelId: directChannel.Id,
-// 		UserId:    otherUser.Id,
-// 	}
-
-// 	data, err := post.ToJSON()
-// 	if err != nil {
-// 		return fmt.Errorf("could not decode post: %w", err)
-// 	}
-
-// 	if _, err := c.DoAPIPost(ctx, "/posts"+"?set_online=false", data); err != nil {
-// 		return fmt.Errorf("could not send message: %s", err.Error())
-// 	}
-
-// 	return nil
-// }
-
 
 func eventDataToPost(eventData map[string]any) (*model.Post, error) {
 	post := &model.Post{}
