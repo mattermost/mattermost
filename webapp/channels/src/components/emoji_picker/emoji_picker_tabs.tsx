@@ -18,11 +18,11 @@ import GifIcon from 'components/widgets/icons/giphy_icon';
 const GifPicker = makeAsyncComponent('GifPicker', React.lazy(() => import('components/gif_picker/gif_picker')));
 
 export interface Props {
-    style?: CSSProperties;
+    style?: CSSProperties; // Injected by EmojiPickerOverlay
     rightOffset?: number;
     topOffset?: number;
     leftOffset?: number;
-    placement?: ('top' | 'bottom' | 'left' | 'right');
+    placement?: ('top' | 'bottom' | 'left' | 'right'); // Injected by EmojiPickerOverlay
     onEmojiClose: () => void;
     onEmojiClick: (emoji: Emoji) => void;
     onGifClick?: (gif: string) => void;

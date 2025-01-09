@@ -12,6 +12,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import {RHS_SPACE_REQUIRED_ABOVE, RHS_SPACE_REQUIRED_BELOW} from 'components/emoji_picker/emoji_picker_overlay/emoji_picker_overlay';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import WithTooltip from 'components/with_tooltip';
@@ -71,8 +72,8 @@ export class PostReaction extends React.PureComponent<Props, State> {
         let spaceRequiredAbove;
         let spaceRequiredBelow;
         if (location === Locations.RHS_ROOT || location === Locations.RHS_COMMENT) {
-            spaceRequiredAbove = EmojiPickerOverlay.RHS_SPACE_REQUIRED_ABOVE;
-            spaceRequiredBelow = EmojiPickerOverlay.RHS_SPACE_REQUIRED_BELOW;
+            spaceRequiredAbove = RHS_SPACE_REQUIRED_ABOVE;
+            spaceRequiredBelow = RHS_SPACE_REQUIRED_BELOW;
         }
 
         return (
