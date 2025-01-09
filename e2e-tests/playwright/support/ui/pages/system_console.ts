@@ -24,6 +24,7 @@ class SystemConsolePage {
     // modal
     readonly confirmModal;
     readonly exportModal;
+    readonly saveChangesModal;
 
     constructor(page: Page) {
         this.page = page;
@@ -53,6 +54,7 @@ class SystemConsolePage {
 
         this.confirmModal = new components.GenericConfirmModal(page.locator('#confirmModal'));
         this.exportModal = new components.GenericConfirmModal(page.getByRole('dialog', {name: 'Export user data'}));
+        this.saveChangesModal = new components.SystemUsers(page.locator('div.modal-content'));
     }
 
     async toBeVisible() {
@@ -64,6 +66,14 @@ class SystemConsolePage {
 
     async goto() {
         await this.page.goto('/admin_console');
+    }
+
+    async saveRoleChange() {
+        await this.saveChangesModal.container.locator('button.btn-primary:has-text("Save")').click();
+    }
+
+    async clickResetButton() {
+        await this.saveChangesModal.container.locator('button.btn-primary:has-text("Reset")').click();
     }
 }
 
