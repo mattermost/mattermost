@@ -268,10 +268,13 @@ const ThreadList = ({
                 {unread && !someUnread && isEmpty(unreadIds) ? (
                     <NoResultsIndicator
                         expanded={true}
-                        iconGraphic={BalloonIllustration}
                         title={formatMessage({
                             id: 'globalThreads.threadList.noUnreadThreads',
                             defaultMessage: 'No unread threads',
+                        })}
+                        subtitle={formatMessage({
+                            id: 'globalThreads.threadList.noUnreadThreads.subtitle',
+                            defaultMessage: 'You\'re all caught up',
                         })}
                     />
                 ) : null}
