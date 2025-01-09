@@ -1041,10 +1041,15 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 
 	result, err := s.GetMaster().Exec(threadMembershipsQuery, limit)
 	if err != nil {
-		return 0, err
+		return
 	}
 
-	return result.RowsAffected()
+	deleted, err = result.RowsAffected()
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 // return number of unread replies for a single thread
