@@ -27,7 +27,7 @@ export default class ChannelsPostEdit {
 
         this.attachmentButton = container.getByLabel('attachment');
         this.emojiButton = container.getByLabel('select an emoji');
-        this.sendMessageButton = container.getByTestId('SendMessageButton');
+        this.sendMessageButton = container.locator('.save');
         // this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
         // this.priorityButton = container.getByLabel('Message priority');
         // this.suggestionList = container.getByTestId('suggestionList');

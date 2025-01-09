@@ -27,5 +27,10 @@ test.setTimeout(120000);
     await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.editMenuItem.click();
     await channelPage.centerView.postEdit.toBeVisible();
+    await channelPage.centerView.postEdit.writeMessage("Edited message");
+    await channelPage.centerView.postEdit.sendMessage();
 
+    const updatedPost = await channelPage.centerView.getLastPost();
+    await updatedPost.toBeVisible();
+    await updatedPost.toContainText("Edited message");
 });
