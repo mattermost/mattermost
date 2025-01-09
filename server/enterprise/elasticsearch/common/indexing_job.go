@@ -556,42 +556,35 @@ func BulkIndexChannels(config *model.Config,
 	logger mlog.LoggerIFace,
 	addItemToBulkProcessorFn func(indexName string, indexOp string, docID string, body io.ReadSeeker) error,
 	channels []*model.Channel,
-	progress IndexingProgress) (*model.Channel, *model.AppError) {
+	_ IndexingProgress) (*model.Channel, *model.AppError) {
 	for _, channel := range channels {
 		indexName := *config.ElasticsearchSettings.IndexPrefix + IndexBaseChannels
 
-		if channel.DeleteAt == 0 {
-			var userIDs []string
-			var err error
-			if channel.Type == model.ChannelTypePrivate {
-				userIDs, err = store.Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
-				if err != nil {
-					return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllChannelMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
-				}
-			}
-
-			teamMemberIDs, err := store.Channel().GetTeamMembersForChannel(channel.Id)
+		var userIDs []string
+		var err error
+		if channel.Type == model.ChannelTypePrivate {
+			userIDs, err = store.Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
 			if err != nil {
-				return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllTeamMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllChannelMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+		}
 
-			searchChannel := ESChannelFromChannel(channel, userIDs, teamMemberIDs)
+		teamMemberIDs, err := store.Channel().GetTeamMembersForChannel(channel.Id)
+		if err != nil {
+			return nil, model.NewAppError("IndexerWorker.BulkIndexChannels", "ent.elasticsearch.getAllTeamMembers.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 
-			data, err := json.Marshal(searchChannel)
-			if err != nil {
-				logger.Warn("Failed to marshal JSON")
-				continue
-			}
+		searchChannel := ESChannelFromChannel(channel, userIDs, teamMemberIDs)
 
-			err = addItemToBulkProcessorFn(indexName, indexOp, searchChannel.Id, bytes.NewReader(data))
-			if err != nil {
-				logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
-			}
-		} else {
-			err := addItemToBulkProcessorFn(indexName, deleteOp, channel.Id, nil)
-			if err != nil {
-				logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
-			}
+		data, err := json.Marshal(searchChannel)
+		if err != nil {
+			logger.Warn("Failed to marshal JSON")
+			continue
+		}
+
+		err = addItemToBulkProcessorFn(indexName, indexOp, searchChannel.Id, bytes.NewReader(data))
+		if err != nil {
+			logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
 		}
 	}
 
