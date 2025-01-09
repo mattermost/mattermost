@@ -338,16 +338,13 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 			// Ensure consistent forward slashes in paths
 			header.Name = filepath.ToSlash(relPath)
 
+			// Skip directories - we don't need to create entries for them
 			if info.IsDir() {
-				// Ensure directory paths end with slash
-				header.Name += "/"
-				header.Method = zip.Store // directories have no content
-
-				_, err = zipWriter.CreateHeader(header)
-				return err
+				return nil
 			}
 
 			// Create file entry
+			header.Method = deflateMethod
 			writer, err := zipWriter.CreateHeader(header)
 			if err != nil {
 				return errors.Wrapf(err, "unable to create zip entry for %s", relPath)

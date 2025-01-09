@@ -4,6 +4,7 @@
 package filestore
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -808,4 +810,145 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 
 		require.Equal(t, expected, actual)
 	})
+}
+
+func (s *FileBackendTestSuite) TestZipReaderSingleFile() {
+	// Test zipping a single file
+	b := []byte("testdata")
+	path := "tests/" + randomString() + ".txt"
+
+	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
+	s.Nil(err)
+	s.EqualValues(len(b), written)
+	defer s.backend.RemoveFile(path)
+
+	// Test without compression
+	reader, err := s.backend.ZipReader(path, false)
+	s.Nil(err)
+	defer reader.Close()
+
+	// Read the zip file
+	zipBytes, err := io.ReadAll(reader)
+	s.Nil(err)
+
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	s.Nil(err)
+	s.Len(zipReader.File, 1)
+
+	// Verify file contents
+	zf := zipReader.File[0]
+	s.Equal(filepath.Base(path), zf.Name)
+	s.Equal(zip.Store, zf.Method)
+
+	rc, err := zf.Open()
+	s.Nil(err)
+	defer rc.Close()
+
+	content, err := io.ReadAll(rc)
+	s.Nil(err)
+	s.Equal(b, content)
+
+	// Test with compression
+	reader, err = s.backend.ZipReader(path, true)
+	s.Nil(err)
+	defer reader.Close()
+
+	zipBytes, err = io.ReadAll(reader)
+	s.Nil(err)
+
+	zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	s.Nil(err)
+	s.Len(zipReader.File, 1)
+
+	zf = zipReader.File[0]
+	s.Equal(filepath.Base(path), zf.Name)
+	s.Equal(zip.Deflate, zf.Method)
+
+	rc, err = zf.Open()
+	s.Nil(err)
+	defer rc.Close()
+
+	content, err = io.ReadAll(rc)
+	s.Nil(err)
+	s.Equal(b, content)
+}
+
+func (s *FileBackendTestSuite) TestZipReaderDirectory() {
+	// Create test directory structure
+	dirPath := "tests/zip_test_" + randomString()
+	files := map[string][]byte{
+		"file1.txt":         []byte("file1 content"),
+		"file2.png":         []byte("file2 content"),
+		"subdir/file3.txt":  []byte("file3 content"),
+		"subdir/file4.json": []byte("file4 content"),
+	}
+
+	for path, content := range files {
+		fullPath := filepath.Join(dirPath, path)
+		written, err := s.backend.WriteFile(bytes.NewReader(content), fullPath)
+		s.Nil(err)
+		s.EqualValues(len(content), written)
+		defer s.backend.RemoveFile(fullPath)
+	}
+
+	// Test without compression
+	reader, err := s.backend.ZipReader(dirPath, false)
+	s.Nil(err)
+	defer reader.Close()
+
+	// Read and verify zip contents
+	zipBytes, err := io.ReadAll(reader)
+	s.Nil(err)
+
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	s.Nil(err)
+
+	// Should have exactly the number of files (no directory entries)
+	s.Len(zipReader.File, len(files))
+
+	// Verify each file
+	foundFiles := make(map[string]bool)
+	for _, zf := range zipReader.File {
+		s.Contains(files, zf.Name)
+		expectedContent := files[zf.Name]
+
+		rc, err := zf.Open()
+		s.Nil(err)
+
+		content, err := io.ReadAll(rc)
+		s.Nil(err)
+		rc.Close()
+
+		s.Equal(expectedContent, content)
+		foundFiles[zf.Name] = true
+	}
+
+	// Verify we found all files
+	s.Len(foundFiles, len(files))
+}
+
+func (s *FileBackendTestSuite) TestZipReaderErrors() {
+	// Test non-existent path
+	reader, err := s.backend.ZipReader("tests/nonexistent", false)
+	s.Error(err)
+	s.Nil(reader)
+
+	// Test empty directory
+	emptyDir := "tests/empty_" + randomString()
+	err = os.MkdirAll(filepath.Join(s.settings.Directory, emptyDir), 0750)
+	s.Nil(err)
+	defer os.RemoveAll(filepath.Join(s.settings.Directory, emptyDir))
+
+	reader, err = s.backend.ZipReader(emptyDir, false)
+	s.Nil(err)
+	defer reader.Close()
+
+	content, err := io.ReadAll(reader)
+	s.Nil(err)
+	s.NotNil(content)
+
+	// Verify it's a valid but empty zip
+	zipReader, err := zip.NewReader(bytes.NewReader(content), int64(len(content)))
+	s.Nil(err)
+	s.Len(zipReader.File, 0)
 }
