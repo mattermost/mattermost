@@ -6705,6 +6705,10 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
+    "id": "app.submit_interactive_dialog.read_body_error",
+    "translation": "Encountered an error reading response body from interactive dialog submission."
+  },
+  {
     "id": "app.submit_interactive_dialog.decode_json_error",
     "translation": "Encountered an error decoding JSON response from interactive dialog submission."
   },
