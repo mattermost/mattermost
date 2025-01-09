@@ -4,14 +4,16 @@
 import path from 'node:path';
 import fs from 'node:fs';
 
+const assetPath = path.resolve(__dirname, 'asset');
+
 /**
  * Reads file data and creates a File object.
  * @param filePath - The path to the file.
- * @param fileType - The MIME type of the file.
+ * @param mimeType - The MIME type of the file.
  * @returns A File object containing the file data.
  * @throws If the file does not exist.
  */
-export function getFileData(filePath: string, fileType: string): File {
+export function getFileData(filePath: string, mimeType: string): File {
     if (!fs.existsSync(filePath)) {
         throw new Error(`File not found at path: ${filePath}`);
     }
@@ -19,18 +21,45 @@ export function getFileData(filePath: string, fileType: string): File {
     const fileName = path.basename(filePath);
     const fileBuffer = fs.readFileSync(filePath);
 
-    return new File([fileBuffer], fileName, {type: fileType});
+    return new File([fileBuffer], fileName, {type: mimeType});
 }
 
 /**
  * Reads file data from the "asset" directory and creates a File object.
  * @param filename - The name of the file in the "asset" directory.
- * @param fileType - The MIME type of the file.
- * @returns A File object containing the file data.
+ * @param mimeType - The MIME type of the file.
+ * @returns An object containing a File object and the filename.
  */
-export function getFileDataFromAsset(filename: string, fileType: string): File {
-    const assetPath = path.resolve(__dirname, 'asset');
+export function getFileDataFromAsset(filename: string, mimeType: string) {
     const filePath = path.join(assetPath, filename);
 
-    return getFileData(filePath, fileType);
+    return {file: getFileData(filePath, mimeType), filename: path.basename(filePath)};
+}
+
+/**
+ * Reads file data and creates a Blob object.
+ * @param filePath - The path to the file.
+ * @param mimeType - The MIME type of the file.
+ * @returns A Blob object containing the file data.
+ * @throws If the file does not exist.
+ */
+export function getBlobData(filePath: string, mimeType: string): Blob {
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found at path: ${filePath}`);
+    }
+    const fileBuffer = fs.readFileSync(filePath);
+
+    return new Blob([fileBuffer], {type: mimeType});
+}
+
+/**
+ * Reads file data from the "asset" directory and creates a Blob object.
+ * @param filename - The name of the file in the "asset" directory.
+ * @param mimeType - The MIME type of the file.
+ * @returns An object containing a Blob object and the filename.
+ */
+export function getBlobDataFromAsset(filename: string, mimeType: string) {
+    const filePath = path.join(assetPath, filename);
+
+    return {blob: getBlobData(filePath, mimeType), filename: path.basename(filePath)};
 }

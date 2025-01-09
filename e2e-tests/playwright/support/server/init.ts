@@ -42,8 +42,8 @@ export async function initSetup({
         const {client: userClient} = await makeClient(user);
 
         if (withDefaultProfileImage) {
-            const imageData = getFileDataFromAsset('mattermost-icon_128x128.png', 'image/png');
-            await userClient.uploadProfileImage(user.id, imageData);
+            const {file} = getFileDataFromAsset('mattermost-icon_128x128.png', 'image/png');
+            await userClient.uploadProfileImage(user.id, file);
         }
 
         // Update user preference
