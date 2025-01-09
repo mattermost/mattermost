@@ -82,7 +82,7 @@ export function enableElasticSearch() {
 
     // # Navigate to the elastic search setting page
     cy.visit('/admin_console/environment/elasticsearch');
-    cy.get('[data-testid="enableIndexing"] > .col-sm-8 > :nth-child(2)').click();
+    cy.get('#enableIndexingtrue').click();
 
     // * Test the connection and verify that we are successful
     cy.contains('button', 'Test Connection').click();

@@ -36,3 +36,9 @@ $elevation-3: var(--elevation-3);
 $elevation-4: var(--elevation-4);
 $elevation-5: var(--elevation-5);
 $elevation-6: var(--elevation-6);
+
+// Z-Index
+// Central place to manage z-index values for the app, providing a consistent way to manage stacking order.
+$z-index-popover: 1070;
+$z-index-user-group-popover: 1060;
+$z-index-global-header: 99;
