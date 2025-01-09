@@ -302,8 +302,8 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 		var attachmentReader io.ReadCloser
 		attachmentReader, err = fileAttachmentBackend.Reader(fileInfo.Path)
 		if err != nil {
-			missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessage+" - "+fileInfo.Path)
-			rctx.Logger().Warn(shared.MissingFileMessage, mlog.String("filename", fileInfo.Path))
+			missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringBackendRead+" - "+fileInfo.Path)
+			rctx.Logger().Warn(shared.MissingFileMessageDuringBackendRead, mlog.String("filename", fileInfo.Path))
 			continue
 		}
 
@@ -323,7 +323,11 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 
 			return nil
 		}(); err != nil {
-			return res, fmt.Errorf("unable to write into the zipFile created with the batch temporary file: %w", err)
+			// s3 only errors _here_ if the object key wasn't found. So to handle that, if there is a read
+			// error (even for local), let's add a warning instead of failing the export. Failing the export
+			// would crash the entire export run, and crash every future run -- not good.
+			missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringCopy+" - "+fileInfo.Path)
+			rctx.Logger().Warn(shared.MissingFileMessageDuringCopy, mlog.String("filename", fileInfo.Path))
 		}
 	}
 
