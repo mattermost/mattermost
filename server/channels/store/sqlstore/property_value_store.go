@@ -26,10 +26,13 @@ var propertyValueColumns = []string{
 	"DeleteAt",
 }
 
-func propertyValueToInsertMap(value *model.PropertyValue) (map[string]any, error) {
+func (s *SqlPropertyValueStore) propertyValueToInsertMap(value *model.PropertyValue) (map[string]any, error) {
 	valueJSON, err := json.Marshal(value.Value)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_to_insert_map_marshal_value")
+	}
+	if s.IsBinaryParamEnabled() {
+		valueJSON = AppendBinaryFlag(valueJSON)
 	}
 
 	return map[string]any{
@@ -38,21 +41,24 @@ func propertyValueToInsertMap(value *model.PropertyValue) (map[string]any, error
 		"TargetType": value.TargetType,
 		"GroupID":    value.GroupID,
 		"FieldID":    value.FieldID,
-		"Value":      string(valueJSON),
+		"Value":      valueJSON,
 		"CreateAt":   value.CreateAt,
 		"UpdateAt":   value.UpdateAt,
 		"DeleteAt":   value.DeleteAt,
 	}, nil
 }
 
-func propertyValueToUpdateMap(value *model.PropertyValue) (map[string]any, error) {
+func (s *SqlPropertyValueStore) propertyValueToUpdateMap(value *model.PropertyValue) (map[string]any, error) {
 	valueJSON, err := json.Marshal(value.Value)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_to_udpate_map_marshal_value")
 	}
+	if s.IsBinaryParamEnabled() {
+		valueJSON = AppendBinaryFlag(valueJSON)
+	}
 
 	return map[string]any{
-		"Value":    string(valueJSON),
+		"Value":    valueJSON,
 		"UpdateAt": value.UpdateAt,
 		"DeleteAt": value.DeleteAt,
 	}, nil
@@ -122,7 +128,7 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 		return nil, errors.Wrap(err, "property_value_create_isvalid")
 	}
 
-	insertMap, err := propertyValueToInsertMap(value)
+	insertMap, err := s.propertyValueToInsertMap(value)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +274,7 @@ func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue) (_ []*mode
 			return nil, errors.Wrap(err, "property_value_update_isvalid")
 		}
 
-		updateMap, err := propertyValueToUpdateMap(value)
+		updateMap, err := s.propertyValueToUpdateMap(value)
 		if err != nil {
 			return nil, err
 		}
