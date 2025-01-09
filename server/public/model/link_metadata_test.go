@@ -146,6 +146,16 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			},
 			Expected: false,
 		},
+		{
+			Name: "should be invalid because of URL length being too long",
+			Metadata: &LinkMetadata{
+				URL:       "http://example.com/?" + strings.Repeat("a", 2048),
+				Timestamp: 1546300800000,
+				Type:      LinkMetadataTypeImage,
+				Data:      &PostImage{},
+			},
+			Expected: false,
+		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			appErr := test.Metadata.IsValid()
