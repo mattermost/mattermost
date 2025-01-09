@@ -4,12 +4,12 @@
 // Update this every time code is changed.
 // This is needed to delete old cache entries.
 const cacheName = 'v1';
-const HTML_REQUEST = new Request('root.html');
+const ROOT_HTML_REQUEST = new Request('root.html');
 
 const putInCache = async (request, response) => {
     const cache = await caches.open(cacheName);
     if (request.destination === 'document') {
-        await cache.put(HTML_REQUEST, response);
+        await cache.put(ROOT_HTML_REQUEST, response);
     } else {
         await cache.put(request, response);
     }
@@ -20,7 +20,7 @@ const handleCacheRequest = async (request) => {
     let responseFromCache;
     if (request.destination === 'document') {
         // If it's an HTML document, then we check for a separate key.
-        responseFromCache = await caches.match(HTML_REQUEST);
+        responseFromCache = await caches.match(ROOT_HTML_REQUEST);
     } else {
         responseFromCache = await caches.match(request);
     }
@@ -45,7 +45,7 @@ const fetchFromNetwork = async (request) => {
         console.error(`error while fetching from sw: ${error}`);
 
         // return a Response object if network request fails.
-        return new Response('Network error happened', {
+        return new Response(`Network error happened: ${error}`, {
             status: 408,
             headers: {'Content-Type': 'text/plain'},
         });
@@ -100,6 +100,6 @@ if (typeof module !== 'undefined') {
         handleCacheRequest,
         deleteOldCaches,
         cacheName,
-        HTML_REQUEST,
+        ROOT_HTML_REQUEST,
     };
 }

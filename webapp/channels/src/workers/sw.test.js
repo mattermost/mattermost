@@ -27,7 +27,7 @@ describe('Service Worker', () => {
     });
 
     describe('putInCache', () => {
-        it('should store HTML documents under HTML_REQUEST key', async () => {
+        it('should store HTML documents under ROOT_HTML_REQUEST key', async () => {
             const cache = {put: jest.fn()};
             global.self.caches.open.mockResolvedValue(cache);
 
@@ -37,7 +37,7 @@ describe('Service Worker', () => {
             await sw.putInCache(request, response);
 
             expect(global.self.caches.open).toHaveBeenCalledWith(sw.cacheName);
-            expect(cache.put).toHaveBeenCalledWith(sw.HTML_REQUEST, response);
+            expect(cache.put).toHaveBeenCalledWith(sw.ROOT_HTML_REQUEST, response);
         });
 
         it('should store non-HTML requests under their own key', async () => {
