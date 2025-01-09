@@ -6,7 +6,6 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -29,19 +28,6 @@ func (ps *PlatformService) RegisterClusterHandlers() {
 
 func (ps *PlatformService) RegisterClusterMessageHandler(ev model.ClusterEvent, h einterfaces.ClusterMessageHandler) {
 	ps.additionalClusterHandlers[ev] = h
-}
-
-// ClusterHandlersPreCheck checks whether the platform service is ready to handle cluster messages.
-func (ps *PlatformService) ClusterHandlersPreCheck() error {
-	if ps.Store == nil {
-		return fmt.Errorf("could not find store")
-	}
-
-	if ps.statusCache == nil {
-		return fmt.Errorf("could not find status cache")
-	}
-
-	return nil
 }
 
 func (ps *PlatformService) ClusterPublishHandler(msg *model.ClusterMessage) {
@@ -134,7 +120,7 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
 	ps.InvalidateAllCachesSkipSend()
 
-	if ps.clusterIFace != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
+	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
 			Event:            model.ClusterEventInvalidateAllCaches,
 			SendType:         model.ClusterSendReliable,

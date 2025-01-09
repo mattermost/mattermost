@@ -15,7 +15,7 @@ import (
 func AssertLog(t *testing.T, logs io.Reader, level, message string) {
 	t.Helper()
 	if !hasMsg(t, logs, level, message) {
-		assert.Failf(t, "failed to find %s log message: %s", level, message)
+		assert.Failf(t, "failed to find", "Expected log_level: %s, log_message: %s", level, message)
 	}
 }
 
@@ -23,7 +23,7 @@ func AssertLog(t *testing.T, logs io.Reader, level, message string) {
 func AssertNoLog(t *testing.T, logs io.Reader, level, message string) {
 	t.Helper()
 	if hasMsg(t, logs, level, message) {
-		assert.Failf(t, "found %s log message: %s", level, message)
+		assert.Failf(t, "found", "Not expected log_level: %s log_message: %s", level, message)
 	}
 }
 

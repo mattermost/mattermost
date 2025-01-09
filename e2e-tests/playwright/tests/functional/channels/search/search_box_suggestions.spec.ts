@@ -17,16 +17,42 @@ test('Search box suggestion must be case insensitive', async ({pw, pages}) => {
     // # Open the search UI
     await channelsPage.globalHeader.openSearch();
 
-    const searchInput = await page.getByPlaceholder('Search messages');
+    const searchWord = 'off';
+    const searchOutput = 'In:off-topic';
+    const channelName = 'Off-Topic';
 
-    // * it's working when using lowercase
-    await searchInput.fill('In:off');
-    await searchInput.press('Enter');
-    await expect(searchInput).toHaveValue('In:off-topic ');
+    // Should work as expected when using lowercase
+    // # Type in lowercase "off" to search for the "Off-Topic" channel
+    const {searchInput} = await channelsPage.searchPopover;
+    await searchInput.pressSequentially(`In:${searchWord}`);
 
-    // * it's working when using uppercase
-    await searchInput.clear();
-    await searchInput.fill('In:Off');
+    // * The suggestion should be visible
+    await expect(channelsPage.searchPopover.selectedSuggestion).toBeVisible();
+    await expect(channelsPage.searchPopover.selectedSuggestion).toHaveText(channelName);
+
+    // # Press Enter to select the suggestion and another Enter to search
     await searchInput.press('Enter');
-    await expect(searchInput).toHaveValue('In:off-topic ');
+    await searchInput.press('Enter');
+
+    // * The search box should contain the selected suggestion
+    await expect(channelsPage.globalHeader.searchBox.getByText(searchOutput, {exact: true})).toBeVisible();
+
+    // Should work as expected when using uppercase
+    // # Close then open the search UI
+    await channelsPage.globalHeader.closeSearch();
+    await channelsPage.globalHeader.openSearch();
+
+    // # Type in uppercase "OFF" to search for the "Off-Topic" channel
+    await searchInput.pressSequentially(`In:${searchWord.toUpperCase()}`);
+
+    // * The suggestion should be visible
+    await expect(channelsPage.searchPopover.selectedSuggestion).toBeVisible();
+    await expect(channelsPage.searchPopover.selectedSuggestion).toHaveText(channelName);
+
+    // # Press Enter to select the suggestion and another Enter to search
+    await searchInput.press('Enter');
+    await searchInput.press('Enter');
+
+    // * The search box should contain the selected suggestion
+    await expect(channelsPage.globalHeader.searchBox.getByText(searchOutput, {exact: true})).toBeVisible();
 });

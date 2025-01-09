@@ -545,7 +545,7 @@ export const getMyChannels: (state: GlobalState) => Channel[] = createSelector(
     getAllDirectChannels,
     getMyChannelMemberships,
     (channels: Channel[], directChannels: Channel[], myMembers: RelationOneToOne<Channel, ChannelMembership>): Channel[] => {
-        return [...channels, ...directChannels].filter((c) => myMembers.hasOwnProperty(c.id));
+        return [...channels, ...directChannels].filter((c) => Object.hasOwn(myMembers, c.id));
     },
 );
 
@@ -555,7 +555,7 @@ export const getOtherChannels: (state: GlobalState, archived?: boolean | null) =
     getMyChannelMemberships,
     (state: GlobalState, archived: boolean | undefined | null = true) => archived,
     (channels: Channel[], myMembers: RelationOneToOne<Channel, ChannelMembership>, archived?: boolean | null): Channel[] => {
-        return channels.filter((c) => !myMembers.hasOwnProperty(c.id) && c.type === General.OPEN_CHANNEL && (archived ? true : c.delete_at === 0));
+        return channels.filter((c) => !Object.hasOwn(myMembers, c.id) && c.type === General.OPEN_CHANNEL && (archived ? true : c.delete_at === 0));
     },
 );
 

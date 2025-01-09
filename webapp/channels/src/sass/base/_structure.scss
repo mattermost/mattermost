@@ -217,6 +217,7 @@ body.app__body #root {
 
     .sidebar--right--width-holder {
         grid-area: rhs;
+        transform: none;
     }
 
     #sidebar-right {

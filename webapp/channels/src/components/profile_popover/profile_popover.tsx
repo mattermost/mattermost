@@ -100,7 +100,7 @@ const ProfilePopover = ({
 
     const handleCloseModals = useCallback(() => {
         for (const modal in modals?.modalState) {
-            if (!Object.prototype.hasOwnProperty.call(modals, modal)) {
+            if (!Object.hasOwn(modals, modal)) {
                 continue;
             }
             if (modals?.modalState[modal].open) {

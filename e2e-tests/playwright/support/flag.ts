@@ -64,7 +64,6 @@ export async function requestTrialLicense() {
             users: 100,
         });
     } catch (error) {
-        // eslint-disable-next-line no-console
         expect(error, 'Failed to request trial license').toBeFalsy();
         throw error;
     }

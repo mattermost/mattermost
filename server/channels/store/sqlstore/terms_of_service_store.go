@@ -38,7 +38,7 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 				(:Id, :CreateAt, :UserId, :Text)
 				`
 
-	if _, err := s.GetMasterX().NamedExec(query, termsOfService); err != nil {
+	if _, err := s.GetMaster().NamedExec(query, termsOfService); err != nil {
 		return nil, errors.Wrapf(err, "could not save a new TermsOfService")
 	}
 
@@ -59,7 +59,7 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSe
 		return nil, errors.Wrap(err, "could not build sql query to get latest TOS")
 	}
 
-	if err := s.GetReplicaX().Get(&termsOfService, queryString, args...); err != nil {
+	if err := s.GetReplica().Get(&termsOfService, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "CreateAt=latest")
 		}
@@ -81,7 +81,7 @@ func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.Term
 		return nil, errors.Wrap(err, "terms_of_service_to_sql")
 	}
 
-	err = s.GetReplicaX().Get(&termsOfService, queryString, id)
+	err = s.GetReplica().Get(&termsOfService, queryString, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "id")

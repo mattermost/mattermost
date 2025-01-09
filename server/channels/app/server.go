@@ -1386,7 +1386,6 @@ func (s *Server) doReportUserCountForCloudSubscriptionJob() {
 	appInstance := New(ServerConnector(s.Channels()))
 
 	_, err := appInstance.SendSubscriptionHistoryEvent("")
-
 	if err != nil {
 		mlog.Error("an error occurred during daily user count reporting", mlog.Err(err))
 	}
@@ -1435,7 +1434,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	//send email to admin(s)
+	// send email to admin(s)
 	for _, user := range users {
 		user := user
 		if user.Email == "" {
@@ -1481,10 +1480,6 @@ func (s *Server) ExportFileBackend() filestore.FileBackend {
 
 func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
-}
-
-func (s *Server) ClusterHealthScore() int {
-	return s.platform.Cluster().HealthScore()
 }
 
 func (ch *Channels) ClientConfigHash() string {
@@ -1722,15 +1717,7 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 	return s.platform.Metrics()
 }
 
-// SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
-// For testing only.
-func (s *Server) SetRemoteClusterService(remoteClusterService remotecluster.RemoteClusterServiceIFace) {
-	s.serviceMux.Lock()
-	defer s.serviceMux.Unlock()
-	s.remoteClusterService = remoteClusterService
-}
-
-// SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
 // For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelServiceIFace) {
 	s.serviceMux.Lock()

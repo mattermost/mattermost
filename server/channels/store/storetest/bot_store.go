@@ -79,7 +79,7 @@ func testBotStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b2.UserId)) }()
 
 	// Artificially set b2.LastIconUpdate to NULL to verify handling of same.
-	_, sqlErr := s.GetMasterX().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
+	_, sqlErr := s.GetMaster().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
 	require.NoError(t, sqlErr)
 
 	t.Run("get non-existent bot", func(t *testing.T) {
@@ -167,7 +167,7 @@ func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlSto
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, b2.UserId)) }()
 
 	// Artificially set b2.LastIconUpdate to NULL to verify handling of same.
-	_, sqlErr := s.GetMasterX().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
+	_, sqlErr := s.GetMaster().Exec("UPDATE Bots SET LastIconUpdate = NULL WHERE UserId = '" + b2.UserId + "'")
 	require.NoError(t, sqlErr)
 
 	t.Run("get original bots", func(t *testing.T) {

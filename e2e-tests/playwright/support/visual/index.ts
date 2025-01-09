@@ -31,7 +31,7 @@ export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs, opti
 
     if (testConfig.snapshotEnabled) {
         // Visual test with built-in snapshot
-        const filename = testInfo.title.replace(illegalRe, '').replace(/\s/g, '-').trim().toLowerCase();
+        const filename = testInfo.title.trim().replace(illegalRe, '').replace(/\s/g, '-').trim().toLowerCase();
         await expect(testArgs.page).toHaveScreenshot(`${filename}.png`, {fullPage: true, ...options});
     }
 

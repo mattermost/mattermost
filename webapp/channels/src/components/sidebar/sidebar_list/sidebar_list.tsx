@@ -8,7 +8,7 @@ import type {CSSProperties} from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
 
@@ -26,7 +26,7 @@ import SidebarCategory from 'components/sidebar/sidebar_category';
 import {findNextUnreadChannelId} from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
-import {localizeMessage, mod} from 'utils/utils';
+import {mod} from 'utils/utils';
 
 import type {DraggingState} from 'types/store';
 import type {StaticPage} from 'types/store/lhs';
@@ -74,7 +74,7 @@ export function renderThumbVertical(props: React.HTMLProps<HTMLDivElement>) {
 
 const scrollbarStyles: CSSProperties = {position: 'absolute'};
 
-type Props = {
+type Props = WrappedComponentProps & {
     currentTeam?: Team;
     currentChannelId: string;
     categories: ChannelCategory[];
@@ -122,7 +122,7 @@ const categoryHeaderHeight = 32;
 // that the channel is not under the unread indicator.
 const scrollMarginWithUnread = 55;
 
-export default class SidebarList extends React.PureComponent<Props, State> {
+export class SidebarList extends React.PureComponent<Props, State> {
     channelRefs: Map<string, HTMLLIElement>;
     scrollbar: React.RefObject<Scrollbars>;
     animate: SpringSystem;
@@ -547,7 +547,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             />
         );
 
-        const ariaLabel = localizeMessage({id: 'accessibility.sections.lhsList', defaultMessage: 'channel sidebar region'});
+        const ariaLabel = this.props.intl.formatMessage({id: 'accessibility.sections.lhsList', defaultMessage: 'channel sidebar region'});
 
         return (
 
@@ -602,3 +602,5 @@ export default class SidebarList extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SidebarList);
