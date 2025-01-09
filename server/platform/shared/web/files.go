@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 var UnsafeContentTypes = [...]string{
@@ -90,4 +92,54 @@ func WriteFileResponse(filename string, contentType string, contentSize int64, l
 	w.Header().Set("Content-Security-Policy", "Frame-ancestors 'none'")
 
 	http.ServeContent(w, r, filename, lastModification, fileReader)
+}
+
+func WriteStreamResponse(w http.ResponseWriter, r io.ReadCloser, filename string, contentType string, forceDownload bool) error {
+	w.Header().Set("Cache-Control", "private, max-age=86400")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	} else {
+		for _, unsafeContentType := range UnsafeContentTypes {
+			if strings.HasPrefix(contentType, unsafeContentType) {
+				contentType = "text/plain"
+				break
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", contentType)
+
+	var toDownload bool
+	if forceDownload {
+		toDownload = true
+	} else {
+		isMediaType := false
+		for _, mediaContentType := range MediaContentTypes {
+			if strings.HasPrefix(contentType, mediaContentType) {
+				isMediaType = true
+				break
+			}
+		}
+		toDownload = !isMediaType
+	}
+
+	filename = url.PathEscape(filename)
+
+	if toDownload {
+		w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+filename)
+	} else {
+		w.Header().Set("Content-Disposition", "inline;filename=\""+filename+"\"; filename*=UTF-8''"+filename)
+	}
+
+	// prevent file links from being embedded in iframes
+	w.Header().Set("X-Frame-Options", "DENY")
+	w.Header().Set("Content-Security-Policy", "Frame-ancestors 'none'")
+
+	if _, err := io.Copy(w, r); err != nil {
+		return errors.Wrap(err, "error streaming ReadCloser")
+	}
+
+	return nil
 }
