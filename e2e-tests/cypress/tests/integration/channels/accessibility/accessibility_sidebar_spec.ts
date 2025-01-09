@@ -85,7 +85,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
         cy.focused().parent().next().find('.SidebarChannel').each((el, i) => {
             if (i === 0) {
                 cy.focused().findByText('CHANNELS');
-                cy.focused().tab().tab().tab();
+                cy.focused().tab().tab();
             }
 
             // * Verify if focus changes to different channels in Channels section
@@ -120,7 +120,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
         cy.focused().tab().tab().parent().next().find('.SidebarChannel').each((el, i) => {
             if (i === 0) {
                 cy.focused().findByText('FAVORITES');
-                cy.focused().tab().tab().tab();
+                cy.focused().tab().tab();
             }
 
             cy.wrap(el).find('.SidebarLink').should('be.focused');
