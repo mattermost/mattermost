@@ -31,7 +31,7 @@ describe('Keyboard Shortcuts', () => {
         // * Verify modal is open
         cy.findByRole('dialog', {name: 'Edit Header for Off-Topic'}).within(() => {
             // # Enter new header and save
-            cy.findByRole('textbox', {name: 'edit the channel header...'}).type(newHeader);
+            cy.findByRole('textbox', {name: 'Edit the text appearing next to the channel name in the header.'}).type(newHeader);
             cy.uiSave();
         });
 
