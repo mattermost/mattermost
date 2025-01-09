@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {expect, Locator} from '@playwright/test';
+import path from 'node:path';
+import {components} from '@e2e-support/ui/components';
 
 export default class ChannelsPostEdit {
     readonly container: Locator;
@@ -10,6 +12,8 @@ export default class ChannelsPostEdit {
     readonly attachmentButton;
     readonly emojiButton;
     readonly sendMessageButton;
+    readonly deleteConfirmationDialog;
+
     // readonly scheduleDraftMessageButton;
     // readonly priorityButton;
     // readonly suggestionList;
@@ -25,12 +29,14 @@ export default class ChannelsPostEdit {
 
         this.input = container.getByTestId('edit_textbox');
 
-        this.attachmentButton = container.getByLabel('attachment');
+        this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.locator('.save');
         // this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
         // this.priorityButton = container.getByLabel('Message priority');
         // this.suggestionList = container.getByTestId('suggestionList');
+
+        this.deleteConfirmationDialog = new components.DeletePostConfirmationDialog(container.page().locator('#deletePostModal'));
     }
 
     async toBeVisible() {
@@ -51,6 +57,28 @@ export default class ChannelsPostEdit {
         await this.input.fill(message);
     }
 
+    async addFiles(files: string[]) {
+        const filePaths = files.map((file) => path.join(path.resolve(__dirname), '../../../asset', file));
+        this.container.page().once('filechooser', async (fileChooser) => {
+            await fileChooser.setFiles(filePaths);
+        });
+
+        await this.attachmentButton.click();
+    }
+
+    async removeFile(fileName: string) {
+        const files = await this.container.locator(`.file-preview`).all();
+
+        for (let i = 0; i < files.length; i++) {
+            const textContent = await files[i].textContent();
+            if (textContent?.includes(fileName)) {
+                const removeButton = files[i].locator('.icon-close');
+                await removeButton.click();
+                break;
+            }
+        }
+    }
+
     /**
      * Returns the value of the message input
      */
@@ -64,8 +92,8 @@ export default class ChannelsPostEdit {
      */
     async sendMessage() {
         await expect(this.input).toBeVisible();
-        const messageInputValue = await this.getInputValue();
-        expect(messageInputValue).not.toBe('');
+        // const messageInputValue = await this.getInputValue();
+        // expect(messageInputValue).not.toBe('');
 
         await expect(this.sendMessageButton).toBeVisible();
         await expect(this.sendMessageButton).toBeEnabled();
