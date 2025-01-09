@@ -26,7 +26,7 @@ exports[`components/InfoToast should match snapshot 1`] = `
       Undo
     </button>
     <button
-      aria-label="close"
+      aria-label="Close"
       class="info-toast__icon_button"
     >
       <i
