@@ -86,7 +86,8 @@ func init() {
 
 func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	message, _ := cmd.Flags().GetString("message")
-	if args[1] != "" {
+	// len(args)>1 makes sure that args[1] exists.
+	if len(args) > 1 && args[1] != "" {
 		message = args[1]
 	}
 
@@ -115,7 +116,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		userArgString := strings.Split(args[0], "@")[1]
 		user := getUserFromUserArg(c, userArgString)
 		if user == nil {
-			return fmt.Errorf("unable to find user %q", userArgString)
+			return fmt.Errorf("unable to find user %q", args[0])
 		}
 
 		directChannel, _, err := c.CreateDirectChannel(context.TODO(), me.Id, user.Id)
