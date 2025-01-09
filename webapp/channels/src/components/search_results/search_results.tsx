@@ -426,7 +426,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                         regionTitle: formattedTitle,
                     })}
                 >
-                    <div id={`${searchType}Panel`}>
+                    <div
+                        id={`${searchType}Panel`}
+                        className='files-or-messages-panel'
+                    >
                         {contentItems}
                     </div>
                     {loadingMorePostsComponent}
