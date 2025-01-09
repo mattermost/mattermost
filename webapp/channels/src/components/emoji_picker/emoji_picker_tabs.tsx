@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {CSSProperties, RefObject} from 'react';
-import React, {PureComponent, createRef} from 'react';
+import type {CSSProperties} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Tab, Tabs} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -30,156 +30,123 @@ export interface Props {
     enableGifPicker?: boolean;
 }
 
-type State = {
-    emojiTabVisible: boolean;
-    filter: string;
-}
+export default function EmojiPickerTabs(props: Props) {
+    const [filter, setFilter] = useState('');
 
-export default class EmojiPickerTabs extends PureComponent<Props, State> {
-    private rootPickerNodeRef: RefObject<HTMLDivElement>;
+    const rootPickerNodeRef = useRef<HTMLDivElement>(null);
+    const getRootPickerNode = useCallback(() => rootPickerNodeRef.current, []);
 
-    static defaultProps = {
-        rightOffset: 0,
-        topOffset: 0,
-        leftOffset: 0,
-    };
+    let pickerStyle;
+    if (props.style && !(props.style.left === 0 && props.style.top === 0)) {
+        if (props.placement === 'top' || props.placement === 'bottom') {
+            // Only take the top/bottom position passed by React Bootstrap since we want to be right-aligned
+            pickerStyle = {
+                top: props.style.top,
+                bottom: props.style.bottom,
+                right: props?.rightOffset,
+            };
+        } else {
+            pickerStyle = {...props.style};
+        }
 
-    constructor(props: Props) {
-        super(props);
+        if (pickerStyle.top) {
+            pickerStyle.top = (props.topOffset || 0) + (pickerStyle.top as number);
+        } else {
+            pickerStyle.top = props.topOffset;
+        }
 
-        this.state = {
-            emojiTabVisible: true,
-            filter: '',
-        };
-
-        this.rootPickerNodeRef = createRef();
+        if (pickerStyle.left) {
+            (pickerStyle.left as number) += (props.leftOffset || 0);
+        }
     }
 
-    handleEmojiPickerClose = () => {
-        this.props.onEmojiClose();
-    };
-
-    handleFilterChange = (filter: string) => {
-        this.setState({filter});
-    };
-
-    getRootPickerNode = () => {
-        return this.rootPickerNodeRef.current;
-    };
-
-    render() {
-        let pickerStyle;
-        if (this.props.style && !(this.props.style.left === 0 && this.props.style.top === 0)) {
-            if (this.props.placement === 'top' || this.props.placement === 'bottom') {
-                // Only take the top/bottom position passed by React Bootstrap since we want to be right-aligned
-                pickerStyle = {
-                    top: this.props.style.top,
-                    bottom: this.props.style.bottom,
-                    right: this.props?.rightOffset,
-                };
-            } else {
-                pickerStyle = {...this.props.style};
-            }
-
-            if (pickerStyle.top) {
-                pickerStyle.top = (this.props.topOffset || 0) + (pickerStyle.top as number);
-            } else {
-                pickerStyle.top = this.props.topOffset;
-            }
-
-            if (pickerStyle.left) {
-                (pickerStyle.left as number) += (this.props.leftOffset || 0);
-            }
-        }
-
-        if (this.props.enableGifPicker && typeof this.props.onGifClick != 'undefined') {
-            return (
-                <div
-                    id='emojiGifPicker'
-                    ref={this.rootPickerNodeRef}
-                    style={pickerStyle}
-                    className={classNames('a11y__popup', 'emoji-picker', {
-                        bottom: this.props.placement === 'bottom',
-                    })}
-                >
-                    <Tabs
-                        id='emoji-picker-tabs'
-                        defaultActiveKey={1}
-                        justified={true}
-                        mountOnEnter={true}
-                        unmountOnExit={true}
-                    >
-                        <EmojiPickerHeader handleEmojiPickerClose={this.handleEmojiPickerClose}/>
-                        <Tab
-                            eventKey={1}
-                            title={
-                                <div className={'custom-emoji-tab__icon__text'}>
-                                    <EmojiIcon
-                                        className='custom-emoji-tab__icon'
-                                        aria-hidden={true}
-                                    />
-                                    <FormattedMessage
-                                        id='emoji_gif_picker.tabs.emojis'
-                                        defaultMessage='Emojis'
-                                    />
-                                </div>
-                            }
-                            unmountOnExit={true}
-                            tabClassName={'custom-emoji-tab'}
-                        >
-                            <EmojiPicker
-                                filter={this.state.filter}
-                                onEmojiClick={this.props.onEmojiClick}
-                                handleFilterChange={this.handleFilterChange}
-                                handleEmojiPickerClose={this.handleEmojiPickerClose}
-                            />
-                        </Tab>
-                        <Tab
-                            eventKey={2}
-                            title={
-                                <div className={'custom-emoji-tab__icon__text'}>
-                                    <GifIcon
-                                        className='custom-emoji-tab__icon'
-                                        aria-hidden={true}
-                                    />
-                                    <FormattedMessage
-                                        id='emoji_gif_picker.tabs.gifs'
-                                        defaultMessage='GIFs'
-                                    />
-                                </div>
-                            }
-                            unmountOnExit={true}
-                            tabClassName={'custom-emoji-tab'}
-                        >
-                            <GifPicker
-                                filter={this.state.filter}
-                                getRootPickerNode={this.getRootPickerNode}
-                                onGifClick={this.props.onGifClick}
-                                handleFilterChange={this.handleFilterChange}
-                            />
-                        </Tab>
-                    </Tabs>
-                </div>
-            );
-        }
-
+    if (props.enableGifPicker && typeof props.onGifClick != 'undefined') {
         return (
             <div
-                id='emojiPicker'
+                id='emojiGifPicker'
+                ref={rootPickerNodeRef}
                 style={pickerStyle}
-                className={classNames('a11y__popup', 'emoji-picker', 'emoji-picker--single', {
-                    bottom: this.props.placement === 'bottom',
+                className={classNames('a11y__popup', 'emoji-picker', {
+                    bottom: props.placement === 'bottom',
                 })}
             >
-                <EmojiPickerHeader handleEmojiPickerClose={this.handleEmojiPickerClose}/>
-                <EmojiPicker
-                    filter={this.state.filter}
-                    onEmojiClick={this.props.onEmojiClick}
-                    handleFilterChange={this.handleFilterChange}
-                    handleEmojiPickerClose={this.handleEmojiPickerClose}
-                    onAddCustomEmojiClick={this.props.onAddCustomEmojiClick}
-                />
+                <Tabs
+                    id='emoji-picker-tabs'
+                    defaultActiveKey={1}
+                    justified={true}
+                    mountOnEnter={true}
+                    unmountOnExit={true}
+                >
+                    <EmojiPickerHeader handleEmojiPickerClose={props.onEmojiClose}/>
+                    <Tab
+                        eventKey={1}
+                        title={
+                            <div className={'custom-emoji-tab__icon__text'}>
+                                <EmojiIcon
+                                    className='custom-emoji-tab__icon'
+                                    aria-hidden={true}
+                                />
+                                <FormattedMessage
+                                    id='emoji_gif_picker.tabs.emojis'
+                                    defaultMessage='Emojis'
+                                />
+                            </div>
+                        }
+                        unmountOnExit={true}
+                        tabClassName={'custom-emoji-tab'}
+                    >
+                        <EmojiPicker
+                            filter={filter}
+                            onEmojiClick={props.onEmojiClick}
+                            handleFilterChange={setFilter}
+                            handleEmojiPickerClose={props.onEmojiClose}
+                        />
+                    </Tab>
+                    <Tab
+                        eventKey={2}
+                        title={
+                            <div className={'custom-emoji-tab__icon__text'}>
+                                <GifIcon
+                                    className='custom-emoji-tab__icon'
+                                    aria-hidden={true}
+                                />
+                                <FormattedMessage
+                                    id='emoji_gif_picker.tabs.gifs'
+                                    defaultMessage='GIFs'
+                                />
+                            </div>
+                        }
+                        unmountOnExit={true}
+                        tabClassName={'custom-emoji-tab'}
+                    >
+                        <GifPicker
+                            filter={filter}
+                            getRootPickerNode={getRootPickerNode}
+                            onGifClick={props.onGifClick}
+                            handleFilterChange={setFilter}
+                        />
+                    </Tab>
+                </Tabs>
             </div>
         );
     }
+
+    return (
+        <div
+            id='emojiPicker'
+            style={pickerStyle}
+            className={classNames('a11y__popup', 'emoji-picker', 'emoji-picker--single', {
+                bottom: props.placement === 'bottom',
+            })}
+        >
+            <EmojiPickerHeader handleEmojiPickerClose={props.onEmojiClose}/>
+            <EmojiPicker
+                filter={filter}
+                onEmojiClick={props.onEmojiClick}
+                handleFilterChange={setFilter}
+                handleEmojiPickerClose={props.onEmojiClose}
+                onAddCustomEmojiClick={props.onAddCustomEmojiClick}
+            />
+        </div>
+    );
 }
