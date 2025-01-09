@@ -14,27 +14,14 @@ export default class ChannelsPostEdit {
     readonly sendMessageButton;
     readonly deleteConfirmationDialog;
 
-    // readonly scheduleDraftMessageButton;
-    // readonly priorityButton;
-    // readonly suggestionList;
-
-    constructor(container: Locator, isRHS = false) {
+    constructor(container: Locator, ) {
         this.container = container;
-
-        // if (!isRHS) {
-        //     this.input = container.getByTestId('edit_textbox');
-        // } else {
-        //     this.input = container.getByTestId('reply_textbox');
-        // }
 
         this.input = container.getByTestId('edit_textbox');
 
         this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.locator('.save');
-        // this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
-        // this.priorityButton = container.getByLabel('Message priority');
-        // this.suggestionList = container.getByTestId('suggestionList');
 
         this.deleteConfirmationDialog = new components.DeletePostConfirmationDialog(container.page().locator('#deletePostModal'));
     }
@@ -46,10 +33,6 @@ export default class ChannelsPostEdit {
         await expect(this.input).toBeVisible();
     }
 
-    /**
-     * It just writes the message in the input and doesn't send it
-     * @param message : Message to be written in the input
-     */
     async writeMessage(message: string) {
         await this.input.waitFor();
         await expect(this.input).toBeVisible();
@@ -79,17 +62,11 @@ export default class ChannelsPostEdit {
         }
     }
 
-    /**
-     * Returns the value of the message input
-     */
     async getInputValue() {
         await expect(this.input).toBeVisible();
         return await this.input.inputValue();
     }
 
-    /**
-     * Sends the message already written in the input
-     */
     async sendMessage() {
         await expect(this.input).toBeVisible();
         // const messageInputValue = await this.getInputValue();
@@ -101,38 +78,13 @@ export default class ChannelsPostEdit {
         await this.sendMessageButton.click();
     }
 
-    /**
-     * Click on Scheduled Draft button to open options
-     */
-    // async clickOnScheduleDraftDropdownButton() {
-    //     await expect(this.input).toBeVisible();
-    //
-    //     await expect(this.scheduleDraftMessageButton).toBeVisible();
-    //     await expect(this.scheduleDraftMessageButton).toBeEnabled();
-    //
-    //     await this.scheduleDraftMessageButton.click();
-    // }
-
-    /**
-     * Opens the message priority menu
-     */
-    // async openPriorityMenu() {
-    //     await expect(this.priorityButton).toBeVisible();
-    //     await expect(this.priorityButton).toBeEnabled();
-    //     await this.priorityButton.click();
-    // }
-
-    /**
-     * Composes and sends a message
-     */
     async postMessage(message: string) {
         await this.writeMessage(message);
         await this.sendMessage();
     }
 
-    async openEmojiPicker() {
-        await expect(this.emojiButton).toBeVisible();
-        await this.emojiButton.click();
+    async toContainText(text: string) {
+        await expect(this.container).toContainText(text);
     }
 }
 

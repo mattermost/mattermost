@@ -16,6 +16,7 @@ export default class ChannelsSidebarRight {
     readonly scheduledDraftSeeAllLink;
     readonly scheduledDraftChannelInfoMessageText;
     readonly editTextbox;
+    readonly postEdit;
 
     constructor(container: Locator) {
         this.container = container;
@@ -28,6 +29,7 @@ export default class ChannelsSidebarRight {
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('comment-create'), true);
         this.closeButton = container.locator('#rhsCloseButton');
         this.editTextbox = container.locator('#edit_textbox');
+        this.postEdit = new components.ChannelsPostEdit(container.locator('.post-edit__container'));
     }
 
     async toBeVisible() {
@@ -53,6 +55,12 @@ export default class ChannelsSidebarRight {
         return new components.ChannelsPost(post);
     }
 
+    async getFirstPost() {
+        const post = this.container.getByTestId('rhsPostView').first();
+        await post.waitFor();
+        return new components.ChannelsPost(post);
+    }
+
     /**
      * Closes the RHS
      */
@@ -66,6 +74,10 @@ export default class ChannelsSidebarRight {
     async clickOnSeeAllscheduledDrafts() {
         await this.scheduledDraftSeeAllLink.isVisible();
         await this.scheduledDraftSeeAllLink.click();
+    }
+
+    async toContainText(text: string) {
+        await expect(this.container).toContainText(text);
     }
 }
 

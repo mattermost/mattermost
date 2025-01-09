@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {expect, Locator} from '@playwright/test';
-import path from 'node:path';
 
 export default class DeletePostConfirmationDialog {
     readonly container: Locator;
