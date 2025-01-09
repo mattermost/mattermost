@@ -50,6 +50,10 @@ Pick<T, Exclude<keyof T, Keys>> & {[K in Keys]-?: Required<Pick<T, K>> & Partial
 export type Intersection<T1, T2> =
 Omit<Omit<T1&T2, keyof(Omit<T1, keyof(T2)>)>, keyof(Omit<T2, keyof(T1)>)>;
 
+/** https://stackoverflow.com/a/66605669 */
+type Only<T, U> = {[P in keyof T]: T[P]} & {[P in keyof U]?: never};
+export type Either<T, U> = Only<T, U> | Only<U, T>;
+
 export type PartialExcept<T extends Record<string, unknown>, TKeysNotPartial extends keyof T> = Partial<T> & Pick<T, TKeysNotPartial>;
 
 export function isArrayOf<T>(v: unknown, check: (e: unknown) => boolean): v is T[] {
@@ -81,15 +85,28 @@ export function isRecordOf<T>(v: unknown, check: (e: unknown) => boolean): v is 
 }
 
 export const collectionFromArray = <T extends {id: string}>(arr: T[] = []): IDMappedCollection<T> => {
-    const order: string[] = [];
-    const data = arr.reduce((current, item) => {
-        order.push(item.id);
-        return {...current, [item.id]: item};
-    }, {} as IDMappedObjects<T>);
-
-    return {data, order};
+    return arr.reduce((current, item) => {
+        current.data = {...current.data, [item.id]: item};
+        current.order.push(item.id);
+        return current;
+    }, {data: {} as IDMappedObjects<T>, order: []} as IDMappedCollection<T>);
 };
 
 export const collectionToArray = <T extends {id: string}>({data, order}: IDMappedCollection<T>): T[] => {
     return order.map((id) => data[id]);
+};
+
+export const collectionReplaceItem = <T extends {id: string}>(collection: IDMappedCollection<T>, item: T) => {
+    return {...collection, data: {...collection.data, [item.id]: item}};
+};
+
+export const collectionAddItem = <T extends {id: string}>(collection: IDMappedCollection<T>, item: T) => {
+    return {...collection, data: {...collection.data, [item.id]: item}, order: [...collection.order, item.id]};
+};
+
+export const collectionRemoveItem = <T extends {id: string}>(collection: IDMappedCollection<T>, item: T) => {
+    const data = {...collection.data};
+    Reflect.deleteProperty(data, item.id);
+    const order = collection.order.filter((id) => id !== item.id);
+    return {...collection, data, order};
 };
