@@ -351,6 +351,10 @@ export default class Client4 {
         return `${this.getCustomProfileAttributeFieldsRoute()}/${propertyFieldId}`;
     }
 
+    getCustomProfileAttributeValuesRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/values`;
+    }
+
     getPostsRoute() {
         return `${this.getBaseRoute()}/posts`;
     }
@@ -2072,92 +2076,50 @@ export default class Client4 {
     // System Properties Routes
 
     getCustomProfileAttributeFields = async () => {
-        /* return this.doFetch<UserPropertyField[]>(
+        return this.doFetch<UserPropertyField[]>(
             `${this.getCustomProfileAttributeFieldsRoute()}`,
             {method: 'GET'},
-        ); */
-
-        // TODO delete mock
-        const data: UserPropertyField[] = [
-            {
-                id: 'test01',
-                name: 'testone',
-                type: 'text',
-                create_at: 1734643125000,
-                delete_at: 0,
-                update_at: 0,
-            },
-            {
-                id: 'test02',
-                name: 'testtwo',
-                type: 'text',
-                create_at: 1734643125000,
-                delete_at: 0,
-                update_at: 0,
-            },
-            {
-                id: 'test03',
-                name: 'testthree',
-                type: 'text',
-                create_at: 1734643125000,
-                delete_at: 0,
-                update_at: 0,
-            },
-        ];
-
-        await new Promise((res) => setTimeout(res, 750));
-
-        return data;
+        );
     };
 
     createCustomProfileAttributeField = async (patch: UserPropertyFieldPatch) => {
-        // return this.doFetch<UserPropertyField>(
-        //     `${this.getCustomProfileAttributeFieldsRoute()}`,
-        //     {method: 'POST', body: JSON.stringify(patch)},
-        // );
-
-        // TODO delete mock
-        await new Promise((res) => setTimeout(res, 750));
-
-        return {
-            id: crypto.getRandomValues(new Uint32Array(200))[Math.floor(Math.random() * 200)].toString(),
-            name: patch.name,
-            type: 'text',
-            create_at: 1734643125001,
-            delete_at: 0,
-            update_at: 0,
-        } as UserPropertyField;
+        return this.doFetch<UserPropertyField>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'POST', body: JSON.stringify(patch)},
+        );
     };
 
     patchCustomProfileAttributeField = async (fieldId: string, patch: UserPropertyFieldPatch) => {
-        /* return this.doFetch<UserPropertyField>(
+        return this.doFetch<UserPropertyField>(
             `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
             {method: 'PATCH', body: JSON.stringify(patch)},
-        ); */
-        // TODO delete mock
-        await new Promise((res) => setTimeout(res, 750));
-
-        return {
-            id: fieldId,
-            name: patch.name,
-            type: 'text',
-            create_at: 1734643125000,
-            delete_at: 0,
-            update_at: 1734643125001,
-        } as UserPropertyField;
+        );
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     deleteCustomProfileAttributeField = async (fieldId: string) => {
-        // return this.doFetch<StatusOK>(
-        //     `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
-        //     {method: 'DELETE'},
-        // );
+        return this.doFetch<StatusOK>(
+            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+            {method: 'DELETE'},
+        );
+    };
 
-        // TODO delete mock
-        await new Promise((res) => setTimeout(res, 750));
+    updateCustomProfileAttributeValues = (attributeID: string, attributeValue: string) => {
+        const obj: { [key: string]: string } = {};
+        obj[attributeID] = attributeValue;
 
-        return {status: 'OK'} as StatusOK;
+        return this.doFetch<Record<string, string>>(
+            `${this.getCustomProfileAttributeValuesRoute()}`,
+            {method: 'PATCH', body: JSON.stringify(obj)},
+        );
+    };
+
+    getUserCustomProfileAttributesValues = async (userID: string) => {
+        const data = await this.doFetch<Record<string, string>>(
+            `${this.getUserRoute(userID)}/custom_profile_attributes`,
+            {method: 'GET'},
+        );
+        return data;
     };
 
     // Post Routes

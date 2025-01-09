@@ -2177,10 +2177,9 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/system_properties',
                 title: defineMessage({id: 'admin.sidebar.system_properties', defaultMessage: 'System Properties'}),
                 searchableStrings: systemPropertiesSearchableStrings,
-                isHidden: it.not(it.any(
-
-                    // it.licensedForFeature('CustomProfileAttributes'),
+                isHidden: it.not(it.all(
                     it.licensedForSku(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
                 )),
                 schema: {
                     id: 'SystemProperties',

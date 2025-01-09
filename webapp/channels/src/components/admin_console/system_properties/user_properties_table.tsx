@@ -6,21 +6,71 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled, {css} from 'styled-components';
 
-import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserPropertyField} from '@mattermost/types/properties';
+import {collectionToArray} from '@mattermost/types/utilities';
 
-import {FieldDeleteButton, FieldInput} from './controls';
+import LoadingScreen from 'components/loading_screen';
+
+import {FieldDeleteButton, FieldInput, LinkButton} from './controls';
+import type {SectionHook} from './section_utils';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
-import {isCreatePending} from './user_properties_utils';
+import {isCreatePending, useUserPropertyFields} from './user_properties_utils';
 
 import {AdminConsoleListTable} from '../list_table';
 
 type Props = {
     data: UserPropertyField[];
+}
+
+type FieldActions = {
     updateField: (field: UserPropertyField) => void;
+    deleteField: (id: string) => void;
+}
+
+export const useUserPropertiesTable = (): SectionHook => {
+    const [userPropertyFields, readIO, pendingIO, itemOps] = useUserPropertyFields();
+
+    const save = async () => {
+        const newData = await pendingIO.commit();
+
+        // reconcile - zero pending changes
+        if (newData && !newData.errors) {
+            readIO.setData(newData);
+        }
+    };
+
+    const content = readIO.loading ? (
+        <LoadingScreen/>
+    ) : (
+        <>
+            <SharedChannelRemotesTable
+                data={collectionToArray(userPropertyFields)}
+                updateField={itemOps.update}
+                deleteField={itemOps.delete}
+            />
+            <LinkButton onClick={itemOps.create}>
+                <PlusIcon size={16}/>
+                <FormattedMessage
+                    id='admin.system_properties.user_properties.add_property'
+                    defaultMessage='Add property'
+                />
+            </LinkButton>
+        </>
+    );
+
+    return {
+        content,
+        loading: readIO.loading,
+        hasChanges: pendingIO.hasChanges,
+        save,
+        cancel: pendingIO.reset,
+        saving: pendingIO.saving,
+        saveError: pendingIO.error,
+    };
 };
 
-export function SharedChannelRemotesTable({data, updateField}: Props) {
+export function SharedChannelRemotesTable({data, updateField, deleteField}: Props & FieldActions) {
     const col = createColumnHelper<UserPropertyField>();
 
     const columns = useMemo<Array<ColumnDef<UserPropertyField, any>>>(() => {
@@ -30,7 +80,7 @@ export function SharedChannelRemotesTable({data, updateField}: Props) {
                     return (
                         <ColHeaderLeft>
                             <FormattedMessage
-                                id='admin.user_properties.table.name'
+                                id='admin.system_properties.user_properties.table.name'
                                 defaultMessage='Name'
                             />
                         </ColHeaderLeft>
@@ -53,7 +103,7 @@ export function SharedChannelRemotesTable({data, updateField}: Props) {
                     return (
                         <ColHeaderLeft>
                             <FormattedMessage
-                                id='admin.user_properties.table.type'
+                                id='admin.system_properties.user_properties.table.type'
                                 defaultMessage='Type'
                             />
                         </ColHeaderLeft>
@@ -73,7 +123,7 @@ export function SharedChannelRemotesTable({data, updateField}: Props) {
                     return (
                         <ColHeaderRight>
                             <FormattedMessage
-                                id='admin.user_properties.table.actions'
+                                id='admin.system_properties.user_properties.table.actions'
                                 defaultMessage='Actions'
                             />
                         </ColHeaderRight>
@@ -83,13 +133,14 @@ export function SharedChannelRemotesTable({data, updateField}: Props) {
                     <Actions
                         field={row.original}
                         updateField={updateField}
+                        deleteField={deleteField}
                     />
                 ),
                 enableHiding: false,
                 enableSorting: false,
             }),
         ];
-    }, [updateField]);
+    }, [updateField, deleteField]);
 
     const table = useReactTable({
         data,
@@ -149,16 +200,16 @@ const TableWrapper = styled.div`
     }
 `;
 
-const Actions = ({field, updateField}: {field: UserPropertyField; updateField: (field: UserPropertyField) => void}) => {
+const Actions = ({field, deleteField}: {field: UserPropertyField} & FieldActions) => {
     const {promptDelete} = useUserPropertyFieldDelete();
     const {formatMessage} = useIntl();
 
     const handleDelete = () => {
         if (isCreatePending(field)) {
             // skip prompt when field is pending creation
-            updateField({...field, delete_at: Date.now()});
+            deleteField(field.id);
         } else {
-            promptDelete(field).then(() => updateField({...field, delete_at: Date.now()}));
+            promptDelete(field).then(() => deleteField(field.id));
         }
     };
 
@@ -167,7 +218,7 @@ const Actions = ({field, updateField}: {field: UserPropertyField; updateField: (
             {field.delete_at === 0 && (
                 <FieldDeleteButton
                     onClick={handleDelete}
-                    aria-label={formatMessage({id: 'admin.user_properties.table.actions.delete', defaultMessage: 'Delete'})}
+                    aria-label={formatMessage({id: 'admin.system_properties.user_properties.table.actions.delete', defaultMessage: 'Delete'})}
                 >
                     <TrashCanOutlineIcon size={18}/>
                 </FieldDeleteButton>

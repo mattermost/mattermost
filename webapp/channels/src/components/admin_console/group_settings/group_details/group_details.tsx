@@ -24,7 +24,7 @@ import BlockableLink from 'components/admin_console/blockable_link';
 import {GroupProfileAndSettings} from 'components/admin_console/group_settings/group_details/group_profile_and_settings';
 import GroupTeamsAndChannels from 'components/admin_console/group_settings/group_details/group_teams_and_channels';
 import GroupUsers from 'components/admin_console/group_settings/group_details/group_users';
-import SaveChangesPanel from 'components/admin_console/team_channel_settings/save_changes_panel';
+import SaveChangesPanel from 'components/admin_console/save_changes_panel';
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import FormError from 'components/form_error';
 import TeamSelectorModal from 'components/team_selector_modal';
