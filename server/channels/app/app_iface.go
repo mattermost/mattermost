@@ -58,6 +58,8 @@ type AppIface interface {
 	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// Caller must close the first return value
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	// Caller must close the first return value
+	ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
 	// groups.
 	//
