@@ -18,6 +18,7 @@ export default class ChannelsCenterView {
     readonly scheduledDraftChannelInfoMessage;
     readonly scheduledDraftChannelInfoMessageText;
     readonly scheduledDraftSeeAllLink;
+    readonly postEdit;
 
     constructor(container: Locator) {
         this.container = container;
@@ -27,6 +28,8 @@ export default class ChannelsCenterView {
         this.scheduledDraftOptions = new components.ChannelsPostCreate(
             container.locator('#dropdown_send_post_options'),
         );
+        this.postEdit = new components.ChannelsPostEdit(container.locator('.post-edit__container'));
+
         this.scheduledDraftChannelInfo = container.locator('div.postBoxIndicator');
         this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');

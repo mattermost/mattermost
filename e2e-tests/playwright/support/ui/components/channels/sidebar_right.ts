@@ -15,6 +15,7 @@ export default class ChannelsSidebarRight {
     readonly scheduledDraftChannelInfoMessage;
     readonly scheduledDraftSeeAllLink;
     readonly scheduledDraftChannelInfoMessageText;
+    readonly editTextbox;
 
     constructor(container: Locator) {
         this.container = container;
@@ -26,6 +27,7 @@ export default class ChannelsSidebarRight {
         this.rhsPostBody = container.locator('.post-message__text');
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('comment-create'), true);
         this.closeButton = container.locator('#rhsCloseButton');
+        this.editTextbox = container.locator('#edit_textbox');
     }
 
     async toBeVisible() {
