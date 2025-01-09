@@ -1029,28 +1029,17 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
 	// We only delete a thread membership if the entire thread no longer exists,
 	// not if the root post has been deleted
+	const threadMembershipsQuery = `
+		DELETE FROM ThreadMemberships WHERE PostId IN (
+			SELECT A.PostID FROM (
+				SELECT ThreadMemberships.PostId FROM ThreadMemberships
+				LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+				WHERE Threads.PostId IS NULL
+				LIMIT ?
+			) AS A
+		)`
 
-	orphanedMembershipsQuery := s.getQueryBuilder().
-		Select("tm.PostID").
-		From("ThreadMemberships as tm").
-		LeftJoin("Threads t ON tm.PostID = t.PostID").
-		Where(sq.Eq{"t.PostID": nil}).
-		Limit(uint64(limit))
-
-	var postIDs []string
-	if err = s.GetReplica().SelectBuilder(&postIDs, orphanedMembershipsQuery); err != nil {
-		return
-	}
-
-	if len(postIDs) == 0 {
-		return 0, nil
-	}
-
-	threadMembershipsQuery := s.getQueryBuilder().
-		Delete("ThreadMemberships").
-		Where(sq.Eq{"PostID": postIDs})
-
-	result, err := s.GetMaster().ExecBuilder(threadMembershipsQuery)
+	result, err := s.GetMaster().Exec(threadMembershipsQuery, limit)
 	if err != nil {
 		return 0, err
 	}
