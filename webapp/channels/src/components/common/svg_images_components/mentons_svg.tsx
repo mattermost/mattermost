@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 export function MentionsSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
+    const {formatMessage} = useIntl();
     return (
         <span {...props}>
             <svg
@@ -12,22 +14,23 @@ export function MentionsSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                 viewBox='0 0 97 87'
                 fill='none'
                 xmlns='http://www.w3.org/2000/svg'
+                aria-label={formatMessage({id: 'generic_icons.mention', defaultMessage: 'Mention Icon'})}
             >
                 <path
                     d='M3.00001 35L3.00001 56L15 56'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.32'
                     strokeLinecap='round'
                 />
                 <path
                     d='M3 31L3 25'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.32'
                     strokeLinecap='round'
                 />
                 <path
                     d='M3 22L3 20'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.32'
                     strokeLinecap='round'
                 />
@@ -47,49 +50,49 @@ export function MentionsSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                 />
                 <path
                     d='M23.2536 67.2081L10.5 79.8035V12C10.5 11.1716 11.1716 10.5 12 10.5H78C78.8284 10.5 79.5 11.1716 79.5 12V64.9868C79.5 65.8153 78.8284 66.4868 78 66.4868H25.0103C24.3527 66.4868 23.7215 66.746 23.2536 67.2081Z'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.8'
                 />
                 <circle
                     cx='28'
                     cy='29'
                     r='9'
-                    fill='var(--center-channel-color-rgb)'
+                    fill='var(--center-channel-color)'
                     fillOpacity='0.32'
                 />
                 <path
                     d='M43 25H59'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.48'
                     strokeLinecap='round'
                 />
                 <path
                     d='M20 49H53'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.48'
                     strokeLinecap='round'
                 />
                 <path
                     d='M20 56H42'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.48'
                     strokeLinecap='round'
                 />
                 <path
                     d='M43 31H68'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.48'
                     strokeLinecap='round'
                 />
                 <path
                     d='M20 43H37'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.48'
                     strokeLinecap='round'
                 />
                 <path
                     d='M41 43H59'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.48'
                     strokeLinecap='round'
                 />
@@ -101,21 +104,21 @@ export function MentionsSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                 />
                 <path
                     d='M73 49L94 49L94 37'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.8'
                     strokeLinecap='round'
                     strokeLinejoin='round'
                 />
                 <path
                     d='M69 49L63 49'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.8'
                     strokeLinecap='round'
                     strokeLinejoin='round'
                 />
                 <path
                     d='M60 49L58 49'
-                    stroke='var(--center-channel-color-rgb)'
+                    stroke='var(--center-channel-color)'
                     strokeOpacity='0.8'
                     strokeLinecap='round'
                     strokeLinejoin='round'

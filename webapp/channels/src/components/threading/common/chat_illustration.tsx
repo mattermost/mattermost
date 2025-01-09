@@ -56,25 +56,25 @@ const ChatIllustration = (
             />
             <path
                 d='M67.0039 65H97.0039'
-                stroke='var(--neutral-0)'
+                stroke='#FFFFFF'
                 strokeOpacity='0.56'
                 strokeLinecap='round'
             />
             <path
                 d='M67.0039 72H86.0039'
-                stroke='var(--neutral-0)'
+                stroke='#FFFFFF'
                 strokeOpacity='0.56'
                 strokeLinecap='round'
             />
             <path
                 d='M67.0039 59H77.0039'
-                stroke='var(--neutral-0)'
+                stroke='#FFFFFF'
                 strokeOpacity='0.56'
                 strokeLinecap='round'
             />
             <path
                 d='M80.0039 59H93.0039'
-                stroke='var(--neutral-0)'
+                stroke='#FFFFFF'
                 strokeOpacity='0.56'
                 strokeLinecap='round'
             />

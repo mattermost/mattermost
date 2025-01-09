@@ -15,7 +15,8 @@ export function PinSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                 viewBox='0 0 97 87'
                 version='1.1'
                 role='img'
-                fill='none'
+
+                //fill='none'
                 xmlns='http://www.w3.org/2000/svg'
                 aria-label={formatMessage({id: 'generic_icons.pin', defaultMessage: 'Pin Icon'})}
             >
