@@ -415,14 +415,6 @@ func closeBody(r *http.Response) {
 	}
 }
 
-var userCache struct {
-	SystemAdminUser   *model.User
-	SystemManagerUser *model.User
-	TeamAdminUser     *model.User
-	BasicUser         *model.User
-	BasicUser2        *model.User
-}
-
 func (th *TestHelper) InitLogin() *TestHelper {
 	th.waitForConnectivity()
 
