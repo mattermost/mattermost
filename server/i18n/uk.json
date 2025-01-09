@@ -3097,7 +3097,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Пошук за допомогою Elasticsearch на цьому сервері не ввімкнено"
+    "translation": "{{.Backend}} пошук не ввімкнено на цьому сервері"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3105,15 +3105,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Індексатор Elasticsearch не зміг розібрати кінцевий час"
+    "translation": "Індексувальник {{.Backend}} не зміг обробити кінцевий час"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Індексатор Elasticsearch не зміг розібрати час запуску"
+    "translation": "Індексувальник {{.Backend}} не зміг обробити початковий час"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch не запущено"
+    "translation": "{{.Backend}} не запущено"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3121,7 +3121,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "На цьому сервері пошук за допомогою Elasticsearch вимкнено"
+    "translation": "Пошук {{.Backend}} вимкнено на цьому сервері"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3137,11 +3137,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch вже зупинено."
+    "translation": "{{.Backend}} вже зупинено."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch вимкнений."
+    "translation": "{{.Backend}} вимкнено."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3709,27 +3709,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Параметр Elasticsearch AggregatePostsAfterDays має бути більшим або рівним 1."
+    "translation": "Налаштування пошуку AggregatePostsAfterDays має бути числом, більшим або рівним 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Параметр Elasticsearch ConnectionUrl необхідно вказати, якщо індексування Elasticsearch увімкнено."
+    "translation": "Параметр пошуку ConnectionUrl необхідно вказати, якщо індексування увімкнено."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Параметр Elasticsearch EnableIndexing повинен мати значення Так, якщо параметр Elasticsearch EnableSearching має значення Так"
+    "translation": "Налаштування пошуку EnableIndexing повинно бути увімкнено, якщо Elasticsearch EnableSearching увімкнено"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size має бути не менше 1."
+    "translation": "Розмір пакета живого індексування має бути не меншим за 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Параметр Elasticsearch PostsAggregatorJobStartTime повинен містити час у форматі \"hh:mm\"."
+    "translation": "Налаштування пошуку PostsAggregatorJobStartTime повинно бути часом у форматі \"гг:хх\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Час очікування запиту Elasticsearch має бути щонайменше 1 секунда."
+    "translation": "Час очікування запиту для пошуку повинен бути не меншим за 1 секунду."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4709,11 +4709,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версія 17.0+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версія 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4885,7 +4885,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Параметр Elasticsearch EnableIndexing має бути встановлений на Так, якщо параметр Elasticsearch EnableAutocomplete встановлений на Так"
+    "translation": "Налаштування пошуку EnableIndexing повинен бути увімкнений, якщо Elasticsearch EnableAutocomplete увімкнений"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4937,11 +4937,11 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Не вдалося обробити версію сервера Elasticsearch."
+    "translation": "Не вдалося обробити версію сервера {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Не вдалося отримати версію сервера Elasticsearch."
+    "translation": "Не вдалося отримати версію сервера {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4961,7 +4961,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "На цьому сервері пошук за допомогою Elasticsearch вимкнено"
+    "translation": "Пошук {{.Backend}} вимкнено на цьому сервері"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -9693,7 +9693,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Пошук файлів Elasticsearch на цьому сервері вимкнено"
+    "translation": "На цьому сервері вимкнено пошук файлів {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.search_files.search_failed",
@@ -9757,7 +9757,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch версія {{.Version}} вища за максимально підтримувану версію {{.MaxVersion}}"
+    "translation": "Версія {{.Backend}} ({{.Version}}) перевищує максимальну підтримувану версію ({{.MaxVersion}})"
   },
   {
     "id": "ent.ldap_id_migrate.app_error",
@@ -9965,7 +9965,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Розмір пакету масового індексування Elasticsearch має бути не меншим за {{.BatchSize}}."
+    "translation": "Розмір пакета масового індексування має бути не меншим за {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.log.advanced_logging.parse",
@@ -10426,5 +10426,17 @@
   {
     "id": "api.post.deduplicate_create_post.cache_error",
     "translation": "Не вдалося кешувати допис після усунення дублікатів клієнта, що повторював один і той самий запит."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Властивість Post Message довша за максимально допустиму довжину."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Властивість Draft Message довша за максимально допустиму довжину."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Неможливо відфільтрувати конфігурацію."
   }
 ]

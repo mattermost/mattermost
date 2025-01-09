@@ -2,5 +2,5 @@
 // See LICENSE.txt for license information.
 
 Cypress.Commands.add('uiGetToolTip', (text) => {
-    cy.findByRole('tooltip').should('contain', text);
+    cy.findByRole('tooltip').should('exist').and('contain', text);
 });

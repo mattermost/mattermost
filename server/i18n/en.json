@@ -2133,6 +2133,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.filter_config_error",
+    "translation": "Unable to filter the configuration."
+  },
+  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
   },
@@ -4572,7 +4576,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Your Elasticsearch channel index schema is out of date. It is recommended to regenerate your channel index.\nClick the `Rebuild Channels Index` button in [Elasticsearch section in System Console]({{.ElasticsearchSection}}) to fix the issue.\nSee Mattermost changelog for more information."
+    "translation": "Your search channel index schema is out of date. We recommend regenerating your channel index.\nClick the `Rebuild Channels Index` button in the [Elasticsearch page via the System Console]({{.ElasticsearchSection}}) to fix this issue.\nSee the Mattermost changelog for more information."
   },
   {
     "id": "app.channel.get.existing.app_error",
@@ -5109,6 +5113,10 @@
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
     "translation": "Unable to copy custom emoji images"
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Unable to create a directory for custom emoji images"
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -5725,6 +5733,10 @@
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
     "translation": "User First Name is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "User roles are not consistent with guest status."
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
@@ -7850,11 +7862,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Failed to delete an Elasticsearch index"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Failed to delete a search index"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -7862,7 +7870,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Failed to refresh Elasticsearch indexes"
+    "translation": "Failed to refresh search indexes"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -7930,11 +7938,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Your license does not support Elasticsearch."
+    "translation": "Your Mattermost license doesn't support indexed search."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+    "translation": "The Search Server URL or Username has changed. Please re-enter the password to test connection."
   },
   {
     "id": "ent.get_users_in_channel_during",
@@ -8866,11 +8874,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Search EnableIndexing setting must be set to true when Elasticsearch EnableAutocomplete is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Search EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Searching}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
@@ -9511,6 +9519,10 @@
   {
     "id": "model.link_metadata.is_valid.url.app_error",
     "translation": "Link metadata URL must be set."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Length of link metadata URL is {{ .Length }} characters long, which exceeds the maximum limit of {{ .MaxLength }} characters."
   },
   {
     "id": "model.member.is_valid.channel.app_error",

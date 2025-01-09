@@ -98,7 +98,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     channelId="channelId"
   />
   <div
-    className="post-create__container"
+    className="post-create__container AdvancedTextEditor__ctr"
     id="post-create"
   >
     <div
