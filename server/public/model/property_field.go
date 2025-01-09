@@ -21,7 +21,7 @@ type PropertyField struct {
 	GroupID    string            `json:"group_id"`
 	Name       string            `json:"name"`
 	Type       PropertyFieldType `json:"type"`
-	Attrs      StringMap         `json:"attrs"`
+	Attrs      map[string]any    `json:"attrs"`
 	TargetID   string            `json:"target_id"`
 	TargetType string            `json:"target_type"`
 	CreateAt   int64             `json:"create_at"`
