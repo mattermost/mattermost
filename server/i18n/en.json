@@ -9854,15 +9854,15 @@
   },
   {
     "id": "model.property_field.is_valid.id.app_error",
-    "translation": "Invalid id."
+    "translation": "Invalid property field id."
   },
   {
     "id": "model.property_field.is_valid.name.app_error",
-    "translation": "Invalid name."
+    "translation": "Invalid property field name."
   },
   {
     "id": "model.property_field.is_valid.type.app_error",
-    "translation": "Invalid type."
+    "translation": "Invalid property field type."
   },
   {
     "id": "model.property_field.is_valid.update_at.app_error",
@@ -9874,7 +9874,7 @@
   },
   {
     "id": "model.property_value.is_valid.field_id.app_error",
-    "translation": "Invalid field id."
+    "translation": "Invalid property field id."
   },
   {
     "id": "model.property_value.is_valid.group_id.app_error",
@@ -9882,7 +9882,7 @@
   },
   {
     "id": "model.property_value.is_valid.id.app_error",
-    "translation": "Invalid id."
+    "translation": "Invalid property value id."
   },
   {
     "id": "model.property_value.is_valid.target_id.app_error",

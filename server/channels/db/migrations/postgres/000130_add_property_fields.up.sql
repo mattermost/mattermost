@@ -10,8 +10,8 @@ BEGIN
         'select',
         'multiselect',
         'date',
-        'person',
-        'multiperson'
+        'user',
+        'multiuser'
     );
   END IF;
 END;
@@ -28,8 +28,7 @@ CREATE TABLE IF NOT EXISTS PropertyFields (
 	TargetType varchar(255),
 	CreateAt bigint,
 	UpdateAt bigint,
-	DeleteAt bigint,
-	UNIQUE(GroupID, TargetID, Name)
+	DeleteAt bigint
 );
 
-CREATE INDEX idx_propertyfields_groupid_targetid ON PropertyFields (GroupID, TargetID);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_propertyfields_unique ON PropertyFields (GroupID, TargetID, Name) WHERE DeleteAt = 0;

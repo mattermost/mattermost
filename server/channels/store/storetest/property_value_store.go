@@ -46,20 +46,28 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "model.property_value.is_valid.target_type.app_error")
 	})
 
+	newValue := &model.PropertyValue{
+		TargetID:   model.NewId(),
+		TargetType: "test_type",
+		GroupID:    model.NewId(),
+		FieldID:    model.NewId(),
+		Value:      "test value",
+	}
+
 	t.Run("should be able to create a property value", func(t *testing.T) {
-		newValue := &model.PropertyValue{
-			TargetID:   model.NewId(),
-			TargetType: "test_type",
-			GroupID:    model.NewId(),
-			FieldID:    model.NewId(),
-			Value:      "test value",
-		}
 		value, err := ss.PropertyValue().Create(newValue)
 		require.NoError(t, err)
 		require.NotZero(t, value.ID)
 		require.NotZero(t, value.CreateAt)
 		require.NotZero(t, value.UpdateAt)
 		require.Zero(t, value.DeleteAt)
+	})
+
+	t.Run("should enforce the value's uniqueness", func(t *testing.T) {
+		newValue.ID = ""
+		value, err := ss.PropertyValue().Create(newValue)
+		require.Error(t, err)
+		require.Zero(t, value)
 	})
 }
 
@@ -284,6 +292,20 @@ func testDeletePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		deletedValue, err := ss.PropertyValue().Get(value.ID)
 		require.NoError(t, err)
 		require.NotZero(t, deletedValue.DeleteAt)
+	})
+
+	t.Run("should be able to create a new value with the same details as the deleted one", func(t *testing.T) {
+		sameDetailsValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      "test value",
+		}
+		value, err := ss.PropertyValue().Create(sameDetailsValue)
+		require.NoError(t, err)
+		require.NotEmpty(t, value.ID)
+		require.Equal(t, sameDetailsValue.Value, value.Value)
 	})
 }
 
