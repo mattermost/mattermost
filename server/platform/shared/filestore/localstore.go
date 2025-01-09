@@ -282,14 +282,16 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 
 		// Handle single file case
 		if !baseInfo.IsDir() {
-			file, err := os.Open(fullPath)
+			var file *os.File
+			file, err = os.Open(fullPath)
 			if err != nil {
 				pw.CloseWithError(errors.Wrapf(err, "unable to open file %s", path))
 				return
 			}
 			defer file.Close()
 
-			header, err := zip.FileInfoHeader(baseInfo)
+			var header *zip.FileHeader
+			header, err = zip.FileInfoHeader(baseInfo)
 			if err != nil {
 				pw.CloseWithError(errors.Wrapf(err, "unable to create zip header for %s", path))
 				return
@@ -297,13 +299,14 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 			header.Name = filepath.Base(path)
 			header.Method = deflateMethod
 
-			writer, err := zipWriter.CreateHeader(header)
+			var writer io.Writer
+			writer, err = zipWriter.CreateHeader(header)
 			if err != nil {
 				pw.CloseWithError(errors.Wrapf(err, "unable to create zip entry for %s", path))
 				return
 			}
 
-			if _, err := io.Copy(writer, file); err != nil {
+			if _, err = io.Copy(writer, file); err != nil {
 				pw.CloseWithError(errors.Wrapf(err, "unable to copy file content for %s", path))
 			}
 			return
