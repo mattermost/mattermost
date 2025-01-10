@@ -9801,32 +9801,8 @@
     "translation": "Update at must be a valid time."
   },
   {
-    "id": "model.property_value.is_valid.create_at.app_error",
-    "translation": "Create at must be a valid time."
-  },
-  {
-    "id": "model.property_value.is_valid.field_id.app_error",
-    "translation": "Invalid property field id."
-  },
-  {
-    "id": "model.property_value.is_valid.group_id.app_error",
-    "translation": "Invalid group id."
-  },
-  {
-    "id": "model.property_value.is_valid.id.app_error",
-    "translation": "Invalid property value id."
-  },
-  {
-    "id": "model.property_value.is_valid.target_id.app_error",
-    "translation": "Invalid target id."
-  },
-  {
-    "id": "model.property_value.is_valid.target_type.app_error",
-    "translation": "Invalid target type."
-  },
-  {
-    "id": "model.property_value.is_valid.update_at.app_error",
-    "translation": "Update at must be a valid time."
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Invalid property value: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.reaction.is_valid.create_at.app_error",
