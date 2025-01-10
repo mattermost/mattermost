@@ -31,7 +31,6 @@ import type {GlobalState} from 'types/store';
 
 import VirtualizedThreadList from './virtualized_thread_list';
 
-import BalloonIllustration from '../../common/balloon_illustration';
 import Button from '../../common/button';
 import {useThreadRouting} from '../../hooks';
 import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
