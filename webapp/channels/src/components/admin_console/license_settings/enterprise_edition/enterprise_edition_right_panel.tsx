@@ -86,16 +86,8 @@ const EnterpriseEditionRightPanel = ({
     };
 
     const svgImage = () => {
-        if (isTrialLicense) {
-            return (
-                <WomanWithCardSvg
-                    width={200}
-                    height={200}
-                />
-            );
-        }
         if (isEnterpriseOrE20) {
-            return null;
+            return null; //No image
         }
         return (
             <SetupSystemSvg
