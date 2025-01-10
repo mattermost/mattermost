@@ -7,7 +7,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
+	"path/filepath"
 	"strconv"
+	"time"
+
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -52,8 +56,9 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func downloadJob(c *Context, w http.ResponseWriter, _ *http.Request) {
+func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
+	const oldFilePath = "export"
 	const FileMime = "application/zip"
 
 	c.RequireJobId()
@@ -91,12 +96,28 @@ func downloadJob(c *Context, w http.ResponseWriter, _ *http.Request) {
 	exportDir, ok := job.Data["export_dir"]
 	fileName := path.Base(exportDir)
 	if !ok || exportDir == "" || fileName == "/" || fileName == "." {
-		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
-			"job.Data did not include export_dir, or export_dir was malformed", http.StatusBadRequest)
+		// Could be a pre-overhaul job. Try the old method:
+		fileName = job.Id + ".zip"
+		filePath := filepath.Join(oldFilePath, fileName)
+		var fileReader filestore.ReadCloseSeeker
+		fileReader, err = c.App.FileReader(filePath)
+		if err != nil {
+			c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+				"job.Data did not include export_dir, export_dir was malformed, or jobId.zip wasn't found",
+				http.StatusBadRequest).Wrap(err)
+			c.Err.StatusCode = http.StatusNotFound
+			return
+		}
+		defer fileReader.Close()
+
+		// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
+		// already sets that for us
+		web.WriteFileResponse(fileName, FileMime, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 		return
 	}
-	fileName += ".zip"
 
+	// New method
+	fileName += ".zip"
 	zipReader := c.App.ZipReader(exportDir, false)
 	defer zipReader.Close()
 
