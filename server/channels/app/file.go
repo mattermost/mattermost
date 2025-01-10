@@ -124,19 +124,16 @@ func fileReader(backend filestore.FileBackend, path string) (filestore.ReadClose
 	return result, nil
 }
 
-func zipReader(backend filestore.FileBackend, path string, deflate bool) (io.ReadCloser, *model.AppError) {
-	result, nErr := backend.ZipReader(path, deflate)
-	if nErr != nil {
-		return nil, model.NewAppError("ZipReader", "api.file.zip_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-	}
-	return result, nil
+func zipReader(backend filestore.FileBackend, path string, deflate bool) io.ReadCloser {
+	result := backend.ZipReader(path, deflate)
+	return result
 }
 
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.FileBackend(), path)
 }
 
-func (s *Server) zipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+func (s *Server) zipReader(path string, deflate bool) io.ReadCloser {
 	return zipReader(s.FileBackend(), path, deflate)
 }
 
@@ -152,7 +149,7 @@ func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppErro
 // ZipReader will create a zip of path. If path is a single file, it will zip the single file.
 // If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
 // Caller must close the first return value.
-func (a *App) ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+func (a *App) ZipReader(path string, deflate bool) io.ReadCloser {
 	return a.Srv().zipReader(path, deflate)
 }
 

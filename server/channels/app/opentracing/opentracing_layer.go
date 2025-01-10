@@ -19841,7 +19841,7 @@ func (a *OpenTracingAppLayer) WriteFileContext(ctx context.Context, fr io.Reader
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+func (a *OpenTracingAppLayer) ZipReader(path string, deflate bool) io.ReadCloser {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ZipReader")
 
@@ -19853,14 +19853,9 @@ func (a *OpenTracingAppLayer) ZipReader(path string, deflate bool) (io.ReadClose
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ZipReader(path, deflate)
+	resultVar0 := a.app.ZipReader(path, deflate)
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
+	return resultVar0
 }
 
 func NewOpenTracingAppLayer(childApp app.AppIface, ctx context.Context) *OpenTracingAppLayer {

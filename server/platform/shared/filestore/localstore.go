@@ -259,7 +259,7 @@ func (b *LocalFileBackend) RemoveDirectory(path string) error {
 	return nil
 }
 
-func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+func (b *LocalFileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 	deflateMethod := zip.Store
 	if deflate {
 		deflateMethod = zip.Deflate
@@ -368,5 +368,5 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 		}
 	}()
 
-	return pr, nil
+	return pr
 }

@@ -58,8 +58,6 @@ type AppIface interface {
 	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// Caller must close the first return value
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	// Caller must close the first return value
-	ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
 	// groups.
 	//
@@ -424,6 +422,10 @@ type AppIface interface {
 	ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
+	// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+	// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
+	// Caller must close the first return value.
+	ZipReader(path string, deflate bool) io.ReadCloser
 	// validateMoveOrCopy performs validation on a provided post list to determine
 	// if all permissions are in place to allow the for the posts to be moved or
 	// copied.

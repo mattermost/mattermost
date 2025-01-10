@@ -97,12 +97,7 @@ func downloadJob(c *Context, w http.ResponseWriter, _ *http.Request) {
 	}
 	fileName += ".zip"
 
-	zipReader, err := c.App.ZipReader(exportDir, false)
-	if err != nil {
-		c.Err = err
-		c.Err.StatusCode = http.StatusInternalServerError
-		return
-	}
+	zipReader := c.App.ZipReader(exportDir, false)
 	defer zipReader.Close()
 
 	if err := web.WriteStreamResponse(w, zipReader, fileName, FileMime, true); err != nil {

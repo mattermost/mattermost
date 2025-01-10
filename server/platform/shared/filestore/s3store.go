@@ -705,7 +705,7 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	return nil
 }
 
-func (b *S3FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+func (b *S3FileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 	deflateMethod := zip.Store
 	if deflate {
 		deflateMethod = zip.Deflate
@@ -713,7 +713,7 @@ func (b *S3FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, err
 
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to prefix path %s", path)
+		return nil
 	}
 
 	pr, pw := io.Pipe()
@@ -761,7 +761,7 @@ func (b *S3FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, err
 		}
 	}()
 
-	return pr, nil
+	return pr
 }
 
 func (b *S3FileBackend) _copyObject(zipWriter *zip.Writer, object s3.ObjectInfo, stripPath string, deflateMethod uint16) error {
