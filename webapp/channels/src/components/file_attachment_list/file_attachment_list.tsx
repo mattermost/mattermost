@@ -50,6 +50,7 @@ export default function FileAttachmentList(props: Props) {
                     postId={props.post.id}
                     compactDisplay={compactDisplay}
                     isInPermalink={isInPermalink}
+                    disableActions={props.disableActions}
                 />
             );
         }
