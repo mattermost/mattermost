@@ -119,15 +119,6 @@ components:
           description: The time in milliseconds the user accepted the terms of service
           type: integer
           format: int64
-    UserWithCPA:
-      allOf:
-        - $ref: "#/components/schemas/User"
-        - type: object
-          properties:
-            custom_profile_attributes:
-              type: array
-              items:
-                $ref: "#/components/schemas/PropertyValue"
     UsersStats:
       type: object
       properties:

@@ -768,7 +768,7 @@
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserWithCPA"
+                $ref: "#/components/schemas/User"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
