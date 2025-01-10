@@ -197,8 +197,8 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 		return nil, errors.New("page must be positive integer")
 	}
 
-	if opts.PerPage < 0 {
-		return nil, errors.New("per page must be positive integer")
+	if opts.PerPage < 1 {
+		return nil, errors.New("per page must be positive integer greater than zero")
 	}
 
 	query := s.tableSelectQuery.
