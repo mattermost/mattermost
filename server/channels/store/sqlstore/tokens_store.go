@@ -27,7 +27,7 @@ func newSqlTokenStore(sqlStore *SqlStore) store.TokenStore {
 	}
 
 	s.tokenSelectQuery = s.getQueryBuilder().
-		Select("token", "createat", "type", "extra").
+		Select("Token", "CreateAt", "Type", "Extra").
 		From("Tokens")
 
 	return &s
