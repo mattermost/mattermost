@@ -604,6 +604,10 @@ func (c *Client4) customProfileAttributesRoute() string {
 	return "/custom_profile_attributes"
 }
 
+func (c *Client4) userCustomProfileAttributesRoute(userID string) string {
+	return fmt.Sprintf("%s/%s", c.userRoute(userID), c.customProfileAttributesRoute())
+}
+
 func (c *Client4) customProfileAttributeFieldsRoute() string {
 	return fmt.Sprintf("%s/fields", c.customProfileAttributesRoute())
 }
@@ -9446,7 +9450,7 @@ func (c *Client4) DeleteCPAField(ctx context.Context, fieldID string) (*Response
 }
 
 func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.userRoute(userID)+c.customProfileAttributesRoute(), "")
+	r, err := c.DoAPIGet(ctx, c.userCustomProfileAttributesRoute(userID), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
