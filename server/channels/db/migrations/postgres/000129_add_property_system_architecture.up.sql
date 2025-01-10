@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS PropertyFields (
 	Attrs jsonb,
 	TargetID varchar(255),
 	TargetType varchar(255),
-	CreateAt bigint,
-	UpdateAt bigint,
-	DeleteAt bigint
+	CreateAt bigint NOT NULL,
+	UpdateAt bigint NOT NULL,
+	DeleteAt bigint NOT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_propertyfields_unique ON PropertyFields (GroupID, TargetID, Name) WHERE DeleteAt = 0;
@@ -46,9 +46,9 @@ CREATE TABLE IF NOT EXISTS PropertyValues (
 	GroupID varchar(26) NOT NULL,
 	FieldID varchar(26) NOT NULL,
 	Value jsonb NOT NULL,
-	CreateAt bigint,
-	UpdateAt bigint,
-	DeleteAt bigint
+	CreateAt bigint NOT NULL,
+	UpdateAt bigint NOT NULL,
+	DeleteAt bigint NOT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_propertyvalues_unique ON PropertyValues (GroupID, TargetID, FieldID) WHERE DeleteAt = 0;
