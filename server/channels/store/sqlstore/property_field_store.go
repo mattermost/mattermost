@@ -135,15 +135,11 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 		return nil, err
 	}
 
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		SetMap(insertMap).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_create_tosql")
-	}
+		SetMap(insertMap)
 
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
 	}
 
