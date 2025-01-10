@@ -57,6 +57,11 @@
     .edit-modal-body {
         overflow: visible;
 
+        .textarea-label {
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+
         .custom-textarea {
             height: auto;
             min-height: 8em;
@@ -117,11 +122,10 @@
 }
 
 .modal__error {
+    display: inline-block;
     margin-top: 6px;
     color: variables.$red;
-    float: left;
     font-size: 0.95em;
-    font-weight: normal;
 }
 
 .more-table {

@@ -197,9 +197,7 @@ const GroupMemberList = (props: Props) => {
                     </ProfilePopover>
                     <DMContainer className='group-member-list_dm-button'>
                         <WithTooltip
-                            id={`name-${user.id}`}
                             title={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
-                            placement='top'
                         >
                             <DMButton
                                 className='btn btn-icon btn-xs'
