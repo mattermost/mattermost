@@ -54,10 +54,6 @@ type AppIface interface {
 	AddPublicKey(name string, key io.Reader) *model.AppError
 	// AddUserToChannel adds a user to a given channel.
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
-	// Caller must close the first return value
-	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	// Caller must close the first return value
-	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
 	// groups.
 	//
@@ -105,8 +101,6 @@ type AppIface interface {
 	// CreateUser creates a user and sets several fields of the returned User struct to
 	// their zero values.
 	CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError)
-	// Creates and stores FileInfos for a post created before the FileInfos table existed.
-	MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo
 	// DefaultChannelNames returns the list of system-wide default channel names.
 	//
 	// By default the list will be (not necessarily in this order):
@@ -149,10 +143,14 @@ type AppIface interface {
 	// attributes of the attachment structure. The Slack attachment structure is
 	// documented here: https://api.slack.com/docs/attachments
 	ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment
+	// ExportFileReader caller is responsible for closing the returned ReadCloseSeeker.
+	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 	// A new ExpiresAt is only written if enough time has elapsed since last update.
 	// Returns true only if the session was extended.
 	ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Session) bool
+	// FileReader caller is responsible for closing the returned ReadCloseSeeker.
+	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// FillInPostProps should be invoked before saving posts to fill in properties such as
 	// channel_mentions.
 	//
@@ -266,6 +264,8 @@ type AppIface interface {
 	// MentionsToTeamMembers returns all the @ mentions found in message that
 	// belong to users in the specified team, linking them to their users
 	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
+	// MigrateFilenamesToFileInfos creates and stores FileInfos for a post created before the FileInfos table existed.
+	MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo
 	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
 	// function is only exposed to sysadmins and the possibility of this edge case is relatively small.
 	MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError
