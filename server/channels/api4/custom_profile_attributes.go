@@ -192,12 +192,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userID := c.Params.UserId
 	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userID)
-	if err != nil {
-		c.SetPermissionError(model.PermissionViewMembers)
-		return
-	}
-
-	if !canSee {
+	if err != nil || !canSee {
 		c.SetPermissionError(model.PermissionViewMembers)
 		return
 	}
