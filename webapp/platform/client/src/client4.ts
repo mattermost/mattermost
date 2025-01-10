@@ -3,7 +3,6 @@
 
 /* eslint-disable max-lines */
 
-import FormData from 'form-data';
 import {
     TrackPropertyUser,
     TrackPropertyUserAgent, TrackScheduledPostsFeature,
