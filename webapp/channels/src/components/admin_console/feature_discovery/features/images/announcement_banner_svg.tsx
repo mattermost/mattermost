@@ -10,9 +10,9 @@ type SvgProps = {
 
 const AnnouncementBannerSVG = (props: SvgProps) => (
     <svg
-        width={props.width ? props.width.toString() : '249'}
-        height={props.height ? props.height.toString() : '180'}
-        viewBox='0 0 249 180'
+        width={props.width ? props.width.toString() : '184'}
+        height={props.height ? props.height.toString() : '113'}
+        viewBox='0 0 184 113'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
     >

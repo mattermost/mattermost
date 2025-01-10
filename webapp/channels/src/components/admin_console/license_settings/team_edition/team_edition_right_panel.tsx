@@ -158,8 +158,8 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         <div className='TeamEditionRightPanel'>
             <div className='svg-image'>
                 <SetupSystemSvg
-                    width={200}
-                    height={200}
+                    width={197}
+                    height={120}
                 />
             </div>
             <div className='upgrade-title'>

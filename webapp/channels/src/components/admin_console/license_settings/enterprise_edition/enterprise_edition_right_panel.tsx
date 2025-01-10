@@ -104,8 +104,8 @@ const EnterpriseEditionRightPanel = ({
         }
         return (
             <SetupSystemSvg
-                width={200}
-                height={200}
+                width={197}
+                height={120}
             />
         );
     };

@@ -10,9 +10,9 @@ type SvgProps = {
 
 const DataRetentionSVG = (props: SvgProps) => (
     <svg
-        width={props.width ? props.width.toString() : '213'}
-        height={props.height ? props.height.toString() : '156'}
-        viewBox='0 0 213 156'
+        width={props.width ? props.width.toString() : '142'}
+        height={props.height ? props.height.toString() : '104'}
+        viewBox='0 0 142 104'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
     >
