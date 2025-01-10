@@ -478,7 +478,6 @@ type AppIface interface {
 	CheckCanInviteToSharedChannel(channelId string) error
 	CheckForClientSideCert(r *http.Request) (string, string, string)
 	CheckIntegrity() <-chan model.IntegrityCheckResult
-	CheckLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) (*model.User, *model.AppError)
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
 	CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError
 	CheckPostReminders(rctx request.CTX)

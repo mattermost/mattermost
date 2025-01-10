@@ -3528,12 +3528,13 @@ func resetPasswordFailedAttempts(c *Context, w http.ResponseWriter, r *http.Requ
 	if c.Err != nil {
 		return
 	}
+	errCtx := map[string]any{"userID": c.Params.UserId}
 
 	auditRec := c.MakeAuditRecord("resetPasswordFailedAttempts", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers) {
-		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.permissions.app_error", nil, "userId="+c.Params.UserId, http.StatusForbidden)
+		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.permissions.app_error", errCtx, "", http.StatusForbidden)
 		return
 	}
 
@@ -3551,17 +3552,17 @@ func resetPasswordFailedAttempts(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	if user.AuthService != model.UserAuthServiceLdap && user.AuthService != "" {
-		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error", errCtx, "", http.StatusBadRequest)
 		return
 	}
 
 	if user.AuthService == model.UserAuthServiceLdap && user.FailedAttempts < *c.App.Config().LdapSettings.MaximumLoginAttempts {
-		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.ldap_max_attempts.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.ldap_max_attempts.app_error", errCtx, "", http.StatusBadRequest)
 		return
 	}
 
 	if user.AuthService == "" && user.FailedAttempts < *c.App.Config().ServiceSettings.MaximumLoginAttempts {
-		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.email_max_attempts.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.email_max_attempts.app_error", errCtx, "", http.StatusBadRequest)
 		return
 	}
 
