@@ -2,25 +2,29 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
+import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled, {css} from 'styled-components';
 
-import {PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {PlusIcon, TextBoxOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import LoadingScreen from 'components/loading_screen';
 
-import {FieldDeleteButton, FieldInput, LinkButton} from './controls';
+import Constants from 'utils/constants';
+
+import {DangerText, FieldDeleteButton, FieldInput, LinkButton} from './controls';
 import type {SectionHook} from './section_utils';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
-import {isCreatePending, useUserPropertyFields} from './user_properties_utils';
+import type {UserPropertyFields} from './user_properties_utils';
+import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameUnique} from './user_properties_utils';
 
 import {AdminConsoleListTable} from '../list_table';
 
 type Props = {
-    data: UserPropertyField[];
+    data: UserPropertyFields;
 }
 
 type FieldActions = {
@@ -44,18 +48,20 @@ export const useUserPropertiesTable = (): SectionHook => {
         <LoadingScreen/>
     ) : (
         <>
-            <SharedChannelRemotesTable
-                data={collectionToArray(userPropertyFields)}
+            <UserPropertiesTable
+                data={userPropertyFields}
                 updateField={itemOps.update}
                 deleteField={itemOps.delete}
             />
-            <LinkButton onClick={itemOps.create}>
-                <PlusIcon size={16}/>
-                <FormattedMessage
-                    id='admin.system_properties.user_properties.add_property'
-                    defaultMessage='Add property'
-                />
-            </LinkButton>
+            {userPropertyFields.order.length < Constants.MAX_CUSTOM_ATTRIBUTES && (
+                <LinkButton onClick={itemOps.create}>
+                    <PlusIcon size={16}/>
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.add_property'
+                        defaultMessage='Add property'
+                    />
+                </LinkButton>
+            )}
         </>
     );
 
@@ -63,6 +69,7 @@ export const useUserPropertiesTable = (): SectionHook => {
         content,
         loading: readIO.loading,
         hasChanges: pendingIO.hasChanges,
+        isValid: !userPropertyFields.warnings,
         save,
         cancel: pendingIO.reset,
         saving: pendingIO.saving,
@@ -70,9 +77,9 @@ export const useUserPropertiesTable = (): SectionHook => {
     };
 };
 
-export function SharedChannelRemotesTable({data, updateField, deleteField}: Props & FieldActions) {
+export function UserPropertiesTable({data: collection, updateField, deleteField}: Props & FieldActions) {
+    const data = collectionToArray(collection);
     const col = createColumnHelper<UserPropertyField>();
-
     const columns = useMemo<Array<ColumnDef<UserPropertyField, any>>>(() => {
         return [
             col.accessor('name', {
@@ -80,21 +87,53 @@ export function SharedChannelRemotesTable({data, updateField, deleteField}: Prop
                     return (
                         <ColHeaderLeft>
                             <FormattedMessage
-                                id='admin.system_properties.user_properties.table.name'
-                                defaultMessage='Name'
+                                id='admin.system_properties.user_properties.table.property'
+                                defaultMessage='Property'
                             />
                         </ColHeaderLeft>
                     );
                 },
-                cell: ({getValue, row}) => (
-                    <EditableValue
-                        value={getValue()}
-                        deleted={row.original.delete_at !== 0}
-                        setValue={(value: string) => {
-                            updateField({...row.original, name: value});
-                        }}
-                    />
-                ),
+                cell: ({getValue, row}) => {
+                    const toDelete = row.original.delete_at !== 0;
+                    const warningId = collection.warnings?.[row.original.id]?.name;
+
+                    let warning;
+
+                    if (warningId === ValidationWarningNameRequired) {
+                        warning = (
+                            <FormattedMessage
+                                tagName={DangerText}
+                                id='admin.system_properties.user_properties.table.validation.name_required'
+                                defaultMessage='Please enter a property name.'
+                            />
+                        );
+                    } else if (warningId === ValidationWarningNameUnique) {
+                        warning = (
+                            <FormattedMessage
+                                tagName={DangerText}
+                                id='admin.system_properties.user_properties.table.validation.name_unique'
+                                defaultMessage='Property names must be unique.'
+                            />
+                        );
+                    }
+
+                    return (
+                        <>
+                            <EditableValue
+                                strong={true}
+                                value={getValue()}
+                                deleted={toDelete}
+                                borderless={!warning}
+                                autoFocus={isCreatePending(row.original)}
+                                setValue={(value: string) => {
+                                    updateField({...row.original, name: value.trim()});
+                                }}
+                                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
+                            />
+                            {!toDelete && warning}
+                        </>
+                    );
+                },
                 enableHiding: false,
                 enableSorting: false,
             }),
@@ -109,11 +148,30 @@ export function SharedChannelRemotesTable({data, updateField, deleteField}: Prop
                         </ColHeaderLeft>
                     );
                 },
-                cell: ({getValue, row}) => (
-                    <TypeCellWrapper $deleted={row.original.delete_at !== 0}>
-                        {getValue()}
-                    </TypeCellWrapper>
-                ),
+                cell: ({getValue, row}) => {
+                    let type = getValue();
+
+                    if (type === 'text') {
+                        type = (
+                            <>
+                                <TextBoxOutlineIcon
+                                    size={18}
+                                    color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                                />
+                                <FormattedMessage
+                                    id='admin.system_properties.user_properties.table.type.text'
+                                    defaultMessage='Text'
+                                />
+                            </>
+                        );
+                    }
+
+                    return (
+                        <TypeCellWrapper $deleted={row.original.delete_at !== 0}>
+                            {type}
+                        </TypeCellWrapper>
+                    );
+                },
                 enableHiding: false,
                 enableSorting: false,
             }),
@@ -140,7 +198,7 @@ export function SharedChannelRemotesTable({data, updateField, deleteField}: Prop
                 enableSorting: false,
             }),
         ];
-    }, [updateField, deleteField]);
+    }, [updateField, deleteField, collection.warnings]);
 
     const table = useReactTable({
         data,
@@ -178,15 +236,28 @@ const TableWrapper = styled.div`
 
         thead {
             border-top: none;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            tr {
+                th.pinned {
+                    background: rgba(var(--center-channel-color-rgb), 0.04);
+                    padding-block-end: 8px;
+                    padding-block-start: 8px;
+                }
+            }
         }
 
         tbody {
             tr {
                 border-top: none;
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                border-bottom-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
                 td {
-                    padding-block-end: 8px;
-                    padding-block-start: 8px;
+                    padding-block-end: 4px;
+                    padding-block-start: 4px;
+
+                    &:last-child {
+                        padding-inline-end: 12px;
+                    }
                 }
             }
         }
@@ -220,7 +291,10 @@ const Actions = ({field, deleteField}: {field: UserPropertyField} & FieldActions
                     onClick={handleDelete}
                     aria-label={formatMessage({id: 'admin.system_properties.user_properties.table.actions.delete', defaultMessage: 'Delete'})}
                 >
-                    <TrashCanOutlineIcon size={18}/>
+                    <TrashCanOutlineIcon
+                        size={18}
+                        color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                    />
                 </FieldDeleteButton>
             )}
         </ActionsRoot>
@@ -234,6 +308,11 @@ const TypeCellWrapper = styled.div<{$deleted?: boolean}>`
             text-decoration: line-through;
         }
     `};
+
+    vertical-align: middle;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
 `;
 
 const ColHeaderLeft = styled.div`
@@ -250,7 +329,18 @@ const ActionsRoot = styled.div`
     text-align: right;
 `;
 
-const EditableValue = (props: {value: string; setValue: (value: string) => void; disabled?: boolean; deleted?: boolean}) => {
+type EditableValueProps = {
+    value: string;
+    setValue: (value: string) => void;
+    autoFocus?: boolean;
+    disabled?: boolean;
+    deleted?: boolean;
+    footer?: ReactNode;
+    strong?: boolean;
+    maxLength?: number;
+    borderless?: boolean;
+};
+const EditableValue = (props: EditableValueProps) => {
     const [value, setValue] = useState(props.value);
 
     useEffect(() => {
@@ -258,20 +348,32 @@ const EditableValue = (props: {value: string; setValue: (value: string) => void;
     }, [props.value]);
 
     return (
-        <FieldInput
-            type='text'
-            data-testid='property-field-input'
-            disabled={props.disabled ?? props.deleted}
-            $deleted={props.deleted}
-            value={value}
-            onChange={(e) => {
-                setValue(e.target.value);
-            }}
-            onBlur={() => {
-                if (value !== props.value) {
-                    props.setValue(value);
-                }
-            }}
-        />
+        <>
+            <FieldInput
+                type='text'
+                data-testid='property-field-input'
+                disabled={props.disabled ?? props.deleted}
+                $deleted={props.deleted}
+                $strong={props.strong}
+                $borderless={props.borderless}
+                maxLength={props.maxLength}
+                autoFocus={props.autoFocus}
+                onFocus={(e) => {
+                    if (props.autoFocus) {
+                        e.target.select();
+                    }
+                }}
+                value={value}
+                onChange={(e) => {
+                    setValue(e.target.value);
+                }}
+                onBlur={() => {
+                    if (value !== props.value) {
+                        props.setValue(value);
+                    }
+                }}
+            />
+            {props.footer}
+        </>
     );
 };

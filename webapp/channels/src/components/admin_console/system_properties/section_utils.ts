@@ -5,12 +5,10 @@ import type {ReactNode} from 'react';
 import {useState, useCallback, useEffect} from 'react';
 import {useSelector} from 'react-redux';
 
-import type {ClientError} from '@mattermost/client';
-
 import type {GlobalState} from 'types/store';
 
-export class BatchProcessingError extends Error {
-    cause?: {[key: string]: Error};
+export class BatchProcessingError<T = Error> extends Error {
+    cause?: {[key: string]: T};
 }
 
 export type SectionHook = SectionIO & {
@@ -24,9 +22,10 @@ export type SectionIO = {
     saving: boolean;
     saveError: Error | undefined;
     hasChanges: boolean;
+    isValid: boolean;
 };
 
-export type TLoadingState<TError extends Error = ClientError> = boolean | TError;
+export type TLoadingState<TError extends Error> = boolean | TError;
 
 const status = <T extends Error>(state: TLoadingState<T>) => {
     const loading = state === true;
@@ -41,7 +40,7 @@ const status = <T extends Error>(state: TLoadingState<T>) => {
  * @param initialState -
  */
 export const useOperationStatus = <T extends Error>(initialState: TLoadingState<T>) => {
-    const [state, setState] = useState<TLoadingState>(initialState);
+    const [state, setState] = useState<TLoadingState<T>>(initialState);
     return [status(state), setState] as const;
 };
 
@@ -77,16 +76,16 @@ export function useOperation<T, TArgs extends unknown[], TErr extends Error>(op:
         }
     }, [op]);
 
-    return [doOp, status] as const;
+    return [doOp, status, setStatus] as const;
 }
 
 /**
- * Use current thing from redux selector or async read operation.
+ * Use current thing from redux selector or async read operation
  * @param ops Read
  * @param ops.get Async operation to retrieve thing if not selected or needs hydration. e.g. a client4 method or dispatched action creator.
  * @param ops.select Redux selector to retrieve thing from the store. Selected thing takes precedence over get-acquired thing.
  * @param initial Provide the initial state of the thing, e.g. placeholder while the get operation is pending.
- * @returns the thing and related meta. Use returned `get` to forcefully or manually get thing.
+ * @returns The thing and related meta. Use returned `get` action to forcefully or manually get thing.
  * @remarks Current thing is designed to correspond to the real/saved thing e.g. most recent version of the thing on the server
  */
 export function useThing<T>(ops: ReadOperations<T>, initial: T) {
@@ -111,13 +110,15 @@ export function useThing<T>(ops: ReadOperations<T>, initial: T) {
 /**
  * Use a pending thing to be saved in the future. Designed to be used with a corresponding {@link useThing}.
  * Has built-in patching for simple/flat objects, or add your own layered write operations on top in your custom hook.
- * @param data - current "source of truth" thing
- * @param onCommit - action to save pending thing.
+ * @param data Current version or "source of truth" version of thing.
+ * @param opts.commit Action to save pending thing.
  * @remarks After successfully committing, sync the resulting thing back to the current thing to reconcile or complete or the cycle and clear any diffs.
  */
-export function usePendingThing<T extends Record<string, unknown>, TErr extends Error>(data: T, onCommit: (pending: T, current: T) => T | Promise<T>) {
+export function usePendingThing<T extends Record<string, unknown>, TErr extends Error>(data: T, opts: {commit: (pending: T, current: T) => T | Promise<T>}) {
     const [pending, setPending] = useState(data);
     const hasChanges = pending !== data;
+
+    const [doCommit, {loading: saving, error}, setStatus] = useOperation<T, Parameters<typeof opts.commit>, TErr>(opts.commit, false);
 
     useEffect(() => {
         setPending(data);
@@ -129,9 +130,8 @@ export function usePendingThing<T extends Record<string, unknown>, TErr extends 
 
     const reset = useCallback(() => {
         setPending(data);
-    }, [setPending, data]);
-
-    const [doCommit, {loading: saving, error}] = useOperation<T, Parameters<typeof onCommit>, TErr>(onCommit, false);
+        setStatus(false);
+    }, [setPending, data, setStatus]);
 
     const commit = useCallback(() => {
         return doCommit(pending, data);
