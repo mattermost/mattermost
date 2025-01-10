@@ -299,16 +299,12 @@ func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField) (_ []*mode
 }
 
 func (s *SqlPropertyFieldStore) Delete(id string) error {
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Update("PropertyFields").
 		Set("DeleteAt", model.GetMillis()).
-		Where(sq.Eq{"id": id}).
-		ToSql()
-	if err != nil {
-		return errors.Wrap(err, "property_field_delete_tosql")
-	}
+		Where(sq.Eq{"id": id})
 
-	result, err := s.GetMaster().Exec(queryString, args...)
+	result, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete property field with id: %s", id)
 	}

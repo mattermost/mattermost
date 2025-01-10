@@ -130,15 +130,11 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 		return nil, err
 	}
 
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Insert("PropertyValues").
-		SetMap(insertMap).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_value_create_tosql")
-	}
+		SetMap(insertMap)
 
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_create_insert")
 	}
 
@@ -301,16 +297,12 @@ func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue) (_ []*mode
 }
 
 func (s *SqlPropertyValueStore) Delete(id string) error {
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("DeleteAt", model.GetMillis()).
-		Where(sq.Eq{"id": id}).
-		ToSql()
-	if err != nil {
-		return errors.Wrap(err, "property_value_delete_tosql")
-	}
+		Where(sq.Eq{"id": id})
 
-	result, err := s.GetMaster().Exec(queryString, args...)
+	result, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete property value with id: %s", id)
 	}
@@ -327,16 +319,12 @@ func (s *SqlPropertyValueStore) Delete(id string) error {
 }
 
 func (s *SqlPropertyValueStore) DeleteForField(fieldID string) error {
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("DeleteAt", model.GetMillis()).
-		Where(sq.Eq{"FieldID": fieldID}).
-		ToSql()
-	if err != nil {
-		return errors.Wrap(err, "property_value_delete_for_field_tosql")
-	}
+		Where(sq.Eq{"FieldID": fieldID})
 
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return errors.Wrap(err, "property_value_delete_for_field_exec")
 	}
 

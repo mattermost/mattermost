@@ -39,16 +39,12 @@ func (s *SqlPropertyGroupStore) Register(name string) (*model.PropertyGroup, err
 	group := &model.PropertyGroup{Name: name}
 	group.PreSave()
 
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Insert("PropertyGroups").
 		Columns("ID", "Name").
-		Values(group.ID, group.Name).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_group_register_tosql")
-	}
+		Values(group.ID, group.Name)
 
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_group_register_insert")
 	}
 
