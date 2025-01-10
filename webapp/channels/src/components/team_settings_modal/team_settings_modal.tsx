@@ -61,7 +61,7 @@ const TeamSettingsModal = ({onExited, canInviteUsers}: Props) => {
             show={show}
             onHide={handleHide}
             onExited={handleClose}
-            role='dialog'
+            role='none'
             aria-labelledby='teamSettingsModalLabel'
             id='teamSettingsModal'
         >

@@ -57,7 +57,7 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...baseProps}/>,
         );
 
-        wrapper.find('SizeAwareImage').at(0).simulate('click', {preventDefault: () => {}});
+        wrapper.find(SizeAwareImage).at(0).simulate('click', {preventDefault: () => { }});
         expect(baseProps.actions.openModal).toHaveBeenCalledTimes(1);
     });
 

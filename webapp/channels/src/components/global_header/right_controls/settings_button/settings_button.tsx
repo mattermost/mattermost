@@ -24,14 +24,12 @@ const SettingsButton = (props: Props): JSX.Element | null => {
 
     return (
         <WithTooltip
-            id='productSettings'
             title={
                 <FormattedMessage
                     id='global_header.productSettings'
                     defaultMessage='Settings'
                 />
             }
-            placement='bottom'
         >
             <IconButton
                 size={'sm'}

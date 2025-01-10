@@ -200,10 +200,6 @@
     "translation": "Props no vàlid"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Estat no vàlid"
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "ID no vàlid"
   },

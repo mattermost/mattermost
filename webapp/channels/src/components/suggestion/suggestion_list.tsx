@@ -298,6 +298,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             >
                 <div
                     id='suggestionList'
+                    data-testid='suggestionList'
                     role='list'
                     ref={this.contentRef}
                     style={{

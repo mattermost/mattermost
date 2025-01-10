@@ -111,11 +111,11 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
           facxd9wpzpbpfp8pad78xj75pr
         </strong>
         <Memo(CopyText)
-          tooltip={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Copy Client Id"
-              id="integrations.copy_client_id"
-            />
+          label={
+            Object {
+              "defaultMessage": "Copy Client Id",
+              "id": "integrations.copy_client_id",
+            }
           }
           value="facxd9wpzpbpfp8pad78xj75pr"
         />
@@ -339,11 +339,11 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
           facxd9wpzpbpfp8pad78xj75pr
         </strong>
         <Memo(CopyText)
-          tooltip={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Copy Client Id"
-              id="integrations.copy_client_id"
-            />
+          label={
+            Object {
+              "defaultMessage": "Copy Client Id",
+              "id": "integrations.copy_client_id",
+            }
           }
           value="facxd9wpzpbpfp8pad78xj75pr"
         />
@@ -515,11 +515,11 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
           facxd9wpzpbpfp8pad78xj75pr
         </strong>
         <Memo(CopyText)
-          tooltip={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Copy Client Id"
-              id="integrations.copy_client_id"
-            />
+          label={
+            Object {
+              "defaultMessage": "Copy Client Id",
+              "id": "integrations.copy_client_id",
+            }
           }
           value="facxd9wpzpbpfp8pad78xj75pr"
         />
