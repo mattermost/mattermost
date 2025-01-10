@@ -10,9 +10,9 @@ type SvgProps = {
 
 const GroupsSVG = (props: SvgProps) => (
     <svg
-        width={props.width ? props.width.toString() : '184'}
-        height={props.height ? props.height.toString() : '113'}
-        viewBox='0 0 184 113'
+        width={props.width ? props.width.toString() : '276'}
+        height={props.height ? props.height.toString() : '170'}
+        viewBox='0 0 276 170'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
     >

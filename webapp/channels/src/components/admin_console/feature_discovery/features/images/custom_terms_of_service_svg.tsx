@@ -10,9 +10,9 @@ type SvgProps = {
 
 const CustomTermsOfServiceSVG = (props: SvgProps) => (
     <svg
-        width={props.width ? props.width.toString() : '193'}
-        height={props.height ? props.height.toString() : '111'}
-        viewBox='0 0 193 111'
+        width={props.width ? props.width.toString() : '289'}
+        height={props.height ? props.height.toString() : '166'}
+        viewBox='0 0 289 166'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
         xmlnsXlink='http://www.w3.org/1999/xlink'

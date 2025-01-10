@@ -10,8 +10,8 @@ type SvgProps = {
 
 const GuestAccessSVG = (props: SvgProps) => (
     <svg
-        width={props.width ? props.width.toString() : '196'}
-        height={props.height ? props.height.toString() : '120'}
+        width={props.width ? props.width.toString() : '294'}
+        height={props.height ? props.height.toString() : '180'}
         viewBox='0 0 196 120'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'

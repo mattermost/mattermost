@@ -10,9 +10,9 @@ type SvgProps = {
 
 const ComplianceExportSVG = (props: SvgProps) => (
     <svg
-        width={props.width ? props.width.toString() : '189'}
-        height={props.height ? props.height.toString() : '116'}
-        viewBox='0 0 189 116'
+        width={props.width ? props.width.toString() : '283'}
+        height={props.height ? props.height.toString() : '174'}
+        viewBox='0 0 283 174'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
         xmlnsXlink='http://www.w3.org/1999/xlink'
