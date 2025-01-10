@@ -9793,14 +9793,6 @@
     "translation": "Invalid property field: {{.FieldName}} ({{.Reason}})."
   },
   {
-    "id": "model.property_field.is_valid.create_at.app_error",
-    "translation": "Create at must be a valid time."
-  },
-  {
-    "id": "model.property_field.is_valid.update_at.app_error",
-    "translation": "Update at must be a valid time."
-  },
-  {
     "id": "model.property_value.is_valid.app_error",
     "translation": "Invalid property value: {{.FieldName}} ({{.Reason}})."
   },
