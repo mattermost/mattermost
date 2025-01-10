@@ -170,7 +170,6 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 					return err
 				}
 
-				// CopyBuffer works with buffers that haven't been zeroed or reset; no need to clear it.
 				_, err = io.CopyBuffer(attachmentDst, r, buf)
 				if err != nil {
 					return err

@@ -319,7 +319,6 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 				return err
 			}
 
-			// CopyBuffer works with buffers that haven't been zeroed or reset; no need to clear it.
 			if _, err = io.CopyBuffer(zipWriter, attachmentReader, buf); err != nil {
 				return err
 			}
