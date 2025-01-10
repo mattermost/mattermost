@@ -53,7 +53,12 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.name.app_error", nil, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	if pf.Type == "" {
+	if !(pf.Type == PropertyFieldTypeText ||
+		pf.Type == PropertyFieldTypeSelect ||
+		pf.Type == PropertyFieldTypeMultiselect ||
+		pf.Type == PropertyFieldTypeDate ||
+		pf.Type == PropertyFieldTypeUser ||
+		pf.Type == PropertyFieldTypeMultiuser) {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.type.app_error", nil, "id="+pf.ID, http.StatusBadRequest)
 	}
 
