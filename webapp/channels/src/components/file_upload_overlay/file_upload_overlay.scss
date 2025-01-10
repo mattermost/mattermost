@@ -38,9 +38,9 @@
     }
 
     .overlay__circle {
+        display: flex;
         width: 300px;
         height: 300px;
-        display: flex;
         max-height: 100%;
         flex-direction: column;
         flex-wrap: wrap;

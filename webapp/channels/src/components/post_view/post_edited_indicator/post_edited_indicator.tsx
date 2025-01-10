@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {KeyboardEvent} from 'react';
-import type {MouseEvent} from 'react';
+import React from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
@@ -11,10 +11,10 @@ import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import WithTooltip from 'components/with_tooltip';
 
+import Constants from 'utils/constants';
 import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
 
 import type {Props} from './index';
-import Constants from 'utils/constants';
 
 const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, postOwner, post, canEdit, actions}: Props): JSX.Element | null => {
     const {formatMessage, formatDate, formatTime} = useIntl();
@@ -65,7 +65,7 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
         <span className='view-history__text'>{viewHistoryText}</span>
     ) : null;
 
-    const showPostEditHistory = (e: MouseEvent<HTMLButtonElement> | KeyboardEvent) => {
+    const showPostEditHistory = (e: MouseEvent<HTMLButtonElement> | KeyboardEvent<unknown>) => {
         e.preventDefault();
         if (post?.id) {
             actions.openShowEditHistory(post);
