@@ -42,15 +42,15 @@ func (pf *PropertyField) PreSave() {
 
 func (pf *PropertyField) IsValid() error {
 	if !IsValidId(pf.ID) {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "id", "Reason": "invalid id"}, "", http.StatusBadRequest)
 	}
 
 	if !IsValidId(pf.GroupID) {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.group_id.app_error", nil, "id="+pf.ID, http.StatusBadRequest)
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "group_id", "Reason": "invalid id"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if pf.Name == "" {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.name.app_error", nil, "id="+pf.ID, http.StatusBadRequest)
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if !(pf.Type == PropertyFieldTypeText ||
@@ -59,15 +59,15 @@ func (pf *PropertyField) IsValid() error {
 		pf.Type == PropertyFieldTypeDate ||
 		pf.Type == PropertyFieldTypeUser ||
 		pf.Type == PropertyFieldTypeMultiuser) {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.type.app_error", nil, "id="+pf.ID, http.StatusBadRequest)
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if pf.CreateAt == 0 {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.create_at.app_error", nil, "id="+pf.ID, http.StatusBadRequest)
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.create_at.app_error", map[string]any{"FieldName": "create_at", "Reason": "value cannot be zero"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if pf.UpdateAt == 0 {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.update_at.app_error", nil, "id="+pf.ID, http.StatusBadRequest)
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.update_at.app_error", map[string]any{"FieldName": "update_at", "Reason": "value cannot be zero"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	return nil

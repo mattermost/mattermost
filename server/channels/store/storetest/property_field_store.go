@@ -36,12 +36,12 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		newField := &model.PropertyField{GroupID: ""}
 		field, err := ss.PropertyField().Create(newField)
 		require.Zero(t, field)
-		require.ErrorContains(t, err, "model.property_field.is_valid.group_id.app_error")
+		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 
 		newField = &model.PropertyField{GroupID: model.NewId(), Name: ""}
 		field, err = ss.PropertyField().Create(newField)
 		require.Zero(t, field)
-		require.ErrorContains(t, err, "model.property_field.is_valid.name.app_error")
+		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 	})
 
 	newField := &model.PropertyField{
@@ -163,13 +163,13 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field.GroupID = ""
 		updatedField, err := ss.PropertyField().Update([]*model.PropertyField{field})
 		require.Zero(t, updatedField)
-		require.ErrorContains(t, err, "model.property_field.is_valid.group_id.app_error")
+		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 
 		field.GroupID = model.NewId()
 		field.Name = ""
 		updatedField, err = ss.PropertyField().Update([]*model.PropertyField{field})
 		require.Zero(t, updatedField)
-		require.ErrorContains(t, err, "model.property_field.is_valid.name.app_error")
+		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 	})
 
 	t.Run("should be able to update multiple property fields", func(t *testing.T) {
@@ -267,8 +267,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field2.GroupID = "Invalid ID"
 
 		_, err := ss.PropertyField().Update([]*model.PropertyField{field1, field2})
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "model.property_field.is_valid.group_id.app_error")
+		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 
 		// Check that fields were not updated
 		updated1, err := ss.PropertyField().Get(field1.ID)
