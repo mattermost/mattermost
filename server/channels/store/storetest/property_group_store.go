@@ -15,7 +15,7 @@ func TestPropertyGroupStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("RegisterAndGetPropertyGroup", func(t *testing.T) { testRegisterAndGetPropertyGroup(t, rctx, ss) })
 }
 
-func testRegisterAndGetPropertyGroup(t *testing.T, rctx request.CTX, ss store.Store) {
+func testRegisterAndGetPropertyGroup(t *testing.T, _ request.CTX, ss store.Store) {
 	groupName := "samplename"
 	var id string
 

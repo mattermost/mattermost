@@ -39,17 +39,31 @@ func (s *SqlPropertyGroupStore) Register(name string) (*model.PropertyGroup, err
 	group := &model.PropertyGroup{Name: name}
 	group.PreSave()
 
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Insert("PropertyGroups").
 		Columns("ID", "Name").
-		Values(group.ID, group.Name).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_group_register_tosql")
+		Values(group.ID, group.Name)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		builder = builder.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE Name=Name"))
+	} else {
+		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (Name) DO NOTHING"))
 	}
 
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	r, err := s.GetMaster().ExecBuilder(builder)
+	if err != nil {
 		return nil, errors.Wrap(err, "property_group_register_insert")
+	}
+
+	rowsAffected, err := r.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_group_register_rows_affected")
+	}
+
+	// there was a conflict during the insert, so we need to fetch the
+	// group to get its data
+	if rowsAffected == 0 {
+		return s.Get(name)
 	}
 
 	return group, nil

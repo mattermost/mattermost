@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -13,18 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
-
-var propertyValueColumns = []string{
-	"ID",
-	"TargetID",
-	"TargetType",
-	"GroupID",
-	"FieldID",
-	"Value",
-	"CreateAt",
-	"UpdateAt",
-	"DeleteAt",
-}
 
 func (s *SqlPropertyValueStore) propertyValueToInsertMap(value *model.PropertyValue) (map[string]any, error) {
 	valueJSON, err := json.Marshal(value.Value)
@@ -111,10 +100,18 @@ func propertyValueFromRows(rows *sql.Rows) (*model.PropertyValue, error) {
 
 type SqlPropertyValueStore struct {
 	*SqlStore
+
+	tableSelectQuery sq.SelectBuilder
 }
 
 func newPropertyValueStore(sqlStore *SqlStore) store.PropertyValueStore {
-	return &SqlPropertyValueStore{sqlStore}
+	s := SqlPropertyValueStore{SqlStore: sqlStore}
+
+	s.tableSelectQuery = s.getQueryBuilder().
+		Select("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+		From("PropertyValues")
+
+	return &s
 }
 
 func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -133,15 +130,11 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 		return nil, err
 	}
 
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Insert("PropertyValues").
-		SetMap(insertMap).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_value_create_tosql")
-	}
+		SetMap(insertMap)
 
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_create_insert")
 	}
 
@@ -149,9 +142,7 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 }
 
 func (s *SqlPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
-	queryString, args, err := s.getQueryBuilder().
-		Select(propertyValueColumns...).
-		From("PropertyValues").
+	queryString, args, err := s.tableSelectQuery.
 		Where(sq.Eq{"id": id}).
 		ToSql()
 	if err != nil {
@@ -173,9 +164,7 @@ func (s *SqlPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
 }
 
 func (s *SqlPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, error) {
-	queryString, args, err := s.getQueryBuilder().
-		Select(propertyValueColumns...).
-		From("PropertyValues").
+	queryString, args, err := s.tableSelectQuery.
 		Where(sq.Eq{"id": ids}).
 		ToSql()
 	if err != nil {
@@ -194,7 +183,7 @@ func (s *SqlPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, e
 	}
 
 	if len(values) < len(ids) {
-		return nil, errors.New("property_value_get_many_missmatch_results")
+		return nil, fmt.Errorf("missmatch results: got %d results of the %d ids passed", len(values), len(ids))
 	}
 
 	return values, nil
@@ -205,13 +194,11 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 		return nil, errors.New("page must be positive integer")
 	}
 
-	if opts.PerPage < 0 {
-		return nil, errors.New("per page must be positive integer")
+	if opts.PerPage < 1 {
+		return nil, errors.New("per page must be positive integer greater than zero")
 	}
 
-	query := s.getQueryBuilder().
-		Select(propertyValueColumns...).
-		From("PropertyValues").
+	query := s.tableSelectQuery.
 		OrderBy("CreateAt ASC").
 		Offset(uint64(opts.Page * opts.PerPage)).
 		Limit(uint64(opts.PerPage))
@@ -290,7 +277,7 @@ func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue) (_ []*mode
 
 		result, err := transaction.Exec(queryString, args...)
 		if err != nil {
-			return nil, errors.Wrap(err, "property_value_update_exec")
+			return nil, errors.Wrapf(err, "failed to update property value with id: %s", value.ID)
 		}
 
 		count, err := result.RowsAffected()
@@ -310,18 +297,14 @@ func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue) (_ []*mode
 }
 
 func (s *SqlPropertyValueStore) Delete(id string) error {
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("DeleteAt", model.GetMillis()).
-		Where(sq.Eq{"id": id}).
-		ToSql()
-	if err != nil {
-		return errors.Wrap(err, "property_value_delete_tosql")
-	}
+		Where(sq.Eq{"id": id})
 
-	result, err := s.GetMaster().Exec(queryString, args...)
+	result, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return errors.Wrap(err, "property_value_delete_exec")
+		return errors.Wrapf(err, "failed to delete property value with id: %s", id)
 	}
 
 	count, err := result.RowsAffected()
@@ -336,16 +319,12 @@ func (s *SqlPropertyValueStore) Delete(id string) error {
 }
 
 func (s *SqlPropertyValueStore) DeleteForField(fieldID string) error {
-	queryString, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("DeleteAt", model.GetMillis()).
-		Where(sq.Eq{"FieldID": fieldID}).
-		ToSql()
-	if err != nil {
-		return errors.Wrap(err, "property_value_delete_for_field_tosql")
-	}
+		Where(sq.Eq{"FieldID": fieldID})
 
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return errors.Wrap(err, "property_value_delete_for_field_exec")
 	}
 

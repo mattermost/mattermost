@@ -38,12 +38,12 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		newValue := &model.PropertyValue{TargetID: ""}
 		value, err := ss.PropertyValue().Create(newValue)
 		require.Zero(t, value)
-		require.ErrorContains(t, err, "model.property_value.is_valid.target_id.app_error")
+		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
 
 		newValue = &model.PropertyValue{TargetID: model.NewId(), TargetType: ""}
 		value, err = ss.PropertyValue().Create(newValue)
 		require.Zero(t, value)
-		require.ErrorContains(t, err, "model.property_value.is_valid.target_type.app_error")
+		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
 	})
 
 	newValue := &model.PropertyValue{
@@ -101,7 +101,7 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting values", func(t *testing.T) {
 		values, err := ss.PropertyValue().GetMany([]string{model.NewId(), model.NewId()})
 		require.Empty(t, values)
-		require.ErrorContains(t, err, "property_value_get_many_missmatch_results")
+		require.ErrorContains(t, err, "missmatch results")
 	})
 
 	newValues := []*model.PropertyValue{}
@@ -123,7 +123,7 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
 		values, err := ss.PropertyValue().GetMany([]string{newValues[0].ID, newValues[1].ID, model.NewId()})
 		require.Empty(t, values)
-		require.ErrorContains(t, err, "property_value_get_many_missmatch_results")
+		require.ErrorContains(t, err, "missmatch results")
 	})
 
 	t.Run("should be able to retrieve existing property values", func(t *testing.T) {
@@ -166,13 +166,13 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		value.TargetID = ""
 		updatedValue, err := ss.PropertyValue().Update([]*model.PropertyValue{value})
 		require.Zero(t, updatedValue)
-		require.ErrorContains(t, err, "model.property_value.is_valid.target_id.app_error")
+		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
 
 		value.TargetID = model.NewId()
 		value.GroupID = ""
 		updatedValue, err = ss.PropertyValue().Update([]*model.PropertyValue{value})
 		require.Zero(t, updatedValue)
-		require.ErrorContains(t, err, "model.property_value.is_valid.group_id.app_error")
+		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
 	})
 
 	t.Run("should be able to update multiple property values", func(t *testing.T) {
@@ -251,7 +251,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 
 		_, err := ss.PropertyValue().Update([]*model.PropertyValue{value1, value2})
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "model.property_value.is_valid.group_id.app_error")
+		require.Contains(t, err.Error(), "model.property_value.is_valid.app_error")
 
 		// Check that values were not updated
 		updated1, err := ss.PropertyValue().Get(value1.ID)

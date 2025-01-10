@@ -30,31 +30,31 @@ func (pv *PropertyValue) PreSave() {
 
 func (pv *PropertyValue) IsValid() error {
 	if !IsValidId(pv.ID) {
-		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "id", "Reason": "invalid id"}, "", http.StatusBadRequest)
 	}
 
 	if !IsValidId(pv.TargetID) {
-		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.target_id.app_error", nil, "id="+pv.ID, http.StatusBadRequest)
+		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "invalid id"}, "id="+pv.ID, http.StatusBadRequest)
 	}
 
 	if pv.TargetType == "" {
-		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.target_type.app_error", nil, "id="+pv.ID, http.StatusBadRequest)
+		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value cannot be empty"}, "id="+pv.ID, http.StatusBadRequest)
 	}
 
 	if !IsValidId(pv.GroupID) {
-		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.group_id.app_error", nil, "id="+pv.ID, http.StatusBadRequest)
+		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "group_id", "Reason": "invalid id"}, "id="+pv.ID, http.StatusBadRequest)
 	}
 
 	if !IsValidId(pv.FieldID) {
-		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.field_id.app_error", nil, "id="+pv.ID, http.StatusBadRequest)
+		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "field_id", "Reason": "invalid id"}, "id="+pv.ID, http.StatusBadRequest)
 	}
 
 	if pv.CreateAt == 0 {
-		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.create_at.app_error", nil, "id="+pv.ID, http.StatusBadRequest)
+		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "create_at", "Reason": "value cannot be zero"}, "id="+pv.ID, http.StatusBadRequest)
 	}
 
 	if pv.UpdateAt == 0 {
-		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.update_at.app_error", nil, "id="+pv.ID, http.StatusBadRequest)
+		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "update_at", "Reason": "value cannot be zero"}, "id="+pv.ID, http.StatusBadRequest)
 	}
 
 	return nil
