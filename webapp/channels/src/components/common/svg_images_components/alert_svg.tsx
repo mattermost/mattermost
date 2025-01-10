@@ -10,9 +10,9 @@ type SvgProps = {
 
 const AlertSvg = (props: SvgProps) => (
     <svg
-        width={props.width ? props.width.toString() : '130.5'}
-        height={props.height ? props.height.toString() : '130.5'}
-        viewBox='0 0 130.5 130.5'
+        width={props.width ? props.width.toString() : '87'}
+        height={props.height ? props.height.toString() : '70'}
+        viewBox='0 0 87 70'
         fill='none'
         xmlns='http://www.w3.org/2000/svg'
     >
@@ -76,6 +76,7 @@ const AlertSvg = (props: SvgProps) => (
             strokeLinecap='round'
         />
     </svg>
+
 );
 
 export default AlertSvg;
