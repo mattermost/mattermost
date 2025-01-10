@@ -17,6 +17,7 @@ export type IDMappedCollection<T extends {id: string}> = {
     data: IDMappedObjects<T>;
     order: Array<T['id']>;
     errors?: RelationOneToOne<T, Error>;
+    warnings?: RelationOneToOne<T, {[Key in keyof T]?: string}>;
 };
 
 export type DeepPartial<T> = {

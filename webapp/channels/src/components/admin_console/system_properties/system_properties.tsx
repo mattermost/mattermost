@@ -9,7 +9,7 @@ import {setNavigationBlocked} from 'actions/admin_actions';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {AdminSection, AdminWrapper, SectionContent, SectionHeader, SectionHeading} from './controls';
+import {AdminSection, AdminWrapper, DangerText, SectionContent, SectionHeader, SectionHeading} from './controls';
 import {useUserPropertiesTable} from './user_properties_table';
 
 import SaveChangesPanel from '../save_changes_panel';
@@ -27,6 +27,7 @@ export default function SystemProperties(props: Props) {
 
     const saving = userProperties.saving;
     const hasChanges = userProperties.hasChanges;
+    const isValid = userProperties.isValid;
     const saveError = userProperties.saveError;
 
     const handleSave = () => {
@@ -56,11 +57,11 @@ export default function SystemProperties(props: Props) {
                         <hgroup>
                             <FormattedMessage
                                 tagName={SectionHeading}
-                                id='admin.user_properties.title'
-                                defaultMessage='User properties'
+                                id='admin.system_properties.user_properties.title'
+                                defaultMessage='User Properties'
                             />
                             <FormattedMessage
-                                id='admin.user_properties.subtitle'
+                                id='admin.system_properties.user_properties.subtitle'
                                 defaultMessage='Customize the properties to show in user profiles'
                             />
                         </hgroup>
@@ -77,12 +78,13 @@ export default function SystemProperties(props: Props) {
                 onCancel={handleCancel}
                 serverError={saveError ? (
                     <FormattedMessage
+                        tagName={DangerText}
                         id='admin.system_properties.details.saving_changes_error'
                         defaultMessage='There was an error while saving the configuration'
                     />
                 ) : undefined}
                 savingMessage={formatMessage({id: 'admin.system_properties.details.saving_changes', defaultMessage: 'Saving configuration…'})}
-                isDisabled={props.disabled || saving}
+                isDisabled={props.disabled || saving || !isValid}
             />
         </div>
     );

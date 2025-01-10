@@ -1,8 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import groupBy from 'lodash/groupBy';
+import isEmpty from 'lodash/isEmpty';
 import {useCallback, useMemo} from 'react';
 
+import type {ClientError} from '@mattermost/client';
 import {isStatusOK} from '@mattermost/types/client4';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
@@ -15,7 +18,7 @@ import {generateId} from 'utils/utils';
 import type {CollectionIO} from './section_utils';
 import {useThing, usePendingThing, BatchProcessingError} from './section_utils';
 
-type UserPropertyFields = IDMappedCollection<UserPropertyField>;
+export type UserPropertyFields = IDMappedCollection<UserPropertyField>;
 
 export const useUserPropertyFields = () => {
     // current fields
@@ -32,26 +35,23 @@ export const useUserPropertyFields = () => {
     }), []), collectionFromArray([]));
 
     // save-sync operations
-    const onCommit = useCallback(async (collection: UserPropertyFields, prevCollection: UserPropertyFields) => {
+    const commit = useCallback(async (collection: UserPropertyFields, prevCollection: UserPropertyFields) => {
         const process = collectionToArray(collection).filter((field) => {
-            // process changed fields - create, delete, update
+            // process changed fields
             return field !== prevCollection.data[field.id];
         });
 
-        // prepare operations
+        // prepare operations - create, delete, update
         const fieldResults = await Promise.allSettled(process.map((item) => {
             const {id, name, type} = item;
             const patch: UserPropertyFieldPatch = {name, type};
 
             if (isCreatePending(item)) {
-                // prepare:create
                 return Client4.createCustomProfileAttributeField(patch);
             } else if (isDeletePending(item)) {
-                // prepare:delete
                 return Client4.deleteCustomProfileAttributeField(id);
             }
 
-            // prepare:update
             return Client4.patchCustomProfileAttributeField(id, patch);
         }));
 
@@ -92,47 +92,85 @@ export const useUserPropertyFields = () => {
             errors: {}, // start with errors cleared; don't keep stale errors
         });
 
-        if (processedCollection.errors && Object.keys(processedCollection.errors).length) {
-            // set pendingIO master error
-            throw new BatchProcessingError('error processing operations', {cause: processedCollection.errors});
-        } else {
+        if (isEmpty(processedCollection.errors)) {
             Reflect.deleteProperty(processedCollection, 'errors');
+        } else {
+            // set pendingIO master error
+            throw new BatchProcessingError<ClientError>('error processing operations', {cause: processedCollection.errors});
         }
 
         return processedCollection;
     }, []);
 
     // pending fields to be saved
-    const [pending, pendingIO] = usePendingThing<UserPropertyFields, BatchProcessingError>(fieldCollection, onCommit);
+    const [pendingCollection, pendingIO] = usePendingThing<UserPropertyFields, BatchProcessingError<ClientError>>(fieldCollection, {commit});
 
     // edit pending fields before saving
     const itemOps = useMemo(() => ({
         update: (field) => {
-            pendingIO.apply((current) => {
-                return collectionReplaceItem(current, field);
+            pendingIO.apply((pending) => {
+                return validate(collectionReplaceItem(pending, field));
             });
         },
         create: () => {
-            pendingIO.apply((current) => {
-                const field = newPendingField({name: '', type: 'text'});
-                return collectionAddItem(current, field);
+            pendingIO.apply((pending) => {
+                const name = getIncrementedName('Text', pending);
+                const field = newPendingField({name, type: 'text'});
+                return collectionAddItem(pending, field);
             });
         },
         delete: (id: string) => {
-            pendingIO.apply((current) => {
-                const field = current.data[id];
+            pendingIO.apply((pending) => {
+                const field = pending.data[id];
 
                 if (isCreatePending(field)) {
                     // immediately remove if deleting a field that is pending creation
-                    return collectionRemoveItem(current, field);
+                    return validate(collectionRemoveItem(pending, field));
                 }
 
-                return collectionReplaceItem(current, {...field, delete_at: Date.now()});
+                return validate(collectionReplaceItem(pending, {...field, delete_at: Date.now()}));
             });
         },
     } satisfies CollectionIO<UserPropertyField>), [pendingIO.apply]);
 
-    return [pending, readIO, pendingIO, itemOps] as const;
+    return [pendingCollection, readIO, pendingIO, itemOps] as const;
+};
+
+const validate = (pending: UserPropertyFields) => {
+    // Name
+    const byName = groupBy(pending.data, 'name');
+
+    const warnings = Object.values(pending.data).reduce<NonNullable<UserPropertyFields['warnings']>>((acc, field) => {
+        if (!field.name) {
+            acc[field.id] = {name: ValidationWarningNameRequired};
+        } else if (byName[field.name].length > 1) {
+            acc[field.id] = {name: ValidationWarningNameUnique};
+        }
+
+        return acc;
+    }, {});
+
+    const next = {...pending, warnings};
+
+    if (isEmpty(warnings)) {
+        Reflect.deleteProperty(next, 'warnings');
+    }
+
+    return next;
+};
+
+export const ValidationWarningNameRequired = 'user_properties.validation.name_required';
+export const ValidationWarningNameUnique = 'user_properties.validation.name_unique';
+
+const getIncrementedName = (desiredName: string, collection: UserPropertyFields) => {
+    const names = new Set(Object.values(collection.data).map(({name}) => name));
+    let newName = desiredName;
+    let n = 1;
+    while (names.has(newName)) {
+        n++;
+        newName = `${desiredName} ${n}`;
+    }
+    return newName;
 };
 
 const PENDING = 'pending_';

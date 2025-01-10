@@ -27,55 +27,9 @@ export const SectionContent = styled.div.attrs({className: 'content'})<{$compact
     }
 `;
 
-export const ModalBody = styled.div`
-    padding: 0 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-`;
-
 export const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
     && {
         overflow: visible;
-    }
-`;
-
-export const PlaceholderHeading = styled.h4`
-    && {
-        font-size: 20px;
-        font-weight: 600;
-        line-height: 28px;
-        margin-bottom: 4px;
-    }
-`;
-
-export const PlaceholderParagraph = styled.p`
-    && {
-        font-size: 14px;
-    }
-`;
-
-export const ModalParagraph = styled.p`
-    && {
-        font-size: 12px;
-        line-height: 16px;
-        font-weight: 400;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-    }
-`;
-
-export const PlaceholderContainer = styled.div`
-    display: flex;
-    place-items: center;
-    flex-direction: column;
-    gap: 5px;
-
-    svg {
-        margin: 30px 30px 20px;
-    }
-
-    hgroup {
-        text-align: center;
     }
 `;
 
@@ -89,18 +43,34 @@ export const AdminWrapper = (props: {children: ReactNode}) => {
     );
 };
 
-export const FieldInput = styled.input.attrs({className: 'form-control secure-connections-input'})<{$deleted?: boolean}>`
+export const FieldInput = styled.input.attrs({className: 'form-control secure-connections-input'})<{$deleted?: boolean; $strong?: boolean; $borderless?: boolean}>`
     font-weight: normal;
-    && {
-        border-color: transparent;
-        box-shadow: none;
-    }
+
+    ${({$borderless}) => $borderless && css`
+        && {
+            border-color: transparent;
+            box-shadow: none;
+        }
+    `};
+
     ${({$deleted}) => $deleted && css`
         && {
             color: #D24B4E;
             text-decoration: line-through;
         }
     `};
+
+    ${({$strong}) => $strong && css`
+        && {
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 600;
+        }
+    `};
+`;
+
+export const DangerText = styled.span`
+    color: #D24B4E;
 `;
 
 export const FieldDeleteButton = styled.button.attrs({className: 'btn btn-sm btn-transparent'})`
@@ -109,4 +79,10 @@ export const FieldDeleteButton = styled.button.attrs({className: 'btn btn-sm btn
 
 export const LinkButton = styled.button.attrs({className: 'btn btn-link'})`
     font-weight: normal;
+    padding: 8px 16px !important;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 16px;
+    gap: 6px;
 `;
