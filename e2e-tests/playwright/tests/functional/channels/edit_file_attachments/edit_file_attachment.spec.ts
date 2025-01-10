@@ -7,7 +7,7 @@ import {expect} from '@playwright/test';
 test('should be able to edit post message', async ({pw, pages}) => {
     test.setTimeout(120000);
 
-    const originalMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit";
+    const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
@@ -27,18 +27,18 @@ test('should be able to edit post message', async ({pw, pages}) => {
     await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.editMenuItem.click();
     await channelPage.centerView.postEdit.toBeVisible();
-    await channelPage.centerView.postEdit.writeMessage("Edited message");
+    await channelPage.centerView.postEdit.writeMessage('Edited message');
     await channelPage.centerView.postEdit.sendMessage();
 
     const updatedPost = await channelPage.centerView.getLastPost();
     await updatedPost.toBeVisible();
-    await updatedPost.toContainText("Edited message");
+    await updatedPost.toContainText('Edited message');
 });
 
 test('should be able to edit post message in RHS', async ({pw, pages}) => {
     test.setTimeout(120000);
 
-    const originalMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit";
+    const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
@@ -59,8 +59,8 @@ test('should be able to edit post message in RHS', async ({pw, pages}) => {
     await channelPage.postDotMenu.replyMenuItem.click();
     await channelPage.sidebarRight.toBeVisible();
     await channelPage.sidebarRight.postCreate.toBeVisible();
-    await channelPage.sidebarRight.postCreate.postMessage("Replying to the post");
-    await channelPage.sidebarRight.toContainText("Replying to the post");
+    await channelPage.sidebarRight.postCreate.postMessage('Replying to the post');
+    await channelPage.sidebarRight.toContainText('Replying to the post');
 
     const replyPost = await channelPage.sidebarRight.getLastPost();
     await replyPost.toBeVisible();
@@ -70,12 +70,12 @@ test('should be able to edit post message in RHS', async ({pw, pages}) => {
     await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.editMenuItem.click();
     await channelPage.sidebarRight.postEdit.toBeVisible();
-    await channelPage.sidebarRight.postEdit.writeMessage("Edited reply message");
+    await channelPage.sidebarRight.postEdit.writeMessage('Edited reply message');
     await channelPage.sidebarRight.postEdit.sendMessage();
 
     let updatedReplyPost = await channelPage.sidebarRight.getLastPost();
     await updatedReplyPost.toBeVisible();
-    await updatedReplyPost.toContainText("Edited reply message");
+    await updatedReplyPost.toContainText('Edited reply message');
 
     // now we'll edit the reply post and files to it
     await updatedReplyPost.hover();
@@ -84,15 +84,15 @@ test('should be able to edit post message in RHS', async ({pw, pages}) => {
     await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.editMenuItem.click();
     await channelPage.sidebarRight.postEdit.toBeVisible();
-    await channelPage.sidebarRight.postEdit.writeMessage("Edited reply message with files");
+    await channelPage.sidebarRight.postEdit.writeMessage('Edited reply message with files');
     await channelPage.sidebarRight.postEdit.addFiles(['sample_text_file.txt', 'mattermost.png']);
     await channelPage.sidebarRight.postEdit.sendMessage();
 
     updatedReplyPost = await channelPage.sidebarRight.getLastPost();
     await updatedReplyPost.toBeVisible();
-    await updatedReplyPost.toContainText("Edited reply message with files");
-    await updatedReplyPost.toContainText("sample_text_file.txt");
-    await updatedReplyPost.toContainText("mattermost.png");
+    await updatedReplyPost.toContainText('Edited reply message with files');
+    await updatedReplyPost.toContainText('sample_text_file.txt');
+    await updatedReplyPost.toContainText('mattermost.png');
 
     // now we'll remove the files
     await updatedReplyPost.hover();
@@ -107,7 +107,7 @@ test('should be able to edit post message in RHS', async ({pw, pages}) => {
 
     updatedReplyPost = await channelPage.sidebarRight.getLastPost();
     await updatedReplyPost.toBeVisible();
-    await updatedReplyPost.toContainText("Edited reply message with files");
+    await updatedReplyPost.toContainText('Edited reply message with files');
     await expect(updatedReplyPost).not.toContain('sample_text_file.txt');
     await expect(updatedReplyPost).not.toContain('mattermost.png');
 });
@@ -115,7 +115,7 @@ test('should be able to edit post message in RHS', async ({pw, pages}) => {
 test('should be able to edit post message originally containing files', async ({pw, pages}) => {
     test.setTimeout(120000);
 
-    const originalMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit";
+    const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
@@ -135,18 +135,18 @@ test('should be able to edit post message originally containing files', async ({
     await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.editMenuItem.click();
     await channelPage.centerView.postEdit.toBeVisible();
-    await channelPage.centerView.postEdit.writeMessage("Edited message");
+    await channelPage.centerView.postEdit.writeMessage('Edited message');
     await channelPage.centerView.postEdit.sendMessage();
 
     const updatedPost = await channelPage.centerView.getLastPost();
     await updatedPost.toBeVisible();
-    await updatedPost.toContainText("Edited message");
+    await updatedPost.toContainText('Edited message');
 });
 
 test('should be able to add files when editing a post', async ({pw, pages}) => {
     test.setTimeout(120000);
 
-    const originalMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit";
+    const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
@@ -166,14 +166,14 @@ test('should be able to add files when editing a post', async ({pw, pages}) => {
     await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.editMenuItem.click();
     await channelPage.centerView.postEdit.toBeVisible();
-    await channelPage.centerView.postEdit.writeMessage("Edited message");
+    await channelPage.centerView.postEdit.writeMessage('Edited message');
     await channelPage.centerView.postEdit.addFiles(['sample_text_file.txt']);
     await channelPage.centerView.postEdit.sendMessage();
 
     const updatedPost = await channelPage.centerView.getLastPost();
     await updatedPost.toBeVisible();
-    await updatedPost.toContainText("Edited message");
-    await updatedPost.toContainText("sample_text_file.txt");
+    await updatedPost.toContainText('Edited message');
+    await updatedPost.toContainText('sample_text_file.txt');
 
     // now we'll add multiple files
     await post.postMenu.dotMenuButton.click();
@@ -185,16 +185,16 @@ test('should be able to add files when editing a post', async ({pw, pages}) => {
 
     const secondUpdatedPost = await channelPage.centerView.getLastPost();
     await secondUpdatedPost.toBeVisible();
-    await secondUpdatedPost.toContainText("Edited message");
-    await secondUpdatedPost.toContainText("sample_text_file.txt");
-    await secondUpdatedPost.toContainText("mattermost.png");
-    await secondUpdatedPost.toContainText("archive.zip");
+    await secondUpdatedPost.toContainText('Edited message');
+    await secondUpdatedPost.toContainText('sample_text_file.txt');
+    await secondUpdatedPost.toContainText('mattermost.png');
+    await secondUpdatedPost.toContainText('archive.zip');
 });
 
 test('should be able to remove some files when editing a post', async ({pw, pages}) => {
     test.setTimeout(120000);
 
-    const originalMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit";
+    const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
@@ -202,14 +202,18 @@ test('should be able to remove some files when editing a post', async ({pw, page
 
     await channelPage.goto();
     await channelPage.toBeVisible();
-    await channelPage.centerView.postCreate.postMessage(originalMessage, ['sample_text_file.txt', 'mattermost.png', 'archive.zip']);
+    await channelPage.centerView.postCreate.postMessage(originalMessage, [
+        'sample_text_file.txt',
+        'mattermost.png',
+        'archive.zip',
+    ]);
 
     const post = await channelPage.centerView.getLastPost();
     await post.toBeVisible();
     await post.toContainText(originalMessage);
-    await post.toContainText("sample_text_file.txt");
-    await post.toContainText("mattermost.png");
-    await post.toContainText("archive.zip");
+    await post.toContainText('sample_text_file.txt');
+    await post.toContainText('mattermost.png');
+    await post.toContainText('archive.zip');
 
     await post.hover();
     await post.postMenu.toBeVisible();
@@ -232,7 +236,7 @@ test('should be able to remove some files when editing a post', async ({pw, page
 test('should be able to remove all files when editing a post', async ({pw, pages}) => {
     test.setTimeout(120000);
 
-    const originalMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit";
+    const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
@@ -240,14 +244,18 @@ test('should be able to remove all files when editing a post', async ({pw, pages
 
     await channelPage.goto();
     await channelPage.toBeVisible();
-    await channelPage.centerView.postCreate.postMessage(originalMessage, ['sample_text_file.txt', 'mattermost.png', 'archive.zip']);
+    await channelPage.centerView.postCreate.postMessage(originalMessage, [
+        'sample_text_file.txt',
+        'mattermost.png',
+        'archive.zip',
+    ]);
 
     const post = await channelPage.centerView.getLastPost();
     await post.toBeVisible();
     await post.toContainText(originalMessage);
-    await post.toContainText("sample_text_file.txt");
-    await post.toContainText("mattermost.png");
-    await post.toContainText("archive.zip");
+    await post.toContainText('sample_text_file.txt');
+    await post.toContainText('mattermost.png');
+    await post.toContainText('archive.zip');
 
     await post.hover();
     await post.postMenu.toBeVisible();
@@ -272,7 +280,7 @@ test('should be able to remove all files when editing a post', async ({pw, pages
 test('removing message content and files should delete the post', async ({pw, pages}) => {
     test.setTimeout(120000);
 
-    const originalMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit";
+    const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
     const {page} = await pw.testBrowser.login(user);
@@ -285,7 +293,7 @@ test('removing message content and files should delete the post', async ({pw, pa
     const post = await channelPage.centerView.getLastPost();
     await post.toBeVisible();
     await post.toContainText(originalMessage);
-    await post.toContainText("sample_text_file.txt");
+    await post.toContainText('sample_text_file.txt');
 
     await post.hover();
     await post.postMenu.toBeVisible();

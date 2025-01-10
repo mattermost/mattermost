@@ -14,7 +14,7 @@ export default class ChannelsPostEdit {
     readonly sendMessageButton;
     readonly deleteConfirmationDialog;
 
-    constructor(container: Locator, ) {
+    constructor(container: Locator) {
         this.container = container;
 
         this.input = container.getByTestId('edit_textbox');
@@ -23,7 +23,9 @@ export default class ChannelsPostEdit {
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.locator('.save');
 
-        this.deleteConfirmationDialog = new components.DeletePostConfirmationDialog(container.page().locator('#deletePostModal'));
+        this.deleteConfirmationDialog = new components.DeletePostConfirmationDialog(
+            container.page().locator('#deletePostModal'),
+        );
     }
 
     async toBeVisible() {

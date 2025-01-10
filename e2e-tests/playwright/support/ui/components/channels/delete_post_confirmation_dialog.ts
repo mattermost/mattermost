@@ -9,7 +9,6 @@ export default class DeletePostConfirmationDialog {
     readonly cancelButton;
     readonly confirmButton;
 
-
     constructor(container: Locator) {
         this.container = container;
 
@@ -36,7 +35,6 @@ export default class DeletePostConfirmationDialog {
     async confirmDeletion() {
         await this.confirmButton.click();
     }
-
 }
 
 export {DeletePostConfirmationDialog};
