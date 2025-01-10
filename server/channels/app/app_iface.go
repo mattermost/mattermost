@@ -58,8 +58,6 @@ type AppIface interface {
 	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// Caller must close the first return value
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	// Caller must close the first return value.
-	ZipReader(path string, deflate bool) io.ReadCloser
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
 	// groups.
 	//
@@ -424,6 +422,8 @@ type AppIface interface {
 	ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
+	// ZipReader caller is responsible for closing the returned ReadCloser.
+	ZipReader(path string, deflate bool) io.ReadCloser
 	// validateMoveOrCopy performs validation on a provided post list to determine
 	// if all permissions are in place to allow the for the posts to be moved or
 	// copied.
