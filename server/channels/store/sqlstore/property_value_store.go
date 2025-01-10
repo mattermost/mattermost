@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -186,7 +187,7 @@ func (s *SqlPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, e
 	}
 
 	if len(values) < len(ids) {
-		return nil, errors.New("property_value_get_many_missmatch_results")
+		return nil, fmt.Errorf("missmatch results: got %d results of the %d ids passed", len(values), len(ids))
 	}
 
 	return values, nil
@@ -280,7 +281,7 @@ func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue) (_ []*mode
 
 		result, err := transaction.Exec(queryString, args...)
 		if err != nil {
-			return nil, errors.Wrap(err, "property_value_update_exec")
+			return nil, errors.Wrapf(err, "failed to update property value with id: %s", value.ID)
 		}
 
 		count, err := result.RowsAffected()
@@ -311,7 +312,7 @@ func (s *SqlPropertyValueStore) Delete(id string) error {
 
 	result, err := s.GetMaster().Exec(queryString, args...)
 	if err != nil {
-		return errors.Wrap(err, "property_value_delete_exec")
+		return errors.Wrapf(err, "failed to delete property value with id: %s", id)
 	}
 
 	count, err := result.RowsAffected()

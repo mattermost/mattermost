@@ -310,7 +310,7 @@ func (s *SqlPropertyFieldStore) Delete(id string) error {
 
 	result, err := s.GetMaster().Exec(queryString, args...)
 	if err != nil {
-		return errors.Wrap(err, "property_field_delete_exec")
+		return errors.Wrapf(err, "failed to delete property field with id: %s", id)
 	}
 
 	count, err := result.RowsAffected()
