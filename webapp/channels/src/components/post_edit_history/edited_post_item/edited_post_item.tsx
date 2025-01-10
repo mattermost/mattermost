@@ -113,7 +113,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
     };
 
     const handleRestore = async () => {
-        if (!postCurrentVersion || !post || postCurrentVersion.message === post.message) {
+        if (!postCurrentVersion || !post) {
             actions.closeRightHandSide();
             return;
         }
