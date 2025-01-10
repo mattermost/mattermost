@@ -198,7 +198,12 @@
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PropertyValue"
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    value:
+                      type: string
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

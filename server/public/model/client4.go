@@ -9454,22 +9454,27 @@ func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]
 
 	fields := make(map[string]string)
 	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
-		return nil, nil, NewAppError("ListCPAFields", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("ListCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return fields, BuildResponse(r), nil
 }
 
-func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) (*Response, error) {
+func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) (map[string]string, *Response, error) {
 	buf, err := json.Marshal(values)
 	if err != nil {
-		return nil, NewAppError("PatchCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("PatchCPAValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	r, err := c.DoAPIPatchBytes(ctx, c.customProfileAttributeValuesRoute(), buf)
 	if err != nil {
-		return BuildResponse(r), err
+		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
-	return BuildResponse(r), nil
+	var patchedValues map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
+		return nil, nil, NewAppError("PatchCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return patchedValues, BuildResponse(r), nil
 }

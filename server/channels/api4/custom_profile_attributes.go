@@ -166,19 +166,22 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", userID)
 
-	results := make(map[string]*model.PropertyValue)
+	results := make(map[string]string)
 	for fieldID, value := range attributeValues {
 		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, value)
 		if appErr != nil {
 			c.Err = appErr
+			return
 		}
-		results[fieldID] = patchedValue
+		results[fieldID] = patchedValue.Value
 	}
 
 	auditRec.Success()
 	auditRec.AddEventObjectType("patchCPAValues")
 
-	ReturnStatusOK(w)
+	if err := json.NewEncoder(w).Encode(results); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {

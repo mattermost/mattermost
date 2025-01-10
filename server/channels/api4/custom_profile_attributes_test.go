@@ -176,7 +176,7 @@ func TestListCPAValues(t *testing.T) {
 
 	values := map[string]string{}
 	values[createdField.ID] = "Field Value"
-	_, err := th.Client.PatchCPAValues(context.Background(), values)
+	_, _, err := th.Client.PatchCPAValues(context.Background(), values)
 	require.NoError(t, err)
 
 	t.Run("any team member should be able to list values", func(t *testing.T) {
@@ -216,15 +216,19 @@ func TestPatchCPAValues(t *testing.T) {
 	t.Run("any team member should be able to create their own values", func(t *testing.T) {
 		values := map[string]string{}
 		values[createdField.ID] = "Field Value"
-		resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
+		require.NotEmpty(t, patchedValues)
+		require.Len(t, patchedValues, 1)
+		require.Equal(t, "Field Value", patchedValues[createdField.ID])
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.NotEmpty(t, values)
 		require.Len(t, values, 1)
+		require.Equal(t, "Field Value", values[createdField.ID])
 	})
 
 	t.Run("any team member should be able to patch their own values", func(t *testing.T) {
@@ -235,9 +239,10 @@ func TestPatchCPAValues(t *testing.T) {
 		require.Len(t, values, 1)
 
 		values[createdField.ID] = "Updated Field Value"
-		resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
+		require.Equal(t, "Updated Field Value", patchedValues[createdField.ID])
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
