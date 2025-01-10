@@ -273,8 +273,8 @@ func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField) (_ []*mode
 	for _, field := range fields {
 		field.UpdateAt = updateTime
 
-		if err := field.IsValid(); err != nil {
-			return nil, errors.Wrap(err, "property_field_update_isvalid")
+		if vErr := field.IsValid(); vErr != nil {
+			return nil, errors.Wrap(vErr, "property_field_update_isvalid")
 		}
 
 		updateMap, err := s.propertyFieldToUpdateMap(field)
