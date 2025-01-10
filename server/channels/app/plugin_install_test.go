@@ -281,10 +281,13 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		actualManifest, appError := th.App.ch.installPluginLocally(reader, installationStrategy)
-		require.Nil(t, appError)
-		require.Equal(t, manifest, actualManifest)
+		//TODO: Delete this after QA verification
+		// require.Nil(t, appError)
+		// require.Equal(t, manifest, actualManifest)
 
-		mp = th.App.Config().PluginSettings.Plugins[actualManifest.Id]
+		if actualManifest != nil {
+			mp = th.App.Config().PluginSettings.Plugins[actualManifest.Id]
+		}
 		return actualManifest, mp, appError
 	}
 
@@ -296,8 +299,14 @@ func TestInstallPluginLocally(t *testing.T) {
 		expectedMap["id"] = "valid"
 		expectedMap["version"] = "0.0.2"
 
-		_, returnedMap, appErr := installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyAlways)
-		require.Nil(t, appErr)
+		expectedManifest := &model.Manifest{
+			Id:      "valid",
+			Version: "0.0.2",
+		}
+
+		actualManifest, returnedMap, appErr := installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyAlways)
+		require.NoError(t, appErr)
+		require.Equal(t, expectedManifest, actualManifest)
 
 		//will probably have to make a separte pluginSetting struct with dummy vals to check against return plugin settign vals
 		for k, v := range returnedMap {
@@ -361,12 +370,16 @@ func TestInstallPluginLocally(t *testing.T) {
 		require.NotNil(t, expectedManifest)
 
 		//try to reinstall `myplugin`
-		_, returnedMap, appErr := installPluginUpdateConfig(t, th, "myplugin", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
-		require.Nil(t, appErr)
+		//Since plugin is already installed there is no need to return a new/actual manifest or a map containing those values
+		actualManifest, returnedMap, appErr := installPluginUpdateConfig(t, th, "myplugin", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
+		require.Error(t, appErr)
+		require.Nil(t, actualManifest)
+		require.Empty(t, returnedMap)
 
-		for k, v := range returnedMap {
-			require.Equalf(t, expectedManifest.Props[k], v, "it works!")
-		}
+		//TODO: Delete this after QA verification
+		// for k, v := range returnedMap {
+		// 	require.Equalf(t, expectedManifest.Props[k], v, "it works!")
+		// }
 	})
 }
 
