@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -188,7 +189,7 @@ func (s *SqlPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, e
 	}
 
 	if len(fields) < len(ids) {
-		return nil, errors.New("property_field_get_many_missmatch_results")
+		return nil, fmt.Errorf("missmatch results: got %d results of the %d ids passed", len(fields), len(ids))
 	}
 
 	return fields, nil
@@ -278,7 +279,7 @@ func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField) (_ []*mode
 
 		result, err := transaction.Exec(queryString, args...)
 		if err != nil {
-			return nil, errors.Wrap(err, "property_field_update_exec")
+			return nil, errors.Wrapf(err, "failed to update property field with id: %s", field.ID)
 		}
 
 		count, err := result.RowsAffected()

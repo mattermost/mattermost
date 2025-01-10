@@ -104,7 +104,7 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting fields", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany([]string{model.NewId(), model.NewId()})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "property_field_get_many_missmatch_results")
+		require.ErrorContains(t, err, "missmatch results")
 	})
 
 	newFields := []*model.PropertyField{}
@@ -124,7 +124,7 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany([]string{newFields[0].ID, newFields[1].ID, model.NewId()})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "property_field_get_many_missmatch_results")
+		require.ErrorContains(t, err, "missmatch results")
 	})
 
 	t.Run("should be able to retrieve existing property fields", func(t *testing.T) {
