@@ -18,6 +18,7 @@ exports[`FileAttachment should match snapshot when file is deleted 1`] = `
         fileInfo={
           Object {
             "archived": false,
+            "channel_id": "channel_id",
             "clientId": "",
             "create_at": 0,
             "delete_at": 10000000,
@@ -67,6 +68,7 @@ exports[`FileAttachment should match snapshot when file is deleted 1`] = `
         fileInfo={
           Object {
             "archived": false,
+            "channel_id": "channel_id",
             "clientId": "",
             "create_at": 0,
             "delete_at": 10000000,
@@ -305,6 +307,7 @@ exports[`FileAttachment should match snapshot, regular image 1`] = `
         fileInfo={
           Object {
             "archived": false,
+            "channel_id": "channel_id",
             "clientId": "",
             "create_at": 0,
             "delete_at": 0,
@@ -401,6 +404,7 @@ exports[`FileAttachment should match snapshot, small image 1`] = `
         fileInfo={
           Object {
             "archived": false,
+            "channel_id": "channel_id",
             "clientId": "",
             "create_at": 0,
             "delete_at": 0,
@@ -593,6 +597,7 @@ exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
         fileInfo={
           Object {
             "archived": false,
+            "channel_id": "channel_id",
             "clientId": "",
             "create_at": 0,
             "delete_at": 0,
