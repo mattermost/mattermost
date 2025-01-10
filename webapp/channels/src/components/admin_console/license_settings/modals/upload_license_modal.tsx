@@ -111,8 +111,8 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             <div className='content-body'>
                 <div className='svg-image'>
                     <UploadLicenseSvg
-                        width={200}
-                        height={200}
+                        width={151}
+                        height={103}
                     />
                 </div>
                 <div className='title'>

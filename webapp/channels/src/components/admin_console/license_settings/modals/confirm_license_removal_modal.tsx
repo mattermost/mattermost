@@ -59,7 +59,7 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
                     <div className='alert-svg'>
                         <AlertSvg
                             width={130.5}
-                            height={130.5}
+                            height={103.5}
                         />
                     </div>
                     <div className='title'>

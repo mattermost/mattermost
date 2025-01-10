@@ -95,12 +95,7 @@ const EnterpriseEditionRightPanel = ({
             );
         }
         if (isEnterpriseOrE20) {
-            return (
-                <TwoPeopleChattingSvg
-                    width={200}
-                    height={200}
-                />
-            );
+            return null;
         }
         return (
             <SetupSystemSvg
