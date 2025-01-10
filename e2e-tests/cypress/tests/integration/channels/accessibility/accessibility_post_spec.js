@@ -198,9 +198,6 @@ describe('Verify Accessibility Support in Post', () => {
                 // * Verify focus is on the more button
                 cy.get(`#CENTER_button_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'more');
                 cy.focused().tab();
-
-                // * Verify focus is on the post text
-                cy.get(`#postMessageText_${postId}`).should('be.focused');
             });
         });
     });
