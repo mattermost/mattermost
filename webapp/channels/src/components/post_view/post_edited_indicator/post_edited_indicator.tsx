@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {KeyboardEvent} from 'react';
 import type {MouseEvent} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -14,6 +14,7 @@ import WithTooltip from 'components/with_tooltip';
 import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
 
 import type {Props} from './index';
+import Constants from 'utils/constants';
 
 const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, postOwner, post, canEdit, actions}: Props): JSX.Element | null => {
     const {formatMessage, formatDate, formatTime} = useIntl();
@@ -64,10 +65,16 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
         <span className='view-history__text'>{viewHistoryText}</span>
     ) : null;
 
-    const showPostEditHistory = (e: MouseEvent<HTMLButtonElement>) => {
+    const showPostEditHistory = (e: MouseEvent<HTMLButtonElement> | KeyboardEvent) => {
         e.preventDefault();
         if (post?.id) {
             actions.openShowEditHistory(post);
+        }
+    };
+
+    const handleKeyPress = (e: KeyboardEvent<unknown>) => {
+        if (e.key === Constants.KeyCodes.ENTER[0] || e.key === Constants.KeyCodes.SPACE[0]) {
+            showPostEditHistory(e);
         }
     };
 
@@ -86,8 +93,10 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
     const editedIndicator = (postOwner && canEdit) ? (
         <button
             className={'style--none'}
-            tabIndex={-1}
+            tabIndex={0}
             onClick={showPostEditHistory}
+            onKeyUp={handleKeyPress}
+            aria-label={editedText}
         >
             {editedIndicatorContent}
         </button>
