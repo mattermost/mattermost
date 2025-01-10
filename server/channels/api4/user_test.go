@@ -8992,7 +8992,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, int(*maxAttempts), user.FailedAttempts)
+		require.Equal(t, *maxAttempts, user.FailedAttempts)
 
 		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), user.Id)
 		require.NoError(t, err)
@@ -9071,7 +9071,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		user, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, int(*maxAttempts), user.FailedAttempts)
+		require.Equal(t, *maxAttempts, user.FailedAttempts)
 
 		resp, err = th.Client.ResetFailedAttempts(context.Background(), user.Id)
 		require.Error(t, err)
@@ -9080,7 +9080,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		user, resp, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, int(*maxAttempts), user.FailedAttempts)
+		require.Equal(t, *maxAttempts, user.FailedAttempts)
 	})
 
 	t.Run("Reset password failed attempts when user has PermissionSysconsoleWriteUserManagementUsers", func(t *testing.T) {
@@ -9135,7 +9135,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		sysadminUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), sysadmin.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, int(*maxAttempts), sysadminUser.FailedAttempts)
+		require.Equal(t, *maxAttempts, sysadminUser.FailedAttempts)
 
 		resp, err = th.Client.ResetFailedAttempts(context.Background(), sysadminUser.Id)
 		require.Error(t, err)
@@ -9167,7 +9167,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		sysadminUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), sysadmin.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, int(*maxAttempts), sysadminUser.FailedAttempts)
+		require.Equal(t, *maxAttempts, sysadminUser.FailedAttempts)
 
 		resp, err = th.SystemAdminClient.ResetFailedAttempts(context.Background(), sysadminUser.Id)
 		require.NoError(t, err)

@@ -178,7 +178,8 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, userID, logi
 			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapID))
 		}
 
-		ldapUser, getUserByAuthErr := a.GetUserByAuth(ldapID, model.UserAuthServiceLdap)
+		var getUserByAuthErr *model.AppError
+		ldapUser, getUserByAuthErr = a.GetUserByAuth(ldapID, model.UserAuthServiceLdap)
 		if getUserByAuthErr != nil {
 			return nil, getUserByAuthErr
 		}
