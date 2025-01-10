@@ -150,8 +150,8 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 
 		for _, attachment := range attachments {
 			var r io.ReadCloser
-			r, nErr := p.FileAttachmentBackend.Reader(attachment.Path)
-			if nErr != nil {
+			r, err = p.FileAttachmentBackend.Reader(attachment.Path)
+			if err != nil {
 				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringBackendRead+" - Post: "+*post.PostId+" - "+attachment.Path)
 				rctx.Logger().Warn(shared.MissingFileMessageDuringBackendRead, mlog.String("post_id", *post.PostId), mlog.String("filename", attachment.Path))
 				continue
