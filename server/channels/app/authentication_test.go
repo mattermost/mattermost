@@ -353,7 +353,7 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 
 				expectedErrsCount := 0
 				for i := 0; i < concurrentAttempts; i++ {
-					if appErrs[i] != nil && appErrs[i].Id == tc.expectedErrID {
+					if appErrs[i].Id == tc.expectedErrID {
 						expectedErrsCount++
 						continue
 					}
