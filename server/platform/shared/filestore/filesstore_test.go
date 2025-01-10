@@ -814,7 +814,7 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 }
 
 func (s *FileBackendTestSuite) TestZipReaderSingleFile() {
-	// Test zipping a single file
+	// Test zipping a single file (but not its neighbours)
 	b := []byte("testdata")
 	path := "tests/" + randomString() + ".txt"
 
@@ -822,6 +822,15 @@ func (s *FileBackendTestSuite) TestZipReaderSingleFile() {
 	s.NoError(err)
 	s.EqualValues(len(b), written)
 	defer s.backend.RemoveFile(path)
+
+	// neighbour, not included
+	b2 := []byte("testdata2")
+	path2 := "tests/" + randomString() + ".txt"
+
+	written, err = s.backend.WriteFile(bytes.NewReader(b2), path2)
+	s.NoError(err)
+	s.EqualValues(len(b2), written)
+	defer s.backend.RemoveFile(path2)
 
 	// Test without compression
 	reader := s.backend.ZipReader(path, false)
@@ -847,27 +856,46 @@ func (s *FileBackendTestSuite) TestZipReaderSingleFile() {
 	content, err := io.ReadAll(rc)
 	s.NoError(err)
 	s.Equal(b, content)
+}
 
-	// Test with compression
-	reader = s.backend.ZipReader(path, true)
+func (s *FileBackendTestSuite) TestZipReaderSingleFileCompressed() {
+	// Test zipping a single file (but not its neighbours) with compression
+	b := []byte("testdata")
+	path := "tests/" + randomString() + ".txt"
+
+	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
+	s.NoError(err)
+	s.EqualValues(len(b), written)
+	defer s.backend.RemoveFile(path)
+
+	// neighbour, not included
+	b2 := []byte("testdata2")
+	path2 := "tests/" + randomString() + ".txt"
+
+	written, err = s.backend.WriteFile(bytes.NewReader(b2), path2)
+	s.NoError(err)
+	s.EqualValues(len(b2), written)
+	defer s.backend.RemoveFile(path2)
+
+	reader := s.backend.ZipReader(path, true)
 	defer reader.Close()
 
-	zipBytes, err = io.ReadAll(reader)
+	zipBytes, err := io.ReadAll(reader)
 	s.NoError(err)
 
-	zipReader, err = zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 	s.NoError(err)
 	s.Len(zipReader.File, 1)
 
-	zf = zipReader.File[0]
+	zf := zipReader.File[0]
 	s.Equal(filepath.Base(path), zf.Name)
 	s.Equal(zip.Deflate, zf.Method)
 
-	rc, err = zf.Open()
+	rc, err := zf.Open()
 	s.NoError(err)
 	defer rc.Close()
 
-	content, err = io.ReadAll(rc)
+	content, err := io.ReadAll(rc)
 	s.NoError(err)
 	s.Equal(b, content)
 }
@@ -876,10 +904,10 @@ func (s *FileBackendTestSuite) TestZipReaderDirectory() {
 	// Create test directory structure
 	dirPath := "tests/zip_test_" + randomString()
 	files := map[string][]byte{
-		"file1.txt":         []byte("file1 content"),
-		"file2.png":         []byte("file2 content"),
-		"subdir/file3.txt":  []byte("file3 content"),
-		"subdir/file4.json": []byte("file4 content"),
+		"file1.txt":          []byte("file1 content"),
+		"file2.png":          []byte("file2 content"),
+		"subdir/file3.txt":   []byte("file3 content"),
+		"subdir2/file4.json": []byte("file4 content"),
 	}
 
 	for path, content := range files {
@@ -901,14 +929,12 @@ func (s *FileBackendTestSuite) TestZipReaderDirectory() {
 	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
 	s.NoError(err)
 
-	// Should have exactly the number of files (no directory entries)
-	s.Len(zipReader.File, len(files))
-
 	// Verify each file
 	foundFiles := make(map[string]bool)
 	for _, zf := range zipReader.File {
 		s.Contains(files, zf.Name)
 		expectedContent := files[zf.Name]
+		delete(files, zf.Name)
 
 		rc, err := zf.Open()
 		s.NoError(err)
@@ -922,7 +948,61 @@ func (s *FileBackendTestSuite) TestZipReaderDirectory() {
 	}
 
 	// Verify we found all files
-	s.Len(foundFiles, len(files))
+	s.Len(foundFiles, 4)
+	s.Empty(files)
+}
+
+func (s *FileBackendTestSuite) TestZipReaderDirectoryCompressed() {
+	// Create test directory structure
+	dirPath := "tests/zip_test_" + randomString()
+	files := map[string][]byte{
+		"file1.txt":          []byte("file1 content"),
+		"file2.png":          []byte("file2 content"),
+		"subdir/file3.txt":   []byte("file3 content"),
+		"subdir2/file4.json": []byte("file4 content"),
+	}
+
+	for path, content := range files {
+		fullPath := filepath.Join(dirPath, path)
+		written, err := s.backend.WriteFile(bytes.NewReader(content), fullPath)
+		s.NoError(err)
+		s.EqualValues(len(content), written)
+		defer s.backend.RemoveFile(fullPath)
+	}
+
+	// Test with compression
+	reader := s.backend.ZipReader(dirPath, true)
+	defer reader.Close()
+
+	// Read and verify zip contents
+	zipBytes, err := io.ReadAll(reader)
+	s.NoError(err)
+
+	zipReader, err := zip.NewReader(bytes.NewReader(zipBytes), int64(len(zipBytes)))
+	s.NoError(err)
+
+	// Verify each file
+	foundFiles := make(map[string]bool)
+	for _, zf := range zipReader.File {
+		s.Contains(files, zf.Name)
+		s.Equal(zip.Deflate, zf.Method)
+		expectedContent := files[zf.Name]
+		delete(files, zf.Name)
+
+		rc, err := zf.Open()
+		s.NoError(err)
+
+		content, err := io.ReadAll(rc)
+		s.NoError(err)
+		rc.Close()
+
+		s.Equal(expectedContent, content)
+		foundFiles[zf.Name] = true
+	}
+
+	// Verify we found all files
+	s.Len(foundFiles, 4)
+	s.Empty(files)
 }
 
 func (s *FileBackendTestSuite) TestZipReaderErrors() {
@@ -946,6 +1026,33 @@ func (s *FileBackendTestSuite) TestZipReaderErrors() {
 	defer os.RemoveAll(filepath.Join(s.settings.Directory, emptyDir))
 
 	reader = s.backend.ZipReader(emptyDir, false)
+	defer reader.Close()
+	content, err = io.ReadAll(reader)
+	s.NoError(err)
+	s.assertEmptyZip(content)
+}
+
+func (s *FileBackendTestSuite) TestZipReaderErrorsCompressed() {
+	// Test non-existent path with compression
+	reader := s.backend.ZipReader("path/to/nonexistent.txt", true)
+	defer reader.Close()
+
+	content, err := io.ReadAll(reader)
+	if s.settings.DriverName == driverLocal {
+		// Reading from the pipe should give us the error, but only with local
+		s.Error(err)
+	} else {
+		s.NoError(err)
+		s.assertEmptyZip(content)
+	}
+
+	// Test empty directory with compression
+	emptyDir := "tests/empty_" + randomString()
+	err = os.MkdirAll(filepath.Join(s.settings.Directory, emptyDir), 0750)
+	s.NoError(err)
+	defer os.RemoveAll(filepath.Join(s.settings.Directory, emptyDir))
+
+	reader = s.backend.ZipReader(emptyDir, true)
 	defer reader.Close()
 	content, err = io.ReadAll(reader)
 	s.NoError(err)

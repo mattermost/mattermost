@@ -145,7 +145,7 @@ func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppErro
 	return a.Srv().fileReader(path)
 }
 
-// Caller must close the first return value.
+// ZipReader caller is responsible for closing the returned ReadCloser.
 func (a *App) ZipReader(path string, deflate bool) io.ReadCloser {
 	return a.Srv().zipReader(path, deflate)
 }

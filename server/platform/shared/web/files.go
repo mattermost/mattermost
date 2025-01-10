@@ -37,6 +37,8 @@ var MediaContentTypes = [...]string{
 	"audio/wav",
 }
 
+// WriteFileResponse copies the io.ReadSeeker `fileReader` to the ResponseWriter `w`. Use this when you have a
+// ReadSeeker.
 func WriteFileResponse(filename string, contentType string, contentSize int64, lastModification time.Time, webserverMode string, fileReader io.ReadSeeker, forceDownload bool, w http.ResponseWriter, r *http.Request) {
 	setHeaders(w, contentType, forceDownload, filename)
 
@@ -52,6 +54,8 @@ func WriteFileResponse(filename string, contentType string, contentSize int64, l
 	http.ServeContent(w, r, filename, lastModification, fileReader)
 }
 
+// WriteStreamResponse copies the ReadCloser `r` to the ResponseWriter `w`. Use this when you need to stream a response
+// to the client that will appear as a file `filename` of type `contentType`.
 func WriteStreamResponse(w http.ResponseWriter, r io.ReadCloser, filename string, contentType string, forceDownload bool) error {
 	setHeaders(w, contentType, forceDownload, filename)
 

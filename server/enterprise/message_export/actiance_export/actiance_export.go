@@ -305,7 +305,8 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 			missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringBackendRead+" - "+fileInfo.Path)
 			rctx.Logger().Warn(shared.MissingFileMessageDuringBackendRead,
 				mlog.String("filename", fileInfo.Path),
-				mlog.Err(err))
+				mlog.Err(err),
+			)
 			continue
 		}
 
@@ -318,20 +319,22 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 				return err
 			}
 
-			// CopyBuffer works with dirty buffers, no need to clear it.
+			// CopyBuffer works with buffers that haven't been zeroed or reset; no need to clear it.
 			if _, err = io.CopyBuffer(zipWriter, attachmentReader, buf); err != nil {
 				return err
 			}
 
 			return nil
 		}(); err != nil {
-			// s3 only errors _here_ if the object key wasn't found. So to handle that, if there is a read
-			// error (even for local), let's add a warning instead of failing the export. Failing the export
-			// would crash the entire export run, and crash every future run -- not good.
+			// s3 only errors _here_ if the object key wasn't found. So to handle that: if there is a read
+			// error (even for local), let's add a warning instead of failing the export.
+			// Failing the export would fail the entire export run, and every future run would also fail on
+			// this non-existent file -- not good.
 			missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringCopy+" - "+fileInfo.Path)
 			rctx.Logger().Warn(shared.MissingFileMessageDuringCopy,
 				mlog.String("filename", fileInfo.Path),
-				mlog.Err(err))
+				mlog.Err(err),
+			)
 		}
 	}
 
