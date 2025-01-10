@@ -14,18 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-var propertyValueColumns = []string{
-	"ID",
-	"TargetID",
-	"TargetType",
-	"GroupID",
-	"FieldID",
-	"Value",
-	"CreateAt",
-	"UpdateAt",
-	"DeleteAt",
-}
-
 func (s *SqlPropertyValueStore) propertyValueToInsertMap(value *model.PropertyValue) (map[string]any, error) {
 	valueJSON, err := json.Marshal(value.Value)
 	if err != nil {
@@ -111,10 +99,18 @@ func propertyValueFromRows(rows *sql.Rows) (*model.PropertyValue, error) {
 
 type SqlPropertyValueStore struct {
 	*SqlStore
+
+	tableSelectQuery sq.SelectBuilder
 }
 
 func newPropertyValueStore(sqlStore *SqlStore) store.PropertyValueStore {
-	return &SqlPropertyValueStore{sqlStore}
+	s := SqlPropertyValueStore{SqlStore: sqlStore}
+
+	s.tableSelectQuery = s.getQueryBuilder().
+		Select("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+		From("PropertyValues")
+
+	return &s
 }
 
 func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -149,9 +145,7 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 }
 
 func (s *SqlPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
-	queryString, args, err := s.getQueryBuilder().
-		Select(propertyValueColumns...).
-		From("PropertyValues").
+	queryString, args, err := s.tableSelectQuery.
 		Where(sq.Eq{"id": id}).
 		ToSql()
 	if err != nil {
@@ -173,9 +167,7 @@ func (s *SqlPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
 }
 
 func (s *SqlPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, error) {
-	queryString, args, err := s.getQueryBuilder().
-		Select(propertyValueColumns...).
-		From("PropertyValues").
+	queryString, args, err := s.tableSelectQuery.
 		Where(sq.Eq{"id": ids}).
 		ToSql()
 	if err != nil {
@@ -209,9 +201,7 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 		return nil, errors.New("per page must be positive integer")
 	}
 
-	query := s.getQueryBuilder().
-		Select(propertyValueColumns...).
-		From("PropertyValues").
+	query := s.tableSelectQuery.
 		OrderBy("CreateAt ASC").
 		Offset(uint64(opts.Page * opts.PerPage)).
 		Limit(uint64(opts.PerPage))
