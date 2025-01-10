@@ -8,8 +8,6 @@ import type {ClientLicense} from '@mattermost/types/config';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
-import TwoPeopleChattingSvg from 'components/common/svg_images_components/two_people_chatting_svg';
-import WomanWithCardSvg from 'components/common/svg_images_components/woman_with_card_svg';
 
 import {isEnterpriseOrE20License} from 'utils/license_utils';
 
