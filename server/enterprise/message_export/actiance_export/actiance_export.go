@@ -303,7 +303,9 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 		attachmentReader, err = fileAttachmentBackend.Reader(fileInfo.Path)
 		if err != nil {
 			missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringBackendRead+" - "+fileInfo.Path)
-			rctx.Logger().Warn(shared.MissingFileMessageDuringBackendRead, mlog.String("filename", fileInfo.Path))
+			rctx.Logger().Warn(shared.MissingFileMessageDuringBackendRead,
+				mlog.String("filename", fileInfo.Path),
+				mlog.Err(err))
 			continue
 		}
 
@@ -327,7 +329,9 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 			// error (even for local), let's add a warning instead of failing the export. Failing the export
 			// would crash the entire export run, and crash every future run -- not good.
 			missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringCopy+" - "+fileInfo.Path)
-			rctx.Logger().Warn(shared.MissingFileMessageDuringCopy, mlog.String("filename", fileInfo.Path))
+			rctx.Logger().Warn(shared.MissingFileMessageDuringCopy,
+				mlog.String("filename", fileInfo.Path),
+				mlog.Err(err))
 		}
 	}
 

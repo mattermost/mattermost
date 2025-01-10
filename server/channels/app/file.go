@@ -125,8 +125,7 @@ func fileReader(backend filestore.FileBackend, path string) (filestore.ReadClose
 }
 
 func zipReader(backend filestore.FileBackend, path string, deflate bool) io.ReadCloser {
-	result := backend.ZipReader(path, deflate)
-	return result
+	return backend.ZipReader(path, deflate)
 }
 
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
@@ -146,8 +145,6 @@ func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppErro
 	return a.Srv().fileReader(path)
 }
 
-// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
-// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
 // Caller must close the first return value.
 func (a *App) ZipReader(path string, deflate bool) io.ReadCloser {
 	return a.Srv().zipReader(path, deflate)

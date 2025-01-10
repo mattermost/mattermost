@@ -259,6 +259,8 @@ func (b *LocalFileBackend) RemoveDirectory(path string) error {
 	return nil
 }
 
+// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
 func (b *LocalFileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 	deflateMethod := zip.Store
 	if deflate {

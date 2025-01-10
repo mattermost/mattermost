@@ -104,15 +104,14 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
 				"job.Data did not include export_dir, export_dir was malformed, or jobId.zip wasn't found",
-				http.StatusBadRequest).Wrap(err)
-			c.Err.StatusCode = http.StatusNotFound
+				http.StatusNotFound).Wrap(err)
 			return
 		}
 		defer fileReader.Close()
 
 		// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 		// already sets that for us
-		web.WriteFileResponse(fileName, FileMime, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
+		web.WriteFileResponse(fileName, FileMime, 0, time.UnixMilli(job.LastActivityAt), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 		return
 	}
 
@@ -123,9 +122,8 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := web.WriteStreamResponse(w, zipReader, fileName, FileMime, true); err != nil {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
-			"failure to WriteStreamResponse", http.StatusBadRequest).
+			"failure to WriteStreamResponse", http.StatusInternalServerError).
 			Wrap(err)
-		c.Err.StatusCode = http.StatusInternalServerError
 		return
 	}
 }

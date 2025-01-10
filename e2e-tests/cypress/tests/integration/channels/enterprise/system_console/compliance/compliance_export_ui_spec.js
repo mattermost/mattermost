@@ -44,7 +44,7 @@ describe('Compliance Export', () => {
         });
     });
 
-    it('MM-T3435 - !Download Compliance Export Files - CSV Format', () => {
+    it('MM-T3435 - Download Compliance Export Files - CSV Format', () => {
         // # Navigate to a team and post an attachment
         cy.visit(`/${teamName}/channels/town-square`);
         gotoTeamAndPostImage();

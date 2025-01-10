@@ -705,6 +705,8 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	return nil
 }
 
+// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
 func (b *S3FileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 	deflateMethod := zip.Store
 	if deflate {
@@ -736,7 +738,7 @@ func (b *S3FileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 			if stripPath != "" {
 				stripPath += "/"
 			}
-			if err = b._copyObject(zipWriter, object, stripPath, deflateMethod); err != nil {
+			if err = b._copyObjectToZipWriter(zipWriter, object, stripPath, deflateMethod); err != nil {
 				pw.CloseWithError(err)
 			}
 			return
@@ -748,13 +750,16 @@ func (b *S3FileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 			Prefix:    path,
 			Recursive: true,
 		}
-		for object := range b.client.ListObjects(ctx, b.bucket, opts) {
+		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel2()
+
+		for object := range b.client.ListObjects(ctx2, b.bucket, opts) {
 			if object.Err != nil {
 				pw.CloseWithError(errors.Wrapf(object.Err, "unable to list the directory %s", path))
 				return
 			}
 
-			if err = b._copyObject(zipWriter, object, path, deflateMethod); err != nil {
+			if err = b._copyObjectToZipWriter(zipWriter, object, path, deflateMethod); err != nil {
 				pw.CloseWithError(err)
 				return
 			}
@@ -764,7 +769,7 @@ func (b *S3FileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 	return pr
 }
 
-func (b *S3FileBackend) _copyObject(zipWriter *zip.Writer, object s3.ObjectInfo, stripPath string, deflateMethod uint16) error {
+func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.ObjectInfo, stripPath string, deflateMethod uint16) error {
 	// We strip the path prefix that gets applied,
 	// so that it remains transparent to the application.
 	object.Key = strings.TrimPrefix(object.Key, b.pathPrefix)

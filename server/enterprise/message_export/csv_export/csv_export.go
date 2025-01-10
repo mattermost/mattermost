@@ -153,7 +153,10 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 			r, err = p.FileAttachmentBackend.Reader(attachment.Path)
 			if err != nil {
 				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringBackendRead+" - Post: "+*post.PostId+" - "+attachment.Path)
-				rctx.Logger().Warn(shared.MissingFileMessageDuringBackendRead, mlog.String("post_id", *post.PostId), mlog.String("filename", attachment.Path))
+				rctx.Logger().Warn(shared.MissingFileMessageDuringBackendRead,
+					mlog.String("post_id", *post.PostId),
+					mlog.String("filename", attachment.Path),
+					mlog.Err(err))
 				continue
 			}
 
@@ -178,7 +181,10 @@ func CsvExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults
 				// error (even for local), let's add a warning instead of failing the export. Failing the export
 				// would crash the entire export run, and crash every future run -- not good.
 				missingFiles = append(missingFiles, "Warning:"+shared.MissingFileMessageDuringCopy+" - Post: "+*post.PostId+" - "+attachment.Path)
-				rctx.Logger().Warn(shared.MissingFileMessageDuringCopy, mlog.String("post_id", *post.PostId), mlog.String("filename", attachment.Path))
+				rctx.Logger().Warn(shared.MissingFileMessageDuringCopy,
+					mlog.String("post_id", *post.PostId),
+					mlog.String("filename", attachment.Path),
+					mlog.Err(err))
 			}
 		}
 	}
