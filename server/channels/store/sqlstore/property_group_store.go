@@ -26,16 +26,6 @@ func (s *SqlPropertyGroupStore) Register(name string) (*model.PropertyGroup, err
 		return nil, store.NewErrInvalidInput("PropertyGroup", "name", name)
 	}
 
-	existingGroup, err := s.Get(name)
-	if err == nil {
-		return existingGroup, nil
-	}
-
-	var nfErr *store.ErrNotFound
-	if !errors.As(err, &nfErr) {
-		return nil, errors.Wrap(err, "property_group_register")
-	}
-
 	group := &model.PropertyGroup{Name: name}
 	group.PreSave()
 
