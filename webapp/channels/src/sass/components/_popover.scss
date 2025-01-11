@@ -1,5 +1,13 @@
 @use "utils/functions";
 
+.header-popover-text-measurer {
+    position: absolute;
+    width: auto;
+    height: auto;
+    visibility: hidden;
+    white-space: nowrap;
+}
+
 .popover {
     padding: 0;
     border-radius: var(--radius-s);
