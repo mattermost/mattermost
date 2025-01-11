@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
-import type {WrappedComponentProps} from 'react-intl';
-import {defineMessages, injectIntl} from 'react-intl';
+import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -21,14 +20,7 @@ import {Locations} from 'utils/constants';
 
 const TOP_OFFSET = -7;
 
-const messages = defineMessages({
-    addReaction: {
-        id: 'post_info.tooltip.add_reactions',
-        defaultMessage: 'Add Reaction',
-    },
-});
-
-export type Props = WrappedComponentProps & {
+export type Props = {
     channelId?: string;
     postId: string;
     teamId: string;
@@ -41,76 +33,65 @@ export type Props = WrappedComponentProps & {
     };
 }
 
-type State = {
-    location: keyof typeof Locations;
-    showEmojiPicker: boolean;
-}
+export default function PostReaction({
+    channelId,
+    location = Locations.CENTER,
+    postId,
+    showEmojiPicker = false,
+    teamId,
+    toggleEmojiPicker,
+    getDotMenuRef,
+    actions: {
+        toggleReaction,
+    },
+}: Props) {
+    const intl = useIntl();
 
-export class PostReaction extends React.PureComponent<Props, State> {
-    public static defaultProps: Partial<Props> = {
-        location: Locations.CENTER as 'CENTER',
-        showEmojiPicker: false,
-    };
-
-    handleToggleEmoji = (emoji: Emoji): void => {
-        this.setState({showEmojiPicker: false});
+    const handleToggleEmoji = useCallback((emoji: Emoji) => {
         const emojiName = getEmojiName(emoji);
-        this.props.actions.toggleReaction(this.props.postId, emojiName);
-        this.props.toggleEmojiPicker();
-    };
+        toggleReaction(postId, emojiName);
+        toggleEmojiPicker();
+    }, [postId, toggleEmojiPicker, toggleReaction]);
 
-    render() {
-        const {
-            channelId,
-            location,
-            postId,
-            showEmojiPicker,
-            teamId,
-            intl,
-        } = this.props;
-
-        let spaceRequiredAbove;
-        let spaceRequiredBelow;
-        if (location === Locations.RHS_ROOT || location === Locations.RHS_COMMENT) {
-            spaceRequiredAbove = RHS_SPACE_REQUIRED_ABOVE;
-            spaceRequiredBelow = RHS_SPACE_REQUIRED_BELOW;
-        }
-
-        return (
-            <ChannelPermissionGate
-                channelId={channelId}
-                teamId={teamId}
-                permissions={[Permissions.ADD_REACTION]}
-            >
-                <>
-                    <EmojiPickerOverlay
-                        show={showEmojiPicker}
-                        target={this.props.getDotMenuRef}
-                        onHide={this.props.toggleEmojiPicker}
-                        onEmojiClick={this.handleToggleEmoji}
-                        topOffset={TOP_OFFSET}
-                        spaceRequiredAbove={spaceRequiredAbove}
-                        spaceRequiredBelow={spaceRequiredBelow}
-                    />
-                    <WithTooltip
-                        title={messages.addReaction}
-                    >
-                        <button
-                            data-testid='post-reaction-emoji-icon'
-                            id={`${location}_reaction_${postId}`}
-                            aria-label={intl.formatMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'})}
-                            className={classNames('post-menu__item', 'post-menu__item--reactions', {
-                                'post-menu__item--active': showEmojiPicker,
-                            })}
-                            onClick={this.props.toggleEmojiPicker}
-                        >
-                            <EmojiIcon className='icon icon--small'/>
-                        </button>
-                    </WithTooltip>
-                </>
-            </ChannelPermissionGate>
-        );
+    let spaceRequiredAbove;
+    let spaceRequiredBelow;
+    if (location === Locations.RHS_ROOT || location === Locations.RHS_COMMENT) {
+        spaceRequiredAbove = RHS_SPACE_REQUIRED_ABOVE;
+        spaceRequiredBelow = RHS_SPACE_REQUIRED_BELOW;
     }
-}
 
-export default injectIntl(PostReaction);
+    const ariaLabel = intl.formatMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'});
+
+    return (
+        <ChannelPermissionGate
+            channelId={channelId}
+            teamId={teamId}
+            permissions={[Permissions.ADD_REACTION]}
+        >
+            <>
+                <EmojiPickerOverlay
+                    show={showEmojiPicker}
+                    target={getDotMenuRef}
+                    onHide={toggleEmojiPicker}
+                    onEmojiClick={handleToggleEmoji}
+                    topOffset={TOP_OFFSET}
+                    spaceRequiredAbove={spaceRequiredAbove}
+                    spaceRequiredBelow={spaceRequiredBelow}
+                />
+                <WithTooltip title={ariaLabel}>
+                    <button
+                        data-testid='post-reaction-emoji-icon'
+                        id={`${location}_reaction_${postId}`}
+                        aria-label={ariaLabel}
+                        className={classNames('post-menu__item', 'post-menu__item--reactions', {
+                            'post-menu__item--active': showEmojiPicker,
+                        })}
+                        onClick={toggleEmojiPicker}
+                    >
+                        <EmojiIcon className='icon icon--small'/>
+                    </button>
+                </WithTooltip>
+            </>
+        </ChannelPermissionGate>
+    );
+}
