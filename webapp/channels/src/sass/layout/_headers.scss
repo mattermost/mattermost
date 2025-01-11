@@ -444,8 +444,10 @@
 
         .header-description__text {
             overflow: hidden;
-            height: 24px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
             line-height: inherit;
+            height: 24px;
 
             ul {
                 &:first-child {

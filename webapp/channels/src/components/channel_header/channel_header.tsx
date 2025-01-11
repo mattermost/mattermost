@@ -38,6 +38,7 @@ import {handleFormattedTextClick, isEmptyObject} from 'utils/utils';
 import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';
 
+import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';
 import ChannelInfoButton from './channel_info_button';
 import HeaderIconWrapper from './components/header_icon_wrapper';
@@ -464,13 +465,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             );
 
             headerTextContainer = (
-                <div
-                    id='channelHeaderDescription'
-                    className='channel-header__description'
-                    dir='auto'
-                >
-                    {dmHeaderTextStatus}
-                    {hasGuestsText}
+                <>
                     <div
                         className='header-popover-text-measurer'
                         ref={this.headerPopoverTextMeasurerRef}
@@ -505,7 +500,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             imageProps={imageProps}
                         />
                     </span>
-                </div>
+                </>
             );
         } else {
             let editMessage;
@@ -553,14 +548,9 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                 }
             }
             headerTextContainer = (
-                <div
-                    id='channelHeaderDescription'
-                    className='channel-header__description'
-                >
-                    {dmHeaderTextStatus}
-                    {hasGuestsText}
+                <>
                     {editMessage}
-                </div>
+                </>
             );
         }
 
@@ -627,7 +617,19 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                                         </HeaderIconWrapper>
                                     }
                                 </div>
-                                {headerTextContainer}
+                                <div
+                                    id='channelHeaderDescription'
+                                    className='channel-header__description'
+                                >
+                                    {dmHeaderTextStatus}
+                                    {hasGuestsText}
+                                    {/* {headerTextContainer} */}
+                                    <ChannelHeaderText
+                                        teamId={teamId}
+                                        channel={channel}
+                                        dmUser={dmUser}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -92,7 +92,6 @@ function makeMapStateToProps() {
             gmMembers,
             rhsState: getRhsState(state),
             rhsOpen: getIsRhsOpen(state),
-            isReadOnly: false,
             isMuted: isCurrentChannelMuted(state),
             isQuickSwitcherOpen: isModalOpen(state, ModalIdentifiers.QUICK_SWITCH),
             hasGuests: stats ? stats.guest_count > 0 : false,
