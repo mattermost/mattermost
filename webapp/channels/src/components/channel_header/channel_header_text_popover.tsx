@@ -15,6 +15,7 @@ import {
     FloatingPortal,
     FloatingOverlay,
     FloatingFocusManager,
+    useClick,
 } from '@floating-ui/react';
 import React, {useMemo, useRef, useState} from 'react';
 
@@ -22,6 +23,8 @@ import Markdown from 'components/markdown';
 
 import {OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 import type {ChannelNamesMap} from 'utils/text_formatting';
+
+import './channel_header_text_popover.scss';
 
 const TEXT_IN_HEADER_MARKDOWN_OPTIONS = {singleline: true};
 const TEXT_IN_POPOVER_MARKDOWN_OPTIONS = {singleline: false};
@@ -86,9 +89,10 @@ export function ChannelHeaderTextPopover(props: Props) {
     });
     const focus = useFocus(floatingContext);
     const dismiss = useDismiss(floatingContext);
+    const click = useClick(floatingContext);
     const role = useRole(floatingContext, {role: 'tooltip'});
 
-    const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, dismiss, role]);
+    const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, click, dismiss, role]);
 
     const rootRef = useMergeRefs([rootElementRef, setReference]);
 
@@ -108,11 +112,14 @@ export function ChannelHeaderTextPopover(props: Props) {
 
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
-                    <FloatingOverlay className='plugin-link-tooltip-floating-overlay'>
+                    <FloatingOverlay
+                        className='channel-header-text-popover-floating-overlay'
+                        lockScroll={true}
+                    >
                         <FloatingFocusManager context={floatingContext}>
                             <div
                                 ref={setFloating}
-                                className='channel-header__popover'
+                                className='channel-header-text-popover'
                                 style={{
                                     ...floatingStyles,
                                     ...transitionStyles,
