@@ -17,11 +17,12 @@ import {
 import classNames from 'classnames';
 import type {HtmlHTMLAttributes, ReactNode} from 'react';
 import React, {useCallback, useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {A11yClassNames} from 'utils/constants';
+import {A11yClassNames, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 
 import ProfilePopover from './profile_popover';
 
@@ -81,6 +82,8 @@ interface Props<TriggerComponentType> {
 }
 
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
+    const intl = useIntl();
+
     const [isOpen, setOpen] = useState(false);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
@@ -108,6 +111,8 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
 
     const TriggerComponent = props.triggerComponentAs ?? 'span';
 
+    const profilePopoverLabel = intl.formatMessage({id: 'profile_popover.aria_label', defaultMessage: 'profile popover'});
+
     return (
         <>
             <TriggerComponent
@@ -131,7 +136,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 ref={refs.setFloating}
                                 style={{...floatingStyles, ...transitionStyles}}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
-                                aria-label={`${props.username}'s profile popover`}
+                                aria-label={props.username ? `${props.username}'s ${profilePopoverLabel}` : profilePopoverLabel}
                                 {...getFloatingProps()}
                             >
                                 <ProfilePopover
