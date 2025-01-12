@@ -16,13 +16,19 @@ import {
     FloatingOverlay,
     FloatingFocusManager,
     useClick,
+    offset,
 } from '@floating-ui/react';
 import React, {useMemo, useRef, useState} from 'react';
+import type {MouseEvent} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import Markdown from 'components/markdown';
 
 import {OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 import type {ChannelNamesMap} from 'utils/text_formatting';
+import {handleFormattedTextClick} from 'utils/utils';
 
 import './channel_header_text_popover.scss';
 
@@ -39,16 +45,25 @@ const TRANSITION_STYLE_PROPS = {
     initial: OverlayTransitionStyles.START,
 };
 
+const PADDING_OF_POPOVER = 8; // padding of .channel-header-text-popover in channel_header_text_popover.scss
+const BORDER_WIDTH_OF_POPOVER = 1; // border of .channel-header-text-popover in channel_header_text_popover.scss
+
+const HEIGHT_OF_HEADER_TEXT = 24; // height of .header-description__text in _headers.scss
+const MINOR_VISUAL_ADJUSTMENT = 0.5;
+const SHIFT_UP_OF_POPOVER = -((HEIGHT_OF_HEADER_TEXT + PADDING_OF_POPOVER) - (2 * BORDER_WIDTH_OF_POPOVER) - (MINOR_VISUAL_ADJUSTMENT));
+
 interface Props {
     text: string;
     channelMentionsNameMap?: ChannelNamesMap;
 }
 export function ChannelHeaderTextPopover(props: Props) {
-    const rootElementRef = useRef<HTMLSpanElement>(null);
+    const dispatch = useDispatch();
 
-    const isTextOverflowing = Boolean(
-        rootElementRef.current && rootElementRef.current.scrollWidth > rootElementRef.current.clientWidth,
-    );
+    const currentRelativeTeamUrl = useSelector(getCurrentRelativeTeamUrl);
+
+    const rootElementRef = useRef<HTMLDivElement>(null);
+
+    const isTextOverflowing = checkIfTextIsOverflowing(rootElementRef?.current);
 
     const markdownOptions = useMemo(() => {
         const inHeader = {
@@ -74,6 +89,9 @@ export function ChannelHeaderTextPopover(props: Props) {
         open: isTextOverflowing ? isPopoverOpen : false,
         onOpenChange: setPopoverOpen,
         whileElementsMounted: autoUpdate,
+        middleware: [
+            offset(SHIFT_UP_OF_POPOVER),
+        ],
     });
     const {isMounted, styles: transitionStyles} = useTransitionStyles(
         floatingContext,
@@ -96,9 +114,15 @@ export function ChannelHeaderTextPopover(props: Props) {
 
     const rootRef = useMergeRefs([rootElementRef, setReference]);
 
+    const maxWidthOfPopover = getMaxWidthOfPopover(rootElementRef?.current);
+
+    function handleClick(event: MouseEvent<HTMLDivElement>) {
+        dispatch(handleFormattedTextClick(event, currentRelativeTeamUrl));
+    }
+
     return (
         <>
-            <span
+            <div
                 ref={rootRef}
                 className='header-description__text'
                 {...getReferenceProps()}
@@ -108,7 +132,7 @@ export function ChannelHeaderTextPopover(props: Props) {
                     options={markdownOptions.inHeader}
                     imageProps={IMAGE_MARKDOWN_OPTIONS}
                 />
-            </span>
+            </div>
 
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
@@ -121,9 +145,11 @@ export function ChannelHeaderTextPopover(props: Props) {
                                 ref={setFloating}
                                 className='channel-header-text-popover'
                                 style={{
+                                    maxWidth: maxWidthOfPopover,
                                     ...floatingStyles,
                                     ...transitionStyles,
                                 }}
+                                onClick={handleClick}
                                 {...getFloatingProps()}
                             >
                                 <Markdown
@@ -138,4 +164,24 @@ export function ChannelHeaderTextPopover(props: Props) {
             )}
         </>
     );
+}
+
+function checkIfTextIsOverflowing(elem: HTMLDivElement | null): boolean {
+    if (!elem) {
+        return false;
+    }
+
+    if (elem.scrollWidth === elem.clientWidth && elem.scrollHeight === elem.clientHeight) {
+        return false;
+    }
+
+    return elem.scrollWidth > elem.clientWidth || elem.scrollHeight > elem.clientHeight;
+}
+
+function getMaxWidthOfPopover(elem: HTMLDivElement | null): string | number {
+    if (!elem) {
+        return 'inherit';
+    }
+
+    return (elem.clientWidth) + ((2 * PADDING_OF_POPOVER) + (2 * BORDER_WIDTH_OF_POPOVER));
 }

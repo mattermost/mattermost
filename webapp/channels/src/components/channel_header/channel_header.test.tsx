@@ -9,7 +9,6 @@ import type {UserCustomStatus} from '@mattermost/types/users';
 
 import ChannelHeader from 'components/channel_header/channel_header';
 import ChannelInfoButton from 'components/channel_header/channel_info_button';
-import Markdown from 'components/markdown';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants, {RHSStates} from 'utils/constants';
@@ -21,18 +20,14 @@ describe('components/ChannelHeader', () => {
             showPinnedPosts: jest.fn(),
             showChannelFiles: jest.fn(),
             closeRightHandSide: jest.fn(),
-            openModal: jest.fn(),
             getCustomEmojisInText: jest.fn(),
             updateChannelNotifyProps: jest.fn(),
-            goToLastViewedChannel: jest.fn(),
             showChannelMembers: jest.fn(),
         },
-        announcementBarCount: 1,
         teamId: 'team_id',
         channel: TestHelper.getChannelMock({}),
         channelMember: TestHelper.getChannelMembershipMock({}),
         currentUser: TestHelper.getUserMock({}),
-        currentRelativeTeamUrl: '',
         isCustomStatusEnabled: false,
         isCustomStatusExpired: false,
         isFileAttachmentsEnabled: true,
@@ -140,7 +135,7 @@ describe('components/ChannelHeader', () => {
     test('should render correct menu when muted', () => {
         const props = {
             ...populatedProps,
-            isMuted: true,
+            isChannelMuted: true,
         };
 
         const wrapper = shallowWithIntl(
@@ -152,7 +147,7 @@ describe('components/ChannelHeader', () => {
     test('should unmute the channel when mute icon is clicked', () => {
         const props = {
             ...populatedProps,
-            isMuted: true,
+            isChannelMuted: true,
         };
 
         const wrapper = shallowWithIntl(
@@ -225,30 +220,6 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should render bot description', () => {
-        const props = {
-            ...populatedProps,
-            channel: TestHelper.getChannelMock({
-                header: 'not the bot description',
-                type: Constants.DM_CHANNEL as ChannelType,
-            }),
-            dmUser: TestHelper.getUserMock({
-                id: 'user_id',
-                is_bot: true,
-                bot_description: 'the bot description',
-            }),
-        };
-
-        const wrapper = shallowWithIntl(
-            <ChannelHeader {...props}/>,
-        );
-        expect(wrapper.containsMatchingElement(
-            <Markdown
-                message={props.currentUser.bot_description}
-            />,
-        )).toEqual(true);
     });
 
     test('should render the pinned icon with the pinned posts count', () => {

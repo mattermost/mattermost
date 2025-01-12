@@ -4,7 +4,7 @@
 
 .channel-header {
     position: relative;
-    z-index: 15;
+    z-index: variables.$z-index-channel-header;
     width: 100%;
     max-height: 56px;
     padding: 12px;
@@ -114,7 +114,6 @@
         }
 
         .markdown__paragraph-inline {
-            display: inline-block;
             overflow: hidden;
             width: 100%;
             margin: 0;
@@ -444,10 +443,10 @@
 
         .header-description__text {
             overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            line-height: inherit;
             height: 24px;
+            line-height: inherit;
+            text-overflow: ellipsis;
+            white-space: nowrap;
 
             ul {
                 &:first-child {
@@ -567,7 +566,6 @@
     }
 }
 
-.channel-header__popover,
 .navbar__popover {
     p {
         white-space: pre-wrap;
