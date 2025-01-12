@@ -101,6 +101,9 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                     className={classNames('a11y__popup', 'emoji-picker', {
                         bottom: this.props.placement === 'bottom',
                     })}
+                    role='dialog'
+                    aria-label='Emoji picker'
+                    aria-modal='true'
                 >
                     <Tabs
                         id='emoji-picker-tabs'
