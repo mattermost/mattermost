@@ -45,12 +45,13 @@ const TRANSITION_STYLE_PROPS = {
     initial: OverlayTransitionStyles.START,
 };
 
-const PADDING_OF_POPOVER = 8; // padding of .channel-header-text-popover in channel_header_text_popover.scss
+const PADDING_Y_OF_POPOVER = 6; // padding top & bottom of .channel-header-text-popover in channel_header_text_popover.scss
+const PADDING_X_OF_POPOVER = 8; // padding right & left of .channel-header-text-popover in channel_header_text_popover.scss
 const BORDER_WIDTH_OF_POPOVER = 1; // border of .channel-header-text-popover in channel_header_text_popover.scss
 
 const HEIGHT_OF_HEADER_TEXT = 24; // height of .header-description__text in _headers.scss
 const MINOR_VISUAL_ADJUSTMENT = 0.5;
-const SHIFT_UP_OF_POPOVER = -((HEIGHT_OF_HEADER_TEXT + PADDING_OF_POPOVER) - (2 * BORDER_WIDTH_OF_POPOVER) - (MINOR_VISUAL_ADJUSTMENT));
+const SHIFT_UP_OF_POPOVER = -((HEIGHT_OF_HEADER_TEXT + PADDING_Y_OF_POPOVER) - (2 * BORDER_WIDTH_OF_POPOVER) - (MINOR_VISUAL_ADJUSTMENT));
 
 interface Props {
     text: string;
@@ -183,5 +184,5 @@ function getMaxWidthOfPopover(elem: HTMLDivElement | null): string | number {
         return 'inherit';
     }
 
-    return (elem.clientWidth) + ((2 * PADDING_OF_POPOVER) + (2 * BORDER_WIDTH_OF_POPOVER));
+    return (elem.clientWidth) + ((2 * PADDING_X_OF_POPOVER) + (2 * BORDER_WIDTH_OF_POPOVER));
 }

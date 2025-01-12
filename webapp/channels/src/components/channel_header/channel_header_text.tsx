@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -10,10 +11,14 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {openModal} from 'actions/views/modals';
+
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
 import {
     Constants,
+    ModalIdentifiers,
 } from 'utils/constants';
 import {isChannelNamesMap} from 'utils/text_formatting';
 
@@ -54,7 +59,7 @@ export default function ChannelHeaderText(props: Props) {
     }
 
     if (isDirectChannel || isGroupChannel) {
-        return <AddChannelHeaderTextButton/>;
+        return <AddChannelHeaderTextButton channel={props.channel}/>;
     }
 
     // should show option to add channel header text for any channel
@@ -67,17 +72,34 @@ export default function ChannelHeaderText(props: Props) {
                 isPrivateChannel ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES,
             ]}
         >
-            <AddChannelHeaderTextButton/>
+            <AddChannelHeaderTextButton channel={props.channel}/>
         </ChannelPermissionGate>
     );
 }
 
-function AddChannelHeaderTextButton() {
+function AddChannelHeaderTextButton({channel}: {channel: Channel}) {
+    const dispatch = useDispatch();
+
+    function handleClick() {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+            dialogType: EditChannelHeaderModal,
+            dialogProps: {channel},
+        }));
+    }
+
     return (
-        <button>
+        <button
+            className='header-placeholder style--none'
+            onClick={handleClick}
+        >
             <FormattedMessage
                 id='channel_header.headerText.addNewButton'
                 defaultMessage='Add a channel header'
+            />
+            <i
+                className='icon icon-pencil-outline edit-icon'
+                aria-hidden={true}
             />
         </button>
     );

@@ -5,10 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent, ReactNode, RefObject} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import type {IntlShape} from 'react-intl';
-
-import type {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
-import type {UserCustomStatus, UserProfile} from '@mattermost/types/users';
+import type {WrappedComponentProps} from 'react-intl';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
@@ -24,43 +21,14 @@ import {
 } from 'utils/constants';
 import {isEmptyObject} from 'utils/utils';
 
-import type {RhsState} from 'types/store/rhs';
-
 import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';
 import ChannelInfoButton from './channel_info_button';
 import HeaderIconWrapper from './components/header_icon_wrapper';
 
-export type Props = {
-    teamId: string;
-    currentUser: UserProfile;
-    channel?: Channel;
-    memberCount?: number;
-    channelMember?: ChannelMembership;
-    dmUser?: UserProfile;
-    gmMembers?: UserProfile[];
-    isChannelMuted?: boolean;
-    hasGuests?: boolean;
-    rhsState?: RhsState;
-    intl: IntlShape;
-    pinnedPostsCount?: number;
-    actions: {
-        showPinnedPosts: (channelId?: string) => void;
-        showChannelFiles: (channelId: string) => void;
-        closeRightHandSide: () => void;
-        getCustomEmojisInText: (text: string) => void;
-        updateChannelNotifyProps: (userId: string, channelId: string, props: Partial<ChannelNotifyProps>) => void;
-        showChannelMembers: (channelId: string, inEditingMode?: boolean) => void;
-    };
-    customStatus?: UserCustomStatus;
-    isCustomStatusEnabled: boolean;
-    isCustomStatusExpired: boolean;
-    isFileAttachmentsEnabled: boolean;
-    isLastActiveEnabled: boolean;
-    timestampUnits?: string[];
-    lastActivityTimestamp?: number;
-    hideGuestTags: boolean;
-};
+import type {PropsFromRedux} from './index';
+
+export type Props = WrappedComponentProps & PropsFromRedux;
 
 class ChannelHeader extends React.PureComponent<Props> {
     toggleFavoriteRef: RefObject<HTMLButtonElement>;

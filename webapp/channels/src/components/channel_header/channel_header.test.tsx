@@ -2,20 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ComponentProps} from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import ChannelHeader from 'components/channel_header/channel_header';
 import ChannelInfoButton from 'components/channel_header/channel_info_button';
 
+import type {MockIntl} from 'tests/helpers/intl-test-helper';
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
+import ChannelHeader from './channel_header';
+import type {Props} from './channel_header';
+
 describe('components/ChannelHeader', () => {
-    const baseProps: ComponentProps<typeof ChannelHeader> = {
+    const baseProps: Props = {
         actions: {
             showPinnedPosts: jest.fn(),
             showChannelFiles: jest.fn(),
@@ -33,12 +35,23 @@ describe('components/ChannelHeader', () => {
         isFileAttachmentsEnabled: true,
         lastActivityTimestamp: 1632146562846,
         isLastActiveEnabled: true,
+        memberCount: 2,
+        dmUser: undefined,
+        gmMembers: undefined,
+        rhsState: RHSStates.CHANNEL_INFO,
+        isChannelMuted: false,
+        hasGuests: false,
+        pinnedPostsCount: 0,
+        customStatus: undefined,
         timestampUnits: [
             'now',
             'minute',
             'hour',
         ],
         hideGuestTags: false,
+        intl: {
+            formatMessage: jest.fn(({id, defaultMessage}) => defaultMessage || id),
+        } as MockIntl,
     };
 
     const populatedProps = {
