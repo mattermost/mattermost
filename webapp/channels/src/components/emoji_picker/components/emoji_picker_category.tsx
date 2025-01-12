@@ -44,6 +44,7 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
         >
             <button
                 role='tab'
+                type='button'
                 aria-selected={selected}
                 className={classNames('style--none', className)}
                 id={`emojiPickerCategoryTab-${category.name}`}

@@ -35,6 +35,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       <div />
     </div>
     <div
+      aria-orientation="horizontal"
       class="emoji-picker__categories"
       id="emojiPickerCategories"
       role="tablist"
@@ -46,6 +47,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category emoji-picker__category--selected"
         id="emojiPickerCategoryTab-smileys-emotion"
         role="tab"
+        type="button"
       >
         <i
           class="icon-emoticon-happy-outline"
@@ -58,6 +60,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category"
         id="emojiPickerCategoryTab-people-body"
         role="tab"
+        type="button"
       >
         <i
           class="icon-account-outline"
@@ -70,6 +73,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category"
         id="emojiPickerCategoryTab-animals-nature"
         role="tab"
+        type="button"
       >
         <i
           class="icon-leaf-outline"
@@ -82,6 +86,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category"
         id="emojiPickerCategoryTab-food-drink"
         role="tab"
+        type="button"
       >
         <i
           class="icon-food-apple"
@@ -94,6 +99,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category"
         id="emojiPickerCategoryTab-travel-places"
         role="tab"
+        type="button"
       >
         <i
           class="icon-airplane-variant"
@@ -106,6 +112,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category"
         id="emojiPickerCategoryTab-activities"
         role="tab"
+        type="button"
       >
         <i
           class="icon-basketball"
@@ -118,6 +125,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category"
         id="emojiPickerCategoryTab-objects"
         role="tab"
+        type="button"
       >
         <i
           class="icon-lightbulb-outline"
@@ -130,6 +138,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category"
         id="emojiPickerCategoryTab-symbols"
         role="tab"
+        type="button"
       >
         <i
           class="icon-heart-outline"
@@ -142,6 +151,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category"
         id="emojiPickerCategoryTab-flags"
         role="tab"
+        type="button"
       >
         <i
           class="icon-flag-outline"
@@ -154,6 +164,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
         class="style--none emoji-picker__category"
         id="emojiPickerCategoryTab-custom"
         role="tab"
+        type="button"
       >
         <i
           class="icon-emoticon-custom-outline"

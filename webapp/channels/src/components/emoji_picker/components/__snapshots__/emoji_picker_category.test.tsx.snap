@@ -9,6 +9,7 @@ exports[`EmojiPickerCategory should match snapshot 1`] = `
     class="style--none emoji-picker__category"
     id="emojiPickerCategoryTab-recent"
     role="tab"
+    type="button"
   >
     <i
       class="categoryClass"
