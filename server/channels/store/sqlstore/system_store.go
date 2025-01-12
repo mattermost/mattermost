@@ -68,7 +68,8 @@ func (s SqlSystemStore) Get() (model.StringMap, error) {
 	systems := []model.System{}
 	props := make(model.StringMap)
 
-	if err := s.GetReplica().Select(&systems, "SELECT * FROM Systems"); err != nil {
+	query := s.getQueryBuilder().Select("*").From("Systems")
+	if err := s.GetReplica().SelectBuilder(&systems, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get System list")
 	}
 
@@ -81,7 +82,8 @@ func (s SqlSystemStore) Get() (model.StringMap, error) {
 
 func (s SqlSystemStore) GetByName(name string) (*model.System, error) {
 	var system model.System
-	if err := s.GetMaster().Get(&system, "SELECT * FROM Systems WHERE Name = ?", name); err != nil {
+	query := s.getQueryBuilder().Select("*").From("Systems").Where(sq.Eq{"Name": name})
+	if err := s.GetReplica().GetBuilder(&system, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("System", fmt.Sprintf("name=%s", system.Name))
 		}
@@ -112,8 +114,8 @@ func (s SqlSystemStore) InsertIfExists(system *model.System) (_ *model.System, e
 	defer finalizeTransactionX(tx, &err)
 
 	var origSystem model.System
-	if err := tx.Get(&origSystem, `SELECT * FROM Systems
-		WHERE Name = ?`, system.Name); err != nil && err != sql.ErrNoRows {
+	query := s.getQueryBuilder().Select("*").From("Systems").Where(sq.Eq{"Name": system.Name})
+	if err := tx.GetBuilder(&origSystem, query); err != nil && err != sql.ErrNoRows {
 		return nil, errors.Wrapf(err, "failed to get system property with name=%s", system.Name)
 	}
 
