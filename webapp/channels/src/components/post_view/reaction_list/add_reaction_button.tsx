@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
@@ -19,19 +19,33 @@ type Props = {
     post: Post;
     teamId: string;
 
-    handleEmojiClick: (emoji: Emoji) => void;
+    onEmojiClick: (emoji: Emoji) => void;
 }
 
-export default function AddReactionButton(props: Props) {
+export default function AddReactionButton({
+    post,
+    teamId,
+
+    onEmojiClick,
+}: Props) {
     const intl = useIntl();
+
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+    const handleEmojiClick = useCallback((emoji: Emoji) => {
+        onEmojiClick(emoji);
+        setShowEmojiPicker(false);
+    }, [onEmojiClick]);
 
     const {
         emojiPicker,
-        emojiPickerOpen,
         getReferenceProps,
         setReference,
     } = useEmojiPicker({
-        onEmojiClick: props.handleEmojiClick,
+        showEmojiPicker,
+        setShowEmojiPicker,
+
+        onEmojiClick: handleEmojiClick,
     });
 
     const ariaLabel = intl.formatMessage({id: 'reaction.add.ariaLabel', defaultMessage: 'Add a reaction'});
@@ -39,17 +53,17 @@ export default function AddReactionButton(props: Props) {
     return (
         <span className='emoji-picker__container'>
             <ChannelPermissionGate
-                channelId={props.post.channel_id}
-                teamId={props.teamId}
+                channelId={post.channel_id}
+                teamId={teamId}
                 permissions={[Permissions.ADD_REACTION]}
             >
                 <WithTooltip title={ariaLabel}>
                     <button
-                        id={`addReaction-${props.post.id}`}
+                        id={`addReaction-${post.id}`}
                         ref={setReference}
                         aria-label={ariaLabel}
                         className={classNames('Reaction Reaction__add', {
-                            'Reaction__add--open': emojiPickerOpen,
+                            'Reaction__add--open': showEmojiPicker,
                         })}
                         {...getReferenceProps()}
                     >

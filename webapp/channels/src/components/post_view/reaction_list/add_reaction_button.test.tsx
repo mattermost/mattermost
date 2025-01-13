@@ -33,7 +33,7 @@ describe('AddReactionButton', () => {
         const props = {
             post: TestHelper.getPostMock({user_id: userId, channel_id: 'channelId'}),
             teamId: 'teamId',
-            handleEmojiClick: jest.fn(),
+            onEmojiClick: jest.fn(),
         };
 
         renderWithContext(
@@ -50,7 +50,7 @@ describe('AddReactionButton', () => {
         // Search for an emoji instead of clicking on one because the emoji picker doesn't render items when testing
         userEvent.type(screen.getByPlaceholderText('Search emojis'), 'banana{enter}');
 
-        expect(props.handleEmojiClick).toHaveBeenCalledWith(expect.objectContaining({short_name: 'banana'}));
+        expect(props.onEmojiClick).toHaveBeenCalledWith(expect.objectContaining({short_name: 'banana'}));
         expect(screen.queryByText('Emoji Picker')).not.toBeInTheDocument();
     });
 });

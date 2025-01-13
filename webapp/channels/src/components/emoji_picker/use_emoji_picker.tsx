@@ -14,7 +14,7 @@ import {
     useInteractions,
     useRole,
 } from '@floating-ui/react';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
 import type {Emoji} from '@mattermost/types/emojis';
@@ -26,6 +26,9 @@ import {RootHtmlPortalId} from 'utils/constants';
 import EmojiPickerTabs from './emoji_picker_tabs';
 
 type UseEmojiPickerOptions = {
+    showEmojiPicker: boolean;
+    setShowEmojiPicker: (showEmojiPicker: boolean) => void;
+
     enableGifPicker?: boolean;
     onAddCustomEmojiClick?: () => void;
     onEmojiClick: (emoji: Emoji) => void;
@@ -34,12 +37,14 @@ type UseEmojiPickerOptions = {
 
 type UseEmojiPickerReturn = {
     emojiPicker: React.ReactNode;
-    emojiPickerOpen: boolean;
     getReferenceProps: ReturnType<typeof useInteractions>['getReferenceProps'];
     setReference: UseFloatingReturn['refs']['setReference'];
 }
 
 export default function useEmojiPicker({
+    showEmojiPicker,
+    setShowEmojiPicker,
+
     enableGifPicker,
     onAddCustomEmojiClick,
     onEmojiClick,
@@ -47,8 +52,7 @@ export default function useEmojiPicker({
 }: UseEmojiPickerOptions): UseEmojiPickerReturn {
     const isMobileView = useSelector(getIsMobileView);
 
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const hideEmojiPicker = useCallback(() => setShowEmojiPicker(false), []);
+    const hideEmojiPicker = useCallback(() => setShowEmojiPicker(false), [setShowEmojiPicker]);
 
     // Only position the emoji picker in desktop view
     let middleware: UseFloatingOptions['middleware'];
@@ -81,29 +85,13 @@ export default function useEmojiPicker({
         role,
     ]);
 
-    const handleEmojiClick = useCallback((emoji: Emoji) => {
-        hideEmojiPicker();
-        onEmojiClick(emoji);
-    }, [hideEmojiPicker, onEmojiClick]);
-
-    const handleGifClick = useMemo(() => {
-        if (!onGifClick) {
-            return undefined;
-        }
-
-        return (gif: string) => {
-            hideEmojiPicker();
-            onGifClick(gif);
-        };
-    }, [hideEmojiPicker, onGifClick]);
-
     let emojiPicker = (
         <EmojiPickerTabs
             enableGifPicker={enableGifPicker}
             onAddCustomEmojiClick={onAddCustomEmojiClick}
             onEmojiClose={hideEmojiPicker}
-            onEmojiClick={handleEmojiClick}
-            onGifClick={handleGifClick}
+            onEmojiClick={onEmojiClick}
+            onGifClick={onGifClick}
         />
     );
 
@@ -137,7 +125,6 @@ export default function useEmojiPicker({
                 </FloatingOverlay>
             </FloatingPortal>
         ),
-        emojiPickerOpen: showEmojiPicker,
         getReferenceProps,
         setReference: refs.setReference,
     };
