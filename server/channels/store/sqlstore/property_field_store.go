@@ -16,6 +16,10 @@ import (
 )
 
 func (s *SqlPropertyFieldStore) propertyFieldToInsertMap(field *model.PropertyField) (map[string]any, error) {
+	if field.Attrs == nil {
+		field.Attrs = make(map[string]any)
+	}
+
 	attrsJSON, err := json.Marshal(field.Attrs)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_to_insert_map_marshal_attrs")
@@ -39,6 +43,10 @@ func (s *SqlPropertyFieldStore) propertyFieldToInsertMap(field *model.PropertyFi
 }
 
 func (s *SqlPropertyFieldStore) propertyFieldToUpdateMap(field *model.PropertyField) (map[string]any, error) {
+	if field.Attrs == nil {
+		field.Attrs = make(map[string]any)
+	}
+
 	attrsJSON, err := json.Marshal(field.Attrs)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_to_update_map_marshal_attrs")
