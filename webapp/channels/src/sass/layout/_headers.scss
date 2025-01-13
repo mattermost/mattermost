@@ -112,13 +112,6 @@
             flex: 1;
             padding: 0 24px 0 2px;
         }
-
-        .markdown__paragraph-inline {
-            overflow: hidden;
-            width: 100%;
-            margin: 0;
-            text-overflow: ellipsis;
-        }
     }
 
     .channel-header_plugin-dropdown {
@@ -389,19 +382,6 @@
             }
         }
 
-        blockquote {
-            overflow: hidden;
-            padding: 0 0 0 20px;
-            font-size: 13px;
-            text-overflow: ellipsis;
-
-            &::before {
-                top: 0;
-                left: 2px;
-                font-size: 15px;
-            }
-        }
-
         .header-placeholder {
             display: none;
             overflow: hidden;
@@ -463,6 +443,23 @@
                 }
             }
 
+            &>blockquote {
+                padding: 0 0 0 20px;
+                font-size: 13px;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                display: inline-block;
+
+                &::before {
+                    top: 0;
+                    left: 2px;
+                    font-size: 15px;
+                }
+            }
+
+            &>blockquote:first-child {
+            }
+
             .emoticon {
                 width: 18.8px;
                 min-width: 18.8px;
@@ -470,6 +467,17 @@
                 height: 18.8px;
                 min-height: 18.8px;
                 max-height: 18.8px;
+            }
+
+            &>p.markdown__paragraph-inline:first-child {
+                overflow: hidden;
+                display: inline;
+                margin: 0;
+                text-overflow: ellipsis;
+            }
+
+            &>p.markdown__paragraph-inline:not(:first-child) {
+                display: block;
             }
         }
 

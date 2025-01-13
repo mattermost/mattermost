@@ -62,7 +62,7 @@ export function ChannelHeaderTextPopover(props: Props) {
 
     const rootElementRef = useRef<HTMLDivElement>(null);
 
-    const isTextOverflowing = checkIfTextIsOverflowing(rootElementRef?.current);
+    const isTextOverflowing = checkIfTextIsOverflowing(rootElementRef?.current, props.text);
 
     const markdownOptions = useMemo(() => {
         const inHeader = {
@@ -166,9 +166,13 @@ export function ChannelHeaderTextPopover(props: Props) {
     );
 }
 
-function checkIfTextIsOverflowing(elem: HTMLDivElement | null): boolean {
+function checkIfTextIsOverflowing(elem: HTMLDivElement | null, text: string): boolean {
     if (!elem) {
         return false;
+    }
+
+    if (text.match(/\n{2,}/g)) {
+        return true;
     }
 
     if (elem.scrollWidth === elem.clientWidth && elem.scrollHeight === elem.clientHeight) {
