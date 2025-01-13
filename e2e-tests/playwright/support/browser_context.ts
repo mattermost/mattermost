@@ -18,7 +18,7 @@ export class TestBrowser {
         this.context = null;
     }
 
-    async login(user: UserProfile | null) {
+    async login(user: UserProfile) {
         const options = {storageState: ''};
         if (user) {
             // Log in via API request and save user storage

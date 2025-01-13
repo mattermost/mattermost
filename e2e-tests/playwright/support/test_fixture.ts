@@ -107,7 +107,7 @@ class PlaywrightExtended {
         this.hasSeenLandingPage = async () => {
             // Visit the base URL to be able to set the localStorage
             await page.goto('/');
-            return await waitUntilLocalStorageIsSet(page, 'hasSeenLandingPage', 'true');
+            return await waitUntilLocalStorageIsSet(page, '__landingPageSeen__', 'true');
         };
     }
 }
