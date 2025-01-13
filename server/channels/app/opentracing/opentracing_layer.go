@@ -13609,7 +13609,7 @@ func (a *OpenTracingAppLayer) PatchChannelModerationsForChannel(c request.CTX, c
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) PatchPost(c request.CTX, postID string, patch *model.PostPatch, patchPostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchPost")
 
@@ -13621,7 +13621,7 @@ func (a *OpenTracingAppLayer) PatchPost(c request.CTX, postID string, patch *mod
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.PatchPost(c, postID, patch)
+	resultVar0, resultVar1 := a.app.PatchPost(c, postID, patch, patchPostOptions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15200,6 +15200,28 @@ func (a *OpenTracingAppLayer) RestoreGroup(groupID string) (*model.Group, *model
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.RestoreGroup(groupID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) RestorePostVersion(c request.CTX, userID string, postID string, restoreVersionID string) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RestorePostVersion")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.RestorePostVersion(c, userID, postID, restoreVersionID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -18836,7 +18858,7 @@ func (a *OpenTracingAppLayer) UpdatePasswordSendEmail(c request.CTX, user *model
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePost")
 
@@ -18848,7 +18870,7 @@ func (a *OpenTracingAppLayer) UpdatePost(c request.CTX, receivedUpdatedPost *mod
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdatePost(c, receivedUpdatedPost, safeUpdate)
+	resultVar0, resultVar1 := a.app.UpdatePost(c, receivedUpdatedPost, updatePostOptions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

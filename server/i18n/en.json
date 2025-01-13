@@ -5187,12 +5187,20 @@
     "translation": "Can not fetch the file as it is past the cloud plan's limit."
   },
   {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Failed to remove the requested files from database"
+  },
+  {
     "id": "app.file_info.get.app_error",
     "translation": "Unable to get the file info."
   },
   {
     "id": "app.file_info.get.gif.app_error",
     "translation": "Could not decode gif."
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Unable to get the file infos by ids for post edit history."
   },
   {
     "id": "app.file_info.get_by_post_id.app_error",
@@ -5225,6 +5233,10 @@
   {
     "id": "app.file_info.set_searchable_content.app_error",
     "translation": "Unable to set the searchable content of the file."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Failed to restore post file attachments."
   },
   {
     "id": "app.get_user_team_scheduled_posts.error",
@@ -6401,6 +6413,22 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Failed to permanently delete post."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Failed to get the old post version."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "You do not have the appropriate permissions."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to any history item for the specified post."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to a post history item."
   },
   {
     "id": "app.post.save.app_error",
