@@ -45,15 +45,16 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
           Big Tuna
         </span>
       </div>
+    </div>
+    <div
+      class="AdminUserCard__body"
+    >
       <div
         class="AdminUserCard__user-id"
       >
         User ID: 1234
       </div>
     </div>
-    <div
-      class="AdminUserCard__body"
-    />
     <div
       class="AdminUserCard__footer"
     />
@@ -101,15 +102,16 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
           Big Tuna
         </span>
       </div>
+    </div>
+    <div
+      class="AdminUserCard__body"
+    >
       <div
         class="AdminUserCard__user-id"
       >
         User ID: 1234
       </div>
     </div>
-    <div
-      class="AdminUserCard__body"
-    />
     <div
       class="AdminUserCard__footer"
     />
@@ -155,15 +157,16 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
           class="AdminUserCard__user-nickname"
         />
       </div>
+    </div>
+    <div
+      class="AdminUserCard__body"
+    >
       <div
         class="AdminUserCard__user-id"
       >
         User ID: 1234
       </div>
     </div>
-    <div
-      class="AdminUserCard__body"
-    />
     <div
       class="AdminUserCard__footer"
     />
@@ -211,15 +214,16 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
           class="AdminUserCard__user-nickname"
         />
       </div>
+    </div>
+    <div
+      class="AdminUserCard__body"
+    >
       <div
         class="AdminUserCard__user-id"
       >
         User ID: 1234
       </div>
     </div>
-    <div
-      class="AdminUserCard__body"
-    />
     <div
       class="AdminUserCard__footer"
     />
