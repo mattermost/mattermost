@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -30,8 +31,18 @@ func TestCreateCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		field := &model.PropertyField{Name: model.NewId()}
+
+		createdField, resp, err := client.CreateCPAField(context.Background(), field)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		require.Empty(t, createdField)
+	}, "an invalid field should be rejected")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		name := model.NewId()
 		field := &model.PropertyField{
-			Name:  model.NewId(),
+			Name:  fmt.Sprintf("  %s\t", name), // name should be sanitized
 			Type:  model.PropertyFieldTypeText,
 			Attrs: map[string]any{"visibility": "default"},
 		}
@@ -40,6 +51,7 @@ func TestCreateCPAField(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NoError(t, err)
 		require.NotZero(t, createdField.ID)
+		require.Equal(t, name, createdField.Name)
 		require.Equal(t, "default", createdField.Attrs["visibility"])
 	}, "a user with admin permissions should be able to create the field")
 }
@@ -107,11 +119,12 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
-		patch := &model.PropertyFieldPatch{Name: model.NewPointer(model.NewId())}
+		newName := model.NewId()
+		patch := &model.PropertyFieldPatch{Name: model.NewPointer(fmt.Sprintf("  %s \t ", newName))} // name should be sanitized
 		patchedField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, patch)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, *patch.Name, patchedField.Name)
+		require.Equal(t, newName, patchedField.Name)
 	}, "a user with admin permissions should be able to patch the field")
 }
 
@@ -215,13 +228,14 @@ func TestPatchCPAValues(t *testing.T) {
 
 	t.Run("any team member should be able to create their own values", func(t *testing.T) {
 		values := map[string]string{}
-		values[createdField.ID] = "Field Value"
+		value := "Field Value"
+		values[createdField.ID] = fmt.Sprintf("  %s ", value) // value should be sanitized
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.NotEmpty(t, patchedValues)
 		require.Len(t, patchedValues, 1)
-		require.Equal(t, "Field Value", patchedValues[createdField.ID])
+		require.Equal(t, value, patchedValues[createdField.ID])
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
@@ -238,15 +252,16 @@ func TestPatchCPAValues(t *testing.T) {
 		require.NotEmpty(t, values)
 		require.Len(t, values, 1)
 
-		values[createdField.ID] = "Updated Field Value"
+		value := "Updated Field Value"
+		values[createdField.ID] = fmt.Sprintf(" %s  \t", value) // value should be sanitized
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, "Updated Field Value", patchedValues[createdField.ID])
+		require.Equal(t, value, patchedValues[createdField.ID])
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, "Updated Field Value", values[createdField.ID])
+		require.Equal(t, value, values[createdField.ID])
 	})
 }

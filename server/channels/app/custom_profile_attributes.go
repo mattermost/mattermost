@@ -85,7 +85,13 @@ func (a *App) CreateCPAField(field *model.PropertyField) (*model.PropertyField, 
 	field.GroupID = groupID
 	newField, err := a.Srv().propertyService.CreatePropertyField(field)
 	if err != nil {
-		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.create_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.create_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return newField, nil

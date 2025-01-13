@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -48,6 +49,8 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pf.SanitizeInput()
+
 	auditRec := c.MakeAuditRecord("createCPAField", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameterAuditable(auditRec, "property_field", pf)
@@ -85,6 +88,8 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("property_field_patch", err)
 		return
 	}
+
+	patch.SanitizeInput()
 
 	auditRec := c.MakeAuditRecord("patchCPAField", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -150,7 +155,7 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	var attributeValues map[string]string
 	if jsonErr := json.NewDecoder(r.Body).Decode(&attributeValues); jsonErr != nil {
-		c.SetInvalidParamWithErr("attribs", jsonErr)
+		c.SetInvalidParamWithErr("attrs", jsonErr)
 		return
 	}
 
@@ -168,7 +173,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	results := make(map[string]string)
 	for fieldID, value := range attributeValues {
-		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, value)
+		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, strings.TrimSpace(value))
 		if appErr != nil {
 			c.Err = appErr
 			return

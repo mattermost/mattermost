@@ -3,7 +3,10 @@
 
 package model
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 type PropertyFieldType string
 
@@ -88,6 +91,10 @@ func (pf *PropertyField) IsValid() error {
 	return nil
 }
 
+func (pf *PropertyField) SanitizeInput() {
+	pf.Name = strings.TrimSpace(pf.Name)
+}
+
 type PropertyFieldPatch struct {
 	Name       *string            `json:"name"`
 	Type       *PropertyFieldType `json:"type"`
@@ -103,6 +110,12 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]interface{} {
 		"attrs":       pfp.Attrs,
 		"target_id":   pfp.TargetID,
 		"target_type": pfp.TargetType,
+	}
+}
+
+func (pf *PropertyFieldPatch) SanitizeInput() {
+	if pf.Name != nil {
+		pf.Name = NewPointer(strings.TrimSpace(*pf.Name))
 	}
 }
 
