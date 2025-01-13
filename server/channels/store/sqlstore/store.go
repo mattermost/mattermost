@@ -35,6 +35,8 @@ import (
 
 type migrationDirection string
 
+type Option func(s *SqlStore) error
+
 const (
 	IndexTypeFullText                 = "full_text"
 	IndexTypeFullTextFunc             = "full_text_func"
@@ -139,12 +141,20 @@ type SqlStore struct {
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
+	skipMigrations            bool
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
 }
 
-func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
+func SkipMigrations() Option {
+	return func(s *SqlStore) error {
+		s.skipMigrations = true
+		return nil
+	}
+}
+
+func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface, options ...Option) (*SqlStore, error) {
 	store := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
@@ -153,6 +163,12 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		logger:      logger,
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
+	}
+
+	for _, option := range options {
+		if err := option(store); err != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err)
+		}
 	}
 
 	err := store.initConnection()
@@ -178,9 +194,11 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		return nil, errors.Wrap(err, "error while checking DB collation")
 	}
 
-	err = store.migrate(migrationsDirectionUp, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to apply database migrations")
+	if !store.skipMigrations {
+		err = store.migrate(migrationsDirectionUp, false)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to apply database migrations")
+		}
 	}
 
 	store.isBinaryParam, err = store.computeBinaryParam()

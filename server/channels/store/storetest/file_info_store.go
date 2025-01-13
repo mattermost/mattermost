@@ -1047,18 +1047,22 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 			ss.FileInfo().PermanentDelete(rctx, info2.Id)
 		}()
 
-		// we'll delete thw two file infos
+		// we'll delete the two file infos
 		_, err = ss.FileInfo().DeleteForPost(rctx, postId)
 		require.NoError(t, err)
 
-		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true, true)
+		fileInfosIncludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true, true)
 		require.NoError(t, err)
-		require.Len(t, fileInfos, 2)
-		require.Equal(t, info2.Id, fileInfos[0].Id)
-		require.Greater(t, fileInfos[0].DeleteAt, int64(0))
+		require.Len(t, fileInfosIncludingDeleted, 2)
+		require.Equal(t, info2.Id, fileInfosIncludingDeleted[0].Id)
+		require.Greater(t, fileInfosIncludingDeleted[0].DeleteAt, int64(0))
+		require.Equal(t, info1.Id, fileInfosIncludingDeleted[1].Id)
+		require.Greater(t, fileInfosIncludingDeleted[1].DeleteAt, int64(0))
 
-		require.Equal(t, info1.Id, fileInfos[1].Id)
-		require.Greater(t, fileInfos[1].DeleteAt, int64(0))
+		// verifying that the file infos are not returned when IncludeDeleted is false
+		fileInfosExcludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true)
+		require.NoError(t, err)
+		require.Len(t, fileInfosExcludingDeleted, 0)
 	})
 }
 

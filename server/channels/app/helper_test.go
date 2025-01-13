@@ -799,7 +799,7 @@ func (th *TestHelper) CreateFileInfo(userId, postId, channelId string) *model.Fi
 	return createdFileInfo
 }
 
-func (th *TestHelper) UpdatePost(post *model.Post, message string, options ...PostPatchOptions) *model.Post {
+func (th *TestHelper) PostPatch(post *model.Post, message string, options ...PostPatchOptions) *model.Post {
 	postPatch := &model.PostPatch{
 		Message: model.NewPointer(message),
 	}

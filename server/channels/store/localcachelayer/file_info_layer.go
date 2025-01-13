@@ -71,7 +71,7 @@ func (s LocalCacheFileInfoStore) GetByIds(ids []string, includeDeleted, allowFro
 	}
 
 	if len(fileIdsToFetch) > 0 {
-		fetchedFileInfos, err := s.FileInfoStore.GetByIds(fileIdsToFetch, includeDeleted, allowFromCache)
+		fetchedFileInfos, err := s.FileInfoStore.GetByIds(fileIdsToFetch, includeDeleted, false)
 		if err != nil {
 			return nil, err
 		}

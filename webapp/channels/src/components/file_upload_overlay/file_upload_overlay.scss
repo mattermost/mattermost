@@ -32,11 +32,6 @@
     &.right-file-overlay {
         font-size: functions.em(18px);
 
-        .overlay__circle {
-            width: 300px;
-            height: 300px;
-        }
-
         .overlay__files {
             width: 150px;
         }
@@ -44,8 +39,8 @@
 
     .overlay__circle {
         display: flex;
-        width: max-content;
-        height: max-content;
+        width: 300px;
+        height: 300px;
         max-height: 100%;
         flex-direction: column;
         flex-wrap: wrap;
@@ -61,11 +56,11 @@
             .overlay__files {
                 width: auto;
                 height: 96px;
+                max-height: 80%;
             }
 
             span {
                 display: flex;
-                height: 100px;
                 align-items: center;
             }
         }

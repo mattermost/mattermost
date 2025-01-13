@@ -13,7 +13,7 @@ import {clearFileInput} from 'utils/utils';
 
 import type {FilesWillUploadHook} from 'types/store/plugins';
 
-import FileUpload, {type TextEditorLocationType, type FileUpload as FileUploadClass} from './file_upload';
+import FileUpload, {type FileUpload as FileUploadClass} from './file_upload';
 
 const generatedIdRegex = /[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/;
 
@@ -66,7 +66,7 @@ describe('components/FileUpload', () => {
         onUploadError: jest.fn(),
         onUploadStart: jest.fn(),
         onUploadProgress: jest.fn(),
-        postType: 'post' as TextEditorLocationType,
+        postType: 'post' as const,
         maxFileSize: MaxFileSize,
         canUploadFiles: true,
         rootId: 'root_id',

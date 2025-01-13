@@ -12,7 +12,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       className="overlay__circle vertical"
     >
       <img
-        alt="Files"
+        alt=""
         className="overlay__files"
         loading="lazy"
         src=""
@@ -38,7 +38,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       className="overlay__circle vertical"
     >
       <img
-        alt="Files"
+        alt=""
         className="overlay__files"
         loading="lazy"
         src=""
@@ -64,7 +64,7 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
       className="overlay__circle vertical"
     >
       <img
-        alt="Files"
+        alt=""
         className="overlay__files"
         loading="lazy"
         src=""

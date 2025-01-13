@@ -5239,7 +5239,7 @@ func TestRestorePostVersion(t *testing.T) {
 
 		restoredPost, response, err = client.RestorePostVersion(context.Background(), createdPost.Id, model.NewId())
 		require.Error(t, err)
-		CheckNotFoundStatus(t, response)
+		CheckForbiddenStatus(t, response)
 		require.Nil(t, restoredPost)
 
 		post2 := &model.Post{
