@@ -35,6 +35,8 @@ import (
 
 type migrationDirection string
 
+type Option func(s *SqlStore) error
+
 const (
 	IndexTypeFullText                 = "full_text"
 	IndexTypeFullTextFunc             = "full_text_func"
@@ -113,6 +115,9 @@ type SqlStoreStores struct {
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
 	scheduledPost              store.ScheduledPostStore
+	propertyGroup              store.PropertyGroupStore
+	propertyField              store.PropertyFieldStore
+	propertyValue              store.PropertyValueStore
 }
 
 type SqlStore struct {
@@ -139,12 +144,20 @@ type SqlStore struct {
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
+	skipMigrations            bool
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
 }
 
-func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
+func SkipMigrations() Option {
+	return func(s *SqlStore) error {
+		s.skipMigrations = true
+		return nil
+	}
+}
+
+func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface, options ...Option) (*SqlStore, error) {
 	store := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
@@ -153,6 +166,12 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		logger:      logger,
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
+	}
+
+	for _, option := range options {
+		if err := option(store); err != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err)
+		}
 	}
 
 	err := store.initConnection()
@@ -178,9 +197,11 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		return nil, errors.Wrap(err, "error while checking DB collation")
 	}
 
-	err = store.migrate(migrationsDirectionUp, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to apply database migrations")
+	if !store.skipMigrations {
+		err = store.migrate(migrationsDirectionUp, false)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to apply database migrations")
+		}
 	}
 
 	store.isBinaryParam, err = store.computeBinaryParam()
@@ -239,6 +260,9 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
+	store.stores.propertyGroup = newPropertyGroupStore(store)
+	store.stores.propertyField = newPropertyFieldStore(store)
+	store.stores.propertyValue = newPropertyValueStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1040,6 +1064,18 @@ func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
 
 func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 	return ss.stores.channelBookmarks
+}
+
+func (ss *SqlStore) PropertyGroup() store.PropertyGroupStore {
+	return ss.stores.propertyGroup
+}
+
+func (ss *SqlStore) PropertyField() store.PropertyFieldStore {
+	return ss.stores.propertyField
+}
+
+func (ss *SqlStore) PropertyValue() store.PropertyValueStore {
+	return ss.stores.propertyValue
 }
 
 func (ss *SqlStore) DropAllTables() {

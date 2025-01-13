@@ -94,6 +94,7 @@ function Item({
             aria-label={ariaLabel}
             className='style--none'
             onClick={onClick}
+            aria-pressed={isSelected}
         >
             {text && <span className='MenuItem__primary-text'>{text}</span>}
             {isSelected && (
@@ -117,6 +118,7 @@ function ToggleItem({
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
             role='button'
+            aria-pressed={toggled}
         >
             <ToggleMain>
                 {icon}
