@@ -198,9 +198,9 @@ func (a *App) PatchCPAValue(userID string, fieldID string, value string) (*model
 	// make sure field exists in this group
 	existingField, appErr := a.GetCPAField(fieldID)
 	if appErr != nil {
-		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 	} else if existingField.DeleteAt > 0 {
-		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_deleted.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
 	}
 
 	existingValues, appErr := a.ListCPAValues(userID)
@@ -211,6 +211,7 @@ func (a *App) PatchCPAValue(userID string, fieldID string, value string) (*model
 	for key, value := range existingValues {
 		if value.FieldID == fieldID {
 			existingValue = existingValues[key]
+			break
 		}
 	}
 
