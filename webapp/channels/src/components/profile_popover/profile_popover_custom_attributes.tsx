@@ -39,7 +39,7 @@ const ProfilePopoverCustomAttributes = ({
                 className='user-popover__custom_attributes'
             >
                 <strong
-                    id='user-popover__custom_attributes-title'
+                    id={`user-popover__custom_attributes-title-${attribute.id}`}
                     className='user-popover__subtitle'
                 >
                     {attribute.name}
