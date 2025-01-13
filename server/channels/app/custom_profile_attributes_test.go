@@ -263,8 +263,8 @@ func TestPatchCPAField(t *testing.T) {
 		require.Equal(t, createdField.ID, updatedField.ID)
 		require.Equal(t, "Patched name", updatedField.Name)
 		require.Equal(t, "default", updatedField.Attrs["visibility"])
-		require.Empty(t, updatedField.TargetID, "CPA should not allot to patch the field's target ID")
-		require.Empty(t, updatedField.TargetType, "CPA should not allot to patch the field's target type")
+		require.Empty(t, updatedField.TargetID, "CPA should not allow to patch the field's target ID")
+		require.Empty(t, updatedField.TargetType, "CPA should not allow to patch the field's target type")
 		require.Greater(t, updatedField.UpdateAt, createdField.UpdateAt)
 	})
 }
