@@ -27,9 +27,9 @@ export default function AddReactionButton(props: Props) {
 
     const {
         emojiPicker,
+        emojiPickerOpen,
         getReferenceProps,
         setReference,
-        showEmojiPicker,
     } = useEmojiPicker({
         onEmojiClick: props.handleEmojiClick,
     });
@@ -49,7 +49,7 @@ export default function AddReactionButton(props: Props) {
                         ref={setReference}
                         aria-label={ariaLabel}
                         className={classNames('Reaction Reaction__add', {
-                            'Reaction__add--open': showEmojiPicker,
+                            'Reaction__add--open': emojiPickerOpen,
                         })}
                         {...getReferenceProps()}
                     >

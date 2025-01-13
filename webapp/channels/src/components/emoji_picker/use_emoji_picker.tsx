@@ -34,9 +34,9 @@ type UseEmojiPickerOptions = {
 
 type UseEmojiPickerReturn = {
     emojiPicker: React.ReactNode;
+    emojiPickerOpen: boolean;
     getReferenceProps: ReturnType<typeof useInteractions>['getReferenceProps'];
     setReference: UseFloatingReturn['refs']['setReference'];
-    showEmojiPicker: boolean;
 }
 
 export default function useEmojiPicker({
@@ -137,8 +137,8 @@ export default function useEmojiPicker({
                 </FloatingOverlay>
             </FloatingPortal>
         ),
+        emojiPickerOpen: showEmojiPicker,
         getReferenceProps,
         setReference: refs.setReference,
-        showEmojiPicker,
     };
 }
