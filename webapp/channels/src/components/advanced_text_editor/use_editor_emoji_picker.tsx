@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -13,7 +13,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
+import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import WithTooltip from 'components/with_tooltip';
 
@@ -24,7 +24,7 @@ import type {PostDraft} from 'types/store/draft';
 
 import {IconContainer} from './formatting_bar/formatting_icon';
 
-const useEmojiPicker = (
+const useEditorEmojiPicker = (
     isDisabled: boolean,
     draft: PostDraft,
     caretPosition: number,
@@ -32,28 +32,17 @@ const useEmojiPicker = (
     handleDraftChange: (draft: PostDraft) => void,
     shouldShowPreview: boolean,
     focusTextbox: () => void,
-    emojiPickerOffset?: {right?: number},
 ) => {
     const intl = useIntl();
 
     const enableEmojiPicker = useSelector((state: GlobalState) => getConfig(state).EnableEmojiPicker === 'true');
     const enableGifPicker = useSelector((state: GlobalState) => getConfig(state).EnableGifPicker === 'true');
 
-    const emojiPickerRef = useRef<HTMLButtonElement>(null);
-
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const toggleEmojiPicker = useCallback((e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
         setShowEmojiPicker((prev) => !prev);
-    }, []);
-
-    const hideEmojiPicker = useCallback(() => {
-        setShowEmojiPicker(false);
-    }, []);
-
-    const getEmojiPickerRef = useCallback(() => {
-        return emojiPickerRef.current;
     }, []);
 
     const handleEmojiClick = useCallback((emoji: Emoji) => {
@@ -111,25 +100,30 @@ const useEmojiPicker = (
     // Focus textbox when the emoji picker closes
     useDidUpdate(() => {
         if (!showEmojiPicker) {
-            focusTextbox();
+            // Wait a frame to let the emoji picker's focus trap disappear before changing focus
+            requestAnimationFrame(() => {
+                focusTextbox();
+            });
         }
     }, [showEmojiPicker]);
 
-    let emojiPicker = null;
+    const {
+        emojiPicker,
+        getReferenceProps,
+        setReference,
+    } = useEmojiPicker({
+        showEmojiPicker,
+        setShowEmojiPicker,
 
+        enableGifPicker,
+        onGifClick: handleGifClick,
+        onEmojiClick: handleEmojiClick,
+    });
+
+    let emojiPickerControls = null;
     if (enableEmojiPicker && !isDisabled) {
-        emojiPicker = (
+        emojiPickerControls = (
             <>
-                <EmojiPickerOverlay
-                    show={showEmojiPicker}
-                    target={getEmojiPickerRef}
-                    onHide={hideEmojiPicker}
-                    onEmojiClick={handleEmojiClick}
-                    onGifClick={handleGifClick}
-                    enableGifPicker={enableGifPicker}
-                    topOffset={-7}
-                    rightOffset={emojiPickerOffset?.right}
-                />
                 <WithTooltip
                     title={
                         <KeyboardShortcutSequence
@@ -141,12 +135,13 @@ const useEmojiPicker = (
                 >
                     <IconContainer
                         id={'emojiPickerButton'}
-                        ref={emojiPickerRef}
+                        ref={setReference}
                         onClick={toggleEmojiPicker}
                         type='button'
                         aria-label={intl.formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                         disabled={shouldShowPreview}
                         className={classNames({active: showEmojiPicker})}
+                        {...getReferenceProps()}
                     >
                         <EmoticonHappyOutlineIcon
                             color={'currentColor'}
@@ -154,11 +149,12 @@ const useEmojiPicker = (
                         />
                     </IconContainer>
                 </WithTooltip>
+                {emojiPicker}
             </>
         );
     }
 
-    return {emojiPicker, enableEmojiPicker, toggleEmojiPicker};
+    return {emojiPicker: emojiPickerControls, enableEmojiPicker, toggleEmojiPicker};
 };
 
-export default useEmojiPicker;
+export default useEditorEmojiPicker;
