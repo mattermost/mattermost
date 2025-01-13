@@ -3065,31 +3065,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось создать задание индексации"
+    "translation": "Рабочий агрегатор {{.Backend}} не смог создать задание на индексирование"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось удалить индексы"
+    "translation": "Рабочему агрегатору {{.Backend}} не удалось удалить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось получить индексы"
+    "translation": "Рабочему агрегатору {{.Backend}} не удалось получить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Сбой в работе сборщика Elasticsearch из-за сбоя задания индексирования"
+    "translation": "Сбой в работе сборщика {{.Backend}} из-за сбоя задания индексирования"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Ошибка установки клиента Elasticsearch"
+    "translation": "Ошибка установки клиента {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "Не удалось удалить индекс {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Не удалось получить индексы Elasticsearch"
+    "translation": "Не удалось получить индексы {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3097,7 +3097,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Поиск Elasticsearch не включен на этом сервере"
+    "translation": "Поиск {{.Backend}} не включен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3105,15 +3105,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время окончания"
+    "translation": "Работнику индексирования {{.Backend}} не удалось проанализировать время окончания"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время начала"
+    "translation": "Работнику индексирования {{.Backend}} не удалось проанализировать время начала"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch не запущен"
+    "translation": "{{.Backend}} не запущен"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3121,7 +3121,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Поиск Elasticsearch отключен на этом сервере"
+    "translation": "Поиск {{.Backend}} отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3137,11 +3137,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch уже остановлен."
+    "translation": "{{.Backend}} уже остановлен."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch отключён."
+    "translation": "{{.Backend}} отключён."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3709,27 +3709,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Параметр Elasticsearch AggregatePostsAfterDays должен быть числом больше или равным 1."
+    "translation": "Настройка поиска AggregatePostsAfterDays должна быть числом больше или равным 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Настройка Search ConnectionUrl должна быть указана, если включена индексация."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Для параметра Elasticsearch EnableIndexing должно быть установлено значение true, если для параметра Elasticsearch SearchEnabled установлено значение true"
+    "translation": "Для параметра Search EnableIndexing должно быть установлено значение true, если для параметра EnableSearching установлено значение true"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Размер пакета живого индексирования Elasticsearch должен быть не менее 1."
+    "translation": "Размер пакета живого индексирования должен быть не менее 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Параметр Elasticsearch PostsAggregatorJobStartTime должен быть временем в формате «чч:мм»."
+    "translation": "Параметр поиска PostsAggregatorJobStartTime должен быть временем в формате «чч:мм»."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Время ожидания запроса Elasticsearch должно составлять не менее 1 секунды."
+    "translation": "Время ожидания запроса должно составлять не менее 1 секунды."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4609,11 +4609,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Не удалось найти команду."
+    "translation": "Не удалось найти команду {{.command_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Невозможно разобрать входящие данные."
+    "translation": "Невозможно разобрать входящие данные вебхука {{.hook_id}}."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4625,7 +4625,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Этому вебхуку не разрешено публиковать сообщения на запрошенном канале."
+    "translation": "Этому вебхуку не разрешено публиковать сообщения на запрошенном канале {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4641,7 +4641,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Несоответствующие права канала."
+    "translation": "Пользователь {{.user}} не имеет соответствующих прав на канал {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4653,7 +4653,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Не удалось найти пользователя."
+    "translation": "Не удалось найти пользователя {{.user}}"
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -4993,7 +4993,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для каналов"
+    "translation": "Не удалось создать шаблон {{.Backend}} для каналов"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -5013,7 +5013,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Поиск Elasticsearch отключен на этом сервере"
+    "translation": "Поиск {{.Backend}} отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -5029,11 +5029,11 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Не удалось получить версию сервера Elasticsearch."
+    "translation": "Не удалось получить версию сервера {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Не удалось проанализировать версию сервера Elasticsearch."
+    "translation": "Не удалось проанализировать версию сервера {{.Backend}}."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -5401,11 +5401,11 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для сообщений"
+    "translation": "Не удалось создать шаблон {{.Backend}} для сообщений"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для пользователей"
+    "translation": "Не удалось создать шаблон {{.Backend}} для пользователей"
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
@@ -5445,7 +5445,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Параметр Elasticsearch IndexingEnabled должен иметь значение true, если для Elasticsearch AutocompleteEnabled установлено значение true"
+    "translation": "Параметр поиска IndexingEnabled должен иметь значение true, если для Elasticsearch AutocompleteEnabled установлено значение true"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5701,11 +5701,11 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Не удалось найти существующий канал."
+    "translation": "Не удалось найти существующий канал {{.channel_id}}."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Возникла проблема при поиске канала."
+    "translation": "Возникла проблема при поиске канала {{.channel_id}}."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
@@ -5793,11 +5793,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версия 115+"
+    "translation": "Версия 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 17.0+"
+    "translation": "Версия 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -7193,7 +7193,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "На этом сервере отключена функция поиска файлов Elasticsearch"
+    "translation": "На этом сервере отключена функция поиска файлов {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -7221,7 +7221,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для файлов"
+    "translation": "Не удалось создать шаблон {{.Backend}} для файлов"
   },
   {
     "id": "ent.compliance.global_relay.write_file.appError",
@@ -8609,7 +8609,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Размер пакета массового индексирования Elasticsearch должен быть не менее {{.BatchSize}}."
+    "translation": "Размер пакета массового индексирования должен быть не менее {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8937,19 +8937,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Не удалось открыть файл клиентского ключа для Elasticsearch"
+    "translation": "Не удалось открыть файл клиентского ключа для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Не удалось открыть файл сертификата клиента для Elasticsearch"
+    "translation": "Не удалось открыть файл сертификата клиента для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Не удалось декодировать сертификат клиента для Elasticsearch"
+    "translation": "Не удалось декодировать сертификат клиента для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Не удалось открыть файл CA для Elasticsearch"
+    "translation": "Не удалось открыть файл CA для {{.Backend}}"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9001,7 +9001,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
+    "translation": "Версия {{.Backend}} {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -10162,5 +10162,13 @@
   {
     "id": "api.remote_cluster.create_invite_error",
     "translation": "Не удалось создать приглашение на удаленный кластер"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Невозможно обновить бота."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Вы не можете изменить статус пользователя. Пользователь управляется из LDAP-каталога"
   }
 ]

@@ -516,6 +516,8 @@ const PostComponent = (props: Props): JSX.Element => {
         postAriaLabelDivTestId = 'rhsPostView';
     }
 
+    const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited;
+
     return (
         <>
             {(isSearchResultItem || (props.location !== Locations.CENTER && (props.isPinnedPosts || props.isFlaggedPosts))) && <DateSeparator date={currentPostDay}/>}
@@ -594,14 +596,12 @@ const PostComponent = (props: Props): JSX.Element => {
                                 {priority}
                                 {post.props && post.props.card &&
                                     <WithTooltip
-                                        id='post_info.info.view_additional_info'
                                         title={
                                             <FormattedMessage
                                                 id='post_info.info.view_additional_info'
                                                 defaultMessage='View additional info'
                                             />
                                         }
-                                        placement='top'
                                     >
                                         <button
                                             className={'card-icon__container icon--show style--none ' + (props.isCardOpen ? 'active' : '')}
@@ -645,12 +645,13 @@ const PostComponent = (props: Props): JSX.Element => {
                                 slot2={<EditPost/>}
                                 onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
                             />
-                            {post.file_ids && post.file_ids.length > 0 &&
-                            <FileAttachmentListContainer
-                                post={post}
-                                compactDisplay={props.compactDisplay}
-                                handleFileDropdownOpened={handleFileDropdownOpened}
-                            />
+                            {
+                                showFileAttachments &&
+                                <FileAttachmentListContainer
+                                    post={post}
+                                    compactDisplay={props.compactDisplay}
+                                    handleFileDropdownOpened={handleFileDropdownOpened}
+                                />
                             }
                             <div className='post__body-reactions-acks'>
                                 {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (

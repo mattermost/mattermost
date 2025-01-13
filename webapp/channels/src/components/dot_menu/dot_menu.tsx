@@ -507,7 +507,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     onToggle: this.handleMenuToggle,
                 }}
                 menuButtonTooltip={{
-                    id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,
                     text: formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}),
                     class: 'hidden-xs',
                 }}

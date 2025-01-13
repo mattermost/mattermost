@@ -6,7 +6,6 @@ import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
@@ -34,6 +33,11 @@ import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import DeletePostModal from 'components/delete_post_modal';
+import {
+    DropOverlayIdCreateComment,
+    DropOverlayIdCreatePost,
+    DropOverlayIdEditPost, FileUploadOverlay,
+} from 'components/file_upload_overlay/file_upload_overlay';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -66,6 +70,7 @@ import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
+import MessageWithMentionsFooter from './message_with_mentions_footer';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
@@ -83,7 +88,7 @@ import './advanced_text_editor.scss';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
-type Props = {
+export type Props = {
 
     /**
      * location of the advanced text editor in the UI (center channel / RHS)
@@ -200,7 +205,6 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
-    const [showMentionHelper, setShowMentionHelper] = useState<boolean>(false);
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
@@ -216,15 +220,6 @@ const AdvancedTextEditor = ({
     const emitTypingEvent = useCallback(() => {
         GlobalActions.emitLocalUserTypingEvent(channelId, postId);
     }, [channelId, postId]);
-
-    const handleShowMentionHelper = useCallback((message: string) => {
-        if (!isInEditMode) {
-            return;
-        }
-
-        const isMentions = allAtMentions(message).length > 0;
-        setShowMentionHelper(isMentions);
-    }, [isInEditMode]);
 
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
         if (saveDraftFrame.current) {
@@ -311,11 +306,13 @@ const AdvancedTextEditor = ({
         setServerError,
         isInEditMode,
     );
+
+    const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;
     const {
         emojiPicker,
         enableEmojiPicker,
         toggleEmojiPicker,
-    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
+    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox, emojiPickerOffset);
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
@@ -562,11 +559,6 @@ const AdvancedTextEditor = ({
         };
     }, [channelId, postId]);
 
-    useEffect(() => {
-        // this checks for the mention helper for initial load of component.
-        handleShowMentionHelper(draft.message);
-    }, [draft.message, handleShowMentionHelper]);
-
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
@@ -680,7 +672,30 @@ const AdvancedTextEditor = ({
         />
     );
 
+    const fileUploadOverlay = useMemo(() => {
+        const overlayType = isRHS ? 'right' : 'center';
+        const direction = 'horizontal';
+
+        return isInEditMode ? (
+            <FileUploadOverlay
+                overlayType={overlayType}
+                isInEditMode={true}
+                id={DropOverlayIdEditPost}
+                direction={direction}
+            />
+        ) : (
+            <FileUploadOverlay
+                overlayType={overlayType}
+                isInEditMode={false}
+                id={isRHS ? DropOverlayIdCreateComment : DropOverlayIdCreatePost}
+                direction={direction}
+            />
+        );
+    }, [isInEditMode, isRHS]);
+
     const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
+
+    const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
 
     return (
         <form
@@ -723,6 +738,7 @@ const AdvancedTextEditor = ({
                     className={'AdvancedTextEditor__body'}
                     disabled={isDisabled}
                 >
+                    {fileUploadOverlay}
                     <div
                         ref={editorBodyRef}
                         role='application'
@@ -801,30 +817,8 @@ const AdvancedTextEditor = ({
                     )}
                 </div>
             </div>
-            { showMentionHelper ? (
-                <div
-                    className='post-body__info'
-                    data-testid='editPostAtMentionWarning'
-                >
-                    <span className='post-body__info__icon'>
-                        <InformationOutlineIcon
-                            size={14}
-                            color='currentColor'
-                        />
-                    </span>
-                    <span>{
-                        formatMessage({
-                            id: 'edit_post.no_notification_trigger_on_mention',
-                            defaultMessage: "Editing this message with an '@mention' will not notify the recipient.",
-                        })
-                    }</span>
-                </div>) : null
-            }
-            {isInEditMode && (
-                <EditPostFooter
-                    onSave={handleSubmitWrapper}
-                    onCancel={handleCancel}
-                />
+            {isInEditMode && containsAtMentionsInMessage && (
+                <MessageWithMentionsFooter/>
             )}
             <Footer
                 postError={postError}
@@ -835,6 +829,12 @@ const AdvancedTextEditor = ({
                 noArgumentHandleSubmit={handleSubmitWrapper}
                 isInEditMode={isInEditMode}
             />
+            {isInEditMode && (
+                <EditPostFooter
+                    onSave={handleSubmitWrapper}
+                    onCancel={handleCancel}
+                />
+            )}
         </form>
     );
 };

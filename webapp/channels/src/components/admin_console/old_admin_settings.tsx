@@ -239,8 +239,6 @@ export default abstract class OLDAdminSettings <Props extends BaseProps, State e
                             }
                         />
                         <WithTooltip
-                            id='error-tooltip'
-                            placement='top'
                             title={this.state?.serverError ?? ''}
                         >
                             <div

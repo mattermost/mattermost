@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -65,9 +66,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
         if (compactDisplay) {
             filenameOverlay = (
                 <WithTooltip
-                    id='file-name__tooltip'
                     title={fileName}
-                    placement='top'
                 >
                     <a
                         href='#'
@@ -84,9 +83,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
             filenameOverlay = (
                 <div className={iconClass || 'post-image__name'}>
                     <WithTooltip
-                        id='file-name__tooltip'
-                        title={localizeMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
-                        placement='top'
+                        title={defineMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
                     >
                         <ExternalLink
                             href={getFileDownloadUrl(fileInfo.id)}

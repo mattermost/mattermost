@@ -352,7 +352,6 @@ exports[`components/dot_menu/DotMenu should match snapshot, on Center 1`] = `
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "PostDotMenu-ButtonTooltip-post_id_1",
       "text": "More",
     }
   }

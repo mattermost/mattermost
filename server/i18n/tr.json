@@ -3092,7 +3092,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Bu sunucu üzerinde Elasticsearch araması açılmamış"
+    "translation": "Bu sunucu üzerinde {{.Backend}} araması açılmamış"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3100,15 +3100,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch dizine ekleme işlemi bitiş zamanını işleyemedi"
+    "translation": "{{.Backend}} dizine ekleme işlemi bitiş zamanını işleyemedi"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch dizine ekleme işlemi başlangıç zamanını işleyemedi"
+    "translation": "{{.Backend}} dizine ekleme işlemi başlangıç zamanını işleyemedi"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch başlatılmamış"
+    "translation": "{{.Backend}} başlatılmamış"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3116,7 +3116,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Bu sunucu üzerine Elasticsearch arama özelliği kapalı"
+    "translation": "Bu sunucu üzerine {{.Backend}} arama özelliği kapalı"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3132,11 +3132,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch zaten durdurulmuş."
+    "translation": "{{.Backend}} zaten durdurulmuş."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch kapalı."
+    "translation": "{{.Backend}} kapalı."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3704,27 +3704,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch toplayıcı AggregatePostsAfterDays ayarının değeri 1 ya da daha büyük bir sayı olmalıdır."
+    "translation": "Arama AggregatePostsAfterDays ayarının değeri 1 ya da daha büyük bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch dizine ekleme özelliği açıldığında Elasticsearch ConnectionUrl seçeneği ayarlanmalıdır."
+    "translation": "Arama dizine ekleme özelliği açıldığında Elasticsearch ConnectionUrl seçeneği ayarlanmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch EnableSearching seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
+    "translation": "Arama EnableSearching seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live dizine ekleme toplu işlem boyutu en az 1 olmalıdır."
+    "translation": "Arama Live dizine ekleme toplu işlem boyutu en az 1 olmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime ayarının değeri \"ss:dd\" biçiminde bir zaman olmalıdır."
+    "translation": "Arama PostsAggregatorJobStartTime ayarının değeri \"ss:dd\" biçiminde bir zaman olmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch isteği zaman aşımı en az 1 saniye olmalıdır."
+    "translation": "Arama isteği zaman aşımı en az 1 saniye olmalıdır."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4964,7 +4964,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Bu sunucu üzerinde Elasticsearch arama özelliği kapalı"
+    "translation": "Bu sunucu üzerinde {{.Backend}} arama özelliği kapalı"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -4980,7 +4980,7 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Elasticsearch sunucusunun sürümü alınamadı."
+    "translation": "{{.Backend}} sunucusunun sürümü alınamadı."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5344,7 +5344,7 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Elasticsearch sunucusunun sürümü işlenemedi."
+    "translation": "{{.Backend}} sunucusunun sürümü işlenemedi."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -5360,7 +5360,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch EnableAutocomplete seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
+    "translation": "Arama EnableAutocomplete seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5792,11 +5792,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 115+"
+    "translation": "Sürüm 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Sürüm 17.0+"
+    "translation": "Sürüm 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -7404,7 +7404,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Bu sunucu üzerinde Elasticsearch dosya arama özelliği kapalı"
+    "translation": "Bu sunucu üzerinde {{.Backend}} dosya arama özelliği kapalı"
   },
   {
     "id": "ent.elasticsearch.index_file.error",
@@ -8607,7 +8607,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
+    "translation": "Arama toplu dizine ekleme işlem boyutu en az {{.BatchSize}} olmalıdır."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -9143,7 +9143,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch {{.Version}} sürümü, desteklenen {{.MaxVersion}} sürümünden daha yeni"
+    "translation": "{{.Backend}} {{.Version}} sürümü, desteklenen {{.MaxVersion}} sürümünden daha yeni"
   },
   {
     "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
@@ -10422,5 +10422,13 @@
   {
     "id": "web.incoming_webhook.media_type.app_error",
     "translation": "{{.hook_id}} ortam gelen internet kancası işlenemedi."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Taslak ileti özelliği izin verilen en fazla uzunluk değerini aşıyor."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Gönderilebilecek ileti özelliği izin verilen en fazla uzunluk değerini aşıyor."
   }
 ]
