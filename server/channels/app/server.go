@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -573,12 +572,6 @@ func (s *Server) AppOptions() []AppOption {
 
 func (s *Server) Channels() *Channels {
 	return s.ch
-}
-
-// Return Database type (postgres or mysql) and current version of the schema
-func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
-	schemaVersion, _ := s.Store().GetDBSchemaVersion()
-	return *s.platform.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
 func (s *Server) startInterClusterServices(license *model.License) error {

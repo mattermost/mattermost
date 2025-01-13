@@ -3727,6 +3727,28 @@ func (a *OpenTracingAppLayer) DeleteRetentionPolicy(policyID string) *model.AppE
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) DeleteRole(id string) (*model.Role, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteRole")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.DeleteRole(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) DeleteScheduledPost(rctx request.CTX, userId string, scheduledPostId string, connectionId string) (*model.ScheduledPost, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteScheduledPost")
@@ -4917,7 +4939,7 @@ func (a *OpenTracingAppLayer) GeneratePublicLink(siteURL string, info *model.Fil
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
+func (a *OpenTracingAppLayer) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateSupportPacket")
 
@@ -4929,7 +4951,7 @@ func (a *OpenTracingAppLayer) GenerateSupportPacket(c request.CTX, options *mode
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GenerateSupportPacket(c, options)
+	resultVar0 := a.app.GenerateSupportPacket(rctx, options)
 
 	return resultVar0
 }
@@ -12551,6 +12573,23 @@ func (a *OpenTracingAppLayer) JoinUserToTeam(c request.CTX, team *model.Team, us
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LdapDiagnostic")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.LdapDiagnostic()
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError {
