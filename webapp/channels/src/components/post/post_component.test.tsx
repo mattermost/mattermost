@@ -396,7 +396,7 @@ describe('PostComponent', () => {
                             [fileInfo3.id]: fileInfo3,
                         },
                         fileIdsByPostId: {
-                            [baseProps.post.id]: ['fileId1', 'fileId2', 'fileId3'],
+                            [post.id]: [fileInfo1.id, fileInfo2.id, fileInfo3.id],
                         },
                     },
                     channels: {

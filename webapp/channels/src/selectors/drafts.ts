@@ -115,15 +115,6 @@ export function makeGetDraft() {
         rootId: '',
     });
 
-    // return createSelector(
-    //     'makeGetDraft',
-    //     (state, channelId, rootId, storageKey) => { /* construct key and getGlobalItem */ },
-    //     (retrievedDraft) => {
-    //         // set defaults and ensuring all fields exist
-    //         // return
-    //     },
-    // );
-
     return createSelector(
         'makeGetDraft',
         (_: GlobalState, channelId: string) => channelId,
@@ -139,7 +130,12 @@ export function makeGetDraft() {
 
             return getGlobalItem<PostDraft>(state, key, DEFAULT_DRAFT);
         },
-        (channelId, rootId, retrievedDraft) => {
+        (channelId, rootId, retrievedDraftParam) => {
+            let retrievedDraft = retrievedDraftParam;
+            if (retrievedDraft.metadata?.files) {
+                retrievedDraft = {...retrievedDraft, fileInfos: retrievedDraft.metadata.files};
+            }
+
             // Check if the draft has the required values in its properties
             const isDraftWithRequiredValues = typeof retrievedDraft.message !== 'undefined' && typeof retrievedDraft.uploadsInProgress !== 'undefined' && typeof retrievedDraft.fileInfos !== 'undefined';
 
@@ -158,37 +154,4 @@ export function makeGetDraft() {
             };
         },
     );
-
-    // return (state: GlobalState, channelId: string, rootId = '', storageKey = ''): PostDraft => {
-    //     let prefixStorageKey = StoragePrefixes.DRAFT;
-    //     let suffixStorageKey = channelId;
-    //     if (rootId) {
-    //         prefixStorageKey = StoragePrefixes.COMMENT_DRAFT;
-    //         suffixStorageKey = rootId;
-    //     }
-    //     const key = storageKey || `${prefixStorageKey}${suffixStorageKey}`;
-    //
-    //     let retrievedDraft = getGlobalItem<PostDraft>(state, key, DEFAULT_DRAFT);
-    //
-    //     if (retrievedDraft.metadata?.files) {
-    //         retrievedDraft = {...retrievedDraft, fileInfos: retrievedDraft.metadata.files};
-    //     }
-    //
-    //     // Check if the draft has the required values in its properties
-    //     const isDraftWithRequiredValues = typeof retrievedDraft.message !== 'undefined' && typeof retrievedDraft.uploadsInProgress !== 'undefined' && typeof retrievedDraft.fileInfos !== 'undefined';
-    //
-    //     // Check if draft's channelId or rootId mismatches with the passed one
-    //     const isDraftMismatched = retrievedDraft.channelId !== channelId || retrievedDraft.rootId !== rootId;
-    //
-    //     if (isDraftWithRequiredValues && !isDraftMismatched) {
-    //         return retrievedDraft;
-    //     }
-    //
-    //     return {
-    //         ...DEFAULT_DRAFT,
-    //         ...retrievedDraft,
-    //         channelId,
-    //         rootId,
-    //     };
-    // };
 }
