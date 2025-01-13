@@ -39,7 +39,7 @@ func (s *MessageExportScheduler) NextScheduleTime(cfg *model.Config, now time.Ti
 	if err != nil {
 		s.jobServer.Logger().Error(
 			"Cannot determine next schedule time for message export. DailyRunTime config value is invalid.",
-			mlog.String("DailyRunTime", *cfg.MessageExportSettings.DailyRunTime),
+			mlog.String("daily_run_time", *cfg.MessageExportSettings.DailyRunTime),
 		)
 		return nil
 	}
