@@ -1,13 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import React from 'react';
+
+import type {PostMetadata} from '@mattermost/types/posts';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
+import type {GlobalState} from 'types/store';
+
 import FileAttachmentList from './index';
-import {renderWithContext} from 'tests/react_testing_utils';
-import {GlobalState} from 'types/store';
 
 describe('FileAttachmentList', () => {
     const post = TestHelper.getPostMock({
@@ -73,9 +77,9 @@ describe('FileAttachmentList', () => {
 
         const fileAttachments = Array.from(screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column'));
         expect(fileAttachments.length).toBe(3);
-        expect(fileAttachments[0].textContent.includes('image_1.png')).toBe(true);
-        expect(fileAttachments[1].textContent.includes('image_2.png')).toBe(true);
-        expect(fileAttachments[2].textContent.includes('image_3.png')).toBe(true);
+        expect(fileAttachments[0]?.textContent?.includes('image_1.png')).toBe(true);
+        expect(fileAttachments[1]?.textContent?.includes('image_2.png')).toBe(true);
+        expect(fileAttachments[2]?.textContent?.includes('image_3.png')).toBe(true);
     });
 
     test('should render a SingleImageView for a single image', () => {
@@ -190,9 +194,9 @@ describe('FileAttachmentList', () => {
 
         const fileAttachments = screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column');
         expect(fileAttachments.length).toBe(3);
-        expect(fileAttachments[0].textContent.includes('image_1.png')).toBe(true);
-        expect(fileAttachments[1].textContent.includes('image_2.png')).toBe(true);
-        expect(fileAttachments[2].textContent.includes('image_3.png')).toBe(true);
+        expect(fileAttachments[0]?.textContent?.includes('image_1.png')).toBe(true);
+        expect(fileAttachments[1]?.textContent?.includes('image_2.png')).toBe(true);
+        expect(fileAttachments[2]?.textContent?.includes('image_3.png')).toBe(true);
     });
 
     test('should render file list in edit history RHS', () => {
@@ -236,15 +240,15 @@ describe('FileAttachmentList', () => {
                 ...post,
                 metadata: {
                     files: [fileInfo3, fileInfo2, fileInfo1],
-                },
+                } as PostMetadata,
             },
         };
         renderWithContext(<FileAttachmentList {...props}/>, state);
 
         const fileAttachments = screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column');
         expect(fileAttachments.length).toBe(3);
-        expect(fileAttachments[0].textContent.includes('image_1.png')).toBe(true);
-        expect(fileAttachments[1].textContent.includes('image_2.png')).toBe(true);
-        expect(fileAttachments[2].textContent.includes('image_3.png')).toBe(true);
+        expect(fileAttachments[0]?.textContent?.includes('image_1.png')).toBe(true);
+        expect(fileAttachments[1]?.textContent?.includes('image_2.png')).toBe(true);
+        expect(fileAttachments[2]?.textContent?.includes('image_3.png')).toBe(true);
     });
 });

@@ -20,7 +20,6 @@ import {TestHelper} from 'utils/test_helper';
 import type {PostDraft} from 'types/store/draft';
 
 import AdvancedTextEditor from './advanced_text_editor';
-
 import type {Props} from './advanced_text_editor';
 
 jest.mock('actions/views/drafts', () => ({

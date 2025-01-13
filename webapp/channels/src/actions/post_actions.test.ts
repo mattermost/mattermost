@@ -1,11 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import test_helper from 'packages/mattermost-redux/test/test_helper';
-import mockStore from 'tests/test_store';
-import {Constants, ActionTypes, RHSStates} from 'utils/constants';
-import * as PostUtils from 'utils/post_utils';
-
 import type {FileInfo, FilesState} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
@@ -14,6 +9,11 @@ import * as PostActions from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/post_actions';
+
+import test_helper from 'packages/mattermost-redux/test/test_helper';
+import mockStore from 'tests/test_store';
+import {Constants, ActionTypes, RHSStates} from 'utils/constants';
+import * as PostUtils from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 

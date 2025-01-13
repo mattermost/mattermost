@@ -7,8 +7,9 @@ import React from 'react';
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import FileAttachment from './file_attachment';
 import {renderWithContext} from 'tests/react_testing_utils';
+
+import FileAttachment from './file_attachment';
 
 jest.mock('utils/utils', () => {
     const original = jest.requireActual('utils/utils');

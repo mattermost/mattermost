@@ -217,7 +217,6 @@ export class FileUpload extends PureComponent<Props, State> {
         }
         }
 
-
         return {
             containerSelector,
             overlaySelector,
