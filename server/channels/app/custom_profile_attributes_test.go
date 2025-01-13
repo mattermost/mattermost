@@ -20,8 +20,8 @@ func TestGetCPAField(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroupID, err := th.App.cpaGroupID()
-	require.NoError(t, err)
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
 
 	t.Run("should fail when getting a non-existent field", func(t *testing.T) {
 		field, err := th.App.GetCPAField(model.NewId())
@@ -71,8 +71,8 @@ func TestListCPAFields(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroupID, err := th.App.cpaGroupID()
-	require.NoError(t, err)
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
 
 	t.Run("should list the CPA property fields", func(t *testing.T) {
 		field1 := &model.PropertyField{
@@ -117,8 +117,8 @@ func TestCreateCPAField(t *testing.T) {
 	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
 	th := Setup(t).InitBasic()
 
-	cpaGroupID, err := th.App.cpaGroupID()
-	require.NoError(t, err)
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
 
 	t.Run("should fail if the field is not valid", func(t *testing.T) {
 		field := &model.PropertyField{Name: model.NewId()}
@@ -218,8 +218,8 @@ func TestPatchCPAField(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroupID, err := th.App.cpaGroupID()
-	require.NoError(t, err)
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
 
 	newField := &model.PropertyField{
 		GroupID: cpaGroupID,
@@ -278,8 +278,8 @@ func TestDeleteCPAField(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroupID, err := th.App.cpaGroupID()
-	require.NoError(t, err)
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
 
 	newField := &model.PropertyField{
 		GroupID: cpaGroupID,
@@ -358,8 +358,8 @@ func TestGetCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroupID, err := th.App.cpaGroupID()
-	require.NoError(t, err)
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
 
 	fieldID := model.NewId()
 
@@ -408,8 +408,8 @@ func TestPatchCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroupID, err := th.App.cpaGroupID()
-	require.NoError(t, err)
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		invalidFieldID := model.NewId()
