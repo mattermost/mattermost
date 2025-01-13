@@ -197,7 +197,7 @@ func (c *Client4) userCategoryRoute(userID, teamID string) string {
 }
 
 func (c *Client4) userAccessTokensRoute() string {
-	return fmt.Sprintf(c.usersRoute() + "/tokens")
+	return c.usersRoute() + "/tokens"
 }
 
 func (c *Client4) userAccessTokenRoute(tokenId string) string {
@@ -241,15 +241,15 @@ func (c *Client4) teamMemberRoute(teamId, userId string) string {
 }
 
 func (c *Client4) teamMembersRoute(teamId string) string {
-	return fmt.Sprintf(c.teamRoute(teamId) + "/members")
+	return c.teamRoute(teamId) + "/members"
 }
 
 func (c *Client4) teamStatsRoute(teamId string) string {
-	return fmt.Sprintf(c.teamRoute(teamId) + "/stats")
+	return c.teamRoute(teamId) + "/stats"
 }
 
 func (c *Client4) teamImportRoute(teamId string) string {
-	return fmt.Sprintf(c.teamRoute(teamId) + "/import")
+	return c.teamRoute(teamId) + "/import"
 }
 
 func (c *Client4) channelsRoute() string {
@@ -257,7 +257,7 @@ func (c *Client4) channelsRoute() string {
 }
 
 func (c *Client4) channelsForTeamRoute(teamId string) string {
-	return fmt.Sprintf(c.teamRoute(teamId) + "/channels")
+	return c.teamRoute(teamId) + "/channels"
 }
 
 func (c *Client4) channelRoute(channelId string) string {
@@ -269,7 +269,7 @@ func (c *Client4) channelByNameRoute(channelName, teamId string) string {
 }
 
 func (c *Client4) channelsForTeamForUserRoute(teamId, userId string, includeDeleted bool) string {
-	route := fmt.Sprintf(c.userRoute(userId) + c.teamRoute(teamId) + "/channels")
+	route := c.userRoute(userId) + c.teamRoute(teamId) + "/channels"
 	if includeDeleted {
 		query := fmt.Sprintf("?include_deleted=%v", includeDeleted)
 		return route + query
@@ -282,7 +282,7 @@ func (c *Client4) channelByNameForTeamNameRoute(channelName, teamName string) st
 }
 
 func (c *Client4) channelMembersRoute(channelId string) string {
-	return fmt.Sprintf(c.channelRoute(channelId) + "/members")
+	return c.channelRoute(channelId) + "/members"
 }
 
 func (c *Client4) channelMemberRoute(channelId, userId string) string {
@@ -402,15 +402,15 @@ func (c *Client4) outgoingWebhookRoute(hookID string) string {
 }
 
 func (c *Client4) preferencesRoute(userId string) string {
-	return fmt.Sprintf(c.userRoute(userId) + "/preferences")
+	return c.userRoute(userId) + "/preferences"
 }
 
 func (c *Client4) userStatusRoute(userId string) string {
-	return fmt.Sprintf(c.userRoute(userId) + "/status")
+	return c.userRoute(userId) + "/status"
 }
 
 func (c *Client4) userStatusesRoute() string {
-	return fmt.Sprintf(c.usersRoute() + "/status")
+	return c.usersRoute() + "/status"
 }
 
 func (c *Client4) samlRoute() string {
@@ -510,7 +510,7 @@ func (c *Client4) analyticsRoute() string {
 }
 
 func (c *Client4) timezonesRoute() string {
-	return fmt.Sprintf(c.systemRoute() + "/timezones")
+	return c.systemRoute() + "/timezones"
 }
 
 func (c *Client4) channelSchemeRoute(channelId string) string {
@@ -522,7 +522,7 @@ func (c *Client4) teamSchemeRoute(teamId string) string {
 }
 
 func (c *Client4) totalUsersStatsRoute() string {
-	return fmt.Sprintf(c.usersRoute() + "/stats")
+	return c.usersRoute() + "/stats"
 }
 
 func (c *Client4) redirectLocationRoute() string {
@@ -3378,7 +3378,7 @@ func (c *Client4) GetChannelsForTeamForUser(ctx context.Context, teamId, userId 
 
 // GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
 func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context, teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response, error) {
-	route := fmt.Sprintf(c.userRoute(userId) + c.teamRoute(teamId) + "/channels")
+	route := c.userRoute(userId) + c.teamRoute(teamId) + "/channels"
 	route += fmt.Sprintf("?include_deleted=%v&last_delete_at=%d", includeDeleted, lastDeleteAt)
 	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
@@ -3396,7 +3396,7 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context,
 
 // GetChannelsForUserWithLastDeleteAt returns a list channels for a user, additionally filtered with lastDeleteAt.
 func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID string, lastDeleteAt int) ([]*Channel, *Response, error) {
-	route := fmt.Sprintf(c.userRoute(userID) + "/channels")
+	route := c.userRoute(userID) + "/channels"
 	route += fmt.Sprintf("?last_delete_at=%d", lastDeleteAt)
 	r, err := c.DoAPIGet(ctx, route, "")
 	if err != nil {

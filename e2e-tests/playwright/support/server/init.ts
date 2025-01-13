@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import path from 'node:path';
 import {expect} from '@playwright/test';
 
 import {PreferenceType} from '@mattermost/types/preferences';
 import testConfig from '@e2e-test.config';
+import {getFileDataFromAsset} from '@e2e-support/file';
 
 import {makeClient} from '.';
 import {getOnPremServerConfig} from './default_config';
@@ -42,9 +42,8 @@ export async function initSetup({
         const {client: userClient} = await makeClient(user);
 
         if (withDefaultProfileImage) {
-            // Set user profile image
-            const fullPath = path.join(path.resolve(__dirname), '../', 'asset/mattermost-icon_128x128.png');
-            await userClient.uploadProfileImageX(user.id, fullPath);
+            const {file} = getFileDataFromAsset('mattermost-icon_128x128.png', 'image/png');
+            await userClient.uploadProfileImage(user.id, file);
         }
 
         // Update user preference
