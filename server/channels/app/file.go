@@ -790,7 +790,11 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 	if aerr != nil {
 		return nil, aerr
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			c.Logger().Error("Failed to close file", mlog.Err(err))
+		}
+	}()
 
 	aerr = a.runPluginsHook(c, t.fileinfo, file)
 	if aerr != nil {
@@ -802,7 +806,11 @@ func (a *App) UploadFileX(c request.CTX, channelID, name string, input io.Reader
 		if aerr != nil {
 			return nil, aerr
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				c.Logger().Error("Failed to close file", mlog.Err(err))
+			}
+		}()
 		t.postprocessImage(file)
 	}
 
@@ -1123,8 +1131,9 @@ func prepareImage(rctx request.CTX, imgDecoder *imaging.Decoder, imgData io.Read
 	if err != nil {
 		return nil, "", nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
 	}
-	imgData.Seek(0, io.SeekStart)
-
+	if _, err = imgData.Seek(0, io.SeekStart); err != nil {
+		return nil, "", nil, fmt.Errorf("prepareImage: failed to seek back to start of image data: %w", err)
+	}
 	// Flip the image to be upright
 	orientation, err := imaging.GetImageOrientation(imgData)
 	if err != nil {
@@ -1188,7 +1197,11 @@ func (a *App) generateMiniPreview(rctx request.CTX, fi *model.FileInfo) {
 			rctx.Logger().Debug("Error reading image file", mlog.Err(appErr))
 			return
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				rctx.Logger().Error("Failed to close file", mlog.Err(err))
+			}
+		}()
 		img, _, release, err := prepareImage(rctx, a.ch.imgDecoder, file)
 		if err != nil {
 			rctx.Logger().Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
@@ -1363,7 +1376,7 @@ func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) (
 
 // This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
 // Ensure the zip file name ends with a .zip
-func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
+func (a *App) CreateZipFileAndAddFiles(rctx request.CTX, fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
 	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(zipFileName)
 	if err != nil {
@@ -1375,12 +1388,14 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 	zipFileWriter := zip.NewWriter(conglomerateZipFile)
 
 	// Populate Zip file with File Datas array
-	err = populateZipfile(zipFileWriter, fileDatas)
+	err = populateZipfile(rctx, zipFileWriter, fileDatas)
 	if err != nil {
 		return err
 	}
 
-	conglomerateZipFile.Seek(0, 0)
+	if _, err = conglomerateZipFile.Seek(0, 0); err != nil {
+		return err
+	}
 	_, err = fileBackend.WriteFile(conglomerateZipFile, path.Join(directory, zipFileName))
 	if err != nil {
 		return err
@@ -1391,8 +1406,13 @@ func (a *App) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDa
 
 // This is a implementation of Go's example of writing files to zip (with slight modification)
 // https://golang.org/src/archive/zip/example_test.go
-func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
-	defer w.Close()
+func populateZipfile(rctx request.CTX, w *zip.Writer, fileDatas []model.FileData) error {
+	defer func() {
+		if err := w.Close(); err != nil {
+			rctx.Logger().Error("Failed to close zip writer", mlog.Err(err))
+		}
+	}()
+
 	for _, fd := range fileDatas {
 		f, err := w.CreateHeader(&zip.FileHeader{
 			Name:     fd.Filename,
@@ -1467,7 +1487,11 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			rctx.Logger().Error("Failed to close file", mlog.Err(err))
+		}
+	}()
 	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 	})
