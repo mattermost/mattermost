@@ -5159,6 +5159,7 @@
   "sidebar_left.sidebar_category_menu.viewCategory": "Markeer categorie als gelezen",
   "sidebar_left.sidebar_channel.selectedCount": "{count} geselecteerd",
   "sidebar_left.sidebar_channel_menu.addMembers": "Leden toevoegen",
+  "sidebar_left.sidebar_channel_menu.bookmarks": "Bladwijzerbalk",
   "sidebar_left.sidebar_channel_menu.channels": "Kanalen",
   "sidebar_left.sidebar_channel_menu.copyLink": "Kopieer link",
   "sidebar_left.sidebar_channel_menu.dropdownAriaLabel": "Kanaalmenu bewerken",
