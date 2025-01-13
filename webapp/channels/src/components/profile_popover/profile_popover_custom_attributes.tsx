@@ -45,7 +45,7 @@ const ProfilePopoverCustomAttributes = ({
                     {attribute.name}
                 </strong>
                 <p
-                    aria-labelledby='user-popover__custon_attributes-title'
+                    aria-labelledby={`user-popover__custom_attributes-title-${attribute.id}`}
                     className='user-popover__subtitle-text'
                 >
                     {value}
