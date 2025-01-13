@@ -116,7 +116,6 @@ func TestCreateCPAField(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
 	th := Setup(t).InitBasic()
-	defer th.TearDown()
 
 	cpaGroupID, err := th.App.cpaGroupID()
 	require.NoError(t, err)
@@ -162,9 +161,46 @@ func TestCreateCPAField(t *testing.T) {
 		require.Equal(t, fetchedField.CreateAt, fetchedField.UpdateAt)
 	})
 
-	t.Run("should not be able to create CPA fields above the limit", func(t *testing.T) {
-		// we create the rest of the fields required to reach the limit
-		for i := 1; i < CustomProfileAttributesFieldLimit-1; i++ {
+	// reset the server at this point to avoid polluting the state
+	th.TearDown()
+
+	t.Run("CPA should honor the field limit", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		t.Run("should not be able to create CPA fields above the limit", func(t *testing.T) {
+			// we create the rest of the fields required to reach the limit
+			for i := 1; i <= CustomProfileAttributesFieldLimit; i++ {
+				field := &model.PropertyField{
+					Name: model.NewId(),
+					Type: model.PropertyFieldTypeText,
+				}
+				createdField, err := th.App.CreateCPAField(field)
+				require.Nil(t, err)
+				require.NotZero(t, createdField.ID)
+			}
+
+			// then, we create a last one that would exceed the limit
+			field := &model.PropertyField{
+				Name: model.NewId(),
+				Type: model.PropertyFieldTypeText,
+			}
+			createdField, err := th.App.CreateCPAField(field)
+			require.NotNil(t, err)
+			require.Equal(t, http.StatusUnprocessableEntity, err.StatusCode)
+			require.Zero(t, createdField)
+		})
+
+		t.Run("deleted fields should not count for the limit", func(t *testing.T) {
+			// we retrieve the list of fields and check we've reached the limit
+			fields, err := th.App.ListCPAFields()
+			require.Nil(t, err)
+			require.Len(t, fields, CustomProfileAttributesFieldLimit)
+
+			// then we delete one field
+			require.Nil(t, th.App.DeleteCPAField(fields[0].ID))
+
+			// creating a new one should work now
 			field := &model.PropertyField{
 				Name: model.NewId(),
 				Type: model.PropertyFieldTypeText,
@@ -172,36 +208,7 @@ func TestCreateCPAField(t *testing.T) {
 			createdField, err := th.App.CreateCPAField(field)
 			require.Nil(t, err)
 			require.NotZero(t, createdField.ID)
-		}
-
-		// then, we create a last one that would exceed the limit
-		field := &model.PropertyField{
-			Name: model.NewId(),
-			Type: model.PropertyFieldTypeText,
-		}
-		createdField, err := th.App.CreateCPAField(field)
-		require.NotNil(t, err)
-		require.Equal(t, http.StatusUnprocessableEntity, err.StatusCode)
-		require.Zero(t, createdField)
-	})
-
-	t.Run("deleted fields should not count for the limit", func(t *testing.T) {
-		// we retrieve the list of fields and check we've reached the limit
-		fields, err := th.App.ListCPAFields()
-		require.Nil(t, err)
-		require.Len(t, fields, CustomProfileAttributesFieldLimit)
-
-		// then we delete one field
-		require.Nil(t, th.App.DeleteCPAField(fields[0].ID))
-
-		// creating a new one should work now
-		field := &model.PropertyField{
-			Name: model.NewId(),
-			Type: model.PropertyFieldTypeText,
-		}
-		createdField, err := th.App.CreateCPAField(field)
-		require.Nil(t, err)
-		require.NotZero(t, createdField.ID)
+		})
 	})
 }
 
