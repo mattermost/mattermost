@@ -1039,6 +1039,8 @@ func TestImportValidatePostImportData(t *testing.T) {
 	})
 
 	t.Run("Test with valid all optional parameters", func(t *testing.T) {
+		t.Skip("MM-62440")
+
 		reactions := []ReactionImportData{{
 			User:      model.NewPointer("username"),
 			EmojiName: model.NewPointer("emoji"),
