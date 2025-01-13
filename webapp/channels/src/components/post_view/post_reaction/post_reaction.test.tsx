@@ -18,7 +18,7 @@ describe('components/post_view/PostReaction', () => {
         getDotMenuRef: jest.fn(),
         showIcon: false,
         showEmojiPicker: false,
-        toggleEmojiPicker: jest.fn(),
+        setShowEmojiPicker: jest.fn(),
         actions: {
             toggleReaction: jest.fn(),
         },
@@ -74,6 +74,6 @@ describe('components/post_view/PostReaction', () => {
 
         expect(baseProps.actions.toggleReaction).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.toggleReaction).toHaveBeenCalledWith('post_id_1', 'grinning');
-        expect(baseProps.toggleEmojiPicker).toHaveBeenCalledTimes(1);
+        expect(baseProps.setShowEmojiPicker).toHaveBeenCalledWith(false);
     });
 });

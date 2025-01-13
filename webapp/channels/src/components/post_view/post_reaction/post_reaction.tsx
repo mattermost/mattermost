@@ -10,24 +10,20 @@ import type {Emoji} from '@mattermost/types/emojis';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
-import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
-import {RHS_SPACE_REQUIRED_ABOVE, RHS_SPACE_REQUIRED_BELOW} from 'components/emoji_picker/emoji_picker_overlay/emoji_picker_overlay';
+import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 
-const TOP_OFFSET = -7;
-
 export type Props = {
     channelId?: string;
     postId: string;
     teamId: string;
-    getDotMenuRef: () => HTMLDivElement | null;
     location?: keyof typeof Locations;
+    setShowEmojiPicker: (showEmojiPicker: boolean) => void;
     showEmojiPicker: boolean;
-    toggleEmojiPicker: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     actions: {
         toggleReaction: (postId: string, emojiName: string) => void;
     };
@@ -37,28 +33,32 @@ export default function PostReaction({
     channelId,
     location = Locations.CENTER,
     postId,
-    showEmojiPicker = false,
     teamId,
-    toggleEmojiPicker,
-    getDotMenuRef,
+    showEmojiPicker,
+    setShowEmojiPicker,
     actions: {
         toggleReaction,
     },
 }: Props) {
     const intl = useIntl();
 
-    const handleToggleEmoji = useCallback((emoji: Emoji) => {
+    const handleEmojiClick = useCallback((emoji: Emoji) => {
         const emojiName = getEmojiName(emoji);
         toggleReaction(postId, emojiName);
-        toggleEmojiPicker();
-    }, [postId, toggleEmojiPicker, toggleReaction]);
 
-    let spaceRequiredAbove;
-    let spaceRequiredBelow;
-    if (location === Locations.RHS_ROOT || location === Locations.RHS_COMMENT) {
-        spaceRequiredAbove = RHS_SPACE_REQUIRED_ABOVE;
-        spaceRequiredBelow = RHS_SPACE_REQUIRED_BELOW;
-    }
+        setShowEmojiPicker(false);
+    }, [postId, setShowEmojiPicker, toggleReaction]);
+
+    const {
+        emojiPicker,
+        getReferenceProps,
+        setReference,
+    } = useEmojiPicker({
+        showEmojiPicker,
+        setShowEmojiPicker,
+
+        onEmojiClick: handleEmojiClick,
+    });
 
     const ariaLabel = intl.formatMessage({id: 'post_info.tooltip.add_reactions', defaultMessage: 'Add Reaction'});
 
@@ -68,30 +68,21 @@ export default function PostReaction({
             teamId={teamId}
             permissions={[Permissions.ADD_REACTION]}
         >
-            <>
-                <EmojiPickerOverlay
-                    show={showEmojiPicker}
-                    target={getDotMenuRef}
-                    onHide={toggleEmojiPicker}
-                    onEmojiClick={handleToggleEmoji}
-                    topOffset={TOP_OFFSET}
-                    spaceRequiredAbove={spaceRequiredAbove}
-                    spaceRequiredBelow={spaceRequiredBelow}
-                />
-                <WithTooltip title={ariaLabel}>
-                    <button
-                        data-testid='post-reaction-emoji-icon'
-                        id={`${location}_reaction_${postId}`}
-                        aria-label={ariaLabel}
-                        className={classNames('post-menu__item', 'post-menu__item--reactions', {
-                            'post-menu__item--active': showEmojiPicker,
-                        })}
-                        onClick={toggleEmojiPicker}
-                    >
-                        <EmojiIcon className='icon icon--small'/>
-                    </button>
-                </WithTooltip>
-            </>
+            <WithTooltip title={ariaLabel}>
+                <button
+                    ref={setReference}
+                    data-testid='post-reaction-emoji-icon'
+                    id={`${location}_reaction_${postId}`}
+                    aria-label={ariaLabel}
+                    className={classNames('post-menu__item', 'post-menu__item--reactions', {
+                        'post-menu__item--active': showEmojiPicker,
+                    })}
+                    {...getReferenceProps()}
+                >
+                    <EmojiIcon className='icon icon--small'/>
+                </button>
+            </WithTooltip>
+            {emojiPicker}
         </ChannelPermissionGate>
     );
 }

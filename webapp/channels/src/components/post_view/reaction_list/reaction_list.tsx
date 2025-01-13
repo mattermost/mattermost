@@ -115,7 +115,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                 <AddReactionButton
                     post={this.props.post}
                     teamId={this.props.teamId}
-                    handleEmojiClick={this.handleEmojiClick}
+                    onEmojiClick={this.handleEmojiClick}
                 />
             );
         }

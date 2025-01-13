@@ -49,7 +49,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
     }
   />
   <AddReactionButton
-    handleEmojiClick={[Function]}
+    onEmojiClick={[Function]}
     post={
       Object {
         "channel_id": "",
