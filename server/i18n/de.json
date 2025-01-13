@@ -10436,11 +10436,11 @@
     "translation": "Konfiguration kann nicht gefiltert werden."
   },
   {
-    "id": "app.export.export_custom_emoji.mkdir.error",
-    "translation": "Verzeichnis für benutzerdefinierte Emoji-Bilder kann nicht erstellt werden"
-  },
-  {
     "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
     "translation": "Die Benutzerrollen stimmen nicht mit dem Gaststatus überein."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Verzeichnis für benutzerdefinierte Emoji-Bilder kann nicht erstellt werden"
   }
 ]
