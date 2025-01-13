@@ -153,7 +153,7 @@ func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPas
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := ldapInterface.CheckPasswordAuthData(c, *user.AuthData, ldapPassword); err != nil {
+	if err := ldapInterface.CheckPassword(c, *user.AuthData, ldapPassword); err != nil {
 		return "", err
 	}
 
