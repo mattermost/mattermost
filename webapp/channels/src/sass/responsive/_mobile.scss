@@ -486,10 +486,6 @@
             margin-top: 66px;
         }
 
-        &.bottom {
-            margin-top: 0;
-        }
-
         .search-grid-container {
             height: calc(100vh - 170px);
         }
@@ -2143,19 +2139,6 @@
     .inner-wrap {
         &.move--right {
             transform: translate3d(0, 0, 0);
-        }
-    }
-
-    // overides edit modal body element's css position
-    // to allow emoji picker to fill the screen on mobile screens < 480
-    .edit-modal-body--add-reaction {
-        position: static;
-
-        .emoji-picker {
-            top: -1px !important;
-            left: -1px !important;
-            width: calc(100% + 2px);
-            height: calc(100% + 2px);
         }
     }
 }
