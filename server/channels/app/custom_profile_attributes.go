@@ -15,6 +15,8 @@ const CustomProfileAttributesFieldLimit = 20
 
 var cpaGroupID string
 
+// ToDo: we should explore moving this to the database cache layer
+// instead of maintaining the ID cached at the application level
 func (a *App) cpaGroupID() (string, error) {
 	if cpaGroupID != "" {
 		return cpaGroupID, nil
