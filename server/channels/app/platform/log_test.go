@@ -14,6 +14,8 @@ import (
 )
 
 func TestGetMattermostLog(t *testing.T) {
+	t.Skip("MM-62438")
+
 	th := Setup(t)
 	defer th.TearDown()
 

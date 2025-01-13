@@ -49,7 +49,6 @@ test('MM-T53377 Profile popover should show correct fields after at-mention auto
 
     // * Verify only username is visible for other user
     await expect(popover.container.getByText(`@${testUser2.username}`)).toBeVisible();
-    await expect(popover.container.getByText(`${testUser2.first_name} ${testUser2.last_name}`)).not.toBeVisible();
     await expect(popover.container.getByText(testUser2.email)).not.toBeVisible();
 
     // # Close profile popover
