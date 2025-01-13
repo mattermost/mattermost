@@ -2410,7 +2410,8 @@ func TestUserUnicodeNames(t *testing.T) {
 			Nickname:  "Ender\u2028 Wiggin",
 			Password:  "hello1",
 			Username:  "\ufeffwiggin77",
-			Roles:     model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+			Roles:     model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+		}
 
 		ruser, resp, err := client.CreateUser(context.Background(), &user)
 		require.NoError(t, err)
@@ -4984,7 +4985,10 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = 0
+		})
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
@@ -4996,6 +5000,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		assert.NotEmpty(t, rtoken.Id, "id should not be empty")
 		assert.Equal(t, "test token", rtoken.Description, "description did not match")
 		assert.True(t, rtoken.IsActive, "token should be active")
+		assert.Equal(t, int64(0), rtoken.ExpiresAt, "expiry should be 0 when no max is set")
 
 		assertToken(t, th, rtoken, th.BasicUser.Id)
 	})
@@ -5595,7 +5600,10 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.UserAccessTokensMaxExpiresSeconds = 60
+		})
 
 		defaultPerms := th.SaveDefaultRolePermissions()
 		defer th.RestoreDefaultRolePermissions(defaultPerms)
@@ -5623,6 +5631,8 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 		require.NoError(t, err)
+		require.Greater(t, token.ExpiresAt, model.GetMillis())
+		require.LessOrEqual(t, token.ExpiresAt, model.GetMillis()+(60*1000))
 
 		t.Run("only having MANAGE_BOTS permission", func(t *testing.T) {
 			resp, err = th.Client.RevokeUserAccessToken(context.Background(), token.Id)
@@ -6214,7 +6224,7 @@ func TestLoginLockout(t *testing.T) {
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 
-	//Check if lock is active
+	// Check if lock is active
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 
@@ -6236,7 +6246,7 @@ func TestLoginLockout(t *testing.T) {
 	err = th.Server.Store().User().UpdateMfaActive(th.BasicUser2.Id, false)
 	require.NoError(t, err)
 
-	//Check if lock is active
+	// Check if lock is active
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 }
@@ -6695,6 +6705,7 @@ func TestMigrateAuthToSAML(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 }
+
 func TestUpdatePassword(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -7407,7 +7418,8 @@ func TestThreadSocketEvents(t *testing.T) {
 				preMentions: 2,
 				replies:     0,
 				mentions:    0,
-			}, {
+			},
+			{
 				post:        &model.Post{ChannelId: th.BasicChannel.Id, Message: "simple reply", UserId: th.BasicUser2.Id, RootId: rpost.Id},
 				preReplies:  0,
 				preMentions: 0,
@@ -8270,6 +8282,7 @@ func TestGetUsersWithInvalidEmails(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
+
 func TestUserUpdateEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
