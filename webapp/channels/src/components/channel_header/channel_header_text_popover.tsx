@@ -14,7 +14,6 @@ import {
     useFloating,
     FloatingPortal,
     FloatingOverlay,
-    FloatingFocusManager,
     useClick,
     offset,
 } from '@floating-ui/react';
@@ -50,8 +49,7 @@ const PADDING_X_OF_POPOVER = 8; // padding right & left of .channel-header-text-
 const BORDER_WIDTH_OF_POPOVER = 1; // border of .channel-header-text-popover in channel_header_text_popover.scss
 
 const HEIGHT_OF_HEADER_TEXT = 24; // height of .header-description__text in _headers.scss
-const MINOR_VISUAL_ADJUSTMENT = 0.5;
-const SHIFT_UP_OF_POPOVER = -((HEIGHT_OF_HEADER_TEXT + PADDING_Y_OF_POPOVER) - (2 * BORDER_WIDTH_OF_POPOVER) - (MINOR_VISUAL_ADJUSTMENT));
+const SHIFT_UP_OF_POPOVER = -((HEIGHT_OF_HEADER_TEXT + PADDING_Y_OF_POPOVER) - (2 * BORDER_WIDTH_OF_POPOVER));
 
 interface Props {
     text: string;
@@ -117,6 +115,8 @@ export function ChannelHeaderTextPopover(props: Props) {
 
     const maxWidthOfPopover = getMaxWidthOfPopover(rootElementRef?.current);
 
+    // This action processes clicks on formatted text elements like hashtags, user mentions,
+    // channel mentions, etc. while also allowing other elements to function as is such as external links etc
     function handleClick(event: MouseEvent<HTMLDivElement>) {
         dispatch(handleFormattedTextClick(event, currentRelativeTeamUrl));
     }
@@ -141,25 +141,24 @@ export function ChannelHeaderTextPopover(props: Props) {
                         className='channel-header-text-popover-floating-overlay'
                         lockScroll={true}
                     >
-                        <FloatingFocusManager context={floatingContext}>
-                            <div
-                                ref={setFloating}
-                                className='channel-header-text-popover'
-                                style={{
-                                    maxWidth: maxWidthOfPopover,
-                                    ...floatingStyles,
-                                    ...transitionStyles,
-                                }}
-                                onClick={handleClick}
-                                {...getFloatingProps()}
-                            >
-                                <Markdown
-                                    message={props.text}
-                                    options={markdownOptions.inPopover}
-                                    imageProps={IMAGE_MARKDOWN_OPTIONS}
-                                />
-                            </div>
-                        </FloatingFocusManager>
+                        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+                        <div
+                            ref={setFloating}
+                            className='channel-header-text-popover'
+                            style={{
+                                maxWidth: maxWidthOfPopover,
+                                ...floatingStyles,
+                                ...transitionStyles,
+                            }}
+                            onClick={handleClick}
+                            {...getFloatingProps()}
+                        >
+                            <Markdown
+                                message={props.text}
+                                options={markdownOptions.inPopover}
+                                imageProps={IMAGE_MARKDOWN_OPTIONS}
+                            />
+                        </div>
                     </FloatingOverlay>
                 </FloatingPortal>
             )}
