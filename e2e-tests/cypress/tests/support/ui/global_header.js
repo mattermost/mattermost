@@ -44,14 +44,10 @@ Cypress.Commands.add('uiGetStatusMenuContainer', (options = {exist: true}) => {
 
 Cypress.Commands.add('uiGetStatusMenu', (options = {visible: true}) => {
     if (options.visible) {
-        return cy.uiGetStatusMenuContainer().
-            find('ul').
-            should('be.visible');
+        return cy.uiGetStatusMenuContainer().should('be.visible');
     }
 
-    return cy.uiGetStatusMenuContainer().
-        find('ul').
-        should('not.be.visible');
+    return cy.uiGetStatusMenuContainer().should('not.be.visible');
 });
 
 Cypress.Commands.add('uiOpenHelpMenu', (item = '') => {
