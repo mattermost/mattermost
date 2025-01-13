@@ -113,9 +113,9 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]interface{} {
 	}
 }
 
-func (pf *PropertyFieldPatch) SanitizeInput() {
-	if pf.Name != nil {
-		pf.Name = NewPointer(strings.TrimSpace(*pf.Name))
+func (pfp *PropertyFieldPatch) SanitizeInput() {
+	if pfp.Name != nil {
+		pfp.Name = NewPointer(strings.TrimSpace(*pfp.Name))
 	}
 }
 
