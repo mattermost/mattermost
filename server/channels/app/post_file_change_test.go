@@ -225,4 +225,50 @@ func TestProcessPostFileChanges(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEqual(t, postId, updatedFileInfo2.PostId)
 	})
+
+	t.Run("when admin adds a file to other user's post", func(t *testing.T) {
+		postId := model.NewId()
+
+		// admin uploads the files
+		fileInfo1 := th.CreateFileInfo(th.SystemAdminUser.Id, "", th.BasicChannel.Id)
+		fileInfo2 := th.CreateFileInfo(th.SystemAdminUser.Id, "", th.BasicChannel.Id)
+
+		// basic user's post
+		oldPost := &model.Post{
+			Id:        postId,
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+
+		newPost := &model.Post{
+			Id:        postId,
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Message",
+			CreateAt:  model.GetMillis() - 10000,
+			FileIds:   []string{fileInfo1.Id, fileInfo2.Id}, // admin attaching two files
+		}
+
+		// admin's session
+		th.Context.Session().UserId = th.SystemAdminUser.Id
+
+		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost, nil)
+		require.Nil(t, appErr)
+		require.Equal(t, 2, len(fileIds))
+		require.Contains(t, fileIds, fileInfo1.Id)
+		require.Contains(t, fileIds, fileInfo2.Id)
+
+		// verify files are attached to the post and still belong tyo the admin
+		updatedFileInfo1, err := th.App.Srv().Store().FileInfo().Get(fileInfo1.Id)
+		require.NoError(t, err)
+		require.Equal(t, postId, updatedFileInfo1.PostId)
+		require.Equal(t, th.SystemAdminUser.Id, updatedFileInfo1.CreatorId)
+
+		updatedFileInfo2, err := th.App.Srv().Store().FileInfo().Get(fileInfo2.Id)
+		require.NoError(t, err)
+		require.Equal(t, postId, updatedFileInfo2.PostId)
+		require.Equal(t, th.SystemAdminUser.Id, updatedFileInfo2.CreatorId)
+	})
 }

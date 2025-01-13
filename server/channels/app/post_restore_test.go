@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -18,8 +19,8 @@ func TestRestorePostVersion(t *testing.T) {
 		post := th.CreatePost(th.BasicChannel, func(p *model.Post) {
 			p.Message = "original message"
 		})
-		th.UpdatePost(post, "new message 2")
-		th.UpdatePost(post, "new message 3")
+		th.PostPatch(post, "new message 2")
+		th.PostPatch(post, "new message 3")
 
 		// verify post's state
 		fetchedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
@@ -61,11 +62,11 @@ func TestRestorePostVersion(t *testing.T) {
 		})
 
 		// this update removes all files
-		th.UpdatePost(post, "new message 2", func(p *model.PostPatch) {
+		th.PostPatch(post, "new message 2", func(p *model.PostPatch) {
 			p.FileIds = &model.StringArray{}
 		})
 		// this update only changes the message
-		th.UpdatePost(post, "new message 3")
+		th.PostPatch(post, "new message 3")
 
 		// verify post's state
 		fetchedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
@@ -107,5 +108,73 @@ func TestRestorePostVersion(t *testing.T) {
 
 		require.Equal(t, "original message", editHistory[2].Message)
 		require.Equal(t, 1, len(editHistory[2].FileIds))
+	})
+
+	t.Run("should return an error if trying to restore a post that is not in any edit history", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel, func(p *model.Post) {
+			p.Message = "original message"
+		})
+		th.PostPatch(post, "new message 2")
+		th.PostPatch(post, "new message 3")
+
+		// verify post's state
+		fetchedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
+		require.NoError(t, err)
+		require.Equal(t, "new message 3", fetchedPost.Message)
+
+		// now we'll restore a post version
+		otherPost := th.CreatePost(th.BasicChannel)
+		restoredPost, appErr := th.App.RestorePostVersion(th.Context, th.BasicUser.Id, post.Id, otherPost.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Equal(t, "app.post.restore_post_version.not_an_history_item.app_error", appErr.Id)
+		require.Nil(t, restoredPost)
+
+		// verify from database that the post wasn't modified
+		fetchedPost, err = th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
+		require.NoError(t, err)
+		require.Equal(t, "new message 3", fetchedPost.Message)
+	})
+
+	t.Run("should return an error if the post does not exist", func(t *testing.T) {
+		restoredPost, appErr := th.App.RestorePostVersion(th.Context, th.BasicUser.Id, model.NewId(), model.NewId())
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		require.Equal(t, "app.post.restore_post_version.get_single.app_error", appErr.Id)
+		require.Nil(t, restoredPost)
+	})
+
+	t.Run("should return an error if the restore post does not exist", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		// now we'll restore a post version
+		invalidRestorePostIUd := model.NewId()
+		restoredPost, appErr := th.App.RestorePostVersion(th.Context, th.BasicUser.Id, post.Id, invalidRestorePostIUd)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		require.Equal(t, "app.post.restore_post_version.get_single.app_error", appErr.Id)
+		require.Nil(t, restoredPost)
+	})
+
+	t.Run("should return an error if trying to restore a post that is in some other posts edit history", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+		th.PostPatch(post, "new message 2")
+
+		otherPost := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+			post.Message = "other post original message"
+		})
+		th.PostPatch(otherPost, "other post new message 2")
+
+		otherPostEditHistory, appErr := th.App.GetEditHistoryForPost(otherPost.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 1, len(otherPostEditHistory))
+		require.Equal(t, "other post original message", otherPostEditHistory[0].Message)
+
+		// we'll specify post's ID and other post's version ID, his should fail
+		restoredPost, appErr := th.App.RestorePostVersion(th.Context, th.BasicUser.Id, post.Id, otherPostEditHistory[0].Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.post.restore_post_version.not_an_history_item.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Nil(t, restoredPost)
 	})
 }

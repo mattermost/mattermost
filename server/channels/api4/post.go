@@ -1314,18 +1314,19 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "restore_version_id", restoreVersionId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	toRestorePost, err := c.App.GetSinglePost(c.AppContext, restoreVersionId, true)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
 
-	if c.AppContext.Session().UserId != post.UserId {
+	// user can only restore their own posts
+	if c.AppContext.Session().UserId != toRestorePost.UserId {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
 
-	postPatchChecks(c, auditRec, &post.Message)
+	postPatchChecks(c, auditRec, &toRestorePost.Message)
 	if c.Err != nil {
 		return
 	}
