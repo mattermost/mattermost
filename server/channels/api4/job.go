@@ -115,9 +115,18 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// New method
+	// We have a base directory, we're using that as the exported filename:
 	fileName += ".zip"
-	zipReader := c.App.ZipReader(exportDir, false)
+
+	cleanedExportDir := filepath.Clean(exportDir)
+	if !filepath.IsLocal(cleanedExportDir) {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
+			"job.Data did not include export_dir, export_dir was malformed, or jobId.zip wasn't found",
+			http.StatusNotFound).Wrap(err)
+		return
+	}
+
+	zipReader := c.App.ZipReader(cleanedExportDir, false)
 	defer zipReader.Close()
 
 	if err := web.WriteStreamResponse(w, zipReader, fileName, FileMime, true); err != nil {
