@@ -48,43 +48,36 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
       ]
     }
   />
-  <div
-    className="post-add-reaction"
-  >
-    <AddReactionButton
-      handleEmojiClick={[Function]}
-      hideEmojiPicker={[Function]}
-      post={
-        Object {
-          "channel_id": "",
-          "create_at": 0,
-          "delete_at": 0,
-          "edit_at": 0,
-          "hashtags": "",
-          "id": "post_id",
-          "is_pinned": false,
-          "message": "post message",
-          "metadata": Object {
-            "embeds": Array [],
-            "emojis": Array [],
-            "files": Array [],
-            "images": Object {},
-            "reactions": Array [],
-          },
-          "original_id": "",
-          "pending_post_id": "",
-          "props": Object {},
-          "reply_count": 0,
-          "root_id": "",
-          "type": "system_add_remove",
-          "update_at": 0,
-          "user_id": "user_id",
-        }
+  <AddReactionButton
+    handleEmojiClick={[Function]}
+    post={
+      Object {
+        "channel_id": "",
+        "create_at": 0,
+        "delete_at": 0,
+        "edit_at": 0,
+        "hashtags": "",
+        "id": "post_id",
+        "is_pinned": false,
+        "message": "post message",
+        "metadata": Object {
+          "embeds": Array [],
+          "emojis": Array [],
+          "files": Array [],
+          "images": Object {},
+          "reactions": Array [],
+        },
+        "original_id": "",
+        "pending_post_id": "",
+        "props": Object {},
+        "reply_count": 0,
+        "root_id": "",
+        "type": "system_add_remove",
+        "update_at": 0,
+        "user_id": "user_id",
       }
-      showEmojiPicker={false}
-      teamId="teamId"
-      toggleEmojiPicker={[Function]}
-    />
-  </div>
+    }
+    teamId="teamId"
+  />
 </div>
 `;

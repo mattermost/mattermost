@@ -37,28 +37,29 @@ export default function EmojiPickerTabs(props: Props) {
     const getRootPickerNode = useCallback(() => rootPickerNodeRef.current, []);
 
     let pickerStyle;
-    if (props.style && !(props.style.left === 0 && props.style.top === 0)) {
-        if (props.placement === 'top' || props.placement === 'bottom') {
-            // Only take the top/bottom position passed by React Bootstrap since we want to be right-aligned
-            pickerStyle = {
-                top: props.style.top,
-                bottom: props.style.bottom,
-                right: props?.rightOffset,
-            };
-        } else {
-            pickerStyle = {...props.style};
-        }
 
-        if (pickerStyle.top) {
-            pickerStyle.top = (props.topOffset || 0) + (pickerStyle.top as number);
-        } else {
-            pickerStyle.top = props.topOffset;
-        }
+    // if (props.style && !(props.style.left === 0 && props.style.top === 0)) {
+    //     if (props.placement === 'top' || props.placement === 'bottom') {
+    //         // Only take the top/bottom position passed by React Bootstrap since we want to be right-aligned
+    //         pickerStyle = {
+    //             top: props.style.top,
+    //             bottom: props.style.bottom,
+    //             right: props?.rightOffset,
+    //         };
+    //     } else {
+    //         pickerStyle = {...props.style};
+    //     }
 
-        if (pickerStyle.left) {
-            (pickerStyle.left as number) += (props.leftOffset || 0);
-        }
-    }
+    //     if (pickerStyle.top) {
+    //         pickerStyle.top = (props.topOffset || 0) + (pickerStyle.top as number);
+    //     } else {
+    //         pickerStyle.top = props.topOffset;
+    //     }
+
+    //     if (pickerStyle.left) {
+    //         (pickerStyle.left as number) += (props.leftOffset || 0);
+    //     }
+    // }
 
     if (props.enableGifPicker && typeof props.onGifClick != 'undefined') {
         return (

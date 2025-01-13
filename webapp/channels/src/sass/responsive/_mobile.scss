@@ -472,7 +472,6 @@
     }
 
     .emoji-picker {
-        z-index: 1070;
         // !important is used to overide inline styles
         // used on larger screens
         top: 0 !important;
@@ -926,11 +925,9 @@
             }
         }
 
-        .post-add-reaction {
-            .Reaction {
-                opacity: 1;
-                visibility: visible;
-            }
+        .Reaction__add {
+            opacity: 1;
+            visibility: visible;
         }
 
         .browser--ie & {

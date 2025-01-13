@@ -48,7 +48,6 @@ type Props = {
 
 type State = {
     emojiNames: string[];
-    showEmojiPicker: boolean;
 };
 
 export default class ReactionList extends React.PureComponent<Props, State> {
@@ -57,7 +56,6 @@ export default class ReactionList extends React.PureComponent<Props, State> {
 
         this.state = {
             emojiNames: [],
-            showEmojiPicker: false,
         };
     }
 
@@ -74,18 +72,8 @@ export default class ReactionList extends React.PureComponent<Props, State> {
     }
 
     handleEmojiClick = (emoji: Emoji): void => {
-        this.setState({showEmojiPicker: false});
         const emojiName = getEmojiName(emoji);
         this.props.actions.toggleReaction(this.props.post.id, emojiName);
-    };
-
-    hideEmojiPicker = (): void => {
-        this.setState({showEmojiPicker: false});
-    };
-
-    toggleEmojiPicker = (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
-        e?.stopPropagation();
-        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
     };
 
     render(): React.ReactNode {
@@ -121,23 +109,15 @@ export default class ReactionList extends React.PureComponent<Props, State> {
             return null;
         });
 
-        let emojiPicker = null;
+        let addReaction = null;
         if (this.props.canAddReactions) {
-            emojiPicker = (
+            addReaction = (
                 <AddReactionButton
                     post={this.props.post}
                     teamId={this.props.teamId}
                     handleEmojiClick={this.handleEmojiClick}
-                    hideEmojiPicker={this.hideEmojiPicker}
-                    showEmojiPicker={this.state.showEmojiPicker}
-                    toggleEmojiPicker={this.toggleEmojiPicker}
                 />
             );
-        }
-
-        let addReactionClassName = 'post-add-reaction';
-        if (this.state.showEmojiPicker) {
-            addReactionClassName += ' post-add-reaction-emoji-picker-open';
         }
 
         return (
@@ -146,9 +126,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                 className='post-reaction-list'
             >
                 {reactions}
-                <div className={addReactionClassName}>
-                    {emojiPicker}
-                </div>
+                {addReaction}
             </div>
         );
     }

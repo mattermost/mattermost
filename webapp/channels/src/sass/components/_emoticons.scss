@@ -86,11 +86,11 @@
 }
 
 .emoji-picker {
-    position: absolute;
-    z-index: 1100;
-    display: flex;
+    // position: relative;
+    // z-index: 1100;
+    // display: flex;
     width: 350px;
-    flex-direction: column;
+    // flex-direction: column;
     border: 1px solid;
     border-radius: var(--radius-s);
     margin-right: 3px;
