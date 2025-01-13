@@ -196,7 +196,7 @@ func (c *Client4) userCategoryRoute(userID, teamID string) string {
 }
 
 func (c *Client4) userAccessTokensRoute() string {
-	return fmt.Sprintf(c.usersRoute() + "/tokens")
+	return c.usersRoute() + "/tokens"
 }
 
 func (c *Client4) userAccessTokenRoute(tokenId string) string {
@@ -240,15 +240,15 @@ func (c *Client4) teamMemberRoute(teamId, userId string) string {
 }
 
 func (c *Client4) teamMembersRoute(teamId string) string {
-	return fmt.Sprintf(c.teamRoute(teamId) + "/members")
+	return c.teamRoute(teamId) + "/members"
 }
 
 func (c *Client4) teamStatsRoute(teamId string) string {
-	return fmt.Sprintf(c.teamRoute(teamId) + "/stats")
+	return c.teamRoute(teamId) + "/stats"
 }
 
 func (c *Client4) teamImportRoute(teamId string) string {
-	return fmt.Sprintf(c.teamRoute(teamId) + "/import")
+	return c.teamRoute(teamId) + "/import"
 }
 
 func (c *Client4) channelsRoute() string {
@@ -256,7 +256,7 @@ func (c *Client4) channelsRoute() string {
 }
 
 func (c *Client4) channelsForTeamRoute(teamId string) string {
-	return fmt.Sprintf(c.teamRoute(teamId) + "/channels")
+	return c.teamRoute(teamId) + "/channels"
 }
 
 func (c *Client4) channelRoute(channelId string) string {
@@ -268,7 +268,7 @@ func (c *Client4) channelByNameRoute(channelName, teamId string) string {
 }
 
 func (c *Client4) channelsForTeamForUserRoute(teamId, userId string, includeDeleted bool) string {
-	route := fmt.Sprintf(c.userRoute(userId) + c.teamRoute(teamId) + "/channels")
+	route := c.userRoute(userId) + c.teamRoute(teamId) + "/channels"
 	if includeDeleted {
 		query := fmt.Sprintf("?include_deleted=%v", includeDeleted)
 		return route + query
@@ -281,7 +281,7 @@ func (c *Client4) channelByNameForTeamNameRoute(channelName, teamName string) st
 }
 
 func (c *Client4) channelMembersRoute(channelId string) string {
-	return fmt.Sprintf(c.channelRoute(channelId) + "/members")
+	return c.channelRoute(channelId) + "/members"
 }
 
 func (c *Client4) channelMemberRoute(channelId, userId string) string {
@@ -401,15 +401,15 @@ func (c *Client4) outgoingWebhookRoute(hookID string) string {
 }
 
 func (c *Client4) preferencesRoute(userId string) string {
-	return fmt.Sprintf(c.userRoute(userId) + "/preferences")
+	return c.userRoute(userId) + "/preferences"
 }
 
 func (c *Client4) userStatusRoute(userId string) string {
-	return fmt.Sprintf(c.userRoute(userId) + "/status")
+	return c.userRoute(userId) + "/status"
 }
 
 func (c *Client4) userStatusesRoute() string {
-	return fmt.Sprintf(c.usersRoute() + "/status")
+	return c.usersRoute() + "/status"
 }
 
 func (c *Client4) samlRoute() string {
@@ -509,7 +509,7 @@ func (c *Client4) analyticsRoute() string {
 }
 
 func (c *Client4) timezonesRoute() string {
-	return fmt.Sprintf(c.systemRoute() + "/timezones")
+	return c.systemRoute() + "/timezones"
 }
 
 func (c *Client4) channelSchemeRoute(channelId string) string {
@@ -521,7 +521,7 @@ func (c *Client4) teamSchemeRoute(teamId string) string {
 }
 
 func (c *Client4) totalUsersStatsRoute() string {
-	return fmt.Sprintf(c.usersRoute() + "/stats")
+	return c.usersRoute() + "/stats"
 }
 
 func (c *Client4) redirectLocationRoute() string {
@@ -598,6 +598,26 @@ func (c *Client4) permissionsRoute() string {
 
 func (c *Client4) limitsRoute() string {
 	return "/limits"
+}
+
+func (c *Client4) customProfileAttributesRoute() string {
+	return "/custom_profile_attributes"
+}
+
+func (c *Client4) userCustomProfileAttributesRoute(userID string) string {
+	return fmt.Sprintf("%s/%s", c.userRoute(userID), c.customProfileAttributesRoute())
+}
+
+func (c *Client4) customProfileAttributeFieldsRoute() string {
+	return fmt.Sprintf("%s/fields", c.customProfileAttributesRoute())
+}
+
+func (c *Client4) customProfileAttributeFieldRoute(fieldID string) string {
+	return fmt.Sprintf("%s/%s", c.customProfileAttributeFieldsRoute(), fieldID)
+}
+
+func (c *Client4) customProfileAttributeValuesRoute() string {
+	return fmt.Sprintf("%s/values", c.customProfileAttributesRoute())
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
@@ -3377,7 +3397,7 @@ func (c *Client4) GetChannelsForTeamForUser(ctx context.Context, teamId, userId 
 
 // GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
 func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context, teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response, error) {
-	route := fmt.Sprintf(c.userRoute(userId) + c.teamRoute(teamId) + "/channels")
+	route := c.userRoute(userId) + c.teamRoute(teamId) + "/channels"
 	route += fmt.Sprintf("?include_deleted=%v&last_delete_at=%d", includeDeleted, lastDeleteAt)
 	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
@@ -3395,7 +3415,7 @@ func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(ctx context.Context,
 
 // GetChannelsForUserWithLastDeleteAt returns a list channels for a user, additionally filtered with lastDeleteAt.
 func (c *Client4) GetChannelsForUserWithLastDeleteAt(ctx context.Context, userID string, lastDeleteAt int) ([]*Channel, *Response, error) {
-	route := fmt.Sprintf(c.userRoute(userID) + "/channels")
+	route := c.userRoute(userID) + "/channels"
 	route += fmt.Sprintf("?last_delete_at=%d", lastDeleteAt)
 	r, err := c.DoAPIGet(ctx, route, "")
 	if err != nil {
@@ -9368,4 +9388,111 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 		return nil, nil, NewAppError("GetFilteredUsersStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &stats, BuildResponse(r), nil
+}
+
+func (c *Client4) RestorePostVersion(ctx context.Context, postId, versionId string) (*Post, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/restore/"+versionId, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	var restoredPost *Post
+	if err := json.NewDecoder(r.Body).Decode(&restoredPost); err != nil {
+		return nil, nil, NewAppError("RestorePostVersion", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return restoredPost, BuildResponse(r), nil
+}
+
+func (c *Client4) CreateCPAField(ctx context.Context, field *PropertyField) (*PropertyField, *Response, error) {
+	buf, err := json.Marshal(field)
+	if err != nil {
+		return nil, nil, NewAppError("CreateCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.customProfileAttributeFieldsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var pf PropertyField
+	if err := json.NewDecoder(r.Body).Decode(&pf); err != nil {
+		return nil, nil, NewAppError("CreateCPAField", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &pf, BuildResponse(r), nil
+}
+
+func (c *Client4) ListCPAFields(ctx context.Context) ([]*PropertyField, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.customProfileAttributeFieldsRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var fields []*PropertyField
+	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
+		return nil, nil, NewAppError("ListCPAFields", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return fields, BuildResponse(r), nil
+}
+
+func (c *Client4) PatchCPAField(ctx context.Context, fieldID string, patch *PropertyFieldPatch) (*PropertyField, *Response, error) {
+	buf, err := json.Marshal(patch)
+	if err != nil {
+		return nil, nil, NewAppError("PatchCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPatchBytes(ctx, c.customProfileAttributeFieldRoute(fieldID), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var pf PropertyField
+	if err := json.NewDecoder(r.Body).Decode(&pf); err != nil {
+		return nil, nil, NewAppError("PatchCPAField", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &pf, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteCPAField(ctx context.Context, fieldID string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.customProfileAttributeFieldRoute(fieldID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userCustomProfileAttributesRoute(userID), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	fields := make(map[string]string)
+	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
+		return nil, nil, NewAppError("ListCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return fields, BuildResponse(r), nil
+}
+
+func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) (map[string]string, *Response, error) {
+	buf, err := json.Marshal(values)
+	if err != nil {
+		return nil, nil, NewAppError("PatchCPAValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPatchBytes(ctx, c.customProfileAttributeValuesRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var patchedValues map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
+		return nil, nil, NewAppError("PatchCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return patchedValues, BuildResponse(r), nil
 }
