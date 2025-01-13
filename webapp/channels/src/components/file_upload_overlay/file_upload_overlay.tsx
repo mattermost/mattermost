@@ -47,7 +47,7 @@ export const FileUploadOverlay = (props: Props) => {
                     <img
                         className='overlay__files'
                         src={fileOverlayImage}
-                        alt='Files'
+                        alt=''
                         loading='lazy'
                     />
                     <FormattedMessage
