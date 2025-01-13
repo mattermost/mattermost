@@ -9369,3 +9369,17 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 	}
 	return &stats, BuildResponse(r), nil
 }
+
+func (c *Client4) RestorePostVersion(ctx context.Context, postId, versionId string) (*Post, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/restore/"+versionId, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	var restoredPost *Post
+	if err := json.NewDecoder(r.Body).Decode(&restoredPost); err != nil {
+		return nil, nil, NewAppError("RestorePostVersion", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return restoredPost, BuildResponse(r), nil
+}
