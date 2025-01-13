@@ -613,6 +613,7 @@ x-tagGroups:
       - permissions
       - exports
       - usage
+      - reports
       - custom profile attributes
 servers:
   - url: http://your-mattermost-url.com

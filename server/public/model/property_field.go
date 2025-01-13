@@ -78,11 +78,11 @@ func (pf *PropertyField) IsValid() error {
 	}
 
 	if pf.CreateAt == 0 {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.create_at.app_error", map[string]any{"FieldName": "create_at", "Reason": "value cannot be zero"}, "id="+pf.ID, http.StatusBadRequest)
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "create_at", "Reason": "value cannot be zero"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if pf.UpdateAt == 0 {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.update_at.app_error", map[string]any{"FieldName": "update_at", "Reason": "value cannot be zero"}, "id="+pf.ID, http.StatusBadRequest)
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "update_at", "Reason": "value cannot be zero"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	return nil
