@@ -338,6 +338,18 @@ export default class Client4 {
         return `${this.getBaseRoute()}/remotecluster`;
     }
 
+    getCustomProfileAttributeFieldsRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/fields`;
+    }
+
+    getCustomProfileAttributeFieldRoute(propertyFieldId: string) {
+        return `${this.getCustomProfileAttributeFieldsRoute()}/${propertyFieldId}`;
+    }
+
+    getCustomProfileAttributeValuesRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/values`;
+    }
+
     getRemoteClusterRoute(remoteId: string) {
         return `${this.getRemoteClustersRoute()}/${remoteId}`;
     }
