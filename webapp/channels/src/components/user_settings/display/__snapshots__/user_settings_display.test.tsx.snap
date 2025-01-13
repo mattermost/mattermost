@@ -154,6 +154,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -494,6 +512,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
           />
         }
         updateSection={[Function]}
@@ -933,6 +969,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1200,6 +1254,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
           />
         }
         updateSection={[Function]}
@@ -1566,6 +1638,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1815,6 +1905,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Share last active time"
             id="user.settings.display.lastActiveDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
           />
         }
         updateSection={[Function]}
@@ -2181,6 +2289,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2448,6 +2574,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
           />
         }
         updateSection={[Function]}
@@ -2832,6 +2976,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={true}
         max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={true}
+        max={null}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3112,6 +3274,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3379,6 +3559,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
           />
         }
         updateSection={[Function]}
@@ -3684,6 +3882,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3964,6 +4180,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={false}
         areAllSectionsInactive={false}
         max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        max={null}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4207,6 +4441,24 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Website Link Previews"
             id="user.settings.display.linkPreviewDisplay"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={true}
+        max={null}
+        section="autoplay_gifs_and_emojis"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Autoplay GIFs and Emojis"
+            id="user.settings.display.autoplayGifsAndEmojis"
           />
         }
         updateSection={[Function]}

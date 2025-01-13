@@ -93,6 +93,8 @@ export const Preferences = {
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',
     LINK_PREVIEW_DISPLAY: 'link_previews',
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
+    AUTOPLAY_GIFS_AND_EMOJIS: 'autoplay_gifs_and_emojis',
+    AUTOPLAY_GIFS_AND_EMOJIS_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
     COLLAPSE_DISPLAY_DEFAULT: 'false',
     AVAILABILITY_STATUS_ON_POSTS: 'availability_status_on_posts',

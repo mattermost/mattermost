@@ -27,6 +27,7 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
     style={
       Object {
         "display": "none",
+        "lineHeight": "initial",
       }
     }
   >
@@ -41,6 +42,11 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
+        style={
+          Object {
+            "display": "block",
+          }
+        }
         tabIndex={0}
       />
       <span
@@ -121,6 +127,7 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
     style={
       Object {
         "display": "none",
+        "lineHeight": "initial",
       }
     }
   >
@@ -135,6 +142,11 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
+        style={
+          Object {
+            "display": "block",
+          }
+        }
         tabIndex={0}
       />
       <span
@@ -228,6 +240,7 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
     style={
       Object {
         "display": "none",
+        "lineHeight": "initial",
       }
     }
   >
@@ -242,6 +255,11 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
+        style={
+          Object {
+            "display": "block",
+          }
+        }
         tabIndex={0}
       />
       <span

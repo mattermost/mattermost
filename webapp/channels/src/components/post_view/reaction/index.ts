@@ -14,12 +14,14 @@ import {removeReaction} from 'mattermost-redux/actions/posts';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {canAddReactions, canRemoveReactions} from 'mattermost-redux/selectors/entities/reactions';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
 import {addReaction} from 'actions/post_actions';
 
+import {Preferences} from 'utils/constants';
 import * as Emoji from 'utils/emoji';
 
 import Reaction from './reaction';
@@ -64,6 +66,7 @@ function makeMapStateToProps() {
             canRemoveReactions: canRemoveReactions(state, channelId),
             emojiImageUrl,
             currentUserReacted: didCurrentUserReact(state, ownProps.reactions),
+            autoplayGifsAndEmojis: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.AUTOPLAY_GIFS_AND_EMOJIS, Preferences.AUTOPLAY_GIFS_AND_EMOJIS_DEFAULT),
         };
     };
 }

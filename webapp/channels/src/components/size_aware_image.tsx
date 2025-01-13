@@ -9,7 +9,13 @@ import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
+import {
+    DownloadOutlineIcon,
+    LinkVariantIcon,
+    CheckIcon,
+    PlayIcon,
+    PauseIcon,
+} from '@mattermost/compass-icons/components';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
@@ -93,6 +99,16 @@ export type Props = WrappedComponentProps & {
     * Prevents display of utility buttons when image in a location that makes them inappropriate
     */
     hideUtilities?: boolean;
+
+    /**
+    * Determines if GIFs and animated emojis autoplay by default.
+    */
+    autoplayGifsAndEmojis: string;
+
+    /**
+    * Returns 'true' if the app is being viewed on a mobile-sized screen.
+    */
+    isMobileView: boolean;
 }
 
 type State = {
@@ -102,6 +118,8 @@ type State = {
     linkCopyInProgress: boolean;
     error: boolean;
     imageWidth: number;
+    shouldPlayGif: boolean;
+    shouldShowMobileGifButton: boolean;
 }
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
@@ -109,7 +127,10 @@ type State = {
 export class SizeAwareImage extends React.PureComponent<Props, State> {
     public heightTimeout = 0;
     public mounted = false;
-    public timeout: NodeJS.Timeout | null = null;
+    private isImageAGif = this.props.dimensions?.format === 'gif' || (this.props.alt && (/GIF/i).test(this.props.alt)) || (this.props.fileInfo && this.props.fileInfo.extension === 'gif');
+    public timeout: NodeJS.Timeout|null = null;
+    private canvasRef: React.RefObject<HTMLCanvasElement> = React.createRef();
+    private imageRef: React.RefObject<HTMLImageElement> = React.createRef();
 
     constructor(props: Props) {
         super(props);
@@ -123,6 +144,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             linkCopyInProgress: false,
             error: false,
             imageWidth: 0,
+            shouldPlayGif: this.props.autoplayGifsAndEmojis === 'true',
+            shouldShowMobileGifButton: false,
         };
 
         this.heightTimeout = 0;
@@ -134,6 +157,14 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         this.mounted = false;
+    }
+
+    componentDidUpdate(prevProps: Readonly<Props>) {
+        if (prevProps.autoplayGifsAndEmojis !== this.props.autoplayGifsAndEmojis) {
+            // The 'autoplay GIFs and emojis' setting has been toggled, so update state and re-render all GIFs
+            // as either static or playing depending on the new setting.
+            this.setState({...this.state, shouldPlayGif: this.props.autoplayGifsAndEmojis === 'true'});
+        }
     }
 
     dimensionsAvailable = (dimensions?: Partial<PostImage>) => {
@@ -156,8 +187,33 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             }, () => { // Call onImageLoaded prop only after state has already been set
                 if (this.props.onImageLoaded && image.naturalHeight) {
                     this.props.onImageLoaded({height: image.naturalHeight, width: image.naturalWidth});
+
+                    // Draw a static image of the GIF on the canvas to simulate it being paused.
+                    this.drawStaticGif(image);
+                } else {
+                    this.drawStaticGif();
                 }
             });
+        }
+    };
+
+    drawStaticGif = (image?: HTMLImageElement) => {
+        if (this.isImageAGif && this.canvasRef.current) {
+            const canvasElement = this.canvasRef.current;
+
+            if (image === undefined) {
+                canvasElement.height = this.props.dimensions?.height ?? 0;
+                canvasElement.width = this.props.dimensions?.width ?? 0;
+            } else {
+                canvasElement.height = image.naturalHeight;
+                canvasElement.width = image.naturalWidth;
+            }
+
+            const context = canvasElement.getContext('2d');
+
+            if (this.imageRef.current) {
+                context?.drawImage(this.imageRef.current, 0, 0);
+            }
         }
     };
 
@@ -171,6 +227,37 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     };
 
     handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
+        if (
+            this.props.isMobileView &&
+            this.state.shouldPlayGif &&
+            this.state.shouldShowMobileGifButton === false
+        ) {
+            this.setState({...this.state, shouldShowMobileGifButton: true});
+
+            setTimeout(() => {
+                // Since the GIF button can change 'shouldShowMobileGifButton', check if it's false first,
+                // otherwise, this would cause one extra unnecessary re-render.
+                if (this.state.shouldShowMobileGifButton === true) {
+                    this.setState({...this.state, shouldShowMobileGifButton: false});
+                }
+            }, 4000);
+        } else {
+            this.props.onClick?.(e, this.props.src);
+        }
+    };
+
+    handleGifButtonClick = (e: MouseEvent) => {
+        e.stopPropagation();
+
+        if (this.state.shouldPlayGif) {
+            this.setState({...this.state, shouldPlayGif: false, shouldShowMobileGifButton: false});
+        } else {
+            this.setState({...this.state, shouldPlayGif: true});
+        }
+    };
+
+    handleStaticGifClick = (e: MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();
         this.props.onClick?.(e, this.props.src);
     };
 
@@ -213,6 +300,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
         Reflect.deleteProperty(props, 'intl');
+        Reflect.deleteProperty(props, 'autoplayGifsAndEmojis');
+        Reflect.deleteProperty(props, 'isMobileView');
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -232,6 +321,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         const image = (
             <img
                 {...props}
+                ref={this.imageRef}
                 aria-label={ariaLabelImage}
                 tabIndex={0}
                 onClick={this.handleImageClick}
@@ -243,8 +333,70 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
-                style={conditionalSVGStyleAttribute}
+
+                // Image needs to be rendered first before it's drawn on the canvas for the static GIF.
+                // Not rendering the image along with the canvas will mean the canvas has no reference to the
+                // image thus, won't draw it. This is why we're using 'display: none' to hide the image instead
+                // of not rendering it.
+                style={{
+                    ...conditionalSVGStyleAttribute,
+                    display: !this.state.shouldPlayGif && this.isImageAGif ? 'none' : 'block',
+                }}
             />
+        );
+
+        const playPauseGifButton = (
+            <button
+                type='button'
+                data-testid='play-pause-gif-button'
+                className={classNames('style--none',
+                    'gif-button', this.state.shouldPlayGif ? 'gif-button--pause' : 'gif-button--play')
+                }
+                onClick={this.handleGifButtonClick}
+            >
+                {
+                    this.state.shouldPlayGif ?
+
+                        <span className='gif-button__icon-container'>
+                            <PauseIcon size={24}/>
+                        </span> :
+                        <>
+                            <span className='gif-button__icon-container'>
+                                <PlayIcon size={24}/>
+                            </span>
+
+                            <span>
+                                {
+                                    <FormattedMessage
+                                        id='single_image_view.gif_button'
+                                        defaultMessage={'GIF'}
+                                    />
+                                }
+                            </span>
+                        </>
+                }
+            </button>
+        );
+
+        const staticGif = (
+            <div
+                className={this.state.shouldPlayGif ? 'static-gif-container--none' : 'static-gif-container'}
+                onClick={this.handleStaticGifClick}
+            >
+                <canvas
+                    ref={this.canvasRef}
+                    id='static-gif-canvas'
+                    data-testid='static-gif-canvas'
+                    className={
+                        this.props.className +
+                        (this.props.handleSmallImageContainer &&
+                        this.state.isSmallImage ? ' small-image--inside-container' : '')
+                    }
+                >
+                    {this.props.alt && this.props.alt}
+                </canvas>
+                {playPauseGifButton}
+            </div>
         );
 
         // copyLink, download are two buttons overlayed on image preview
@@ -381,9 +533,24 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     {download}
                 </span>
             );
+
+        const shouldShowDesktopGifButton = this.state.shouldPlayGif && !this.props.isMobileView;
+
         return (
-            <figure className={classNames('image-loaded-container')}>
+            <figure
+                className={classNames('image-loaded-container', this.state.shouldPlayGif && 'align-gif-button')}
+            >
                 {image}
+                {this.isImageAGif && staticGif}
+
+                {/*
+                    Using separate buttons for different screen sizes because tapping on the GIF on mobile
+                    devices triggers the hover state permanently, and the button can't be hidden using 'display: none'.
+                    Using a separate button on mobile ensures the GIF button is rendered/not rendered appropriately
+                    to hide/show it.
+                */}
+                {shouldShowDesktopGifButton && playPauseGifButton}
+                {this.state.shouldShowMobileGifButton && playPauseGifButton}
                 {utilityButtonsWrapper}
             </figure>
         );
@@ -449,7 +616,13 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 {fallback}
                 <div
                     className='file-preview__button'
-                    style={{display: shouldShowImg ? 'inline-block' : 'none'}}
+                    style={{
+                        display: shouldShowImg ? 'inline-block' : 'none',
+
+                        // Setting the lineHeight to 0 to prevent the sudden increase in height when playing
+                        // a GIF.
+                        lineHeight: this.isImageAGif ? 0 : 'initial',
+                    }}
                 >
                     {this.renderImageWithContainerIfNeeded()}
                 </div>

@@ -26,6 +26,8 @@ describe('components/SizeAwareImage', () => {
             name: 'photo-1533709752211-118fcaf03312',
         }),
         enablePublicLink: true,
+        autoplayGifsAndEmojis: 'true',
+        isMobileView: false,
     };
 
     const store = mockStore({

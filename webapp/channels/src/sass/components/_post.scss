@@ -1395,6 +1395,12 @@
         padding-top: 5px;
         transition: max-height 500ms ease;
 
+        .image-loaded-container.align-gif-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         &[hidden] {
             max-height: 0;
         }
@@ -1712,8 +1718,55 @@
         position: relative;
         display: inline-block;
 
-        &:hover .image-preview-utility-buttons-container {
+        &:hover .image-preview-utility-buttons-container,
+        &:hover .gif-button--pause {
             display: inline-block;
+        }
+
+        .gif-button {
+            position: absolute;
+            z-index: 2;
+            display: flex;
+            height: 44px;
+            align-items: center;
+            border-radius: 100px;
+            background-color: rgba(0, 0, 0, .72);
+            
+            color: white;
+            font-family: 'Open Sans';
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+
+            &__icon-container {
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        .gif-button--play {
+            @extend .gif-button;
+            width: 78px;
+            padding: 12px;
+            gap: 4px;
+        }
+
+        .gif-button--pause {
+            @extend .gif-button;
+            display: none;
+            width: 44px;
+            padding: 10px;
+        }
+
+        .static-gif-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .static-gif-container--none {
+            @extend .static-gif-container;
+            display: none;
         }
     }
 

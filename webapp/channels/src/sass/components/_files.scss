@@ -229,7 +229,7 @@
                 max-height: 180px;
             }
 
-            img {
+            img, canvas {
                 position: relative;
                 z-index: 2;
                 overflow: hidden;
@@ -290,6 +290,12 @@
                 min-width: 40px;
                 min-height: 40px;
                 text-align: left;
+            }
+
+            .image-loaded-container.align-gif-button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
         }
 

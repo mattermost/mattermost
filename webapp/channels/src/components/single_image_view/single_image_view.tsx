@@ -30,6 +30,8 @@ export interface Props extends PropsFromRedux {
     compactDisplay?: boolean;
     isEmbedVisible?: boolean;
     isInPermalink?: boolean;
+    autoplayGifsAndEmojis: string;
+    isMobileView: boolean;
 }
 
 type State = {
@@ -241,6 +243,8 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                     handleSmallImageContainer={true}
                                     enablePublicLink={this.props.enablePublicLink}
                                     getFilePublicLink={this.getFilePublicLink}
+                                    autoplayGifsAndEmojis={this.props.autoplayGifsAndEmojis}
+                                    isMobileView={this.props.isMobileView}
                                 />
                             </div>
                         </div>
