@@ -20,8 +20,8 @@ func TestGetCPAField(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(t, rErr)
+	cpaGroupID, err := th.App.cpaGroupID()
+	require.NoError(t, err)
 
 	t.Run("should fail when getting a non-existent field", func(t *testing.T) {
 		field, err := th.App.GetCPAField(model.NewId())
@@ -47,7 +47,7 @@ func TestGetCPAField(t *testing.T) {
 
 	t.Run("should get an existing CPA field", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: cpaGroup.ID,
+			GroupID: cpaGroupID,
 			Name:    "Test Field",
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   map[string]any{"visibility": "hidden"},
@@ -71,10 +71,8 @@ func TestListCPAFields(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	if cpaGroupID == "" {
-		_, err := th.App.cpaGroupID()
-		require.NoError(t, err)
-	}
+	cpaGroupID, err := th.App.cpaGroupID()
+	require.NoError(t, err)
 
 	t.Run("should list the CPA property fields", func(t *testing.T) {
 		field1 := &model.PropertyField{
@@ -120,10 +118,8 @@ func TestCreateCPAField(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	if cpaGroupID == "" {
-		_, err := th.App.cpaGroupID()
-		require.NoError(t, err)
-	}
+	cpaGroupID, err := th.App.cpaGroupID()
+	require.NoError(t, err)
 
 	t.Run("should fail if the field is not valid", func(t *testing.T) {
 		field := &model.PropertyField{Name: model.NewId()}
@@ -215,11 +211,11 @@ func TestPatchCPAField(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(t, rErr)
+	cpaGroupID, err := th.App.cpaGroupID()
+	require.NoError(t, err)
 
 	newField := &model.PropertyField{
-		GroupID: cpaGroup.ID,
+		GroupID: cpaGroupID,
 		Name:    model.NewId(),
 		Type:    model.PropertyFieldTypeText,
 		Attrs:   map[string]any{"visibility": "hidden"},
@@ -275,11 +271,11 @@ func TestDeleteCPAField(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	cpaGroup, rErr := th.App.Srv().propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(t, rErr)
+	cpaGroupID, err := th.App.cpaGroupID()
+	require.NoError(t, err)
 
 	newField := &model.PropertyField{
-		GroupID: cpaGroup.ID,
+		GroupID: cpaGroupID,
 		Name:    model.NewId(),
 		Type:    model.PropertyFieldTypeText,
 	}
@@ -290,7 +286,7 @@ func TestDeleteCPAField(t *testing.T) {
 		newValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
 			TargetType: "user",
-			GroupID:    cpaGroup.ID,
+			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
 			Value:      fmt.Sprintf("Value %d", i),
 		}
@@ -355,10 +351,9 @@ func TestGetCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	if cpaGroupID == "" {
-		_, err := th.App.cpaGroupID()
-		require.NoError(t, err)
-	}
+	cpaGroupID, err := th.App.cpaGroupID()
+	require.NoError(t, err)
+
 	fieldID := model.NewId()
 
 	t.Run("should fail if the value doesn't exist", func(t *testing.T) {
@@ -406,10 +401,8 @@ func TestPatchCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	if cpaGroupID == "" {
-		_, err := th.App.cpaGroupID()
-		require.NoError(t, err)
-	}
+	cpaGroupID, err := th.App.cpaGroupID()
+	require.NoError(t, err)
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		invalidFieldID := model.NewId()
