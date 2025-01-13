@@ -4312,10 +4312,6 @@
     "translation": "Id invalide"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Message invalide"
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Id d'origine invalide"
   },
