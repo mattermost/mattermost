@@ -58,7 +58,7 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 	opts := model.PropertyFieldSearchOpts{
 		GroupID: groupID,
 		Page:    0,
-		PerPage: 999999,
+		PerPage: CustomProfileAttributesFieldLimit,
 	}
 
 	fields, err := a.Srv().propertyService.SearchPropertyFields(opts)
