@@ -513,6 +513,7 @@ type AppIface interface {
 	CountNotification(notificationType model.NotificationType, platform string)
 	CountNotificationAck(notificationType model.NotificationType, platform string)
 	CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason, platform string)
+	CreateCPAField(field *model.PropertyField) (*model.PropertyField, *model.AppError)
 	CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
 	CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBookmark, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
@@ -560,6 +561,7 @@ type AppIface interface {
 	DeleteAllExpiredPluginKeys() *model.AppError
 	DeleteAllKeysForPlugin(pluginID string) *model.AppError
 	DeleteBrandImage(rctx request.CTX) *model.AppError
+	DeleteCPAField(id string) *model.AppError
 	DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	DeleteChannelBookmark(bookmarkId, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	DeleteCommand(commandID string) *model.AppError
@@ -643,6 +645,8 @@ type AppIface interface {
 	GetBookmark(bookmarkId string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	GetBrandImage(rctx request.CTX) ([]byte, *model.AppError)
 	GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Reaction, *model.AppError)
+	GetCPAField(fieldID string) (*model.PropertyField, *model.AppError)
+	GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError)
 	GetChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError)
 	GetChannelBookmarks(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	GetChannelByName(c request.CTX, channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError)
@@ -948,6 +952,8 @@ type AppIface interface {
 	License() *model.License
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
+	ListCPAFields() ([]*model.PropertyField, *model.AppError)
+	ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListDirectoryRecursively(path string) ([]string, *model.AppError)
 	ListExportDirectory(path string) ([]string, *model.AppError)
@@ -973,6 +979,8 @@ type AppIface interface {
 	OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	OutgoingOAuthConnections() einterfaces.OutgoingOAuthConnectionInterface
+	PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.AppError)
+	PatchCPAValue(userID string, fieldID string, value string) (*model.PropertyValue, *model.AppError)
 	PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError)
 	PatchChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError)
 	PatchPost(c request.CTX, postID string, patch *model.PostPatch, patchPostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError)

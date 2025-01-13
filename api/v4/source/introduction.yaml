@@ -614,6 +614,7 @@ x-tagGroups:
       - exports
       - usage
       - reports
+      - custom profile attributes
 servers:
   - url: http://your-mattermost-url.com
   - url: https://your-mattermost-url.com
