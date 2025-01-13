@@ -6,8 +6,8 @@ package global_relay_export
 import (
 	"archive/zip"
 	"context"
+	"fmt"
 	"io"
-	"net/http"
 	"net/mail"
 	"net/smtp"
 	"os"
@@ -16,14 +16,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func Deliver(export *os.File, config *model.Config) *model.AppError {
+func Deliver(export *os.File, config *model.Config) error {
 	info, err := export.Stat()
 	if err != nil {
-		return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to get the information of the export temporary file: %w", err)
 	}
 	zipFile, err := zip.NewReader(export, info.Size())
 	if err != nil {
-		return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to open the export temporary file: %w", err)
 	}
 
 	to := *config.MessageExportSettings.GlobalRelaySettings.EmailAddress
@@ -33,7 +33,7 @@ func Deliver(export *os.File, config *model.Config) *model.AppError {
 
 	conn, err := connectToSMTPServer(ctx, config)
 	if err != nil {
-		return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to connect to the smtp server: %w", err)
 	}
 	defer conn.Close()
 
@@ -55,56 +55,56 @@ func Deliver(export *os.File, config *model.Config) *model.AppError {
 			var nErr error
 			conn, nErr = connectToSMTPServer(context.Background(), config)
 			if nErr != nil {
-				return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				return fmt.Errorf("unable to connect to the smtp server: %w", nErr)
 			}
 		}
 	}
 	return nil
 }
 
-func deliverEmail(c *smtp.Client, mailFile *zip.File, from string, to string) *model.AppError {
+func deliverEmail(c *smtp.Client, mailFile *zip.File, from string, to string) error {
 	mailData, err := mailFile.Open()
 	if err != nil {
-		return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to get the an email from the temporary file: %w", err)
 	}
 	defer mailData.Close()
 
 	err = c.Mail(from)
 	if err != nil {
-		return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.from_address.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to set the email From address: %w", err)
 	}
 
 	err = c.Rcpt(to)
 	if err != nil {
-		return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.to_address.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to set the email To address: %w", err)
 	}
 
 	w, err := c.Data()
 	if err != nil {
-		return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.msg_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to write the email message: %w", err)
 	}
 
 	_, err = io.Copy(w, mailData)
 	if err != nil {
-		return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.msg.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to set the email message: %w", err)
 	}
 	err = w.Close()
 	if err != nil {
-		return model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.close.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return fmt.Errorf("unable to deliver the email to Global Relay: %w", err)
 	}
 	return nil
 }
 
-func getFrom(mailFile *zip.File) (string, *model.AppError) {
+func getFrom(mailFile *zip.File) (string, error) {
 	mailData, err := mailFile.Open()
 	if err != nil {
-		return "", model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("unable to get the an email from the temporary file: %w", err)
 	}
 	defer mailData.Close()
 
 	message, err := mail.ReadMessage(mailData)
 	if err != nil {
-		return "", model.NewAppError("GlobalRelayDelivery", "ent.message_export.global_relay_export.deliver.parse_mail.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", fmt.Errorf("unable to read the email information: %w", err)
 	}
 	return message.Header.Get("From"), nil
 }
