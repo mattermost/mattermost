@@ -18,6 +18,15 @@
     }
 }
 
+.form-group {
+    .control-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding-right: 5px;
+    }
+}
+
 .form-control {
     ::placeholder {
         color: inherit;
