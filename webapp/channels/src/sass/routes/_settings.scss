@@ -813,3 +813,10 @@
         color: rgba(var(--center-channel-color-rgb), 0.4);
     }
 }
+
+.as-bs-label {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: 700;
+}

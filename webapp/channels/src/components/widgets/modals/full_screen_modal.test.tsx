@@ -19,42 +19,42 @@ describe('components/widgets/modals/FullScreenModal', () => {
             </FullScreenModal>,
         );
         expect(wrapper).toMatchInlineSnapshot(`
-<CSSTransition
-  appear={true}
-  classNames="FullScreenModal"
-  in={true}
-  mountOnEnter={true}
-  timeout={100}
-  unmountOnExit={true}
->
-  <div
-    aria-label="test"
-    aria-modal={true}
-    className="FullScreenModal"
-    role="dialog"
-    tabIndex={-1}
-  >
-    <button
-      aria-label="Close"
-      className="close-x"
-      onClick={[Function]}
-    >
-      <CloseIcon
-        id="closeIcon"
-      />
-    </button>
-    test
-  </div>
-  <div
-    style={
-      Object {
-        "display": "none",
-      }
-    }
-    tabIndex={0}
-  />
-</CSSTransition>
-`);
+            <CSSTransition
+              appear={true}
+              classNames="FullScreenModal"
+              in={true}
+              mountOnEnter={true}
+              timeout={100}
+              unmountOnExit={true}
+            >
+              <div
+                aria-label="test"
+                aria-modal={true}
+                className="FullScreenModal"
+                role="none"
+                tabIndex={-1}
+              >
+                <button
+                  aria-label="Close"
+                  className="close-x"
+                  onClick={[Function]}
+                >
+                  <CloseIcon
+                    id="closeIcon"
+                  />
+                </button>
+                test
+              </div>
+              <div
+                style={
+                  Object {
+                    "display": "none",
+                  }
+                }
+                tabIndex={0}
+              />
+            </CSSTransition>
+        `);
     });
     test('not showing content', () => {
         const wrapper = shallowWithIntl(
@@ -67,42 +67,42 @@ describe('components/widgets/modals/FullScreenModal', () => {
             </FullScreenModal>,
         );
         expect(wrapper).toMatchInlineSnapshot(`
-<CSSTransition
-  appear={true}
-  classNames="FullScreenModal"
-  in={false}
-  mountOnEnter={true}
-  timeout={100}
-  unmountOnExit={true}
->
-  <div
-    aria-label="test"
-    aria-modal={true}
-    className="FullScreenModal"
-    role="dialog"
-    tabIndex={-1}
-  >
-    <button
-      aria-label="Close"
-      className="close-x"
-      onClick={[Function]}
-    >
-      <CloseIcon
-        id="closeIcon"
-      />
-    </button>
-    test
-  </div>
-  <div
-    style={
-      Object {
-        "display": "none",
-      }
-    }
-    tabIndex={0}
-  />
-</CSSTransition>
-`);
+            <CSSTransition
+              appear={true}
+              classNames="FullScreenModal"
+              in={false}
+              mountOnEnter={true}
+              timeout={100}
+              unmountOnExit={true}
+            >
+              <div
+                aria-label="test"
+                aria-modal={true}
+                className="FullScreenModal"
+                role="none"
+                tabIndex={-1}
+              >
+                <button
+                  aria-label="Close"
+                  className="close-x"
+                  onClick={[Function]}
+                >
+                  <CloseIcon
+                    id="closeIcon"
+                  />
+                </button>
+                test
+              </div>
+              <div
+                style={
+                  Object {
+                    "display": "none",
+                  }
+                }
+                tabIndex={0}
+              />
+            </CSSTransition>
+        `);
     });
     test('with back icon', () => {
         const wrapper = shallowWithIntl(
@@ -116,51 +116,51 @@ describe('components/widgets/modals/FullScreenModal', () => {
             </FullScreenModal>,
         );
         expect(wrapper).toMatchInlineSnapshot(`
-<CSSTransition
-  appear={true}
-  classNames="FullScreenModal"
-  in={true}
-  mountOnEnter={true}
-  timeout={100}
-  unmountOnExit={true}
->
-  <div
-    aria-label="test"
-    aria-modal={true}
-    className="FullScreenModal"
-    role="dialog"
-    tabIndex={-1}
-  >
-    <button
-      aria-label="Back"
-      className="back"
-      onClick={[MockFunction]}
-    >
-      <BackIcon
-        id="backIcon"
-      />
-    </button>
-    <button
-      aria-label="Close"
-      className="close-x"
-      onClick={[Function]}
-    >
-      <CloseIcon
-        id="closeIcon"
-      />
-    </button>
-    test
-  </div>
-  <div
-    style={
-      Object {
-        "display": "none",
-      }
-    }
-    tabIndex={0}
-  />
-</CSSTransition>
-`);
+            <CSSTransition
+              appear={true}
+              classNames="FullScreenModal"
+              in={true}
+              mountOnEnter={true}
+              timeout={100}
+              unmountOnExit={true}
+            >
+              <div
+                aria-label="test"
+                aria-modal={true}
+                className="FullScreenModal"
+                role="none"
+                tabIndex={-1}
+              >
+                <button
+                  aria-label="Back"
+                  className="back"
+                  onClick={[MockFunction]}
+                >
+                  <BackIcon
+                    id="backIcon"
+                  />
+                </button>
+                <button
+                  aria-label="Close"
+                  className="close-x"
+                  onClick={[Function]}
+                >
+                  <CloseIcon
+                    id="closeIcon"
+                  />
+                </button>
+                test
+              </div>
+              <div
+                style={
+                  Object {
+                    "display": "none",
+                  }
+                }
+                tabIndex={0}
+              />
+            </CSSTransition>
+        `);
     });
 
     test('close on close icon click', () => {

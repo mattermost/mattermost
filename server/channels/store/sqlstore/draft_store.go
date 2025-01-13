@@ -38,8 +38,8 @@ func draftSliceColumns() []string {
 	}
 }
 
-func draftToSlice(draft *model.Draft) []interface{} {
-	return []interface{}{
+func draftToSlice(draft *model.Draft) []any {
+	return []any{
 		draft.CreateAt,
 		draft.UpdateAt,
 		draft.DeleteAt,

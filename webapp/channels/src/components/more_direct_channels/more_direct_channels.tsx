@@ -291,7 +291,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 onHide={this.handleHide}
                 onExited={this.handleExit}
                 onEntered={this.loadModalData}
-                role='dialog'
+                role='none'
                 aria-labelledby='moreDmModalLabel'
                 id='moreDmModal'
             >

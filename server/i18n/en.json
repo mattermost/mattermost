@@ -2133,6 +2133,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.filter_config_error",
+    "translation": "Unable to filter the configuration."
+  },
+  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
   },
@@ -4572,7 +4576,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Your Elasticsearch channel index schema is out of date. It is recommended to regenerate your channel index.\nClick the `Rebuild Channels Index` button in [Elasticsearch section in System Console]({{.ElasticsearchSection}}) to fix the issue.\nSee Mattermost changelog for more information."
+    "translation": "Your search channel index schema is out of date. We recommend regenerating your channel index.\nClick the `Rebuild Channels Index` button in the [Elasticsearch page via the System Console]({{.ElasticsearchSection}}) to fix this issue.\nSee the Mattermost changelog for more information."
   },
   {
     "id": "app.channel.get.existing.app_error",
@@ -5111,6 +5115,10 @@
     "translation": "Unable to copy custom emoji images"
   },
   {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Unable to create a directory for custom emoji images"
+  },
+  {
     "id": "app.export.export_write_line.io_writer.error",
     "translation": "An error occurred writing the export data."
   },
@@ -5131,12 +5139,20 @@
     "translation": "Can not fetch the file as it is past the cloud plan's limit."
   },
   {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Failed to remove the requested files from database"
+  },
+  {
     "id": "app.file_info.get.app_error",
     "translation": "Unable to get the file info."
   },
   {
     "id": "app.file_info.get.gif.app_error",
     "translation": "Could not decode gif."
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Unable to get the file infos by ids for post edit history."
   },
   {
     "id": "app.file_info.get_by_post_id.app_error",
@@ -5169,6 +5185,10 @@
   {
     "id": "app.file_info.set_searchable_content.app_error",
     "translation": "Unable to set the searchable content of the file."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Failed to restore post file attachments."
   },
   {
     "id": "app.get_user_team_scheduled_posts.error",
@@ -5725,6 +5745,10 @@
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
     "translation": "User First Name is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "User roles are not consistent with guest status."
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
@@ -6341,6 +6365,22 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Failed to permanently delete post."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Failed to get the old post version."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "You do not have the appropriate permissions."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to any history item for the specified post."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to a post history item."
   },
   {
     "id": "app.post.save.app_error",
@@ -7565,14 +7605,6 @@
     "translation": "Unable to get SAML users."
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Unable to write the export file."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " attached a file."
   },
@@ -7593,84 +7625,8 @@
     "translation": "Timed out waiting for cluster response"
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unknown output format {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Unable to add attachment to the CSV export."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Unable to create temporary CSV export file."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Unable to add header to the CSV export."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Unable to close the zip file"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Unable to add metadata file to the zip file."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata to json."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Unable to create the zip file"
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Unable to export a post."
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Unable to seek to start of export file."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Unable to create the warning file."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Unable to write the csv file."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Unable to create the zip export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Unable to open the temporary export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Unable to write the global relay file."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load export templates. Please try again."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -7786,7 +7742,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch search is not enabled on this server"
+    "translation": "{{.Backend}} search is not enabled on this server"
   },
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
@@ -7822,11 +7778,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "{{.Backend}} indexing worker failed to parse the end time"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "{{.Backend}} indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -7834,11 +7790,11 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+    "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is not started"
+    "translation": "{{.Backend}} is not started"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -7850,11 +7806,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Failed to delete an Elasticsearch index"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Failed to delete a search index"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -7862,11 +7814,11 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Failed to refresh Elasticsearch indexes"
+    "translation": "Failed to refresh search indexes"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "{{.Backend}} searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -7878,7 +7830,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elasticsearch files searching is disabled on this server"
+    "translation": "{{.Backend}} files searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_files.search_failed",
@@ -7890,7 +7842,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "{{.Backend}} searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -7914,31 +7866,27 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version."
+    "translation": "Failed to get {{.Backend}} server version."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version."
+    "translation": "Failed to parse {{.Backend}} server version."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped."
+    "translation": "{{.Backend}} is already stopped."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "{{.Backend}} is disabled."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Your license does not support Elasticsearch."
+    "translation": "Your Mattermost license doesn't support indexed search."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
-  },
-  {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Failed to get users in channel during specified time period."
+    "translation": "The Search Server URL or Username has changed. Please re-enter the password to test connection."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -8073,72 +8021,20 @@
     "translation": "unable to migrate."
   },
   {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Calculating channel activity: {{.NumCompleted}}/{{.NumChannels}} channels completed."
   },
   {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exporting channel information for {{.NumChannels}} channels."
   },
   {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Failed to calculate channel export data."
   },
   {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close the zip file."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Unable to create the eml file."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Unable to deliver the email to Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Unable to read the email information."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Unable to connect to the smtp server"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Unable to get the information of the export temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Unable to get the an email from the temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Unable to open the export temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Failed to convert a value from the job's data field."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -8854,23 +8750,23 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1."
+    "translation": "Search AggregatePostsAfterDays setting must be a number greater than or equal to 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+    "translation": "Search Bulk Indexing Batch Size must be at least {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
+    "translation": "Search ConnectionUrl setting must be provided when indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableAutocomplete is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Searching}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
@@ -8882,15 +8778,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1."
+    "translation": "Search Live Indexing Batch Size must be at least 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\"."
+    "translation": "Search PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Search Request Timeout must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -9513,6 +9409,10 @@
     "translation": "Link metadata URL must be set."
   },
   {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Length of link metadata URL is {{ .Length }} characters long, which exceeds the maximum limit of {{ .MaxLength }} characters."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Channel name is not valid"
   },
@@ -9779,6 +9679,14 @@
   {
     "id": "model.preference.is_valid.value.app_error",
     "translation": "Value is too long."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Invalid property field: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Invalid property value: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.reaction.is_valid.create_at.app_error",
@@ -10342,11 +10250,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.0+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",

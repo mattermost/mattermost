@@ -28,7 +28,7 @@ exports[`components/admin_console/reset_email_modal/reset_email_modal.tsx should
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -143,7 +143,7 @@ exports[`components/admin_console/reset_email_modal/reset_email_modal.tsx should
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

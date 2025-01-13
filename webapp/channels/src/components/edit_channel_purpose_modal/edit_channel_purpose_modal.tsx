@@ -163,7 +163,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
                 onHide={this.onHide}
                 onEntering={this.handleEntering}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='editChannelPurposeModalLabel'
             >
                 <Modal.Header closeButton={true}>
