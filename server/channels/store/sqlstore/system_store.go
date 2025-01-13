@@ -16,10 +16,14 @@ import (
 
 type SqlSystemStore struct {
 	*SqlStore
+
+	systemSelectQuery sq.SelectBuilder
 }
 
 func newSqlSystemStore(sqlStore *SqlStore) store.SystemStore {
-	return &SqlSystemStore{sqlStore}
+	s := SqlSystemStore{SqlStore: sqlStore}
+	s.systemSelectQuery = s.getQueryBuilder().Select("Name", "Value").From("Systems")
+	return &s
 }
 
 func (s SqlSystemStore) Save(system *model.System) error {
@@ -68,7 +72,7 @@ func (s SqlSystemStore) Get() (model.StringMap, error) {
 	systems := []model.System{}
 	props := make(model.StringMap)
 
-	query := s.getQueryBuilder().Select("*").From("Systems")
+	query := s.systemSelectQuery
 	if err := s.GetReplica().SelectBuilder(&systems, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get System list")
 	}
@@ -82,7 +86,7 @@ func (s SqlSystemStore) Get() (model.StringMap, error) {
 
 func (s SqlSystemStore) GetByName(name string) (*model.System, error) {
 	var system model.System
-	query := s.getQueryBuilder().Select("*").From("Systems").Where(sq.Eq{"Name": name})
+	query := s.systemSelectQuery.Where(sq.Eq{"Name": name})
 	if err := s.GetReplica().GetBuilder(&system, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("System", fmt.Sprintf("name=%s", system.Name))
@@ -114,7 +118,7 @@ func (s SqlSystemStore) InsertIfExists(system *model.System) (_ *model.System, e
 	defer finalizeTransactionX(tx, &err)
 
 	var origSystem model.System
-	query := s.getQueryBuilder().Select("*").From("Systems").Where(sq.Eq{"Name": system.Name})
+	query := s.systemSelectQuery.Where(sq.Eq{"Name": system.Name})
 	if err := tx.GetBuilder(&origSystem, query); err != nil && err != sql.ErrNoRows {
 		return nil, errors.Wrapf(err, "failed to get system property with name=%s", system.Name)
 	}
