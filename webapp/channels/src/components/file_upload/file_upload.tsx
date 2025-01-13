@@ -190,7 +190,7 @@ export class FileUpload extends PureComponent<Props, State> {
         this.fileInput = React.createRef();
     }
 
-    registerDragsterEvents = () => {
+    getDragEventDefinition = () => {
         let containerSelector: string;
         let overlaySelector: string;
 
@@ -217,11 +217,16 @@ export class FileUpload extends PureComponent<Props, State> {
         }
         }
 
-        this.registerDragEvents(containerSelector, overlaySelector);
+
+        return {
+            containerSelector,
+            overlaySelector,
+        };
     };
 
     componentDidMount() {
-        this.registerDragsterEvents();
+        const {containerSelector, overlaySelector} = this.getDragEventDefinition();
+        this.registerDragEvents(containerSelector, overlaySelector);
 
         document.addEventListener('paste', this.pasteUpload);
         document.addEventListener('keydown', this.keyUpload);
@@ -235,7 +240,8 @@ export class FileUpload extends PureComponent<Props, State> {
             prevProps.rhsPostBeingEdited !== this.props.rhsPostBeingEdited
         ) {
             this.unbindDragsterEvents?.();
-            this.registerDragsterEvents();
+            const {containerSelector, overlaySelector} = this.getDragEventDefinition();
+            this.registerDragEvents(containerSelector, overlaySelector);
         }
     }
 

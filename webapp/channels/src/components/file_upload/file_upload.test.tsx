@@ -66,7 +66,7 @@ describe('components/FileUpload', () => {
         onUploadError: jest.fn(),
         onUploadStart: jest.fn(),
         onUploadProgress: jest.fn(),
-        postType: 'post' as TextEditorLocationType,
+        postType: 'post' as const,
         maxFileSize: MaxFileSize,
         canUploadFiles: true,
         rootId: 'root_id',

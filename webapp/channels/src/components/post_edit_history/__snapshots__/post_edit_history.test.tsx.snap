@@ -261,10 +261,6 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                   </div>
                 </div>
               </div>
-              <div
-                class="post-image__columns clearfix"
-                data-testid="fileAttachmentList"
-              />
             </div>
           </div>
         </div>

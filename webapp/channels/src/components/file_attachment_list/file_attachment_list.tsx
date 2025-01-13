@@ -39,6 +39,11 @@ export default function FileAttachmentList(props: Props) {
     } = props;
 
     const sortedFileInfos = useMemo(() => sortFileInfos(fileInfos ? [...fileInfos] : [], locale), [fileInfos, locale]);
+
+    if (fileInfos.length === 0) {
+        return null;
+    }
+
     if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived) {
         const fileType = getFileType(fileInfos[0].extension);
 
