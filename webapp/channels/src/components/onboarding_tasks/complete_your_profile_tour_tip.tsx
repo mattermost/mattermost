@@ -64,6 +64,7 @@ export const CompleteYourProfileTour = () => {
             singleTip={true}
             showOptOut={false}
             interactivePunchOut={true}
+            zIndex={1050}
         />
     );
 };
