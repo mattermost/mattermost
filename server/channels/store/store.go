@@ -92,6 +92,9 @@ type Store interface {
 	DesktopTokens() DesktopTokensStore
 	ChannelBookmark() ChannelBookmarkStore
 	ScheduledPost() ScheduledPostStore
+	PropertyGroup() PropertyGroupStore
+	PropertyField() PropertyFieldStore
+	PropertyValue() PropertyValueStore
 }
 
 type RetentionPolicyStore interface {
@@ -1067,6 +1070,30 @@ type ScheduledPostStore interface {
 	Get(scheduledPostId string) (*model.ScheduledPost, error)
 	UpdateOldScheduledPosts(beforeTime int64) error
 	PermanentDeleteByUser(userId string) error
+}
+
+type PropertyGroupStore interface {
+	Register(name string) (*model.PropertyGroup, error)
+	Get(name string) (*model.PropertyGroup, error)
+}
+
+type PropertyFieldStore interface {
+	Create(field *model.PropertyField) (*model.PropertyField, error)
+	Get(id string) (*model.PropertyField, error)
+	GetMany(ids []string) ([]*model.PropertyField, error)
+	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	Update(field []*model.PropertyField) ([]*model.PropertyField, error)
+	Delete(id string) error
+}
+
+type PropertyValueStore interface {
+	Create(value *model.PropertyValue) (*model.PropertyValue, error)
+	Get(id string) (*model.PropertyValue, error)
+	GetMany(ids []string) ([]*model.PropertyValue, error)
+	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	Update(field []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Delete(id string) error
+	DeleteForField(id string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.
