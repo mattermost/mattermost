@@ -4270,6 +4270,13 @@ export default class Client4 {
             {method: 'delete', headers: {'Connection-Id': connectionId}},
         );
     };
+
+    restorePostVersion = (postId: string, restoreVersionId: string, connectionId: string) => {
+        return this.doFetchWithResponse<Post>(
+            `${this.getPostRoute(postId)}/restore/${restoreVersionId}`,
+            {method: 'post', headers: {'Connection-Id': connectionId}},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

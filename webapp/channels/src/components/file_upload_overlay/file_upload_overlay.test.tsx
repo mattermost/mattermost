@@ -4,13 +4,14 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import FileUploadOverlay from 'components/file_upload_overlay';
+import FileUploadOverlay from 'components/file_upload_overlay/index';
 
 describe('components/FileUploadOverlay', () => {
     test('should match snapshot when file upload is showing with no overlay type', () => {
         const wrapper = shallow(
             <FileUploadOverlay
                 overlayType=''
+                id={'fileUploadOverlay'}
             />,
         );
 
@@ -21,6 +22,7 @@ describe('components/FileUploadOverlay', () => {
         const wrapper = shallow(
             <FileUploadOverlay
                 overlayType='right'
+                id={'fileUploadOverlay'}
             />,
         );
 
@@ -31,6 +33,7 @@ describe('components/FileUploadOverlay', () => {
         const wrapper = shallow(
             <FileUploadOverlay
                 overlayType='center'
+                id={'fileUploadOverlay'}
             />,
         );
 

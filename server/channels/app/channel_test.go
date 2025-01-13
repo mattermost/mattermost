@@ -2647,7 +2647,7 @@ func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
 		require.Nil(t, appErr)
 		editedPost := r1.Clone()
 		editedPost.Message += " edited"
-		_, appErr = th.App.UpdatePost(th.Context, editedPost, false)
+		_, appErr = th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{SafeUpdate: false})
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(user3, th.BasicTeam)
