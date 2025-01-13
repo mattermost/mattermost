@@ -48,7 +48,7 @@ test('Post actions tab support', async ({pw, pages, axe}) => {
 
     // * Dot menu should be visible and have focused
     await channelsPage.postDotMenu.toBeVisible();
-    await expect(channelsPage.postDotMenu.container).toBeFocused();
+    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
 
     // # Analyze the page
     const accessibilityScanResults = await axe
@@ -58,10 +58,6 @@ test('Post actions tab support', async ({pw, pages, axe}) => {
 
     // * Should have no violation
     expect(accessibilityScanResults.violations).toHaveLength(0);
-
-    // * Should move focus to Reply after arrow down
-    await channelsPage.postDotMenu.container.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
 
     // * Should move focus to Forward after arrow down
     await channelsPage.postDotMenu.replyMenuItem.press('ArrowDown');
