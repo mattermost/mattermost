@@ -192,8 +192,10 @@ func TestListCPAValues(t *testing.T) {
 	_, _, err := th.Client.PatchCPAValues(context.Background(), values)
 	require.NoError(t, err)
 
+	// login with Client2 from this point on
+	th.LoginBasic2()
+
 	t.Run("any team member should be able to list values", func(t *testing.T) {
-		th.LoginBasic2()
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
