@@ -444,20 +444,17 @@
             }
 
             &>blockquote {
+                display: inline-block;
+                overflow: hidden;
                 padding: 0 0 0 20px;
                 font-size: 13px;
                 text-overflow: ellipsis;
-                overflow: hidden;
-                display: inline-block;
 
                 &::before {
                     top: 0;
                     left: 2px;
                     font-size: 15px;
                 }
-            }
-
-            &>blockquote:first-child {
             }
 
             .emoticon {
@@ -470,8 +467,8 @@
             }
 
             &>p.markdown__paragraph-inline:first-child {
-                overflow: hidden;
                 display: inline;
+                overflow: hidden;
                 margin: 0;
                 text-overflow: ellipsis;
             }

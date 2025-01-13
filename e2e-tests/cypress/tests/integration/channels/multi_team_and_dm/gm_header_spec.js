@@ -139,8 +139,6 @@ describe('Multi-user group header', () => {
         // # Click edit conversation header
         cy.uiOpenChannelMenu('Edit Conversation Header');
 
-        // # type new header
-
         // * Verify the modal open to add header
         cy.get('#editChannelHeaderModalLabel').should('be.visible').wait(TIMEOUTS.ONE_SEC);
 
