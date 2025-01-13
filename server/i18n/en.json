@@ -5188,7 +5188,7 @@
   },
   {
     "id": "app.file_info.undelete_for_post_ids.app_error",
-    "translation": "Failed to undelete post file attachments."
+    "translation": "Failed to restore post file attachments."
   },
   {
     "id": "app.get_user_team_scheduled_posts.error",

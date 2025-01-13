@@ -14,12 +14,14 @@ import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
-import {StoragePrefixes} from 'utils/constants';
+import {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
 
 import AdvancedTextEditor from './advanced_text_editor';
+
+import type {Props} from './advanced_text_editor';
 
 jest.mock('actions/views/drafts', () => ({
     ...jest.requireActual('actions/views/drafts'),
@@ -414,60 +416,34 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     });
 
     it('should have file upload overlay', () => {
-        const props = {
+        const props: Props = {
             ...baseProps,
         };
 
-        let {container} = renderWithContext(
+        const {container, rerender} = renderWithContext(
             <AdvancedTextEditor
                 {...props}
             />,
         );
-
         expect(container.querySelector('#createPostFileDropOverlay')).toBeVisible();
 
-        // in RHS create comment
-        container = renderWithContext(
-            <AdvancedTextEditor
-                {...props}
-                postId={'post_id_1'}
-            />,
-        ).container;
-
+        props.postId = 'post_id_1';
+        rerender(<AdvancedTextEditor {...props}/>);
         expect(container.querySelector('#createCommentFileDropOverlay')).toBeVisible();
 
         // in center channel editing a post
-        container = renderWithContext(
-            <AdvancedTextEditor
-                {...props}
-                postId={'post_id_1'}
-                isInEditMode={true}
-            />,
-        ).container;
-
+        props.isInEditMode = true;
+        rerender(<AdvancedTextEditor {...props}/>);
         expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
 
         // in RHS editing a post
-        container = renderWithContext(
-            <AdvancedTextEditor
-                {...props}
-                postId={'post_id_1'}
-                isInEditMode={true}
-            />,
-        ).container;
-
+        props.location = Locations.RHS_COMMENT;
+        rerender(<AdvancedTextEditor {...props}/>);
         expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
 
         // in threads
-        container = renderWithContext(
-            <AdvancedTextEditor
-                {...props}
-                postId={'post_id_1'}
-                isInEditMode={true}
-                isThreadView={true}
-            />,
-        ).container;
-
+        props.isThreadView = true;
+        rerender(<AdvancedTextEditor {...props}/>);
         expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
     });
 });

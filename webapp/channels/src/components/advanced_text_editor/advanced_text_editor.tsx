@@ -88,7 +88,7 @@ import './advanced_text_editor.scss';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
-type Props = {
+export type Props = {
 
     /**
      * location of the advanced text editor in the UI (center channel / RHS)
