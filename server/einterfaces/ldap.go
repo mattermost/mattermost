@@ -17,12 +17,15 @@ type LdapInterface interface {
 	CheckProviderAttributes(c request.CTX, LS *model.LdapSettings, ouser *model.User, patch *model.UserPatch) string
 	SwitchToLdap(c request.CTX, userID, ldapID, ldapPassword string) *model.AppError
 	StartSynchronizeJob(c request.CTX, waitForJobToFinish bool, includeRemovedMembers bool) (*model.Job, *model.AppError)
-	RunTest(rctx request.CTX) *model.AppError
 	GetAllLdapUsers(c request.CTX) ([]*model.User, *model.AppError)
 	MigrateIDAttribute(c request.CTX, toAttribute string) error
 	GetGroup(rctx request.CTX, groupUID string) (*model.Group, *model.AppError)
 	GetAllGroupsPage(rctx request.CTX, page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
 	FirstLoginSync(c request.CTX, user *model.User, userAuthService, userAuthData, email string) *model.AppError
 	UpdateProfilePictureIfNecessary(request.CTX, model.User, model.Session)
+}
+
+type LdapDiagnosticInterface interface {
+	RunTest(rctx request.CTX) *model.AppError
 	GetVendorNameAndVendorVersion(rctx request.CTX) (string, string, error)
 }

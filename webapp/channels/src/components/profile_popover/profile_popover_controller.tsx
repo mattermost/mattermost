@@ -85,13 +85,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
         middleware: [autoPlacement()],
     });
 
-    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, {
-        duration: {
-            open: OverlaysTimings.FADE_IN_DURATION,
-            close: OverlaysTimings.FADE_OUT_DURATION,
-        },
-        initial: OverlayTransitionStyles.START,
-    });
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);
 
     const clickInteractions = useClick(floatingContext);
     const dismissInteraction = useDismiss(floatingContext);
@@ -154,3 +148,11 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
         </>
     );
 }
+
+const TRANSITION_STYLE_PROPS = {
+    duration: {
+        open: OverlaysTimings.FADE_IN_DURATION,
+        close: OverlaysTimings.FADE_OUT_DURATION,
+    },
+    initial: OverlayTransitionStyles.START,
+};
