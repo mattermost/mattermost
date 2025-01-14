@@ -102,7 +102,7 @@ const SidebarHeader = (props: Props) => {
                         title={currentTeam.description ? currentTeam.description : currentTeam.display_name}
                     >
                         <h1 className='sidebarHeader'>
-                            <button className='style--none sidebar-header'>
+                            <button className='style--none sidebar-header' type='button'>
                                 <span className='title'>{currentTeam.display_name}</span>
                                 <i className='icon icon-chevron-down' aria-hidden/>
                             </button>
