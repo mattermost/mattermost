@@ -3089,11 +3089,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Ваша версия сервера Mattermost не поддерживает Elasticsearch."
+    "translation": "Ваша лицензия Mattermost не поддерживает индексированный поиск."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL или имя пользователя сервера Elasticsearch были изменены. Пожалуйста, введите пароль Elasticsearch еще раз, чтобы проверить соединение."
+    "translation": "URL поискового сервера или имя пользователя изменились. Пожалуйста, повторно введите пароль, чтобы проверить соединение."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3609,7 +3609,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Для параметра Search EnableIndexing должно быть установлено значение true, если для параметра EnableSearching установлено значение true"
+    "translation": "{{.EnableIndexing}} параметр должен быть установлен в true, когда {{.Searching}} установлен в true"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4897,7 +4897,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Не удалось обновить индексы Elasticsearch"
+    "translation": "Не удалось обновить поисковые индексы"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -5329,7 +5329,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Параметр поиска IndexingEnabled должен иметь значение true, если для Elasticsearch AutocompleteEnabled установлено значение true"
+    "translation": "{{.EnableIndexing}} параметр должен быть установлен в true, когда {{.Autocomplete}} установлен в true"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -9785,7 +9785,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "Не удалось удалить поисковый индекс"
   },
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
@@ -9805,7 +9805,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Схема индекса Elasticsearch для вашего канала устарела. Рекомендуется перегенерировать индекс каналов.\nНажмите кнопку `Rebuild Channels Index` в разделе [Elasticsearch в Системной консоли]({{.ElasticsearchSection}}), чтобы исправить проблему.\nБолее подробную информацию смотрите в журнале изменений Mattermost."
+    "translation": "Схема поискового индекса ваших каналов устарела. Мы рекомендуем регенерировать индекс ваших каналов.\nНажмите кнопку `Ребилд индексов каналов` на [странице Elasticsearch через Системную консоль]({{.ElasticsearchSection}}), чтобы исправить эту проблему.\nБолее подробную информацию смотри в журнале изменений Mattermost."
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.multiple",
@@ -10010,5 +10010,25 @@
   {
     "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
     "translation": "Вы не можете изменить статус пользователя. Пользователь управляется из LDAP-каталога"
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Невозможно отфильтровать конфигурацию."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Не удалось закешировать сообщение после дедупликации клиента, повторяющего один и тот же запрос."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Не удалось получить данные управления общим каналом"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Не удалось пригласить удалённо на канал"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Не удалось отменить приглашение дистанционного пользователя на канал"
   }
 ]
