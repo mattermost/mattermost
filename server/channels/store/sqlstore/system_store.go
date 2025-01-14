@@ -87,7 +87,7 @@ func (s SqlSystemStore) Get() (model.StringMap, error) {
 func (s SqlSystemStore) GetByName(name string) (*model.System, error) {
 	var system model.System
 	query := s.systemSelectQuery.Where(sq.Eq{"Name": name})
-	if err := s.GetReplica().GetBuilder(&system, query); err != nil {
+	if err := s.GetMaster().GetBuilder(&system, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("System", fmt.Sprintf("name=%s", system.Name))
 		}
