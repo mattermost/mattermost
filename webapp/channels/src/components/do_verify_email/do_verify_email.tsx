@@ -14,7 +14,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import LoadingScreen from 'components/loading_screen';
 
@@ -119,7 +118,6 @@ const DoVerifyEmail = () => {
                     <ColumnLayout
                         title={formatMessage({id: 'signup_user_completed.invalid_invite.title', defaultMessage: 'This invite link is invalid'})}
                         message={serverError}
-                        SVGElement={<LaptopAlertSVG/>}
                         extraContent={(
                             <div className='do-verify-body-content-button-container'>
                                 <button

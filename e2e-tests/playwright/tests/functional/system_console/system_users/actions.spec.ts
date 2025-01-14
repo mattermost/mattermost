@@ -4,8 +4,6 @@
 import {TestBrowser} from '@e2e-support//browser_context';
 import {Client, createRandomTeam, createRandomUser} from '@e2e-support/server';
 import {expect, test} from '@e2e-support/test_fixture';
-import {components} from '@e2e-support/ui/components';
-import {SystemConsolePage} from '@e2e-support/ui/pages/system_console';
 import {getRandomId} from '@e2e-support/util';
 import {UserProfile} from '@mattermost/types/users';
 
@@ -15,10 +13,10 @@ import {UserProfile} from '@mattermost/types/users';
  * @param pages
  * @returns A function to get the refreshed user, and the System Console page for navigation
  */
-async function setupAndGetRandomUser(
-    pw: {testBrowser: TestBrowser; initSetup: () => Promise<{adminUser: UserProfile | null; adminClient: Client}>},
-    pages: {SystemConsolePage: typeof SystemConsolePage},
-) {
+async function setupAndGetRandomUser(pw: {
+    testBrowser: TestBrowser;
+    initSetup: () => Promise<{adminUser: UserProfile | null; adminClient: Client}>;
+}) {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -26,7 +24,7 @@ async function setupAndGetRandomUser(
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a random user to edit for
     const user = await adminClient.createUser(createRandomUser(), '', '');
@@ -34,7 +32,6 @@ async function setupAndGetRandomUser(
     await adminClient.addToTeam(team.id, user.id);
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -52,8 +49,8 @@ async function setupAndGetRandomUser(
     return {getUser: () => adminClient.getUser(user.id), systemConsolePage};
 }
 
-test('MM-T5520-1 should activate and deactivate users', async ({pw, pages}) => {
-    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-1 should activate and deactivate users', async ({pw}) => {
+    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and deactivate the user
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -61,8 +58,7 @@ test('MM-T5520-1 should activate and deactivate users', async ({pw, pages}) => {
     await deactivate.click();
 
     // # Press confirm on the modal
-    const confirmModal = new components.GenericConfirmModal(systemConsolePage.page);
-    await confirmModal.confirm();
+    await systemConsolePage.confirmModal.confirm();
 
     // * Verify user is deactivated
     const firstRow = await systemConsolePage.systemUsers.getNthRow(1);
@@ -80,8 +76,8 @@ test('MM-T5520-1 should activate and deactivate users', async ({pw, pages}) => {
     expect(await firstRow.innerText()).toContain('Member');
 });
 
-test('MM-T5520-2 should change user roles', async ({pw, pages}) => {
-    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-2 should change user roles', async ({pw}) => {
+    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and click Manage roles
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -92,7 +88,7 @@ test('MM-T5520-2 should change user roles', async ({pw, pages}) => {
     const systemAdmin = systemConsolePage.page.locator('input[name="systemadmin"]');
     await systemAdmin.waitFor();
     await systemAdmin.click();
-    await systemConsolePage.page.locator('button.btn-primary').click();
+    systemConsolePage.saveRoleChange();
 
     // * Verify that the modal closed and no error showed
     await systemAdmin.waitFor({state: 'detached'});
@@ -111,7 +107,7 @@ test('MM-T5520-2 should change user roles', async ({pw, pages}) => {
     const systemMember = systemConsolePage.page.locator('input[name="systemmember"]');
     await systemMember.waitFor();
     await systemMember.click();
-    await systemConsolePage.page.locator('button.btn-primary').click();
+    await systemConsolePage.saveRoleChange();
 
     // * Verify that the modal closed and no error showed
     await systemMember.waitFor({state: 'detached'});
@@ -121,8 +117,8 @@ test('MM-T5520-2 should change user roles', async ({pw, pages}) => {
     expect((await getUser()).roles).toContain('system_user');
 });
 
-test('MM-T5520-3 should be able to manage teams', async ({pw, pages}) => {
-    const {systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-3 should be able to manage teams', async ({pw}) => {
+    const {systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and click Manage teams
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -157,8 +153,8 @@ test('MM-T5520-3 should be able to manage teams', async ({pw, pages}) => {
     expect(team).not.toBeVisible();
 });
 
-test('MM-T5520-4 should reset the users password', async ({pw, pages}) => {
-    const {systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-4 should reset the users password', async ({pw}) => {
+    const {systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and click Reset Password
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -168,14 +164,14 @@ test('MM-T5520-4 should reset the users password', async ({pw, pages}) => {
     // # Enter a random password and click Save
     const passwordInput = systemConsolePage.page.locator('input[type="password"]');
     await passwordInput.fill(getRandomId());
-    await systemConsolePage.page.locator('button.btn-primary').click();
+    await systemConsolePage.clickResetButton();
 
     // * Verify that the modal closed and no error showed
     await passwordInput.waitFor({state: 'detached'});
 });
 
-test('MM-T5520-5 should change the users email', async ({pw, pages}) => {
-    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-5 should change the users email', async ({pw}) => {
+    const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
     const newEmail = `${getRandomId()}@example.com`;
 
     // # Open menu and click Update Email
@@ -186,7 +182,7 @@ test('MM-T5520-5 should change the users email', async ({pw, pages}) => {
     // # Enter a random password and click Save
     const emailInput = await systemConsolePage.page.locator('input[type="email"]');
     await emailInput.fill(newEmail);
-    await systemConsolePage.page.locator('button.btn-primary').click();
+    await systemConsolePage.clickResetButton();
 
     // * Verify that the modal closed
     await emailInput.waitFor({state: 'detached'});
@@ -197,8 +193,8 @@ test('MM-T5520-5 should change the users email', async ({pw, pages}) => {
     expect((await getUser()).email).toEqual(newEmail);
 });
 
-test('MM-T5520-6 should revoke sessions', async ({pw, pages}) => {
-    const {systemConsolePage} = await setupAndGetRandomUser(pw, pages);
+test('MM-T5520-6 should revoke sessions', async ({pw}) => {
+    const {systemConsolePage} = await setupAndGetRandomUser(pw);
 
     // # Open menu and revoke sessions
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
@@ -206,8 +202,7 @@ test('MM-T5520-6 should revoke sessions', async ({pw, pages}) => {
     await removeSessions.click();
 
     // # Press confirm on the modal
-    const confirmModal = new components.GenericConfirmModal(systemConsolePage.page);
-    await confirmModal.confirm();
+    await systemConsolePage.confirmModal.confirm();
 
     const firstRow = await systemConsolePage.systemUsers.getNthRow(1);
     expect(await firstRow.innerHTML()).not.toContain('class="error"');
