@@ -39,6 +39,7 @@ export default function ChannelHeaderText(props: Props) {
     const headerText = isBotDMChannel ? props.dmUser?.bot_description ?? '' : props.channel?.header ?? '';
     const hasHeaderText = headerText.trim().length > 0;
 
+    // If it has a channel then show the channel irrespective of the channel type/state etc
     if (hasHeaderText) {
         return (
             <ChannelHeaderTextPopover
@@ -49,6 +50,9 @@ export default function ChannelHeaderText(props: Props) {
             />
         );
     }
+
+    // If doesn't have a header text then we need to check based on below
+    // conditions if we need to show button to add or not
 
     if (isArchivedChannel) {
         return null;
