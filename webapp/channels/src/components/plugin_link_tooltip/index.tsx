@@ -16,7 +16,7 @@ import {
     FloatingFocusManager,
     useFocus,
 } from '@floating-ui/react';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {AnchorHTMLAttributes, ReactElement} from 'react';
 
 import Pluggable from 'plugins/pluggable';
@@ -61,11 +61,15 @@ export default function PluginLinkTooltip(props: Props) {
         dismissInteraction,
     ]);
 
+    const nodeAttributes = useMemo(() => {
+        return convertPropsToReactStandard(props.nodeAttributes);
+    }, [props.nodeAttributes]);
+
     return (
         <>
             <a
                 ref={setReference}
-                {...convertPropsToReactStandard(props.nodeAttributes)}
+                {...nodeAttributes}
                 {...getReferenceProps()}
             >
                 {props.children}
