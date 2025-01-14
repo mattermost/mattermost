@@ -5,7 +5,7 @@ import {test} from '@e2e-support/test_fixture';
 import {createRandomUser} from '@e2e-support/server';
 import {getRandomId} from '@e2e-support/util';
 
-test('MM-T5521-1 Should be able to search users with their first names', async ({pw, pages}) => {
+test('MM-T5521-1 Should be able to search users with their first names', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -13,14 +13,13 @@ test('MM-T5521-1 Should be able to search users with their first names', async (
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
     const user1 = await adminClient.createUser(createRandomUser(), '', '');
     const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -38,7 +37,7 @@ test('MM-T5521-1 Should be able to search users with their first names', async (
     await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-T5521-2 Should be able to search users with their last names', async ({pw, pages}) => {
+test('MM-T5521-2 Should be able to search users with their last names', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -46,14 +45,13 @@ test('MM-T5521-2 Should be able to search users with their last names', async ({
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
     const user1 = await adminClient.createUser(createRandomUser(), '', '');
     const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -71,7 +69,7 @@ test('MM-T5521-2 Should be able to search users with their last names', async ({
     await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-T5521-3 Should be able to search users with their emails', async ({pw, pages}) => {
+test('MM-T5521-3 Should be able to search users with their emails', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -79,14 +77,13 @@ test('MM-T5521-3 Should be able to search users with their emails', async ({pw, 
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
     const user1 = await adminClient.createUser(createRandomUser(), '', '');
     const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -104,7 +101,7 @@ test('MM-T5521-3 Should be able to search users with their emails', async ({pw, 
     await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-T5521-4 Should be able to search users with their usernames', async ({pw, pages}) => {
+test('MM-T5521-4 Should be able to search users with their usernames', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -112,14 +109,13 @@ test('MM-T5521-4 Should be able to search users with their usernames', async ({p
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
     const user1 = await adminClient.createUser(createRandomUser(), '', '');
     const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -137,7 +133,7 @@ test('MM-T5521-4 Should be able to search users with their usernames', async ({p
     await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-T5521-5 Should be able to search users with their nick names', async ({pw, pages}) => {
+test('MM-T5521-5 Should be able to search users with their nick names', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -145,14 +141,13 @@ test('MM-T5521-5 Should be able to search users with their nick names', async ({
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
     const user1 = await adminClient.createUser(createRandomUser(), '', '');
     const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -169,7 +164,7 @@ test('MM-T5521-5 Should be able to search users with their nick names', async ({
     await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-T5521-6 Should show no user is found when user doesnt exists', async ({pw, pages}) => {
+test('MM-T5521-6 Should show no user is found when user doesnt exists', async ({pw}) => {
     const {adminUser} = await pw.initSetup();
 
     if (!adminUser) {
@@ -177,10 +172,9 @@ test('MM-T5521-6 Should show no user is found when user doesnt exists', async ({
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
