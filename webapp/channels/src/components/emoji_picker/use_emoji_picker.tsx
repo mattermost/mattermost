@@ -7,7 +7,6 @@ import {
     FloatingFocusManager,
     FloatingOverlay,
     FloatingPortal,
-    offset,
     useClick,
     useDismiss,
     useFloating,
@@ -60,7 +59,6 @@ export default function useEmojiPicker({
         middleware = [];
     } else {
         middleware = [
-            offset(0),
             autoPlacement({
                 allowedPlacements: ['top-start', 'bottom-start', 'top-end', 'bottom-end'],
             }),
@@ -68,12 +66,15 @@ export default function useEmojiPicker({
     }
 
     // Set up Floating UI
-    const {context: floatingContext, floatingStyles, refs} = useFloating({
+    const {context: floatingContext, floatingStyles, refs, placement} = useFloating({
         open: showEmojiPicker,
         onOpenChange: setShowEmojiPicker,
 
         middleware,
     });
+    if (showEmojiPicker) {
+        console.log('uep', placement)
+    }
 
     const clickInteractions = useClick(floatingContext);
     const dismissInteraction = useDismiss(floatingContext);
