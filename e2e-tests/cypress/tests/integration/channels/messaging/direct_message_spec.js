@@ -150,12 +150,12 @@ describe('Direct Message', () => {
         cy.get('#edit_textbox').type(message).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
         // # Hover on channel header
-        cy.get('#channelHeaderDescription .header-description__text').trigger('mouseover');
+        cy.get('#channelHeaderDescription .header-description__text').trigger('mouseenter');
 
         // * Verify changes have been applied on header
         cy.wait(TIMEOUTS.HALF_SEC);
-        cy.get('#header-popover .popover-content').should('be.visible');
-        cy.get('#header-popover').find('.popover-content').should(($el) => {
+        cy.get('.channel-header-text-popover').should('be.visible');
+        cy.get('.channel-header-text-popover').should(($el) => {
             expect($el.get(0).innerText).to.eq(expectedMessage);
         });
     });
