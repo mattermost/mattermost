@@ -5,10 +5,12 @@ package platform
 
 import (
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"hash/maphash"
 	"net/http"
 	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -87,6 +89,8 @@ type PlatformService struct {
 	SearchEngine            *searchengine.Broker
 	searchConfigListenerId  string
 	searchLicenseListenerId string
+
+	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 
 	Jobs *jobs.JobServer
 
@@ -459,6 +463,10 @@ func (ps *PlatformService) initEnterprise() {
 		ps.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(ps))
 	}
 
+	if ldapDiagnosticInterface != nil {
+		ps.ldapDiagnostic = ldapDiagnosticInterface(ps)
+	}
+
 	if licenseInterface != nil {
 		ps.licenseManager = licenseInterface(ps)
 	}
@@ -547,10 +555,47 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 	return pluginStatuses, nil
 }
 
+func (ps *PlatformService) getPluginManifests() ([]*model.Manifest, error) {
+	if ps.pluginEnv == nil {
+		return nil, errors.New("plugin environment not initialized")
+	}
+
+	pluginsEnvironment := ps.pluginEnv.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("getPluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list of available plugins: %w", err)
+	}
+
+	manifests := make([]*model.Manifest, len(plugins))
+	for i := range plugins {
+		manifests[i] = plugins[i].Manifest
+	}
+
+	return manifests, nil
+}
+
 func (ps *PlatformService) FileBackend() filestore.FileBackend {
 	return ps.filestore
 }
 
 func (ps *PlatformService) ExportFileBackend() filestore.FileBackend {
 	return ps.exportFilestore
+}
+
+func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	return ps.ldapDiagnostic
+}
+
+// DatabaseTypeAndSchemaVersion returns the Database type (postgres or mysql) and current version of the schema
+func (ps *PlatformService) DatabaseTypeAndSchemaVersion() (string, string, error) {
+	schemaVersion, err := ps.Store.GetDBSchemaVersion()
+	if err != nil {
+		return "", "", err
+	}
+
+	return model.SafeDereference(ps.Config().SqlSettings.DriverName), strconv.Itoa(schemaVersion), nil
 }

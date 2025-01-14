@@ -17,6 +17,7 @@ describe('components/file_attachment/FilenameOverlay', () => {
         height: 80,
         has_preview_image: true,
         user_id: '',
+        channel_id: 'channel_id',
         create_at: 0,
         update_at: 0,
         delete_at: 0,

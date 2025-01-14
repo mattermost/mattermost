@@ -25,10 +25,12 @@ export const isChannelLoading = (params: RouteViewParams, channel?: Channel, tea
         return false;
     }
 
+    const identifier = params.identifier?.toLowerCase();
+
     if (channel && team) {
-        if (channel.type !== Constants.DM_CHANNEL && channel.name !== params.identifier) {
+        if (channel.type !== Constants.DM_CHANNEL && channel.name !== identifier) {
             return true;
-        } else if (channel.type === Constants.DM_CHANNEL && teammate && params.identifier !== `@${teammate.username}`) {
+        } else if (channel.type === Constants.DM_CHANNEL && teammate && identifier !== `@${teammate.username}`) {
             return true;
         }
 

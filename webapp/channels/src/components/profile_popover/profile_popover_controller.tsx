@@ -118,7 +118,6 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
                     <FloatingOverlay
-                        id='user-profile-popover-floating-overlay'
                         className='user-profile-popover-floating-overlay'
                         lockScroll={true}
                     >

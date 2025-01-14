@@ -10224,5 +10224,223 @@
   {
     "id": "api.post.deduplicate_create_post.cache_error",
     "translation": "Misslyckades med att cacha inlägget efter deduplicerat av en klient som upprepat samma begäran."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "funktionen för schemalagda inlägg är inaktiverad"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Funktionen för schemalagda inlägg kräver en licens"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Misslyckades med att ta bort schemalagd post från databasen."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Du har inte behörighet att ta bort den här resursen."
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Kunde inte uppdatera bot:en."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Det går inte att hämta schemalagda poster från databasen."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Fel uppstod vid hämtning av schemalagda poster."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Det går inte att hitta ägaren till boten"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Importdataraden har typen \"bot\" men botobjektet är null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Botägaren saknas"
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Ett fel inträffade när det schemalagda inlägget sparades."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Den schemalagda posten finns inte."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Det går inte att hämta schemalagda poster från databasen."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Du har inte behörighet att uppdatera denna resurs."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Misslyckades med att spara det uppdaterade schemalagda inlägget i databasen."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Tidpunkt för schemalagd är ogiltig."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Tidpunkt för hantering är ogiltig."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Det går inte att filtrera konfigurationen."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Den schemalagda posten finns inte."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Det går inte att skapa en katalog för anpassade emoji-bilder"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Ingen behörighet att posta i kanalen"
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Egenskapen meddelandeutkast är längre än den maximalt tillåtna längden."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Egenskapen meddelande är längre än den maximalt tillåtna längden."
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Användarrollerna stämmer inte överens med gäststatus."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Kan inte få tag i systemboten"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Posten kan inte skapas"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Det går inte att få direktmeddelande från systemboten"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Det går inte att få fram användaren"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Om du fick detta testmeddelande så fungerar det!"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Det går inte att schemalägga en post i en arkiverad kanal."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Schemalagda inlägg måste ha ett ID."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Det går inte att schemalägga ett tomt inlägg. Ett schemalagt inlägg måste innehålla ett meddelande eller en bifogad fil."
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Det går inte att söka till början av GIF-data."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Inte medlem i kanalen"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} i kanalen {{.ChannelName}}. Anledning: {{.ErrorReason}}",
+      "other": "- {{.Count}} i kanalen {{.ChannelName}}. Anledning: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Misslyckades med att skicka {{.Count}} schemalagd post.",
+      "other": "Misslyckades med att skicka {{.Count}} schemalagda poster."
+    }
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Det gick inte att återställa läspositionen till början av pluginpaketet."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanalen är arkiverad"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanalen hittades inte"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Ogiltigt innehåll i posten"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Det går inte att skicka meddelandet"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Okänt fel"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Användarkontot har raderats"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Tråden har raderats"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Användaren finns inte"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privat kanal"
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Det går inte att ta bort användarens schemalagda inlägg."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Okänd kanal"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Klassen {{.Value}} för lagring är ogiltig."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Misslyckades med att hantera kommandot webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Misslyckades med att hantera nyttolasten av mediatyp {{.media_type}} för inkommande webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Misslyckades med att tolka media på inkommande webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Misslyckades med att tolka datat av mediatyp {{.media_type}} för inkommande webhook {{.hook_id}}."
   }
 ]

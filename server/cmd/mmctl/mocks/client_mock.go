@@ -572,13 +572,14 @@ func (mr *MockClientMockRecorder) GeneratePresignedURL(arg0, arg1 interface{}) *
 }
 
 // GenerateSupportPacket mocks base method.
-func (m *MockClient) GenerateSupportPacket(arg0 context.Context) ([]byte, *model.Response, error) {
+func (m *MockClient) GenerateSupportPacket(arg0 context.Context) (io.ReadCloser, string, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateSupportPacket", arg0)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(*model.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(*model.Response)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // GenerateSupportPacket indicates an expected call of GenerateSupportPacket.

@@ -114,6 +114,10 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	pluginStore := mocks.PluginStore{}
 	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 
+	propertyGroupStore := mocks.PropertyGroupStore{}
+	propertyFieldStore := mocks.PropertyFieldStore{}
+	propertyValueStore := mocks.PropertyValueStore{}
+
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
 	mockStore.On("Post").Return(&postStore)
@@ -130,6 +134,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("Group").Return(&groupStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 	mockStore.On("Plugin").Return(&pluginStore)
+	mockStore.On("PropertyGroup").Return(&propertyGroupStore)
+	mockStore.On("PropertyField").Return(&propertyFieldStore)
+	mockStore.On("PropertyValue").Return(&propertyValueStore)
 
 	return &mockStore
 }

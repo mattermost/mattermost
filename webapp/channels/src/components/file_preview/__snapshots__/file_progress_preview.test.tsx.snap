@@ -28,6 +28,7 @@ exports[`component/file_preview/file_progress_preview should match snapshot 1`] 
           fileInfo={
             Object {
               "archived": false,
+              "channel_id": "channel_id",
               "clientId": "",
               "create_at": 0,
               "delete_at": 0,
@@ -112,6 +113,7 @@ exports[`component/file_preview/file_progress_preview snapshot for percent value
           fileInfo={
             Object {
               "archived": false,
+              "channel_id": "channel_id",
               "clientId": "",
               "create_at": 0,
               "delete_at": 0,

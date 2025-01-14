@@ -3,53 +3,59 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 
-test('/reset_password accessibility quick check', async ({pages, page, axe}) => {
+test('/reset_password accessibility quick check', async ({pw, axe}) => {
+    // Set up the page not to redirect to the landing page
+    await pw.hasSeenLandingPage();
+
     // # Go to reset password page
-    const resetPasswordPage = new pages.ResetPasswordPage(page);
-    await resetPasswordPage.goto();
-    await resetPasswordPage.toBeVisible();
+    await pw.resetPasswordPage.goto();
+    await pw.resetPasswordPage.toBeVisible();
 
     // # Analyze the page
-    const accessibilityScanResults = await axe.builder(resetPasswordPage.page, {disableColorContrast: true}).analyze();
+    const accessibilityScanResults = await axe
+        .builder(pw.resetPasswordPage.page, {disableColorContrast: true})
+        .analyze();
 
     // * Should have no violation
     expect(accessibilityScanResults.violations).toHaveLength(0);
 });
 
-test('/reset_password accessibility tab support', async ({pages, page}) => {
+test('/reset_password accessibility tab support', async ({pw}) => {
+    // Set up the page not to redirect to the landing page
+    await pw.hasSeenLandingPage();
+
     // # Go to reset password page
-    const resetPasswordPage = new pages.ResetPasswordPage(page);
-    await resetPasswordPage.goto();
-    await resetPasswordPage.toBeVisible();
+    await pw.resetPasswordPage.goto();
+    await pw.resetPasswordPage.toBeVisible();
 
     // * Should have focused at email input on page load
-    expect(await resetPasswordPage.emailInput).toBeFocused();
+    expect(await pw.resetPasswordPage.emailInput).toBeFocused();
 
     // * Should move focus to reset button after tab
-    await resetPasswordPage.emailInput.press('Tab');
-    expect(await resetPasswordPage.resetButton).toBeFocused();
+    await pw.resetPasswordPage.emailInput.press('Tab');
+    expect(await pw.resetPasswordPage.resetButton).toBeFocused();
 
     // * Should move focus to about link after tab
-    await resetPasswordPage.resetButton.press('Tab');
-    expect(await resetPasswordPage.footer.aboutLink).toBeFocused();
+    await pw.resetPasswordPage.resetButton.press('Tab');
+    expect(await pw.resetPasswordPage.footer.aboutLink).toBeFocused();
 
     // * Should move focus to privacy policy link after tab
-    await resetPasswordPage.footer.aboutLink.press('Tab');
-    expect(await resetPasswordPage.footer.privacyPolicyLink).toBeFocused();
+    await pw.resetPasswordPage.footer.aboutLink.press('Tab');
+    expect(await pw.resetPasswordPage.footer.privacyPolicyLink).toBeFocused();
 
     // * Should move focus to terms link after tab
-    await resetPasswordPage.footer.privacyPolicyLink.press('Tab');
-    expect(await resetPasswordPage.footer.termsLink).toBeFocused();
+    await pw.resetPasswordPage.footer.privacyPolicyLink.press('Tab');
+    expect(await pw.resetPasswordPage.footer.termsLink).toBeFocused();
 
     // * Should move focus to help link after tab
-    await resetPasswordPage.footer.termsLink.press('Tab');
-    expect(await resetPasswordPage.footer.helpLink).toBeFocused();
+    await pw.resetPasswordPage.footer.termsLink.press('Tab');
+    expect(await pw.resetPasswordPage.footer.helpLink).toBeFocused();
 
     // # Move focus to email input
-    await resetPasswordPage.emailInput.focus();
-    expect(await resetPasswordPage.emailInput).toBeFocused();
+    await pw.resetPasswordPage.emailInput.focus();
+    expect(await pw.resetPasswordPage.emailInput).toBeFocused();
 
     // * Should move focus to back button after shift+tab
-    await resetPasswordPage.emailInput.press('Shift+Tab');
-    expect(await resetPasswordPage.header.backButton).toBeFocused();
+    await pw.resetPasswordPage.emailInput.press('Shift+Tab');
+    expect(await pw.resetPasswordPage.header.backButton).toBeFocused();
 });

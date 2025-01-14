@@ -30,6 +30,7 @@ export interface Props extends PropsFromRedux {
     compactDisplay?: boolean;
     isEmbedVisible?: boolean;
     isInPermalink?: boolean;
+    disableActions?: boolean;
 }
 
 type State = {
@@ -97,7 +98,10 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         });
     };
 
-    toggleEmbedVisibility = () => {
+    toggleEmbedVisibility = (e: React.MouseEvent) => {
+        // stopping propagation to avoid accidentally closing edit history
+        // section when clicking on image collapse/expand button.
+        e.stopPropagation();
         this.props.actions.toggleEmbedVisibility(this.props.postId);
     };
 
@@ -241,6 +245,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                     handleSmallImageContainer={true}
                                     enablePublicLink={this.props.enablePublicLink}
                                     getFilePublicLink={this.getFilePublicLink}
+                                    hideUtilities={this.props.disableActions}
                                 />
                             </div>
                         </div>

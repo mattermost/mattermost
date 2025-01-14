@@ -756,6 +756,12 @@
           required: true
           schema:
             type: string
+        - name: cpa
+          in: query
+          description: Includes the Custom Profile Attributes information if set to true.
+          required: false
+          schema:
+            type: boolean
       responses:
         "200":
           description: User retrieval successful
