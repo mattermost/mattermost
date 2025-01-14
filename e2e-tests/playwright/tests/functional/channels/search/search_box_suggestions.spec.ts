@@ -3,14 +3,13 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 
-test('Search box suggestion must be case insensitive', async ({pw, pages}) => {
+test('Search box suggestion must be case insensitive', async ({pw}) => {
     const {user} = await pw.initSetup();
 
     // # Log in a user in new browser context
-    const {page} = await pw.testBrowser.login(user);
+    const {channelsPage} = await pw.testBrowser.login(user);
 
     // # Visit a default channel page
-    const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
