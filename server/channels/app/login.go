@@ -113,7 +113,7 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 	}
 
 	// and then authenticate them
-	if user, err = a.authenticateUser(c, user, password, mfaToken); err != nil {
+	if user, err = a.authenticateUser(c, user, password, mfaToken, loginId); err != nil {
 		return nil, err
 	}
 
