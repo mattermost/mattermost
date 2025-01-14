@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { createRandomTeam } from '@e2e-support/server';
+import {createRandomTeam} from '@e2e-support/server';
 import {expect, test} from '@e2e-support/test_fixture';
 
 test('team selector must show all my teams', async ({pw, pages}) => {
@@ -15,7 +15,7 @@ test('team selector must show all my teams', async ({pw, pages}) => {
             ExperimentalCrossTeamSearch: true,
         },
     };
-    await adminClient.updateConfig(newConfig)
+    await adminClient.updateConfig(newConfig);
 
     // # create 2 more teams and add the user to them
     const teams = [team];
