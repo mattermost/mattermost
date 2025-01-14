@@ -56,19 +56,10 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 		rows[10] = &model.AnalyticsRow{Name: "inactive_user_count", Value: 0}
 
 		var g errgroup.Group
-		var openChannelsCount int64
+		var channelCounts map[model.ChannelType]int64
 		g.Go(func() error {
 			var err error
-			if openChannelsCount, err = a.Srv().Store().Channel().AnalyticsTypeCount(teamID, model.ChannelTypeOpen); err != nil {
-				return model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			return nil
-		})
-
-		var privateChannelsCount int64
-		g.Go(func() error {
-			var err error
-			if privateChannelsCount, err = a.Srv().Store().Channel().AnalyticsTypeCount(teamID, model.ChannelTypePrivate); err != nil {
+			if channelCounts, err = a.Srv().Store().Channel().AnalyticsCountAll(teamID); err != nil {
 				return model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			return nil
@@ -136,8 +127,8 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 			return nil, err.(*model.AppError)
 		}
 
-		rows[0].Value = float64(openChannelsCount)
-		rows[1].Value = float64(privateChannelsCount)
+		rows[0].Value = float64(channelCounts[model.ChannelTypeOpen])
+		rows[1].Value = float64(channelCounts[model.ChannelTypePrivate])
 
 		if skipIntensiveQueries {
 			rows[2].Value = -1
