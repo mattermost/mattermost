@@ -17,9 +17,6 @@
     "url": "github:mattermost/mattermost",
     "directory": "webapp/platform/client"
   },
-  "dependencies": {
-    "form-data": "^4.0.0"
-  },
   "devDependencies": {
     "@types/jest": "28.1.8",
     "jest": "27.1.0",

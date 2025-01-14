@@ -29,6 +29,6 @@ func getServerLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(serverLimits); err != nil {
-		c.Logger.Error("Error writing server limits response", mlog.Err(err))
+		c.Logger.Warn("Error writing server limits response", mlog.Err(err))
 	}
 }

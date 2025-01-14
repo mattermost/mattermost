@@ -92,7 +92,6 @@ export class QuickInput extends React.PureComponent<Props> {
         delayInputUpdate: false,
         value: '',
         clearable: false,
-        tooltipPosition: 'bottom',
     };
 
     componentDidMount() {
@@ -133,7 +132,7 @@ export class QuickInput extends React.PureComponent<Props> {
         this.input = input;
     };
 
-    private onClear = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent) => {
+    private onClear = (e: React.MouseEvent<HTMLButtonElement> | React.TouchEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -187,29 +186,28 @@ export class QuickInput extends React.PureComponent<Props> {
         );
 
         const showClearButton = this.props.onClear && (clearableWithoutValue || (clearable && value));
-        return (<div className='input-wrapper'>
-            {inputElement}
-            {showClearButton &&
-            <div
-                data-testid='input-clear'
-                className={classNames(clearClassName, 'input-clear visible')}
-                onMouseDown={this.onClear}
-                onTouchEnd={this.onClear}
-                role='button'
-            >
-                <WithTooltip
-                    title={clearableTooltipText}
-                >
-                    <span
-                        className='input-clear-x'
-                        aria-hidden='true'
-                    >
-                        <i className='icon icon-close-circle'/>
-                    </span>
-                </WithTooltip>
+
+        return (
+            <div className='input-wrapper'>
+                {inputElement}
+                {showClearButton && (
+                    <WithTooltip title={clearableTooltipText}>
+                        <button
+                            data-testid='input-clear'
+                            className={classNames(clearClassName, 'input-clear visible')}
+                            onClick={this.onClear}
+                        >
+                            <span
+                                className='input-clear-x'
+                                aria-hidden='true'
+                            >
+                                <i className='icon icon-close-circle'/>
+                            </span>
+                        </button>
+                    </WithTooltip>
+                )}
             </div>
-            }
-        </div>);
+        );
     }
 }
 

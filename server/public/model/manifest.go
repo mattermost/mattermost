@@ -13,7 +13,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type PluginOption struct {
@@ -116,6 +116,9 @@ type PluginSettingsSection struct {
 
 	// If true, the section will load the custom component registered using `registry.registerAdminConsoleCustomSection`
 	Custom bool `json:"custom" yaml:"custom"`
+
+	// If true and Custom = true, the settings defined under this section will still render as fallback (unless the individual setting is type 'custom') when the plugin is disabled.
+	Fallback bool `json:"fallback" yaml:"fallback"`
 }
 
 type PluginSettingsSchema struct {

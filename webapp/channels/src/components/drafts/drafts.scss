@@ -13,6 +13,7 @@
     }
 
     &__main {
+        position: absolute;
         display: flex;
         overflow: auto;
         width: 100%;

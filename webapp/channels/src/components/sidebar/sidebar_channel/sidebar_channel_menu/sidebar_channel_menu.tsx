@@ -297,7 +297,6 @@ const SidebarChannelMenu = ({
                 children: <DotsVerticalIcon size={16}/>,
             }}
             menuButtonTooltip={{
-                id: `SidebarChannelMenu-ButtonTooltip-${channel.id}`,
                 class: 'hidden-xs',
                 text: formatMessage({id: 'sidebar_left.sidebar_channel_menu.editChannel', defaultMessage: 'Channel options'}),
             }}

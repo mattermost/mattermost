@@ -13,6 +13,7 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
+import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 import PostEditHistory from 'components/post_edit_history';
 import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';
@@ -21,6 +22,7 @@ import RhsThread from 'components/rhs_thread';
 import Search from 'components/search/index';
 
 import RhsPlugin from 'plugins/rhs_plugin';
+import a11yController from 'utils/a11y_controller_instance';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
@@ -170,19 +172,23 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         } else if (!this.props.isOpen && wasOpen) {
             // RHS just was closed, restore focus to the previous element had it
             // this will have to change for upcoming work specially for search and probalby plugins
-            requestAnimationFrame(() => {
-                if (this.previousActiveElement) {
-                    document.dispatchEvent(
-                        new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                            detail: {
-                                target: this.previousActiveElement,
-                                keyboardOnly: false,
-                            },
-                        }),
-                    );
-                    this.previousActiveElement = null;
-                }
-            });
+            if (a11yController.originElement) {
+                a11yController.restoreOriginFocus();
+            } else {
+                requestAnimationFrame(() => {
+                    if (this.previousActiveElement) {
+                        document.dispatchEvent(
+                            new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
+                                detail: {
+                                    target: this.previousActiveElement,
+                                    keyboardOnly: false,
+                                },
+                            }),
+                        );
+                        this.previousActiveElement = null;
+                    }
+                });
+            }
         }
     }
 
@@ -288,7 +294,10 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             selectedChannelNeeded = true;
             content = (
                 <div className='post-right__container'>
-                    <FileUploadOverlay overlayType='right'/>
+                    <FileUploadOverlay
+                        overlayType='right'
+                        id={DropOverlayIdRHS}
+                    />
                     <RhsThread previousRhsState={previousRhsState}/>
                 </div>
             );

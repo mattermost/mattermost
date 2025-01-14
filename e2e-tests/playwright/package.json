@@ -27,7 +27,8 @@
         "dotenv": "16.4.5",
         "form-data-encoder": "4.0.2",
         "formdata-node": "6.0.3",
-        "uuid": "11.0.3"
+        "uuid": "11.0.3",
+        "zod": "3.24.1"
     },
     "devDependencies": {
         "@types/uuid": "10.0.0",

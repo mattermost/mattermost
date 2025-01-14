@@ -6,10 +6,13 @@
     z-index: 1070;
 }
 
+$profilePopoverWidth: 240px;
+$profilePopoverBorderWidth: 1px;
+
 .user-profile-popover {
-    width: 240px;
-    max-height: calc(100vh - 240px);
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    width: $profilePopoverWidth;
+    max-height: calc(100vh - $profilePopoverWidth);
+    border: $profilePopoverBorderWidth solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-4);
@@ -17,8 +20,10 @@
 
     .user-profile-popover-title {
         display: flex;
+        max-width: calc($profilePopoverWidth - 40px);
         flex-wrap: nowrap;
         align-items: center;
+        justify-content: flex-start;
         justify-content: end;
         padding: 12px 8px 12px 8px;
 
@@ -103,7 +108,7 @@
             padding-inline-start: 16px;
             text-align: center;
 
-            >h5 {
+            >p {
                 margin: 0;
                 font-family: Metropolis, sans-serif;
                 font-size: 20px;
@@ -144,8 +149,9 @@
 
         .user-profile-popover__email {
             display: flex;
+            width: calc($profilePopoverWidth - (2 * $profilePopoverBorderWidth));
             align-items: center;
-            margin: 0 16px 10px 16px;
+            padding: 0 16px 10px 16px;
             justify-self: start;
 
             i.icon-email-outline {

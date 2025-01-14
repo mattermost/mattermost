@@ -450,7 +450,7 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(c.Err.StatusCode)
 		if _, err := w.Write([]byte(c.Err.ToJSON())); err != nil {
-			c.Logger.Error("Failed to write error response", mlog.Err(err))
+			c.Logger.Warn("Failed to write error response", mlog.Err(err))
 		}
 	} else {
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())

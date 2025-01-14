@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -128,8 +127,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
-
-		c.Logger.Error("Failed to complete SAML login", mlog.Err(err))
 	}
 
 	if len(encodedXML) > maxSAMLResponseSize {

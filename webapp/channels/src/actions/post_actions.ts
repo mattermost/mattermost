@@ -15,6 +15,7 @@ import * as PostActions from 'mattermost-redux/actions/posts';
 import {createSchedulePost} from 'mattermost-redux/actions/scheduled_posts';
 import * as ThreadActions from 'mattermost-redux/actions/threads';
 import {getChannel, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -323,9 +324,18 @@ export function unpinPost(postId: string): ActionFuncAsync<boolean> {
 }
 
 export function setEditingPost(postId = '', refocusId = '', isRHS = false): ActionFunc<boolean, GlobalState> {
+    const getFilesForPost = makeGetFilesForPost();
+
     return (dispatch, getState) => {
         const state = getState();
-        const post = PostSelectors.getPost(state, postId);
+        let post = PostSelectors.getPost(state, postId);
+
+        // getPost selectors doesn't include post's file metadata, so we need to add it manually
+        if (post.file_ids?.length) {
+            // if the post has files, get their metadata and  insert it into the post object
+            const files = getFilesForPost(state, postId);
+            post = {...post, metadata: {...post.metadata, files}};
+        }
 
         if (!post || post.pending_post_id === postId) {
             return {data: false};

@@ -10434,5 +10434,17 @@
   {
     "id": "model.post.is_valid.message_length.app_error",
     "translation": "Właściwość wiadomości Post jest dłuższa niż dozwolona długość."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Nie można przefiltrować konfiguracji."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Nie można utworzyć katalogu dla niestandardowych obrazów emoji"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Role użytkowników nie są zgodne ze statusem gościa."
   }
 ]

@@ -3,14 +3,11 @@
 
 import {expect, Page} from '@playwright/test';
 
-import {AdminConfig} from '@mattermost/types/config';
 import {UserProfile} from '@mattermost/types/users';
 
 import {components} from '@e2e-support/ui/components';
 
 export default class LoginPage {
-    readonly adminConfig: AdminConfig;
-
     readonly page: Page;
 
     readonly title;
@@ -18,6 +15,7 @@ export default class LoginPage {
     readonly bodyCard;
     readonly loginInput;
     readonly loginPlaceholder;
+    readonly loginWithAdLdapPlaceholder;
     readonly passwordInput;
     readonly passwordToggleButton;
     readonly signInButton;
@@ -30,19 +28,15 @@ export default class LoginPage {
     readonly header;
     readonly footer;
 
-    constructor(page: Page, adminConfig: AdminConfig) {
+    constructor(page: Page) {
         this.page = page;
-        this.adminConfig = adminConfig;
-
-        const loginInputPlaceholder = adminConfig.LdapSettings.Enable
-            ? 'Email, Username or AD/LDAP Username'
-            : 'Email or Username';
 
         this.title = page.locator('h1:has-text("Log in to your account")');
         this.subtitle = page.locator('text=Collaborate with your team in real-time');
         this.bodyCard = page.locator('.login-body-card-content');
         this.loginInput = page.locator('#input_loginId');
-        this.loginPlaceholder = page.locator(`[placeholder="${loginInputPlaceholder}"]`);
+        this.loginPlaceholder = page.locator(`[placeholder="Email or Username"]`);
+        this.loginWithAdLdapPlaceholder = page.locator(`[placeholder="Email, Username or AD/LDAP Username"]`);
         this.passwordInput = page.locator('#input_password-input');
         this.passwordToggleButton = page.getByRole('button', {name: 'Show or hide password'});
         this.signInButton = page.locator('button:has-text("Log in")');

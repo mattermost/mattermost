@@ -3717,7 +3717,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Для параметра Elasticsearch EnableIndexing должно быть установлено значение true, если для параметра Elasticsearch SearchEnabled установлено значение true"
+    "translation": "Для параметра Search EnableIndexing должно быть установлено значение true, если для параметра EnableSearching установлено значение true"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
