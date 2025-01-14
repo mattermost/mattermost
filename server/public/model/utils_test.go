@@ -1379,3 +1379,74 @@ func TestStructFromJSONLimited(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+// Test cases with different sizes and characteristics
+var benchmarkCases = []struct {
+	name string
+	text string
+}{
+	{
+		name: "Small_NoHashtags",
+		text: "Just a simple text without any hashtags",
+	},
+	{
+		name: "Small_WithHashtags",
+		text: "Post with #simple #hashtags here",
+	},
+	{
+		name: "Medium_MixedContent",
+		text: generateTestString(100, 0.3), // 30% hashtags
+	},
+	{
+		name: "Medium_PureText",
+		text: generateTestString(100, 0.0), // 0% hashtags
+	},
+	{
+		name: "Large_MixedContent",
+		text: generateTestString(1000, 0.3), // 30% hashtags
+	},
+	{
+		name: "Large_PureText",
+		text: generateTestString(1000, 0), // 0% hashtags
+	},
+	{
+		name: "VeryLarge_MixedContent",
+		text: generateTestString(5000, 0.3), // 30% hashtags
+	},
+	{
+		name: "VeryLarge_PureText",
+		text: generateTestString(5000, 0.0), // 0% hashtags
+	},
+}
+
+// Helper function to generate test strings with specified size and hashtag ratio
+func generateTestString(wordCount int, hashtagRatio float64) string {
+	var builder strings.Builder
+	hashtagWords := []string{"#golang", "#programming", "#testing", "#benchmark", "#performance"}
+	normalWords := []string{"the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog"}
+
+	for i := 0; i < wordCount; i++ {
+		if float64(i)/float64(wordCount) < hashtagRatio {
+			// Add hashtag word
+			builder.WriteString(hashtagWords[i%len(hashtagWords)])
+		} else {
+			// Add normal word
+			builder.WriteString(normalWords[i%len(normalWords)])
+		}
+		builder.WriteString(" ")
+	}
+	return builder.String()
+}
+
+// Benchmark optimized implementation
+func BenchmarkOptimizedParseHashTags(b *testing.B) {
+	for _, bc := range benchmarkCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs() // Report memory allocations
+			b.ResetTimer()   // Reset timer before the actual benchmark
+			for i := 0; i < b.N; i++ {
+				ParseHashtags(bc.text)
+			}
+		})
+	}
+}
