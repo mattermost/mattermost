@@ -1,9 +1,8 @@
+@use 'utils/variables';
 @use 'utils/mixins';
 
 .user-profile-popover-floating-overlay {
-    // 99 being the z-index of the global header
-    // 1060 being the z-index of the user group popover
-    z-index: 1070;
+    z-index: variables.$z-index-popover;
 }
 
 $profilePopoverWidth: 240px;
