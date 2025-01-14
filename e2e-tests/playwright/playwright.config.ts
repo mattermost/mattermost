@@ -41,15 +41,6 @@ export default defineConfig({
         trace: 'off',
         video: 'retain-on-failure',
         actionTimeout: duration.half_min,
-        storageState: {
-            cookies: [],
-            origins: [
-                {
-                    origin: testConfig.baseURL,
-                    localStorage: [{name: '__landingPageSeen__', value: 'true'}],
-                },
-            ],
-        },
     },
     projects: [
         {
@@ -57,14 +48,14 @@ export default defineConfig({
             use: {
                 browserName: 'chromium',
                 ...devices['iPad Pro 11'],
-                permissions: ['notifications'],
+                permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
         },
         {
             name: 'chrome',
             use: {
                 browserName: 'chromium',
-                permissions: ['notifications'],
+                permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
                 viewport: {width: 1280, height: 1024},
             },
         },
