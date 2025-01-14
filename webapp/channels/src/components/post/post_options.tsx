@@ -120,7 +120,7 @@ const PostOptions = (props: Props): JSX.Element => {
     let commentIcon;
     if (showCommentIcon) {
         commentIcon = (
-            <li key='commentIcon__listItem'>
+            <li>
                 <CommentIcon
                     handleCommentClick={props.handleCommentClick}
                     postId={post.id}
@@ -154,7 +154,7 @@ const PostOptions = (props: Props): JSX.Element => {
     let postReaction;
     if (showReactionIcon) {
         postReaction = (
-            <li key='postReaction__listItem'>
+            <li>
                 <PostReaction
                     channelId={post.channel_id}
                     location={props.location}
@@ -171,7 +171,7 @@ const PostOptions = (props: Props): JSX.Element => {
     let flagIcon: ReactNode = null;
     if (!isMobileView && (!isEphemeral && !post.failed && !systemMessage)) {
         flagIcon = (
-            <li key='flagIcon__listItem'>
+            <li>
                 <PostFlagIcon
                     location={props.location}
                     postId={post.id}
@@ -184,7 +184,7 @@ const PostOptions = (props: Props): JSX.Element => {
     // Action menus
     const showActionsMenuIcon = props.shouldShowActionsMenu && (isMobileView || hoverLocal);
     const actionsMenu = showActionsMenuIcon && (
-        <li key='actionsMenu__listItem'>
+        <li>
             <ActionsMenu
                 post={post}
                 location={props.location}
@@ -213,7 +213,7 @@ const PostOptions = (props: Props): JSX.Element => {
     }
 
     const dotMenu = (
-        <li key='dotMenu__listItem'>
+        <li>
             <DotMenu
                 post={props.post}
                 location={props.location}
@@ -250,7 +250,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {dotMenu}
                 {flagIcon}
                 {props.canReply && !hasCRTFooter &&
-                <li key='commentIcon__listItem'>
+                <li>
                     <CommentIcon
                         location={props.location}
                         handleCommentClick={props.handleCommentClick}
@@ -261,7 +261,7 @@ const PostOptions = (props: Props): JSX.Element => {
                     />
                 </li>
                 }
-                <li key='searchItem__listItem'>
+                <li>
                     <a
                         href='#'
                         onClick={props.handleJumpClick}
