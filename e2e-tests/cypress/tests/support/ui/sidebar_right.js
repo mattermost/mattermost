@@ -10,13 +10,11 @@ Cypress.Commands.add('uiGetRHS', (options = {visible: true}) => {
 });
 
 Cypress.Commands.add('uiCloseRHS', () => {
-    cy.get('body').then(($body) => {
-        const closeButton = $body.find('[aria-label="Close Sidebar Icon"]');
-        if (closeButton.length > 0) {
-            cy.wrap(closeButton[0]).click();
+    cy.document().then((doc) => {
+        const closeButton = doc.querySelector('[aria-label="Close Sidebar Icon"]');
+        if (closeButton) {
+            closeButton.click();
         }
-
-        // If the icon is not found, the we do nothing (RHS is most already probably closed)
     });
 });
 
