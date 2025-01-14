@@ -9739,7 +9739,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Dein Elasticsearch-Kanal-Indexschema ist veraltet. Es wird empfohlen, deinen Kanal-Index neu zu erstellen.\nKlicke auf die Schaltfläche \"Kanal Index neu erstellen\" im [Elasticsearch-Abschnitt in der Systemkonsole] ({{.ElasticsearchSection}}), um das Problem zu beheben.\nWeitere Informationen findest du im Mattermost Changelog."
+    "translation": "Das Indexschema deines Suchkanals ist nicht mehr aktuell. Wir empfehlen dir, deinen Kanalindex neu zu erstellen.\nKlicke auf die Schaltfläche \"Index der Kanäle neu erstellen\" auf der [Elasticsearch-Seite über die Systemkonsole] ({{.ElasticsearchSection}}), um dieses Problem zu beheben.\nWeitere Informationen findest du im Mattermost Changelog."
   },
   {
     "id": "bleveengine.purge_list.not_implemented",
@@ -10282,5 +10282,25 @@
   {
     "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
     "translation": "Die Benutzerrollen stimmen nicht mit dem Gaststatus überein."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Die Eigenschaftsgruppe Benutzerdefinierte Profilattribute kann nicht registriert werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht erstellt werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Feldgrenze für benutzerdefinierte Profilattribute erreicht"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Benutzerdefinierte Profilattributwerte können nicht abgerufen werden"
   }
 ]
