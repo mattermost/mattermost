@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {FallbackProps} from 'components/with_error_boundary';
 import withErrorBoundary from 'components/with_error_boundary';
 
 export function withPostErrorBoundary<P>(component: React.ComponentType<P>) {
@@ -17,17 +18,26 @@ export function withPostErrorBoundary<P>(component: React.ComponentType<P>) {
                         tagName='p'
                     />
                     <br/>
-                    <button
-                        className='btn btn-tertiary'
-                        onClick={clearError}
-                    >
-                        <FormattedMessage
-                            id='post.renderError.tryAgain'
-                            defaultMessage='Try again?'
-                        />
-                    </button>
+                    <RetryButton clearError={clearError}/>
                 </div>
             );
         },
     });
+}
+
+function RetryButton({clearError}: FallbackProps) {
+    const intl = useIntl();
+
+    return (
+        <button
+            className='btn btn-tertiary'
+            aria-label={intl.formatMessage({id: 'post.renderError.retryLabel', defaultMessage: 'Retry rendering this post'})}
+            onClick={clearError}
+        >
+            <FormattedMessage
+                id='post.renderError.retry'
+                defaultMessage='Retry'
+            />
+        </button>
+    );
 }
