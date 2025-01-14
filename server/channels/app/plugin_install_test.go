@@ -305,7 +305,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		}
 
 		actualManifest, returnedMap, appErr := installPluginUpdateConfig(t, th, "valid", "0.0.2", installPluginLocallyAlways)
-		require.NoError(t, appErr)
+		require.Nil(t, appErr)
 		require.Equal(t, expectedManifest, actualManifest)
 
 		//will probably have to make a separte pluginSetting struct with dummy vals to check against return plugin settign vals
@@ -372,7 +372,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		//try to reinstall `myplugin`
 		//Since plugin is already installed there is no need to return a new/actual manifest or a map containing those values
 		actualManifest, returnedMap, appErr := installPluginUpdateConfig(t, th, "myplugin", "0.0.2", installPluginLocallyOnlyIfNewOrUpgrade)
-		require.Error(t, appErr)
+		require.NotNil(t, appErr)
 		require.Nil(t, actualManifest)
 		require.Empty(t, returnedMap)
 
