@@ -13,6 +13,7 @@ import {getPostEditHistory, restorePostVersion} from 'mattermost-redux/actions/p
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
+import {removeDraft} from 'actions/views/drafts';
 import {getConnectionId} from 'selectors/general';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
@@ -33,7 +34,6 @@ import RestorePostModal from '../restore_post_modal';
 import './edited_post_items.scss';
 
 import type {PropsFromRedux} from './index';
-import {removeDraft} from 'actions/views/drafts';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
