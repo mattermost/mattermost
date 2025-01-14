@@ -196,7 +196,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                     </span>
                 </>
             }
-            role='menuitemradio'
+            role='menuitemradio' // Prevents menu item from closing, not a recommended solution
             aria-checked={props.isStatusDnd}
             trailingElements={trailingElement}
         >

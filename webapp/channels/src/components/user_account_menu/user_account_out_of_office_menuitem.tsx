@@ -69,7 +69,6 @@ export default function UserAccountOutOfOfficeMenuItem(props: Props) {
                     aria-hidden='true'
                 />
             }
-            role='menuitemradio'
             aria-checked='true'
             onClick={handleClick}
         />

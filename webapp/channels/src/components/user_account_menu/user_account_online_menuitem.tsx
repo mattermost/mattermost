@@ -73,7 +73,6 @@ export default function UserAccountOnlineMenuItem(props: Props) {
                 />
             }
             trailingElements={trailingElement}
-            role='menuitemradio'
             aria-checked={props.isStatusOnline}
             onClick={handleClick}
         />

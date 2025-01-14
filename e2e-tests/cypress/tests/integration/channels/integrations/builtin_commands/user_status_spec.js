@@ -87,7 +87,7 @@ function verifyUserStatus(testCase) {
     });
 
     // * Verify status shown at user profile in LHS
-    cy.get('button#userAccountMenuButton').should('have.attr', 'aria-label').and('include', `Status is "${testCase.name.charAt(0).toUpperCase() + testCase.name.slice(1)}"`);
+    cy.get('#userAccountMenuButtonDescribedBy').should('exist').and('include.text', `Status is "${testCase.name.charAt(0).toUpperCase() + testCase.name.slice(1)}"`);
 
     // # Post a message
     cy.postMessage(testCase.name);

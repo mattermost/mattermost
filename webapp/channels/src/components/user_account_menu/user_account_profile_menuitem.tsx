@@ -73,6 +73,7 @@ export default function UserAccountProfileMenuItem(props: Props) {
                     <CompleteYourProfileTour/>
                 </div>
             )}
+            aria-haspopup={true}
             onClick={handleClick}
         />
     );

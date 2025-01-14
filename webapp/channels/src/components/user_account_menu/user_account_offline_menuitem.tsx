@@ -73,7 +73,6 @@ export default function UserAccountOfflineMenuItem(props: Props) {
                 />
             }
             trailingElements={trailingElement}
-            role='menuitemradio'
             aria-checked={props.isStatusOffline}
             onClick={handleClick}
         />

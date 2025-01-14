@@ -71,6 +71,7 @@ export default function UserAccountNameMenuItem({profilePicture, ...rest}: Props
             }
             labels={getLabel()}
             onClick={handleClick}
+            aria-haspopup={true}
             {...rest}
         />
     );

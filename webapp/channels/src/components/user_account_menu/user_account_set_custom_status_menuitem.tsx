@@ -28,6 +28,7 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
                     defaultMessage='Set custom status'
                 />
             }
+            aria-haspopup={true}
             onClick={props.openCustomStatusModal}
         />
     );
