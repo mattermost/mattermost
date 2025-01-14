@@ -3,7 +3,6 @@
 
 /* eslint-disable max-lines */
 
-import FormData from 'form-data';
 import {
     TrackPropertyUser,
     TrackPropertyUserAgent, TrackScheduledPostsFeature,
@@ -4269,6 +4268,13 @@ export default class Client4 {
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePostId}`,
             {method: 'delete', headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    restorePostVersion = (postId: string, restoreVersionId: string, connectionId: string) => {
+        return this.doFetchWithResponse<Post>(
+            `${this.getPostRoute(postId)}/restore/${restoreVersionId}`,
+            {method: 'post', headers: {'Connection-Id': connectionId}},
         );
     };
 }

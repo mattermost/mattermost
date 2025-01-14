@@ -1145,7 +1145,8 @@ func TestGetBotUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+	defaultPerms := th.SaveDefaultRolePermissions()
+	defer th.RestoreDefaultRolePermissions(defaultPerms)
 
 	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.TeamUserRoleId, false)
@@ -5100,7 +5101,8 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
@@ -5145,7 +5147,8 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
@@ -5255,7 +5258,8 @@ func TestGetUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
@@ -5307,7 +5311,8 @@ func TestGetUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
@@ -5543,7 +5548,8 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
@@ -5591,7 +5597,8 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
@@ -5671,7 +5678,8 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
@@ -5719,7 +5727,8 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
@@ -5807,7 +5816,8 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
@@ -5858,7 +5868,8 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
