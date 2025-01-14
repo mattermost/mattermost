@@ -3084,11 +3084,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Deine Lizenz unterstützt Elasticsearch nicht."
+    "translation": "Deine Mattermost-Lizenz unterstützt keine indizierte Suche."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "Elasticsearch-Server-URL oder -Benutzername hat sich geändert. Bitte gib das Elasticsearch-Passwort erneut ein, um die Verbindung zu testen."
+    "translation": "Die URL des Such-Servers oder der Benutzername hat sich geändert. Bitte gib das Passwort erneut ein, um die Verbindung zu testen."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3604,7 +3604,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Search-Einstellung IndexingEnabled muss true sein, wenn Search-Indizierung aktiviert ist"
+    "translation": "{{.EnableIndexing}} Einstellung muss auf Wahr gesetzt werden, wenn {{.Searching}} auf Wahr gesetzt ist"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4816,7 +4816,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Search IndexingEnabled muss auf wahr gesetzt sein, wenn die Suche-Einstellung AutocompleteEnabled auf wahr steht"
+    "translation": "{{.EnableIndexing}} Einstellung muss auf Wahr gesetzt werden, wenn {{.Autocomplete}} auf Wahr gesetzt ist"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4896,7 +4896,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Fehler beim Abrufen des Elasticsearch-Index"
+    "translation": "Aktualisierung der Suchindizes fehlgeschlagen"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -9747,7 +9747,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Fehler beim Löschen eines Elasticsearch-Index"
+    "translation": "Fehler beim Löschen eines Suchindex"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -10302,5 +10302,93 @@
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
     "translation": "Benutzerdefinierte Profilattributwerte können nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht gelöscht werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld nicht gefunden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Eigenschaftswerte können nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Kann keinen Eigenschaftswert erstellen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Eigenschaftswert kann nicht aktualisiert werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Benutzerdefinierte Profilattributfelder können nicht durchsucht werden"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Die angeforderten Dateien konnten nicht aus der Datenbank entfernt werden"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Es ist nicht möglich, die Dateiinfos nach IDs für den Post-Editierverlauf zu erhalten."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Die Dateianhänge des Posts konnten nicht wiederhergestellt werden."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Es ist nicht gelungen, die alte Postversion zu erhalten."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Du hast nicht die erforderlichen Berechtigungen."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Die angegebene Post History ID entspricht keinem History Item für den angegebenen Post."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Die angegebene Post History ID entspricht nicht einem Post History Item."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Die Rolle kann nicht gelöscht werden."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Berechne die Kanalaktivität: {{.NumCompleted}}/{{.NumChannels}} Kanäle abgeschlossen."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exportieren von Kanalinformationen für {{.NumChannels}} Kanäle."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Die Berechnung der Kanalexportdaten ist fehlgeschlagen."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Ein Wert aus dem Datenfeld des Jobs konnte nicht konvertiert werden."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Die Länge der Link-Metadaten-URL ist {{ .Length }} Zeichen lang und überschreitet damit die maximale Grenze von {{ .MaxLength }} Zeichen."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Ungültiges Eigenschaftsfeld: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Ungültiger Eigenschaftswert: {{.FieldName}} ({{.Reason}})."
   }
 ]
