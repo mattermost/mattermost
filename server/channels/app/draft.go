@@ -116,7 +116,7 @@ func (a *App) getFileInfosForDraft(rctx request.CTX, draft *model.Draft) ([]*mod
 		return nil, nil
 	}
 
-	allFileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds)
+	allFileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds, false, true)
 	if err != nil {
 		return nil, model.NewAppError("GetFileInfosForDraft", "app.draft.get_for_draft.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

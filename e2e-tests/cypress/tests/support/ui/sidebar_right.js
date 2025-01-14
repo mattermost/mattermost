@@ -10,7 +10,12 @@ Cypress.Commands.add('uiGetRHS', (options = {visible: true}) => {
 });
 
 Cypress.Commands.add('uiCloseRHS', () => {
-    cy.findByLabelText('Close Sidebar Icon').click();
+    cy.document().then((doc) => {
+        const closeButton = doc.querySelector('[aria-label="Close Sidebar Icon"]');
+        if (closeButton) {
+            closeButton.click();
+        }
+    });
 });
 
 Cypress.Commands.add('uiExpandRHS', () => {

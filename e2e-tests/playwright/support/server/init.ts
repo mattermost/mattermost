@@ -20,6 +20,9 @@ export async function initSetup({
     try {
         // Login the admin user via API
         const {adminClient, adminUser} = await getAdminClient();
+        if (!adminUser) {
+            throw new Error('Failed to setup admin: Admin user not found.');
+        }
         if (!adminClient) {
             throw new Error(
                 "Failed to setup admin: Check that you're able to access the server using the same admin credential.",

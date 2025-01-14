@@ -5,37 +5,36 @@ import {expect, test} from '@e2e-support/test_fixture';
 
 test.fixme(
     'MM-T5445 Should search, select and post correct Gif when Gif picker is opened from center textbox',
-    async ({pw, pages}) => {
+    async ({pw}) => {
         const {user} = await pw.initSetup();
 
         // # Log in as a user in new browser context
-        const {page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
 
         // # Visit default channel page
-        const channelPage = new pages.ChannelsPage(page);
-        await channelPage.goto();
-        await channelPage.toBeVisible();
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
 
         // # Open emoji/gif picker
-        await channelPage.centerView.postCreate.openEmojiPicker();
-        await channelPage.emojiGifPickerPopup.toBeVisible();
+        await channelsPage.centerView.postCreate.openEmojiPicker();
+        await channelsPage.emojiGifPickerPopup.toBeVisible();
 
         // # Open gif tab
-        await channelPage.emojiGifPickerPopup.openGifTab();
+        await channelsPage.emojiGifPickerPopup.openGifTab();
 
         // # Search for gif
-        await channelPage.emojiGifPickerPopup.searchGif('hello');
+        await channelsPage.emojiGifPickerPopup.searchGif('hello');
 
         // # Select the first gif
         const {img: firstSearchGifResult, alt: altOfFirstSearchGifResult} =
-            await channelPage.emojiGifPickerPopup.getNthGif(0);
+            await channelsPage.emojiGifPickerPopup.getNthGif(0);
         await firstSearchGifResult.click();
 
         // # Send the selected gif as a message
-        await channelPage.centerView.postCreate.sendMessage();
+        await channelsPage.centerView.postCreate.sendMessage();
 
         // * Verify that last message has the gif
-        const lastPost = await channelPage.centerView.getLastPost();
+        const lastPost = await channelsPage.centerView.getLastPost();
         await lastPost.toBeVisible();
         await expect(lastPost.body.getByLabel('file thumbnail')).toHaveAttribute('alt', altOfFirstSearchGifResult);
     },
@@ -43,27 +42,26 @@ test.fixme(
 
 test.fixme(
     'MM-T5446 Should search, select and post correct Gif when Gif picker is opened from RHS textbox',
-    async ({pw, pages}) => {
+    async ({pw}) => {
         const {user} = await pw.initSetup();
 
         // # Log in as a user in new browser context
-        const {page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
 
         // # Visit default channel page
-        const channelPage = new pages.ChannelsPage(page);
-        await channelPage.goto();
-        await channelPage.toBeVisible();
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
 
         // # Send a message
-        await channelPage.centerView.postCreate.postMessage('Message to open RHS');
+        await channelsPage.centerView.postCreate.postMessage('Message to open RHS');
 
         // # Open the last post sent in RHS
-        const lastPost = await channelPage.centerView.getLastPost();
+        const lastPost = await channelsPage.centerView.getLastPost();
         await lastPost.hover();
         await lastPost.postMenu.toBeVisible();
         await lastPost.postMenu.reply();
 
-        const sidebarRight = channelPage.sidebarRight;
+        const sidebarRight = channelsPage.sidebarRight;
         await sidebarRight.toBeVisible();
 
         // # Send a message in the thread
@@ -73,17 +71,17 @@ test.fixme(
 
         // # Open emoji/gif picker
         await sidebarRight.postCreate.openEmojiPicker();
-        await channelPage.emojiGifPickerPopup.toBeVisible();
+        await channelsPage.emojiGifPickerPopup.toBeVisible();
 
         // # Open gif tab
-        await channelPage.emojiGifPickerPopup.openGifTab();
+        await channelsPage.emojiGifPickerPopup.openGifTab();
 
         // # Search for gif
-        await channelPage.emojiGifPickerPopup.searchGif('hello');
+        await channelsPage.emojiGifPickerPopup.searchGif('hello');
 
         // # Select the first gif
         const {img: firstSearchGifResult, alt: altOfFirstSearchGifResult} =
-            await channelPage.emojiGifPickerPopup.getNthGif(0);
+            await channelsPage.emojiGifPickerPopup.getNthGif(0);
         await firstSearchGifResult.click();
 
         // # Send the selected gif as a message in the thread

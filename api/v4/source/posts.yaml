@@ -1101,3 +1101,51 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
+
+  "/api/v4/posts/{post_id}/restore/{restore_version_id}":
+    post:
+      tags:
+        - posts
+      summary: Restores a past version of a post
+      description: >
+        Restores the post with `post_id` to its past version having the ID `restore_version_id`.
+
+        ##### Permissions
+
+        Must have `read_channel` permission for the channel the post is in.
+        Must have `edit_post` permission for the channel the post is being moved to.
+        Must be the author of the post being restored.
+
+
+        __Minimum server version__: 10.5
+      operationId: RestorePostVersion
+      parameters:
+        - name: post_id
+          in: path
+          description: The identifier of the post to restore
+          required: true
+          schema:
+            type: string
+        - name: restore_version_id
+          in: path
+          description: The identifier of the past version of post to restore to
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post restored successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

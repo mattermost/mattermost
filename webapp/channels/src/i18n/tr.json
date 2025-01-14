@@ -5159,6 +5159,7 @@
   "sidebar_left.sidebar_category_menu.viewCategory": "Kategoriyi okunmuş olarak işaretle",
   "sidebar_left.sidebar_channel.selectedCount": "{count} seçilmiş",
   "sidebar_left.sidebar_channel_menu.addMembers": "Üye ekle",
+  "sidebar_left.sidebar_channel_menu.bookmarks": "Yer imleri çubuğu",
   "sidebar_left.sidebar_channel_menu.channels": "Kanallar",
   "sidebar_left.sidebar_channel_menu.copyLink": "Bağlantıyı kopyala",
   "sidebar_left.sidebar_channel_menu.dropdownAriaLabel": "Kanal menüsünü düzenle",

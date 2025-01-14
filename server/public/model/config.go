@@ -234,13 +234,19 @@ const (
 	PluginSettingsDefaultMarketplaceURL    = "https://api.integrations.mattermost.com"
 	PluginSettingsOldMarketplaceURL        = "https://marketplace.integrations.mattermost.com"
 
-	ComplianceExportTypeCsv            = "csv"
-	ComplianceExportTypeActiance       = "actiance"
-	ComplianceExportTypeGlobalrelay    = "globalrelay"
-	ComplianceExportTypeGlobalrelayZip = "globalrelay-zip"
-	GlobalrelayCustomerTypeA9          = "A9"
-	GlobalrelayCustomerTypeA10         = "A10"
-	GlobalrelayCustomerTypeCustom      = "CUSTOM"
+	ComplianceExportDirectoryFormat                = "compliance-export-2006-01-02-15h04m"
+	ComplianceExportPath                           = "export"
+	ComplianceExportPathCLI                        = "cli"
+	ComplianceExportTypeCsv                        = "csv"
+	ComplianceExportTypeActiance                   = "actiance"
+	ComplianceExportTypeGlobalrelay                = "globalrelay"
+	ComplianceExportTypeGlobalrelayZip             = "globalrelay-zip"
+	ComplianceExportChannelBatchSizeDefault        = 100
+	ComplianceExportChannelHistoryBatchSizeDefault = 10
+
+	GlobalrelayCustomerTypeA9     = "A9"
+	GlobalrelayCustomerTypeA10    = "A10"
+	GlobalrelayCustomerTypeCustom = "CUSTOM"
 
 	ClientSideCertCheckPrimaryAuth   = "primary"
 	ClientSideCertCheckSecondaryAuth = "secondary"
@@ -3403,12 +3409,14 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 }
 
 type MessageExportSettings struct {
-	EnableExport          *bool   `access:"compliance_compliance_export"`
-	ExportFormat          *string `access:"compliance_compliance_export"`
-	DailyRunTime          *string `access:"compliance_compliance_export"`
-	ExportFromTimestamp   *int64  `access:"compliance_compliance_export"`
-	BatchSize             *int    `access:"compliance_compliance_export"`
-	DownloadExportResults *bool   `access:"compliance_compliance_export"`
+	EnableExport            *bool   `access:"compliance_compliance_export"`
+	ExportFormat            *string `access:"compliance_compliance_export"`
+	DailyRunTime            *string `access:"compliance_compliance_export"`
+	ExportFromTimestamp     *int64  `access:"compliance_compliance_export"`
+	BatchSize               *int    `access:"compliance_compliance_export"`
+	DownloadExportResults   *bool   `access:"compliance_compliance_export"`
+	ChannelBatchSize        *int    `access:"compliance_compliance_export"`
+	ChannelHistoryBatchSize *int    `access:"compliance_compliance_export"`
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
 	GlobalRelaySettings *GlobalRelayMessageExportSettings `access:"compliance_compliance_export"`
@@ -3437,6 +3445,14 @@ func (s *MessageExportSettings) SetDefaults() {
 
 	if s.BatchSize == nil {
 		s.BatchSize = NewPointer(10000)
+	}
+
+	if s.ChannelBatchSize == nil || *s.ChannelBatchSize == 0 {
+		s.ChannelBatchSize = NewPointer(ComplianceExportChannelBatchSizeDefault)
+	}
+
+	if s.ChannelHistoryBatchSize == nil || *s.ChannelHistoryBatchSize == 0 {
+		s.ChannelHistoryBatchSize = NewPointer(ComplianceExportChannelHistoryBatchSizeDefault)
 	}
 
 	if s.GlobalRelaySettings == nil {
@@ -4434,7 +4450,7 @@ func (s *MessageExportSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		} else if s.BatchSize == nil || *s.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
-		} else if s.ExportFormat == nil || (*s.ExportFormat != ComplianceExportTypeActiance && *s.ExportFormat != ComplianceExportTypeGlobalrelay && *s.ExportFormat != ComplianceExportTypeCsv) {
+		} else if s.ExportFormat == nil || (*s.ExportFormat != ComplianceExportTypeActiance && *s.ExportFormat != ComplianceExportTypeGlobalrelay && *s.ExportFormat != ComplianceExportTypeCsv && *s.ExportFormat != ComplianceExportTypeGlobalrelayZip) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_type.app_error", nil, "", http.StatusBadRequest)
 		}
 

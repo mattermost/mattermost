@@ -9,6 +9,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {uploadFile} from 'actions/file_actions';
 import {getCurrentLocale} from 'selectors/i18n';
+import {getEditingPostDetailsAndPost} from 'selectors/posts';
 
 import {canUploadFiles} from 'utils/file_utils';
 
@@ -21,12 +22,18 @@ function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
     const maxFileSize = parseInt(config.MaxFileSize || '', 10);
 
+    const editingPost = getEditingPostDetailsAndPost(state);
+    const centerChannelPostBeingEdited = editingPost.show && !editingPost.isRHS;
+    const rhsPostBeingEdited = editingPost.show && editingPost.isRHS;
+
     return {
         maxFileSize,
         canUploadFiles: canUploadFiles(config),
         locale: getCurrentLocale(state),
         pluginFileUploadMethods: state.plugins.components.FileUploadMethod,
         pluginFilesWillUploadHooks: state.plugins.components.FilesWillUploadHook as unknown as FilesWillUploadHook[],
+        centerChannelPostBeingEdited,
+        rhsPostBeingEdited,
     };
 }
 

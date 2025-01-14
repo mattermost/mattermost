@@ -458,16 +458,7 @@ func (a *App) addPostPreviewProp(rctx request.CTX, post *model.Post) (*model.Pos
 }
 
 func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post) *model.AppError {
-	var attachedIds []string
-	for _, fileID := range post.FileIds {
-		err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, post.Id, post.ChannelId, post.UserId)
-		if err != nil {
-			rctx.Logger().Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", post.Id), mlog.Err(err))
-			continue
-		}
-
-		attachedIds = append(attachedIds, fileID)
-	}
+	attachedIds := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, post.FileIds)
 
 	if len(post.FileIds) != len(attachedIds) {
 		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
@@ -479,6 +470,20 @@ func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post) *model.AppEr
 	}
 
 	return nil
+}
+
+func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID string, fileIDs []string) []string {
+	var attachedIds []string
+	for _, fileID := range fileIDs {
+		err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, postID, channelID, userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", postID), mlog.Err(err))
+			continue
+		}
+
+		attachedIds = append(attachedIds, fileID)
+	}
+	return attachedIds
 }
 
 // FillInPostProps should be invoked before saving posts to fill in properties such as
@@ -674,7 +679,11 @@ func (a *App) DeleteEphemeralPost(rctx request.CTX, userID, postID string) {
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	if updatePostOptions == nil {
+		updatePostOptions = model.DefaultUpdatePostOptions()
+	}
+
 	receivedUpdatedPost.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store().Post().Get(context.Background(), receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
@@ -725,11 +734,17 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		newPost.Hashtags, _ = model.ParseHashtags(receivedUpdatedPost.Message)
 	}
 
-	if !safeUpdate {
+	if !updatePostOptions.SafeUpdate {
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
-		newPost.FileIds = receivedUpdatedPost.FileIds
 		newPost.SetProps(receivedUpdatedPost.GetProps())
+
+		var fileIds []string
+		fileIds, appErr = a.processPostFileChanges(c, receivedUpdatedPost, oldPost, updatePostOptions)
+		if appErr != nil {
+			return nil, appErr
+		}
+		newPost.FileIds = fileIds
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
@@ -928,7 +943,11 @@ func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post,
 	return nil
 }
 
-func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch, patchPostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	if patchPostOptions == nil {
+		patchPostOptions = model.DefaultUpdatePostOptions()
+	}
+
 	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
@@ -950,7 +969,8 @@ func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*
 
 	post.Patch(patch)
 
-	updatedPost, err := a.UpdatePost(c, post, false)
+	patchPostOptions.SafeUpdate = false
+	updatedPost, err := a.UpdatePost(c, post, patchPostOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -2144,7 +2164,28 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 		}
 	}
 
+	if appErr := a.populateEditHistoryFileMetadata(posts); appErr != nil {
+		return nil, appErr
+	}
+
 	return posts, nil
+}
+
+func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *model.AppError {
+	for _, post := range editHistoryPosts {
+		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true)
+		if err != nil {
+			return model.NewAppError("app.populateEditHistoryFileMetadata", "app.file_info.get_by_ids.app_error", map[string]any{"post_id": post.Id}, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if post.Metadata == nil {
+			post.Metadata = &model.PostMetadata{}
+		}
+
+		post.Metadata.Files = fileInfos
+	}
+
+	return nil
 }
 
 func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTime int64) *model.AppError {

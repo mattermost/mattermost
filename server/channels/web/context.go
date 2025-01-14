@@ -685,6 +685,17 @@ func (c *Context) RequireRoleId() *Context {
 	return c
 }
 
+func (c *Context) RequireFieldId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.FieldId) {
+		c.SetInvalidURLParam("field_id")
+	}
+	return c
+}
+
 func (c *Context) RequireSchemeId() *Context {
 	if c.Err != nil {
 		return c
