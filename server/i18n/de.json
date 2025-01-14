@@ -3092,7 +3092,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "ElasticSearch-Suche ist auf diesem Server nicht aktiviert"
+    "translation": "{{.Backend}} Suche ist auf diesem Server nicht aktiviert"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3100,15 +3100,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
+    "translation": "{{.Backend}} Indizierungsarbeiter konnte die Endzeit nicht auswerten"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte die Startzeit nicht verarbeiten"
+    "translation": "{{.Backend}} Indexierungsarbeiter konnte die Startzeit nicht analysieren"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch ist nicht gestartet"
+    "translation": "{{.Backend}} ist nicht gestartet"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3116,7 +3116,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
+    "translation": "{{.Backend}} Suche ist auf diesem Server deaktiviert"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3132,11 +3132,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch ist bereits angehalten."
+    "translation": "{{.Backend}} ist bereits gestoppt."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch ist deaktiviert."
+    "translation": "{{.Backend}} ist deaktiviert."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3704,27 +3704,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays-Einstellung muss eine Zahl sein, die größer als oder gleich 1 ist."
+    "translation": "Search AggregatePostsAfterDays-Einstellung muss eine Zahl sein, die größer als oder gleich 1 ist."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "ElasticSearch-Einstellung ConnectionUrl muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
+    "translation": "Die Einstellung Search ConnectionUrl muss angegeben werden, wenn die Indizierung aktiviert ist."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "ElasticSearch-Einstellung IndexingEnabled muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist"
+    "translation": "Search-Einstellung IndexingEnabled muss true sein, wenn Search-Indizierung aktiviert ist"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "\"Elasticsearch Live Indexing Batch Size\" muss mindestens 1 sein."
+    "translation": "Search Live Indexing Batch Size muss mindestens 1 sein."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime-Einstellung muss eine Uhrzeit im Format \"hh:mm\" sein."
+    "translation": "Die Einstellung \"Search PostsAggregatorJobStartTime\" muss eine Zeit im Format \"hh:mm\" sein."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Timeout für Elasticsearch-Anfrage muss mindestens 1 Sekunde sein."
+    "translation": "Das Timeout für Suchanfragen muss mindestens 1 Sekunde betragen."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4748,11 +4748,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.0+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4924,7 +4924,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung AutocompleteEnabled auf wahr steht"
+    "translation": "Search IndexingEnabled muss auf wahr gesetzt sein, wenn die Suche-Einstellung AutocompleteEnabled auf wahr steht"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4976,11 +4976,11 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Fehler beim Verarbeiten der Elasticsearch-Server-Version."
+    "translation": "Das Parsen der {{.Backend}} Serverversion ist fehlgeschlagen."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Fehler beim Abrufen der Elasticsearch-Server-Version."
+    "translation": "Die {{.Backend}} Serverversion konnte nicht abgerufen werden."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -5000,7 +5000,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
+    "translation": "{{.Backend}} Suche ist auf diesem Server deaktiviert"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -6724,7 +6724,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Die Suche nach Dateien mit Elasticsearch ist auf diesem Server deaktiviert"
+    "translation": "{{.Backend}} Dateisuche ist auf diesem Server deaktiviert"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -8603,7 +8603,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexing Batch Size muss mindestens {{.BatchSize}} sein."
+    "translation": "Search Bulk Indexing Batch Size muss mindestens {{.BatchSize}} betragen."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8991,7 +8991,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch Version {{.Version}} ist höher als die maximal unterstützte Version von {{.MaxVersion}}"
+    "translation": "{{.Backend}} Version {{.Version}} höher ist als die maximal unterstützte Version von {{.MaxVersion}}"
   },
   {
     "id": "app.plugin.skip_installation.app_error",
@@ -10422,5 +10422,25 @@
   {
     "id": "web.incoming_webhook.media_type.app_error",
     "translation": "Der eingehende Webhook {{.hook_id}} konnte nicht analysiert werden."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Der Entwurf der Nachricht ist länger als die maximal zulässige Länge."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Die Post Message Eigenschaft ist länger als die maximal erlaubte Länge."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Konfiguration kann nicht gefiltert werden."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Verzeichnis für benutzerdefinierte Emoji-Bilder kann nicht erstellt werden"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Die Benutzerrollen stimmen nicht mit dem Gaststatus überein."
   }
 ]

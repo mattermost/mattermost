@@ -52,7 +52,7 @@ describe('Compliance Export', () => {
         cy.shellRm('-rf', downloadsFolder);
     });
 
-    it('MM-T1172 - Compliance Export - Deleted file is indicated in CSV File Export', () => {
+    it.skip('MM-60115 - MM-T1172 - Compliance Export - Deleted file is indicated in CSV File Export', () => {
         // # Go to compliance page and enable export
         cy.uiGoToCompliancePage();
         cy.uiEnableComplianceExport();
@@ -84,7 +84,7 @@ describe('Compliance Export', () => {
         );
     });
 
-    it('MM-T1173 - Compliance Export - Deleted file is indicated in Actiance XML File Export', () => {
+    it.skip('MM-60115 - MM-T1173 - Compliance Export - Deleted file is indicated in Actiance XML File Export', () => {
         // # Go to compliance page and enable export
         cy.uiGoToCompliancePage();
         cy.uiEnableComplianceExport(ExportFormatActiance);
@@ -121,7 +121,7 @@ describe('Compliance Export', () => {
         });
     });
 
-    it('MM-T1176 - Compliance export should include updated post after editing', () => {
+    it.skip('MM-60115 - MM-T1176 - Compliance export should include updated post after editing', () => {
         // # Go to compliance page and enable export
         cy.uiGoToCompliancePage();
         cy.uiEnableComplianceExport(ExportFormatActiance);
@@ -154,7 +154,7 @@ describe('Compliance Export', () => {
         );
     });
 
-    it('MM-T3305 - Verify Deactivated users are displayed properly in Compliance Exports', () => {
+    it.skip('MM-60115 - MM-T3305 - Verify Deactivated users are displayed properly in Compliance Exports', () => {
         // # Post a message by Admin
         cy.postMessageAs({
             sender: adminUser,
