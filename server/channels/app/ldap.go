@@ -39,7 +39,7 @@ func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 
 func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 	license := a.Srv().License()
-	if ldapI := a.Ldap(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
+	if ldapI := a.LdapDiagnostic(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		if err := ldapI.RunTest(rctx); err != nil {
 			err.StatusCode = 500
 			return err
