@@ -19,7 +19,7 @@ import {
 } from '@floating-ui/react';
 import React, {useMemo, useRef, useState} from 'react';
 import type {MouseEvent} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
@@ -56,8 +56,6 @@ interface Props {
     channelMentionsNameMap?: ChannelNamesMap;
 }
 export function ChannelHeaderTextPopover(props: Props) {
-    const dispatch = useDispatch();
-
     const currentRelativeTeamUrl = useSelector(getCurrentRelativeTeamUrl);
 
     const rootElementRef = useRef<HTMLDivElement>(null);
@@ -118,7 +116,7 @@ export function ChannelHeaderTextPopover(props: Props) {
     // This action processes clicks on formatted text elements like hashtags, user mentions,
     // channel mentions, etc. while also allowing other elements to function as is such as external links etc
     function handleClick(event: MouseEvent<HTMLDivElement>) {
-        dispatch(handleFormattedTextClick(event, currentRelativeTeamUrl));
+        handleFormattedTextClick(event, currentRelativeTeamUrl);
     }
 
     return (
