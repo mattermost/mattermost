@@ -541,6 +541,22 @@ func TestParseHashtags(t *testing.T) {
 		o, _ := ParseHashtags(input)
 		require.Equal(t, o, output, "failed to parse hashtags from input="+input+" expected="+output+" actual="+o)
 	}
+
+	for _, tc := range stringWithHashtagsTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			text := tc.text
+			if text == "" {
+				text = generateTestString(tc.wordCount, tc.hashtagRatio)
+			}
+			hashtags, plain := ParseHashtags(text)
+
+			// 添加相应的断言
+			if tc.hashtagRatio != 0 {
+				assert.NotEmpty(t, hashtags)
+			}
+			assert.NotEmpty(t, plain)
+		})
+	}
 }
 
 func TestIsValidAlphaNum(t *testing.T) {
@@ -1381,9 +1397,11 @@ func TestStructFromJSONLimited(t *testing.T) {
 }
 
 // Test cases with different sizes and characteristics
-var benchmarkCases = []struct {
-	name string
-	text string
+var stringWithHashtagsTestCases = []struct {
+	name         string
+	text         string
+	wordCount    int
+	hashtagRatio float64
 }{
 	{
 		name: "Small_NoHashtags",
@@ -1394,28 +1412,34 @@ var benchmarkCases = []struct {
 		text: "Post with #simple #hashtags here",
 	},
 	{
-		name: "Medium_MixedContent",
-		text: generateTestString(100, 0.3), // 30% hashtags
+		name:         "Medium_MixedContent",
+		wordCount:    100,
+		hashtagRatio: 0.3,
 	},
 	{
-		name: "Medium_PureText",
-		text: generateTestString(100, 0.0), // 0% hashtags
+		name:         "Medium_PureText",
+		wordCount:    100,
+		hashtagRatio: 0,
 	},
 	{
-		name: "Large_MixedContent",
-		text: generateTestString(1000, 0.3), // 30% hashtags
+		name:         "Large_MixedContent",
+		wordCount:    1000,
+		hashtagRatio: 0.3,
 	},
 	{
-		name: "Large_PureText",
-		text: generateTestString(1000, 0), // 0% hashtags
+		name:         "Large_PureText",
+		wordCount:    1000,
+		hashtagRatio: 0,
 	},
 	{
-		name: "VeryLarge_MixedContent",
-		text: generateTestString(5000, 0.3), // 30% hashtags
+		name:         "VeryLarge_MixedContent",
+		wordCount:    5000,
+		hashtagRatio: 0.3,
 	},
 	{
-		name: "VeryLarge_PureText",
-		text: generateTestString(5000, 0.0), // 0% hashtags
+		name:         "VeryLarge_PureText",
+		wordCount:    5000,
+		hashtagRatio: 0,
 	},
 }
 
@@ -1440,12 +1464,16 @@ func generateTestString(wordCount int, hashtagRatio float64) string {
 
 // Benchmark optimized implementation
 func BenchmarkOptimizedParseHashTags(b *testing.B) {
-	for _, bc := range benchmarkCases {
+	for _, bc := range stringWithHashtagsTestCases {
 		b.Run(bc.name, func(b *testing.B) {
 			b.ReportAllocs() // Report memory allocations
 			b.ResetTimer()   // Reset timer before the actual benchmark
+			text := bc.text
+			if text == "" {
+				text = generateTestString(bc.wordCount, bc.hashtagRatio)
+			}
 			for i := 0; i < b.N; i++ {
-				ParseHashtags(bc.text)
+				ParseHashtags(text)
 			}
 		})
 	}
