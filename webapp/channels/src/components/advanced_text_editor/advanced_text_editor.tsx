@@ -338,12 +338,17 @@ const AdvancedTextEditor = ({
     );
 
     const handleCancel = useCallback(() => {
-        // This resets the draft to the post's original content
         handleDraftChange({
-            ...draft,
-            message: post?.message || '',
+            message: '',
+            fileInfos: [],
+            uploadsInProgress: [],
+            createAt: 0,
+            updateAt: 0,
+            channelId,
+            rootId: postId,
+            metadata: {},
         });
-    }, [handleDraftChange, draft, post]);
+    }, [handleDraftChange, channelId, postId]);
 
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);

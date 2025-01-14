@@ -25,7 +25,7 @@ import UserProfileComponent from 'components/user_profile';
 import Avatar from 'components/widgets/users/avatar';
 import WithTooltip from 'components/with_tooltip';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
 
 import RestorePostModal from '../restore_post_modal';
@@ -33,6 +33,7 @@ import RestorePostModal from '../restore_post_modal';
 import './edited_post_items.scss';
 
 import type {PropsFromRedux} from './index';
+import {removeDraft} from 'actions/views/drafts';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -123,6 +124,9 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             actions.closeRightHandSide();
             showInfoTooltip();
         }
+
+        const key = StoragePrefixes.EDIT_DRAFT + post.original_id;
+        dispatch(removeDraft(key, post.channel_id, post.root_id));
     };
 
     const handleUndo = async () => {
