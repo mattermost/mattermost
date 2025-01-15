@@ -52,10 +52,12 @@ const TaskItems = styled.div`
     transform-origin: left bottom;
     max-height: ${document.documentElement.clientHeight}px;
     overflow-y: auto;
+    display: none;
 
     &.open {
         transform: scale(1);
         opacity: 1;
+        display: block;
     }
 
     h1 {
