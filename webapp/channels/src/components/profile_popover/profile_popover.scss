@@ -25,17 +25,17 @@ $profilePopoverBorderWidth: 1px;
     }
 
     .user-profile-popover-title {
+        position: sticky;
         z-index: 1;
+        top: 0;
         display: flex;
-        background: var(--center-channel-bg);
         flex-wrap: nowrap;
         align-items: center;
         justify-content: flex-start;
         justify-content: end;
         justify-content: space-between;
-        position: sticky;
         padding: 12px 8px 12px 8px;
-        top: 0;
+        background: var(--center-channel-bg);
 
         .user-popover__role {
             max-width: calc($profilePopoverWidth - 40px);
