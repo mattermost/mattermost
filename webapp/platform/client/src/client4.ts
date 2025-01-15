@@ -615,7 +615,7 @@ export default class Client4 {
         );
     };
 
-    patchUser = (userPatch: Partial<UserProfile> & {id: string}) => {
+    patchUser = (userPatch: PartialExcept<UserProfile, 'id'>) => {
         return this.doFetch<UserProfile>(
             `${this.getUserRoute(userPatch.id)}/patch`,
             {method: 'put', body: JSON.stringify(userPatch)},
@@ -1240,7 +1240,7 @@ export default class Client4 {
         );
     };
 
-    patchTeam = (team: Partial<Team> & {id: string}) => {
+    patchTeam = (team: PartialExcept<Team, 'id'>) => {
         return this.doFetch<Team>(
             `${this.getTeamRoute(team.id)}/patch`,
             {method: 'put', body: JSON.stringify(team)},
@@ -2123,7 +2123,7 @@ export default class Client4 {
 
     // Post Routes
 
-    createPost = async (post: Post) => {
+    createPost = async (post: PartialExcept<Post, 'channel_id'>) => {
         const result = await this.doFetch<Post>(
             `${this.getPostsRoute()}`,
             {method: 'post', body: JSON.stringify(post)},
@@ -2152,7 +2152,7 @@ export default class Client4 {
         );
     };
 
-    patchPost = (postPatch: Partial<Post> & {id: string}) => {
+    patchPost = (postPatch: PartialExcept<Post, 'id'>) => {
         return this.doFetch<Post>(
             `${this.getPostRoute(postPatch.id)}/patch`,
             {method: 'put', body: JSON.stringify(postPatch)},
