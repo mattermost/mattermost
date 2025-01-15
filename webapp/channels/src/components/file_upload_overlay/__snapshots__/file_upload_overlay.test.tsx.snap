@@ -1,0 +1,79 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/FileUploadOverlay should match snapshot when file upload is showing with no overlay type 1`] = `
+<div
+  className="file-overlay hidden"
+  id="fileUploadOverlay"
+>
+  <div
+    className="overlay__indent"
+  >
+    <div
+      className="overlay__circle vertical"
+    >
+      <img
+        alt=""
+        className="overlay__files"
+        loading="lazy"
+        src=""
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Drop a file to upload it."
+        id="upload_overlay.info"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FileUploadOverlay should match snapshot when file upload is showing with overlay type of center 1`] = `
+<div
+  className="file-overlay hidden center-file-overlay"
+  id="fileUploadOverlay"
+>
+  <div
+    className="overlay__indent"
+  >
+    <div
+      className="overlay__circle vertical"
+    >
+      <img
+        alt=""
+        className="overlay__files"
+        loading="lazy"
+        src=""
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Drop a file to upload it."
+        id="upload_overlay.info"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FileUploadOverlay should match snapshot when file upload is showing with overlay type of right 1`] = `
+<div
+  className="file-overlay hidden right-file-overlay"
+  id="fileUploadOverlay"
+>
+  <div
+    className="overlay__indent"
+  >
+    <div
+      className="overlay__circle vertical"
+    >
+      <img
+        alt=""
+        className="overlay__files"
+        loading="lazy"
+        src=""
+      />
+      <MemoizedFormattedMessage
+        defaultMessage="Drop a file to upload it."
+        id="upload_overlay.info"
+      />
+    </div>
+  </div>
+</div>
+`;

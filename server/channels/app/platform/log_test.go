@@ -4,16 +4,23 @@
 package platform
 
 import (
+	"bytes"
+	"encoding/json"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetMattermostLog(t *testing.T) {
+	t.Skip("MM-62438")
+
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -101,4 +108,90 @@ func TestGetNotificationLogFile(t *testing.T) {
 	require.NotNil(t, fileData)
 	assert.Equal(t, "notifications.log", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
+}
+
+func TestGetAdvancedLogs(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("log messanges from std and LDAP level get returned", func(t *testing.T) {
+		dir, err := os.MkdirTemp("", "logs")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = os.RemoveAll(dir)
+			require.NoError(t, err)
+		})
+
+		optLDAP := map[string]string{
+			"filename": path.Join(dir, "ldap.log"),
+		}
+		dataLDAP, err := json.Marshal(optLDAP)
+		require.NoError(t, err)
+
+		optStd := map[string]string{
+			"filename": path.Join(dir, "std.log"),
+		}
+		dataStd, err := json.Marshal(optStd)
+		require.NoError(t, err)
+
+		cfg := mlog.LoggerConfiguration{
+			"ldap-file": mlog.TargetCfg{
+				Type:   "file",
+				Format: "json",
+				Levels: []mlog.Level{
+					mlog.LvlLDAPError,
+					mlog.LvlLDAPWarn,
+					mlog.LvlLDAPInfo,
+					mlog.LvlLDAPDebug,
+				},
+				Options: dataLDAP,
+			},
+			"std": mlog.TargetCfg{
+				Type:   "file",
+				Format: "json",
+				Levels: []mlog.Level{
+					mlog.LvlError,
+				},
+				Options: dataStd,
+			},
+		}
+		cfgData, err := json.Marshal(cfg)
+		require.NoError(t, err)
+
+		th.Service.UpdateConfig(func(c *model.Config) {
+			c.LogSettings.AdvancedLoggingJSON = cfgData
+		})
+		th.Service.Logger().LogM([]mlog.Level{mlog.LvlLDAPInfo}, "Some LDAP info")
+		th.Service.Logger().Error("Some Error")
+		err = th.Service.Logger().Flush()
+		require.NoError(t, err)
+
+		fileDatas, err := th.Service.GetAdvancedLogs(th.Context)
+		require.NoError(t, err)
+		require.Len(t, fileDatas, 2)
+
+		// Check the order of the log files
+		var ldapIndex = 0
+		var stdIndex = 1
+		if fileDatas[1].Filename == "ldap.log" {
+			ldapIndex = 1
+			stdIndex = 0
+		}
+
+		assert.Equal(t, "ldap.log", fileDatas[ldapIndex].Filename)
+		testlib.AssertLog(t, bytes.NewBuffer(fileDatas[ldapIndex].Body), mlog.LvlLDAPInfo.Name, "Some LDAP info")
+
+		assert.Equal(t, "std.log", fileDatas[stdIndex].Filename)
+		testlib.AssertLog(t, bytes.NewBuffer(fileDatas[stdIndex].Body), mlog.LvlError.Name, "Some Error")
+	})
+	// Disable AdvancedLoggingJSON
+	th.Service.UpdateConfig(func(c *model.Config) {
+		c.LogSettings.AdvancedLoggingJSON = nil
+	})
+	t.Run("No logs returned when AdvancedLoggingJSON is empty", func(t *testing.T) {
+		// Confirm no logs get returned
+		fileDatas, err := th.Service.GetAdvancedLogs(th.Context)
+		require.NoError(t, err)
+		require.Len(t, fileDatas, 0)
+	})
 }

@@ -30,12 +30,22 @@ exports[`components/team_members_dropdown should match snapshot for a bot with g
         id="removeFromTeam"
         onClick={[Function]}
         show={true}
-        text="Remove From Team"
+        text={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Remove from Team"
+            id="team_members_dropdown.leave_team"
+          />
+        }
       />
       <MenuItemAction
         onClick={[Function]}
         show={true}
-        text="Make Member"
+        text={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Make Team Member"
+            id="team_members_dropdown.makeMember"
+          />
+        }
       />
     </Menu>
   </div>
@@ -72,12 +82,22 @@ exports[`components/team_members_dropdown should match snapshot for team_members
         id="removeFromTeam"
         onClick={[Function]}
         show={true}
-        text="Remove From Team"
+        text={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Remove from Team"
+            id="team_members_dropdown.leave_team"
+          />
+        }
       />
       <MenuItemAction
         onClick={[Function]}
         show={true}
-        text="Make Member"
+        text={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Make Team Member"
+            id="team_members_dropdown.makeMember"
+          />
+        }
       />
     </Menu>
   </div>
@@ -114,12 +134,22 @@ exports[`components/team_members_dropdown should match snapshot opening dropdown
         id="removeFromTeam"
         onClick={[Function]}
         show={true}
-        text="Remove From Team"
+        text={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Remove from Team"
+            id="team_members_dropdown.leave_team"
+          />
+        }
       />
       <MenuItemAction
         onClick={[Function]}
         show={true}
-        text="Make Member"
+        text={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Make Team Member"
+            id="team_members_dropdown.makeMember"
+          />
+        }
       />
     </Menu>
   </div>
@@ -155,7 +185,12 @@ exports[`components/team_members_dropdown should match snapshot with group-const
       <MenuItemAction
         onClick={[Function]}
         show={true}
-        text="Make Member"
+        text={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Make Team Member"
+            id="team_members_dropdown.makeMember"
+          />
+        }
       />
     </Menu>
   </div>

@@ -244,10 +244,6 @@
     "translation": "شناسه اصلی نامعتبر است."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "پیام نامعتبر است."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "شناسه نامعتبر است."
   },

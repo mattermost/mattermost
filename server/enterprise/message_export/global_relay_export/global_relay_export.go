@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -17,12 +17,11 @@ import (
 	"github.com/jaytaylor/html2text"
 	gomail "gopkg.in/mail.v2"
 
-	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/common_export"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/enterprise/internal/file"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
@@ -32,221 +31,228 @@ const (
 	GlobalRelayChannelNameHeader = "X-Mattermost-ChannelName"
 	GlobalRelayChannelIDHeader   = "X-Mattermost-ChannelID"
 	GlobalRelayChannelTypeHeader = "X-Mattermost-ChannelType"
-	MaxEmailBytes                = 250 << (10 * 2)
 	MaxEmailsPerConnection       = 400
 )
 
-type AllExport map[string][]*ChannelExport
+// MaxEmailBytes is a var because it needs to be set in tests. Otherwise it shouldn't be touched.
+var MaxEmailBytes int64 = 250 * 1024 * 1024 // 250MB
 
 type ChannelExport struct {
-	ChannelId       string            // the unique id of the channel
-	ChannelName     string            // the name of the channel
-	ChannelType     model.ChannelType // the channel type
-	StartTime       int64             // utc timestamp (seconds), start of export period or create time of channel, whichever is greater. Example: 1366611728.
-	EndTime         int64             // utc timestamp (seconds), end of export period or delete time of channel, whichever is lesser. Example: 1366611728.
-	Participants    []ParticipantRow  // summary information about the conversation participants
-	Messages        []Message         // the messages that were sent during the conversation
-	ExportedOn      int64             // utc timestamp (seconds), when this export was generated
-	numUserMessages map[string]int    // key is user id, value is number of messages that they sent during this period
-	uploadedFiles   []*model.FileInfo // any files that were uploaded to the channel during the export period
-	bytes           int64
+	TeamId             string
+	TeamName           string
+	TeamDisplayName    string
+	ChannelId          string // the unique id of the channel
+	ChannelName        string // the name of the channel
+	ChannelDisplayName string
+	ChannelType        model.ChannelType // the channel type
+	StartTime          int64             // utc timestamp (seconds), start of export period or create time of channel, whichever is greater. Example: 1366611728.
+	EndTime            int64             // utc timestamp (seconds), end of export period or delete time of channel, whichever is lesser. Example: 1366611728.
+	Participants       []ParticipantRow  // summary information about the conversation participants
+	Messages           []Message         // the messages that were sent during the conversation
+	ExportedOn         int64             // utc timestamp (seconds), when this export was generated
+	numUserMessages    map[string]int    // key is user id, value is number of messages that they sent during this period
+	uploadedFiles      []*model.FileInfo // any files that were uploaded to the channel during the export period
+	bytes              int64
 }
 
 // a row in the summary table at the top of the export
 type ParticipantRow struct {
-	Username     string
-	UserType     string
-	Email        string
-	JoinTime     int64
-	LeaveTime    int64
+	shared.JoinExport
 	MessagesSent int
 }
 
 type Message struct {
+	Id             string
 	SentTime       int64
+	SenderId       string
 	SenderUsername string
-	PostType       string
 	PostUsername   string
 	SenderUserType string
 	SenderEmail    string
 	Message        string
 	PreviewsPost   string
+	UpdateAt       int64
+	UpdateType     shared.PostUpdatedType
+	EditedNewMsgId string
 }
 
-func GlobalRelayExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, fileAttachmentBackend filestore.FileBackend, dest io.Writer, templates *templates.Container) ([]string, int64, *model.AppError) {
-	var warningCount int64
-	attachmentsRemovedPostIDs := []string{}
-	allExports := make(map[string][]*ChannelExport)
-
-	zipFile := zip.NewWriter(dest)
-
-	membersByChannel := common_export.MembersByChannel{}
-	metadata := common_export.Metadata{
-		Channels:         map[string]common_export.MetadataChannel{},
-		MessagesCount:    0,
-		AttachmentsCount: 0,
-		StartTime:        0,
-		EndTime:          0,
+func GlobalRelayExport(rctx request.CTX, p shared.ExportParams) (shared.RunExportResults, error) {
+	exportData, err := shared.GetGenericExportData(p)
+	results := exportData.Results
+	if err != nil {
+		return results, err
 	}
 
-	for _, post := range posts {
-		if _, ok := membersByChannel[*post.ChannelId]; !ok {
-			membersByChannel[*post.ChannelId] = common_export.ChannelMembers{}
-		}
+	var attachmentsRemovedPostIDs []string
+	allExports := make(map[string][]*ChannelExport, len(exportData.Exports))
 
-		membersByChannel[*post.ChannelId][*post.UserId] = common_export.ChannelMember{
-			UserId:   *post.UserId,
-			Username: *post.Username,
-			IsBot:    post.IsBot,
-			Email:    *post.UserEmail,
-		}
+	// save a pointer to the joins for each channel, to be used later in getParticipants
+	joinsByChannel := make(map[string][]shared.JoinExport, len(exportData.Exports))
 
-		attachments := []*model.FileInfo{}
-		if len(post.PostFileIds) > 0 {
-			var err error
-			attachments, err = db.FileInfo().GetForPost(*post.PostId, true, true, false)
-			if err != nil {
-				return nil, warningCount, model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay_export.get_attachment_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	for _, channel := range exportData.Exports {
+		for _, post := range channel.Posts {
+			attachmentsRemoved := addToExports(rctx, allExports, channel, post)
+			attachmentsRemovedPostIDs = append(attachmentsRemovedPostIDs, attachmentsRemoved...)
+		}
+		if len(channel.Posts) == 0 {
+			// channel has no posts, but it was exported anyway, so it must have joins and leaves.
+			if _, present := allExports[channel.ChannelId]; !present {
+				// we found a new channel
+				allExports[channel.ChannelId] = []*ChannelExport{genericChannelToChannelExport(channel)}
 			}
 		}
-
-		attachmentsRemoved := addToExports(rctx, attachments, allExports, post)
-		attachmentsRemovedPostIDs = append(attachmentsRemovedPostIDs, attachmentsRemoved...)
-
-		metadata.Update(post, len(attachments))
+		joinsByChannel[channel.ChannelId] = channel.JoinEvents
 	}
 
+	tmpFile, err := os.CreateTemp("", "")
+	if err != nil {
+		return results, fmt.Errorf("unable to open the temporary export file: %w", err)
+	}
+	defer file.DeleteTemp(rctx.Logger(), tmpFile)
+	zipFile := zip.NewWriter(tmpFile)
+
+	// export each channelExport (sometimes multiple channelExport per real channel)
 	for _, channelExportList := range allExports {
 		for batchId, channelExport := range channelExportList {
-			participants, appErr := getParticipants(db, channelExport, membersByChannel[channelExport.ChannelId])
-			if appErr != nil {
-				return nil, warningCount, appErr
-			}
-			channelExport.Participants = participants
-			channelExport.ExportedOn = time.Now().Unix() * 1000
+			// we need to make the participant list for each channelExport "batch" (multiple "batches"per real channel)
+			// because each batch will have its own number of messages for that participant.
+			channelExport.Participants = getParticipants(channelExport, joinsByChannel[channelExport.ChannelId])
+			channelExport.ExportedOn = p.JobStartTime
 
-			channelExportFile, err := zipFile.Create(fmt.Sprintf("%s - (%s) - %d.eml", channelExport.ChannelName, channelExport.ChannelId, batchId))
+			var channelExportFile io.Writer
+			channelExportFile, err = zipFile.Create(fmt.Sprintf("%s - (%s) - %d.eml", channelExport.ChannelName, channelExport.ChannelId, batchId))
 			if err != nil {
-				return nil, warningCount, model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.create_file_in_zip.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return results, fmt.Errorf("unable to create the eml file: %w", err)
 			}
 
-			if appErr, warningCount = generateEmail(rctx, fileAttachmentBackend, channelExport, templates, channelExportFile); appErr != nil {
-				return nil, warningCount, appErr
+			if results.NumWarnings, err = generateEmail(rctx, p.FileAttachmentBackend, channelExport, p.Templates, channelExportFile); err != nil {
+				return results, err
 			}
 		}
 	}
 
-	err := zipFile.Close()
+	err = zipFile.Close()
 	if err != nil {
-		return nil, warningCount, model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.close_zip_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return results, fmt.Errorf("unable to close the zip file using tmpFile.Name: %v, err: %w", tmpFile.Name(), err)
 	}
 
-	return attachmentsRemovedPostIDs, warningCount, nil
+	_, err = tmpFile.Seek(0, 0)
+	if err != nil {
+		return results, fmt.Errorf("unable to re-read the Global Relay temporary export file using tmpFile.Name: %v, err: %w", tmpFile.Name(), err)
+	}
+
+	if p.ExportType == model.ComplianceExportTypeGlobalrelayZip {
+		// Try to disable the write timeout for the potentially big export file.
+		_, err = filestore.TryWriteFileContext(rctx.Context(), p.ExportBackend, tmpFile, p.BatchPath)
+		if err != nil {
+			return results, fmt.Errorf("unable to write the global relay file, using tmpFile.Name: %v, batchPath: %v, err: %w", tmpFile.Name(), p.BatchPath, err)
+		}
+	} else {
+		err = Deliver(tmpFile, p.Config)
+		if err != nil {
+			return results, fmt.Errorf("unable to deliver tmpFile.Name: %v, err: %w", tmpFile.Name(), err)
+		}
+	}
+
+	if len(attachmentsRemovedPostIDs) > 0 {
+		rctx.Logger().Warn("Global Relay Attachments Removed because they were too large to send to Global Relay",
+			mlog.Int("number_of_attachments_removed", len(attachmentsRemovedPostIDs)))
+		rctx.Logger().Warn("List of posts which had attachments removed",
+			mlog.Array("post_ids", attachmentsRemovedPostIDs))
+	}
+
+	return results, nil
 }
 
-func addToExports(rctx request.CTX, attachments []*model.FileInfo, exports map[string][]*ChannelExport, post *model.MessageExport) []string {
+// addToExports adds the post to the allExports collection. allExports keeps a map of channelId->[]*ChannelExport.
+// If a channelId has an existing []*ChannelExport, it adds post to the last ChannelExport in that list.
+// If the last ChannelExport is too big, it starts a new ChannelExport and appends it to the list (a new "batch").
+func addToExports(rctx request.CTX, allExports map[string][]*ChannelExport, genericChannel shared.ChannelExport,
+	post shared.PostExport) []string {
 	var channelExport *ChannelExport
-	attachmentsRemovedPostIDs := []string{}
-	if channelExports, present := exports[*post.ChannelId]; !present {
+	var attachmentsRemovedPostIDs []string
+	if channelExports, present := allExports[*post.ChannelId]; !present {
 		// we found a new channel
-		channelExport = &ChannelExport{
-			ChannelId:       *post.ChannelId,
-			ChannelName:     *post.ChannelDisplayName,
-			ChannelType:     *post.ChannelType,
-			StartTime:       *post.PostCreateAt,
-			Messages:        make([]Message, 0),
-			Participants:    make([]ParticipantRow, 0),
-			numUserMessages: make(map[string]int),
-			uploadedFiles:   make([]*model.FileInfo, 0),
-			bytes:           0,
-		}
-		exports[*post.ChannelId] = []*ChannelExport{channelExport}
+		channelExport = genericChannelToChannelExport(genericChannel)
+		allExports[*post.ChannelId] = []*ChannelExport{channelExport}
 	} else {
 		// we already know about this channel
 		channelExport = channelExports[len(channelExports)-1]
 	}
 
-	// Create a new ChannelExport if it would be too many bytes to add the post
-	fileBytes := fileInfoListBytes(attachments)
 	msgBytes := int64(len(*post.PostMessage))
-	postBytes := fileBytes + msgBytes
-	postTooLargeForChannelBatch := channelExport.bytes+postBytes > MaxEmailBytes
-	postAloneTooLargeToSend := postBytes > MaxEmailBytes // Attachments must be removed from export, they're too big to send.
 
-	if postAloneTooLargeToSend {
+	// Create a new ChannelExport if it would be too many bytes to add the post.
+	// NOTE: we are only exporting attachment starts.
+	attachmentStarts := make([]*model.FileInfo, 0, len(post.AttachmentCreates))
+	for _, start := range post.AttachmentCreates {
+		attachmentStarts = append(attachmentStarts, start.FileInfo)
+	}
+	fileBytes := fileInfoListBytes(attachmentStarts)
+	postBytes := fileBytes + msgBytes
+	// NOTE: This is only a rough estimate -- we're not including the txt or html portion of the email...
+	attachmentsAloneTooLargeToSend := fileBytes > MaxEmailBytes // Attachments must be removed from export, they're too big to send.
+	if attachmentsAloneTooLargeToSend {
+		postBytes -= fileBytes
+	}
+	postTooLargeForChannelBatch := channelExport.bytes+postBytes > MaxEmailBytes
+
+	if attachmentsAloneTooLargeToSend {
 		attachmentsRemovedPostIDs = append(attachmentsRemovedPostIDs, *post.PostId)
 	}
 
-	if postTooLargeForChannelBatch && !postAloneTooLargeToSend {
-		channelExport = &ChannelExport{
-			ChannelId:       *post.ChannelId,
-			ChannelName:     *post.ChannelDisplayName,
-			ChannelType:     *post.ChannelType,
-			StartTime:       *post.PostCreateAt,
-			Messages:        make([]Message, 0),
-			Participants:    make([]ParticipantRow, 0),
-			numUserMessages: make(map[string]int),
-			uploadedFiles:   make([]*model.FileInfo, 0),
-			bytes:           0,
-		}
-		exports[*post.ChannelId] = append(exports[*post.ChannelId], channelExport)
+	// new "batch"
+	if postTooLargeForChannelBatch {
+		channelExport = genericChannelToChannelExport(genericChannel)
+		allExports[*post.ChannelId] = append(allExports[*post.ChannelId], channelExport)
 	}
 
 	addPostToChannelExport(rctx, channelExport, post)
 
 	// if this post includes files, add them to the collection
-	for _, fileInfo := range attachments {
-		addAttachmentToChannelExport(channelExport, post, fileInfo, postAloneTooLargeToSend)
-	}
+	addAttachmentsToChannelExport(channelExport, post, post.AttachmentCreates, post.AttachmentDeletes, attachmentsAloneTooLargeToSend)
 	channelExport.bytes += postBytes
 	return attachmentsRemovedPostIDs
 }
 
-func getParticipants(db store.Store, channelExport *ChannelExport, members common_export.ChannelMembers) ([]ParticipantRow, *model.AppError) {
-	participantsMap := map[string]ParticipantRow{}
-	channelMembersHistory, err := db.ChannelMemberHistory().GetUsersInChannelDuring(channelExport.StartTime, channelExport.EndTime, channelExport.ChannelId)
-	if err != nil {
-		return nil, model.NewAppError("getParticipants", "ent.get_users_in_channel_during", nil, "", http.StatusInternalServerError).Wrap(err)
+func genericChannelToChannelExport(genericChannel shared.ChannelExport) *ChannelExport {
+	return &ChannelExport{
+		TeamId:             genericChannel.TeamId,
+		TeamName:           genericChannel.TeamName,
+		TeamDisplayName:    genericChannel.TeamDisplayName,
+		ChannelId:          genericChannel.ChannelId,
+		ChannelName:        genericChannel.ChannelName,
+		ChannelDisplayName: genericChannel.DisplayName,
+		ChannelType:        genericChannel.ChannelType,
+		StartTime:          genericChannel.StartTime,
+		EndTime:            genericChannel.EndTime,
+		// we can't preallocate sizes here because we don't know how many will be in this "batch"
+		Participants:    make([]ParticipantRow, 0),
+		Messages:        make([]Message, 0),
+		ExportedOn:      0,
+		numUserMessages: make(map[string]int),
+		uploadedFiles:   make([]*model.FileInfo, 0),
+		bytes:           0,
 	}
+}
 
-	joins, leaves := common_export.GetJoinsAndLeavesForChannel(channelExport.StartTime, channelExport.EndTime, channelMembersHistory, members)
-
-	for _, join := range joins {
-		userType := "user"
-		if join.IsBot {
-			userType = "bot"
-		}
-
-		if _, ok := participantsMap[join.UserId]; !ok {
-			participantsMap[join.UserId] = ParticipantRow{
-				Username:     join.Username,
-				UserType:     userType,
-				Email:        join.Email,
-				JoinTime:     join.Datetime,
-				LeaveTime:    channelExport.EndTime,
-				MessagesSent: channelExport.numUserMessages[join.UserId],
-			}
-		}
-	}
-	for _, leave := range leaves {
-		if participantRow, ok := participantsMap[leave.UserId]; ok {
-			participantRow.LeaveTime = leave.Datetime //nolint:govet
-		}
-	}
-
-	participants := []ParticipantRow{}
-	for _, participant := range participantsMap {
-		participants = append(participants, participant)
+func getParticipants(channelExport *ChannelExport, joinEvents []shared.JoinExport) []ParticipantRow {
+	participants := make([]ParticipantRow, 0, len(joinEvents))
+	for _, j := range joinEvents {
+		participants = append(participants, ParticipantRow{
+			JoinExport:   j,
+			MessagesSent: channelExport.numUserMessages[j.UserId],
+		})
 	}
 
 	sort.Slice(participants, func(i, j int) bool {
 		return participants[i].Username < participants[j].Username
 	})
-	return participants, nil
+	return participants
 }
 
-func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (*model.AppError, int64) {
-	var warningCount int64
+func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend, channelExport *ChannelExport, templates *templates.Container, w io.Writer) (int, error) {
+	var warningCount int
 	participantEmailAddresses := getParticipantEmails(channelExport)
 
 	// GlobalRelay expects the email to come from the person that initiated the conversation.
@@ -258,10 +264,10 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 
 	htmlBody, err := channelExportToHTML(rctx, channelExport, templates)
 	if err != nil {
-		return model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.generate_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err), warningCount
+		return warningCount, fmt.Errorf("unable to generate eml file data: %w", err)
 	}
 
-	subject := fmt.Sprintf("Mattermost Compliance Export: %s", channelExport.ChannelName)
+	subject := fmt.Sprintf("Mattermost Compliance Export: %s", channelExport.ChannelDisplayName)
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
 
 	txtBody, err := html2text.FromString(htmlBody)
@@ -278,9 +284,9 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 		"Auto-Submitted":             {"auto-generated"},
 		"Precedence":                 {"bulk"},
 		GlobalRelayMsgTypeHeader:     {"Mattermost"},
-		GlobalRelayChannelNameHeader: {encodeRFC2047Word(channelExport.ChannelName)},
+		GlobalRelayChannelNameHeader: {encodeRFC2047Word(channelExport.ChannelDisplayName)},
 		GlobalRelayChannelIDHeader:   {encodeRFC2047Word(channelExport.ChannelId)},
-		GlobalRelayChannelTypeHeader: {encodeRFC2047Word(common_export.ChannelTypeDisplayName(channelExport.ChannelType))},
+		GlobalRelayChannelTypeHeader: {encodeRFC2047Word(shared.ChannelTypeDisplayName(channelExport.ChannelType))},
 	}
 
 	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
@@ -293,9 +299,10 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 		path := fileInfo.Path
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-			reader, appErr := fileAttachmentBackend.Reader(path)
-			if appErr != nil {
-				rctx.Logger().Warn("File not found for export", mlog.String("Filename", path))
+			var reader filestore.ReadCloseSeeker
+			reader, err = fileAttachmentBackend.Reader(path)
+			if err != nil {
+				rctx.Logger().Warn("File not found for export", mlog.String("filename", path))
 				warningCount += 1
 				return nil
 			}
@@ -303,7 +310,7 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 
 			_, err = io.Copy(writer, reader)
 			if err != nil {
-				return model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.attach_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return fmt.Errorf("unable to add attachment to the Global Relay export: %w", err)
 			}
 			return nil
 		}))
@@ -311,15 +318,15 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 
 	_, err = m.WriteTo(w)
 	if err != nil {
-		return model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.generate_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err), warningCount
+		return warningCount, fmt.Errorf("unable to generate eml file data: %w", err)
 	}
-	return nil, warningCount
+	return warningCount, nil
 }
 
 func getParticipantEmails(channelExport *ChannelExport) []string {
-	participantEmails := make([]string, len(channelExport.Participants))
-	for i, participant := range channelExport.Participants {
-		participantEmails[i] = participant.Email
+	participantEmails := make([]string, 0, len(channelExport.Participants))
+	for _, participant := range channelExport.Participants {
+		participantEmails = append(participantEmails, participant.UserEmail)
 	}
 	return participantEmails
 }
@@ -332,19 +339,15 @@ func fileInfoListBytes(fileInfoList []*model.FileInfo) int64 {
 	return totalBytes
 }
 
-func addPostToChannelExport(rctx request.CTX, channelExport *ChannelExport, post *model.MessageExport) {
-	userType := "user"
-	if post.IsBot {
-		userType = "bot"
-	}
-
+func addPostToChannelExport(rctx request.CTX, channelExport *ChannelExport, post shared.PostExport) {
 	strPostProps := post.PostProps
-	bytPostProps := []byte(*strPostProps)
+	bytePostProps := []byte(*strPostProps)
 
 	// Added to show the username if overridden by a webhook or API integration
-	postUserName := ""
+	originalUsername := model.SafeDereference(post.Username)
+	postUserName := originalUsername
 	var postPropsLocal map[string]any
-	err := json.Unmarshal(bytPostProps, &postPropsLocal)
+	err := json.Unmarshal(bytePostProps, &postPropsLocal)
 	if err != nil {
 		rctx.Logger().Warn("Failed to unmarshal post Props into JSON. Ignoring username override.", mlog.Err(err))
 	} else {
@@ -352,67 +355,59 @@ func addPostToChannelExport(rctx request.CTX, channelExport *ChannelExport, post
 			postUserName = overrideUsername.(string)
 		}
 
-		if postUserName == "" {
+		if postUserName == originalUsername {
 			if overrideUsername, ok := postPropsLocal["webhook_display_name"]; ok {
 				postUserName = overrideUsername.(string)
 			}
 		}
 	}
 
-	element := Message{
-		SentTime:       *post.PostCreateAt,
-		Message:        *post.PostMessage,
-		SenderUserType: userType,
-		PostType:       *post.PostType,
-		PostUsername:   postUserName,
-		SenderUsername: *post.Username,
-		SenderEmail:    *post.UserEmail,
-		PreviewsPost:   post.PreviewID(),
-	}
+	element := postToMessage(post)
+	element.PostUsername = postUserName
 	channelExport.Messages = append(channelExport.Messages, element)
-	channelExport.EndTime = *post.PostCreateAt
 	channelExport.numUserMessages[*post.UserId] += 1
 }
 
-func addAttachmentToChannelExport(channelExport *ChannelExport, post *model.MessageExport, fileInfo *model.FileInfo, removeAttachments bool) {
-	var uploadElement Message
-	userType := "user"
-	if post.IsBot {
-		userType = "bot"
+func postToMessage(post shared.PostExport) Message {
+	return Message{
+		Id:             model.SafeDereference(post.PostId),
+		SentTime:       model.SafeDereference(post.PostCreateAt),
+		SenderId:       model.SafeDereference(post.UserId),
+		SenderUsername: model.SafeDereference(post.Username),
+		PostUsername:   model.SafeDereference(post.Username),
+		SenderUserType: string(post.UserType),
+		SenderEmail:    model.SafeDereference(post.UserEmail),
+		Message:        post.Message,
+		PreviewsPost:   post.PreviewID(),
+		UpdateAt:       post.UpdateAt,
+		UpdateType:     post.UpdatedType,
+		EditedNewMsgId: post.EditedNewMsgId,
 	}
-	if removeAttachments {
-		// add "post" message indicating that attachments were not sent
-		uploadElement = Message{
-			SentTime:       fileInfo.CreateAt,
-			Message:        fmt.Sprintf("Uploaded file '%s' (id '%s') was removed because it was too large to send.", fileInfo.Name, fileInfo.Id),
-			SenderUsername: *post.Username,
-			SenderUserType: userType,
-			SenderEmail:    *post.UserEmail,
+}
+
+func addAttachmentsToChannelExport(channelExport *ChannelExport, post shared.PostExport,
+	attachmentStarts []*shared.FileUploadStartExport, attachmentDeletes []shared.PostExport, removeAttachments bool) {
+	for _, start := range attachmentStarts {
+		var message string
+
+		if removeAttachments {
+			message = fmt.Sprintf("Uploaded file %q (id '%s') was removed because it was too large to send.",
+				start.FileInfo.Name, start.FileInfo.Id)
+		} else {
+			channelExport.uploadedFiles = append(channelExport.uploadedFiles, start.FileInfo)
+			message = fmt.Sprintf("Uploaded file %s", start.FileInfo.Name)
 		}
 
-		if fileInfo.DeleteAt != 0 {
-			uploadElement.SentTime = fileInfo.DeleteAt
-			uploadElement.Message = fmt.Sprintf("Deleted file '%s' (id '%s') was removed because it was too large to send.", fileInfo.Name, fileInfo.Id)
-		}
-	} else {
-		channelExport.uploadedFiles = append(channelExport.uploadedFiles, fileInfo)
-
-		// add an implicit "post" to the export that includes the filename so GlobalRelay knows who uploaded each file
-		uploadElement = Message{
-			SentTime:       fileInfo.CreateAt,
-			Message:        fmt.Sprintf("Uploaded file %s", fileInfo.Name),
-			SenderUsername: *post.Username,
-			SenderUserType: userType,
-			SenderEmail:    *post.UserEmail,
-		}
-
-		if fileInfo.DeleteAt != 0 {
-			uploadElement.SentTime = fileInfo.DeleteAt
-			uploadElement.Message = fmt.Sprintf("Deleted file %s", fileInfo.Name)
-		}
+		uploadElement := postToMessage(post)
+		uploadElement.Message = message
+		channelExport.Messages = append(channelExport.Messages, uploadElement)
 	}
 
-	channelExport.Messages = append(channelExport.Messages, uploadElement)
+	for _, deleted := range attachmentDeletes {
+		uploadElement := postToMessage(deleted)
+		uploadElement.Message = fmt.Sprintf("Deleted file %s", deleted.FileInfo.Name)
+		channelExport.Messages = append(channelExport.Messages, uploadElement)
+	}
 }
 
 func encodeRFC2047Word(s string) string {
