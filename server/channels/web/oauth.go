@@ -1,8 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-package web
-
 import (
 	"encoding/json"
 	"fmt"
@@ -20,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/xelaj/mtproto"
 )
 
 func (w *Web) InitOAuth() {
@@ -254,6 +250,14 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	// Encrypt the access token using MTProto2.0
+	encryptedAccessToken, err := mtproto.Encrypt([]byte(accessRsp.AccessToken))
+	if err != nil {
+		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.encryption_failed.app_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+	accessRsp.AccessToken = string(encryptedAccessToken)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
