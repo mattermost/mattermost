@@ -47,10 +47,9 @@ exports[`components/search_bar/SearchBar should match snapshot with search 1`] =
             type="search"
             value="test"
           />
-          <div
+          <button
             class="input-clear visible"
             data-testid="input-clear"
-            role="button"
           >
             <span
               aria-hidden="true"
@@ -60,7 +59,7 @@ exports[`components/search_bar/SearchBar should match snapshot with search 1`] =
                 class="icon icon-close-circle"
               />
             </span>
-          </div>
+          </button>
         </div>
       </div>
     </form>
@@ -123,10 +122,9 @@ exports[`components/search_bar/SearchBar should match snapshot with search, with
             type="search"
             value="test"
           />
-          <div
+          <button
             class="input-clear visible"
             data-testid="input-clear"
-            role="button"
           >
             <span
               aria-hidden="true"
@@ -136,7 +134,7 @@ exports[`components/search_bar/SearchBar should match snapshot with search, with
                 class="icon icon-close-circle"
               />
             </span>
-          </div>
+          </button>
         </div>
       </div>
     </form>
