@@ -115,6 +115,9 @@ type SqlStoreStores struct {
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
 	scheduledPost              store.ScheduledPostStore
+	propertyGroup              store.PropertyGroupStore
+	propertyField              store.PropertyFieldStore
+	propertyValue              store.PropertyValueStore
 }
 
 type SqlStore struct {
@@ -257,6 +260,9 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
+	store.stores.propertyGroup = newPropertyGroupStore(store)
+	store.stores.propertyField = newPropertyFieldStore(store)
+	store.stores.propertyValue = newPropertyValueStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1058,6 +1064,18 @@ func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
 
 func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 	return ss.stores.channelBookmarks
+}
+
+func (ss *SqlStore) PropertyGroup() store.PropertyGroupStore {
+	return ss.stores.propertyGroup
+}
+
+func (ss *SqlStore) PropertyField() store.PropertyFieldStore {
+	return ss.stores.propertyField
+}
+
+func (ss *SqlStore) PropertyValue() store.PropertyValueStore {
+	return ss.stores.propertyValue
 }
 
 func (ss *SqlStore) DropAllTables() {

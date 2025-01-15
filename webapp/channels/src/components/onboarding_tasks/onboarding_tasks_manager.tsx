@@ -20,7 +20,6 @@ import {
     switchToChannels,
 } from 'actions/views/onboarding_tasks';
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
-import {setStatusDropdown} from 'actions/views/status_dropdown';
 import {getOnboardingTaskPreferences} from 'selectors/onboarding';
 
 import Channels from 'components/common/svg_images_components/channels_svg';
@@ -40,6 +39,7 @@ import {
 } from 'components/tours';
 
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {clickOnMenuButton, MenuButtonIds} from 'utils/keyboard';
 
 import type {GlobalState} from 'types/store';
 
@@ -239,7 +239,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
             break;
         }
         case OnboardingTasksName.COMPLETE_YOUR_PROFILE: {
-            dispatch(setStatusDropdown(true));
+            clickOnMenuButton(MenuButtonIds.userAccountMenu);
             dispatch(setShowOnboardingCompleteProfileTour(true));
             handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED, true);
             if (inAdminConsole) {

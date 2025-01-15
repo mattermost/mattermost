@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator, Page} from '@playwright/test';
+import {expect, Locator} from '@playwright/test';
 
 /**
  * This is the generic confirm modal that is used in the app.
@@ -15,11 +15,10 @@ export default class GenericConfirmModal {
     readonly confirmButton: Locator;
     readonly cancelButton: Locator;
 
-    constructor(page: Page, id?: string) {
-        const modalId = `#confirmModal ${id}`.trim();
-        this.container = page.locator(modalId);
-        this.confirmButton = page.locator('#confirmModalButton');
-        this.cancelButton = page.locator('#cancelModalButton');
+    constructor(container: Locator) {
+        this.container = container;
+        this.confirmButton = container.locator('#confirmModalButton');
+        this.cancelButton = container.locator('#cancelModalButton');
     }
 
     async toBeVisible() {

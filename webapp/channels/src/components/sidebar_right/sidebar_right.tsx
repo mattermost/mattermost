@@ -13,6 +13,7 @@ import {trackEvent} from 'actions/telemetry_actions.jsx';
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
+import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
 import PostEditHistory from 'components/post_edit_history';
 import ResizableRhs from 'components/resizable_sidebar/resizable_rhs';
@@ -156,7 +157,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         if (this.props.isOpen && (contentChanged || (!wasOpen && isOpen))) {
             this.previousActiveElement = document.activeElement as HTMLElement;
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 if (this.sidebarRight.current) {
                     document.dispatchEvent(
                         new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
@@ -167,14 +168,14 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                         }),
                     );
                 }
-            });
+            }, 0);
         } else if (!this.props.isOpen && wasOpen) {
             // RHS just was closed, restore focus to the previous element had it
             // this will have to change for upcoming work specially for search and probalby plugins
             if (a11yController.originElement) {
                 a11yController.restoreOriginFocus();
             } else {
-                requestAnimationFrame(() => {
+                setTimeout(() => {
                     if (this.previousActiveElement) {
                         document.dispatchEvent(
                             new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
@@ -186,7 +187,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                         );
                         this.previousActiveElement = null;
                     }
-                });
+                }, 0);
             }
         }
     }
@@ -293,7 +294,10 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             selectedChannelNeeded = true;
             content = (
                 <div className='post-right__container'>
-                    <FileUploadOverlay overlayType='right'/>
+                    <FileUploadOverlay
+                        overlayType='right'
+                        id={DropOverlayIdRHS}
+                    />
                     <RhsThread previousRhsState={previousRhsState}/>
                 </div>
             );
@@ -333,7 +337,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                 <ResizableRhs
                     className={containerClassName}
                     id='sidebar-right'
-                    role='complementary'
+                    role='region'
                     rightWidthHolderRef={this.sidebarRightWidthHolder}
                 >
                     <div

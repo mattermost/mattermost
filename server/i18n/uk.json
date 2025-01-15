@@ -10361,7 +10361,7 @@
   },
   {
     "id": "app.scheduled_post.error_reason.thread_deleted",
-    "translation": "Обговорення видалено"
+    "translation": "Обговорення було видалено"
   },
   {
     "id": "app.scheduled_post.error_reason.unable_to_send",
@@ -10436,7 +10436,15 @@
     "translation": "Властивість Draft Message довша за максимально допустиму довжину."
   },
   {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Не вдалось створити каталог для власних зображень емодзі"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Ролі користувачів не відповідають статусу гостя."
+  },
+  {
     "id": "api.filter_config_error",
-    "translation": "Неможливо відфільтрувати конфігурацію."
+    "translation": "Не вдалося відфільтрувати конфігурацію."
   }
 ]

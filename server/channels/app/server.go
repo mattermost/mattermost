@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -35,6 +34,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
@@ -136,6 +136,7 @@ type Server struct {
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
+	propertyService  *properties.PropertyService
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -239,10 +240,21 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
+	s.propertyService, err = properties.New(properties.ServiceConfig{
+		PropertyGroupStore: s.Store().PropertyGroup(),
+		PropertyFieldStore: s.Store().PropertyField(),
+		PropertyValueStore: s.Store().PropertyValue(),
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create properties service")
+	}
+
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
-	s.platform.Start(s.makeBroadcastHooks())
+	if err = s.platform.Start(s.makeBroadcastHooks()); err != nil {
+		return nil, errors.Wrap(err, "failed to start platform")
+	}
 
 	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
 	// otherwise it will throw a panic.
@@ -495,7 +507,9 @@ func NewServer(options ...Option) (*Server, error) {
 			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) ||
 			(oldCfg.ImageProxySettings.RemoteImageProxyURL != newCfg.ImageProxySettings.RemoteImageProxyURL) ||
 			(oldCfg.ImageProxySettings.RemoteImageProxyOptions != newCfg.ImageProxySettings.RemoteImageProxyOptions) {
-			s.openGraphDataCache.Purge()
+			if err = s.openGraphDataCache.Purge(); err != nil {
+				mlog.Error("Failed to purge Open Graph data cache after config change", mlog.Err(err))
+			}
 		}
 	})
 
@@ -517,10 +531,12 @@ func (s *Server) runJobs() {
 		runSecurityJob(s)
 	})
 	s.Go(func() {
-		firstRun, err := s.getFirstServerRunTimestamp()
-		if err != nil {
+		firstRun, appErr := s.getFirstServerRunTimestamp()
+		if appErr != nil {
 			mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-			s.ensureFirstServerRunTimestamp()
+			if err := s.ensureFirstServerRunTimestamp(); err != nil {
+				mlog.Error("Failed to set first server run timestamp to current time", mlog.Err(err))
+			}
 			firstRun = utils.MillisFromTime(time.Now())
 		}
 		s.telemetryService.RunTelemetryJob(firstRun)
@@ -573,12 +589,6 @@ func (s *Server) AppOptions() []AppOption {
 
 func (s *Server) Channels() *Channels {
 	return s.ch
-}
-
-// Return Database type (postgres or mysql) and current version of the schema
-func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
-	schemaVersion, _ := s.Store().GetDBSchemaVersion()
-	return *s.platform.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
 func (s *Server) startInterClusterServices(license *model.License) error {
@@ -712,7 +722,9 @@ func (s *Server) Shutdown() {
 
 	s.platform.StopSearchEngine()
 
-	s.Audit.Shutdown()
+	if err = s.Audit.Shutdown(); err != nil {
+		s.Log().Warn("Failed to shut down audit", mlog.Err(err))
+	}
 
 	s.platform.StopFeatureFlagUpdateJob()
 
@@ -798,7 +810,9 @@ func (s *Server) UpgradeToE0() error {
 		return err
 	}
 	upgradedFromTE := &model.System{Name: model.SystemUpgradedFromTeId, Value: "true"}
-	s.Store().System().Save(upgradedFromTE)
+	if err := s.Store().System().Save(upgradedFromTE); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -888,7 +902,9 @@ func (s *Server) Start() error {
 
 	s.checkPushNotificationServerURL()
 
-	s.platform.ReloadConfig()
+	if err = s.platform.ReloadConfig(); err != nil {
+		mlog.Error("Failed to reload config on server start", mlog.Err(err))
+	}
 
 	mlog.Info("Starting Server...")
 
@@ -987,7 +1003,11 @@ func (s *Server) Start() error {
 					Handler:  m.HTTPHandler(nil),
 					ErrorLog: s.Log().With(mlog.String("source", "le_forwarder_server")).StdLogger(mlog.LvlError),
 				}
-				go server.ListenAndServe()
+				go func() {
+					if err := server.ListenAndServe(); err != nil {
+						mlog.Error("Failed to serve redirect from port 80 to 443 with autocert ", mlog.Err(err))
+					}
+				}()
 			} else {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
@@ -1001,7 +1021,9 @@ func (s *Server) Start() error {
 						Handler:  http.HandlerFunc(handleHTTPRedirect),
 						ErrorLog: s.Log().With(mlog.String("source", "forwarder_server")).StdLogger(mlog.LvlError),
 					}
-					server.Serve(redirectListener)
+					if err := server.Serve(redirectListener); err != nil {
+						mlog.Error("Failed to serve redirect from port 80 to 443", mlog.Err(err))
+					}
 				}()
 			}
 		}
@@ -1240,7 +1262,9 @@ func doReportUsageToAWSMeteringService(s *Server) {
 
 	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AwsMeteringReportInterval*time.Hour).UTC())
-	awsMeter.ReportUserCategoryUsage(reports)
+	if err := awsMeter.ReportUserCategoryUsage(reports); err != nil {
+		mlog.Error("Failed to report usage to AWS Metering Service", mlog.Err(err))
+	}
 }
 
 func doSecurity(s *Server) {
@@ -1434,8 +1458,10 @@ func (s *Server) doLicenseExpirationCheck() {
 		})
 	}
 
-	// remove the license
-	s.RemoveLicense()
+	//remove the license
+	if appErr := s.RemoveLicense(); appErr != nil {
+		mlog.Error("Error while removing the license.", mlog.Err(appErr))
+	}
 }
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS

@@ -147,49 +147,6 @@ h6.markdown__heading {
     }
 }
 
-#channelHeaderDescription,
-#header-popover {
-    .markdown-inline-img {
-        max-height: 18px;
-        border-radius: 2px;
-        margin: 2px;
-        -moz-force-broken-image-icon: 1;
-    }
-
-    .markdown-inline-img--loading {
-        height: 18px;
-        visibility: hidden;
-    }
-
-    .markdown-inline-img--hover {
-        border: 1px solid transparent;
-
-        &:hover {
-            z-index: 2;
-            box-shadow: 0 2px 2px 0 rgba(variables.$black, 0.1), 0 2px 2px 0 rgba(variables.$black, 0.1);
-            transition: all 0.1s linear;
-        }
-    }
-
-    .markdown-inline-img--no-border {
-        border: unset;
-    }
-
-    div.markdown__paragraph-inline {
-        display: inline-block;
-        line-height: 22px;
-    }
-
-    .broken-image {
-        max-height: 18px;
-        border-radius: unset;
-    }
-
-    .image-loaded-container {
-        display: inline-block;
-    }
-}
-
 .post-code {
     position: relative;
     overflow-x: auto;

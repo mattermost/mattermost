@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net"
 	"net/http"
@@ -598,6 +599,26 @@ func (c *Client4) permissionsRoute() string {
 
 func (c *Client4) limitsRoute() string {
 	return "/limits"
+}
+
+func (c *Client4) customProfileAttributesRoute() string {
+	return "/custom_profile_attributes"
+}
+
+func (c *Client4) userCustomProfileAttributesRoute(userID string) string {
+	return fmt.Sprintf("%s/%s", c.userRoute(userID), c.customProfileAttributesRoute())
+}
+
+func (c *Client4) customProfileAttributeFieldsRoute() string {
+	return fmt.Sprintf("%s/fields", c.customProfileAttributesRoute())
+}
+
+func (c *Client4) customProfileAttributeFieldRoute(fieldID string) string {
+	return fmt.Sprintf("%s/%s", c.customProfileAttributeFieldsRoute(), fieldID)
+}
+
+func (c *Client4) customProfileAttributeValuesRoute() string {
+	return fmt.Sprintf("%s/values", c.customProfileAttributesRoute())
 }
 
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
@@ -4758,18 +4779,19 @@ func (c *Client4) GetFileInfosForPostIncludeDeleted(ctx context.Context, postId 
 // General/System Section
 
 // GenerateSupportPacket generates and downloads a Support Packet.
-func (c *Client4) GenerateSupportPacket(ctx context.Context) ([]byte, *Response, error) {
+// It returns a ReadCloser to the packet and the filename. The caller needs to close the ReadCloser.
+func (c *Client4) GenerateSupportPacket(ctx context.Context) (io.ReadCloser, string, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/support_packet", "")
 	if err != nil {
-		return nil, BuildResponse(r), err
+		return nil, "", BuildResponse(r), err
 	}
-	defer closeBody(r)
 
-	data, err := io.ReadAll(r.Body)
+	_, params, err := mime.ParseMediaType(r.Header.Get("Content-Disposition"))
 	if err != nil {
-		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, "", r.StatusCode).Wrap(err)
+		return nil, "", BuildResponse(r), fmt.Errorf("could not parse Content-Disposition header: %w", err)
 	}
-	return data, BuildResponse(r), nil
+
+	return r.Body, params["filename"], BuildResponse(r), nil
 }
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
@@ -9368,4 +9390,111 @@ func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountO
 		return nil, nil, NewAppError("GetFilteredUsersStats", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &stats, BuildResponse(r), nil
+}
+
+func (c *Client4) RestorePostVersion(ctx context.Context, postId, versionId string) (*Post, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/restore/"+versionId, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	var restoredPost *Post
+	if err := json.NewDecoder(r.Body).Decode(&restoredPost); err != nil {
+		return nil, nil, NewAppError("RestorePostVersion", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return restoredPost, BuildResponse(r), nil
+}
+
+func (c *Client4) CreateCPAField(ctx context.Context, field *PropertyField) (*PropertyField, *Response, error) {
+	buf, err := json.Marshal(field)
+	if err != nil {
+		return nil, nil, NewAppError("CreateCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.customProfileAttributeFieldsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var pf PropertyField
+	if err := json.NewDecoder(r.Body).Decode(&pf); err != nil {
+		return nil, nil, NewAppError("CreateCPAField", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &pf, BuildResponse(r), nil
+}
+
+func (c *Client4) ListCPAFields(ctx context.Context) ([]*PropertyField, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.customProfileAttributeFieldsRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var fields []*PropertyField
+	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
+		return nil, nil, NewAppError("ListCPAFields", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return fields, BuildResponse(r), nil
+}
+
+func (c *Client4) PatchCPAField(ctx context.Context, fieldID string, patch *PropertyFieldPatch) (*PropertyField, *Response, error) {
+	buf, err := json.Marshal(patch)
+	if err != nil {
+		return nil, nil, NewAppError("PatchCPAField", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPatchBytes(ctx, c.customProfileAttributeFieldRoute(fieldID), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var pf PropertyField
+	if err := json.NewDecoder(r.Body).Decode(&pf); err != nil {
+		return nil, nil, NewAppError("PatchCPAField", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &pf, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteCPAField(ctx context.Context, fieldID string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.customProfileAttributeFieldRoute(fieldID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]string, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.userCustomProfileAttributesRoute(userID), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	fields := make(map[string]string)
+	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
+		return nil, nil, NewAppError("ListCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return fields, BuildResponse(r), nil
+}
+
+func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) (map[string]string, *Response, error) {
+	buf, err := json.Marshal(values)
+	if err != nil {
+		return nil, nil, NewAppError("PatchCPAValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPatchBytes(ctx, c.customProfileAttributeValuesRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var patchedValues map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
+		return nil, nil, NewAppError("PatchCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return patchedValues, BuildResponse(r), nil
 }

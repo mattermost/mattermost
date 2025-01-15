@@ -105,7 +105,7 @@ type Post struct {
 	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids,omitempty"`
+	FileIds       StringArray     `json:"file_ids"`
 	PendingPostId string          `json:"pending_post_id"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 	RemoteId      *string         `json:"remote_id,omitempty"`
@@ -952,4 +952,16 @@ func (o *Post) CleanPost() *Post {
 	o.UpdateAt = 0
 	o.EditAt = 0
 	return o
+}
+
+type UpdatePostOptions struct {
+	SafeUpdate    bool
+	IsRestorePost bool
+}
+
+func DefaultUpdatePostOptions() *UpdatePostOptions {
+	return &UpdatePostOptions{
+		SafeUpdate:    false,
+		IsRestorePost: false,
+	}
 }

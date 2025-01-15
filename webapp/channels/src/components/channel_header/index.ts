@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
@@ -18,7 +19,7 @@ import {
     getCurrentChannelStats,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentRelativeTeamUrl, getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
     displayLastActiveLabel,
     getCurrentUser,
@@ -29,20 +30,15 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
-import {goToLastViewedChannel} from 'actions/views/channel';
-import {openModal, closeModal} from 'actions/views/modals';
 import {
     showPinnedPosts,
     showChannelFiles,
     closeRightHandSide,
     showChannelMembers,
 } from 'actions/views/rhs';
-import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
-import {getAnnouncementBarCount} from 'selectors/views/announcement_bar';
+import {getRhsState} from 'selectors/rhs';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
-import {isModalOpen} from 'selectors/views/modals';
 
-import {ModalIdentifiers} from 'utils/constants';
 import {isFileAttachmentsEnabled} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
@@ -57,8 +53,6 @@ function makeMapStateToProps() {
     return function mapStateToProps(state: GlobalState) {
         const channel = getCurrentChannel(state);
         const user = getCurrentUser(state);
-        const teams = getMyTeams(state);
-        const hasMoreThanOneTeam = teams.length > 1;
         const config = getConfig(state);
 
         let dmUser;
@@ -91,15 +85,9 @@ function makeMapStateToProps() {
             dmUser,
             gmMembers,
             rhsState: getRhsState(state),
-            rhsOpen: getIsRhsOpen(state),
-            isReadOnly: false,
-            isMuted: isCurrentChannelMuted(state),
-            isQuickSwitcherOpen: isModalOpen(state, ModalIdentifiers.QUICK_SWITCH),
+            isChannelMuted: isCurrentChannelMuted(state),
             hasGuests: stats ? stats.guest_count > 0 : false,
             pinnedPostsCount: stats?.pinnedpost_count || 0,
-            hasMoreThanOneTeam,
-            currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),
-            announcementBarCount: getAnnouncementBarCount(state),
             customStatus,
             isCustomStatusEnabled: isCustomStatusEnabled(state),
             isCustomStatusExpired: isCustomStatusExpired(state, customStatus),
@@ -119,11 +107,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         closeRightHandSide,
         getCustomEmojisInText,
         updateChannelNotifyProps,
-        goToLastViewedChannel,
-        openModal,
-        closeModal,
         showChannelMembers,
     }, dispatch),
 });
 
-export default withRouter<any, any>(connect(makeMapStateToProps, mapDispatchToProps)(ChannelHeader));
+const connector = connect(makeMapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default withRouter(connector(ChannelHeader));

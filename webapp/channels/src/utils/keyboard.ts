@@ -33,3 +33,20 @@ export function isKeyPressed(event: React.KeyboardEvent | KeyboardEvent, key: [s
     // used for different language keyboards to detect the position of keys
     return event.keyCode === key[1];
 }
+
+export const MenuButtonIds = {
+    userAccountMenu: 'userAccountMenuButton',
+} as const;
+
+/**
+ * Since the menu component requires actual interaction with the button
+ * of the menu for opening the menus, we trigger it from here
+ */
+export function clickOnMenuButton(buttonId: string) {
+    const menuButton = document.getElementById(buttonId);
+    if (!menuButton) {
+        return;
+    }
+
+    menuButton.click();
+}

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useMemo, useRef} from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {useSelector} from 'react-redux';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
@@ -23,7 +24,7 @@ interface Props {
     spanStyle?: React.CSSProperties;
     emojiStyle?: React.CSSProperties;
     userID?: string;
-    onClick?: () => void;
+    onClick?: (event: MouseEvent<HTMLSpanElement> | KeyboardEvent<HTMLSpanElement>) => void;
 }
 
 function CustomStatusEmoji({
