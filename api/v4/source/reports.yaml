@@ -1,7 +1,7 @@
   /api/v4/reports/users:
     get:
       tags:
-        - users
+        - reports
       summary: Get a list of paged and sorted users for admin reporting purposes
       description: >
         Get a list of paged users for admin reporting purposes, based on provided parameters.
@@ -104,7 +104,7 @@
   /api/v4/reports/users/count:
     get:
       tags:
-        - users
+        - reports
       summary: Gets the full count of users that match the filter.
       description: >
         Get the full count of users admin reporting purposes, based on provided parameters.

@@ -6,7 +6,6 @@ import {createRandomChannel} from '@e2e-support/server';
 
 test('MM-T5424 Find channel search returns only 50 results when there are more than 50 channels with similar names', async ({
     pw,
-    pages,
 }) => {
     const {adminClient, user, team} = await pw.initSetup();
 
@@ -29,10 +28,9 @@ test('MM-T5424 Find channel search returns only 50 results when there are more t
     await Promise.all(channelsRes);
 
     // # Log in a user in new browser context
-    const {page} = await pw.testBrowser.login(user);
+    const {channelsPage} = await pw.testBrowser.login(user);
 
     // # Visit a default channel page
-    const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 

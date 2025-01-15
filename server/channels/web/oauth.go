@@ -80,7 +80,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write([]byte(model.MapToJSON(map[string]string{"redirect": redirectURL})))
 	if err != nil {
-		c.Logger.Error("Error writing response", mlog.Err(err))
+		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
 }
 

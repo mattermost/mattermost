@@ -198,7 +198,6 @@ const SidebarCategorySortingMenu = ({
                     children: <DotsVerticalIcon size={16}/>,
                 }}
                 menuButtonTooltip={{
-                    id: `SidebarCategorySortingMenu-ButtonTooltip-${category.id}`,
                     text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
                     class: 'hidden-xs',
                 }}

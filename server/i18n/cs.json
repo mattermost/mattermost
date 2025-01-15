@@ -1757,7 +1757,7 @@
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
-    "translation": "Nevalidní {{.Name}} parametr."
+    "translation": "Neplatný {{.Name}} parametr."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -1897,7 +1897,7 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "Nemůžete se sami deaktivovat, protože tato funkce není povolena. Obraťte se na správce systému."
+    "translation": "Nemůžete si deaktivovat účet, protože tato funkce není povolena. Obraťte se na správce systému."
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
@@ -2685,7 +2685,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Zadejte správný email nebo uživatelské jméno a/nebo heslo, nebo se přihlašte jiným způsobem."
+    "translation": "Zadejte správný email nebo uživatelské jméno a/nebo heslo, nebo se přihlaste jiným způsobem."
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
@@ -2813,7 +2813,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Nelze zpracovat auth data z uživatelského objektu {{.Service}}."
+    "translation": "Nelze zpracovat data z uživatelského objektu {{.Service}}."
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
@@ -5681,7 +5681,7 @@
   },
   {
     "id": "app.channel.delete.app_error",
-    "translation": "Nemohu smazat kanál."
+    "translation": "Nepodařilo se smazat kanál."
   },
   {
     "id": "app.channel.permanent_delete.app_error",
@@ -6069,15 +6069,15 @@
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícícho příkazu na serveru, kde je Mattermost instalován:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícího příkazu na serveru, kde je Mattermost instalován:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícícho příkazu na serveru, kde je Mattermost instalován:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícího příkazu na serveru, kde je Mattermost instalován:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
-    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícícho příkazu na serveru, kde je Mattermost instalován:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícího příkazu na serveru, kde je Mattermost instalován:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
@@ -10434,5 +10434,17 @@
   {
     "id": "model.thread.is_valid.user_id.app_error",
     "translation": "Neplatné id uživatele."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Nelze filtrovat konfiguraci."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Nelze vytvořit adresář pro obrázky vlastních emoji"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Role uživatele nejsou v souladu se stavem hosta."
   }
 ]

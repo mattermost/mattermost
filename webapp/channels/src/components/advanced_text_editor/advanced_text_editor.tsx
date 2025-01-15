@@ -13,7 +13,6 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
@@ -33,6 +32,11 @@ import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import DeletePostModal from 'components/delete_post_modal';
+import {
+    DropOverlayIdCreateComment,
+    DropOverlayIdCreatePost,
+    DropOverlayIdEditPost, FileUploadOverlay,
+} from 'components/file_upload_overlay/file_upload_overlay';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -83,7 +87,7 @@ import './advanced_text_editor.scss';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
-type Props = {
+export type Props = {
 
     /**
      * location of the advanced text editor in the UI (center channel / RHS)
@@ -138,7 +142,6 @@ const AdvancedTextEditor = ({
         return name;
     };
 
-    const post = useSelector((state: GlobalState) => getPost(state, postId));
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const channelDisplayName = channel?.display_name || '';
@@ -333,12 +336,17 @@ const AdvancedTextEditor = ({
     );
 
     const handleCancel = useCallback(() => {
-        // This resets the draft to the post's original content
         handleDraftChange({
-            ...draft,
-            message: post?.message || '',
+            message: '',
+            fileInfos: [],
+            uploadsInProgress: [],
+            createAt: 0,
+            updateAt: 0,
+            channelId,
+            rootId: postId,
+            metadata: {},
         });
-    }, [handleDraftChange, draft, post]);
+    }, [handleDraftChange, channelId, postId]);
 
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
@@ -667,6 +675,27 @@ const AdvancedTextEditor = ({
         />
     );
 
+    const fileUploadOverlay = useMemo(() => {
+        const overlayType = isRHS ? 'right' : 'center';
+        const direction = 'horizontal';
+
+        return isInEditMode ? (
+            <FileUploadOverlay
+                overlayType={overlayType}
+                isInEditMode={true}
+                id={DropOverlayIdEditPost}
+                direction={direction}
+            />
+        ) : (
+            <FileUploadOverlay
+                overlayType={overlayType}
+                isInEditMode={false}
+                id={isRHS ? DropOverlayIdCreateComment : DropOverlayIdCreatePost}
+                direction={direction}
+            />
+        );
+    }, [isInEditMode, isRHS]);
+
     const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
 
     const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
@@ -712,6 +741,7 @@ const AdvancedTextEditor = ({
                     className={'AdvancedTextEditor__body'}
                     disabled={isDisabled}
                 >
+                    {fileUploadOverlay}
                     <div
                         ref={editorBodyRef}
                         role='application'

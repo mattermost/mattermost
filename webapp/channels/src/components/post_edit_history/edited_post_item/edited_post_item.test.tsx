@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -34,22 +35,26 @@ describe('components/post_edit_history/edited_post_item', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<EditedPostItem {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<EditedPostItem {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
+
     test('should match snapshot when isCurrent is true', () => {
         const props = {
             ...baseProps,
             isCurrent: true,
         };
-        const wrapper = shallow(<EditedPostItem {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<EditedPostItem {...props}/>);
+        expect(container).toMatchSnapshot();
     });
+
     test('clicking on the restore button should call openRestorePostModal', () => {
-        const wrapper = shallow(<EditedPostItem {...baseProps}/>);
+        renderWithContext(<EditedPostItem {...baseProps}/>);
 
         // find the button with restore icon and click it
-        wrapper.find('ForwardRef').filterWhere((button) => button.prop('icon') === 'restore').simulate('click');
+        const restoreButton = screen.getByRole('button', {name: /restore/i});
+        fireEvent.click(restoreButton);
+
         expect(baseProps.actions.openModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 modalId: ModalIdentifiers.RESTORE_POST_MODAL,
@@ -58,21 +63,61 @@ describe('components/post_edit_history/edited_post_item', () => {
         );
     });
 
-    test('when isCurrent is true, should not render the restore button', () => {
+    test('when isCurrent is true, should not renderWithContext the restore button', () => {
         const props = {
             ...baseProps,
             isCurrent: true,
         };
-        const wrapper = shallow(<EditedPostItem {...props}/>);
-        expect(wrapper.find('ForwardRef').filterWhere((button) => button.prop('icon') === 'refresh')).toHaveLength(0);
+        renderWithContext(<EditedPostItem {...props}/>);
+        expect(screen.queryByRole('button', {name: /restore/i})).toBeNull();
     });
 
-    test('when isCurrent is true, should render the current version text', () => {
+    test('when isCurrent is true, should renderWithContext the current version text', () => {
         const props = {
             ...baseProps,
             isCurrent: true,
         };
-        const wrapper = shallow(<EditedPostItem {...props}/>);
-        expect(wrapper.find('.edit-post-history__current__indicator')).toHaveLength(1);
+        renderWithContext(<EditedPostItem {...props}/>);
+        expect(screen.getByText(/current version/i)).toBeInTheDocument();
+    });
+
+    test('should match snapshot with file metadata', () => {
+        const props = {
+            ...baseProps,
+            post: {
+                ...baseProps.post,
+                metadata: {
+                    ...baseProps.post.metadata,
+                    files: [
+                        TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3}),
+                        TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2}),
+                        TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1}),
+                    ],
+                },
+            },
+        };
+
+        const {container} = renderWithContext(<EditedPostItem {...props}/>);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot with file metadata with some deleted files', () => {
+        const props = {
+            ...baseProps,
+            post: {
+                ...baseProps.post,
+                metadata: {
+                    ...baseProps.post.metadata,
+                    files: [
+                        TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3}),
+                        TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, delete_at: 4}),
+                        TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, delete_at: 4}),
+                    ],
+                },
+            },
+        };
+
+        const {container} = renderWithContext(<EditedPostItem {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 });
