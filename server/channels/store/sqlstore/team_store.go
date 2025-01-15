@@ -365,16 +365,18 @@ func (s SqlTeamStore) GetByEmptyInviteID() ([]*model.Team, error) {
 // http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) GetByName(name string) (*model.Team, error) {
 	team := model.Team{}
+
 	query, args, err := s.teamsQuery.Where(sq.Eq{"Name": name}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
 	err = s.GetReplica().Get(&team, query, args...)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Team", fmt.Sprintf("name=%s", name))
-		}
-		return nil, errors.Wrapf(err, "failed to find Team with name=%s", name)
+		return nil, store.NewErrNotFound("Team", fmt.Sprintf("name=%s", name))
+	}
+
+	if name == "" || team.Name != name {
+		return nil, store.NewErrNotFound("Team", fmt.Sprintf("name=%s", name))
 	}
 	return &team, nil
 }

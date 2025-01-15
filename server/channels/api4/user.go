@@ -117,6 +117,13 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
+	// Check if the email ends with "edu.tr"
+	if !strings.HasSuffix(user.Email, "edu.tr") {
+		c.Err = model.NewAppError("createUser", "api.user.create_user.invalid_email_domain.app_error", nil, "email="+user.Email, http.StatusBadRequest)
+		return
+	}
+
 	user.SanitizeInput(c.IsSystemAdmin())
 
 	tokenId := r.URL.Query().Get("t")
@@ -1839,6 +1846,8 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Mask all sensitive errors, with the exception of the following
+	c.Logger.Info("Login functiasdaon triggered")
+
 	defer func() {
 		if c.Err == nil {
 			return

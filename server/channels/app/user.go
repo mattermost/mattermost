@@ -125,11 +125,13 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 		c.Logger().Warn("Error while deleting token", mlog.Err(err))
 	}
 
+
 	return ruser, nil
 }
 
 func (a *App) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, redirect string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
+		c.Logger().Error("User sign-up not allowed", mlog.Err(err))
 		return nil, err
 	}
 
@@ -187,8 +189,26 @@ func (a *App) CreateUserAsAdmin(c request.CTX, user *model.User, redirect string
 	return ruser, nil
 }
 
+// LoadDomainToTeamMapping loads the domain to team mapping from a static source
+func LoadDomainToTeamMapping() map[string]string {
+	return map[string]string{
+		"bilkent.edu.tr":    "bilkent-university",
+		"ug.bilkent.edu.tr": "bilkent-university",
+		"metu.edu.tr":       "metu",
+		// Add more mappings as needed
+	}
+}
+
 func (a *App) CreateUserFromSignup(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError) {
+	c.Logger().Info("Starting CreateUserFromSignup", mlog.String("user_email", user.Email))
 	if err := a.IsUserSignUpAllowed(); err != nil {
+		c.Logger().Error("User sign-up not allowed", mlog.Err(err))
+		return nil, err
+	}
+
+	// Check if the email ends with "edu.tr"
+	if !strings.HasSuffix(user.Email, "edu.tr") {
+		err := model.NewAppError("CreateUserFromSignup", "api.user.create_user.invalid_email_domain.app_error", nil, "email="+user.Email, http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -204,10 +224,44 @@ func (a *App) CreateUserFromSignup(c request.CTX, user *model.User, redirect str
 		return nil, err
 	}
 
+	// Extract the domain from the user's email
+	emailParts := strings.Split(user.Email, "@")
+	if len(emailParts) != 2 {
+		return nil, model.NewAppError("CreateUserFromSignup", "api.user.create_user.invalid_email_format.app_error", nil, "", http.StatusBadRequest)
+	}
+	domain := emailParts[1]
+
+	// Load the domain to team mapping
+	domainToTeamMap := LoadDomainToTeamMapping()
+
+	// Get the team name from the mapping
+	teamName, exists := domainToTeamMap[domain]
+	if !exists {
+		return nil, model.NewAppError("CreateUserFromSignup", "api.user.create_user.unknown_domain.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Retrieve the team by name
+	team, nErr := a.Srv().Store().Team().GetByName(teamName)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("CreateUserFromSignup", "app.team.get_by_name.finding.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+		default:
+			return nil, model.NewAppError("CreateUserFromSignup", "app.team.get_by_name.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
+
+	// Join the user to the team
+	if _, err := a.JoinUserToTeam(c, team, ruser, ""); err != nil {
+		return nil, err
+	}
+
 	if err := a.Srv().EmailService.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		c.Logger().Warn("Failed to send welcome email on create user from signup", mlog.Err(err))
 	}
 
+	c.Logger().Info("User created successfully from signup", mlog.String("user_id", ruser.Id), mlog.String("user_email", ruser.Email))
 	return ruser, nil
 }
 
@@ -236,6 +290,14 @@ func (a *App) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.
 }
 
 func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*model.User, *model.AppError) {
+	c.Logger().Info("Attempting to create user", mlog.String("email", user.Email), mlog.Bool("guest", guest))
+
+	// Check if the email ends with "edu.tr"
+	if !strings.HasSuffix(user.Email, "edu.tr") {
+		c.Logger().Warn("Invalid email domain for user signup", mlog.String("email", user.Email))
+		return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.invalid_email_domain.app_error", nil, "email="+user.Email, http.StatusBadRequest)
+	}
+
 	exceeded, limitErr := a.isHardUserLimitExceeded()
 	if limitErr != nil {
 		return nil, limitErr
@@ -252,6 +314,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 
 	ruser, nErr := a.ch.srv.userService.CreateUser(c, user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
+		c.Logger().Error("Failed to creaasadasdadte user", mlog.Err(nErr), mlog.String("email", user.Email))
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
 		var nfErr *users.ErrInvalidPassword
@@ -277,6 +340,8 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 			return nil, model.NewAppError("createUserOrGuest", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
+
+	c.Logger().Info("User created successfully", mlog.String("user_id", ruser.Id), mlog.String("email", ruser.Email))
 
 	// We always invalidate the user because we actually need to invalidate
 	// in case the user's EmailVerified is true, but we also always need to invalidate
