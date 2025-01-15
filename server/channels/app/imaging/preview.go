@@ -9,7 +9,7 @@ import (
 	"image"
 	"image/jpeg"
 
-	"github.com/disintegration/imaging"
+	"github.com/anthonynsimon/bild/transform"
 )
 
 // GeneratePreview generates the preview for the given image.
@@ -18,7 +18,7 @@ func GeneratePreview(img image.Image, width int) image.Image {
 	w := img.Bounds().Dx()
 
 	if w > width {
-		preview = imaging.Resize(img, width, 0, imaging.Lanczos)
+		preview = Resize(img, width, 0, transform.Lanczos)
 	}
 
 	return preview
@@ -31,16 +31,16 @@ func GenerateThumbnail(img image.Image, targetWidth, targetHeight int) image.Ima
 
 	// We keep aspect ratio and ensure the output dimensions are never higher than the provided targets.
 	if width > height {
-		return imaging.Resize(img, targetWidth, 0, imaging.Lanczos)
+		return Resize(img, targetWidth, 0, transform.Lanczos)
 	}
 
-	return imaging.Resize(img, 0, targetHeight, imaging.Lanczos)
+	return Resize(img, 0, targetHeight, transform.Lanczos)
 }
 
 // GenerateMiniPreviewImage generates the mini preview for the given image.
 func GenerateMiniPreviewImage(img image.Image, w, h, q int) ([]byte, error) {
 	var buf bytes.Buffer
-	preview := imaging.Resize(img, w, h, imaging.Lanczos)
+	preview := Resize(img, w, h, transform.Lanczos)
 	if err := jpeg.Encode(&buf, preview, &jpeg.Options{Quality: q}); err != nil {
 		return nil, fmt.Errorf("failed to encode image to JPEG format: %w", err)
 	}
