@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @notifications
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
@@ -18,7 +17,7 @@ describe('Notifications', () => {
     let testTeam;
 
     beforeEach(() => {
-        cy.apiInitSetup().then(({team, user}) => {
+        cy.apiAdminLogin().apiInitSetup().then(({team, user}) => {
             testUser = user;
             testTeam = team;
 
@@ -48,11 +47,6 @@ describe('Notifications', () => {
                     // # Go to test channel
                     cy.visit(`/${team.name}/channels/${channel.name}`);
 
-                    // # Scroll above the last few messages
-                    cy.get('div.post-list__dynamic', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').
-                        scrollTo(0, '70%', {duration: TIMEOUTS.ONE_SEC}).
-                        wait(TIMEOUTS.ONE_SEC);
-
                     // # scroll to the last channel
                     cy.get('#sidebar-left li').last().scrollIntoView();
                 });
@@ -66,7 +60,11 @@ describe('Notifications', () => {
 
         // # Get last post and reply a message
         cy.getLastPostId().then((postId) => {
+            // # Open the RHS reply form, then scroll above the last few messages
             cy.clickPostCommentIcon(postId);
+            cy.get('div.post-list__dynamic', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').
+                scrollTo(0, '70%', {duration: TIMEOUTS.ONE_SEC}).
+                wait(TIMEOUTS.ONE_SEC);
             const replyMessage = 'A reply to an older post';
             cy.postMessageReplyInRHS(replyMessage);
         });

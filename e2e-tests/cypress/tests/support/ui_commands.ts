@@ -98,7 +98,7 @@ function postMessageAndWait(textboxSelector: string, message: string, isComment 
         waitForCommentDraft(message);
     }
 
-    cy.get(textboxSelector).should('have.value', message).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+    cy.get(textboxSelector).should('have.value', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
     cy.get(textboxSelector).invoke('val').then((value: string) => {
         if (value.length > 0 && value === message) {
@@ -325,12 +325,12 @@ function clickPostHeaderItem(postId: string, location: string, item: string) {
     }
 
     if (postId) {
-        cy.get(`#${idPrefix}_${postId}`).trigger('mouseover', {force: true});
-        cy.wait(TIMEOUTS.HALF_SEC).get(`#${location}_${item}_${postId}`).click({force: true});
+        cy.get(`#${idPrefix}_${postId}`).trigger('mouseover', {force: true}).
+            get(`#${location}_${item}_${postId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
     } else {
         cy.getLastPostId().then((lastPostId) => {
-            cy.get(`#${idPrefix}_${lastPostId}`).trigger('mouseover', {force: true});
-            cy.wait(TIMEOUTS.HALF_SEC).get(`#${location}_${item}_${lastPostId}`).click({force: true});
+            cy.get(`#${idPrefix}_${lastPostId}`).trigger('mouseover', {force: true}).
+                get(`#${location}_${item}_${lastPostId}`).scrollIntoView().trigger('mouseover', {force: true}).click({force: true});
         });
     }
 }
