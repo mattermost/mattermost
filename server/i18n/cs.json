@@ -761,7 +761,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Nepodařilo se načíst Elasticsearch indexy"
+    "translation": "Nepodařilo se obnovit vyhledávací indexy"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -1973,11 +1973,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Nastavení Search EnableIndexing musí být nastaveno na true, když je Elasticsearch EnableSearching nastaveno na true"
+    "translation": "Nastavení {{.EnableIndexing}} musí být nastaveno na hodnotu true, pokud je {{.Searching}} nastaveno na hodnotu true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Nastavení Search EnableIndexing musí být nastaveno na true, když je Elasticsearch EnableAutocomplete nastaveno na true"
+    "translation": "Nastavení {{.EnableIndexing}} musí být nastaveno na hodnotu true, pokud je {{.Autocomplete}} nastaveno na hodnotu true"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -2529,11 +2529,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL nemo uživatelské jméno Elasticsearch serveru se změnilo. Zadejte prosím znovu heslo."
+    "translation": "URL serveru pro vyhledávání nebo uživatelské jméno se změnily. Prosím, zadejte znovu heslo pro otestování připojení."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Vaše licence nepodporuje Elasticsearch."
+    "translation": "Vaše licence Mattermost nepodporuje indexované vyhledávání."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -7809,7 +7809,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Vaše schéma indexu kanálu Elasticsearch je zastaralé. Doporučuje se znovu vytvořit index kanálu.\nChcete-li problém vyřešit, klikněte na tlačítko `Rebuild Channels Index` v [sekce Elasticsearch v systémové konzole]{{.ElasticsearchSection}}.\nDalší informace najdete v seznamu změn Mattermost."
+    "translation": "Schéma indexu kanálů pro vyhledávání je zastaralé. Doporučujeme znovu vygenerovat index kanálů.\nKlikněte na tlačítko `Rebuild Channels Index` [na stránce Elasticsearch prostřednictvím systémové konzole]({{.ElasticsearchSection}}), abyste tento problém vyřešili.\nDalší informace naleznete v changelogu Mattermost."
   },
   {
     "id": "app.channel.bookmark.save.app_error",
@@ -9465,7 +9465,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Nepodařilo se odstranit Elasticsearch index"
+    "translation": "Nepodařilo se odstranit index vyhledávání"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
@@ -10286,5 +10286,89 @@
   {
     "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
     "translation": "Role uživatele nejsou v souladu se stavem hosta."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Nepodařilo se obnovit přílohy souborů k příspěvku"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Nepodařilo se vytvořit pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Nepodařilo se získat pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Byl dosažen limit polí vlastních atributů profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Nepodařilo se získat hodnoty vlastních atributů profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Nepodařilo se smazat pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Pole vlastního atributu profilu nebylo nalezeno"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Nepodařilo se aktualizovat pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Nelze vytvořit hodnotu vlastnosti"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Nepodařilo se načíst hodnoty vlastností"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Nelze aktualizovat hodnotu vlastnosti"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Nepodařilo se vyhledat pole vlastních atributů profilu"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Nepodařilo se odstranit požadované soubory z databáze"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Nepodařilo se získat informace o souborech podle ID pro historii úprav příspěvku."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Nepodařilo se obnovit přílohy souborů k příspěvku."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Nepodařilo se získat starší verzi příspěvku."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Nemáte příslušná oprávnění."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Poskytnuté ID historie příspěvku neodpovídá žádné položce historie pro uvedený příspěvek."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Poskytnuté ID historie příspěvku neodpovídá žádné položce historie pro příspěvek."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Nepodařilo se smazat roli."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Vypočítává se aktivita kanálů: {{.NumCompleted}}/{{.NumChannels}} kanálů dokončeno."
   }
 ]
