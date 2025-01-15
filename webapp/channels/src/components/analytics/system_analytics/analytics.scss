@@ -1,0 +1,45 @@
+details {
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 0.5em 0.5em 0;
+}
+
+summary {
+    font-weight: bold;
+    margin: -0.5em -0.5em 0;
+    padding: 0.5em;
+    padding-left: 1.5em;
+    cursor: pointer;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    position: relative;
+    transition: background 0.15s ease-in-out;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &::marker {
+        display: none;
+    }
+
+    &::before {
+        content: '►';
+        position: absolute;
+        left: 0.5em;
+        transform: rotate(0deg);
+        transition: transform 0.15s ease-in-out;
+    }
+}
+
+details[open] {
+    padding: 0.5em;
+
+    summary {
+        border-bottom: 1px solid #aaa;
+        margin-bottom: 0.5em;
+
+        &::before {
+            transform: rotate(90deg);
+        }
+    }
+}

@@ -16,6 +16,8 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import Constants from 'utils/constants';
 
+import './analytics.scss';
+
 import type {GlobalState} from 'types/store';
 
 import DoughnutChart from '../doughnut_chart';
@@ -40,6 +42,7 @@ type Props = {
 
 type State = {
     pluginSiteStats: Record<string, PluginAnalyticsRow>;
+    lineChartsExpanded: boolean;
 }
 
 const messages = defineMessages({
@@ -83,19 +86,36 @@ export const searchableStrings = [
 export default class SystemAnalytics extends React.PureComponent<Props, State> {
     state = {
         pluginSiteStats: {} as Record<string, PluginAnalyticsRow>,
+        lineChartsExpanded: false,
     };
 
     public async componentDidMount() {
         AdminActions.getStandardAnalytics();
-        AdminActions.getPostsPerDayAnalytics();
-        AdminActions.getBotPostsPerDayAnalytics();
-        AdminActions.getUsersPerDayAnalytics();
 
         if (this.props.isLicensed) {
             AdminActions.getAdvancedAnalytics();
         }
-        this.fetchPluginStats();
     }
+
+    private loadLineChartData = async () => {
+        await Promise.all([
+            AdminActions.getPostsPerDayAnalytics(),
+            AdminActions.getBotPostsPerDayAnalytics(),
+            AdminActions.getUsersPerDayAnalytics(),
+            this.fetchPluginStats(),
+        ]);
+    };
+
+    private handleLineChartsToggle = (e: React.MouseEvent<HTMLDetailsElement>) => {
+        const details = e.currentTarget;
+        const isExpanding = details.open;
+
+        this.setState({lineChartsExpanded: isExpanding});
+
+        if (isExpanding) {
+            this.loadLineChartData();
+        }
+    };
 
     // fetchPluginStats does a call for each one of the registered handlers,
     // wait and set the data in the state
@@ -480,10 +500,22 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                         </div>
                         {advancedGraphs}
                         {pluginDoughnutCharts}
-                        {postTotalGraph}
-                        {botPostTotalGraph}
-                        {activeUserGraph}
-                        {pluginLineCharts}
+                        <details onToggle={this.handleLineChartsToggle}>
+                            <summary>
+                                <FormattedMessage
+                                    id='analytics.system.perDayStatistics'
+                                    defaultMessage='Per Day Statistics'
+                                />
+                            </summary>
+                            {this.state.lineChartsExpanded && (
+                                <>
+                                    {postTotalGraph}
+                                    {botPostTotalGraph}
+                                    {activeUserGraph}
+                                    {pluginLineCharts}
+                                </>
+                            )}
+                        </details>
                     </div>
                 </div>
             </div>

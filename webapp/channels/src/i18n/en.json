@@ -2881,6 +2881,7 @@
   "analytics.system.textPosts": "Posts with Text-only",
   "analytics.system.title": "System Statistics",
   "analytics.system.totalBotPosts": "Total Posts from Bots",
+  "analytics.system.perDayStatistics": "Per Day Statistics",
   "analytics.system.totalChannels": "Total Channels",
   "analytics.system.totalCommands": "Total Commands",
   "analytics.system.totalFilePosts": "Posts with Files",

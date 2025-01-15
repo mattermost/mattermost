@@ -3373,6 +3373,11 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 
 func (s *SqlPostStore) RefreshPostStats() error {
 	if s.DriverName() == model.DatabaseDriverPostgres {
+		// CONCURRENTLY is not used deliberately because as per Postgres docs,
+		// not using CONCURRENTLY takes less resources and completes faster
+		// at the expense of locking the mat view. Since viewing admin console
+		// is not a very frequent activity, we accept the tradeoff to let the
+		// refresh happen as fast as possible.
 		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
 			return errors.Wrap(err, "error refreshing materialized view posts_by_day")
 		}
