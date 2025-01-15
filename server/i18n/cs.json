@@ -10370,5 +10370,29 @@
   {
     "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
     "translation": "Vypočítává se aktivita kanálů: {{.NumCompleted}}/{{.NumChannels}} kanálů dokončeno."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exportuji informace o kanálech pro {{.NumChannels}} kanálů."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Nepodařilo se vypočítat data pro export kanálů."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Nepodařilo se převést hodnotu z datového pole úkolu."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Délka URL metadat odkazu je {{ .Length }} znaků, což přesahuje maximální limit {{ .MaxLength }} znaků."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Neplatné pole vlastnosti: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Neplatná hodnota vlastnosti: {{.FieldName}} ({{.Reason}})."
   }
 ]
