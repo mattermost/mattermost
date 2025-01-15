@@ -38,16 +38,18 @@ func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {
 		rdata.ChildName = m["child_name"].(string)
 		rdata.ParentIdAttr = m["parent_id_attr"].(string)
 		rdata.ChildIdAttr = m["child_id_attr"].(string)
-		for _, recData := range m["records"].([]any) {
-			var record OrphanedRecord
-			m := recData.(map[string]any)
-			if val := m["parent_id"]; val != nil {
-				record.ParentId = NewPointer(val.(string))
+		if _, ok := m["records"].([]any); ok {
+			for _, recData := range m["records"].([]any) {
+				var record OrphanedRecord
+				m := recData.(map[string]any)
+				if val := m["parent_id"]; val != nil {
+					record.ParentId = NewPointer(val.(string))
+				}
+				if val := m["child_id"]; val != nil {
+					record.ChildId = NewPointer(val.(string))
+				}
+				rdata.Records = append(rdata.Records, record)
 			}
-			if val := m["child_id"]; val != nil {
-				record.ChildId = NewPointer(val.(string))
-			}
-			rdata.Records = append(rdata.Records, record)
 		}
 		r.Data = rdata
 	}
