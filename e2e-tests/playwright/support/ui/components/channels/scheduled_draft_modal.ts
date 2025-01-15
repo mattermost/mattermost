@@ -71,7 +71,7 @@ export default class ScheduledDraftModal {
      */
     async selectTime() {
         await this.timeLocator.click();
-        const timeButton = this.timeDropdownOptions.first();
+        const timeButton = this.timeDropdownOptions.nth(1);
         await expect(timeButton).toBeVisible();
         await timeButton.click();
     }

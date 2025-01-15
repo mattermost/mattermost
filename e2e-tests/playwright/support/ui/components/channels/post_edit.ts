@@ -61,7 +61,6 @@ export default class ChannelsPostEdit {
 
         for (let i = 0; i < files.length; i++) {
             const textContent = await files[i].textContent();
-            console.log("*****, i", textContent);
             if (textContent?.includes(fileName)) {
                 const removeButton = files[i].locator('.icon-close');
                 await removeButton.click();

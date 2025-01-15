@@ -29,13 +29,11 @@ export default class ChannelsCenterView {
             container.locator('#dropdown_send_post_options'),
         );
         this.postEdit = new components.ChannelsPostEdit(container.locator('.post-edit__container'));
-
-        this.scheduledDraftChannelInfo = container.locator('div.postBoxIndicator');
         this.postBoxIndicator = container.locator('div.postBoxIndicator');
         this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
         this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
-        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
+        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
     }
 
     async toBeVisible() {
