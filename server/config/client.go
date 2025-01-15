@@ -133,6 +133,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
 	props["MaxMarkdownNodes"] = strconv.FormatInt(int64(*c.DisplaySettings.MaxMarkdownNodes), 10)
+	props["SuggestionDebounceDelay"] = strconv.FormatInt(int64(*c.DisplaySettings.SuggestionDebounceDelay), 10)
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceURL == model.PluginSettingsDefaultMarketplaceURL)
 	props["ExperimentalSharedChannels"] = "false"
 	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
