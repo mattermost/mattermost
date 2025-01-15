@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -30,7 +31,30 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		cmd.Flags().String("message", msgArg, "")
 
 		err := postCreateCmdF(s.client, cmd, []string{"", msgArg})
-		s.Require().EqualError(err, "Unable to find channel ''")
+		s.Require().EqualError(err, "unable to find channel \"\"")
+	})
+
+	s.Run("no user arg specified", func() {
+		msgArg := "some text"
+		wrongUserArg := "@"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.EXPECT().GetMe(context.TODO(), "").Times(1)
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), "", "").Times(1)
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), "", "").
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), "", "").Times(1)
+
+		err := postCreateCmdF(s.client, cmd, []string{wrongUserArg, msgArg})
+		s.Require().EqualError(err, fmt.Errorf("unable to find user %q", wrongUserArg).Error())
 	})
 
 	s.Run("wrong reply msg", func() {

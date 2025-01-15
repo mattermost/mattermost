@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -28,7 +29,7 @@ var PostCreateCmd = &cobra.Command{
 	Use:     "create",
 	Short:   "Create a post",
 	Example: `  post create myteam:mychannel --message "some text for the post"`,
-	Args:    cobra.ExactArgs(1),
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(postCreateCmdF),
 }
 
@@ -85,8 +86,13 @@ func init() {
 
 func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	message, _ := cmd.Flags().GetString("message")
+	// len(args)>1 makes sure that args[1] exists.
+	if len(args) > 1 && args[1] != "" {
+		message = args[1]
+	}
+
 	if message == "" {
-		return errors.New("message cannot be empty")
+		return fmt.Errorf("message cannot be empty")
 	}
 
 	replyTo, _ := cmd.Flags().GetString("reply-to")
@@ -100,13 +106,34 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	channel := getChannelFromChannelArg(c, args[0])
-	if channel == nil {
-		return errors.New("Unable to find channel '" + args[0] + "'")
+	channelID := ""
+	if strings.HasPrefix(args[0], "@") {
+		me, _, err := c.GetMe(context.TODO(), "")
+		if err != nil {
+			return fmt.Errorf("could not get current user: %s", err.Error())
+		}
+
+		userArgString := strings.Split(args[0], "@")[1]
+		user := getUserFromUserArg(c, userArgString)
+		if user == nil {
+			return fmt.Errorf("unable to find user %q", args[0])
+		}
+
+		directChannel, _, err := c.CreateDirectChannel(context.TODO(), me.Id, user.Id)
+		if err != nil {
+			return fmt.Errorf("could not create direct channel: %s", err.Error())
+		}
+		channelID = directChannel.Id
+	} else {
+		channel := getChannelFromChannelArg(c, args[0])
+		if channel == nil {
+			return fmt.Errorf("unable to find channel %q", args[0])
+		}
+		channelID = channel.Id
 	}
 
 	post := &model.Post{
-		ChannelId: channel.Id,
+		ChannelId: channelID,
 		Message:   message,
 		RootId:    replyTo,
 	}
