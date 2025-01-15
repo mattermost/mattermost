@@ -373,7 +373,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		mlog.String("user_id", rpost.UserId),
 		mlog.String("channel_id", rpost.ChannelId),
 	)
-
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
 	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL); appErr != nil {
