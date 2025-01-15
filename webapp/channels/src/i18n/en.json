@@ -4331,6 +4331,7 @@
   "mobile.set_status.dnd.icon": "Do Not Disturb Icon",
   "mobile.set_status.offline.icon": "Offline Icon",
   "mobile.set_status.online.icon": "Online Icon",
+  "modal.header_close": "Close",
   "modal.manual_status.ask": "Do not ask me again",
   "modal.manual_status.auto_responder.message_away": "Would you like to switch your status to \"Away\" and disable automatic replies?",
   "modal.manual_status.auto_responder.message_dnd": "Would you like to switch your status to \"Do not disturb\" and disable automatic replies?",
