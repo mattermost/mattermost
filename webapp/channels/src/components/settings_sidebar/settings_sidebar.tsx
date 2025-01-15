@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -63,10 +64,6 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
     private renderTab(tab: Tab, index: number) {
         const key = `${tab.name}_li`;
         const isActive = this.props.activeTab === tab.name;
-        let className = 'nav-pills__tab';
-        if (isActive) {
-            className += ' active';
-        }
 
         let icon;
         if (typeof tab.icon === 'string') {
@@ -91,7 +88,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                 key={key}
                 ref={this.buttonRefs[index]}
                 id={`${tab.name}Button`}
-                className={`cursor--pointer style--none ${className}`}
+                className={classNames('cursor--pointer style--none nav-pills__tab', {active: isActive})}
                 onClick={this.handleClick.bind(null, tab)}
                 onKeyUp={this.handleKeyUp.bind(null, index)}
                 aria-label={tab.uiName.toLowerCase()}
@@ -122,7 +119,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                             role='heading'
                             className={'header'}
                             aria-level={3}
-                            id='userSettingsModal.pluginPreferences.header'
+                            id='userSettingsModal_pluginPreferences_header'
                         >
                             <FormattedMessage
                                 id={'userSettingsModal.pluginPreferences.header'}
