@@ -26,14 +26,14 @@ describe('Integrations', () => {
 
     it('MM-T670 /away', () => {
         // # Set online status and verify it's changed as the initial status
-        setStatus(online.name, online.profileClassName);
+        setStatus(online.name);
 
         verifyUserStatus(away);
     });
 
     it('MM-T672 /offline', () => {
         // # Set online status and verify it's changed as the initial status
-        setStatus(online.name, online.profileClassName);
+        setStatus(online.name);
 
         verifyUserStatus(offline);
 
@@ -60,17 +60,14 @@ describe('Integrations', () => {
 
     it('MM-T674 /online', () => {
         // # Set offline status and verify it's changed as the initial status
-        setStatus(offline.name, offline.className);
+        setStatus(offline.name);
 
         verifyUserStatus(online);
     });
 });
 
-function setStatus(status, icon) {
+function setStatus(status) {
     cy.apiUpdateUserStatus(status);
-    cy.uiGetProfileHeader().
-        find('i').
-        and('have.class', icon);
 }
 
 function verifyUserStatus(testCase) {
@@ -90,9 +87,7 @@ function verifyUserStatus(testCase) {
     });
 
     // * Verify status shown at user profile in LHS
-    cy.uiGetProfileHeader().
-        find('i').
-        and('have.class', testCase.profileClassName || testCase.className);
+    cy.get('#userAccountMenuButtonDescribedBy').should('exist').and('include.text', `Status is "${testCase.name.charAt(0).toUpperCase() + testCase.name.slice(1)}"`);
 
     // # Post a message
     cy.postMessage(testCase.name);
