@@ -27,7 +27,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
           class="emoji-picker__search"
           data-testid="emojiInputSearch"
           id="emojiPickerSearch"
-          placeholder="Search Emoji"
+          placeholder="Search emojis"
           type="text"
           value=""
         />
