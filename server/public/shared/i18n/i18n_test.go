@@ -9,27 +9,24 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/go-i18n/i18n/bundle"
-	"github.com/mattermost/go-i18n/i18n/language"
-	"github.com/mattermost/go-i18n/i18n/translation"
 	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/text/language"
 )
 
-var htmlTestTranslationBundle *bundle.Bundle
-
 func init() {
-	htmlTestTranslationBundle = bundle.New()
-	fooBold, _ := translation.NewTranslation(map[string]any{
-		"id":          "foo.bold",
-		"translation": "<p>[[{{ .Foo }}]]</p>",
-	})
-	htmlTestTranslationBundle.AddTranslation(&language.Language{Tag: "en"}, fooBold)
+	bundle = i18n.NewBundle(language.English)
+	messages := []*i18n.Message{{
+		ID:    "foo.bold",
+		Other: "<p>[[{{.Foo}}]]</p>",
+	}}
+	bundle.AddMessages(language.English, messages...)
 }
 
 func TestTranslateAsHTML(t *testing.T) {
-	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]any{
+	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHTML(tfuncWithFallback("en"), "foo.bold", map[string]any{
 		"Foo": "<i>foo</i>",
 	}))
 }
@@ -99,23 +96,27 @@ func TestInitTranslationsWithDir(t *testing.T) {
 
 	t.Run("unsupported locale ignored", func(t *testing.T) {
 		tempDir := setup(t, map[string]string{"en": "en", "fr": "fr", "zz": "en"})
+		b := newBundle()
 
-		err := initTranslationsWithDir(tempDir)
+		err := initTranslationsWithDir(b, tempDir)
 		require.NoError(t, err)
 
+		locales := GetSupportedLocales()
 		_, found := locales["zz"]
 		require.False(t, found, "should have ignored unsupported locale")
 	})
 
 	t.Run("malformed, unsupported locale ignored", func(t *testing.T) {
+		b := newBundle()
 		tempDir := setup(t, map[string]string{"en": "en", "fr": "fr", "zz": "en"})
 
 		err := os.WriteFile(filepath.Join(tempDir, "xx.json"), []byte{'{'}, os.ModePerm)
 		require.NoError(t, err)
 
-		err = initTranslationsWithDir(tempDir)
+		err = initTranslationsWithDir(b, tempDir)
 		require.NoError(t, err)
 
+		locales := GetSupportedLocales()
 		_, found := locales["xx"]
 		require.False(t, found, "should have ignored malformed, unsupported locale")
 	})
@@ -126,16 +127,22 @@ func TestInitTranslationsWithDir(t *testing.T) {
 		err := os.WriteFile(filepath.Join(tempDir, "en.json"), []byte{'{'}, os.ModePerm)
 		require.NoError(t, err)
 
-		err = initTranslationsWithDir(tempDir)
+		b := newBundle()
+		err = initTranslationsWithDir(b, tempDir)
 		require.Error(t, err, "should have failed to load malformed, supported locale")
 	})
 
 	t.Run("known locales loaded ", func(t *testing.T) {
 		tempDir := setup(t, map[string]string{"en": "en", "fr": "fr"})
+		b := newBundle()
 
-		err := initTranslationsWithDir(tempDir)
+		err := initTranslationsWithDir(b, tempDir)
 		require.NoError(t, err)
 
+		// need to set the bundle
+		bundle = b
+
+		locales := GetSupportedLocales()
 		_, found := locales["en"]
 		require.True(t, found, "should have found en locale")
 		_, found = locales["fr"]
