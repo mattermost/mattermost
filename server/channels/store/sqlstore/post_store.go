@@ -2292,8 +2292,79 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 	return rows, nil
 }
 
+func (s *SqlPostStore) countBotPostsByDay(teamID, startDay, endDay string) (model.AnalyticsRows, error) {
+	var query sq.SelectBuilder
+	if teamID != "" {
+		query = s.getQueryBuilder().
+			Select("TO_CHAR(day, 'YYYY-MM-DD') as Name, num as Value").
+			From("bot_posts_by_team_day").
+			Where(sq.Eq{"teamid": teamID})
+	} else {
+		query = s.getQueryBuilder().
+			Select("TO_CHAR(day, 'YYYY-MM-DD') as Name, COALESCE(SUM(num), 0) as Value").
+			From("bot_posts_by_team_day").
+			GroupBy("Name")
+	}
+
+	query = query.
+		Where(sq.GtOrEq{"day": startDay}).
+		Where(sq.LtOrEq{"day": endDay}).
+		OrderBy("Name DESC").
+		Limit(30)
+
+	rows := model.AnalyticsRows{}
+	err := s.GetReplica().SelectBuilder(&rows, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find bot posts with teamId=%s", teamID)
+	}
+
+	return rows, nil
+}
+
+func (s *SqlPostStore) countPostsByDay(teamID, startDay, endDay string) (model.AnalyticsRows, error) {
+	var query sq.SelectBuilder
+	if teamID != "" {
+		query = s.getQueryBuilder().
+			Select("TO_CHAR(day, 'YYYY-MM-DD') as Name, num as Value").
+			From("posts_by_team_day").
+			Where(sq.Eq{"teamid": teamID})
+	} else {
+		query = s.getQueryBuilder().
+			Select("TO_CHAR(day, 'YYYY-MM-DD') as Name, COALESCE(SUM(num), 0) as Value").
+			From("posts_by_team_day").
+			GroupBy("Name")
+	}
+
+	query = query.
+		Where(sq.GtOrEq{"day": startDay}).
+		Where(sq.LtOrEq{"day": endDay}).
+		OrderBy("Name DESC").
+		Limit(30)
+
+	rows := model.AnalyticsRows{}
+	err := s.GetReplica().SelectBuilder(&rows, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find posts with teamId=%s", teamID)
+	}
+
+	return rows, nil
+}
+
 // TODO: convert to squirrel HW
 func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		endDay := utils.Yesterday().Format("2006-01-02")
+		startDay := utils.Yesterday().AddDate(0, 0, -31).Format("2006-01-02")
+		if options.YesterdayOnly {
+			startDay = utils.Yesterday().AddDate(0, 0, -1).Format("2006-01-02")
+		}
+		// Use materialized views
+		if options.BotsOnly {
+			return s.countBotPostsByDay(options.TeamId, startDay, endDay)
+		}
+		return s.countPostsByDay(options.TeamId, startDay, endDay)
+	}
+
 	var args []any
 	query :=
 		`SELECT
@@ -2318,30 +2389,6 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 		ORDER BY Name DESC
 		LIMIT 30`
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query =
-			`SELECT
-				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
-			FROM Posts`
-
-		if options.BotsOnly {
-			query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
-		}
-
-		if options.TeamId != "" {
-			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = ? AND"
-			args = []any{options.TeamId}
-		} else {
-			query += " WHERE"
-		}
-
-		query += ` Posts.CreateAt <= ?
-			            AND Posts.CreateAt >= ?
-			GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
-			ORDER BY Name DESC
-			LIMIT 30`
-	}
-
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
 	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
 	if options.YesterdayOnly {
@@ -2350,17 +2397,45 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 	args = append(args, end, start)
 
 	rows := model.AnalyticsRows{}
-	err := s.GetReplica().Select(
-		&rows,
-		query,
-		args...)
+	err := s.GetReplica().Select(&rows, query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with teamId=%s", options.TeamId)
 	}
 	return rows, nil
 }
 
+func (s *SqlPostStore) countByTeam(teamID string) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COALESCE(SUM(num), 0) AS total").
+		From("posts_by_team_day")
+
+	if teamID != "" {
+		query = query.Where(sq.Eq{"teamid": teamID})
+	}
+
+	var v int64
+	err := s.GetReplica().GetBuilder(&v, query)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count Posts by team: %w, teamID: %s", err, teamID)
+	}
+
+	return v, nil
+}
+
 func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		// Only call this method if no other options are passed.
+		// This is specialized for system console stats.
+		if !options.UsersPostsOnly &&
+			!options.MustHaveFile &&
+			!options.MustHaveHashtag &&
+			!options.ExcludeDeleted &&
+			!options.ExcludeSystemPosts &&
+			options.SinceUpdateAt == 0 &&
+			options.UntilUpdateAt == 0 {
+			return s.countByTeam(options.TeamId)
+		}
+	}
 	query := s.getQueryBuilder().
 		Select("COUNT(*) AS Value").
 		From("Posts p")
@@ -2553,7 +2628,7 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolic
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
-	if s.DriverName() == "postgres" {
+	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? LIMIT ?))"
 	} else {
 		query = "DELETE from Posts WHERE CreateAt < ? LIMIT ?"
@@ -3294,4 +3369,18 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 	}
 
 	return meta, nil
+}
+
+func (s *SqlPostStore) RefreshPostStats() error {
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
+			return errors.Wrap(err, "error refreshing materialized view posts_by_day")
+		}
+
+		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {
+			return errors.Wrap(err, "error refreshing materialized view bot_posts_by_day")
+		}
+	}
+
+	return nil
 }

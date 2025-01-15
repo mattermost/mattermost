@@ -41,11 +41,11 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 
 	switch name {
 	case "standard":
-		return a.getStandardAnalytics(rctx, teamID, systemUserCount, skipIntensiveQueries)
+		return a.getStandardAnalytics(rctx, teamID, systemUserCount)
 	case "bot_post_counts_day":
-		return a.getBotPostCountsAnalytics(rctx, teamID, skipIntensiveQueries)
+		return a.getBotPostCountsAnalytics(rctx, teamID)
 	case "post_counts_day":
-		return a.getPostCountsAnalytics(rctx, teamID, skipIntensiveQueries)
+		return a.getPostCountsAnalytics(rctx, teamID)
 	case "user_counts_with_posts_day":
 		return a.getUserCountsWithPostsAnalytics(rctx, teamID, skipIntensiveQueries)
 	case "extra_counts":
@@ -55,7 +55,7 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 	}
 }
 
-func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCount int64, skipIntensiveQueries bool) (model.AnalyticsRows, *model.AppError) {
+func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCount int64) (model.AnalyticsRows, *model.AppError) {
 	var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 11)
 	rows[0] = &model.AnalyticsRow{Name: "channel_open_count", Value: 0}
 	rows[1] = &model.AnalyticsRow{Name: "channel_private_count", Value: 0}
@@ -70,6 +70,7 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 	rows[10] = &model.AnalyticsRow{Name: "inactive_user_count", Value: 0}
 
 	var g errgroup.Group
+	g.SetLimit(2)
 	var channelCounts map[model.ChannelType]int64
 	g.Go(func() error {
 		var err error
@@ -100,15 +101,13 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 	}
 
 	var postsCount int64
-	if !skipIntensiveQueries {
-		g.Go(func() error {
-			var err error
-			if postsCount, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID}); err != nil {
-				return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			return nil
-		})
-	}
+	g.Go(func() error {
+		var err error
+		if postsCount, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID}); err != nil {
+			return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil
+	})
 
 	var teamsCount int64
 	g.Go(func() error {
@@ -143,12 +142,7 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 
 	rows[0].Value = float64(channelCounts[model.ChannelTypeOpen])
 	rows[1].Value = float64(channelCounts[model.ChannelTypePrivate])
-
-	if skipIntensiveQueries {
-		rows[2].Value = -1
-	} else {
-		rows[2].Value = float64(postsCount)
-	}
+	rows[2].Value = float64(postsCount)
 
 	if teamID == "" {
 		rows[3].Value = float64(systemUserCount)
@@ -192,15 +186,10 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 	return rows, nil
 }
 
-func (a *App) getBotPostCountsAnalytics(rctx request.CTX, teamID string, skipIntensiveQueries bool) (model.AnalyticsRows, *model.AppError) {
-	if skipIntensiveQueries {
-		rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
-		return rows, nil
-	}
+func (a *App) getBotPostCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, *model.AppError) {
 	analyticsRows, nErr := a.Srv().Store().Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
-		TeamId:        teamID,
-		BotsOnly:      true,
-		YesterdayOnly: false,
+		TeamId:   teamID,
+		BotsOnly: true,
 	})
 	if nErr != nil {
 		return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count_by_day.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -209,15 +198,10 @@ func (a *App) getBotPostCountsAnalytics(rctx request.CTX, teamID string, skipInt
 	return analyticsRows, nil
 }
 
-func (a *App) getPostCountsAnalytics(rctx request.CTX, teamID string, skipIntensiveQueries bool) (model.AnalyticsRows, *model.AppError) {
-	if skipIntensiveQueries {
-		rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
-		return rows, nil
-	}
+func (a *App) getPostCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, *model.AppError) {
 	analyticsRows, nErr := a.Srv().Store().Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
-		TeamId:        teamID,
-		BotsOnly:      false,
-		YesterdayOnly: false,
+		TeamId:   teamID,
+		BotsOnly: false,
 	})
 	if nErr != nil {
 		return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count_by_day.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -249,10 +233,10 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string, skipInten
 	rows[4] = &model.AnalyticsRow{Name: "command_count", Value: 0}
 	rows[5] = &model.AnalyticsRow{Name: "session_count", Value: 0}
 
-	var g2 errgroup.Group
-
 	var incomingWebhookCount int64
-	g2.Go(func() error {
+	var g errgroup.Group
+	g.SetLimit(2)
+	g.Go(func() error {
 		var err error
 		if incomingWebhookCount, err = a.Srv().Store().Webhook().AnalyticsIncomingCount(teamID, ""); err != nil {
 			return model.NewAppError("GetAnalytics", "app.webhooks.analytics_incoming_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -261,7 +245,7 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string, skipInten
 	})
 
 	var outgoingWebhookCount int64
-	g2.Go(func() error {
+	g.Go(func() error {
 		var err error
 		if outgoingWebhookCount, err = a.Srv().Store().Webhook().AnalyticsOutgoingCount(teamID); err != nil {
 			return model.NewAppError("GetAnalytics", "app.webhooks.analytics_outgoing_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -270,7 +254,7 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string, skipInten
 	})
 
 	var commandsCount int64
-	g2.Go(func() error {
+	g.Go(func() error {
 		var err error
 		if commandsCount, err = a.Srv().Store().Command().AnalyticsCommandCount(teamID); err != nil {
 			return model.NewAppError("GetAnalytics", "app.analytics.getanalytics.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -279,7 +263,7 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string, skipInten
 	})
 
 	var sessionsCount int64
-	g2.Go(func() error {
+	g.Go(func() error {
 		var err error
 		if sessionsCount, err = a.Srv().Store().Session().AnalyticsSessionCount(); err != nil {
 			return model.NewAppError("GetAnalytics", "app.session.analytics_session_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -290,7 +274,7 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string, skipInten
 	var filesCount int64
 	var hashtagsCount int64
 	if !skipIntensiveQueries {
-		g2.Go(func() error {
+		g.Go(func() error {
 			var err error
 			if filesCount, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID, MustHaveFile: true}); err != nil {
 				return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -298,7 +282,7 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string, skipInten
 			return nil
 		})
 
-		g2.Go(func() error {
+		g.Go(func() error {
 			var err error
 			if hashtagsCount, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID, MustHaveHashtag: true}); err != nil {
 				return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -307,7 +291,7 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string, skipInten
 		})
 	}
 
-	if err := g2.Wait(); err != nil {
+	if err := g.Wait(); err != nil {
 		return nil, err.(*model.AppError)
 	}
 

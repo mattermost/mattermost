@@ -1163,6 +1163,24 @@ func (_m *PostStore) PermanentDeleteByUser(rctx request.CTX, userID string) erro
 	return r0
 }
 
+// RefreshPostStats provides a mock function with given fields:
+func (_m *PostStore) RefreshPostStats() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for RefreshPostStats")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: rctx, post
 func (_m *PostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	ret := _m.Called(rctx, post)

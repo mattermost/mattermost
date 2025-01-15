@@ -413,6 +413,8 @@ type PostStore interface {
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
+	// RefreshPostStats refreshes the various materialized views for admin console post stats.
+	RefreshPostStats() error
 }
 
 type UserStore interface {

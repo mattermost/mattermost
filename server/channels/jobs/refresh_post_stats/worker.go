@@ -18,6 +18,10 @@ func MakeWorker(jobServer *jobs.JobServer, sqlDriverName string) *jobs.SimpleWor
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)
 
+		if err := jobServer.Store.Post().RefreshPostStats(); err != nil {
+			return err
+		}
+
 		return jobServer.Store.User().RefreshPostStatsForUsers()
 	}
 	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
