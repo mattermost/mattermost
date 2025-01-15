@@ -30,15 +30,16 @@ exports[`components/post_edit_history should display error screen if errors are 
             class="pull-right"
           >
             <button
+              aria-label="Expand Sidebar Icon"
               class="sidebar--right__expand btn btn-icon btn-sm"
               type="button"
             >
               <i
-                aria-label="Expand Sidebar Icon"
+                aria-hidden="true"
                 class="icon icon-arrow-expand"
               />
               <i
-                aria-label="Collapse Sidebar Icon"
+                aria-hidden="true"
                 class="icon icon-arrow-collapse"
               />
             </button>
@@ -192,15 +193,16 @@ exports[`components/post_edit_history should match snapshot 1`] = `
             class="pull-right"
           >
             <button
+              aria-label="Expand Sidebar Icon"
               class="sidebar--right__expand btn btn-icon btn-sm"
               type="button"
             >
               <i
-                aria-label="Expand Sidebar Icon"
+                aria-hidden="true"
                 class="icon icon-arrow-expand"
               />
               <i
-                aria-label="Collapse Sidebar Icon"
+                aria-hidden="true"
                 class="icon icon-arrow-collapse"
               />
             </button>
