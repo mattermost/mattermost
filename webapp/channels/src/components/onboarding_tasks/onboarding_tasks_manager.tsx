@@ -37,9 +37,10 @@ import {
     TTNameMapToATStatusKey,
     TutorialTourName,
 } from 'components/tours';
+import {ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON} from 'components/user_account_menu/user_account_menu';
 
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {clickOnMenuButton, MenuButtonIds} from 'utils/keyboard';
+import {clickOnMenuButton} from 'utils/keyboard';
 
 import type {GlobalState} from 'types/store';
 
@@ -239,7 +240,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
             break;
         }
         case OnboardingTasksName.COMPLETE_YOUR_PROFILE: {
-            clickOnMenuButton(MenuButtonIds.userAccountMenu);
+            clickOnMenuButton(ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON);
             dispatch(setShowOnboardingCompleteProfileTour(true));
             handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED, true);
             if (inAdminConsole) {

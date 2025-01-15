@@ -34,6 +34,8 @@ import {MenuContext, useMenuContextValue} from './menu_context';
 
 import './menu.scss';
 
+export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
+
 const MENU_OPEN_ANIMATION_DURATION = 150;
 const MENU_CLOSE_ANIMATION_DURATION = 100;
 
@@ -255,6 +257,11 @@ export function Menu(props: Props) {
                         timeout: {
                             enter: MENU_OPEN_ANIMATION_DURATION,
                             exit: MENU_CLOSE_ANIMATION_DURATION,
+                        },
+                    }}
+                    slotProps={{
+                        backdrop: {
+                            id: ELEMENT_ID_FOR_MENU_BACKDROP,
                         },
                     }}
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

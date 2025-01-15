@@ -16,6 +16,8 @@ import {
 import * as Menu from 'components/menu';
 import {CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 
+export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenuButton';
+
 type Props = {
     canCreateChannel: boolean;
     onCreateNewChannelClick: () => void;
@@ -141,7 +143,7 @@ export default function BrowserOrAddChannelMenu(props: Props) {
     return (
         <Menu.Container
             menuButton={{
-                id: 'browserOrAddChannelMenuButton',
+                id: ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU,
                 'aria-label': formatMessage({
                     id: 'sidebarLeft.browserOrCreateChannel.title',
                     defaultMessage: 'Browse or create channels',
@@ -150,7 +152,6 @@ export default function BrowserOrAddChannelMenu(props: Props) {
                 children: <PlusIcon size={18}/>,
             }}
             menuButtonTooltip={{
-                id: 'browserOrAddChannelMenuButtonTooltip',
                 text: formatMessage({id: 'sidebarLeft.browserOrCreateChannel.ariaLabel', defaultMessage: 'Browse or create channels'}),
             }}
             menu={{

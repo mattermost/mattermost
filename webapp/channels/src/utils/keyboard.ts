@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ELEMENT_ID_FOR_MENU_BACKDROP} from 'components/menu';
+
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
@@ -34,10 +36,6 @@ export function isKeyPressed(event: React.KeyboardEvent | KeyboardEvent, key: [s
     return event.keyCode === key[1];
 }
 
-export const MenuButtonIds = {
-    userAccountMenu: 'userAccountMenuButton',
-} as const;
-
 /**
  * Since the menu component requires actual interaction with the button
  * of the menu for opening the menus, we trigger it from here
@@ -49,4 +47,13 @@ export function clickOnMenuButton(buttonId: string) {
     }
 
     menuButton.click();
+}
+
+export function clickOnMenuOverlay() {
+    const menuOverlay = document.getElementById(ELEMENT_ID_FOR_MENU_BACKDROP);
+    if (!menuOverlay) {
+        return;
+    }
+
+    menuOverlay.click();
 }

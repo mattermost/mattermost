@@ -3,7 +3,7 @@
 
 import './menu.scss';
 
-export {Menu as Container} from './menu';
+export {Menu as Container, ELEMENT_ID_FOR_MENU_BACKDROP} from './menu';
 export {SubMenu} from './sub_menu';
 export {MenuItem as Item} from './menu_item';
 export type {FirstMenuItemProps} from './menu_item';
