@@ -80,7 +80,7 @@ function ThreadFooter({
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
     }, [isFollowing]);
 
-    if (post.delete_at !== 0 || post.state === Posts.POST_DELETED) {
+    if (post.delete_at > 0 || post.state === Posts.POST_DELETED) {
         return null;
     }
 
