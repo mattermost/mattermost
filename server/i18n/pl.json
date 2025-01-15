@@ -3089,11 +3089,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Twoja licencja nie wspiera Elasticsearch."
+    "translation": "Twoja licencja Mattermost nie obsługuje wyszukiwania indeksowanego."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "Adres URL lub nazwa serwera Elasticsearch została zmieniona. Ponownie wprowadź hasło Elasticsearch, aby przetestować połączenie."
+    "translation": "Adres URL serwera wyszukiwania lub nazwa użytkownika uległy zmianie. Wprowadź ponownie hasło, aby przetestować połączenie."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3609,7 +3609,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Ustawienie Search EnableIndexing musi być włączone, gdy jest włączone Elasticsearch EnableSearching"
+    "translation": "{{.EnableIndexing}} ustawienie musi mieć wartość włączone, gdy {{.Searching}} ma wartość włączone"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4777,7 +4777,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Ustawienie Search EnableIndexing musi być włączone, gdy Elasticsearch EnableAutocomplete jest włączone"
+    "translation": "{{.EnableIndexing}} ustawienie musi mieć wartość właczone, gdy {{.Autocomplete}} ma wartość włączone"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4857,7 +4857,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Nie udało się pobrać indeksu ElasticSearch"
+    "translation": "Nie udało się odświeżyć indeksów wyszukiwania"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -9749,7 +9749,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Nie udało się usunąć indeksu Elasticsearch"
+    "translation": "Nie udało się usunąć indeksu wyszukiwania"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -10322,5 +10322,77 @@
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Nie znaleziono pola atrybutu profilu niestandardowego"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Nie można pobrać wartości właściwości"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Nie można zaktualizować wartości właściwości"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Nie można przeszukiwać pól atrybutów profilu niestandardowego"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Nie udało się usunąć żądanych plików z bazy danych"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Nie można uzyskać informacji o plikach według identyfikatorów dla historii edycji postów."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Nie udało się przywrócić załączników pliku poczty."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Nie udało się pobrać starej wersji posta."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Nie masz odpowiednich uprawnień."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Podany identyfikator historii postu nie odpowiada żadnemu elementowi historii dla określonego postu."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Podany identyfikator historii postów nie odpowiada elementowi historii postów."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Nie można usunąć roli."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Obliczanie aktywności kanałów: {{.NumCompleted}}/{{.NumChannels}} kanałów ukończonych."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Eksport informacji o kanałach dla {{.NumChannels}} kanałów."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Nie udało się obliczyć danych eksportu kanału."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Nie udało się przekonwertować wartości z pola danych zadania."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Długość adresu URL metadanych linku wynosi {{ .Length }} znaków, co przekracza maksymalny limit {{ .MaxLength }} znaków."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Nieprawidłowe pole właściwości: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Nieprawidłowa wartość właściwości: {{.FieldName}} ({{.Reason}})."
   }
 ]
