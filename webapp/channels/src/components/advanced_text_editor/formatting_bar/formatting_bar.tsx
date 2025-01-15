@@ -278,6 +278,9 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                                 className='control'
                                 onClick={makeFormattingHandler(mode)}
                                 disabled={disableControls}
+                                {...!showHiddenControls && {
+                                    tabIndex: -1,
+                                }}
                             />
                         );
                     })}
