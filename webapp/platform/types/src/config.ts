@@ -74,6 +74,7 @@ export type ClientConfig = {
     EnableGifPicker: string;
     EnableGuestAccounts: string;
     EnableIncomingWebhooks: string;
+    EnableRenderEmoticonsAsEmoji: string;
     EnableJoinLeaveMessageByDefault: string;
     EnableLatex: string;
     EnableInlineLatex: string;
@@ -428,6 +429,7 @@ export type TeamSettings = {
     ExperimentalDefaultChannels: string[];
     EnableLastActiveTime: boolean;
     EnableJoinLeaveMessageByDefault: boolean;
+    EnableRenderEmoticonsAsEmoji: boolean;
 };
 
 export type ClientRequirements = {
