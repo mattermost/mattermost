@@ -60,11 +60,12 @@ const AtMention = (props: Props) => {
         return (
             <>
                 <ProfilePopover
-                    triggerComponentClass={classNames({'mention--highlight': highlightMention})}
+                    triggerComponentClass={classNames('style--none', {'mention--highlight': highlightMention})}
                     userId={user.id}
                     src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
                     channelId={props.channelId}
                     returnFocus={returnFocus}
+                    triggerComponentAs='button'
                 >
                     <a
                         ref={ref}

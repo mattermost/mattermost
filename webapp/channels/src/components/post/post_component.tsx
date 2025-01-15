@@ -566,7 +566,6 @@ const PostComponent = (props: Props): JSX.Element => {
                     channelId={post.channel_id}
                 />
                 <div
-                    role='application'
                     className={`post__content ${props.center ? 'center' : ''}`}
                     data-testid='postContent'
                 >
