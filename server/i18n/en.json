@@ -6587,6 +6587,10 @@
     "translation": "The provided role does not exist"
   },
   {
+    "id": "app.role.delete.app_error",
+    "translation": "Unable to delete role."
+  },
+  {
     "id": "app.role.get.app_error",
     "translation": "Unable to get role."
   },
