@@ -42,7 +42,7 @@ const PersistentNotificationsIcon = styled(BellRingOutlineIcon)`
     fill: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
-const Header = styled.h4`
+const Header = styled.h2`
     align-items: center;
     display: flex;
     gap: 8px;
