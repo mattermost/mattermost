@@ -4,6 +4,10 @@
 
     &__right {
         flex: 1;
+
+        .priorityLabelsContainer {
+            padding: 0 0 0 8px;
+        }
     }
 
     &.post:hover {

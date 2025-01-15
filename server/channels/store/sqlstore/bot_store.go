@@ -94,7 +94,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, er
 	`
 
 	var bot model.Bot
-	if err := us.GetReplicaX().Get(&bot, query, botUserId); err == sql.ErrNoRows {
+	if err := us.GetReplica().Get(&bot, query, botUserId); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("Bot", botUserId)
 	} else if err != nil {
 		return nil, errors.Wrapf(err, "selectone: user_id=%s", botUserId)
@@ -155,7 +155,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 	args = append(args, options.PerPage, options.Page*options.PerPage)
 
 	bots := []*model.Bot{}
-	if err := us.GetReplicaX().Select(&bots, sql, args...); err != nil {
+	if err := us.GetReplica().Select(&bots, sql, args...); err != nil {
 		return nil, errors.Wrap(err, "error selecting all bots")
 	}
 
@@ -172,7 +172,7 @@ func (us SqlBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 		return nil, err
 	}
 
-	if _, err := us.GetMasterX().NamedExec(`INSERT INTO Bots
+	if _, err := us.GetMaster().NamedExec(`INSERT INTO Bots
 		(UserId, Description, OwnerId, LastIconUpdate, CreateAt, UpdateAt, DeleteAt)
 		VALUES
 		(:UserId, :Description, :OwnerId, :LastIconUpdate, :CreateAt, :UpdateAt, :DeleteAt)`, botFromModel(bot)); err != nil {
@@ -204,7 +204,7 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	oldBot.DeleteAt = bot.DeleteAt
 	bot = oldBot
 
-	res, err := us.GetMasterX().NamedExec(`UPDATE Bots
+	res, err := us.GetMaster().NamedExec(`UPDATE Bots
 		SET Description=:Description, OwnerId=:OwnerId, LastIconUpdate=:LastIconUpdate,
 			UpdateAt=:UpdateAt, DeleteAt=:DeleteAt
 		WHERE UserId=:UserId`, botFromModel(bot))
@@ -226,7 +226,7 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 // If the corresponding user is to be deleted, it must be done via the user store.
 func (us SqlBotStore) PermanentDelete(botUserId string) error {
 	query := "DELETE FROM Bots WHERE UserId = ?"
-	if _, err := us.GetMasterX().Exec(query, botUserId); err != nil {
+	if _, err := us.GetMaster().Exec(query, botUserId); err != nil {
 		return store.NewErrInvalidInput("Bot", "UserId", botUserId).Wrap(err)
 	}
 	return nil
@@ -241,7 +241,7 @@ func (us SqlBotStore) GetAllAfter(limit int, afterId string) ([]*model.Bot, erro
 	}
 
 	bots := []*model.Bot{}
-	if err := us.GetReplicaX().Select(&bots, queryString, args...); err != nil {
+	if err := us.GetReplica().Select(&bots, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Bots")
 	}
 
@@ -258,7 +258,7 @@ func (us SqlBotStore) GetByUsername(username string) (*model.Bot, error) {
 	}
 
 	bot := model.Bot{}
-	if err := us.GetReplicaX().Get(&bot, queryString, args...); err != nil {
+	if err := us.GetReplica().Get(&bot, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.Wrap(store.NewErrNotFound("Bot", fmt.Sprintf("username=%s", username)), "failed to find Bot")
 		}

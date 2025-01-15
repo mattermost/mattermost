@@ -405,7 +405,7 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsy
 
         const actions: AnyAction[] = [];
         for (const channelId in channelProfiles) {
-            if (channelProfiles.hasOwnProperty(channelId)) {
+            if (Object.hasOwn(channelProfiles, channelId)) {
                 const profiles = channelProfiles[channelId];
 
                 actions.push(
@@ -967,6 +967,18 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
         dispatch(loadRolesIfNeeded(data.roles.split(' ')));
 
         return {data};
+    };
+}
+
+export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync {
+    return async (dispatch) => {
+        try {
+            await Client4.updateCustomProfileAttributeValues(attributeID, attributeValue);
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+        return {data: true};
     };
 }
 

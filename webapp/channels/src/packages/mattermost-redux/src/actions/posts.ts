@@ -180,7 +180,7 @@ export function createPost(
     post: Post,
     files: any[] = [],
     afterSubmit?: (response: any) => void,
-): ActionFuncAsync<CreatePostReturnType, GlobalState> {
+): ActionFuncAsync<CreatePostReturnType> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
@@ -512,7 +512,7 @@ export type SubmitReactionReturnType = {
     removedReaction?: boolean;
 }
 
-export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType, GlobalState> {
+export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -534,7 +534,7 @@ export function addReaction(postId: string, emojiName: string): ActionFuncAsync<
     };
 }
 
-export function removeReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType, GlobalState> {
+export function removeReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -1315,5 +1315,25 @@ export function unacknowledgePost(postId: string): ActionFuncAsync {
         });
 
         return {data};
+    };
+}
+
+export function restorePostVersion(postId: string, restoreVersionId: string, connectionId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.restorePostVersion(postId, restoreVersionId, connectionId);
+        } catch (error) {
+            // Send to error bar if it's an edit post error about time limit.
+            if (error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
+                dispatch(logError({type: 'announcement', message: error.message}, true));
+            } else {
+                dispatch(logError(error));
+            }
+
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
+
+        return {data: true};
     };
 }

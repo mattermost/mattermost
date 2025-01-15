@@ -10,6 +10,7 @@ export default class SystemUsers {
     readonly container: Locator;
 
     readonly searchInput: Locator;
+    readonly saveRoleChange: Locator;
     readonly columnToggleMenuButton: Locator;
     readonly dateRangeSelectorMenuButton: Locator;
     readonly exportButton: Locator;
@@ -22,6 +23,7 @@ export default class SystemUsers {
         this.container = container;
 
         this.searchInput = this.container.getByLabel('Search users');
+        this.saveRoleChange = this.container.locator('button.btn-primary:has-text("Save")');
         this.columnToggleMenuButton = this.container.locator('#systemUsersColumnTogglerMenuButton');
         this.dateRangeSelectorMenuButton = this.container.locator('#systemUsersDateRangeSelectorMenuButton');
         this.exportButton = this.container.getByText('Export');

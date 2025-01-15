@@ -577,7 +577,7 @@ https://myothersite.com/api/v2"
                       onHide={[Function]}
                       renderBackdrop={[Function]}
                       restoreFocus={true}
-                      role="dialog"
+                      role="none"
                       show={false}
                     >
                       <Modal
@@ -678,7 +678,7 @@ https://myothersite.com/api/v2"
                 onHide={[Function]}
                 renderBackdrop={[Function]}
                 restoreFocus={true}
-                role="dialog"
+                role="none"
                 show={false}
               >
                 <Modal
@@ -1297,7 +1297,7 @@ https://myothersite.com/api/v2"
                       onHide={[Function]}
                       renderBackdrop={[Function]}
                       restoreFocus={true}
-                      role="dialog"
+                      role="none"
                       show={false}
                     >
                       <Modal
@@ -1398,7 +1398,7 @@ https://myothersite.com/api/v2"
                 onHide={[Function]}
                 renderBackdrop={[Function]}
                 restoreFocus={true}
-                role="dialog"
+                role="none"
                 show={false}
               >
                 <Modal
@@ -2016,7 +2016,7 @@ https://myothersite.com/api/v2"
                       onHide={[Function]}
                       renderBackdrop={[Function]}
                       restoreFocus={true}
-                      role="dialog"
+                      role="none"
                       show={false}
                     >
                       <Modal
@@ -2117,7 +2117,7 @@ https://myothersite.com/api/v2"
                 onHide={[Function]}
                 renderBackdrop={[Function]}
                 restoreFocus={true}
-                role="dialog"
+                role="none"
                 show={false}
               >
                 <Modal

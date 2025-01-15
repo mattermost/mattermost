@@ -6,8 +6,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
-import {withIntl} from 'tests/helpers/intl-test-helper';
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import SubMenuModal from './submenu_modal';
 
@@ -16,8 +15,8 @@ jest.mock('../../is_mobile_view_hack', () => ({
 }));
 
 (global as any).MutationObserver = class {
-    public disconnect() {}
-    public observe() {}
+    public disconnect() { }
+    public observe() { }
 };
 
 describe('components/submenu_modal', () => {
@@ -58,9 +57,9 @@ describe('components/submenu_modal', () => {
     });
 
     test('should hide on modal body click', async () => {
-        const view = render(withIntl(
+        const view = renderWithContext(
             <SubMenuModal {...baseProps}/>,
-        ));
+        );
 
         screen.getByText('Text A');
         screen.getByText('Text B');
@@ -78,7 +77,7 @@ describe('components/submenu_modal', () => {
             ...baseProps,
         };
 
-        render(
+        renderWithContext(
             <SubMenuModal {...props}/>,
         );
 

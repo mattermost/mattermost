@@ -3,26 +3,29 @@
 
 import {test} from '@e2e-support/test_fixture';
 
-test('/login', async ({pw, pages, page, browserName, viewport}, testInfo) => {
+test('/login', async ({pw, page, browserName, viewport}, testInfo) => {
+    // Set up the page not to redirect to the landing page
+    await pw.hasSeenLandingPage();
+
     // Go to login page
     const {adminClient} = await pw.getAdminClient();
-    const adminConfig = await adminClient.getConfig();
-    const loginPage = new pages.LoginPage(page, adminConfig);
-    await loginPage.goto();
-    await loginPage.toBeVisible();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
 
     // Click to other element to remove focus from email input
-    await loginPage.title.click();
+    await pw.loginPage.title.click();
 
     // Match snapshot of login page
     const testArgs = {page, browserName, viewport};
-    await pw.matchSnapshot(testInfo, testArgs);
+    const license = await adminClient.getClientLicenseOld();
+    const editionSuffix = license.IsLicensed === 'true' ? '' : 'free edition';
+    await pw.matchSnapshot({...testInfo, title: `${testInfo.title} ${editionSuffix}`}, testArgs);
 
     // Click sign in button without entering user credential
-    await loginPage.signInButton.click();
-    await loginPage.userErrorLabel.waitFor();
-    await pw.waitForAnimationEnd(loginPage.bodyCard);
+    await pw.loginPage.signInButton.click();
+    await pw.loginPage.userErrorLabel.waitFor();
+    await pw.waitForAnimationEnd(pw.loginPage.bodyCard);
 
     // Match snapshot of login page with error
-    await pw.matchSnapshot({...testInfo, title: `${testInfo.title} error`}, testArgs);
+    await pw.matchSnapshot({...testInfo, title: `${testInfo.title} error ${editionSuffix}`}, testArgs);
 });

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {Command, IncomingWebhook, OutgoingWebhook, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {IntegrationTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 
-function incomingHooks(state: IDMappedObjects<IncomingWebhook> = {}, action: AnyAction) {
+function incomingHooks(state: IDMappedObjects<IncomingWebhook> = {}, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_INCOMING_HOOK: {
         const nextState = {...state};
@@ -52,7 +52,7 @@ function incomingHooks(state: IDMappedObjects<IncomingWebhook> = {}, action: Any
     }
 }
 
-function incomingHooksTotalCount(state: number = 0, action: AnyAction) {
+function incomingHooksTotalCount(state: number = 0, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_INCOMING_HOOKS_TOTAL_COUNT: {
         return action.data;
@@ -65,7 +65,7 @@ function incomingHooksTotalCount(state: number = 0, action: AnyAction) {
     }
 }
 
-function outgoingHooks(state: IDMappedObjects<OutgoingWebhook> = {}, action: AnyAction) {
+function outgoingHooks(state: IDMappedObjects<OutgoingWebhook> = {}, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_OUTGOING_HOOK: {
         const nextState = {...state};
@@ -108,7 +108,7 @@ function outgoingHooks(state: IDMappedObjects<OutgoingWebhook> = {}, action: Any
     }
 }
 
-function commands(state: IDMappedObjects<Command> = {}, action: AnyAction) {
+function commands(state: IDMappedObjects<Command> = {}, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_COMMANDS:
     case IntegrationTypes.RECEIVED_CUSTOM_TEAM_COMMANDS: {
@@ -154,7 +154,7 @@ function commands(state: IDMappedObjects<Command> = {}, action: AnyAction) {
     }
 }
 
-function systemCommands(state: IDMappedObjects<Command> = {}, action: AnyAction) {
+function systemCommands(state: IDMappedObjects<Command> = {}, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_COMMANDS: {
         const nextCommands: Record<string, Command> = {};
@@ -182,7 +182,7 @@ function systemCommands(state: IDMappedObjects<Command> = {}, action: AnyAction)
     }
 }
 
-function oauthApps(state: IDMappedObjects<OAuthApp> = {}, action: AnyAction) {
+function oauthApps(state: IDMappedObjects<OAuthApp> = {}, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_OAUTH_APPS: {
         const nextState = {...state};
@@ -209,7 +209,7 @@ function oauthApps(state: IDMappedObjects<OAuthApp> = {}, action: AnyAction) {
     }
 }
 
-function appsOAuthAppIDs(state: string[] = [], action: AnyAction) {
+function appsOAuthAppIDs(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_APPS_OAUTH_APP_IDS: {
         if (state.length === 0 && action.data.length === 0) {
@@ -237,7 +237,7 @@ function appsOAuthAppIDs(state: string[] = [], action: AnyAction) {
     }
 }
 
-function outgoingOAuthConnections(state: IDMappedObjects<OutgoingOAuthConnection> = {}, action: AnyAction) {
+function outgoingOAuthConnections(state: IDMappedObjects<OutgoingOAuthConnection> = {}, action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS: {
         const nextState = {...state};
@@ -264,7 +264,7 @@ function outgoingOAuthConnections(state: IDMappedObjects<OutgoingOAuthConnection
     }
 }
 
-function appsBotIDs(state: string[] = [], action: AnyAction) {
+function appsBotIDs(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_APPS_BOT_IDS: {
         if (!action.data) {
@@ -296,7 +296,7 @@ function appsBotIDs(state: string[] = [], action: AnyAction) {
     }
 }
 
-function dialogTriggerId(state = '', action: AnyAction) {
+function dialogTriggerId(state = '', action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID:
         return action.data;
@@ -305,7 +305,7 @@ function dialogTriggerId(state = '', action: AnyAction) {
     }
 }
 
-function dialog(state = '', action: AnyAction) {
+function dialog(state = '', action: MMReduxAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_DIALOG:
         return action.data;

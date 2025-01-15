@@ -31,7 +31,7 @@ import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
-import A11yController from 'utils/a11y_controller';
+import 'utils/a11y_controller_instance';
 import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
@@ -47,7 +47,7 @@ import RootRedirect from './root_redirect';
 
 import type {PropsFromRedux} from './index';
 
-import 'plugins/export.js';
+import 'plugins/export';
 
 const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => import('components/mobile_view_watcher')));
 const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
@@ -93,8 +93,6 @@ interface State {
 export default class Root extends React.PureComponent<Props, State> {
     // The constructor adds a bunch of event listeners,
     // so we do need this.
-    private a11yController: A11yController;
-
     constructor(props: Props) {
         super(props);
 
@@ -108,8 +106,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.state = {
             shouldMountAppRoutes: false,
         };
-
-        this.a11yController = new A11yController();
     }
 
     setRudderConfig = () => {
@@ -294,7 +290,7 @@ export default class Root extends React.PureComponent<Props, State> {
         if (prevState.shouldMountAppRoutes === false && this.state.shouldMountAppRoutes === true) {
             if (!doesRouteBelongToTeamControllerRoutes(this.props.location.pathname)) {
                 DesktopApp.reactAppInitialized();
-                InitialLoadingScreen.stop();
+                InitialLoadingScreen.stop('root');
             }
         }
     }

@@ -84,7 +84,7 @@ class FullScreenModal extends React.PureComponent<Props> {
                         aria-modal={true}
                         aria-label={this.props.ariaLabel}
                         aria-labelledby={this.props.ariaLabelledBy}
-                        role='dialog'
+                        role='none'
                     >
                         {this.props.onGoBack &&
                             <button

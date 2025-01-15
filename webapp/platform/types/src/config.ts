@@ -123,6 +123,7 @@ export type ClientConfig = {
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
+    FeatureFlagCustomProfileAttributes: string;
     FeatureFlagWebSocketEventScope: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -400,6 +401,7 @@ export type ServiceSettings = {
     EnableAPIPostDeletion: boolean;
     EnableDesktopLandingPage: boolean;
     MaximumURLLength: number;
+    ScheduledPosts: boolean;
 };
 
 export type TeamSettings = {

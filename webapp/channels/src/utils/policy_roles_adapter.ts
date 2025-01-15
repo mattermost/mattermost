@@ -139,7 +139,7 @@ function roleNamesInMapping() {
 
 function* mappingPartIterator(mappingPart: Record<string, MappingValueTypes[]>, roles: Record<string, Role>) {
     for (const value in mappingPart) {
-        if (mappingPart.hasOwnProperty(value)) {
+        if (Object.hasOwn(mappingPart, value)) {
             const roleRules = mappingPart[value];
 
             const hasUnmetCondition = roleRules.some((item: MappingValueTypes) => {

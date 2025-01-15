@@ -51,7 +51,13 @@ export default function Pluggable<Key extends keyof PluginsState['components'], 
 
     type PluggableType = PluginsState['components'][Key][number];
     const theme = useSelector(getTheme);
-    const allPluginComponents = useSelector((state: GlobalState) => state.plugins.components[pluggableName]) as PluggableType[];
+    const allPluginComponents = useSelector((state: GlobalState) => {
+        const allComponents = state.plugins.components;
+        if (Object.hasOwn(allComponents, pluggableName)) {
+            return allComponents[pluggableName] as PluggableType[];
+        }
+        return undefined;
+    });
     if (!pluggableName || !allPluginComponents) {
         return null;
     }

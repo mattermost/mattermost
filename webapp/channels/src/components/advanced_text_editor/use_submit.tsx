@@ -16,11 +16,12 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
-import type {CreatePostOptions} from 'actions/post_actions';
+import {unsetEditingPost, type CreatePostOptions} from 'actions/post_actions';
 import {scrollPostListToBottom} from 'actions/views/channel';
 import type {OnSubmitOptions, SubmitPostReturnType} from 'actions/views/create_comment';
 import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
+import {editPost} from 'actions/views/posts';
 
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
@@ -33,6 +34,7 @@ import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from '
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import {isPostDraftEmpty} from 'types/store/draft';
 
 import useGroups from './use_groups';
 
@@ -65,6 +67,7 @@ const useSubmit = (
     afterOptimisticSubmit?: () => void,
     afterSubmit?: (response: SubmitPostReturnType) => void,
     skipCommands?: boolean,
+    isInEditMode?: boolean,
 ): [
         (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => void,
         string | null,
@@ -135,7 +138,7 @@ const useSubmit = (
             return;
         }
 
-        if (submittingDraft.message.trim().length === 0 && submittingDraft.fileInfos.length === 0) {
+        if (isPostDraftEmpty(draft)) {
             isDraftSubmitting.current = false;
             return;
         }
@@ -168,9 +171,14 @@ const useSubmit = (
         };
 
         try {
-            const res = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
-            if (res.error) {
-                throw res.error;
+            let response;
+            if (isInEditMode) {
+                response = await dispatch(editPost(submittingDraft));
+            } else {
+                response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
+            }
+            if (response?.error) {
+                throw response.error;
             }
 
             setServerError(null);
@@ -203,8 +211,14 @@ const useSubmit = (
             dispatch(scrollPostListToBottom());
         }
 
+        if (isInEditMode) {
+            dispatch(unsetEditingPost());
+        }
+
         isDraftSubmitting.current = false;
-    }, [draft,
+    }, [
+        dispatch,
+        draft,
         postError,
         isRootDeleted,
         serverError,
@@ -216,10 +230,21 @@ const useSubmit = (
         afterOptimisticSubmit,
         postId,
         showPostDeletedModal,
-        dispatch,
         handleDraftChange,
         channelId,
+        isInEditMode,
     ]);
+
+    const setUpdatedFileIds = useCallback((draft: PostDraft) => {
+        // new object creation is needed here to support sending a draft with files.
+        // In case of draft, the PostDraft object is fetched from the redux store, which is immutable.
+        // When user clicks 'Send Now' in drafts list, it will otherwise try to seta  field on an immutable object.
+        // Hence, creating a new object here.
+        return {
+            ...draft,
+            file_ids: draft.fileInfos.map((fileInfo) => fileInfo.id),
+        };
+    }, []);
 
     const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, onConfirm: () => void) => {
         dispatch(openModal({
@@ -234,7 +259,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const handleSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+    const handleSubmit = useCallback(async (submittingDraftParam = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
         if (!channel) {
             return;
         }
@@ -243,6 +268,7 @@ const useSubmit = (
             return;
         }
 
+        const submittingDraft = setUpdatedFileIds(submittingDraftParam);
         setShowPreview(false);
         isDraftSubmitting.current = true;
 
