@@ -17,6 +17,7 @@ import {
 import classNames from 'classnames';
 import type {HtmlHTMLAttributes, ReactNode} from 'react';
 import React, {useCallback, useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -39,6 +40,11 @@ interface Props<TriggerComponentType> {
      * Source URL from the image to display in the popover
      */
     src: string;
+
+    /**
+     * Username of the profile.
+     */
+    username?: string;
 
     /**
      * This should be the trigger button for the popover, Do note that the root element of the trigger component should be passed in triggerComponentRoot
@@ -76,6 +82,8 @@ interface Props<TriggerComponentType> {
 }
 
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
+    const intl = useIntl();
+
     const [isOpen, setOpen] = useState(false);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
@@ -126,6 +134,10 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 ref={refs.setFloating}
                                 style={{...floatingStyles, ...transitionStyles}}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
+                                aria-label={intl.formatMessage(
+                                    {id: 'profile_popover.aria_label', defaultMessage: '{name}profile popover'},
+                                    {name: props.username ? `${props.username}'s ` : ''},
+                                )}
                                 {...getFloatingProps()}
                             >
                                 <ProfilePopover
