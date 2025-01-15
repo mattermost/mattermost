@@ -16,7 +16,7 @@ import {
     FloatingFocusManager,
     useFocus,
 } from '@floating-ui/react';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {AnchorHTMLAttributes, ReactElement} from 'react';
 
 import Pluggable from 'plugins/pluggable';
@@ -61,11 +61,15 @@ export default function PluginLinkTooltip(props: Props) {
         dismissInteraction,
     ]);
 
+    const nodeAttributes = useMemo(() => {
+        return convertPropsToReactStandard(props.nodeAttributes);
+    }, [props.nodeAttributes]);
+
     return (
         <>
             <a
                 ref={setReference}
-                {...props.nodeAttributes}
+                {...nodeAttributes}
                 {...getReferenceProps()}
             >
                 {props.children}
@@ -110,3 +114,33 @@ const HOVER_PROPS = {
         blockPointerEvents: true,
     }),
 };
+
+/**
+ * This function is needed because the link comes from parsing the markdown in the
+ * markdown parser which outputs html. Few html attributes then needs to be converted
+ * to react specific prop standard. eg class -> className. The function is not exhaustive though see implementation.
+ */
+export function convertPropsToReactStandard(propsToConvert: AnchorHTMLAttributes<HTMLAnchorElement>) {
+    const newProps: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(propsToConvert)) {
+        switch (key) {
+        case 'class':
+            newProps.className = value;
+            break;
+        case 'for':
+            newProps.htmlFor = value;
+            break;
+        case 'tabindex':
+            newProps.tabIndex = value;
+            break;
+        case 'readonly':
+            newProps.readOnly = value;
+            break;
+        default:
+            newProps[key] = value;
+        }
+    }
+
+    return newProps;
+}
