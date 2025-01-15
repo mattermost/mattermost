@@ -33,6 +33,8 @@ import {SystemUsers} from './system_console/sections/system_users/system_users';
 import {SystemUsersFilterPopover} from './system_console/sections/system_users/filter_popover';
 import {SystemUsersFilterMenu} from './system_console/sections/system_users/filter_menu';
 import {SystemUsersColumnToggleMenu} from './system_console/sections/system_users/column_toggle_menu';
+import ChannelsPostEdit from '@e2e-support/ui/components/channels/post_edit';
+import DeletePostConfirmationDialog from '@e2e-support/ui/components/channels/delete_post_confirmation_dialog';
 
 const components = {
     GlobalHeader,
@@ -43,6 +45,7 @@ const components = {
     ChannelsAppBar,
     ChannelsHeader,
     ChannelsPostCreate,
+    ChannelsPostEdit,
     ChannelsPost,
     FindChannelsModal,
     DeletePostModal,
@@ -65,6 +68,7 @@ const components = {
     SystemUsersColumnToggleMenu,
     MessagePriority,
     UserProfilePopover,
+    DeletePostConfirmationDialog,
 };
 
 export {
@@ -76,6 +80,7 @@ export {
     ChannelsAppBar,
     ChannelsHeader,
     ChannelsPostCreate,
+    ChannelsPostEdit,
     ChannelsPost,
     FindChannelsModal,
     DeletePostModal,
@@ -83,4 +88,5 @@ export {
     PostMenu,
     ThreadFooter,
     MessagePriority,
+    DeletePostConfirmationDialog,
 };
