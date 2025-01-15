@@ -58,7 +58,7 @@ const GlobalThreads = () => {
     const selectedThreadId = useSelector(getSelectedThreadIdInCurrentTeam);
     const selectedPost = useSelector((state: GlobalState) => getPost(state, threadIdentifier!));
     const threadIds = useSelector((state: GlobalState) => getThreadOrderInCurrentTeam(state, selectedThread?.id), shallowEqual);
-    const unreadThreadIds = useSelector((state: GlobalState) => getUnreadThreadOrderInCurrentTeam(state, selectedThread?.id), shallowEqual);
+    const unreadThreadIds = useSelector((state: GlobalState) => getUnreadThreadOrderInCurrentTeam(state), shallowEqual);
     const numUnread = counts?.total_unread_threads || 0;
 
     useEffect(() => {
@@ -99,7 +99,7 @@ const GlobalThreads = () => {
     };
 
     const shouldLoadThreads = isEmpty(threadIds) || isOnlySelectedThreadInList(threadIds);
-    const shouldLoadUnreadThreads = isEmpty(unreadThreadIds) || isOnlySelectedThreadInList(unreadThreadIds);
+    const shouldLoadUnreadThreads = isEmpty(unreadThreadIds);
 
     useEffect(() => {
         const promises = [];
