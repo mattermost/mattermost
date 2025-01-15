@@ -5159,6 +5159,7 @@
   "sidebar_left.sidebar_category_menu.viewCategory": "Označit kategorii jako přečtenou",
   "sidebar_left.sidebar_channel.selectedCount": "{count} zvolených",
   "sidebar_left.sidebar_channel_menu.addMembers": "Přidat členy",
+  "sidebar_left.sidebar_channel_menu.bookmarks": "Lišta záložek",
   "sidebar_left.sidebar_channel_menu.channels": "Kanály",
   "sidebar_left.sidebar_channel_menu.copyLink": "Zkopírovat odkaz",
   "sidebar_left.sidebar_channel_menu.dropdownAriaLabel": "Upravit nabídku kanálů",
