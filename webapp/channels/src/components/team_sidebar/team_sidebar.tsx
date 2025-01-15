@@ -289,7 +289,10 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                         }
                         content={plusIcon}
                         switchTeam={this.props.actions.switchTeam}
-                        displayName='Create a Team'
+                        displayName={intl.formatMessage({
+                            id: 'navbar_dropdown.create',
+                            defaultMessage: 'Create a Team',
+                        })}
                     />
                 </SystemPermissionGate>,
             );
