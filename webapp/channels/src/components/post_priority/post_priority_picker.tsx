@@ -132,7 +132,10 @@ function PostPriorityPicker({
 
     return (
         <Picker className='PostPriorityPicker'>
-            <Header className='modal-title'>
+            <Header
+                className='modal-title'
+                id='messagePriority-heading'
+            >
                 {formatMessage({
                     id: 'post_priority.picker.header',
                     defaultMessage: 'Message priority',

@@ -57,6 +57,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, comma
         }
       />
       <Memo(CopyText)
+        label={
+          Object {
+            "defaultMessage": "Copy Token",
+            "id": "integrations.copy_token",
+          }
+        }
         value="jb6oyqh95irpbx8fo9zmndkp1r"
       />
     </p>
@@ -134,6 +140,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, incom
         }
       />
       <Memo(CopyText)
+        label={
+          Object {
+            "defaultMessage": "Copy Token",
+            "id": "integrations.copy_token",
+          }
+        }
         value="http://localhost:8065/hooks/r5tpgt4iepf45jt768jz84djic"
       />
     </p>
@@ -213,11 +225,11 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         }
       />
       <Memo(CopyText)
-        tooltip={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Copy Client Id"
-            id="integrations.copy_client_id"
-          />
+        label={
+          Object {
+            "defaultMessage": "Copy Client Id",
+            "id": "integrations.copy_client_id",
+          }
         }
         value="r5tpgt4iepf45jt768jz84djic"
       />
@@ -233,11 +245,11 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, oauth
         }
       />
       <Memo(CopyText)
-        tooltip={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Copy Client Secret"
-            id="integrations.copy_client_secret"
-          />
+        label={
+          Object {
+            "defaultMessage": "Copy Client Secret",
+            "id": "integrations.copy_client_secret",
+          }
         }
         value="<==secret==>"
       />
@@ -340,6 +352,12 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
         }
       />
       <Memo(CopyText)
+        label={
+          Object {
+            "defaultMessage": "Copy Token",
+            "id": "integrations.copy_token",
+          }
+        }
         value="jb6oyqh95irpbx8fo9zmndkp1r"
       />
     </p>

@@ -181,7 +181,7 @@ describe('Verify Accessibility Support in Post', () => {
                 }
 
                 // * Verify focus is on the reactions button
-                cy.get(`#CENTER_reaction_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'add reaction');
+                cy.get(`#CENTER_reaction_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'Add Reaction');
                 cy.focused().tab();
 
                 // * Verify focus is on the save post button
@@ -247,7 +247,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab({shift: true});
 
                 // * Verify focus is on the reactions button
-                cy.get(`#RHS_COMMENT_reaction_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'add reaction');
+                cy.get(`#RHS_COMMENT_reaction_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'Add Reaction');
                 cy.focused().tab({shift: true});
 
                 // * Verify focus is on most recent action

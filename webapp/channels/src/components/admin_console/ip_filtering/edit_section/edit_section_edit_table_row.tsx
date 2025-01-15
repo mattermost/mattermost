@@ -44,8 +44,6 @@ const EditTableRow = ({
                 {hoveredRow === index && (
                     <>
                         <WithTooltip
-                            id='edit-tooltip'
-                            placement='top'
                             title={formatMessage({id: 'admin.ip_filtering.edit', defaultMessage: 'Edit'})}
                         >
                             <div
@@ -58,8 +56,6 @@ const EditTableRow = ({
                             </div>
                         </WithTooltip>
                         <WithTooltip
-                            id='delete-tooltip'
-                            placement='top'
                             title={formatMessage({id: 'admin.ip_filtering.delete', defaultMessage: 'Delete'})}
                         >
                             <div

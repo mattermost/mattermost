@@ -198,7 +198,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                 show={this.state.show}
                 onHide={this.doHide}
                 onExited={onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='viewUserGroupModalLabel'
             >
                 <ViewUserGroupModalHeader

@@ -3335,7 +3335,6 @@
   "notify_all.title.confirm_groups": "ارسال اعلان ها به گروه ها را تایید کنید",
   "notify_here.question": "با استفاده از **@here** می‌خواهید اعلان‌هایی را برای حداکثر **{totalMembers} نفر** ارسال کنید. آیا مطمئنید که می خواهید این کار را انجام دهید؟",
   "numMembers": "{تعداد، عدد} {تعداد، جمع، یک {عضو} سایر {اعضا}}",
-  "onboardingTask.checklist.video_title": "مشاهده نمای کلی",
   "onboardingTask.completeYourProfileTour.title": "نمایه‌ی خود را ویرایش کنید",
   "onboardingTour.customizeYourExperience.title": "تجربه‌ی خود را سفارشی کنید",
   "onboardingTour.sendMessage.title": "ارسال پیام‌ها",
