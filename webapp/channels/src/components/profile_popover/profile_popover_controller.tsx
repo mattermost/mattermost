@@ -111,8 +111,6 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
 
     const TriggerComponent = props.triggerComponentAs ?? 'span';
 
-    const profilePopoverLabel = intl.formatMessage({id: 'profile_popover.aria_label', defaultMessage: 'profile popover'});
-
     return (
         <>
             <TriggerComponent
@@ -136,7 +134,10 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 ref={refs.setFloating}
                                 style={{...floatingStyles, ...transitionStyles}}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
-                                aria-label={props.username ? `${props.username}'s ${profilePopoverLabel}` : profilePopoverLabel}
+                                aria-label={intl.formatMessage(
+                                    {id: 'profile_popover.aria_label', defaultMessage: '{name}profile popover'},
+                                    {name: props.username ? `${props.username}'s ` : ''},
+                                )}
                                 {...getFloatingProps()}
                             >
                                 <ProfilePopover
