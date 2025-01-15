@@ -9,7 +9,7 @@ import {trackEvent} from 'actions/telemetry_actions';
 import {makeAsyncComponent} from 'components/async_load';
 import DataPrefetch from 'components/data_prefetch';
 import ResizableLhs from 'components/resizable_sidebar/resizable_lhs';
-import SidebarHeader from 'components/sidebar/sidebar_header/sidebar_header';
+import SidebarHeader from 'components/sidebar/sidebar_header';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
