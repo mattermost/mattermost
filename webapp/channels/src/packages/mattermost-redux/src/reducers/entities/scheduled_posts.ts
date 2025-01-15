@@ -177,28 +177,27 @@ function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] =
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
         const {scheduledPostsByTeamId} = action.data;
         const newState = {...state};
-
-        Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
-            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
-                scheduledPostsByTeamId[teamId].forEach((scheduledPost: ScheduledPost) => {
-                    const id = scheduledPost.root_id || scheduledPost.channel_id;
-
-                    // Check if the entry for that channel/thread ID exists
-                    if (newState[id]) {
-                        // Only add if its not already there
-                        if (!newState[id].includes(scheduledPost.id)) {
-                            newState[id] = [...newState[id], scheduledPost.id];
-                        }
-                    } else {
-                        // If the entry does not exist at this moment, create it
-                        newState[id] = [scheduledPost.id];
-                    }
-                });
-            }
+        const newIdsByChannel: {[channelOrThreadId: string]: Set<string>} = {};
+    
+        Object.entries(scheduledPostsByTeamId).forEach(([teamId, scheduledPosts]) => {
+            (scheduledPosts as ScheduledPost[]).forEach((scheduledPost: ScheduledPost) => {
+                const channelOrThreadId = scheduledPost.root_id || scheduledPost.channel_id;
+                if (!newIdsByChannel[channelOrThreadId]) {
+                    newIdsByChannel[channelOrThreadId] = new Set();
+                }
+                newIdsByChannel[channelOrThreadId].add(scheduledPost.id);
+            });
         });
 
+        Object.keys(newIdsByChannel).forEach((channelOrThreadId) => {
+            const existingIDs = new Set(newState[channelOrThreadId] || []);
+            newIdsByChannel[channelOrThreadId].forEach((id) => existingIDs.add(id));
+            newState[channelOrThreadId] = Array.from(existingIDs);
+        });
+    
         return newState;
     }
+        
     case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
         const scheduledPost = action.data.scheduledPost;
         const newState = {...state};
