@@ -21,7 +21,7 @@ function getAllFilesFromSearch(state: GlobalState) {
     return state.entities.files.filesFromSearch;
 }
 
-function getFilesIdsForPost(state: GlobalState, postId: string) {
+export function getFilesIdsForPost(state: GlobalState, postId: string) {
     if (postId) {
         return state.entities.files.fileIdsByPostId[postId] || [];
     }
