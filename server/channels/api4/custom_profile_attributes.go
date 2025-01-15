@@ -25,6 +25,11 @@ func (api *API) InitCustomProfileAttributes() {
 }
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.CustomProfileAttributes {
+		c.Err = model.NewAppError("Api4.listCPAFields", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	fields, appErr := c.App.ListCPAFields()
 	if appErr != nil {
 		c.Err = appErr
@@ -39,6 +44,11 @@ func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.CustomProfileAttributes {
+		c.Err = model.NewAppError("Api4.createCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -74,6 +84,11 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.CustomProfileAttributes {
+		c.Err = model.NewAppError("Api4.patchCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -124,6 +139,11 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.CustomProfileAttributes {
+		c.Err = model.NewAppError("Api4.deleteCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireFieldId()
 	if c.Err != nil {
 		return
@@ -153,6 +173,11 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.CustomProfileAttributes {
+		c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	var attributeValues map[string]string
 	if jsonErr := json.NewDecoder(r.Body).Decode(&attributeValues); jsonErr != nil {
 		c.SetInvalidParamWithErr("attrs", jsonErr)
@@ -190,6 +215,11 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.CustomProfileAttributes {
+		c.Err = model.NewAppError("Api4.listCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireUserId()
 	if c.Err != nil {
 		return

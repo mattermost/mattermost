@@ -19,6 +19,19 @@ func TestCreateCPAField(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		field := &model.PropertyField{Name:  model.NewId(), Type:  model.PropertyFieldTypeText}
+
+		createdField, resp, err := client.CreateCPAField(context.Background(), field)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		require.Empty(t, createdField)
+	}, "endpoint should not work if no valid license is present")
+
+	// add a valid license
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
 	t.Run("a user without admin permissions should not be able to create a field", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name: model.NewId(),
@@ -67,9 +80,21 @@ func TestListCPAFields(t *testing.T) {
 		Type:  model.PropertyFieldTypeText,
 		Attrs: map[string]any{"visibility": "default"},
 	}
-	createdField, _, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
-	require.NoError(t, err)
+
+	createdField, err := th.App.CreateCPAField(field)
+	require.Nil(t, err)
 	require.NotNil(t, createdField)
+
+	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		fields, resp, err := th.Client.ListCPAFields(context.Background())
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		require.Empty(t, fields)
+	})
+
+	// add a valid license
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("any user should be able to list fields", func(t *testing.T) {
 		fields, resp, err := th.Client.ListCPAFields(context.Background())
@@ -94,6 +119,18 @@ func TestPatchCPAField(t *testing.T) {
 	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
 	th := Setup(t)
 	defer th.TearDown()
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		patch := &model.PropertyFieldPatch{Name: model.NewPointer(model.NewId())}
+		patchedField, resp, err := client.PatchCPAField(context.Background(), model.NewId(), patch)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		require.Empty(t, patchedField)
+	}, "endpoint should not work if no valid license is present")
+
+	// add a valid license
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("a user without admin permissions should not be able to patch a field", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -133,6 +170,16 @@ func TestDeleteCPAField(t *testing.T) {
 	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
 	th := Setup(t)
 	defer th.TearDown()
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		resp, err := client.DeleteCPAField(context.Background(), model.NewId())
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+	}, "endpoint should not work if no valid license is present")
+
+	// add a valid license
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("a user without admin permissions should not be able to delete a field", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -175,9 +222,7 @@ func TestListCPAValues(t *testing.T) {
 	defer th.TearDown()
 
 	th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-	defer func() {
-		th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-	}()
+	defer th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 
 	field := &model.PropertyField{
 		Name: model.NewId(),
@@ -187,10 +232,19 @@ func TestListCPAValues(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
-	values := map[string]string{}
-	values[createdField.ID] = "Field Value"
-	_, _, err := th.Client.PatchCPAValues(context.Background(), values)
-	require.NoError(t, err)
+	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, "Field Value")
+	require.Nil(t, appErr)
+
+	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		require.Empty(t, values)
+	})
+
+	// add a valid license
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	// login with Client2 from this point on
 	th.LoginBasic2()
@@ -227,6 +281,18 @@ func TestPatchCPAValues(t *testing.T) {
 	createdField, appErr := th.App.CreateCPAField(field)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
+
+	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		values := map[string]string{createdField.ID: "Field Value"}
+		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		require.Empty(t, patchedValues)
+	})
+
+	// add a valid license
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("any team member should be able to create their own values", func(t *testing.T) {
 		values := map[string]string{}
