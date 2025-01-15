@@ -121,9 +121,10 @@ type Props = SuggestionProps<WrappedChannel> & WrappedComponentProps & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
+    id: string;
 }
 
-const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, ref) => {
+const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, ref) => {
     const {item, status, collapsedThreads, team, isPartOfOnlyOneTeam} = props;
     const channel = item.channel;
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
@@ -255,18 +256,31 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
 
+    const getId = () => {
+        if (channel.type === Constants.DM_CHANNEL) {
+            if (prefix) {
+                return `quickSwitchInput_${(channel as FakeDirectChannel).userId}`;
+            }
+        }
+        return `quickSwitchInput_${channel.id}`;
+    };
+
     return (
         <SuggestionContainer
             ref={ref}
-            id={`switchChannel_${channel.name}`}
             data-testid={channel.name}
-            role='listitem'
+            role='option'
+            aria-labelledby={`${name.toLowerCase().replaceAll(' ', '-')}-item-name`}
             {...props}
+            id={getId()}
         >
             {icon}
             <div className='suggestion-list__ellipsis suggestion-list__flex'>
                 <span className='suggestion-list__main'>
-                    <span className={classNames({'suggestion-list__unread': item.unread && !channelIsArchived})}>{name}</span>
+                    <span
+                        className={classNames({'suggestion-list__unread': item.unread && !channelIsArchived})}
+                        id={`${name.toLowerCase().replaceAll(' ', '-')}-item-name`}
+                    >{name}</span>
                     {showSlug && description && <span className='ml-2 suggestion-list__desc'>{description}</span>}
                 </span>
                 {customStatus}
@@ -316,6 +330,8 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
         collapsedThreads,
         team,
         isPartOfOnlyOneTeam,
+
+        // id: 'quickSwitchInput',
     };
 }
 

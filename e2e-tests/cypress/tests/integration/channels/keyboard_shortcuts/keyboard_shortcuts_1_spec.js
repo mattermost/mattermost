@@ -50,7 +50,7 @@ describe('Keyboard Shortcuts', () => {
             cy.apiAddUserToTeam(testTeam.id, tempUser.id);
 
             // # In the "Switch Channels" modal type the first chars of the test channel name
-            cy.findByRole('textbox', {name: 'quick switch input'}).should('be.focused').type(testChannel.name.substring(0, 3)).wait(TIMEOUTS.HALF_SEC);
+            cy.findByRole('combobox', {name: 'quick switch input'}).should('be.focused').type(testChannel.name.substring(0, 3)).wait(TIMEOUTS.HALF_SEC);
 
             // # Verify that the list of users and channels suggestions is present
             cy.get('#suggestionList').should('be.visible').within(() => {
@@ -360,7 +360,7 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetPostTextBox().cmdOrCtrlShortcut('K').then(() => {
             // * Channel switcher hint should be visible and focused on
             cy.get('#quickSwitchHint').should('be.visible');
-            cy.findByRole('textbox', {name: 'quick switch input'}).should('be.focused');
+            cy.findByRole('combobox', {name: 'quick switch input'}).should('be.focused');
         });
 
         // # Type CTRL/CMD+K to close 'Switch Channels' modal
