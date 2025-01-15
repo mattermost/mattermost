@@ -20,28 +20,28 @@ $profilePopoverBorderWidth: 1px;
 
     .user-profile-popover_container {
         display: flex;
-        flex-direction: column;
         height: 100%;
+        flex-direction: column;
     }
 
     .user-profile-popover-title {
         z-index: 1;
-        background: var(--center-channel-bg);
         display: flex;
+        background: var(--center-channel-bg);
         flex-wrap: nowrap;
         align-items: center;
         justify-content: flex-start;
         justify-content: end;
         justify-content: space-between;
-        padding: 12px 8px 12px 8px;
         position: sticky;
+        padding: 12px 8px 12px 8px;
         top: 0;
 
         .user-popover__role {
+            max-width: calc($profilePopoverWidth - 40px);
             flex-grow: 1;
             background: unset;
             padding-inline-start: 8px;
-            max-width: calc($profilePopoverWidth - 40px);
 
             >span {
                 height: 16px;
