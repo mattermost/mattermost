@@ -486,7 +486,6 @@ type AppIface interface {
 	CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError
 	CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
-	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
 	CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError
 	CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError
 	ClearChannelMembersCache(c request.CTX, channelID string) error
