@@ -1255,4 +1255,5 @@ type AppIface interface {
 	WriteExportFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
 	WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, *model.AppError)
+	DeleteImport(name string) *model.AppError
 }
