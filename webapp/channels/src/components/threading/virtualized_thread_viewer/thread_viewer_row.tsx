@@ -24,6 +24,7 @@ type Props = {
     a11yIndex: number;
     currentUserId: string;
     isRootPost: boolean;
+    isDeletedPost: boolean;
     isLastPost: boolean;
     listId: string;
     onCardClick: (post: Post) => void;
@@ -38,6 +39,7 @@ function ThreadViewerRow({
     a11yIndex,
     currentUserId,
     isRootPost,
+    isDeletedPost,
     isLastPost,
     listId,
     onCardClick,
@@ -76,7 +78,7 @@ function ThreadViewerRow({
                     timestampProps={timestampProps}
                     location={Locations.RHS_ROOT}
                 />
-                <RootPostDivider postId={listId}/>
+                {!isDeletedPost && <RootPostDivider postId={listId}/>}
             </>
         );
     case PostListUtils.isCombinedUserActivityPost(listId): {
