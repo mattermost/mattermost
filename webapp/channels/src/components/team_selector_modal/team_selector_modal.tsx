@@ -192,7 +192,10 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
                 <div className='more-modal__actions'>
                     <button
                         className='more-modal__actions--round'
-                        aria-label={`Select team ${option.label}`}
+                        aria-label={this.props.intl.formatMessage({
+                            id: 'add_teams_to_scheme.select_team.label',
+                            defaultMessage: 'Select team {label}',
+                        }, {label: option.label})}
                     >
                         <i className='fa fa-plus'/>
                     </button>
