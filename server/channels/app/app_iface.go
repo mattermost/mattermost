@@ -251,7 +251,7 @@ type AppIface interface {
 	HasRemote(channelID string, remoteID string) (bool, error)
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the the
 	// plugin was already enabled.
-	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
+	InstallPlugin(pluginFile io.ReadSeeker, replace bool, r *http.Request) (*model.Manifest, *model.AppError)
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rctx request.CTX, rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
@@ -503,7 +503,7 @@ type AppIface interface {
 	CompareAndSetPluginKey(pluginID string, key string, oldValue, newValue []byte) (bool, *model.AppError)
 	CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) *model.AppError
 	CompleteOAuth(c request.CTX, service string, body io.ReadCloser, teamID string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError)
-	CompleteOnboarding(c request.CTX, request *model.CompleteOnboardingRequest) *model.AppError
+	CompleteOnboarding(c request.CTX, request *model.CompleteOnboardingRequest, r *http.Request) *model.AppError
 	CompleteSwitchWithOAuth(c request.CTX, service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError)
 	Compliance() einterfaces.ComplianceInterface
 	Config() *model.Config
