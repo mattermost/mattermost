@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@e2e-support/test_fixture';
+import pages from '@e2e-support/ui/pages';
 import {expect} from '@playwright/test';
+import {duration, wait} from '@e2e-support/util';
 
-test('should be able to edit post message', async ({pw, pages}) => {
+test('should be able to edit post message', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -35,7 +37,7 @@ test('should be able to edit post message', async ({pw, pages}) => {
     await updatedPost.toContainText('Edited message');
 });
 
-test('should be able to edit post message in RHS', async ({pw, pages}) => {
+test('should be able to edit post message in RHS', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -86,9 +88,10 @@ test('should be able to edit post message in RHS', async ({pw, pages}) => {
     await channelPage.sidebarRight.postEdit.toBeVisible();
     await channelPage.sidebarRight.postEdit.writeMessage('Edited reply message with files');
     await channelPage.sidebarRight.postEdit.addFiles(['sample_text_file.txt', 'mattermost.png']);
+    await wait(duration.half_sec);
     await channelPage.sidebarRight.postEdit.sendMessage();
-
-    updatedReplyPost = await channelPage.sidebarRight.getLastPost();
+    await wait(duration.half_sec);
+    await channelPage.sidebarRight.postEdit.toNotBeVisible()
     await updatedReplyPost.toBeVisible();
     await updatedReplyPost.toContainText('Edited reply message with files');
     await updatedReplyPost.toContainText('sample_text_file.txt');
@@ -102,17 +105,19 @@ test('should be able to edit post message in RHS', async ({pw, pages}) => {
     await channelPage.postDotMenu.editMenuItem.click();
     await channelPage.sidebarRight.postEdit.toBeVisible();
     await channelPage.sidebarRight.postEdit.removeFile('sample_text_file.txt');
+    await wait(duration.half_sec);
     await channelPage.sidebarRight.postEdit.removeFile('mattermost.png');
+    await wait(duration.half_sec);
     await channelPage.sidebarRight.postEdit.sendMessage();
 
     updatedReplyPost = await channelPage.sidebarRight.getLastPost();
     await updatedReplyPost.toBeVisible();
     await updatedReplyPost.toContainText('Edited reply message with files');
-    await expect(updatedReplyPost).not.toContain('sample_text_file.txt');
-    await expect(updatedReplyPost).not.toContain('mattermost.png');
+    expect(updatedReplyPost).not.toContain('sample_text_file.txt');
+    expect(updatedReplyPost).not.toContain('mattermost.png');
 });
 
-test('should be able to edit post message originally containing files', async ({pw, pages}) => {
+test('should be able to edit post message originally containing files', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -143,7 +148,7 @@ test('should be able to edit post message originally containing files', async ({
     await updatedPost.toContainText('Edited message');
 });
 
-test('should be able to add files when editing a post', async ({pw, pages}) => {
+test('should be able to add files when editing a post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -191,7 +196,7 @@ test('should be able to add files when editing a post', async ({pw, pages}) => {
     await secondUpdatedPost.toContainText('archive.zip');
 });
 
-test('should be able to remove some files when editing a post', async ({pw, pages}) => {
+test('should be able to remove some files when editing a post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -230,10 +235,10 @@ test('should be able to remove some files when editing a post', async ({pw, page
     await updatedPost.toContainText(originalMessage);
     await updatedPost.toContainText('mattermost.png');
     await updatedPost.toContainText('archive.zip');
-    await expect(updatedPost).not.toContain('archive.zip');
+    expect(updatedPost).not.toContain('archive.zip');
 });
 
-test('should be able to remove all files when editing a post', async ({pw, pages}) => {
+test('should be able to remove all files when editing a post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -277,7 +282,7 @@ test('should be able to remove all files when editing a post', async ({pw, pages
     await expect(updatedPost).not.toContain('sample_text_file.txt');
 });
 
-test('removing message content and files should delete the post', async ({pw, pages}) => {
+test('removing message content and files should delete the post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -310,6 +315,6 @@ test('removing message content and files should delete the post', async ({pw, pa
     await channelPage.centerView.postEdit.deleteConfirmationDialog.confirmDeletion();
     await channelPage.centerView.postEdit.deleteConfirmationDialog.notToBeVisible();
 
-    await expect(channelPage).not.toContain(originalMessage);
-    await expect(channelPage).not.toContain('sample_text_file.txt');
+    expect(channelPage).not.toContain(originalMessage);
+    expect(channelPage).not.toContain('sample_text_file.txt');
 });

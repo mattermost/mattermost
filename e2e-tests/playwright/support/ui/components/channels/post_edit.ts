@@ -35,10 +35,15 @@ export default class ChannelsPostEdit {
         await expect(this.input).toBeVisible();
     }
 
+    async toNotBeVisible() {
+        await expect(this.input).not.toBeVisible();
+    }
+
     async writeMessage(message: string) {
         await this.input.waitFor();
         await expect(this.input).toBeVisible();
 
+        await this.input.clear();
         await this.input.fill(message);
     }
 
@@ -56,6 +61,7 @@ export default class ChannelsPostEdit {
 
         for (let i = 0; i < files.length; i++) {
             const textContent = await files[i].textContent();
+            console.log("*****, i", textContent);
             if (textContent?.includes(fileName)) {
                 const removeButton = files[i].locator('.icon-close');
                 await removeButton.click();
@@ -65,7 +71,7 @@ export default class ChannelsPostEdit {
     }
 
     async sendMessage() {
-        await expect(this.input).toBeVisible();
+        await this.input.scrollIntoViewIfNeeded();
 
         await expect(this.sendMessageButton).toBeVisible();
         await expect(this.sendMessageButton).toBeEnabled();
