@@ -11,6 +11,7 @@ import {
     isCurrentChannelMuted,
     isCurrentChannelArchived,
     getRedirectChannelNameForTeam,
+    getCurrentChannelId,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
@@ -18,6 +19,7 @@ import {
     getCurrentUser,
     getUserStatuses,
     getCurrentUserId,
+    makeGetProfilesInChannel,
 } from 'mattermost-redux/selectors/entities/users';
 
 import {getPenultimateViewedChannelName} from 'selectors/local_storage';
@@ -33,6 +35,7 @@ import type {GlobalState} from 'types/store';
 import Desktop from './channel_header_dropdown';
 import Items from './channel_header_dropdown_items';
 import Mobile from './mobile_channel_header_dropdown';
+import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
 
 const getTeammateId = createSelector(
     'getTeammateId',
@@ -60,7 +63,9 @@ const getTeammateStatus = createSelector(
     },
 );
 
-const mapStateToProps = (state: GlobalState) => ({
+const mapStateToProps = (state: GlobalState) => {
+    const getProfilesInChannel =makeGetProfilesInChannel();
+    return {
     user: getCurrentUser(state),
     channel: getCurrentChannel(state),
     isDefault: isCurrentChannelDefault(state),
@@ -71,8 +76,14 @@ const mapStateToProps = (state: GlobalState) => ({
     penultimateViewedChannelName: getPenultimateViewedChannelName(state) || getRedirectChannelNameForTeam(state, getCurrentTeamId(state)),
     pluginMenuItems: getChannelHeaderMenuPluginComponents(state),
     isLicensedForLDAPGroups: state.entities.general.license.LDAPGroups === 'true',
+    teammateNameDisplaySetting:getTeammateNameDisplaySetting(state),
+    profilesInChannel:getProfilesInChannel(state,getCurrentChannelId(state)),
+    onExited:()=>{},
+    currentUserId:getCurrentUserId(state),
+    // actions:getActi
     isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
-});
+}};
+    
 
 const mobileMapStateToProps = (state: GlobalState) => {
     const user = getCurrentUser(state);
