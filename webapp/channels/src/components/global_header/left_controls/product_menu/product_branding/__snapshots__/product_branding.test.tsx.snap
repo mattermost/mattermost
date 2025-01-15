@@ -2,51 +2,63 @@
 
 exports[`components/ProductBranding should show correct icon glyph when we are on Boards 1`] = `
 <ProductBrandingContainer
-  tabIndex={0}
+  tabIndex={-1}
 >
   <ProductBoardsIcon
     size={24}
   />
   <Heading
+    className="sr-only"
     element="h1"
     margin="none"
     size={200}
   >
     Boards
   </Heading>
+  <ProductBrandingHeading>
+    Boards
+  </ProductBrandingHeading>
 </ProductBrandingContainer>
 `;
 
 exports[`components/ProductBranding should show correct icon glyph when we are on Channels 1`] = `
 <ProductBrandingContainer
-  tabIndex={0}
+  tabIndex={-1}
 >
   <ProductChannelsIcon
     size={24}
   />
   <Heading
+    className="sr-only"
     element="h1"
     margin="none"
     size={200}
   >
     Channels
   </Heading>
+  <ProductBrandingHeading>
+    Channels
+  </ProductBrandingHeading>
 </ProductBrandingContainer>
 `;
 
 exports[`components/ProductBranding should show correct icon glyph when we are on Playbooks 1`] = `
 <ProductBrandingContainer
-  tabIndex={0}
+  tabIndex={-1}
 >
   <ProductPlaybooksIcon
     size={24}
   />
   <Heading
+    className="sr-only"
     element="h1"
     margin="none"
     size={200}
   >
     Playbooks
   </Heading>
+  <ProductBrandingHeading>
+    Playbooks
+  </ProductBrandingHeading>
 </ProductBrandingContainer>
 `;
