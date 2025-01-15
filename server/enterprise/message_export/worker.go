@@ -251,7 +251,7 @@ func (w *MessageExportWorker) finishExport(rctx request.CTX, logger *mlog.Logger
 	// we've exported everything up to the current time
 	logger.Debug("FormatExport complete")
 
-	job.Data[shared.JobDataIsDownloadable] = "false"
+	job.Data[shared.JobDataIsDownloadable] = "true"
 
 	if totalWarningCount > 0 {
 		w.setJobWarning(logger, job)

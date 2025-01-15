@@ -124,20 +124,33 @@ func fileReader(backend filestore.FileBackend, path string) (filestore.ReadClose
 	return result, nil
 }
 
+func zipReader(backend filestore.FileBackend, path string, deflate bool) io.ReadCloser {
+	return backend.ZipReader(path, deflate)
+}
+
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.FileBackend(), path)
+}
+
+func (s *Server) zipReader(path string, deflate bool) io.ReadCloser {
+	return zipReader(s.FileBackend(), path, deflate)
 }
 
 func (s *Server) exportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.ExportFileBackend(), path)
 }
 
-// Caller must close the first return value
+// FileReader caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().fileReader(path)
 }
 
-// Caller must close the first return value
+// ZipReader caller is responsible for closing the returned ReadCloser.
+func (a *App) ZipReader(path string, deflate bool) io.ReadCloser {
+	return a.Srv().zipReader(path, deflate)
+}
+
+// ExportFileReader caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().exportFileReader(path)
 }
@@ -424,7 +437,7 @@ func parseOldFilenames(rctx request.CTX, filenames []string, channelID, userID s
 	return parsed
 }
 
-// Creates and stores FileInfos for a post created before the FileInfos table existed.
+// MigrateFilenamesToFileInfos creates and stores FileInfos for a post created before the FileInfos table existed.
 func (a *App) MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
 		rctx.Logger().Warn("Unable to migrate post to use FileInfos with an empty Filenames field", mlog.String("post_id", post.Id))

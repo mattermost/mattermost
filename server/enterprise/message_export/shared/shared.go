@@ -21,7 +21,8 @@ import (
 )
 
 const (
-	MissingFileMessage = "File missing for post; cannot copy file to archive"
+	MissingFileMessageDuringBackendRead = "File backend read: File missing for post; cannot copy file to archive"
+	MissingFileMessageDuringCopy        = "Copy buffer: File missing for post; cannot copy file to archive"
 
 	EstimatedPostCount = 10_000_000
 
