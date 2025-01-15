@@ -105,8 +105,11 @@ const ChannelHeaderTitle = ({
                 <strong
                     id='channelHeaderTitle'
                     className='heading'
+                    aria-labelledby='channelHeaderTitle_bot'
                 >
-                    <span>
+                    <span
+                        id='channelHeaderTitle_bot'
+                    >
                         {archivedIcon}
                         {channelTitle}
                     </span>
@@ -132,7 +135,10 @@ const ChannelHeaderTitle = ({
                 >
                     <button
                         className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
-                        aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu'}).toLowerCase()}
+                        aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel',
+                            defaultMessage: '{channelName} Channel Menu'}, {
+                            channelName: isDirect ? channel.display_name + '(you)' : channel.display_name,
+                        }).toLowerCase()}
                     >
                         {showTooltip ? (
                             <WithTooltip
@@ -166,6 +172,7 @@ const ChannelHeaderTitle = ({
                         <span
                             id='channelHeaderDropdownIcon'
                             className='icon icon-chevron-down header-dropdown-chevron-icon'
+                            aria-hidden='true'
                         />
                     </button>
                 </div>
