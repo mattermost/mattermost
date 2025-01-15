@@ -26,11 +26,18 @@ var PostCmd = &cobra.Command{
 }
 
 var PostCreateCmd = &cobra.Command{
-	Use:     "create",
-	Short:   "Create a post",
-	Example: `  post create myteam:mychannel --message "some text for the post"`,
-	Args:    cobra.MinimumNArgs(1),
-	RunE:    withClient(postCreateCmdF),
+	Use:   "create",
+	Short: "Create a post",
+	Long:  "This command cammand can be use to create a post on a channel and to send a direct message to user.",
+	Example: ` # Examples of post to a channel
+	post create myteam:mychannel --message "some text for the post"
+	post create myteam:mychannel "some text for the post"
+
+	# Examples of a direct message
+	post create @some-user --message "some direct message"
+	post create @some-user "some direct message"`,
+	Args: cobra.MinimumNArgs(1),
+	RunE: withClient(postCreateCmdF),
 }
 
 var PostListCmd = &cobra.Command{
@@ -86,13 +93,14 @@ func init() {
 
 func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	message, _ := cmd.Flags().GetString("message")
+	sendToArg := args[0]
 	// len(args)>1 makes sure that args[1] exists.
 	if len(args) > 1 && args[1] != "" {
 		message = args[1]
 	}
 
 	if message == "" {
-		return fmt.Errorf("message cannot be empty")
+		return errors.New("message cannot be empty")
 	}
 
 	replyTo, _ := cmd.Flags().GetString("reply-to")
@@ -107,27 +115,27 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	channelID := ""
-	if strings.HasPrefix(args[0], "@") {
+	if strings.HasPrefix(sendToArg, "@") {
 		me, _, err := c.GetMe(context.TODO(), "")
 		if err != nil {
-			return fmt.Errorf("could not get current user: %s", err.Error())
+			return fmt.Errorf("could not get current user: %w", err)
 		}
 
-		userArgString := strings.Split(args[0], "@")[1]
+		userArgString := strings.Split(sendToArg, "@")[1]
 		user := getUserFromUserArg(c, userArgString)
 		if user == nil {
-			return fmt.Errorf("unable to find user %q", args[0])
+			return fmt.Errorf("unable to find user %q", sendToArg)
 		}
 
 		directChannel, _, err := c.CreateDirectChannel(context.TODO(), me.Id, user.Id)
 		if err != nil {
-			return fmt.Errorf("could not create direct channel: %s", err.Error())
+			return fmt.Errorf("could not create direct channel: %w", err)
 		}
 		channelID = directChannel.Id
 	} else {
-		channel := getChannelFromChannelArg(c, args[0])
+		channel := getChannelFromChannelArg(c, sendToArg)
 		if channel == nil {
-			return fmt.Errorf("unable to find channel %q", args[0])
+			return fmt.Errorf("unable to find channel %q", sendToArg)
 		}
 		channelID = channel.Id
 	}
@@ -145,7 +153,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	if _, err := c.DoAPIPost(context.TODO(), url, data); err != nil {
-		return fmt.Errorf("could not create post: %s", err.Error())
+		return fmt.Errorf("could not create post: %w", err)
 	}
 	return nil
 }
