@@ -977,7 +977,6 @@
     }
 
     .post-edited__indicator {
-        display: inline-block;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
@@ -985,6 +984,8 @@
         -moz-user-select: none; /* Firefox all */
         -ms-user-select: none; /* IE 10+ */
         user-select: none;
+        display: flex;
+        align-items: center;
 
         > i {
             margin-right: 2px;
