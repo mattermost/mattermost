@@ -221,17 +221,17 @@ func (_m *PostStore) GetEditHistoryForPost(postID string) ([]*model.Post, error)
 	return r0, r1
 }
 
-// GetEtag provides a mock function with given fields: channelID, allowFromCache, collapsedThreads
-func (_m *PostStore) GetEtag(channelID string, allowFromCache bool, collapsedThreads bool) string {
-	ret := _m.Called(channelID, allowFromCache, collapsedThreads)
+// GetEtag provides a mock function with given fields: channelID, userId, allowFromCache, collapsedThreads
+func (_m *PostStore) GetEtag(channelID string, userId string, allowFromCache bool, collapsedThreads bool) string {
+	ret := _m.Called(channelID, userId, allowFromCache, collapsedThreads)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetEtag")
 	}
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, bool, bool) string); ok {
-		r0 = rf(channelID, allowFromCache, collapsedThreads)
+	if rf, ok := ret.Get(0).(func(string, string, bool, bool) string); ok {
+		r0 = rf(channelID, userId, allowFromCache, collapsedThreads)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
