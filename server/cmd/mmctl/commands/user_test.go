@@ -498,7 +498,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteUsersCmdF(s.client, cmd, []string{email1})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to delete user 'User1' error: an error occurred on deleting a user",
 			printer.GetErrorLines()[0])
@@ -535,7 +535,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteUsersCmdF(s.client, cmd, []string{email1, email2})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(&mockUser2, printer.GetLines()[0])
@@ -561,7 +561,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteUsersCmdF(s.client, cmd, []string{email1})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("There were issues with deleting profile image of the user. Please delete it manually. Id: %s", mockUser1.Id), printer.GetErrorLines()[0])
