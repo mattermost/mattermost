@@ -3,10 +3,11 @@
 
 import type {UseFloatingOptions, UseFloatingReturn} from '@floating-ui/react';
 import {
-    autoPlacement,
+    flip,
     FloatingFocusManager,
     FloatingOverlay,
     FloatingPortal,
+    shift,
     useClick,
     useDismiss,
     useFloating,
@@ -59,22 +60,21 @@ export default function useEmojiPicker({
         middleware = [];
     } else {
         middleware = [
-            autoPlacement({
-                allowedPlacements: ['top-start', 'bottom-start', 'top-end', 'bottom-end'],
+            shift(),
+            flip({
+                fallbackAxisSideDirection: 'end',
             }),
         ];
     }
 
     // Set up Floating UI
-    const {context: floatingContext, floatingStyles, refs, placement} = useFloating({
+    const {context: floatingContext, floatingStyles, refs} = useFloating({
         open: showEmojiPicker,
         onOpenChange: setShowEmojiPicker,
 
         middleware,
+        placement: 'top',
     });
-    if (showEmojiPicker) {
-        console.log('uep', placement)
-    }
 
     const clickInteractions = useClick(floatingContext);
     const dismissInteraction = useDismiss(floatingContext);
