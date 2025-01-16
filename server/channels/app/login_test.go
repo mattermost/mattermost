@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -62,18 +62,18 @@ func TestLoginEvents(t *testing.T) {
 		},
 		RemoteAddr: "192.168.1.1",
 	}
-	
+
 	// Create new context with the test values
 	th.Context = request.NewContext(
 		th.Context.Context(),
-		"", // requestId
-		"", // sessionId 
+		"",            // requestId
 		"192.168.1.1", // ipAddress
-		"", // acceptLanguage
-		"test-agent", // userAgent
-		"", // path
-		nil, // t func
-	).WithIPAddress("192.168.1.1")
+		"",            // xForwardedFor
+		"",            // path
+		"test-agent",  // userAgent
+		"",            // acceptedLanguage
+		nil,           // t func
+	)
 	w := httptest.NewRecorder()
 
 	// Perform login
