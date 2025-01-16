@@ -61,8 +61,12 @@ func TestLoginEvents(t *testing.T) {
 		},
 		RemoteAddr: "192.168.1.1",
 	}
-	th.Context.SetIPAddress(r.Header.Get("X-Forwarded-For"))
-	th.Context.SetUserAgent(r.Header.Get("User-Agent"))
+	
+	// Create new context with the test values
+	th.Context = request.NewContext(
+		request.WithUserAgent(r.Header.Get("User-Agent")),
+		request.WithIPAddress(r.Header.Get("X-Forwarded-For")),
+	)(th.Context)
 	w := httptest.NewRecorder()
 
 	// Perform login
