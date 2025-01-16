@@ -747,6 +747,8 @@ type FileInfoStore interface {
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
 	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
 	GetUptoNSizeFileTime(n int64) (int64, error)
+	// RefreshFileStats recomputes the fileinfo materialized views.
+	RefreshFileStats() error
 }
 
 type UploadSessionStore interface {

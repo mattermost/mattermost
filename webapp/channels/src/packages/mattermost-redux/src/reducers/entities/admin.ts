@@ -233,6 +233,12 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
         case 'registered_users':
             key = Stats.REGISTERED_USERS;
             break;
+        case 'total_file_count':
+            key = Stats.TOTAL_FILE_COUNT;
+            break;
+        case 'total_file_size':
+            key = Stats.TOTAL_FILE_SIZE;
+            break;
         }
 
         if (key) {

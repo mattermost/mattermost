@@ -27,6 +27,10 @@ export function getFormattedFileSize(file: FileInfo): string {
     return `${bytes} B`;
 }
 
+export function formatBytes(bytes: number): string {
+    return getFormattedFileSize({size: bytes} as FileInfo);
+}
+
 export function getFileType(file: FileInfo): string {
     if (!file || !file.extension) {
         return 'other';

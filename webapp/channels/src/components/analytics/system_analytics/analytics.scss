@@ -1,17 +1,17 @@
 details {
+    padding: 0.5em 0.5em 0;
     border: 1px solid #aaa;
     border-radius: 4px;
-    padding: 0.5em 0.5em 0;
 }
 
 summary {
-    font-weight: bold;
-    margin: -0.5em -0.5em 0;
+    position: relative;
     padding: 0.5em;
     padding-left: 1.5em;
-    cursor: pointer;
+    margin: -0.5em -0.5em 0;
     background: rgba(var(--center-channel-color-rgb), 0.04);
-    position: relative;
+    cursor: pointer;
+    font-weight: bold;
     transition: background 0.15s ease-in-out;
 
     &:hover {
@@ -23,9 +23,9 @@ summary {
     }
 
     &::before {
-        content: '►';
         position: absolute;
         left: 0.5em;
+        content: '►';
         transform: rotate(0deg);
         transition: transform 0.15s ease-in-out;
     }

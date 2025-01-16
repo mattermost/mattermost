@@ -225,11 +225,13 @@ func (a *App) getUserCountsWithPostsAnalytics(rctx request.CTX, teamID string, s
 }
 
 func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, *model.AppError) {
-	var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 4)
+	var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
 	rows[0] = &model.AnalyticsRow{Name: "incoming_webhook_count", Value: 0}
 	rows[1] = &model.AnalyticsRow{Name: "outgoing_webhook_count", Value: 0}
 	rows[2] = &model.AnalyticsRow{Name: "command_count", Value: 0}
 	rows[3] = &model.AnalyticsRow{Name: "session_count", Value: 0}
+	rows[4] = &model.AnalyticsRow{Name: "total_file_count", Value: 0}
+	rows[5] = &model.AnalyticsRow{Name: "total_file_size", Value: 0}
 
 	var incomingWebhookCount int64
 	var g errgroup.Group
@@ -269,6 +271,24 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string) (model.An
 		return nil
 	})
 
+	var fileCount int64
+	g.Go(func() error {
+		var err error
+		if fileCount, err = a.Srv().Store().FileInfo().CountAll(); err != nil {
+			return model.NewAppError("GetAnalytics", "app.file_info.get_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil
+	})
+
+	var fileSize int64
+	g.Go(func() error {
+		var err error
+		if fileSize, err = a.Srv().Store().FileInfo().GetStorageUsage(false, false); err != nil {
+			return model.NewAppError("GetAnalytics", "app.file_info.get_storage_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil
+	})
+
 	if err := g.Wait(); err != nil {
 		return nil, err.(*model.AppError)
 	}
@@ -277,6 +297,8 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string) (model.An
 	rows[1].Value = float64(outgoingWebhookCount)
 	rows[2].Value = float64(commandsCount)
 	rows[3].Value = float64(sessionsCount)
+	rows[4].Value = float64(fileCount)
+	rows[5].Value = float64(fileSize)
 
 	return rows, nil
 }

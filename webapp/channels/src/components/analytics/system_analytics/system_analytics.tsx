@@ -8,6 +8,8 @@ import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow, Analyt
 import {AnalyticsVisualizationType} from '@mattermost/types/admin';
 import type {ClientLicense} from '@mattermost/types/config';
 
+import {formatBytes} from 'mattermost-redux/utils/file_utils';
+
 import * as AdminActions from 'actions/admin_actions.jsx';
 
 import ActivatedUserCard from 'components/analytics/activated_users_card';
@@ -25,7 +27,6 @@ import {
     formatPostsPerDayData,
     formatUsersWithPostsPerDayData,
     formatChannelDoughtnutData,
-    formatPostDoughtnutData,
     synchronizeChartLabels,
 } from '../format';
 import LineChart from '../line_chart';
@@ -62,6 +63,8 @@ const messages = defineMessages({
     totalChannels: {id: 'analytics.system.totalChannels', defaultMessage: 'Total Channels'},
     dailyActiveUsers: {id: 'analytics.system.dailyActiveUsers', defaultMessage: 'Daily Active Users'},
     monthlyActiveUsers: {id: 'analytics.system.monthlyActiveUsers', defaultMessage: 'Monthly Active Users'},
+    totalFiles: {id: 'analytics.system.totalFiles', defaultMessage: 'Total Files'},
+    totalFilesSize: {id: 'analytics.system.totalFilesSize', defaultMessage: 'Total Files Size'},
 });
 
 export const searchableStrings = [
@@ -81,6 +84,8 @@ export const searchableStrings = [
     messages.totalChannels,
     messages.dailyActiveUsers,
     messages.monthlyActiveUsers,
+    messages.totalFiles,
+    messages.totalFilesSize,
 ];
 
 export default class SystemAnalytics extends React.PureComponent<Props, State> {
@@ -243,6 +248,8 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         let commandCount;
         let incomingCount;
         let outgoingCount;
+        let totalFiles;
+        let totalFilesSize;
         if (this.props.isLicensed) {
             sessionCount = (
                 <StatisticCount
@@ -279,6 +286,25 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                     }
                     icon='fa-arrow-up'
                     count={this.getStatValue(stats[StatTypes.TOTAL_OHOOKS])}
+                />
+            );
+
+            totalFiles = (
+                <StatisticCount
+                    id='totalFiles'
+                    title={<FormattedMessage {...messages.totalFiles}/>}
+                    icon='fa-files-o'
+                    count={this.getStatValue(stats[StatTypes.TOTAL_FILE_COUNT])}
+                />
+            );
+
+            totalFilesSize = (
+                <StatisticCount
+                    id='totalFilesSize'
+                    title={<FormattedMessage {...messages.totalFilesSize}/>}
+                    icon='fa-files-o'
+                    count={this.getStatValue(stats[StatTypes.TOTAL_FILE_SIZE])}
+                    formatter={formatBytes}
                 />
             );
 
@@ -454,6 +480,8 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                     {commandCount}
                     {incomingCount}
                     {outgoingCount}
+                    {totalFiles}
+                    {totalFilesSize}
                 </>
             );
         } else if (!isLicensed) {
