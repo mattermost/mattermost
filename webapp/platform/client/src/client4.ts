@@ -3,7 +3,6 @@
 
 /* eslint-disable max-lines */
 
-import FormData from 'form-data';
 import {
     TrackPropertyUser,
     TrackPropertyUserAgent, TrackScheduledPostsFeature,
@@ -113,6 +112,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
+import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
@@ -340,6 +340,18 @@ export default class Client4 {
 
     getRemoteClusterRoute(remoteId: string) {
         return `${this.getRemoteClustersRoute()}/${remoteId}`;
+    }
+
+    getCustomProfileAttributeFieldsRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/fields`;
+    }
+
+    getCustomProfileAttributeFieldRoute(propertyFieldId: string) {
+        return `${this.getCustomProfileAttributeFieldsRoute()}/${propertyFieldId}`;
+    }
+
+    getCustomProfileAttributeValuesRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/values`;
     }
 
     getPostsRoute() {
@@ -2058,6 +2070,55 @@ export default class Client4 {
             `${this.getRemoteClusterRoute(remoteId)}/channels/${channelId}/uninvite`,
             {method: 'POST'},
         );
+    };
+
+    // System Properties Routes
+
+    getCustomProfileAttributeFields = async () => {
+        return this.doFetch<UserPropertyField[]>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'GET'},
+        );
+    };
+
+    createCustomProfileAttributeField = async (patch: UserPropertyFieldPatch) => {
+        return this.doFetch<UserPropertyField>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'POST', body: JSON.stringify(patch)},
+        );
+    };
+
+    patchCustomProfileAttributeField = async (fieldId: string, patch: UserPropertyFieldPatch) => {
+        return this.doFetch<UserPropertyField>(
+            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    deleteCustomProfileAttributeField = async (fieldId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+            {method: 'DELETE'},
+        );
+    };
+
+    updateCustomProfileAttributeValues = (attributeID: string, attributeValue: string) => {
+        const obj: { [key: string]: string } = {};
+        obj[attributeID] = attributeValue;
+
+        return this.doFetch<Record<string, string>>(
+            `${this.getCustomProfileAttributeValuesRoute()}`,
+            {method: 'PATCH', body: JSON.stringify(obj)},
+        );
+    };
+
+    getUserCustomProfileAttributesValues = async (userID: string) => {
+        const data = await this.doFetch<Record<string, string>>(
+            `${this.getUserRoute(userID)}/custom_profile_attributes`,
+            {method: 'GET'},
+        );
+        return data;
     };
 
     // Post Routes
@@ -4269,6 +4330,13 @@ export default class Client4 {
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePostId}`,
             {method: 'delete', headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    restorePostVersion = (postId: string, restoreVersionId: string, connectionId: string) => {
+        return this.doFetchWithResponse<Post>(
+            `${this.getPostRoute(postId)}/restore/${restoreVersionId}`,
+            {method: 'post', headers: {'Connection-Id': connectionId}},
         );
     };
 }
