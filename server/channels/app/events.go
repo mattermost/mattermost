@@ -45,7 +45,7 @@ func registerEvents() {
 
 // systemBusRegisterOnce ensures a topic is only registered once
 func systemBusRegisterOnce(name, description string, schema json.RawMessage) error {
-	if sysBus := a.Srv().SystemBus(); sysBus != nil {
+	if sysBus := app.Srv().SystemBus(); sysBus != nil {
 		if err := sysBus.RegisterTopic(name, description, schema); err != nil {
 			// Ignore already registered errors
 			if err.Error() != fmt.Sprintf("topic %q already registered", name) {
