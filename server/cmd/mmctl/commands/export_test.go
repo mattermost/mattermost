@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
@@ -90,21 +91,36 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 }
 
 func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
-	printer.Clean()
+	s.Run("delete export", func() {
+		printer.Clean()
+		exportName := "export.zip"
+		s.client.
+			EXPECT().
+			DeleteExport(context.TODO(), exportName).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
 
-	exportName := "export.zip"
+		err := exportDeleteCmdF(s.client, &cobra.Command{}, []string{exportName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Equal(fmt.Sprintf(`Export file "%s" has been deleted`, exportName), printer.GetLines()[0])
+	})
 
-	s.client.
-		EXPECT().
-		DeleteExport(context.TODO(), exportName).
-		Return(&model.Response{StatusCode: http.StatusOK}, nil).
-		Times(1)
+	s.Run("delete export error", func() {
+		printer.Clean()
+		exportName := "export.zip"
+		s.client.
+			EXPECT().
+			DeleteExport(context.TODO(), exportName).
+			Return(&model.Response{}, errors.New("File not found")).
+			Times(1)
 
-	err := exportDeleteCmdF(s.client, &cobra.Command{}, []string{exportName})
-	s.Require().Nil(err)
-	s.Len(printer.GetLines(), 1)
-	s.Len(printer.GetErrorLines(), 0)
-	s.Equal(fmt.Sprintf(`Export file "%s" has been deleted`, exportName), printer.GetLines()[0])
+		err := exportDeleteCmdF(s.client, &cobra.Command{}, []string{exportName})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 1)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestExportListCmdF() {

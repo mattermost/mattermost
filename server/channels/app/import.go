@@ -417,7 +417,7 @@ func (a *App) DeleteImport(name string) *model.AppError {
 	if ok, err := a.FileExists(filePath); err != nil {
 		return err
 	} else if !ok {
-		return nil
+		return model.NewAppError("DeleteImport", "app.import.delete_import.not_found.error", nil, "", http.StatusNotFound)
 	}
 
 	return a.RemoveFile(filePath)

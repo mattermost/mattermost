@@ -125,11 +125,14 @@ func TestDeleteExport(t *testing.T) {
 		exports, _, err = c.ListExports(context.Background())
 		require.NoError(t, err)
 		require.Empty(t, exports)
-
-		// verify idempotence
-		_, err = c.DeleteExport(context.Background(), exportName)
-		require.NoError(t, err)
 	}, "successfully delete export")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		exportName := "export.zip"
+		resp, err := c.DeleteExport(context.Background(), exportName)
+		require.Error(t, err)
+		require.Equal(t, 404, resp.StatusCode)
+	})
 }
 
 func TestDownloadExport(t *testing.T) {

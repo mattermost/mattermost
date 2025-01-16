@@ -679,3 +679,42 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 	files := GetAttachments(adminUser.Id, th, t)
 	require.Len(t, files, 11)
 }
+
+func TestDeleteImport(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	dataDir, found := fileutils.FindDir("data")
+	require.True(t, found)
+	importDir := filepath.Join(dataDir, "import")
+	err := os.Mkdir(importDir, os.ModePerm)
+	require.NoError(t, err)
+	f, err := os.Create(filepath.Join(importDir, "import.zip"))
+	require.NoError(t, err)
+	f.Close()
+	defer func() {
+		err = os.RemoveAll(importDir)
+		require.NoError(t, err)
+	}()
+
+	t.Run("delete import successfull", func(t *testing.T) {
+		imports, err := th.App.ListImports()
+		require.Nil(t, err)
+		require.Equal(t, 1, len(imports))
+		require.Equal(t, "import.zip", imports[0])
+
+		delErr := th.App.DeleteImport("import.zip")
+		require.Nil(t, delErr)
+
+		imports, err = th.App.ListImports()
+		require.Nil(t, err)
+		require.Equal(t, 0, len(imports))
+	})
+
+	t.Run("delete import file not found", func(t *testing.T) {
+		delErr := th.App.DeleteImport("import.zip")
+		require.NotNil(t, delErr)
+		require.Equal(t, "DeleteImport: app.import.delete_import.not_found.error", delErr.Error())
+		require.Equal(t, 404, delErr.StatusCode)
+	})
+}

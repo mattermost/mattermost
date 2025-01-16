@@ -35,16 +35,15 @@ func listImports(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteImport(c *Context, w http.ResponseWriter, r *http.Request) {
+	importName := c.Params.ImportName
 	auditRec := c.MakeAuditRecord("deleteImport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("import_name", c.Params.ImportName)
+	auditRec.AddMeta("import_name", importName)
 
-	if !c.IsSystemAdmin() {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
-
-	importName := c.Params.ImportName
 
 	if err := c.App.DeleteImport(importName); err != nil {
 		c.Err = err
