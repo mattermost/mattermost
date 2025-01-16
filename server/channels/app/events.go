@@ -1,8 +1,5 @@
 package app
 
-import (
-	"encoding/json"
-)
 
 const (
 	// Login Events

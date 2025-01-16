@@ -13,7 +13,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost/server/v8/platform/services/systembus"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -49,7 +48,7 @@ func TestLoginEventPublication(t *testing.T) {
 
 	// Subscribe to login events
 	ctx := th.Context.Context()
-	messages, err := sysBus.Subscribe(ctx, TopicUserLoggedIn)
+	messages, err := th.App.Srv().SystemBus().Subscribe(ctx, TopicUserLoggedIn)
 	require.NoError(t, err)
 
 	// Prepare test request
