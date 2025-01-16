@@ -3623,7 +3623,7 @@
   "drafts.confirm.delete.title": "Видалити чернетку",
   "drafts.confirm.send.button": "Так, відправити зараз",
   "drafts.confirm.send.text": "Ви дійсно хочете відправити це повідомлення <strong>{displayName}</strong>?",
-  "drafts.confirm.send.title": "Надішліть повідомлення зараз",
+  "drafts.confirm.send.title": "Надіслати повідомлення зараз",
   "drafts.draft_title.channel": "У: {icon} <span>{channelName}</span>",
   "drafts.draft_title.channel_thread": "Обговорення у: {icon} <span>{channelName}</span>",
   "drafts.draft_title.direct_channel": "До: {icon} <span>{channelName}</span>",
