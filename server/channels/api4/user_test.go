@@ -8982,7 +8982,6 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 	})
 }
 
-// test that when the server has mfa enforced, users who have not activate mfa can't search users.
 func TestSearchUsersWithMfaEnforced(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
