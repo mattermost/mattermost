@@ -234,6 +234,20 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 			hooks.UserHasLoggedIn(pluginContext, user)
 			return true
 		}, plugin.UserHasLoggedInID)
+
+		// Publish login event to system bus
+		if sysBus := a.Srv().SystemBus(); sysBus != nil {
+			event := &UserLoggedInEvent{
+				UserID:    user.Id,
+				UserAgent: r.UserAgent(),
+				IPAddress: r.RemoteAddr,
+			}
+			if payload, err := json.Marshal(event); err == nil {
+				if err := sysBus.Publish(TopicUserLoggedIn, payload); err != nil {
+					c.Logger().Error("Failed to publish login event", mlog.Err(err))
+				}
+			}
+		}
 	})
 
 	return session, nil
