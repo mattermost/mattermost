@@ -56,9 +56,9 @@ func TestLoginEvents(t *testing.T) {
 	// Prepare test request with headers
 	r := &http.Request{
 		Header: http.Header{
-			"User-Agent": []string{"test-agent"},
+			"User-Agent":      []string{"test-agent"},
+			"X-Forwarded-For": []string{"192.168.1.1"},
 		},
-		RemoteAddr: "192.168.1.1",
 	}
 	w := httptest.NewRecorder()
 

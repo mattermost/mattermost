@@ -54,8 +54,8 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 				if sysBus := a.Srv().SystemBus(); sysBus != nil {
 					event := &UserLoginFailedEvent{
 						LoginID:   loginId,
-						UserAgent: c.Session().UserAgent,
-						IPAddress: c.Session().Remote,
+						UserAgent: c.UserAgent(),
+						IPAddress: c.IPAddress(),
 						Reason:    err.Error(),
 					}
 					if payload, jsonErr := json.Marshal(event); jsonErr == nil {
@@ -254,8 +254,8 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 		if sysBus := a.Srv().SystemBus(); sysBus != nil {
 			event := &UserLoggedInEvent{
 				UserID:    user.Id,
-				UserAgent: r.UserAgent(),
-				IPAddress: r.RemoteAddr,
+				UserAgent: c.UserAgent(),
+				IPAddress: c.IPAddress(),
 			}
 			if payload, err := json.Marshal(event); err == nil {
 				if err := sysBus.Publish(TopicUserLoggedIn, payload); err != nil {
