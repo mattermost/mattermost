@@ -35,9 +35,11 @@ exports[`components/post_edit_history should display error screen if errors are 
               type="button"
             >
               <i
+                aria-hidden="true"
                 class="icon icon-arrow-expand"
               />
               <i
+                aria-hidden="true"
                 class="icon icon-arrow-collapse"
               />
             </button>
@@ -196,9 +198,11 @@ exports[`components/post_edit_history should match snapshot 1`] = `
               type="button"
             >
               <i
+                aria-hidden="true"
                 class="icon icon-arrow-expand"
               />
               <i
+                aria-hidden="true"
                 class="icon icon-arrow-collapse"
               />
             </button>
