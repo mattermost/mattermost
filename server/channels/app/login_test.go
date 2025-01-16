@@ -73,7 +73,7 @@ func TestLoginEvents(t *testing.T) {
 		"test-agent", // userAgent
 		"", // path
 		nil, // t func
-	).(*request.Context).WithIPAddress("192.168.1.1")
+	).WithIPAddress("192.168.1.1")
 	w := httptest.NewRecorder()
 
 	// Perform login
