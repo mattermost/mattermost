@@ -8988,6 +8988,7 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 
+	// move the two variable bellow in their respective test case AI!
 	userWithMFAOK := th.BasicUser
 	userWithMFANotOk := th.BasicUser2
 
