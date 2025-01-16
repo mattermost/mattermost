@@ -4,12 +4,16 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/platform/services/systembus"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -36,6 +40,48 @@ func TestCheckForClientSideCert(t *testing.T) {
 		_, _, actualEmail := th.App.CheckForClientSideCert(r)
 
 		require.Equal(t, actualEmail, tt.expectedEmail, "CheckForClientSideCert(%v): expected %v, actual %v", tt.subject, tt.expectedEmail, actualEmail)
+	}
+}
+
+func TestLoginEventPublication(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Create and configure system bus
+	sysBus, err := systembus.New(nil) // Use in-memory implementation for testing
+	require.NoError(t, err)
+	defer sysBus.Close()
+	th.App.Srv().SetSystemBus(sysBus)
+
+	// Subscribe to login events
+	ctx := th.Context.Context()
+	messages, err := sysBus.Subscribe(ctx, TopicUserLoggedIn)
+	require.NoError(t, err)
+
+	// Prepare test request
+	r := &http.Request{
+		Header: http.Header{},
+		RemoteAddr: "192.168.1.1",
+	}
+	r.Header.Set("User-Agent", "test-agent")
+	w := httptest.NewRecorder()
+
+	// Perform login
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	require.Nil(t, err)
+	require.NotNil(t, session)
+
+	// Wait for and verify the event
+	select {
+	case msg := <-messages:
+		var event UserLoggedInEvent
+		err := json.Unmarshal(msg.Payload, &event)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser.Id, event.UserID)
+		require.Equal(t, "test-agent", event.UserAgent)
+		require.Equal(t, "192.168.1.1", event.IPAddress)
+	case <-time.After(5 * time.Second):
+		t.Fatal("Timed out waiting for login event")
 	}
 }
 
