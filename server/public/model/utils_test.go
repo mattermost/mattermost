@@ -550,7 +550,6 @@ func TestParseHashtags(t *testing.T) {
 			}
 			hashtags, plain := ParseHashtags(text)
 
-			// 添加相应的断言
 			if tc.hashtagRatio != 0 {
 				assert.NotEmpty(t, hashtags)
 			}
