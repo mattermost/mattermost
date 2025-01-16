@@ -13,7 +13,7 @@ interface MenuAction {
     value: string;
 }
 
-const MenuActionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<MenuAction>>((props, ref) => {
+const MenuActionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<MenuAction>>((props, ref) => {
     const {item} = props;
 
     return (
