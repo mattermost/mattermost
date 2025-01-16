@@ -68,9 +68,9 @@ func TestLoginEvents(t *testing.T) {
 		th.Context.Context(),
 		"", // requestId
 		"", // sessionId 
-		r.Header.Get("X-Forwarded-For"), // ipAddress
+		"192.168.1.1", // ipAddress 
 		"", // acceptLanguage
-		r.Header.Get("User-Agent"), // userAgent
+		"test-agent", // userAgent
 		"", // path
 		nil, // t func
 	)
@@ -100,6 +100,7 @@ func TestLoginEvents(t *testing.T) {
 		// Attempt login with wrong password
 		_, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "wrongpassword", "", "", false)
 		require.Error(t, err)
+		require.NotNil(t, err) // Ensure error is not nil before accessing Error()
 
 		// Wait for and verify the failure event
 		select {
