@@ -6,7 +6,7 @@ import pages from '@e2e-support/ui/pages';
 import {expect} from '@playwright/test';
 import {duration, wait} from '@e2e-support/util';
 
-test('should be able to edit post message', async ({pw}) => {
+test('MM-T5654 should be able to edit post message', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -37,7 +37,7 @@ test('should be able to edit post message', async ({pw}) => {
     await updatedPost.toContainText('Edited message');
 });
 
-test('should be able to edit post message in RHS', async ({pw}) => {
+test('MM-T5655 should be able to edit post message in RHS', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -238,7 +238,7 @@ test('should be able to remove some files when editing a post', async ({pw}) => 
     expect(updatedPost).not.toContain('archive.zip');
 });
 
-test('should be able to remove all files when editing a post', async ({pw}) => {
+test('MM-T5655 should be able to remove all files when editing a post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -282,7 +282,7 @@ test('should be able to remove all files when editing a post', async ({pw}) => {
     await expect(updatedPost).not.toContain('sample_text_file.txt');
 });
 
-test('removing message content and files should delete the post', async ({pw}) => {
+test('MM-T5655 removing message content and files should delete the post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
