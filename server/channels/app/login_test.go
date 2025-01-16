@@ -53,12 +53,13 @@ func TestLoginEvents(t *testing.T) {
 	failureMessages, err := th.App.Srv().SystemBus().Subscribe(ctx, TopicUserLoginFailed)
 	require.NoError(t, err)
 
-	// Prepare test request
+	// Prepare test request with headers
 	r := &http.Request{
-		Header: http.Header{},
-		RemoteAddr: "192.168.1.1",
+		Header: http.Header{
+			"User-Agent":        []string{"test-agent"},
+			"X-Forwarded-For":   []string{"192.168.1.1"},
+		},
 	}
-	r.Header.Set("User-Agent", "test-agent")
 	w := httptest.NewRecorder()
 
 	// Perform login

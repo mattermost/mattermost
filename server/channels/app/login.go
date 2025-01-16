@@ -54,8 +54,8 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 				if sysBus := a.Srv().SystemBus(); sysBus != nil {
 					event := &UserLoginFailedEvent{
 						LoginID:   loginId,
-						UserAgent: c.RequestHeader("User-Agent"),
-						IPAddress: c.RequestIP(),
+						UserAgent: c.GetUserAgent(),
+						IPAddress: c.GetIPAddress(),
 						Reason:    err.Error(),
 					}
 					if payload, jsonErr := json.Marshal(event); jsonErr == nil {
