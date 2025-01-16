@@ -57,7 +57,7 @@ func New(config *Config, logger *mlog.Logger) (*SystemBus, error) {
 			watermillSQL.PublisherConfig{
 				SchemaAdapter: config.PostgreSQL.SchemaAdapter,
 			},
-			logger,
+			wmLogger,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create PostgreSQL publisher: %w", err)
@@ -69,7 +69,7 @@ func New(config *Config, logger *mlog.Logger) (*SystemBus, error) {
 				SchemaAdapter:  config.PostgreSQL.SchemaAdapter,
 				ConsumerGroup: config.PostgreSQL.ConsumerGroup,
 			},
-			logger,
+			wmLogger,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create PostgreSQL subscriber: %w", err)
@@ -80,7 +80,7 @@ func New(config *Config, logger *mlog.Logger) (*SystemBus, error) {
 			gochannel.Config{
 				OutputChannelBuffer: 100,
 			},
-			logger,
+			wmLogger,
 		)
 		publisher = pubSub
 		subscriber = pubSub
@@ -89,7 +89,7 @@ func New(config *Config, logger *mlog.Logger) (*SystemBus, error) {
 	return &SystemBus{
 		publisher:   publisher,
 		subscriber:  subscriber,
-		logger:      logger,
+		logger:      wmLogger,
 		topics:      make(map[string]*TopicDefinition),
 	}, nil
 }
