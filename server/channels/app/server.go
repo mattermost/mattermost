@@ -73,6 +73,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
+	"github.com/mattermost/mattermost/server/v8/platform/services/systembus"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
@@ -136,6 +137,7 @@ type Server struct {
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
+	systemBus        *systembus.SystemBus
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -198,6 +200,13 @@ func NewServer(options ...Option) (*Server, error) {
 			return nil, errors.Wrap(sErr, "failed to initialize platform")
 		}
 		s.platform = ps
+	}
+
+	// TODO: Configure the systembus to use postgres or not
+	var err error
+	s.systemBus, err = systembus.New(nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to initialize the system bus")
 	}
 
 	subpath, err := utils.GetSubpathFromConfig(s.platform.Config())
@@ -1862,4 +1871,8 @@ func (s *Server) Log() *mlog.Logger {
 
 func (s *Server) NotificationsLog() *mlog.Logger {
 	return s.platform.NotificationsLogger()
+}
+
+func (s *Server) SystemBus() *systembus.SystemBus {
+	return s.systemBus
 }
