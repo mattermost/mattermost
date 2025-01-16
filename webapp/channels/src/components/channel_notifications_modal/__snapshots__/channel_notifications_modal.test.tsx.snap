@@ -52,6 +52,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -471,6 +472,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -1028,6 +1030,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -1332,6 +1335,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -1832,6 +1836,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -2332,6 +2337,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
