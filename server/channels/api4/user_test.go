@@ -8998,6 +8998,7 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 	})
 
 	t.Run("user with MFA active can search users", func(t *testing.T) {
+		userWithMFAOK := th.BasicUser
 		secret, appErr := th.App.GenerateMfaSecret(userWithMFAOK.Id)
 		assert.Nil(t, appErr)
 
@@ -9023,6 +9024,7 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 	})
 
 	t.Run("user with MFA not active can't search users", func(t *testing.T) {
+		userWithMFANotOk := th.BasicUser2
 		err := th.Server.Store().User().UpdateMfaActive(userWithMFANotOk.Id, false)
 		require.NoError(t, err)
 
