@@ -97,8 +97,8 @@ func TestLoginEvents(t *testing.T) {
 	})
 
 	t.Run("failed login", func(t *testing.T) {
-		// Attempt login with wrong password
-		_, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "wrongpassword", "", "", false)
+		// Attempt login with empty password
+		_, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", "", false)
 		require.Error(t, err)
 		require.NotNil(t, err) // Ensure error is not nil before accessing Error()
 
