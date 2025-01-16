@@ -42,13 +42,15 @@ func TestCheckForClientSideCert(t *testing.T) {
 	}
 }
 
-func TestLoginEventPublication(t *testing.T) {
+func TestLoginEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Subscribe to login events
 	ctx := th.Context.Context()
-	messages, err := th.App.Srv().SystemBus().Subscribe(ctx, TopicUserLoggedIn)
+	successMessages, err := th.App.Srv().SystemBus().Subscribe(ctx, TopicUserLoggedIn)
+	require.NoError(t, err)
+	failureMessages, err := th.App.Srv().SystemBus().Subscribe(ctx, TopicUserLoginFailed)
 	require.NoError(t, err)
 
 	// Prepare test request
@@ -64,18 +66,40 @@ func TestLoginEventPublication(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, session)
 
-	// Wait for and verify the event
-	select {
-	case msg := <-messages:
-		var event UserLoggedInEvent
-		err := json.Unmarshal(msg.Payload, &event)
-		require.NoError(t, err)
-		require.Equal(t, th.BasicUser.Id, event.UserID)
-		require.Equal(t, "test-agent", event.UserAgent)
-		require.Equal(t, "192.168.1.1", event.IPAddress)
-	case <-time.After(5 * time.Second):
-		t.Fatal("Timed out waiting for login event")
-	}
+	t.Run("successful login", func(t *testing.T) {
+		// Wait for and verify the success event
+		select {
+		case msg := <-successMessages:
+			var event UserLoggedInEvent
+			err := json.Unmarshal(msg.Payload, &event)
+			require.NoError(t, err)
+			require.Equal(t, th.BasicUser.Id, event.UserID)
+			require.Equal(t, "test-agent", event.UserAgent)
+			require.Equal(t, "192.168.1.1", event.IPAddress)
+		case <-time.After(5 * time.Second):
+			t.Fatal("Timed out waiting for login success event")
+		}
+	})
+
+	t.Run("failed login", func(t *testing.T) {
+		// Attempt login with wrong password
+		_, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "wrongpassword", "", "", false)
+		require.Error(t, err)
+
+		// Wait for and verify the failure event
+		select {
+		case msg := <-failureMessages:
+			var event UserLoginFailedEvent
+			err := json.Unmarshal(msg.Payload, &event)
+			require.NoError(t, err)
+			require.Equal(t, th.BasicUser.Username, event.LoginID)
+			require.Equal(t, "test-agent", event.UserAgent)
+			require.Equal(t, "192.168.1.1", event.IPAddress)
+			require.NotEmpty(t, event.Reason)
+		case <-time.After(5 * time.Second):
+			t.Fatal("Timed out waiting for login failure event")
+		}
+	})
 }
 
 func TestCWSLogin(t *testing.T) {

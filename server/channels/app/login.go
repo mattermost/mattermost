@@ -50,6 +50,20 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 		if a.Metrics() != nil {
 			if user == nil || err != nil {
 				a.Metrics().IncrementLoginFail()
+				// Publish login failed event
+				if sysBus := a.Srv().SystemBus(); sysBus != nil {
+					event := &UserLoginFailedEvent{
+						LoginID:   loginId,
+						UserAgent: c.RequestHeader("User-Agent"),
+						IPAddress: c.RequestIP(),
+						Reason:    err.Error(),
+					}
+					if payload, jsonErr := json.Marshal(event); jsonErr == nil {
+						if sysErr := sysBus.Publish(TopicUserLoginFailed, payload); sysErr != nil {
+							c.Logger().Error("Failed to publish login failed event", mlog.Err(sysErr))
+						}
+					}
+				}
 			} else {
 				a.Metrics().IncrementLogin()
 			}
