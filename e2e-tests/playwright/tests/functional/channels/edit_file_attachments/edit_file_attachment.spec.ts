@@ -91,7 +91,7 @@ test('should be able to edit post message in RHS', async ({pw}) => {
     await wait(duration.half_sec);
     await channelPage.sidebarRight.postEdit.sendMessage();
     await wait(duration.half_sec);
-    await channelPage.sidebarRight.postEdit.toNotBeVisible()
+    await channelPage.sidebarRight.postEdit.toNotBeVisible();
     await updatedReplyPost.toBeVisible();
     await updatedReplyPost.toContainText('Edited reply message with files');
     await updatedReplyPost.toContainText('sample_text_file.txt');
