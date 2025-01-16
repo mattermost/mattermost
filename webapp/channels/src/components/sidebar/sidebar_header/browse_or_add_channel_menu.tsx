@@ -145,17 +145,18 @@ export default function BrowserOrAddChannelMenu(props: Props) {
             menuButton={{
                 id: ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU,
                 'aria-label': formatMessage({
-                    id: 'sidebarLeft.browserOrCreateChannel.title',
+                    id: 'sidebarLeft.browserOrCreateChannelMenuButton.arialLabel',
                     defaultMessage: 'Browse or create channels',
                 }),
                 class: 'btn btn-icon btn-sm btn-tertiary btn-inverted btn-round',
                 children: <PlusIcon size={18}/>,
             }}
             menuButtonTooltip={{
-                text: formatMessage({id: 'sidebarLeft.browserOrCreateChannel.ariaLabel', defaultMessage: 'Browse or create channels'}),
+                text: formatMessage({id: 'sidebarLeft.browserOrCreateChannelMenuButton.tooltip', defaultMessage: 'Browse or create channels'}),
             }}
             menu={{
                 id: 'browserOrAddChannelMenu',
+                'aria-label': formatMessage({id: 'sidebarLeft.browserOrCreateChannelMenu.ariaLabel', defaultMessage: 'Browse or create channels menu'}),
             }}
         >
             {createNewChannelMenuItem}

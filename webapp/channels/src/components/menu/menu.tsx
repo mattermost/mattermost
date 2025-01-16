@@ -58,6 +58,10 @@ type MenuButtonTooltipProps = {
 }
 
 type MenuProps = {
+
+    /**
+     * ID is mandatory as it is used in mobileWebview to open modal equivalent to menu
+     */
     id: string;
     'aria-label'?: string;
 
@@ -246,9 +250,9 @@ export function Menu(props: Props) {
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
                     MenuListProps={{
                         id: props.menu.id,
-                        'aria-label': props.menu?.['aria-label'] ?? '',
+                        'aria-label': props.menu?.['aria-label'],
                         style: {
-                            width: props.menu.width || 'inherit',
+                            width: props.menu?.width,
                         },
                     }}
                     TransitionProps={{
