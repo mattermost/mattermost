@@ -22,7 +22,7 @@ const mimeType = 'image/png';
 const {file} = getFileDataFromAsset(filename, mimeType);
 const {blob} = getBlobDataFromAsset(filename, mimeType);
 
-test.beforeAll(async ({pw}) => {
+test.beforeEach(async ({pw}) => {
     ({userClient, user, team} = await pw.initSetup());
     townSquareChannel = await userClient.getChannelByName(team.id, 'town-square');
 });
