@@ -3089,11 +3089,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Ваша ліцензія не підтримує Elasticsearch."
+    "translation": "Ваша ліцензія Mattermost не підтримує індексований пошук."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL-адреса сервера Elasticsearch або ім'я користувача змінилися. Будь ласка, введіть пароль Elasticsearch ще раз, щоб перевірити з'єднання."
+    "translation": "Змінено URL-адресу сервера пошуку або ім'я користувача. Будь ласка, введіть пароль ще раз, щоб перевірити з'єднання."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3609,7 +3609,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Налаштування пошуку EnableIndexing повинно бути увімкнено, якщо Elasticsearch EnableSearching увімкнено"
+    "translation": "Параметр {{.EnableIndexing}} має бути увімкнений, якщо {{.Searching}} увімкнено"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4777,7 +4777,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Налаштування пошуку EnableIndexing повинен бути увімкнений, якщо Elasticsearch EnableAutocomplete увімкнений"
+    "translation": "Параметр {{.EnableIndexing}} має бути увімкнений, якщо {{.Autocomplete}} увімкнено"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4857,7 +4857,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Не вдалося оновити індекси Elasticsearch"
+    "translation": "Не вдалося оновити пошукові індекси"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -9577,7 +9577,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Не вдалося видалити індекс Elasticsearch"
+    "translation": "Не вдалося видалити пошуковий індекс"
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
