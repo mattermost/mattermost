@@ -78,7 +78,7 @@ func TestPublishSubscribe(t *testing.T) {
 
 		select {
 		case msg := <-messages:
-			assert.Equal(t, payload, msg.Payload)
+			assert.Equal(t, string(payload), string(msg.Payload))
 		case <-ctx.Done():
 			t.Fatal("timeout waiting for message")
 		}
