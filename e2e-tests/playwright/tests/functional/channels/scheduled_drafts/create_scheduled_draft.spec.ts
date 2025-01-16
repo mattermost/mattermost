@@ -3,7 +3,7 @@
 
 import {expect, Page} from '@playwright/test';
 import {test} from '@e2e-support/test_fixture';
-import pages, {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
+import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 import {duration, wait} from '@e2e-support/util';
 
 test('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
@@ -13,7 +13,7 @@ test('MM-T5643_1 should create a scheduled message from a channel', async ({pw})
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
     const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
     await setupChannelPage(channelsPage, draftMessage);
@@ -45,7 +45,7 @@ test('MM-T5643_6 should create a scheduled message under a thread post ', async 
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
     const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
@@ -259,7 +259,7 @@ test('MM-T5644 should edit scheduled message', async ({pw}) => {
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
     const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
     await setupChannelPage(channelsPage, draftMessage);
