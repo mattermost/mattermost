@@ -14,6 +14,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/pkg/errors"
 )
 
