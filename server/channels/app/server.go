@@ -204,7 +204,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// TODO: Configure the systembus to use postgres or not
 	var err error
-	s.systemBus, err = systembus.New(nil)
+	s.systemBus, err = systembus.New(nil, s.Log())
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to initialize the system bus")
 	}

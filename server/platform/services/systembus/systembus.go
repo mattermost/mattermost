@@ -41,8 +41,9 @@ type SystemBus struct {
 }
 
 // New creates a new SystemBus instance
-func New(config *Config) (*SystemBus, error) {
-	logger := watermill.NewStdLogger(false, false)
+func New(config *Config, logger *mlog.Logger) (*SystemBus, error) {
+	// TODO: Make logger optional via config when we add systembus settings
+	wmLogger := newWatermillLoggerAdapter(logger)
 
 	var publisher message.Publisher
 	var subscriber message.Subscriber
