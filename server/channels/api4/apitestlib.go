@@ -557,7 +557,7 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 
 func (th *TestHelper) CreateConnectedWebSocketClient(t *testing.T) *model.WebSocketClient {
 	t.Helper()
-	wsClient, err := model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken)
+	wsClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
 	require.NotNil(t, wsClient, "webSocketClient should not be nil")
 	wsClient.Listen()
