@@ -294,3 +294,39 @@ func waitDone(t *testing.T, done chan bool, msg string) {
 		}
 	}, 5*time.Second, 100*time.Millisecond, msg)
 }
+
+func (th *TestHelper) SetupWorkersAndSchedulers(t *testing.T) {
+	jobs.DefaultWatcherPollingInterval = 100
+	err := th.App.Srv().Jobs.StartWorkers()
+	require.NoError(t, err)
+
+	err = th.App.Srv().Jobs.StartSchedulers()
+	require.NoError(t, err)
+}
+
+func (th *TestHelper) RunJob(t *testing.T, jobType string, jobData map[string]string) *model.Job {
+	t.Helper()
+
+	job, appErr := th.Server.Jobs.CreateJob(th.Context, jobType, jobData)
+	require.Nil(t, appErr)
+
+	// poll until completion
+	th.checkJobStatus(t, job.Id, model.JobStatusSuccess)
+	job, appErr = th.Server.Jobs.GetJob(th.Context, job.Id)
+	require.Nil(t, appErr)
+
+	return job
+}
+
+func (th *TestHelper) checkJobStatus(t *testing.T, jobId string, status string) {
+	t.Helper()
+
+	require.Eventuallyf(t, func() bool {
+		// it's ok if there's an error, it might take awhile for the job to finish.
+		job, _ := th.Server.Jobs.GetJob(th.Context, jobId)
+		if jobId == job.Id {
+			return job.Status == status
+		}
+		return false
+	}, 15*time.Second, 100*time.Millisecond, "expected job's status to be %s", status)
+}
