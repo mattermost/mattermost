@@ -9,9 +9,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
+import {FileTypes} from 'mattermost-redux/action_types';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -185,6 +187,7 @@ const AdvancedTextEditor = ({
 
         return enableTutorial && (tutorialStep === tourStep);
     });
+    const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId));
 
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
@@ -348,6 +351,26 @@ const AdvancedTextEditor = ({
         });
     }, [handleDraftChange, channelId, postId]);
 
+    const handleFileChangesOnSave = useCallback((draft: PostDraft) => {
+        // sets the updated data for file IDs by post ID part
+        dispatch({
+            type: FileTypes.RECEIVED_FILES_FOR_POST,
+            data: draft.fileInfos,
+            postId,
+        });
+
+        // removes the data for the deleted files from store
+        const deletedFileIds = postFileIds.filter((id: string) => !draft.fileInfos.find((file) => file.id === id));
+        if (deletedFileIds) {
+            dispatch({
+                type: FileTypes.REMOVED_FILE,
+                data: {
+                    fileIds: deletedFileIds,
+                },
+            });
+        }
+    }, [dispatch, postFileIds, postId]);
+
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
 
@@ -365,8 +388,12 @@ const AdvancedTextEditor = ({
             return;
         }
 
+        if (isInEditMode) {
+            handleFileChangesOnSave(draft);
+        }
+
         handleSubmit();
-    }, [dispatch, draft, handleSubmit, isInEditMode, isRHS]);
+    }, [dispatch, draft, handleFileChangesOnSave, handleSubmit, isInEditMode, isRHS]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
