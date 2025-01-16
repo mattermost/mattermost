@@ -103,6 +103,8 @@ const ChannelHeaderTitle = ({
                     size='sm'
                 />
                 <strong
+                    role='heading'
+                    aria-level={2}
                     id='channelHeaderTitle'
                     className='heading'
                 >
@@ -130,44 +132,43 @@ const ChannelHeaderTitle = ({
                 <div
                     id='channelHeaderDropdownButton'
                 >
-                    <button
-                        className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
-                        aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu'}).toLowerCase()}
+                    <strong
+                        role='heading'
+                        aria-level={2}
+                        id='channelHeaderTitle'
+                        className='heading'
+                        ref={headerItemRef}
                     >
-                        {showTooltip ? (
-                            <WithTooltip
-                                title={channelTitle as string}
-                            >
-                                <strong
-                                    id='channelHeaderTitle'
-                                    className='heading'
-                                    ref={headerItemRef}
+                        <button
+                            id='channel_header.menuAriaLabel'
+                            className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
+                            aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu'}).toLowerCase()}
+                            aria-expanded={titleMenuOpen}
+                            aria-controls='channelHeaderDropdownMenu'
+                        >
+                            {showTooltip ? (
+                                <WithTooltip
+                                    title={channelTitle as string}
                                 >
                                     <span>
                                         {archivedIcon}
                                         {channelTitle}
                                         {sharedIcon}
                                     </span>
-                                </strong>
-                            </WithTooltip>
-                        ) : (
-                            <strong
-                                id='channelHeaderTitle'
-                                className='heading'
-                                ref={headerItemRef}
-                            >
+                                </WithTooltip>
+                            ) : (
                                 <span>
                                     {archivedIcon}
                                     {channelTitle}
                                     {sharedIcon}
                                 </span>
-                            </strong>
-                        )}
-                        <span
-                            id='channelHeaderDropdownIcon'
-                            className='icon icon-chevron-down header-dropdown-chevron-icon'
-                        />
-                    </button>
+                            )}
+                            <span
+                                id='channelHeaderDropdownIcon'
+                                className='icon icon-chevron-down header-dropdown-chevron-icon'
+                            />
+                        </button>
+                    </strong>
                 </div>
                 <ChannelHeaderDropdown/>
             </MenuWrapper>
