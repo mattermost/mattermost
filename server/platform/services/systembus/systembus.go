@@ -5,13 +5,15 @@ package systembus
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"fmt"
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
-	"github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
+	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/pkg/errors"
 )
 
@@ -23,8 +25,8 @@ type Config struct {
 
 // PostgreSQLConfig holds PostgreSQL specific configuration
 type PostgreSQLConfig struct {
-	DSN             string // Database connection string
-	SchemaAdapter   sql.SchemaAdapter
+	DB             *sql.DB // Database connection
+	SchemaAdapter   watermillSQL.SchemaAdapter
 	ConsumerGroup   string // Unique name for the consumer group
 	AutoCreateTable bool   // Whether to create required tables automatically
 }
@@ -48,10 +50,10 @@ func New(config *Config) (*SystemBus, error) {
 
 	if config != nil && config.PostgreSQL != nil {
 		// PostgreSQL implementation
-		publisher, err = sql.NewPublisher(
-			sql.PublisherConfig{
-				SchemaAdapter:  config.PostgreSQL.SchemaAdapter,
-				AutoInitialize: config.PostgreSQL.AutoCreateTable,
+		publisher, err = watermillSQL.NewPublisher(
+			config.PostgreSQL.DB,
+			watermillSQL.PublisherConfig{
+				SchemaAdapter: config.PostgreSQL.SchemaAdapter,
 			},
 			logger,
 		)
@@ -59,11 +61,11 @@ func New(config *Config) (*SystemBus, error) {
 			return nil, fmt.Errorf("failed to create PostgreSQL publisher: %w", err)
 		}
 
-		subscriber, err = sql.NewSubscriber(
-			sql.SubscriberConfig{
-				SchemaAdapter:    config.PostgreSQL.SchemaAdapter,
-				AutoInitialize:   config.PostgreSQL.AutoCreateTable,
-				ConsumerGroup:    config.PostgreSQL.ConsumerGroup,
+		subscriber, err = watermillSQL.NewSubscriber(
+			config.PostgreSQL.DB,
+			watermillSQL.SubscriberConfig{
+				SchemaAdapter:  config.PostgreSQL.SchemaAdapter,
+				ConsumerGroup: config.PostgreSQL.ConsumerGroup,
 			},
 			logger,
 		)
