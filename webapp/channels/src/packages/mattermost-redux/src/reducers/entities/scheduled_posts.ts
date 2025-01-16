@@ -175,18 +175,26 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
 function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
-        const {scheduledPostsByTeamId} = action.data;
+        const {scheduledPostsByTeamId, prune} = action.data;
+        const newState = prune ? {} : {...state};
 
-        const newState: ScheduledPostsState['byChannelOrThreadId'] = {};
+        Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
+            if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {
+                scheduledPostsByTeamId[teamId].forEach((scheduledPost: ScheduledPost) => {
+                    const id = scheduledPost.root_id || scheduledPost.channel_id;
 
-        Object.values(scheduledPostsByTeamId).forEach((scheduledPostsForOneTeam) => {
-            (scheduledPostsForOneTeam as ScheduledPost[]).forEach((scheduledPost: ScheduledPost) => {
-                const channelOrThreadId = scheduledPost.root_id || scheduledPost.channel_id;
-                if (!newState[channelOrThreadId]) {
-                    newState[channelOrThreadId] = [];
-                }
-                newState[channelOrThreadId].push(scheduledPost.id);
-            });
+                    // Check if the entry for that channel/thread ID exists
+                    if (newState[id]) {
+                        // Only add if its not already there
+                        if (!newState[id].includes(scheduledPost.id)) {
+                            newState[id] = [...newState[id], scheduledPost.id];
+                        }
+                    } else {
+                        // If the entry does not exist at this moment, create it
+                        newState[id] = [scheduledPost.id];
+                    }
+                });
+            }
         });
 
         return newState;
