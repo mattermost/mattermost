@@ -65,9 +65,15 @@ func TestLoginEvents(t *testing.T) {
 	
 	// Create new context with the test values
 	th.Context = request.NewContext(
-		request.WithUserAgent(r.Header.Get("User-Agent")),
-		request.WithIPAddress(r.Header.Get("X-Forwarded-For")),
-	)(th.Context)
+		th.Context.Context(),
+		"", // requestId
+		"", // sessionId 
+		r.Header.Get("X-Forwarded-For"), // ipAddress
+		"", // acceptLanguage
+		r.Header.Get("User-Agent"), // userAgent
+		"", // path
+		nil, // t func
+	)
 	w := httptest.NewRecorder()
 
 	// Perform login
