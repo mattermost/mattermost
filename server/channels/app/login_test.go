@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
