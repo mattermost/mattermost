@@ -221,12 +221,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of creating a bookmark", func(t *testing.T) {
-		t.Skip("MM-62437")
-
-		webSocketClient, err := th.CreateWebSocketClient()
-		require.NoError(t, err)
-		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
-		webSocketClient.Listen()
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 		defer webSocketClient.Close()
 
 		bookmark1 := &model.ChannelBookmark{
@@ -242,7 +237,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 		defer func() { th.Context.Session().UserId = originalSessionUserId }()
 
-		_, appErr := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
+		bookmark, appErr := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
 		require.Nil(t, appErr)
 
 		var b model.ChannelBookmarkWithFileInfo
@@ -266,6 +261,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 		require.True(t, eventReceived, "Expected WebSocket event was not received within the timeout period")
 		require.NotNil(t, b)
 		require.NotEmpty(t, b.Id)
+		require.Equal(t, bookmark, &b)
 	})
 }
 
@@ -600,11 +596,7 @@ func TestEditChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-61779")
-		webSocketClient, err := th.CreateWebSocketClient()
-		require.NoError(t, err)
-		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
-		webSocketClient.Listen()
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 		defer webSocketClient.Close()
 
 		bookmark1 := &model.ChannelBookmark{
@@ -975,13 +967,9 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark's sort order", func(t *testing.T) {
-		t.Skip("MM-61301")
 		now := model.GetMillis()
-		webSocketClient, err := th.CreateWebSocketClient()
-		require.NoError(t, err)
-		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
-		webSocketClient.Listen()
 
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 		defer webSocketClient.Close()
 
 		bookmark := &model.ChannelBookmark{
@@ -1332,10 +1320,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of deleting a bookmark", func(t *testing.T) {
-		webSocketClient, err := th.CreateWebSocketClient()
-		require.NoError(t, err)
-		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
-		webSocketClient.Listen()
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 		defer webSocketClient.Close()
 
 		bookmark := &model.ChannelBookmark{
