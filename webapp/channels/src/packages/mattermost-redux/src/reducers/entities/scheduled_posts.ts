@@ -178,8 +178,8 @@ function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] =
         const {scheduledPostsByTeamId} = action.data;
         const newState = {...state};
         const newIdsByChannel: {[channelOrThreadId: string]: Set<string>} = {};
-    
-        Object.entries(scheduledPostsByTeamId).forEach(([teamId, scheduledPosts]) => {
+
+        Object.values(scheduledPostsByTeamId).forEach((scheduledPosts) => {
             (scheduledPosts as ScheduledPost[]).forEach((scheduledPost: ScheduledPost) => {
                 const channelOrThreadId = scheduledPost.root_id || scheduledPost.channel_id;
                 if (!newIdsByChannel[channelOrThreadId]) {
@@ -194,10 +194,10 @@ function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] =
             newIdsByChannel[channelOrThreadId].forEach((id) => existingIDs.add(id));
             newState[channelOrThreadId] = Array.from(existingIDs);
         });
-    
+
         return newState;
     }
-        
+
     case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
         const scheduledPost = action.data.scheduledPost;
         const newState = {...state};
