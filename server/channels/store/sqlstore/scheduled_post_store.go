@@ -140,7 +140,7 @@ func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime i
 		Select(s.columns("")...).
 		From("ScheduledPosts").
 		Where(sq.Eq{"ErrorCode": ""}).
-		OrderBy("ScheduledAt DESC", "Id").
+		OrderBy("ScheduledAt DESC", "CreateAt ASC", "Id").
 		Limit(perPage)
 
 	if lastScheduledPostId == "" {
