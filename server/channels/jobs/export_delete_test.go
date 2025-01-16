@@ -22,7 +22,7 @@ func TestExportDelete(t *testing.T) {
 	exportDir := filepath.Join(fileSettingsDir, relExportDir)
 
 	t.Cleanup(func() {
-		err := os.RemoveAll(fileSettingsDir)
+		err = os.RemoveAll(fileSettingsDir)
 		assert.NoError(t, err)
 	})
 
@@ -52,7 +52,7 @@ func TestExportDelete(t *testing.T) {
 	}
 
 	for _, dir := range dirs {
-		err := os.MkdirAll(filepath.Join(exportDir, dir), 0755)
+		err = os.MkdirAll(filepath.Join(exportDir, dir), 0755)
 		require.NoError(t, err)
 		// Add a file in each directory that should not be deleted
 		err = os.WriteFile(filepath.Join(exportDir, dir, "file.txt"), []byte("test"), 0644)
@@ -60,7 +60,7 @@ func TestExportDelete(t *testing.T) {
 	}
 
 	for _, file := range files {
-		err := os.WriteFile(filepath.Join(exportDir, file), []byte("test"), 0644)
+		err = os.WriteFile(filepath.Join(exportDir, file), []byte("test"), 0644)
 		require.NoError(t, err)
 	}
 
