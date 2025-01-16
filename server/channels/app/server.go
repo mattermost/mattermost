@@ -209,6 +209,10 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "unable to initialize the system bus")
 	}
 
+	if err = InitSystemEventBus(s); err != nil {
+		return nil, errors.Wrap(err, "unable to initialize system event bus topics")
+	}
+
 	subpath, err := utils.GetSubpathFromConfig(s.platform.Config())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")

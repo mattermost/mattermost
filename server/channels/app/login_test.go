@@ -47,12 +47,6 @@ func TestLoginEventPublication(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// Create and configure system bus
-	sysBus, err := systembus.New(nil) // Use in-memory implementation for testing
-	require.NoError(t, err)
-	defer sysBus.Close()
-	th.App.Srv().SetSystemBus(sysBus)
-
 	// Subscribe to login events
 	ctx := th.Context.Context()
 	messages, err := sysBus.Subscribe(ctx, TopicUserLoggedIn)

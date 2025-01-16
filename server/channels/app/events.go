@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"encoding/json"
 )
 
@@ -30,28 +29,16 @@ var (
 	}`)
 )
 
-func init() {
-	// Register all event topics
-	registerEvents()
-}
+// InitSystemEventBus registers all system bus events and their schemas
+func InitSystemEventBus(s *Server) error {
+	if s.SystemBus() == nil {
+		return nil
+	}
 
-// registerEvents registers all system bus events and their schemas
-func registerEvents() {
 	// Login events
-	if err := systemBusRegisterOnce(TopicUserLoggedIn, "Event emitted when a user successfully logs in", userLoggedInSchema); err != nil {
-		panic("failed to register user_logged_in topic: " + err.Error())
+	if err := s.SystemBus().RegisterTopic(TopicUserLoggedIn, "Event emitted when a user successfully logs in", userLoggedInSchema); err != nil {
+		return err
 	}
-}
 
-// systemBusRegisterOnce ensures a topic is only registered once
-func systemBusRegisterOnce(name, description string, schema json.RawMessage) error {
-	if sysBus := app.Srv().SystemBus(); sysBus != nil {
-		if err := sysBus.RegisterTopic(name, description, schema); err != nil {
-			// Ignore already registered errors
-			if err.Error() != fmt.Sprintf("topic %q already registered", name) {
-				return err
-			}
-		}
-	}
 	return nil
 }
