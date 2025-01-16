@@ -46,12 +46,11 @@ const pencilIcon = (
 function DraftsLink() {
     const dispatch = useDispatch();
 
-    const initialScheduledPostsLoaded = useRef(false);
-
     const syncedDraftsAllowedAndEnabled = useSelector(syncedDraftsAreAllowedAndEnabled);
     const draftCount = useSelector(getDraftsCount);
     const teamId = useSelector(getCurrentTeamId);
     const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, teamId, true));
+    const initialScheduledPostsLoaded = useRef(teamId);
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
     const hasDrafts = draftCount > 0;
@@ -73,13 +72,13 @@ function DraftsLink() {
     }, [teamId, syncedDraftsAllowedAndEnabled, dispatch]);
 
     useEffect(() => {
-        const loadDMsAndGMs = !initialScheduledPostsLoaded.current;
+        const loadDMsAndGMs = initialScheduledPostsLoaded.current !== teamId;
 
         if (isScheduledPostEnabled) {
             dispatch(fetchTeamScheduledPosts(teamId, loadDMsAndGMs));
         }
 
-        initialScheduledPostsLoaded.current = true;
+        initialScheduledPostsLoaded.current = teamId;
     }, [dispatch, isScheduledPostEnabled, teamId]);
 
     const showScheduledPostCount = isScheduledPostEnabled && teamScheduledPostCount > 0;
