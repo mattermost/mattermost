@@ -68,12 +68,12 @@ func TestLoginEvents(t *testing.T) {
 		th.Context.Context(),
 		"", // requestId
 		"", // sessionId 
-		"192.168.1.1", // ipAddress 
+		"192.168.1.1", // ipAddress
 		"", // acceptLanguage
 		"test-agent", // userAgent
 		"", // path
 		nil, // t func
-	)
+	).WithIPAddress("192.168.1.1")
 	w := httptest.NewRecorder()
 
 	// Perform login

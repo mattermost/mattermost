@@ -51,7 +51,7 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 			if user == nil || err != nil {
 				a.Metrics().IncrementLoginFail()
 				// Publish login failed event
-				if sysBus := a.Srv().SystemBus(); sysBus != nil {
+				if sysBus := a.Srv().SystemBus(); sysBus != nil && err != nil {
 					event := &UserLoginFailedEvent{
 						LoginID:   loginId,
 						UserAgent: c.UserAgent(),
