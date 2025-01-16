@@ -32,6 +32,14 @@ const baseState: DeepPartial<GlobalState> = {
         },
     },
 };
+
+jest.mock('@mattermost/client', () => ({
+    ...jest.requireActual('@mattermost/client'),
+    Client4: class MockClient4 extends jest.requireActual('@mattermost/client').Client4 {
+        getUserCustomProfileAttributesValues = jest.fn();
+    },
+}));
+
 describe('do first render to avoid other testing issues', () => {
     // For some reason, the first time we render, the modal does not
     // completly renders. This makes it so further tests go properly

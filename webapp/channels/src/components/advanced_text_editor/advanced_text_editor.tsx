@@ -9,11 +9,12 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
+import {FileTypes} from 'mattermost-redux/action_types';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
@@ -143,7 +144,6 @@ const AdvancedTextEditor = ({
         return name;
     };
 
-    const post = useSelector((state: GlobalState) => getPost(state, postId));
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const channelDisplayName = channel?.display_name || '';
@@ -187,6 +187,7 @@ const AdvancedTextEditor = ({
 
         return enableTutorial && (tutorialStep === tourStep);
     });
+    const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId));
 
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
@@ -337,12 +338,37 @@ const AdvancedTextEditor = ({
     );
 
     const handleCancel = useCallback(() => {
-        // This resets the draft to the post's original content
         handleDraftChange({
-            ...draft,
-            message: post?.message || '',
+            message: '',
+            fileInfos: [],
+            uploadsInProgress: [],
+            createAt: 0,
+            updateAt: 0,
+            channelId,
+            rootId: postId,
+            metadata: {},
         });
-    }, [handleDraftChange, draft, post]);
+    }, [handleDraftChange, channelId, postId]);
+
+    const handleFileChangesOnSave = useCallback((draft: PostDraft) => {
+        // sets the updated data for file IDs by post ID part
+        dispatch({
+            type: FileTypes.RECEIVED_FILES_FOR_POST,
+            data: draft.fileInfos,
+            postId,
+        });
+
+        // removes the data for the deleted files from store
+        const deletedFileIds = postFileIds.filter((id: string) => !draft.fileInfos.find((file) => file.id === id));
+        if (deletedFileIds) {
+            dispatch({
+                type: FileTypes.REMOVED_FILE,
+                data: {
+                    fileIds: deletedFileIds,
+                },
+            });
+        }
+    }, [dispatch, postFileIds, postId]);
 
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
@@ -361,8 +387,12 @@ const AdvancedTextEditor = ({
             return;
         }
 
+        if (isInEditMode) {
+            handleFileChangesOnSave(draft);
+        }
+
         handleSubmit();
-    }, [dispatch, draft, handleSubmit, isInEditMode, isRHS]);
+    }, [dispatch, draft, handleFileChangesOnSave, handleSubmit, isInEditMode, isRHS]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
