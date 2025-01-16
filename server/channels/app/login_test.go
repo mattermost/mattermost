@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost/server/platform/services/systembus"
+	"github.com/mattermost/mattermost/server/v8/platform/services/systembus"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
