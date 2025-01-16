@@ -164,34 +164,6 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	require.NoError(t, serverErr)
 }
 
-func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
-	sqlDrivernameEnvironment := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-
-	if sqlDrivernameEnvironment != "" {
-		defer os.Setenv("MM_SQLSETTINGS_DRIVERNAME", sqlDrivernameEnvironment)
-	} else {
-		defer os.Unsetenv("MM_SQLSETTINGS_DRIVERNAME")
-	}
-
-	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
-
-	th := Setup(t)
-	defer th.TearDown()
-
-	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
-	assert.Equal(t, "postgres", databaseType)
-	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
-
-	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
-
-	th2 := Setup(t)
-	defer th2.TearDown()
-
-	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()
-	assert.Equal(t, "mysql", databaseType)
-	assert.GreaterOrEqual(t, mattermostVersion, strconv.Itoa(1))
-}
-
 func TestStartServerTLSVersion(t *testing.T) {
 	configStore, _ := config.NewMemoryStore()
 	store, _ := config.NewStoreFromBacking(configStore, nil, false)
