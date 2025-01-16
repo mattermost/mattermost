@@ -261,7 +261,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(await screen.getByRole('textbox', {name: `${customProfileAttribute.name}`})).toBeInTheDocument();
         expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         userEvent.clear(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}));
-        userEvent.type(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}), 'Updated Value');
+        userEvent.type(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}), '  Updated Value  ');
         userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
         expect(saveCustomProfileAttribute).toHaveBeenCalledTimes(1);
