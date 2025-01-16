@@ -1210,5 +1210,5 @@ func TestExecuteCommandDeletedChannel(t *testing.T) {
 	// Confirm that the command fails when the channel is archived
 	_, resp, err = client.ExecuteCommandWithTeam(context.Background(), th.BasicChannel.Id, th.BasicChannel.TeamId, "/postcommand")
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 }
