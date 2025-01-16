@@ -825,8 +825,6 @@ export const StatTypes = keyMirror({
     TOTAL_PRIVATE_GROUPS: null,
     TOTAL_POSTS: null,
     TOTAL_TEAMS: null,
-    TOTAL_FILE_POSTS: null,
-    TOTAL_HASHTAG_POSTS: null,
     TOTAL_IHOOKS: null,
     TOTAL_OHOOKS: null,
     TOTAL_COMMANDS: null,

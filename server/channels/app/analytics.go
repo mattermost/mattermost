@@ -49,7 +49,7 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 	case "user_counts_with_posts_day":
 		return a.getUserCountsWithPostsAnalytics(rctx, teamID, skipIntensiveQueries)
 	case "extra_counts":
-		return a.getExtraCountsAnalytics(rctx, teamID, skipIntensiveQueries)
+		return a.getExtraCountsAnalytics(rctx, teamID)
 	default:
 		return nil, nil
 	}
@@ -224,14 +224,12 @@ func (a *App) getUserCountsWithPostsAnalytics(rctx request.CTX, teamID string, s
 	return analyticsRows, nil
 }
 
-func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string, skipIntensiveQueries bool) (model.AnalyticsRows, *model.AppError) {
-	var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
-	rows[0] = &model.AnalyticsRow{Name: "file_post_count", Value: 0}
-	rows[1] = &model.AnalyticsRow{Name: "hashtag_post_count", Value: 0}
-	rows[2] = &model.AnalyticsRow{Name: "incoming_webhook_count", Value: 0}
-	rows[3] = &model.AnalyticsRow{Name: "outgoing_webhook_count", Value: 0}
-	rows[4] = &model.AnalyticsRow{Name: "command_count", Value: 0}
-	rows[5] = &model.AnalyticsRow{Name: "session_count", Value: 0}
+func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, *model.AppError) {
+	var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 4)
+	rows[0] = &model.AnalyticsRow{Name: "incoming_webhook_count", Value: 0}
+	rows[1] = &model.AnalyticsRow{Name: "outgoing_webhook_count", Value: 0}
+	rows[2] = &model.AnalyticsRow{Name: "command_count", Value: 0}
+	rows[3] = &model.AnalyticsRow{Name: "session_count", Value: 0}
 
 	var incomingWebhookCount int64
 	var g errgroup.Group
@@ -271,42 +269,14 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string, skipInten
 		return nil
 	})
 
-	var filesCount int64
-	var hashtagsCount int64
-	if !skipIntensiveQueries {
-		g.Go(func() error {
-			var err error
-			if filesCount, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID, MustHaveFile: true}); err != nil {
-				return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			return nil
-		})
-
-		g.Go(func() error {
-			var err error
-			if hashtagsCount, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID, MustHaveHashtag: true}); err != nil {
-				return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			return nil
-		})
-	}
-
 	if err := g.Wait(); err != nil {
 		return nil, err.(*model.AppError)
 	}
 
-	if skipIntensiveQueries {
-		rows[0].Value = -1
-		rows[1].Value = -1
-	} else {
-		rows[0].Value = float64(filesCount)
-		rows[1].Value = float64(hashtagsCount)
-	}
-
-	rows[2].Value = float64(incomingWebhookCount)
-	rows[3].Value = float64(outgoingWebhookCount)
-	rows[4].Value = float64(commandsCount)
-	rows[5].Value = float64(sessionsCount)
+	rows[0].Value = float64(incomingWebhookCount)
+	rows[1].Value = float64(outgoingWebhookCount)
+	rows[2].Value = float64(commandsCount)
+	rows[3].Value = float64(sessionsCount)
 
 	return rows, nil
 }

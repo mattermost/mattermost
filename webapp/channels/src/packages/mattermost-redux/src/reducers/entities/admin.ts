@@ -218,12 +218,6 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
         case 'monthly_active_users':
             key = Stats.MONTHLY_ACTIVE_USERS;
             break;
-        case 'file_post_count':
-            key = Stats.TOTAL_FILE_POSTS;
-            break;
-        case 'hashtag_post_count':
-            key = Stats.TOTAL_HASHTAG_POSTS;
-            break;
         case 'incoming_webhook_count':
             key = Stats.TOTAL_IHOOKS;
             break;

@@ -309,20 +309,6 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             );
 
             const channelTypeData = formatChannelDoughtnutData(stats[StatTypes.TOTAL_PUBLIC_CHANNELS], stats[StatTypes.TOTAL_PRIVATE_GROUPS]);
-            const postTypeData = formatPostDoughtnutData(stats[StatTypes.TOTAL_FILE_POSTS], stats[StatTypes.TOTAL_HASHTAG_POSTS], stats[StatTypes.TOTAL_POSTS]);
-
-            let postTypeGraph;
-            if (stats[StatTypes.TOTAL_POSTS] !== -1) {
-                postTypeGraph = (
-                    <DoughnutChart
-                        title={<FormattedMessage {...messages.postTypes}/>
-                        }
-                        data={postTypeData}
-                        width={300}
-                        height={225}
-                    />
-                );
-            }
 
             advancedGraphs = (
                 <div className='row'>
@@ -333,7 +319,6 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                         width={300}
                         height={225}
                     />
-                    {postTypeGraph}
                 </div>
             );
         }
