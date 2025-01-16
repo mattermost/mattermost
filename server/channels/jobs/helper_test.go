@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -35,10 +37,12 @@ type TestHelper struct {
 	IncludeCacheLayer bool
 	ConfigStore       *config.Store
 
-	tempWorkspace string
+	tempWorkspace             string
+	oldWatcherPollingInterval int
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, options []app.Option, tb testing.TB) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
+	updateCfg func(cfg *model.Config), options []app.Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "jobstest")
 	if err != nil {
 		panic(err)
@@ -54,6 +58,11 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
+
+	if updateCfg != nil {
+		updateCfg(memoryConfig)
+	}
+
 	configStore.Set(memoryConfig)
 
 	buffer := &mlog.Buffer{}
@@ -108,15 +117,25 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 }
 
 func Setup(tb testing.TB, options ...app.Option) *TestHelper {
+	return SetupWithUpdateCfg(tb, nil, options...)
+}
+
+func SetupWithUpdateCfg(tb testing.TB, updateCfg func(cfg *model.Config), options ...app.Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
+
+	oldWatcherPollingInterval := jobs.DefaultWatcherPollingInterval
+	jobs.DefaultWatcherPollingInterval = 100
+
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, options, tb)
+	th := setupTestHelper(dbStore, false, true, updateCfg, options)
+	th.oldWatcherPollingInterval = oldWatcherPollingInterval
+	return th
 }
 
 var initBasicOnce sync.Once
@@ -223,6 +242,10 @@ func (th *TestHelper) TearDown() {
 	if th.tempWorkspace != "" {
 		os.RemoveAll(th.tempWorkspace)
 	}
+
+	if th.oldWatcherPollingInterval != 0 {
+		jobs.DefaultWatcherPollingInterval = th.oldWatcherPollingInterval
+	}
 }
 
 func (th *TestHelper) SetupBatchWorker(t *testing.T, worker *jobs.BatchWorker) *model.Job {
@@ -295,12 +318,8 @@ func waitDone(t *testing.T, done chan bool, msg string) {
 	}, 5*time.Second, 100*time.Millisecond, msg)
 }
 
-func (th *TestHelper) SetupWorkersAndSchedulers(t *testing.T) {
-	jobs.DefaultWatcherPollingInterval = 100
+func (th *TestHelper) SetupWorkers(t *testing.T) {
 	err := th.App.Srv().Jobs.StartWorkers()
-	require.NoError(t, err)
-
-	err = th.App.Srv().Jobs.StartSchedulers()
 	require.NoError(t, err)
 }
 
@@ -323,7 +342,8 @@ func (th *TestHelper) checkJobStatus(t *testing.T, jobId string, status string) 
 
 	require.Eventuallyf(t, func() bool {
 		// it's ok if there's an error, it might take awhile for the job to finish.
-		job, _ := th.Server.Jobs.GetJob(th.Context, jobId)
+		job, err := th.Server.Jobs.GetJob(th.Context, jobId)
+		assert.Nil(t, err)
 		if jobId == job.Id {
 			return job.Status == status
 		}
