@@ -9,10 +9,25 @@ import (
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill"
-	"github.com/pkg/errors"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
+	"github.com/ThreeDotsLabs/watermill/pubsub/sql"
+	"github.com/pkg/errors"
 )
+
+// Config holds the configuration for SystemBus
+type Config struct {
+	// PostgreSQL configuration, if nil will use in-memory implementation
+	PostgreSQL *PostgreSQLConfig
+}
+
+// PostgreSQLConfig holds PostgreSQL specific configuration
+type PostgreSQLConfig struct {
+	DSN             string // Database connection string
+	SchemaAdapter   sql.SchemaAdapter
+	ConsumerGroup   string // Unique name for the consumer group
+	AutoCreateTable bool   // Whether to create required tables automatically
+}
 
 // SystemBus represents an in-memory message bus for system-wide events
 type SystemBus struct {
@@ -24,19 +39,52 @@ type SystemBus struct {
 }
 
 // New creates a new SystemBus instance
-func New() (*SystemBus, error) {
+func New(config *Config) (*SystemBus, error) {
 	logger := watermill.NewStdLogger(false, false)
-	
-	pubSub := gochannel.NewGoChannel(
-		gochannel.Config{
-			OutputChannelBuffer: 100,
-		},
-		logger,
-	)
+
+	var publisher message.Publisher
+	var subscriber message.Subscriber
+	var err error
+
+	if config != nil && config.PostgreSQL != nil {
+		// PostgreSQL implementation
+		publisher, err = sql.NewPublisher(
+			sql.PublisherConfig{
+				SchemaAdapter:  config.PostgreSQL.SchemaAdapter,
+				AutoInitialize: config.PostgreSQL.AutoCreateTable,
+			},
+			logger,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create PostgreSQL publisher: %w", err)
+		}
+
+		subscriber, err = sql.NewSubscriber(
+			sql.SubscriberConfig{
+				SchemaAdapter:    config.PostgreSQL.SchemaAdapter,
+				AutoInitialize:   config.PostgreSQL.AutoCreateTable,
+				ConsumerGroup:    config.PostgreSQL.ConsumerGroup,
+			},
+			logger,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create PostgreSQL subscriber: %w", err)
+		}
+	} else {
+		// In-memory implementation using Go channels
+		pubSub := gochannel.NewGoChannel(
+			gochannel.Config{
+				OutputChannelBuffer: 100,
+			},
+			logger,
+		)
+		publisher = pubSub
+		subscriber = pubSub
+	}
 
 	return &SystemBus{
-		publisher:   pubSub,
-		subscriber:  pubSub,
+		publisher:   publisher,
+		subscriber:  subscriber,
 		logger:      logger,
 		topics:      make(map[string]*TopicDefinition),
 	}, nil
