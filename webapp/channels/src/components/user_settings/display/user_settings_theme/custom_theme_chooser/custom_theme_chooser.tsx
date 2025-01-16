@@ -160,7 +160,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                 [settingId]: color,
             };
 
-            // For backwards compatability
+            // For backwards compatibility
             if (settingId === 'mentionBg') {
                 newTheme.mentionBj = color;
             }
@@ -470,7 +470,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                             onClick={this.toggleSidebarStyles}
                             aria-expanded={false}
                             aria-controls='sidebarStylesSection'
-                            aria-label='Sidebar Styles'
+                            className='theme-elements__header'
                         >
                             <FormattedMessage
                                 id='user.settings.custom_theme.sidebarTitle'
@@ -479,10 +479,12 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                             <div className='header__icon'>
                                 <i
                                     className='fa fa-plus'
+                                    aria-hidden={true}
                                     title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
                                 />
                                 <i
                                     className='fa fa-minus'
+                                    aria-hidden={true}
                                     title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                                 />
                             </div>
@@ -505,7 +507,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                             onClick={this.toggleCenterChannelStyles}
                             aria-expanded={false}
                             aria-controls='centerChannelStylesSection'
-                            aria-label='Center Channel Styles'
+                            className='theme-elements__header'
                         >
                             <FormattedMessage
                                 id='user.settings.custom_theme.centerChannelTitle'
@@ -514,10 +516,12 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                             <div className='header__icon'>
                                 <i
                                     className='fa fa-plus'
+                                    aria-hidden={true}
                                     title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
                                 />
                                 <i
                                     className='fa fa-minus'
+                                    aria-hidden={true}
                                     title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                                 />
                             </div>
@@ -540,7 +544,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                             onClick={this.toggleLinkAndButtonStyles}
                             aria-expanded={false}
                             aria-controls='linkAndButtonsStylesSection'
-                            aria-label='Link and Button Styles'
+                            className='theme-elements__header'
                         >
                             <FormattedMessage
                                 id='user.settings.custom_theme.linkButtonTitle'
@@ -549,10 +553,12 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                             <div className='header__icon'>
                                 <i
                                     className='fa fa-plus'
+                                    aria-hidden={true}
                                     title={intl.formatMessage({id: 'generic_icons.expand', defaultMessage: 'Expand Icon'})}
                                 />
                                 <i
                                     className='fa fa-minus'
+                                    aria-hidden={true}
                                     title={intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                                 />
                             </div>
