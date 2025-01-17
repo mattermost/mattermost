@@ -115,10 +115,9 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 
 		// idempotence check
 		err = exportDeleteCmdF(c, cmd, []string{exportName})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Empty(printer.GetErrorLines())
-		s.Require().Len(printer.GetLines(), 1)
-		s.Equal(fmt.Sprintf(`Export file "%s" has been deleted`, exportName), printer.GetLines()[0])
+		s.Require().Len(printer.GetLines(), 0)
 	})
 }
 

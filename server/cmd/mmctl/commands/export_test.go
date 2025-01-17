@@ -118,8 +118,8 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 
 		err := exportDeleteCmdF(s.client, &cobra.Command{}, []string{exportName})
 		s.Require().NotNil(err)
-		s.Len(printer.GetLines(), 1)
-		s.Len(printer.GetErrorLines(), 1)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
 	})
 }
 

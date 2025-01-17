@@ -562,6 +562,6 @@ func (s *MmctlUnitTestSuite) TestDeleteImportCmdF() {
 		err := importDeleteCmdF(s.client, &cobra.Command{}, []string{"import.zip"})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		s.Equal("Import file import.zip has been deleted", printer.GetLines()[0])
+		s.Equal("Import file \"import.zip\" has been deleted", printer.GetLines()[0])
 	})
 }
