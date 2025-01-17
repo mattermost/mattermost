@@ -34,6 +34,7 @@ type FieldActions = {
 
 export const useUserPropertiesTable = (): SectionHook => {
     const [userPropertyFields, readIO, pendingIO, itemOps] = useUserPropertyFields();
+    const nonDeletedCount = Object.values(userPropertyFields.data).filter((f) => f.delete_at === 0).length;
 
     const save = async () => {
         const newData = await pendingIO.commit();
@@ -53,7 +54,7 @@ export const useUserPropertiesTable = (): SectionHook => {
                 updateField={itemOps.update}
                 deleteField={itemOps.delete}
             />
-            {userPropertyFields.order.length < Constants.MAX_CUSTOM_ATTRIBUTES && (
+            {nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES && (
                 <LinkButton onClick={itemOps.create}>
                     <PlusIcon size={16}/>
                     <FormattedMessage
