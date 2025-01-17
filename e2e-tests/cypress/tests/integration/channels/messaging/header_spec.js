@@ -58,12 +58,13 @@ describe('Header', () => {
 
         updateAndVerifyChannelHeader('>', header);
 
-        // # Click the header to see the whole text
-        cy.get('#channelHeaderDescription').click();
+        // # Hover on channel header
+        cy.get('#channelHeaderDescription .header-description__text').trigger('mouseenter');
 
         // * Check that no ellipsis is present
-        cy.get('#header-popover > div.popover-content').
-            should('have.html', `<span><blockquote>\n<p>${header}</p>\n</blockquote></span>`);
+        cy.get('.channel-header-text-popover').should(($el) => {
+            expect($el.get(0).innerText).to.eq(header);
+        });
 
         cy.apiSaveMessageDisplayPreference('clean');
     });
@@ -75,12 +76,14 @@ function updateAndVerifyChannelHeader(prefix, header) {
 
     // * Should render blockquote if it starts with ">"
     if (prefix === '>') {
-        cy.get('#channelHeaderDescription > span > blockquote').should('be.visible');
+        cy.get('.header-description__text').within(() => {
+            cy.get('blockquote').should('be.visible');
+        });
     }
 
     // * Check if channel header description has ellipsis
-    cy.get('#channelHeaderDescription > .header-description__text').find('p').
-        should('have.text', header).
+    cy.get('.header-description__text').
+        should('include.text', header).
         and('have.css', 'overflow', 'hidden').
         and('have.css', 'text-overflow', 'ellipsis');
 }
