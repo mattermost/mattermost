@@ -88,7 +88,7 @@ describe('Messaging', () => {
         });
     });
 
-    it.skip('MM-T91 Replying to an older post by a user that has no content (only file attachments)', () => {
+    it('MM-T91 Replying to an older post by a user that has no content (only file attachments)', () => {
         // # Get yesterdays date in UTC
         const yesterdaysDate = Cypress.dayjs().subtract(1, 'days').valueOf();
 
