@@ -38,36 +38,35 @@ func TestCreatePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	post := &model.Post{
-		ChannelId: th.BasicChannel.Id,
-		Message:   "#hashtag a" + model.NewId() + "a",
-		Props:     model.StringInterface{model.PropsAddChannelMember: "no good"},
-		DeleteAt:  101,
+	basicPost := func() *model.Post {
+		p := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "#hashtag a" + model.NewId() + "a",
+			DeleteAt:  101,
+		}
+		p.AddProp(model.PropsAddChannelMember, "no good")
+		return p
 	}
 
-	rpost, resp, err2 := client.CreatePost(context.Background(), post)
+	post := basicPost()
+	rootPost, resp2, err2 := client.CreatePost(context.Background(), post)
 	require.NoError(t, err2)
-	CheckCreatedStatus(t, resp)
+	CheckCreatedStatus(t, resp2)
+	require.NotNil(t, rootPost)
 
-	require.Equal(t, post.Message, rpost.Message, "message didn't match")
-	require.Equal(t, "#hashtag", rpost.Hashtags, "hashtag didn't match")
-	require.Empty(t, rpost.FileIds)
-	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
-	require.Nil(t, rpost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
-	require.Equal(t, 0, int(rpost.DeleteAt), "newly created post shouldn't have DeleteAt set")
+	require.Equal(t, post.Message, rootPost.Message, "message didn't match")
+	require.Equal(t, "#hashtag", rootPost.Hashtags, "hashtag didn't match")
+	require.Empty(t, rootPost.FileIds)
+	require.Equal(t, 0, int(rootPost.EditAt), "newly created post shouldn't have EditAt set")
+	require.Nil(t, rootPost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
+	require.Equal(t, 0, int(rootPost.DeleteAt), "newly created post shouldn't have DeleteAt set")
 
-	post.RootId = rpost.Id
-	_, _, err2 = client.CreatePost(context.Background(), post)
+	post = basicPost()
+	post.RootId = rootPost.Id
+	childPost, resp2, err2 := client.CreatePost(context.Background(), post)
 	require.NoError(t, err2)
-
-	post.RootId = "junk"
-	_, resp, err2 = client.CreatePost(context.Background(), post)
-	require.Error(t, err2)
-	CheckBadRequestStatus(t, resp)
-
-	post2 := &model.Post{ChannelId: th.BasicChannel2.Id, Message: "zz" + model.NewId() + "a", CreateAt: 123}
-	rpost2, _, _ := client.CreatePost(context.Background(), post2)
-	require.NotEqual(t, post2.CreateAt, rpost2.CreateAt, "create at should not match")
+	CheckCreatedStatus(t, resp2)
+	require.NotNil(t, childPost)
 
 	t.Run("with file uploaded by same user", func(t *testing.T) {
 		fileResp, _, err := client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
@@ -124,56 +123,64 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
-		WebSocketClient, err := th.CreateWebSocketClient()
-		WebSocketClient.Listen()
+		wsClient, err := th.CreateWebSocketClient()
+		wsClient.Listen()
 		require.NoError(t, err)
+		defer wsClient.Close()
 
 		defaultPerms := th.SaveDefaultRolePermissions()
 		defer th.RestoreDefaultRolePermissions(defaultPerms)
 
 		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
 
-		post.RootId = rpost.Id
+		post := basicPost()
+		post.RootId = rootPost.Id
 		post.Message = "a post with no channel mentions"
-		_, _, err = client.CreatePost(context.Background(), post)
+		rPost, resp, err := client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rPost)
 
 		// Message with no channel mentions should result in no ephemeral message
 		timeout := time.After(5 * time.Second)
 		waiting := true
 		for waiting {
 			select {
-			case event := <-WebSocketClient.EventChannel:
+			case event := <-wsClient.EventChannel:
 				require.NotEqual(t, model.WebsocketEventEphemeralMessage, event.EventType(), "should not have ephemeral message event")
 			case <-timeout:
 				waiting = false
 			}
 		}
 
-		post.RootId = rpost.Id
 		post.Message = "a post with @channel"
-		_, _, err = client.CreatePost(context.Background(), post)
+		rPost, resp, err = client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rPost)
 
-		post.RootId = rpost.Id
 		post.Message = "a post with @all"
-		_, _, err = client.CreatePost(context.Background(), post)
+		rPost, resp, err = client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rPost)
 
-		post.RootId = rpost.Id
 		post.Message = "a post with @here"
-		_, _, err = client.CreatePost(context.Background(), post)
+		rPost, resp, err = client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rPost)
 
 		timeout = time.After(5 * time.Second)
 		expectedEvents := 3 // 3 Posts created with @ mentions should result in 3 websocket events
 		gotEvents := 0
 		for gotEvents < expectedEvents {
 			select {
-			case event := <-WebSocketClient.EventChannel:
+			case event := <-wsClient.EventChannel:
 				if event.EventType() == model.WebsocketEventEphemeralMessage {
 					gotEvents++
 				}
+				//t.Logf("Got event: %v", event)
 			case <-timeout:
 				require.Fail(t, fmt.Sprintf("Got %d ephemeral messages, expected: %d", gotEvents, expectedEvents))
 				break
@@ -201,44 +208,69 @@ func TestCreatePost(t *testing.T) {
 		CheckBadRequestStatus(t, postResp)
 	})
 
-	post.RootId = ""
-	post.Type = model.PostTypeSystemGeneric
-	_, resp, err := client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("invalid post type", func(t *testing.T) {
+		post := basicPost()
+		post.Type = model.PostTypeSystemGeneric
+		_, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	post.Type = ""
-	post.RootId = rpost2.Id
-	_, resp, err = client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("invalid rootId type", func(t *testing.T) {
+		post := basicPost()
+		post.RootId = "junk"
+		_, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	post.RootId = ""
-	post.ChannelId = "junk"
-	_, resp, err = client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	t.Run("RootId points to child post", func(t *testing.T) {
+		post := basicPost()
+		post.RootId = childPost.Id
+		_, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	post.ChannelId = model.NewId()
-	_, resp, err = client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	t.Run("invalid ChannelId", func(t *testing.T) {
+		post := basicPost()
+		post.ChannelId = "junk"
+		_, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	r, err := client.DoAPIPost(context.Background(), "/posts", "garbage")
-	require.Error(t, err)
-	require.Equal(t, http.StatusBadRequest, r.StatusCode)
+	t.Run("invalid ChannelId", func(t *testing.T) {
+		post := basicPost()
+		post.ChannelId = model.NewId()
+		_, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	_, err = client.Logout(context.Background())
-	require.NoError(t, err)
-	_, resp, err = client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("invalid payload", func(t *testing.T) {
+		r, err := client.DoAPIPost(context.Background(), "/posts", "garbage")
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode)
+	})
 
-	post.ChannelId = th.BasicChannel.Id
-	post.CreateAt = 123
-	rpost, _, err = th.SystemAdminClient.CreatePost(context.Background(), post)
-	require.NoError(t, err)
-	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
+	t.Run("not logged in", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+
+		post := basicPost()
+		_, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("CreateAt should match the one provided in the request", func(t *testing.T) {
+		post := basicPost()
+		post.CreateAt = 123
+		rpost, _, err := th.SystemAdminClient.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		assert.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
+	})
 
 	t.Run("Should not be able to define the RemoteId of a post from the API", func(t *testing.T) {
 		newPost := &model.Post{
