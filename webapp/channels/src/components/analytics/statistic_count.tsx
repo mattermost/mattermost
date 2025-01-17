@@ -32,7 +32,7 @@ const StatisticCount = ({
         />
     );
 
-    const result = formatter ? formatter(count) : count;
+    const result = formatter ? formatter(count ?? 0) : count;
     const displayValue = typeof count === 'undefined' || isNaN(count) ? loading : result;
 
     return (
