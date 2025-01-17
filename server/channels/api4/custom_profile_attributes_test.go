@@ -20,7 +20,7 @@ func TestCreateCPAField(t *testing.T) {
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		field := &model.PropertyField{Name:  model.NewId(), Type:  model.PropertyFieldTypeText}
+		field := &model.PropertyField{Name: model.NewId(), Type: model.PropertyFieldTypeText}
 
 		createdField, resp, err := client.CreateCPAField(context.Background(), field)
 		CheckForbiddenStatus(t, resp)
