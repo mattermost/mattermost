@@ -39,3 +39,18 @@ func (o *PostSearchResults) ForPlugin() *PostSearchResults {
 	plCopy.PostList = plCopy.PostList.ForPlugin()
 	return &plCopy
 }
+
+func (o *PostSearchResults) Auditable() map[string]interface{} {
+	var numResults int
+	var hasNext bool
+
+	if o.PostList != nil {
+		numResults = len(o.PostList.Posts)
+		hasNext = o.PostList.HasNext != nil && *o.PostList.HasNext
+	}
+
+	return map[string]any{
+		"num_results": numResults,
+		"has_next":    hasNext,
+	}
+}
