@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import type {KeyboardEvent} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
@@ -11,10 +12,25 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
 
+const MenuContainer = styled.nav`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 0;
+
+    font-size: 14px;
+    line-height: 20px;
+    color: rgb(var(--center-channel-color-rgb));
+`;
+
 const MenuItemContainer = styled.div`
     padding: 8px 16px;
     flex: 1;
     display: flex;
+    cursor: pointer;
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
 `;
 
 const Icon = styled.div`
@@ -48,11 +64,25 @@ interface MenuItemProps {
     onClick: () => void;
 }
 
+// handle keyboard activation by pressing Enter or Space.
+function handleKeyDown(e: KeyboardEvent<HTMLDivElement>, onClick: () => void) {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onClick();
+    }
+}
+
 const menuItem = ({icon, text, className, opensSubpanel, badge, onClick}: MenuItemProps) => {
     const hasRightSide = (badge !== undefined) || opensSubpanel;
 
     return (
-        <div className={className}>
+        <div
+            className={className}
+            role='menuitem'
+            tabIndex={0}
+            aria-label={text}
+            onKeyDown={(e) => handleKeyDown(e, onClick)}
+        >
             <MenuItemContainer onClick={onClick}>
                 <Icon>{icon}</Icon>
                 <MenuItemText>
@@ -80,15 +110,6 @@ const MenuItem = styled(menuItem)`
     height: 40px;
     flex-direction: row;
     align-items: center;
-    cursor: pointer;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-
-        ${Icon} {
-            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
-        }
-    }
 `;
 
 interface MenuProps {
@@ -109,13 +130,13 @@ interface MenuProps {
 
 const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps) => {
     const {formatMessage} = useIntl();
-    const [loadingStats, setLoadingStats] = useState(true);
+    const [loadingStats, setLoadingStats] = React.useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
     const showMembers = channel.type !== Constants.DM_CHANNEL;
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
 
-    useEffect(() => {
+    React.useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {
             setLoadingStats(false);
         });
@@ -125,9 +146,11 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
     }, [channel.id]);
 
     return (
-        <div
+        <MenuContainer
             className={className}
             data-testid='channel_info_rhs-menu'
+            role='menu'
+            aria-label={formatMessage({id: 'channel_info_rhs.menu.title', defaultMessage: 'Channel Info Menu'})}
         >
             {showNotificationPreferences && (
                 <MenuItem
@@ -159,19 +182,8 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
                 badge={loadingStats ? <LoadingSpinner/> : fileCount}
                 onClick={() => actions.showChannelFiles(channel.id)}
             />
-        </div>
+        </MenuContainer>
     );
 };
 
-const StyledMenu = styled(Menu)`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px 0;
-
-    font-size: 14px;
-    line-height: 20px;
-    color: rgb(var(--center-channel-color-rgb));
-`;
-
-export default StyledMenu;
+export default Menu;

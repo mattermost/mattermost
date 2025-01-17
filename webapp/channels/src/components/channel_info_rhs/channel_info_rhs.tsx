@@ -42,19 +42,15 @@ export interface Props {
     channelStats: ChannelStats;
     currentUser: UserProfile;
     currentTeam: Team;
-
     isArchived: boolean;
     isFavorite: boolean;
     isMuted: boolean;
     isInvitingPeople: boolean;
     isMobile: boolean;
-
     canManageMembers: boolean;
     canManageProperties: boolean;
-
     dmUser?: DMUser;
     channelMembers: UserProfile[];
-
     actions: {
         closeRightHandSide: () => void;
         unfavoriteChannel: (channelId: string) => void;
@@ -155,36 +151,26 @@ const ChannelInfoRhs = ({
                 isMobile={isMobile}
                 onClose={actions.closeRightHandSide}
             />
-
             <TopButtons
                 channelType={channel.type}
                 channelURL={channelURL}
-
                 isFavorite={isFavorite}
                 isMuted={isMuted}
                 isInvitingPeople={isInvitingPeople}
-
                 canAddPeople={canManageMembers}
-
                 actions={{toggleFavorite, toggleMute, addPeople}}
             />
-
             <AboutArea
                 channel={channel}
-
                 dmUser={dmUser}
                 gmUsers={gmUsers}
-
                 canEditChannelProperties={canEditChannelProperties}
-
                 actions={{
                     editChannelHeader,
                     editChannelPurpose,
                 }}
             />
-
             <Divider/>
-
             <Menu
                 channel={channel}
                 channelStats={channelStats}
