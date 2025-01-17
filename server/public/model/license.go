@@ -150,7 +150,6 @@ type Features struct {
 	SharedChannels            *bool `json:"shared_channels"`
 	RemoteClusterService      *bool `json:"remote_cluster_service"`
 	OutgoingOAuthConnections  *bool `json:"outgoing_oauth_connections"`
-	CustomProfileAttributes   *bool `json:"custom_profile_attributes"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -185,7 +184,6 @@ func (f *Features) ToMap() map[string]any {
 		"remote_cluster_service":      *f.RemoteClusterService,
 		"future":                      *f.FutureFeatures,
 		"outgoing_oauth_connections":  *f.OutgoingOAuthConnections,
-		"custom_profile_attributes":   *f.CustomProfileAttributes,
 	}
 }
 
@@ -312,10 +310,6 @@ func (f *Features) SetDefaults() {
 
 	if f.OutgoingOAuthConnections == nil {
 		f.OutgoingOAuthConnections = NewPointer(*f.FutureFeatures)
-	}
-
-	if f.CustomProfileAttributes == nil {
-		f.CustomProfileAttributes = NewPointer(*f.FutureFeatures)
 	}
 }
 
