@@ -1,0 +1,28 @@
+@use "utils/variables";
+
+.MuiPopover-root.MuiModal-root.menu_menuStyled {
+    z-index: variables.$z-index-menu;
+
+    & .MuiPaper-root {
+        min-width: 114px;
+        max-width: 496px;
+        max-height: 80vh;
+        background-color: var(--center-channel-bg);
+        box-shadow: var(--elevation-4);
+    }
+    &.AsSubMenu {
+        & .MuiPaper-root {
+            box-shadow: var(--elevation-5);
+        }
+    }
+}
+
+.menuModal {
+    & .modal-header {
+        display: none;
+    }
+
+    & .GenericModal__body {
+        padding: 0;
+    }
+}

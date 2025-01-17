@@ -31,7 +31,7 @@ import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
-import A11yController from 'utils/a11y_controller';
+import 'utils/a11y_controller_instance';
 import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
@@ -92,8 +92,6 @@ interface State {
 export default class Root extends React.PureComponent<Props, State> {
     // The constructor adds a bunch of event listeners,
     // so we do need this.
-    private a11yController: A11yController;
-
     constructor(props: Props) {
         super(props);
 
@@ -107,8 +105,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.state = {
             shouldMountAppRoutes: false,
         };
-
-        this.a11yController = new A11yController();
     }
 
     setRudderConfig = () => {
