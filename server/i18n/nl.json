@@ -3084,11 +3084,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Jouw licentie biedt geen ondersteuning voor Elasticsearch."
+    "translation": "Je Mattermost licentie ondersteunt geïndexeerd zoeken niet."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "De Elasticsearch Server URL of gebruikersnaam is gewijzigd. Voer het Elasticsearch-wachtwoord opnieuw in om de verbinding te testen."
+    "translation": "De URL of gebruikersnaam van de zoekserver is gewijzigd. Voer het wachtwoord opnieuw in om de verbinding te testen."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3604,7 +3604,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "De instelling Search IndexingEnabled moet worden ingesteld op waar als de functie Elastisearch SearchEnabled ingesteld is op waar"
+    "translation": "{{.EnableIndexing}} instelling moet worden ingesteld op actief als {{.Searching}} is ingesteld op actief"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4796,7 +4796,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "De Bleve IndexingEnabled instelling moet op waar worden ingesteld wanneer Bleve AutocompleteEnabled ingesteld is op waar"
+    "translation": "{{.EnableIndexing}} instelling moet worden ingesteld op actief als {{.Autocomplete}} is ingesteld op actief"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4876,7 +4876,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Fout bij het vernieuwen van de Elasticsearch-indexen"
+    "translation": "Zoekindexen zijn niet vernieuwd"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -9743,7 +9743,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Het verwijderen van een Elasticsearch-index is mislukt"
+    "translation": "Het is niet gelukt een zoekindex te verwijderen"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -10294,5 +10294,105 @@
   {
     "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
     "translation": "Gebruikersrollen zijn niet consistent met de gaststatus."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Kan eigenschapgroep Aangepaste profielattributen niet registreren"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Kan geen aangepast profielattribuutveld maken"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Kan geen aangepast profielattribuutveld krijgen"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Veldlimiet aangepaste profielattributen bereikt"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Kan aangepast profielattribuutveld niet verwijderen"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Kan de waarden van aangepaste profielattributen niet ophalen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Aangepast profielattribuutveld niet gevonden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Kan aangepast profielattribuutveld niet bijwerken"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Kan eigenschap waarde niet creëren"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Kan niet zoeken in aangepaste profielattribuutvelden"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Het is niet gelukt de gevraagde bestanden uit de database te verwijderen"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Kan de bestandsinfo niet krijgen via id's voor de bewerkingsgeschiedenis van berichten."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Het is niet gelukt om bijlagen van berichtbestanden te herstellen."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Het is niet gelukt om de oude berichttversie te krijgen."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Je beschikt niet over de juiste rechten."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "De opgegeven geschiedenis-ID van het bericht komt niet overeen met een geschiedenisitem voor het opgegeven bericht."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "De opgegeven postgeschiedenis-ID komt niet overeen met een postgeschiedenisitem."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Kan rol niet verwijderen."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Kanaalactiviteit berekenen: {{.NumCompleted}}/{{.NumChannels}} kanalen voltooid."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Kanaalinformatie exporteren voor {{.NumChannels}} kanalen."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Fout bij het berekenen van kanaalexportgegevens."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Fout bij het converteren van een waarde uit het gegevensveld van de taak."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "De lengte van de URL met linkmetagegevens is {{ .Length }} tekens lang, wat meer is dan de maximale limiet van {{ .MaxLength }} tekens."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Ongeldig eigenschapsveld: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Ongeldige waarde voor de eigenschap: {{.FieldName}} ({{.Reason}})."
   }
 ]
