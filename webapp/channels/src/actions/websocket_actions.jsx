@@ -239,7 +239,7 @@ export function reconnect() {
         }
 
         dispatch(loadChannelsForCurrentUser());
-        dispatch(fetchTeamScheduledPosts(currentTeamId, true));
+        dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
 
