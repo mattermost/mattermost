@@ -64,7 +64,7 @@ const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResult
         return null;
     }
 
-    const Component: any = pluginComponentInfo.component;
+    const Component = pluginComponentInfo.component;
 
     return (
         <ErrorBoundary>
