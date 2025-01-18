@@ -12,7 +12,6 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -87,16 +86,18 @@ func New(config *Config, logger *mlog.Logger) (*SystemBus, error) {
 		subscriber = pubSub
 	}
 
-	// Create a new SystemBus with FanOut middleware
+	// Create a new FanOut instance
+	fanout, err := gochannel.NewFanOut(subscriber, wmLogger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create fanout: %w", err)
+	}
+
 	bus := &SystemBus{
 		publisher:   publisher,
-		subscriber:  subscriber,
+		subscriber:  fanout,
 		logger:      wmLogger,
 		topics:      make(map[string]*TopicDefinition),
 	}
-
-	// Wrap the publisher with FanOut middleware
-	bus.publisher = middleware.NewFanOut(bus.publisher)
 
 	return bus, nil
 }
