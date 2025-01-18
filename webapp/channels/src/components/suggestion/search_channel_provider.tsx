@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Constants from 'utils/constants';
-
 import type {ServerError} from '@mattermost/types/errors';
 
 import {getChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
@@ -11,6 +9,8 @@ import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} f
 import {loadProfilesForGroupChannels} from 'actions/user_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import store from 'stores/redux_store';
+
+import Constants from 'utils/constants';
 
 import type {Channel} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
 import Provider from './provider';
