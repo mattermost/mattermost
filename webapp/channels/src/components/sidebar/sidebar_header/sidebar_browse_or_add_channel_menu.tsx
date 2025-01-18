@@ -14,9 +14,10 @@ import {
 } from '@mattermost/compass-icons/components';
 
 import * as Menu from 'components/menu';
-import {CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
+import {OnboardingTourSteps} from 'components/tours';
+import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 
-export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenuButton';
+export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browseOrAddChannelMenuButton';
 
 type Props = {
     canCreateChannel: boolean;
@@ -29,12 +30,13 @@ type Props = {
     unreadFilterEnabled: boolean;
     onCreateNewCategoryClick: () => void;
     onInvitePeopleClick: () => void;
-    showCreateAndJoinChannelsTutorialTip: boolean;
-    showInvitePeopleTutorialTip: boolean;
 };
 
-export default function BrowserOrAddChannelMenu(props: Props) {
+export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     const {formatMessage} = useIntl();
+
+    const showCreateAndJoinChannelsTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
+    const showInvitePeopleTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
 
     let createNewChannelMenuItem: JSX.Element | null = null;
     if (props.canCreateChannel) {
@@ -49,7 +51,7 @@ export default function BrowserOrAddChannelMenu(props: Props) {
                         defaultMessage='Create new channel'
                     />
                 )}
-                trailingElements={props.showCreateAndJoinChannelsTutorialTip && <CreateAndJoinChannelsTour/>}
+                trailingElements={showCreateAndJoinChannelsTutorialTip && <CreateAndJoinChannelsTour/>}
             />
         );
     }
@@ -136,7 +138,7 @@ export default function BrowserOrAddChannelMenu(props: Props) {
                     />
                 </>
             )}
-            trailingElements={props.showInvitePeopleTutorialTip && <InvitePeopleTour/>}
+            trailingElements={showInvitePeopleTutorialTip && <InvitePeopleTour/>}
         />
     );
 
@@ -145,18 +147,18 @@ export default function BrowserOrAddChannelMenu(props: Props) {
             menuButton={{
                 id: ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU,
                 'aria-label': formatMessage({
-                    id: 'sidebarLeft.browserOrCreateChannelMenuButton.arialLabel',
+                    id: 'sidebarLeft.browserOrCreateChannelMenuButton.label',
                     defaultMessage: 'Browse or create channels',
                 }),
                 class: 'btn btn-icon btn-sm btn-tertiary btn-inverted btn-round',
                 children: <PlusIcon size={18}/>,
             }}
             menuButtonTooltip={{
-                text: formatMessage({id: 'sidebarLeft.browserOrCreateChannelMenuButton.tooltip', defaultMessage: 'Browse or create channels'}),
+                text: formatMessage({id: 'sidebarLeft.browserOrCreateChannelMenuButton.label', defaultMessage: 'Browse or create channels'}),
             }}
             menu={{
                 id: 'browserOrAddChannelMenu',
-                'aria-label': formatMessage({id: 'sidebarLeft.browserOrCreateChannelMenu.ariaLabel', defaultMessage: 'Browse or create channels menu'}),
+                'aria-labelledby': ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU,
             }}
         >
             {createNewChannelMenuItem}

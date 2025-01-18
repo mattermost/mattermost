@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import BrowserOrAddChannelMenu from 'components/sidebar/sidebar_header/browse_or_add_channel_menu';
+import BrowserOrAddChannelMenu from 'components/sidebar/sidebar_header/sidebar_browse_or_add_channel_menu';
 
 import ChannelNavigator from './channel_navigator';
 import type {Props} from './channel_navigator';

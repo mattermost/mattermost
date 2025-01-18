@@ -9,7 +9,7 @@ import IconButton from '@mattermost/compass-components/components/icon-button'; 
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
-import BrowserOrAddChannelMenu from './browse_or_add_channel_menu';
+import BrowserOrAddChannelMenu from './sidebar_browse_or_add_channel_menu';
 import SidebarHeader from './sidebar_header';
 import type {Props} from './sidebar_header';
 

@@ -64,6 +64,7 @@ type MenuProps = {
      */
     id: string;
     'aria-label'?: string;
+    'aria-labelledby'?: string;
 
     /**
      * @warning Make the styling of your components such a way that they don't need this handler
@@ -251,6 +252,7 @@ export function Menu(props: Props) {
                     MenuListProps={{
                         id: props.menu.id,
                         'aria-label': props.menu?.['aria-label'],
+                        'aria-labelledby': props.menu?.['aria-labelledby'],
                         style: {
                             width: props.menu?.width,
                         },

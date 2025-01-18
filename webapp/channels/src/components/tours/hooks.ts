@@ -11,11 +11,11 @@ import {getCurrentUserId, isCurrentUserGuestUser} from 'mattermost-redux/selecto
 import {close as closeLhs, open as openLhs} from 'actions/views/lhs';
 import {switchToChannels} from 'actions/views/onboarding_tasks';
 
+import {openMenu, dismissMenu} from 'components/menu';
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from 'components/onboarding_tasks';
-import {ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU} from 'components/sidebar/sidebar_header/browse_or_add_channel_menu';
+import {ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU} from 'components/sidebar/sidebar_header/sidebar_browse_or_add_channel_menu';
 
 import {getHistory} from 'utils/browser_history';
-import {clickOnMenuButton, clickOnMenuOverlay} from 'utils/keyboard';
 
 import type {GlobalState} from 'types/store';
 
@@ -52,11 +52,11 @@ export const useHandleNavigationAndExtraActions = (tourCategory: string) => {
                 break;
             }
             case OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS : {
-                clickOnMenuButton(ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU);
+                openMenu(ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU);
                 break;
             }
             case OnboardingTourSteps.INVITE_PEOPLE : {
-                clickOnMenuButton(ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU);
+                openMenu(ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU);
                 break;
             }
             case OnboardingTourSteps.SEND_MESSAGE : {
@@ -108,11 +108,11 @@ export const useHandleNavigationAndExtraActions = (tourCategory: string) => {
         if (tourCategory === TutorialTourName.ONBOARDING_TUTORIAL_STEP) {
             switch (lastStep) {
             case OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS : {
-                clickOnMenuOverlay();
+                dismissMenu();
                 break;
             }
             case OnboardingTourSteps.INVITE_PEOPLE : {
-                clickOnMenuOverlay();
+                dismissMenu();
                 break;
             }
             default:

@@ -8,12 +8,10 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import MainMenu from 'components/main_menu';
-import {OnboardingTourSteps} from 'components/tours';
-import {useShowOnboardingTutorialStep} from 'components/tours/onboarding_tour';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import WithTooltip from 'components/with_tooltip';
 
-import BrowserOrAddChannelMenu from './browse_or_add_channel_menu';
+import SidebarBrowseOrAddChannelMenu from './sidebar_browse_or_add_channel_menu';
 
 import './sidebar_header.scss';
 
@@ -32,8 +30,6 @@ export type Props = {
 
 const SidebarHeader = (props: Props) => {
     const currentTeam = useSelector(getCurrentTeam);
-    const showCreateAndJoinChannelsTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
-    const showInvitePeopleTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
     const usageDeltas = useGetUsageDeltas();
 
     const [menuToggled, setMenuToggled] = useState(false);
@@ -71,7 +67,7 @@ const SidebarHeader = (props: Props) => {
                 />
             </MenuWrapper>
             {(props.canCreateChannel || props.canJoinPublicChannel) && (
-                <BrowserOrAddChannelMenu
+                <SidebarBrowseOrAddChannelMenu
                     canCreateChannel={props.canCreateChannel}
                     onCreateNewChannelClick={props.showNewChannelModal}
                     canJoinPublicChannel={props.canJoinPublicChannel}
@@ -82,8 +78,6 @@ const SidebarHeader = (props: Props) => {
                     unreadFilterEnabled={props.unreadFilterEnabled}
                     onCreateNewCategoryClick={props.showCreateCategoryModal}
                     onInvitePeopleClick={props.invitePeopleModal}
-                    showCreateAndJoinChannelsTutorialTip={showCreateAndJoinChannelsTutorialTip}
-                    showInvitePeopleTutorialTip={showInvitePeopleTutorialTip}
                 />
             )}
         </header>
