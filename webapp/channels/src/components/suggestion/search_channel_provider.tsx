@@ -43,27 +43,27 @@ export default class SearchChannelProvider extends Provider {
 
         this.autocompleteChannelsForSearch(
             prefix,
-            async (channels: Channel[]) => {
+            async (data: Channel[]) => {
                 if (this.shouldCancelDispatch(prefix)) {
                     return;
                 }
 
-                let filteredChannels = channels;
+                let channels = data;
                 if (isAtSearch) {
-                    filteredChannels = channels.filter((ch: Channel) =>
+                    channels = data.filter((ch: Channel) =>
                         isDirectChannel(ch) || isGroupChannel(ch),
                     );
                 }
 
                 // Load profiles for group channels if needed
-                const groupChannels = filteredChannels.filter(isGroupChannel);
+                const groupChannels = channels.filter(isGroupChannel);
                 if (groupChannels.length > 0) {
                     await dispatch(loadProfilesForGroupChannels(groupChannels));
                 }
 
                 // Sort channels
                 const locale = getCurrentLocale(getState());
-                filteredChannels.sort(sortChannelsByTypeListAndDisplayName.bind(null, locale, [
+                channels.sort(sortChannelsByTypeListAndDisplayName.bind(null, locale, [
                     Constants.OPEN_CHANNEL,
                     Constants.PRIVATE_CHANNEL,
                     Constants.DM_CHANNEL,
@@ -71,7 +71,7 @@ export default class SearchChannelProvider extends Provider {
                 ]));
 
                 // Get channel names using the selector
-                const channelNames = filteredChannels.map((channel) => {
+                const channelNames = channels.map((channel) => {
                     const name = getChannelNameForSearchShortcut(getState(), channel.id) || channel.name;
                     return isAtSearch && name[0] !== '@' ? `@${name}` : name;
                 });
@@ -79,7 +79,7 @@ export default class SearchChannelProvider extends Provider {
                 resultsCallback({
                     matchedPretext: prefix,
                     terms: channelNames,
-                    items: filteredChannels,
+                    items: channels,
                     component: SearchChannelSuggestion,
                 });
             },
