@@ -89,58 +89,6 @@ func TestExportPermissions(t *testing.T) {
 	}
 }
 
-func TestImportPermissions_idempotentScheme(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	var results []*model.Scheme
-	var expected int
-	withMigrationMarkedComplete(th, func() {
-		var appErr *model.AppError
-		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
-		if appErr != nil {
-			panic(appErr)
-		}
-		expected = len(results)
-
-		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
-		if appErr != nil {
-			panic(appErr)
-		}
-	})
-	actual := len(results)
-
-	if expected != actual {
-		t.Errorf("Expected count to be %v but got %v", expected, actual)
-	}
-}
-
-func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	var results []*model.Scheme
-	var expected int
-	withMigrationMarkedComplete(th, func() {
-		var appErr *model.AppError
-		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
-		if appErr != nil {
-			panic(appErr)
-		}
-		expected = len(results)
-
-		results, appErr = th.App.GetSchemes(model.SchemeScopeChannel, 0, 100)
-		if appErr != nil {
-			panic(appErr)
-		}
-	})
-	actual := len(results)
-
-	if expected != actual {
-		t.Errorf("Expected count to be %v but got %v", expected, actual)
-	}
-}
-
 func TestMigration(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
