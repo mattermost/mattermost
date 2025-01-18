@@ -20,14 +20,6 @@ import SearchChannelSuggestion from './search_channel_suggestion';
 const getState = store.getState;
 const dispatch = store.dispatch;
 
-function itemToTerm(isAtSearch: boolean, item: { id: string; type: string; display_name: string; name: string }) {
-    let name = getChannelNameForSearchShortcut(getState(), item.id) || item.name;
-    if (isAtSearch && name[0] !== '@') {
-        name = '@' + name;
-    }
-    return name;
-}
-
 type SearchChannelAutocomplete = (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
 
 export default class SearchChannelProvider extends Provider {
@@ -40,49 +32,58 @@ export default class SearchChannelProvider extends Provider {
 
     handlePretextChanged(pretext: string, resultsCallback: ResultsCallback<Channel>) {
         const captured = (/\b(?:in|channel):\s*(\S*)$/i).exec(pretext.toLowerCase());
-        if (captured) {
-            let channelPrefix = captured[1];
-            const isAtSearch = channelPrefix.startsWith('@');
-            if (isAtSearch) {
-                channelPrefix = channelPrefix.replace(/^@/, '');
-            }
-            const isTildeSearch = channelPrefix.startsWith('~');
-            if (isTildeSearch) {
-                channelPrefix = channelPrefix.replace(/^~/, '');
-            }
-            this.startNewRequest(channelPrefix);
-
-            this.autocompleteChannelsForSearch(
-                channelPrefix,
-                async (data: Channel[]) => {
-                    if (this.shouldCancelDispatch(channelPrefix)) {
-                        return;
-                    }
-
-                    let channels = data;
-                    if (isAtSearch) {
-                        channels = channels.filter((ch: Channel) => isDirectChannel(ch) || isGroupChannel(ch));
-                    }
-                    const gms = channels.filter((ch: Channel) => isGroupChannel(ch));
-                    if (gms.length > 0) {
-                        await dispatch(loadProfilesForGroupChannels(gms));
-                    }
-
-                    const locale = getCurrentLocale(getState());
-
-                    channels = channels.sort(sortChannelsByTypeListAndDisplayName.bind(null, locale, [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL, Constants.DM_CHANNEL, Constants.GM_CHANNEL]));
-                    const channelNames = channels.map(itemToTerm.bind(null, isAtSearch));
-
-                    resultsCallback({
-                        matchedPretext: channelPrefix,
-                        terms: channelNames,
-                        items: channels,
-                        component: SearchChannelSuggestion,
-                    });
-                },
-            );
+        if (!captured) {
+            return false;
         }
 
-        return Boolean(captured);
+        const prefix = captured[1].replace(/^[@~]/, '');
+        const isAtSearch = captured[1].startsWith('@');
+        
+        this.startNewRequest(prefix);
+
+        this.autocompleteChannelsForSearch(
+            prefix,
+            async (channels: Channel[]) => {
+                if (this.shouldCancelDispatch(prefix)) {
+                    return;
+                }
+
+                if (isAtSearch) {
+                    channels = channels.filter((ch: Channel) => 
+                        isDirectChannel(ch) || isGroupChannel(ch)
+                    );
+                }
+
+                // Load profiles for group channels if needed
+                const groupChannels = channels.filter(isGroupChannel);
+                if (groupChannels.length > 0) {
+                    await dispatch(loadProfilesForGroupChannels(groupChannels));
+                }
+
+                // Sort channels
+                const locale = getCurrentLocale(getState());
+                channels.sort(sortChannelsByTypeListAndDisplayName.bind(null, locale, [
+                    Constants.OPEN_CHANNEL,
+                    Constants.PRIVATE_CHANNEL, 
+                    Constants.DM_CHANNEL,
+                    Constants.GM_CHANNEL
+                ]));
+
+                // Get channel names using the selector
+                const channelNames = channels.map((channel) => {
+                    const name = getChannelNameForSearchShortcut(getState(), channel.id);
+                    return isAtSearch && name[0] !== '@' ? `@${name}` : name;
+                });
+
+                resultsCallback({
+                    matchedPretext: prefix,
+                    terms: channelNames,
+                    items: channels,
+                    component: SearchChannelSuggestion,
+                });
+            },
+        );
+
+        return true;
     }
 }
