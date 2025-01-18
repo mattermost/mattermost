@@ -1,10 +1,9 @@
 package app
 
-
 const (
 	// Login Events
-	TopicUserLoggedIn      = "user_logged_in"
-	TopicUserLoginFailed   = "user_login_failed"
+	TopicUserLoggedIn    = "user_logged_in"
+	TopicUserLoginFailed = "user_login_failed"
 )
 
 // UserLoggedInEvent represents the payload for a login event
@@ -17,7 +16,7 @@ type UserLoggedInEvent struct {
 // UserLoginFailedEvent represents the payload for a failed login attempt
 type UserLoginFailedEvent struct {
 	LoginID   string `json:"login_id"`
-	UserAgent string `json:"user_agent"` 
+	UserAgent string `json:"user_agent"`
 	IPAddress string `json:"ip_address"`
 	Reason    string `json:"reason"`
 }

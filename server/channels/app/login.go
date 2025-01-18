@@ -5,13 +5,13 @@ package app
 
 import (
 	"crypto/subtle"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
-	"encoding/json"
 	"strings"
 	"time"
 
@@ -45,27 +45,26 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 }
 
 func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
-	// Do statistics
 	defer func() {
 		if a.Metrics() != nil {
 			if user == nil || err != nil {
 				a.Metrics().IncrementLoginFail()
-				// Publish login failed event
-				if sysBus := a.Srv().SystemBus(); sysBus != nil && err != nil {
-					event := &UserLoginFailedEvent{
-						LoginID:   loginId,
-						UserAgent: c.UserAgent(),
-						IPAddress: c.IPAddress(),
-						Reason:    err.Error(),
-					}
-					if payload, jsonErr := json.Marshal(event); jsonErr == nil {
-						if sysErr := sysBus.Publish(TopicUserLoginFailed, payload); sysErr != nil {
-							c.Logger().Error("Failed to publish login failed event", mlog.Err(sysErr))
-						}
-					}
-				}
 			} else {
 				a.Metrics().IncrementLogin()
+			}
+		}
+
+		if sysBus := a.Srv().SystemBus(); sysBus != nil && err != nil {
+			event := &UserLoginFailedEvent{
+				LoginID:   loginId,
+				UserAgent: c.UserAgent(),
+				IPAddress: c.IPAddress(),
+				Reason:    err.Error(),
+			}
+			if payload, jsonErr := json.Marshal(event); jsonErr == nil {
+				if sysErr := sysBus.Publish(TopicUserLoginFailed, payload); sysErr != nil {
+					c.Logger().Error("Failed to publish login failed event", mlog.Err(sysErr))
+				}
 			}
 		}
 	}()

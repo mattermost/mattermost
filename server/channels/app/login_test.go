@@ -97,35 +97,22 @@ func TestLoginEvents(t *testing.T) {
 	})
 
 	t.Run("failed login", func(t *testing.T) {
-		// Create a channel to signal when the error occurs
-		errChan := make(chan error, 1)
-		
 		// Attempt login with empty password in a goroutine
-		go func() {
-			_, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", "", false)
-			errChan <- err
-		}()
+		_, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", "", false)
+		require.Error(t, err)
 
-		// Wait for the error to occur
+		// Now wait for and verify the failure event
 		select {
-		case err := <-errChan:
-			require.Error(t, err)
-
-			// Now wait for and verify the failure event
-			select {
-			case msg := <-failureMessages:
-				var event UserLoginFailedEvent
-				err := json.Unmarshal(msg.Payload, &event)
-				require.NoError(t, err)
-				require.Equal(t, th.BasicUser.Username, event.LoginID)
-				require.Equal(t, "test-agent", event.UserAgent)
-				require.Equal(t, "192.168.1.1", event.IPAddress)
-				require.NotEmpty(t, event.Reason)
-			case <-time.After(5 * time.Second):
-				t.Fatal("Timed out waiting for login failure event")
-			}
+		case msg := <-failureMessages:
+			var event UserLoginFailedEvent
+			err := json.Unmarshal(msg.Payload, &event)
+			require.NoError(t, err)
+			require.Equal(t, th.BasicUser.Username, event.LoginID)
+			require.Equal(t, "test-agent", event.UserAgent)
+			require.Equal(t, "192.168.1.1", event.IPAddress)
+			require.NotEmpty(t, event.Reason)
 		case <-time.After(5 * time.Second):
-			t.Fatal("Timed out waiting for login error")
+			t.Fatal("Timed out waiting for login failure event")
 		}
 	})
 }
