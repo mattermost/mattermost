@@ -113,18 +113,21 @@ func TestLoginEvents(t *testing.T) {
 		case err := <-errChan:
 			require.NotNil(t, err)
 
-		// Wait for and verify the failure event
-		select {
-		case msg := <-failureMessages:
-			var event UserLoginFailedEvent
-			err := json.Unmarshal(msg.Payload, &event)
-			require.NoError(t, err)
-			require.Equal(t, th.BasicUser.Username, event.LoginID)
-			require.Equal(t, "test-agent", event.UserAgent)
-			require.Equal(t, "192.168.1.1", event.IPAddress)
-			require.NotEmpty(t, event.Reason)
+			// Now wait for and verify the failure event
+			select {
+			case msg := <-failureMessages:
+				var event UserLoginFailedEvent
+				err := json.Unmarshal(msg.Payload, &event)
+				require.NoError(t, err)
+				require.Equal(t, th.BasicUser.Username, event.LoginID)
+				require.Equal(t, "test-agent", event.UserAgent)
+				require.Equal(t, "192.168.1.1", event.IPAddress)
+				require.NotEmpty(t, event.Reason)
+			case <-time.After(5 * time.Second):
+				t.Fatal("Timed out waiting for login failure event")
+			}
 		case <-time.After(5 * time.Second):
-			t.Fatal("Timed out waiting for login failure event")
+			t.Fatal("Timed out waiting for login error")
 		}
 	})
 }
