@@ -85,6 +85,63 @@ func TestPublishSubscribe(t *testing.T) {
 	})
 }
 
+func TestMultipleSubscribers(t *testing.T) {
+	bus, err := New(nil)
+	require.NoError(t, err)
+	defer bus.Close()
+
+	schema := json.RawMessage(`{"type": "object"}`)
+	err = bus.RegisterTopic("test.topic", "Test topic", schema)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Create multiple subscribers
+	sub1, err := bus.Subscribe(ctx, "test.topic")
+	require.NoError(t, err)
+	sub2, err := bus.Subscribe(ctx, "test.topic")
+	require.NoError(t, err)
+	sub3, err := bus.Subscribe(ctx, "test.topic")
+	require.NoError(t, err)
+
+	// Send multiple messages
+	messages := []string{
+		`{"message": "first"}`,
+		`{"message": "second"}`,
+		`{"message": "third"}`,
+	}
+
+	for _, msg := range messages {
+		err = bus.Publish("test.topic", []byte(msg))
+		require.NoError(t, err)
+	}
+
+	// Helper function to receive messages with timeout
+	receiveAll := func(ch <-chan *message.Message) []string {
+		var received []string
+		for i := 0; i < len(messages); i++ {
+			select {
+			case msg := <-ch:
+				received = append(received, string(msg.Payload))
+			case <-ctx.Done():
+				t.Fatal("timeout waiting for messages")
+			}
+		}
+		return received
+	}
+
+	// Verify each subscriber received all messages
+	received1 := receiveAll(sub1)
+	received2 := receiveAll(sub2)
+	received3 := receiveAll(sub3)
+
+	// Verify each subscriber got all messages
+	assert.ElementsMatch(t, messages, received1)
+	assert.ElementsMatch(t, messages, received2)
+	assert.ElementsMatch(t, messages, received3)
+}
+
 func TestTopics(t *testing.T) {
 	bus, err := New(nil)
 	require.NoError(t, err)
