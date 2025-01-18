@@ -16,7 +16,7 @@ import (
 
 func TestNew(t *testing.T) {
 	t.Run("in-memory bus", func(t *testing.T) {
-		bus, err := New(nil, nil)
+		bus, err := NewGoChannel(nil)
 		require.NoError(t, err)
 		require.NotNil(t, bus)
 		defer bus.Close()
@@ -24,7 +24,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestRegisterTopic(t *testing.T) {
-	bus, err := New(nil, nil)
+	bus, err := NewGoChannel(nil)
 	require.NoError(t, err)
 	defer bus.Close()
 
@@ -48,7 +48,7 @@ func TestRegisterTopic(t *testing.T) {
 }
 
 func TestPublishSubscribe(t *testing.T) {
-	bus, err := New(nil, nil)
+	bus, err := NewGoChannel(nil)
 	require.NoError(t, err)
 	defer bus.Close()
 
@@ -87,7 +87,7 @@ func TestPublishSubscribe(t *testing.T) {
 }
 
 func TestMultipleSubscribers(t *testing.T) {
-	bus, err := New(nil, nil)
+	bus, err := NewGoChannel(nil)
 	require.NoError(t, err)
 	defer bus.Close()
 
