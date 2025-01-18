@@ -85,7 +85,7 @@ export default function PluginLinkTooltip(props: Props) {
                                 {...getFloatingProps()}
                             >
                                 <Pluggable
-                                    href={props.nodeAttributes.href}
+                                    href={props.nodeAttributes.href || ''}
                                     show={true}
                                     pluggableName='LinkTooltip'
                                 />
