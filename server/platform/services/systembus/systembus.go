@@ -12,6 +12,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -86,12 +87,18 @@ func New(config *Config, logger *mlog.Logger) (*SystemBus, error) {
 		subscriber = pubSub
 	}
 
-	return &SystemBus{
+	// Create a new SystemBus with FanOut middleware
+	bus := &SystemBus{
 		publisher:   publisher,
 		subscriber:  subscriber,
 		logger:      wmLogger,
 		topics:      make(map[string]*TopicDefinition),
-	}, nil
+	}
+
+	// Wrap the publisher with FanOut middleware
+	bus.publisher = middleware.NewFanOut(bus.publisher)
+
+	return bus, nil
 }
 
 // RegisterTopic adds a new topic with its schema and description
