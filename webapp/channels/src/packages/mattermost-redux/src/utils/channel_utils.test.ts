@@ -179,4 +179,65 @@ describe('ChannelUtils', () => {
         const expectedOutput = JSON.stringify([channelDM, channelGM, channelPrivate, channelOpen1, channelOpen2]);
         expect(actualOutput).toEqual(expectedOutput);
     });
+
+    describe('completeDirectGroupInfo', () => {
+        const currentUserId = 'current_user_id';
+        const user1 = {id: 'user1', username: 'user1', first_name: '', last_name: ''};
+        const user2 = {id: 'user2', username: 'user2', first_name: '', last_name: ''};
+        const user3 = {id: 'user3', username: 'user3', first_name: '', last_name: ''};
+
+        const usersState = {
+            currentUserId,
+            profiles: {
+                [user1.id]: user1,
+                [user2.id]: user2,
+                [user3.id]: user3,
+            },
+            profilesInChannel: {
+                'channel1': new Set([user1.id, user2.id]),
+                'channel2': new Set([user1.id, user2.id, user3.id]),
+            },
+            statuses: {},
+            isManualStatus: {},
+            mySessions: [],
+            myAudits: [],
+            profilesInTeam: {},
+            profilesNotInTeam: {},
+            profilesWithoutTeam: new Set(),
+            profilesInGroup: {},
+            profilesNotInGroup: {},
+            profilesNotInChannel: {},
+            profilesInGroupChannels: [],
+        };
+
+        const baseChannel = TestHelper.fakeChannelOverride({
+            id: 'channel1',
+            type: General.GM_CHANNEL,
+            display_name: '',
+        });
+
+        it('should set display name from profilesInChannel', () => {
+            const channel = {...baseChannel, id: 'channel1'};
+            const result = completeDirectGroupInfo(usersState, 'username', channel);
+            expect(result.display_name).toBe('user1, user2');
+        });
+
+        it('should set display name for larger group', () => {
+            const channel = {...baseChannel, id: 'channel2'};
+            const result = completeDirectGroupInfo(usersState, 'username', channel);
+            expect(result.display_name).toBe('user1, user2, user3');
+        });
+
+        it('should use existing display_name when no profilesInChannel', () => {
+            const channel = {...baseChannel, id: 'channel3', display_name: 'user1, user2'};
+            const result = completeDirectGroupInfo(usersState, 'username', channel);
+            expect(result.display_name).toBe('user1, user2');
+        });
+
+        it('should return original channel when usernames not found', () => {
+            const channel = {...baseChannel, id: 'channel3', display_name: 'unknown1, unknown2'};
+            const result = completeDirectGroupInfo(usersState, 'username', channel);
+            expect(result).toBe(channel);
+        });
+    });
 });
