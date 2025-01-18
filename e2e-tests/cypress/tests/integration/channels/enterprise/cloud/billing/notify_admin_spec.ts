@@ -111,6 +111,7 @@ function userGroupsNotification() {
 }
 
 function creatNewTeamNotification() {
+    // UPDATE THIS
     cy.get('.test-team-header').click().then(() => {
         cy.get('#mattermost_feature_create_multiple_teams-restricted-indicator').click();
     });

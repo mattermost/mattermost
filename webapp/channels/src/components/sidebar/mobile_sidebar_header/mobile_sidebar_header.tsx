@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 
 import Contents from './contents';
 
+// Move the webapp/channels/src/sass/components/_sidebar-header.scss to here
 export default function MobileSidebarHeader() {
     const intl = useIntl();
     const ariaLabel = intl.formatMessage({id: 'accessibility.sections.lhsHeader', defaultMessage: 'team menu region'});

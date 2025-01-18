@@ -9,7 +9,7 @@ Cypress.Commands.add('uiGetLHS', () => {
 
 Cypress.Commands.add('uiGetLHSHeader', () => {
     return cy.uiGetLHS().
-        find('.SidebarHeaderMenuWrapper').
+        find('.SidebarHeaderMenuWrapper'). // UPDATE THIS E2E TEST
         should('be.visible');
 });
 
@@ -36,7 +36,7 @@ Cypress.Commands.add('uiGetLHSAddChannelButton', () => {
 });
 
 Cypress.Commands.add('uiGetLHSTeamMenu', () => {
-    return cy.uiGetLHS().find('#sidebarDropdownMenu');
+    return cy.uiGetLHS().find('#sidebarDropdownMenu'); // UPDATE THIS E2E TEST
 });
 
 function uiOpenSystemConsoleMenu(item = ''): ChainableT<JQuery> {
