@@ -5,6 +5,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
+import {loadProfilesForGroupChannels} from 'actions/user_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import store from 'stores/redux_store';
 
@@ -16,8 +17,9 @@ import type {ResultsCallback} from './provider';
 import SearchChannelSuggestion from './search_channel_suggestion';
 
 const getState = store.getState;
+const dispatch = store.dispatch;
 
-function itemToTerm(isAtSearch: boolean, item: { type: string; display_name: string; name: string }) {
+function itemToTerm(isAtSearch: boolean, item: { id: string; type: string; display_name: string; name: string }) {
     const prefix = isAtSearch ? '' : '@';
     if (item.type === Constants.DM_CHANNEL) {
         return prefix + item.display_name;
@@ -57,7 +59,7 @@ export default class SearchChannelProvider extends Provider {
 
             this.autocompleteChannelsForSearch(
                 channelPrefix,
-                (data: Channel[]) => {
+                async (data: Channel[]) => {
                     if (this.shouldCancelDispatch(channelPrefix)) {
                         return;
                     }
@@ -65,6 +67,10 @@ export default class SearchChannelProvider extends Provider {
                     let channels = data;
                     if (isAtSearch) {
                         channels = channels.filter((ch: Channel) => isDirectChannel(ch) || isGroupChannel(ch));
+                    }
+                    const gms = channels.filter((ch: Channel) => isGroupChannel(ch));
+                    if (gms.length > 0) {
+                        await dispatch(loadProfilesForGroupChannels(gms));
                     }
 
                     const locale = getCurrentLocale(getState());
