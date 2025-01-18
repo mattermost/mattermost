@@ -48,21 +48,22 @@ export default class SearchChannelProvider extends Provider {
                     return;
                 }
 
+                let filteredChannels = channels;
                 if (isAtSearch) {
-                    channels = channels.filter((ch: Channel) =>
+                    filteredChannels = channels.filter((ch: Channel) =>
                         isDirectChannel(ch) || isGroupChannel(ch),
                     );
                 }
 
                 // Load profiles for group channels if needed
-                const groupChannels = channels.filter(isGroupChannel);
+                const groupChannels = filteredChannels.filter(isGroupChannel);
                 if (groupChannels.length > 0) {
                     await dispatch(loadProfilesForGroupChannels(groupChannels));
                 }
 
                 // Sort channels
                 const locale = getCurrentLocale(getState());
-                channels.sort(sortChannelsByTypeListAndDisplayName.bind(null, locale, [
+                filteredChannels.sort(sortChannelsByTypeListAndDisplayName.bind(null, locale, [
                     Constants.OPEN_CHANNEL,
                     Constants.PRIVATE_CHANNEL,
                     Constants.DM_CHANNEL,
@@ -70,7 +71,7 @@ export default class SearchChannelProvider extends Provider {
                 ]));
 
                 // Get channel names using the selector
-                const channelNames = channels.map((channel) => {
+                const channelNames = filteredChannels.map((channel) => {
                     const name = getChannelNameForSearchShortcut(getState(), channel.id) || channel.name;
                     return isAtSearch && name[0] !== '@' ? `@${name}` : name;
                 });
@@ -78,7 +79,7 @@ export default class SearchChannelProvider extends Provider {
                 resultsCallback({
                     matchedPretext: prefix,
                     terms: channelNames,
-                    items: channels,
+                    items: filteredChannels,
                     component: SearchChannelSuggestion,
                 });
             },
