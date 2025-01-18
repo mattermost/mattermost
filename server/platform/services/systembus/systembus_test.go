@@ -149,7 +149,7 @@ func TestMultipleSubscribers(t *testing.T) {
 }
 
 func TestTopics(t *testing.T) {
-	bus, err := New(nil, nil)
+	bus, err := NewGoChannel(nil)
 	require.NoError(t, err)
 	defer bus.Close()
 
