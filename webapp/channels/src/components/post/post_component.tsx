@@ -341,7 +341,7 @@ const PostComponent = (props: Props): JSX.Element => {
         if (!post || (props.channelIsArchived && !props.clickToReply)) {
             return;
         }
-    
+
         if (
             !e.altKey &&
             props.clickToReply &&
@@ -349,7 +349,7 @@ const PostComponent = (props: Props): JSX.Element => {
             isEligibleForClick(e) &&
             props.location === Locations.CENTER &&
             !props.isPostBeingEdited
-        ) {   
+        ) {
             trackEvent('crt', 'clicked_to_reply');
             props.actions.selectPost(post);
         }
