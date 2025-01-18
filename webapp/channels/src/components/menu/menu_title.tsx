@@ -9,15 +9,17 @@ import styled from 'styled-components';
 
 export interface Props {
     children: ReactNode;
+    role?: string;
 }
 
 export function MenuTitle(props: Props) {
     const {
         children,
+        role,
     } = props;
 
     return (
-        <Title>
+        <Title role={role}>
             {children}
         </Title>
     );

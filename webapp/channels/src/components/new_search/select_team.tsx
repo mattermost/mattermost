@@ -115,7 +115,10 @@ const SelectTeam = (props: Props) => {
         if (currentlySelectedTeam) {
             elements.push(
                 renderTeam(currentlySelectedTeam.id, currentlySelectedTeam.display_name, currentlySelectedTeam.id, 'search-teams-selector-current-team'),
-                <Menu.Title key='your-team-title'>
+                <Menu.Title
+                    key='your-team-title'
+                    role='separator'
+                >
                     <FormattedMessage
                         id='search_teams_selector.your_teams'
                         defaultMessage='Your teams'
