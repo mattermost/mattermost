@@ -1438,23 +1438,6 @@ func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(rctx requ
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *platform.CheckConnResult {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckWebConn")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.CheckWebConn(userID, connectionID)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CleanUpAfterPostDeletion")
