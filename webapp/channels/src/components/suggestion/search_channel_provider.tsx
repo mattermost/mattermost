@@ -38,7 +38,7 @@ export default class SearchChannelProvider extends Provider {
 
         const prefix = captured[1].replace(/^[@~]/, '');
         const isAtSearch = captured[1].startsWith('@');
-        
+
         this.startNewRequest(prefix);
 
         this.autocompleteChannelsForSearch(
@@ -49,8 +49,8 @@ export default class SearchChannelProvider extends Provider {
                 }
 
                 if (isAtSearch) {
-                    channels = channels.filter((ch: Channel) => 
-                        isDirectChannel(ch) || isGroupChannel(ch)
+                    channels = channels.filter((ch: Channel) =>
+                        isDirectChannel(ch) || isGroupChannel(ch),
                     );
                 }
 
@@ -64,14 +64,14 @@ export default class SearchChannelProvider extends Provider {
                 const locale = getCurrentLocale(getState());
                 channels.sort(sortChannelsByTypeListAndDisplayName.bind(null, locale, [
                     Constants.OPEN_CHANNEL,
-                    Constants.PRIVATE_CHANNEL, 
+                    Constants.PRIVATE_CHANNEL,
                     Constants.DM_CHANNEL,
-                    Constants.GM_CHANNEL
+                    Constants.GM_CHANNEL,
                 ]));
 
                 // Get channel names using the selector
                 const channelNames = channels.map((channel) => {
-                    const name = getChannelNameForSearchShortcut(getState(), channel.id);
+                    const name = getChannelNameForSearchShortcut(getState(), channel.id) || channel.name;
                     return isAtSearch && name[0] !== '@' ? `@${name}` : name;
                 });
 
