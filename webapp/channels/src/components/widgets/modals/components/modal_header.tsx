@@ -19,7 +19,6 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
             <h1
                 id={`mm-modal-header-${id}`}
                 className='mm-modal-header__title'
-                tabIndex={0}
             >
                 {title}
             </h1>
