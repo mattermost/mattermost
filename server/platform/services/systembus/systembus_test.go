@@ -121,12 +121,15 @@ func TestMultipleSubscribers(t *testing.T) {
 	// Helper function to receive messages with timeout
 	receiveAll := func(ch <-chan *message.Message) []string {
 		var received []string
-		for i := 0; i < len(messages); i++ {
+		remaining := len(messages)
+		for remaining > 0 {
 			select {
 			case msg := <-ch:
 				received = append(received, string(msg.Payload))
+				remaining--
 			case <-ctx.Done():
 				t.Fatal("timeout waiting for messages")
+				return received
 			}
 		}
 		return received
