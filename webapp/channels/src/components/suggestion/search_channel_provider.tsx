@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import Constants from 'utils/constants';
+
 import type {ServerError} from '@mattermost/types/errors';
 
+import {getChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
 import {loadProfilesForGroupChannels} from 'actions/user_actions';
 import {getCurrentLocale} from 'selectors/i18n';
-import {getChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import store from 'stores/redux_store';
-
-import Constants from 'utils/constants';
 
 import type {Channel} from './command_provider/app_command_parser/app_command_parser_dependencies.js';
 import Provider from './provider';
@@ -21,9 +21,11 @@ const getState = store.getState;
 const dispatch = store.dispatch;
 
 function itemToTerm(isAtSearch: boolean, item: { id: string; type: string; display_name: string; name: string }) {
-    const prefix = isAtSearch ? '' : '@';
-    const name = getChannelNameForSearchShortcut(getState(), item.id);
-    return name ? prefix + name : item.name;
+    let name = getChannelNameForSearchShortcut(getState(), item.id) || item.name;
+    if (isAtSearch && name[0] !== '@') {
+        name = '@' + name;
+    }
+    return name;
 }
 
 type SearchChannelAutocomplete = (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
