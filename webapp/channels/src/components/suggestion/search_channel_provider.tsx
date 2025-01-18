@@ -7,6 +7,7 @@ import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} f
 
 import {loadProfilesForGroupChannels} from 'actions/user_actions';
 import {getCurrentLocale} from 'selectors/i18n';
+import {getChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import store from 'stores/redux_store';
 
 import Constants from 'utils/constants';
@@ -21,16 +22,8 @@ const dispatch = store.dispatch;
 
 function itemToTerm(isAtSearch: boolean, item: { id: string; type: string; display_name: string; name: string }) {
     const prefix = isAtSearch ? '' : '@';
-    if (item.type === Constants.DM_CHANNEL) {
-        return prefix + item.display_name;
-    }
-    if (item.type === Constants.GM_CHANNEL) {
-        return prefix + item.display_name.replace(/ /g, '');
-    }
-    if (item.type === Constants.OPEN_CHANNEL || item.type === Constants.PRIVATE_CHANNEL) {
-        return item.name;
-    }
-    return item.name;
+    const name = getChannelNameForSearchShortcut(getState(), item.id);
+    return name ? prefix + name : item.name;
 }
 
 type SearchChannelAutocomplete = (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
