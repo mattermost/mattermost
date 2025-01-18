@@ -338,10 +338,10 @@ const PostComponent = (props: Props): JSX.Element => {
     const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code'), []);
 
     const handlePostClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
-        if (!post || props.channelIsArchived) {
+        if (!post || (props.channelIsArchived && !props.clickToReply)) {
             return;
         }
-
+    
         if (
             !e.altKey &&
             props.clickToReply &&
@@ -349,7 +349,7 @@ const PostComponent = (props: Props): JSX.Element => {
             isEligibleForClick(e) &&
             props.location === Locations.CENTER &&
             !props.isPostBeingEdited
-        ) {
+        ) {   
             trackEvent('crt', 'clicked_to_reply');
             props.actions.selectPost(post);
         }
