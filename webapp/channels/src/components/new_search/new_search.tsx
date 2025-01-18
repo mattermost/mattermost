@@ -5,12 +5,6 @@ import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
-import a11yController from 'utils/a11y_controller_instance';
-import type {A11yFocusEventDetail} from 'utils/constants';
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 
@@ -19,6 +13,13 @@ import {getSearchButtons} from 'selectors/plugins';
 import {getSearchTerms, getSearchType} from 'selectors/rhs';
 
 import Popover from 'components/widgets/popover';
+
+import a11yController from 'utils/a11y_controller_instance';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
+import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import SearchBox from './search_box';
 
