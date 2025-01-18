@@ -31,7 +31,7 @@ exports[`components/sidebar should match snapshot 1`] = `
   <div
     className="sidebar--left__icons"
   >
-    <Connect(Pluggable)
+    <Pluggable
       pluggableName="LeftSidebarHeader"
     />
   </div>
@@ -73,7 +73,7 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
   <div
     className="sidebar--left__icons"
   >
-    <Connect(Pluggable)
+    <Pluggable
       pluggableName="LeftSidebarHeader"
     />
   </div>
@@ -119,7 +119,7 @@ exports[`components/sidebar should match snapshot when more channels modal is op
   <div
     className="sidebar--left__icons"
   >
-    <Connect(Pluggable)
+    <Pluggable
       pluggableName="LeftSidebarHeader"
     />
   </div>
