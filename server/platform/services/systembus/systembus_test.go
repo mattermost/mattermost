@@ -125,7 +125,9 @@ func TestMultipleSubscribers(t *testing.T) {
 		for remaining > 0 {
 			select {
 			case msg := <-ch:
-				received = append(received, string(msg.Payload))
+				payload := string(msg.Payload)
+				t.Logf("Received message: %s", payload)
+				received = append(received, payload)
 				remaining--
 			case <-ctx.Done():
 				t.Fatal("timeout waiting for messages")
