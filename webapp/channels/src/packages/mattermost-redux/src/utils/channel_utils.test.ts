@@ -3,6 +3,7 @@
 
 import type {ChannelNotifyProps} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
+import type {UsersState} from '@mattermost/types/users';
 
 import {
     areChannelMentionsIgnored,
@@ -10,6 +11,7 @@ import {
     sortChannelsByRecency,
     sortChannelsByDisplayName,
     sortChannelsByTypeListAndDisplayName,
+    completeDirectGroupInfo,
 } from 'mattermost-redux/utils/channel_utils';
 
 import TestHelper from '../../test/test_helper';
@@ -194,8 +196,8 @@ describe('ChannelUtils', () => {
                 [user3.id]: user3,
             },
             profilesInChannel: {
-                'channel1': new Set([user1.id, user2.id]),
-                'channel2': new Set([user1.id, user2.id, user3.id]),
+                channel1: new Set([user1.id, user2.id]),
+                channel2: new Set([user1.id, user2.id, user3.id]),
             },
             statuses: {},
             isManualStatus: {},
@@ -208,7 +210,7 @@ describe('ChannelUtils', () => {
             profilesNotInGroup: {},
             profilesNotInChannel: {},
             profilesInGroupChannels: [],
-        };
+        } as UsersState;
 
         const baseChannel = TestHelper.fakeChannelOverride({
             id: 'channel1',
