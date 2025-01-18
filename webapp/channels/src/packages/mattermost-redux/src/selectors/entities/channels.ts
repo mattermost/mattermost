@@ -238,6 +238,26 @@ export const getCurrentChannel: (state: GlobalState) => Channel | undefined = cr
     },
 );
 
+const getChannelNameForSearch = (channel: Channel | undefined, users: UsersState): string | undefined => {
+    if (!channel) {
+        return undefined;
+    }
+
+    // Only get the extra info from users if we need it
+    if (channel.type === General.DM_CHANNEL) {
+        const dmChannelWithInfo = completeDirectChannelInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel);
+        return `@${dmChannelWithInfo.display_name}`;
+    }
+
+    // Replace spaces in GM channel names
+    if (channel.type === General.GM_CHANNEL) {
+        const gmChannelWithInfo = completeDirectGroupInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel, false);
+        return `@${gmChannelWithInfo.display_name.replace(/\s/g, '')}`;
+    }
+
+    return channel.name;
+};
+
 export const getCurrentChannelNameForSearchShortcut: (state: GlobalState) => string | undefined = createSelector(
     'getCurrentChannelNameForSearchShortcut',
     getAllChannels,
@@ -245,20 +265,7 @@ export const getCurrentChannelNameForSearchShortcut: (state: GlobalState) => str
     (state: GlobalState): UsersState => state.entities.users,
     (allChannels: IDMappedObjects<Channel>, currentChannelId: string, users: UsersState): string | undefined => {
         const channel = allChannels[currentChannelId];
-
-        // Only get the extra info from users if we need it
-        if (channel?.type === General.DM_CHANNEL) {
-            const dmChannelWithInfo = completeDirectChannelInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel);
-            return `@${dmChannelWithInfo.display_name}`;
-        }
-
-        // Replace spaces in GM channel names
-        if (channel?.type === General.GM_CHANNEL) {
-            const gmChannelWithInfo = completeDirectGroupInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel, false);
-            return `@${gmChannelWithInfo.display_name.replace(/\s/g, '')}`;
-        }
-
-        return channel?.name;
+        return getChannelNameForSearch(channel, users);
     },
 );
 
@@ -269,20 +276,7 @@ export const getChannelNameForSearchShortcut: (state: GlobalState, channelId: st
     (state: GlobalState, channelId: string): string => channelId,
     (allChannels: IDMappedObjects<Channel>, users: UsersState, channelId: string): string | undefined => {
         const channel = allChannels[channelId];
-
-        // Only get the extra info from users if we need it
-        if (channel?.type === General.DM_CHANNEL) {
-            const dmChannelWithInfo = completeDirectChannelInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel);
-            return `@${dmChannelWithInfo.display_name}`;
-        }
-
-        // Replace spaces in GM channel names
-        if (channel?.type === General.GM_CHANNEL) {
-            const gmChannelWithInfo = completeDirectGroupInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel, false);
-            return `@${gmChannelWithInfo.display_name.replace(/\s/g, '')}`;
-        }
-
-        return channel?.name;
+        return getChannelNameForSearch(channel, users);
     },
 );
 
