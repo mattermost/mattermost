@@ -73,7 +73,7 @@ export default class SearchChannelProvider extends Provider {
                 // Get channel names using the selector
                 const channelNames = channels.map((channel) => {
                     const name = getChannelNameForSearchShortcut(getState(), channel.id) || channel.name;
-                    return isAtSearch && name[0] !== '@' ? `@${name}` : name;
+                    return isAtSearch && !name.startsWith('@') ? `@${name}` : name;
                 });
 
                 resultsCallback({

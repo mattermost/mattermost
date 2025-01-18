@@ -184,6 +184,7 @@ describe('ChannelUtils', () => {
 
     describe('completeDirectGroupInfo', () => {
         const currentUserId = 'current_user_id';
+        const currentUser = {id: currentUserId, username: 'current_user_id', first_name: '', last_name: ''};
         const user1 = {id: 'user1', username: 'user1', first_name: '', last_name: ''};
         const user2 = {id: 'user2', username: 'user2', first_name: '', last_name: ''};
         const user3 = {id: 'user3', username: 'user3', first_name: '', last_name: ''};
@@ -194,23 +195,13 @@ describe('ChannelUtils', () => {
                 [user1.id]: user1,
                 [user2.id]: user2,
                 [user3.id]: user3,
+                [currentUserId]: currentUser,
             },
             profilesInChannel: {
                 channel1: new Set([user1.id, user2.id]),
                 channel2: new Set([user1.id, user2.id, user3.id]),
             },
-            statuses: {},
-            isManualStatus: {},
-            mySessions: [],
-            myAudits: [],
-            profilesInTeam: {},
-            profilesNotInTeam: {},
-            profilesWithoutTeam: new Set(),
-            profilesInGroup: {},
-            profilesNotInGroup: {},
-            profilesNotInChannel: {},
-            profilesInGroupChannels: [],
-        } as UsersState;
+        } as any as UsersState;
 
         const baseChannel = TestHelper.fakeChannelOverride({
             id: 'channel1',
