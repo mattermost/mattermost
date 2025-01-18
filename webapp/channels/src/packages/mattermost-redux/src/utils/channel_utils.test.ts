@@ -241,5 +241,11 @@ describe('ChannelUtils', () => {
             const result = completeDirectGroupInfo(usersState, 'username', channel);
             expect(result).toBe(channel);
         });
+
+        it('should include current user when omitCurrentUser is false', () => {
+            const channel = {...baseChannel, id: 'channel1'};
+            const result = completeDirectGroupInfo(usersState, 'username', channel, false);
+            expect(result.display_name).toBe('current_user_id, user1, user2');
+        });
     });
 });
