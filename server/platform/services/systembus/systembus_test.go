@@ -17,8 +17,7 @@ import (
 
 func TestNew(t *testing.T) {
 	t.Run("in-memory bus", func(t *testing.T) {
-		logger := mlog.CreateConsoleTestLogger(true)
-		bus, err := New(nil, logger)
+		bus, err := New(nil, nil)
 		require.NoError(t, err)
 		require.NotNil(t, bus)
 		defer bus.Close()
@@ -26,8 +25,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestRegisterTopic(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(true)
-	bus, err := New(nil, logger)
+	bus, err := New(nil, nil)
 	require.NoError(t, err)
 	defer bus.Close()
 
@@ -51,8 +49,7 @@ func TestRegisterTopic(t *testing.T) {
 }
 
 func TestPublishSubscribe(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(true)
-	bus, err := New(nil, logger)
+	bus, err := New(nil, nil)
 	require.NoError(t, err)
 	defer bus.Close()
 
@@ -91,8 +88,7 @@ func TestPublishSubscribe(t *testing.T) {
 }
 
 func TestMultipleSubscribers(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(true)
-	bus, err := New(nil, logger)
+	bus, err := New(nil, nil)
 	require.NoError(t, err)
 	defer bus.Close()
 
@@ -149,8 +145,7 @@ func TestMultipleSubscribers(t *testing.T) {
 }
 
 func TestTopics(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(true)
-	bus, err := New(nil, logger)
+	bus, err := New(nil, nil)
 	require.NoError(t, err)
 	defer bus.Close()
 
