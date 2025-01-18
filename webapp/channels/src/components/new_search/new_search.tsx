@@ -5,6 +5,12 @@ import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
+import a11yController from 'utils/a11y_controller_instance';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
+import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 
@@ -13,13 +19,6 @@ import {getSearchButtons} from 'selectors/plugins';
 import {getSearchTerms, getSearchType} from 'selectors/rhs';
 
 import Popover from 'components/widgets/popover';
-
-import a11yController from 'utils/a11y_controller_instance';
-import type {A11yFocusEventDetail} from 'utils/constants';
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import SearchBox from './search_box';
 
@@ -92,6 +91,14 @@ const NewSearchContainer = styled.div`
         background-color: rgba(var(--sidebar-text-rgb), 0.16);
         color: rgba(var(--sidebar-text-rgb), 0.88);
     }
+`;
+
+const NewSearchTerms = styled.span`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    margin-right: 32px;
+    white-space: nowrap;
 `;
 
 const NewSearch = (): JSX.Element => {
@@ -260,7 +267,7 @@ const NewSearch = (): JSX.Element => {
                     />
                 </SearchTypeBadge>
             )}
-            {searchTerms && <span tabIndex={0}>{searchTerms}</span>}
+            {searchTerms && <NewSearchTerms tabIndex={0}>{searchTerms}</NewSearchTerms>}
             {searchTerms && (
                 <CloseIcon
                     data-testid='input-clear'
