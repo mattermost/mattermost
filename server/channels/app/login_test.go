@@ -97,10 +97,21 @@ func TestLoginEvents(t *testing.T) {
 	})
 
 	t.Run("failed login", func(t *testing.T) {
-		// Attempt login with empty password
-		_, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", "", false)
-		require.Error(t, err)
-		require.NotNil(t, err) // Ensure error is not nil before accessing Error()
+		// Create a channel to signal when the error occurs
+		errChan := make(chan *model.AppError, 1)
+		
+		// Attempt login with empty password in a goroutine
+		go func() {
+			_, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", "", false)
+			if appErr, ok := err.(*model.AppError); ok {
+				errChan <- appErr
+			}
+		}()
+
+		// Wait for the error to occur
+		select {
+		case err := <-errChan:
+			require.NotNil(t, err)
 
 		// Wait for and verify the failure event
 		select {
