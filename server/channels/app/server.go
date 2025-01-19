@@ -216,11 +216,6 @@ func NewServer(options ...Option) (*Server, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to initialize the system bus")
 		}
-	} else {
-		s.systemBus, err = systembus.NewGoChannel(s.Log())
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to initialize the system bus")
-		}
 	}
 
 	if err = events.InitSystemBusEvents(s.systemBus); err != nil {

@@ -30,7 +30,6 @@ type SystemBus struct {
 
 // New creates a new SystemBus instance using postgres
 func NewPostgres(db *sql.DB, logger *mlog.Logger) (*SystemBus, error) {
-	// TODO: Make logger optional via config when we add systembus settings
 	wmLogger := newWatermillLoggerAdapter(logger)
 
 	var publisher message.Publisher
@@ -81,7 +80,6 @@ func NewPostgres(db *sql.DB, logger *mlog.Logger) (*SystemBus, error) {
 
 // New creates a new SystemBus instance using a go channels
 func NewGoChannel(logger *mlog.Logger) (*SystemBus, error) {
-	// TODO: Make logger optional via config when we add systembus settings
 	wmLogger := newWatermillLoggerAdapter(logger)
 
 	var publisher message.Publisher
