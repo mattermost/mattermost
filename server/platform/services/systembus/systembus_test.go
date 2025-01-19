@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -111,36 +110,45 @@ func TestMultipleSubscribers(t *testing.T) {
 		`{"message": "first"}`,
 		`{"message": "second"}`,
 		`{"message": "third"}`,
+		`{"message": "forth"}`,
 	}
 
-	for _, msg := range messages {
-		err = bus.Publish("test.topic", []byte(msg))
-		require.NoError(t, err)
-	}
+	received1 := []string{}
+	received2 := []string{}
+	received3 := []string{}
 
-	// Helper function to receive messages with timeout
-	receiveAll := func(ch <-chan *message.Message) []string {
-		var received []string
-		remaining := len(messages)
-		for remaining > 0 {
-			select {
-			case msg := <-ch:
-				payload := string(msg.Payload)
-				t.Logf("Received message: %s", payload)
-				received = append(received, payload)
-				remaining--
-			case <-ctx.Done():
-				t.Fatal("timeout waiting for messages")
-				return received
-			}
+	err = bus.Publish("test.topic", []byte(messages[0]))
+	require.NoError(t, err)
+	err = bus.Publish("test.topic", []byte(messages[1]))
+	require.NoError(t, err)
+	err = bus.Publish("test.topic", []byte(messages[2]))
+	require.NoError(t, err)
+	err = bus.Publish("test.topic", []byte(messages[3]))
+	require.NoError(t, err)
+
+	timeout, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	timedOut := false
+	for len(received1)+len(received2)+len(received3) < 3*3 || timedOut {
+		select {
+		case msg := <-sub1:
+			msg.Ack()
+			payload := string(msg.Payload)
+			t.Logf("Received message: %s", payload)
+			received1 = append(received1, payload)
+		case msg := <-sub2:
+			msg.Ack()
+			payload := string(msg.Payload)
+			t.Logf("Received message: %s", payload)
+			received2 = append(received2, payload)
+		case msg := <-sub3:
+			payload := string(msg.Payload)
+			t.Logf("Received message: %s", payload)
+			received3 = append(received3, payload)
+		case <-timeout.Done():
+			timedOut = true
+			t.Fatal("timeout waiting for message")
 		}
-		return received
 	}
-
-	// Verify each subscriber received all messages
-	received1 := receiveAll(sub1)
-	received2 := receiveAll(sub2)
-	received3 := receiveAll(sub3)
 
 	// Verify each subscriber got all messages
 	assert.ElementsMatch(t, messages, received1)

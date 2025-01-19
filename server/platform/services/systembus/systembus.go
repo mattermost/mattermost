@@ -11,9 +11,9 @@ import (
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill"
+	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
-	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/pkg/errors"
 )
@@ -26,7 +26,7 @@ type Config struct {
 
 // PostgreSQLConfig holds PostgreSQL specific configuration
 type PostgreSQLConfig struct {
-	DB             *sql.DB // Database connection
+	DB              *sql.DB // Database connection
 	SchemaAdapter   watermillSQL.SchemaAdapter
 	ConsumerGroup   string // Unique name for the consumer group
 	AutoCreateTable bool   // Whether to create required tables automatically
@@ -34,15 +34,15 @@ type PostgreSQLConfig struct {
 
 // SystemBus represents an in-memory message bus for system-wide events
 type SystemBus struct {
-	publisher   message.Publisher
-	subscriber  message.Subscriber
-	logger      watermill.LoggerAdapter
-	mutex       sync.RWMutex
-	topics      map[string]*TopicDefinition
+	publisher  message.Publisher
+	subscriber message.Subscriber
+	logger     watermill.LoggerAdapter
+	mutex      sync.RWMutex
+	topics     map[string]*TopicDefinition
 }
 
-// New creates a new SystemBus instance
-func New(config *Config, logger *mlog.Logger) (*SystemBus, error) {
+// New creates a new SystemBus instance using postgres
+func NewPostgres(config *PostgreSQLConfig, logger *mlog.Logger) (*SystemBus, error) {
 	// TODO: Make logger optional via config when we add systembus settings
 	wmLogger := newWatermillLoggerAdapter(logger)
 
@@ -50,53 +50,74 @@ func New(config *Config, logger *mlog.Logger) (*SystemBus, error) {
 	var subscriber message.Subscriber
 	var err error
 
-	if config != nil && config.PostgreSQL != nil {
-		// PostgreSQL implementation
-		publisher, err = watermillSQL.NewPublisher(
-			config.PostgreSQL.DB,
-			watermillSQL.PublisherConfig{
-				SchemaAdapter: config.PostgreSQL.SchemaAdapter,
-			},
-			wmLogger,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create PostgreSQL publisher: %w", err)
-		}
-
-		subscriber, err = watermillSQL.NewSubscriber(
-			config.PostgreSQL.DB,
-			watermillSQL.SubscriberConfig{
-				SchemaAdapter:  config.PostgreSQL.SchemaAdapter,
-				ConsumerGroup: config.PostgreSQL.ConsumerGroup,
-			},
-			wmLogger,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create PostgreSQL subscriber: %w", err)
-		}
-	} else {
-		// In-memory implementation using Go channels
-		pubSub := gochannel.NewGoChannel(
-			gochannel.Config{
-				OutputChannelBuffer: 100,
-			},
-			wmLogger,
-		)
-		publisher = pubSub
-		subscriber = pubSub
+	if config == nil {
+		return nil, errors.New("PostgreSQL configuration is required")
 	}
 
-	// Create a new FanOut instance
-	fanout, err := gochannel.NewFanOut(subscriber, wmLogger)
+	// PostgreSQL implementation
+	publisher, err = watermillSQL.NewPublisher(
+		config.DB,
+		watermillSQL.PublisherConfig{
+			SchemaAdapter: config.SchemaAdapter,
+		},
+		wmLogger,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create fanout: %w", err)
+		return nil, fmt.Errorf("failed to create PostgreSQL publisher: %w", err)
+	}
+
+	subscriber, err = watermillSQL.NewSubscriber(
+		config.DB,
+		watermillSQL.SubscriberConfig{
+			SchemaAdapter: config.SchemaAdapter,
+			ConsumerGroup: config.ConsumerGroup,
+		},
+		wmLogger,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PostgreSQL subscriber: %w", err)
 	}
 
 	bus := &SystemBus{
-		publisher:   publisher,
-		subscriber:  fanout,
-		logger:      wmLogger,
-		topics:      make(map[string]*TopicDefinition),
+		publisher:  publisher,
+		subscriber: subscriber,
+		logger:     wmLogger,
+		topics:     make(map[string]*TopicDefinition),
+	}
+
+	return bus, nil
+}
+
+// New creates a new SystemBus instance using a go channels
+func NewGoChannel(logger *mlog.Logger) (*SystemBus, error) {
+	// TODO: Make logger optional via config when we add systembus settings
+	wmLogger := newWatermillLoggerAdapter(logger)
+
+	var publisher message.Publisher
+	var subscriber message.Subscriber
+
+	// In-memory implementation using Go channels
+	pubSub := gochannel.NewGoChannel(
+		gochannel.Config{
+			OutputChannelBuffer: 100,
+		},
+		wmLogger,
+	)
+	publisher = pubSub
+	subscriber = pubSub
+
+	// Create a new FanOut instance
+	// fanout, err := gochannel.NewFanOut(subscriber, wmLogger)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to create fanout: %w", err)
+	// }
+
+	bus := &SystemBus{
+		publisher: publisher,
+		// subscriber: fanout,
+		subscriber: subscriber,
+		logger:     wmLogger,
+		topics:     make(map[string]*TopicDefinition),
 	}
 
 	return bus, nil
