@@ -69,7 +69,13 @@ func TestPublishSubscribe(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		messages, err := bus.Subscribe(ctx, "test.topic")
+		received := make(chan []byte, 1)
+		handler := func(msg *message.Message) error {
+			received <- msg.Payload
+			return nil
+		}
+
+		err := bus.Subscribe(ctx, "test.topic", handler)
 		require.NoError(t, err)
 
 		payload := []byte(`{"test": "data"}`)
@@ -77,8 +83,8 @@ func TestPublishSubscribe(t *testing.T) {
 		require.NoError(t, err)
 
 		select {
-		case msg := <-messages:
-			assert.Equal(t, string(payload), string(msg.Payload))
+		case msg := <-received:
+			assert.Equal(t, string(payload), string(msg))
 		case <-ctx.Done():
 			t.Fatal("timeout waiting for message")
 		}
@@ -97,12 +103,40 @@ func TestMultipleSubscribers(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Create multiple subscribers
-	sub1, err := bus.Subscribe(ctx, "test.topic")
+	var received1, received2, received3 []string
+	var mu sync.Mutex
+	wg := sync.WaitGroup{}
+	wg.Add(12) // 4 messages * 3 handlers
+
+	handler1 := func(msg *message.Message) error {
+		mu.Lock()
+		received1 = append(received1, string(msg.Payload))
+		mu.Unlock()
+		wg.Done()
+		return nil
+	}
+
+	handler2 := func(msg *message.Message) error {
+		mu.Lock()
+		received2 = append(received2, string(msg.Payload))
+		mu.Unlock()
+		wg.Done()
+		return nil
+	}
+
+	handler3 := func(msg *message.Message) error {
+		mu.Lock()
+		received3 = append(received3, string(msg.Payload))
+		mu.Unlock()
+		wg.Done()
+		return nil
+	}
+
+	err = bus.Subscribe(ctx, "test.topic", handler1)
 	require.NoError(t, err)
-	sub2, err := bus.Subscribe(ctx, "test.topic")
+	err = bus.Subscribe(ctx, "test.topic", handler2)
 	require.NoError(t, err)
-	sub3, err := bus.Subscribe(ctx, "test.topic")
+	err = bus.Subscribe(ctx, "test.topic", handler3)
 	require.NoError(t, err)
 
 	// Send multiple messages
@@ -110,47 +144,30 @@ func TestMultipleSubscribers(t *testing.T) {
 		`{"message": "first"}`,
 		`{"message": "second"}`,
 		`{"message": "third"}`,
-		`{"message": "forth"}`,
+		`{"message": "fourth"}`,
 	}
 
-	received1 := []string{}
-	received2 := []string{}
-	received3 := []string{}
-
-	err = bus.Publish("test.topic", []byte(messages[0]))
-	require.NoError(t, err)
-	err = bus.Publish("test.topic", []byte(messages[1]))
-	require.NoError(t, err)
-	err = bus.Publish("test.topic", []byte(messages[2]))
-	require.NoError(t, err)
-	err = bus.Publish("test.topic", []byte(messages[3]))
-	require.NoError(t, err)
-
-	timeout, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	timedOut := false
-	for len(received1)+len(received2)+len(received3) < 3*3 || timedOut {
-		select {
-		case msg := <-sub1:
-			msg.Ack()
-			payload := string(msg.Payload)
-			t.Logf("Received message: %s", payload)
-			received1 = append(received1, payload)
-		case msg := <-sub2:
-			msg.Ack()
-			payload := string(msg.Payload)
-			t.Logf("Received message: %s", payload)
-			received2 = append(received2, payload)
-		case msg := <-sub3:
-			payload := string(msg.Payload)
-			t.Logf("Received message: %s", payload)
-			received3 = append(received3, payload)
-		case <-timeout.Done():
-			timedOut = true
-			t.Fatal("timeout waiting for message")
-		}
+	for _, msg := range messages {
+		err = bus.Publish("test.topic", []byte(msg))
+		require.NoError(t, err)
 	}
 
-	// Verify each subscriber got all messages
+	// Wait for all messages to be processed
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// Success
+	case <-ctx.Done():
+		t.Fatal("timeout waiting for messages")
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
 	assert.ElementsMatch(t, messages, received1)
 	assert.ElementsMatch(t, messages, received2)
 	assert.ElementsMatch(t, messages, received3)

@@ -34,11 +34,12 @@ type PostgreSQLConfig struct {
 
 // SystemBus represents an in-memory message bus for system-wide events
 type SystemBus struct {
-	publisher  message.Publisher
-	subscriber message.Subscriber
-	logger     watermill.LoggerAdapter
-	mutex      sync.RWMutex
-	topics     map[string]*TopicDefinition
+	publisher     message.Publisher
+	subscriber    message.Subscriber
+	logger        watermill.LoggerAdapter
+	mutex         sync.RWMutex
+	topics        map[string]*TopicDefinition
+	subscriptions map[string]*topicSubscription
 }
 
 // New creates a new SystemBus instance using postgres
@@ -79,10 +80,11 @@ func NewPostgres(config *PostgreSQLConfig, logger *mlog.Logger) (*SystemBus, err
 	}
 
 	bus := &SystemBus{
-		publisher:  publisher,
-		subscriber: subscriber,
-		logger:     wmLogger,
-		topics:     make(map[string]*TopicDefinition),
+		publisher:     publisher,
+		subscriber:    subscriber,
+		logger:        wmLogger,
+		topics:        make(map[string]*TopicDefinition),
+		subscriptions: make(map[string]*topicSubscription),
 	}
 
 	return bus, nil
@@ -159,17 +161,86 @@ func (b *SystemBus) Publish(topic string, payload []byte) error {
 	return b.publisher.Publish(topic, msg)
 }
 
-// Subscribe creates a subscription for the specified topic
-func (b *SystemBus) Subscribe(ctx context.Context, topic string) (<-chan *message.Message, error) {
-	b.mutex.RLock()
-	_, exists := b.topics[topic]
-	b.mutex.RUnlock()
+// MessageHandler is a callback function that processes messages for a topic
+type MessageHandler func(msg *message.Message) error
 
-	if !exists {
-		return nil, fmt.Errorf("topic %q not registered", topic)
+type topicSubscription struct {
+	handlers []MessageHandler
+	msgs     <-chan *message.Message
+}
+
+// Subscribe registers a callback handler for the specified topic
+func (b *SystemBus) Subscribe(ctx context.Context, topic string, handler MessageHandler) error {
+	if handler == nil {
+		return errors.New("handler cannot be nil")
 	}
 
-	return b.subscriber.Subscribe(ctx, topic)
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	_, exists := b.topics[topic]
+	if !exists {
+		return fmt.Errorf("topic %q not registered", topic)
+	}
+
+	sub, exists := b.subscriptions[topic]
+	if !exists {
+		// Create new subscription
+		msgs, err := b.subscriber.Subscribe(ctx, topic)
+		if err != nil {
+			return fmt.Errorf("failed to subscribe to topic %q: %w", topic, err)
+		}
+
+		sub = &topicSubscription{
+			handlers: []MessageHandler{handler},
+			msgs:     msgs,
+		}
+		b.subscriptions[topic] = sub
+
+		// Start message processing goroutine
+		go b.handleMessages(ctx, topic, msgs)
+	} else {
+		// Add handler to existing subscription
+		sub.handlers = append(sub.handlers, handler)
+	}
+
+	return nil
+}
+
+func (b *SystemBus) handleMessages(ctx context.Context, topic string, msgs <-chan *message.Message) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg := <-msgs:
+			if msg == nil {
+				continue
+			}
+
+			b.mutex.RLock()
+			sub, exists := b.subscriptions[topic]
+			if !exists || len(sub.handlers) == 0 {
+				b.mutex.RUnlock()
+				msg.Ack()
+				continue
+			}
+			handlers := make([]MessageHandler, len(sub.handlers))
+			copy(handlers, sub.handlers)
+			b.mutex.RUnlock()
+
+			// Execute all handlers
+			for _, handler := range handlers {
+				if err := handler(msg); err != nil {
+					b.logger.Error("error executing message handler",
+						watermill.LogFields{
+							"topic": topic,
+							"error": err.Error(),
+						})
+				}
+			}
+			msg.Ack()
+		}
+	}
 }
 
 // GetTopicDefinition returns the definition for a given topic
