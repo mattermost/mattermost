@@ -115,11 +115,11 @@ func NewGoChannel(logger *mlog.Logger) (*SystemBus, error) {
 	// }
 
 	bus := &SystemBus{
-		publisher: publisher,
-		// subscriber: fanout,
-		subscriber: subscriber,
-		logger:     wmLogger,
-		topics:     make(map[string]*TopicDefinition),
+		publisher:     publisher,
+		subscriber:    subscriber,
+		logger:        wmLogger,
+		topics:        make(map[string]*TopicDefinition),
+		subscriptions: make(map[string]*topicSubscription),
 	}
 
 	return bus, nil
