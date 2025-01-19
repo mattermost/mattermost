@@ -828,43 +828,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableSystemBus',
-                            label: defineMessage({id: 'admin.service.enableSystemBus', defaultMessage: 'Enable System Bus (Experimental):'}),
-                            help_text: defineMessage({id: 'admin.service.enableSystemBusDescription', defaultMessage: '[Experimental] When true, enables the system bus for internal communication between services. The system bus can be configured to use either an in-memory implementation or PostgreSQL.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'ServiceSettings.SystemBusBackend',
-                            label: defineMessage({id: 'admin.service.systemBusBackend', defaultMessage: 'System Bus Backend (Experimental):'}),
-                            help_text: defineMessage({id: 'admin.service.systemBusBackendDescription', defaultMessage: '[Experimental] Select which backend to use for the system bus. InMemory is suitable for development and testing, while PostgreSQL is recommended for production use.'}),
-                            options: [
-                                {
-                                    value: 'InMemory',
-                                    display_name: defineMessage({id: 'admin.service.systemBusBackend.inMemory', defaultMessage: 'In Memory'}),
-                                },
-                                {
-                                    value: 'PostgreSQL',
-                                    display_name: defineMessage({id: 'admin.service.systemBusBackend.postgresql', defaultMessage: 'PostgreSQL'}),
-                                },
-                            ],
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
-                                it.stateIsFalse('ServiceSettings.EnableSystemBus'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableSystemBusTrace',
-                            label: defineMessage({id: 'admin.service.enableSystemBusTrace', defaultMessage: 'Enable System Bus Tracing (Experimental):'}),
-                            help_text: defineMessage({id: 'admin.service.enableSystemBusTraceDescription', defaultMessage: '[Experimental] When true, outputs debug messages to help when developing an integration that uses the system bus.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
-                                it.stateIsFalse('ServiceSettings.EnableSystemBus'),
-                            ),
-                        },
-                        {
                             type: 'text',
                             key: 'ServiceSettings.ManagedResourcePaths',
                             label: defineMessage({id: 'admin.service.managedResourcePaths', defaultMessage: 'Managed Resource Paths:'}),
@@ -919,6 +882,57 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.purge.purgeDescription', defaultMessage: 'This will purge all the in-memory caches for things like sessions, accounts, channels, etc. Deployments using High Availability will attempt to purge all the servers in the cluster. Purging the caches may adversely impact performance.'}),
                             error_message: defineMessage({id: 'admin.purge.purgeFail', defaultMessage: 'Purging unsuccessful: {error}'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                    ],
+                },
+            },
+            system_bus: {
+                url: 'environment/system_bus',
+                title: defineMessage({id: 'admin.sidebar.systemBus', defaultMessage: 'System Bus'}),
+                isHidden: it.any(
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SYSTEM_BUS)),
+                ),
+                schema: {
+                    id: 'SystemBusSettings',
+                    name: defineMessage({id: 'admin.environment.systemBus', defaultMessage: 'System Bus'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableSystemBus',
+                            label: defineMessage({id: 'admin.service.enableSystemBus', defaultMessage: 'Enable System Bus (Experimental):'}),
+                            help_text: defineMessage({id: 'admin.service.enableSystemBusDescription', defaultMessage: '[Experimental] When true, enables the system bus for internal communication between services. The system bus can be configured to use either an in-memory implementation or PostgreSQL.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SYSTEM_BUS)),
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'ServiceSettings.SystemBusBackend',
+                            label: defineMessage({id: 'admin.service.systemBusBackend', defaultMessage: 'System Bus Backend (Experimental):'}),
+                            help_text: defineMessage({id: 'admin.service.systemBusBackendDescription', defaultMessage: '[Experimental] Select which backend to use for the system bus. InMemory is suitable for development and testing, while PostgreSQL is recommended for production use.'}),
+                            options: [
+                                {
+                                    value: 'InMemory',
+                                    display_name: defineMessage({id: 'admin.service.systemBusBackend.inMemory', defaultMessage: 'In Memory'}),
+                                },
+                                {
+                                    value: 'PostgreSQL',
+                                    display_name: defineMessage({id: 'admin.service.systemBusBackend.postgresql', defaultMessage: 'PostgreSQL'}),
+                                },
+                            ],
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SYSTEM_BUS)),
+                                it.stateIsFalse('ServiceSettings.EnableSystemBus'),
+                            ),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableSystemBusTrace',
+                            label: defineMessage({id: 'admin.service.enableSystemBusTrace', defaultMessage: 'Enable System Bus Tracing (Experimental):'}),
+                            help_text: defineMessage({id: 'admin.service.enableSystemBusTraceDescription', defaultMessage: '[Experimental] When true, outputs debug messages to help when developing an integration that uses the system bus.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SYSTEM_BUS)),
+                                it.stateIsFalse('ServiceSettings.EnableSystemBus'),
+                            ),
                         },
                     ],
                 },
