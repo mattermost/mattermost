@@ -132,7 +132,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSections
                         <div className='mt-5'>
                             <FormattedMessage
                                 id='user.settings.display.renderEmoticonsAsEmojiDesc'
-                                defaultMessage='When enabled, text emoticons in messages will automatically be rendered as emojis (For example :D as 😄)'
+                                defaultMessage='When enabled, text emoticons in messages will be rendered as emojis (For example :D as 😄)'
                             />
                         </div>
                     </fieldset>,
