@@ -44,7 +44,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSections
     };
 
     useEffect(() => {
-        if (active && areAllSectionsInactive) {
+        if (!active && areAllSectionsInactive) {
             focusEditButton();
         }
     }, [active, areAllSectionsInactive]);
