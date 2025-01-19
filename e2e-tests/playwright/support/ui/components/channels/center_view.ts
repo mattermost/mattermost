@@ -16,13 +16,14 @@ export default class ChannelsCenterView {
     readonly postBoxIndicator;
     readonly scheduledDraftChannelIcon;
     readonly scheduledDraftChannelInfoMessage;
+    readonly scheduledDraftChannelInfoMessageLocator;
     readonly scheduledDraftChannelInfoMessageText;
     readonly scheduledDraftSeeAllLink;
     readonly postEdit;
 
     constructor(container: Locator) {
         this.container = container;
-
+        this.scheduledDraftChannelInfoMessageLocator = 'span:has-text("Message scheduled for")';
         this.header = new components.ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new components.ChannelsPostCreate(
@@ -32,7 +33,7 @@ export default class ChannelsCenterView {
         this.postBoxIndicator = container.locator('div.postBoxIndicator');
         this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
-        this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
+        this.scheduledDraftChannelInfoMessageText = container.locator(this.scheduledDraftChannelInfoMessageLocator);
         this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
     }
 

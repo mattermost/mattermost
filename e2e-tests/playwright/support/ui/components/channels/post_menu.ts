@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {expect, Locator, Page} from '@playwright/test';
 
 export default class PostMenu {
     readonly container: Locator;
@@ -46,6 +46,15 @@ export default class PostMenu {
     async openDotMenu() {
         await this.dotMenuButton.waitFor();
         await this.dotMenuButton.click();
+    }
+
+    /**
+     * Clicks on dot menu and move the mouse away to not open sub menu
+     */
+    async clickOnDotMenu(page: Page) {
+        await this.dotMenuButton.click();
+        // move the mouse away from menu since the focus opens a submenu and causes test to fail
+        await page.mouse.move(0, 0);
     }
 }
 

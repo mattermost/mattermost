@@ -23,7 +23,7 @@ export default class ChannelsSidebarRight {
 
         this.postBoxIndicator = container.locator('div.postBoxIndicator');
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
-        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
+        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
         this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
         this.rhsPostBody = container.locator('.post-message__text');
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('comment-create'), true);

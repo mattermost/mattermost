@@ -100,7 +100,7 @@ test('MM-T5655 should be able to edit post message in RHS', async ({pw}) => {
     // now we'll remove the files
     await updatedReplyPost.hover();
     await updatedReplyPost.postMenu.toBeVisible();
-    await updatedReplyPost.postMenu.dotMenuButton.click();
+    await updatedReplyPost.postMenu.clickOnDotMenu(page);
     await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.editMenuItem.click();
     await channelPage.sidebarRight.postEdit.toBeVisible();
@@ -222,7 +222,7 @@ test('should be able to remove some files when editing a post', async ({pw}) => 
 
     await post.hover();
     await post.postMenu.toBeVisible();
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.clickOnDotMenu(page);
 
     await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.editMenuItem.click();
@@ -264,7 +264,7 @@ test('MM-T5655 should be able to remove all files when editing a post', async ({
 
     await post.hover();
     await post.postMenu.toBeVisible();
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.clickOnDotMenu(page);
 
     await channelPage.postDotMenu.toBeVisible();
     await channelPage.postDotMenu.editMenuItem.click();
