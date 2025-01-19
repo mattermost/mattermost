@@ -319,18 +319,18 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable"`
-	WebsocketURL        *string `access:"write_restrictable,cloud_restrictable"`
-	EnableSystemBus      *bool   `access:"experimental_features"`
-	SystemBusBackend     *string `access:"experimental_features"`
-	EnableSystemBusTrace *bool   `access:"experimental_features"`
-	LicenseFileLocation *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
-	ListenAddress       *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
-	ConnectionSecurity  *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSCertFile         *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSKeyFile          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	TLSMinVer           *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
-	TLSStrictTransport  *bool   `access:"write_restrictable,cloud_restrictable"`
+	SiteURL              *string `access:"environment_web_server,authentication_saml,write_restrictable"`
+	WebsocketURL         *string `access:"write_restrictable,cloud_restrictable"`
+	EnableSystemBus      *bool   `access:"experimental_features,environment_system_bus"`
+	SystemBusBackend     *string `access:"experimental_features,environment_system_bus"`
+	EnableSystemBusTrace *bool   `access:"experimental_features,environment_system_bus"`
+	LicenseFileLocation  *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
+	ListenAddress        *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
+	ConnectionSecurity   *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSCertFile          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSKeyFile           *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
+	TLSMinVer            *string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	TLSStrictTransport   *bool   `access:"write_restrictable,cloud_restrictable"`
 	// In seconds.
 	TLSStrictTransportMaxAge            *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSOverwriteCiphers                 []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none

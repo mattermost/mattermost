@@ -157,6 +157,8 @@ const values = {
     SYSCONSOLE_WRITE_SITE_IP_FILTERS: 'sysconsole_write_site_ip_filters',
     SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER: 'sysconsole_read_environment_web_server',
     SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER: 'sysconsole_write_environment_web_server',
+    SYSCONSOLE_READ_ENVIRONMENT_SYSTEM_BUS: 'sysconsole_read_environment_system_bus',
+    SYSCONSOLE_WRITE_ENVIRONMENT_SYSTEM_BUS: 'sysconsole_write_environment_system_bus',
     SYSCONSOLE_READ_ENVIRONMENT_DATABASE: 'sysconsole_read_environment_database',
     SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE: 'sysconsole_write_environment_database',
     SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH: 'sysconsole_read_environment_elasticsearch',
