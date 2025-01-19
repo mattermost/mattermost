@@ -488,10 +488,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <Menu.Item
                     key='channelsMoreDropdownArchived'
                     id='channelsMoreDropdownArchived'
-                    onClick={() => {
-                        this.setState({page: 0});
-                        this.filterChange(Filter.Archived);
-                    }}
+                    onClick={() => this.filterChange(Filter.Archived)}
                     leadingElement={<ArchiveOutlineIcon size={16}/>}
                     labels={
                         <FormattedMessage
