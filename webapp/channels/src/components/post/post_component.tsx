@@ -47,7 +47,7 @@ import {isKeyPressed} from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
 import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
 
-import type {PostPluginComponent, PluginComponent} from 'types/store/plugins';
+import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';
@@ -116,7 +116,7 @@ export type Props = {
     isPostPriorityEnabled: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
-    pluginActions: PluginComponent[];
+    pluginActions: PostActionComponent[];
 };
 
 const PostComponent = (props: Props): JSX.Element => {
