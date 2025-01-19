@@ -18,12 +18,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Config holds the configuration for SystemBus
-type Config struct {
-	// PostgreSQL configuration, if nil will use in-memory implementation
-	PostgreSQL *PostgreSQLConfig
-}
-
 // PostgreSQLConfig holds PostgreSQL specific configuration
 type PostgreSQLConfig struct {
 	DB              *sql.DB // Database connection
@@ -165,8 +159,8 @@ func (b *SystemBus) Publish(topic string, payload []byte) error {
 type MessageHandler func(msg *message.Message) error
 
 type topicSubscription struct {
-	handlers []MessageHandler
 	msgs     <-chan *message.Message
+	handlers []MessageHandler
 }
 
 // Subscribe registers a callback handler for the specified topic
