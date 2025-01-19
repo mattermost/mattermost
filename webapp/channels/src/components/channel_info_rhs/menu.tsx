@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {KeyboardEvent} from 'react';
-import React from 'react';
+import React, {useEffect, type KeyboardEvent, useState} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
@@ -130,13 +129,13 @@ interface MenuProps {
 
 const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps) => {
     const {formatMessage} = useIntl();
-    const [loadingStats, setLoadingStats] = React.useState(true);
+    const [loadingStats, setLoadingStats] = useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
     const showMembers = channel.type !== Constants.DM_CHANNEL;
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
 
-    React.useEffect(() => {
+    useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {
             setLoadingStats(false);
         });
