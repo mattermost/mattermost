@@ -5,6 +5,7 @@ package systembus
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -33,7 +34,7 @@ func (t *TopicDefinition) ValidatePayload(payload []byte) error {
 	if !result.Valid() {
 		// Return the first validation error if any exist
 		if len(result.Errors()) > 0 {
-			return result.Errors()[0]
+			return fmt.Errorf("%v", result.Errors()[0])
 		}
 	}
 
