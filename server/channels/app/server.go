@@ -205,11 +205,15 @@ func NewServer(options ...Option) (*Server, error) {
 
 	var err error
 	if s.platform.Config().ServiceSettings.EnableSystemBus != nil && *s.platform.Config().ServiceSettings.EnableSystemBus {
+		var logger *mlog.Logger
+		if *s.platform.Config().ServiceSettings.EnableSystemBusTrace {
+			logger = s.Log()
+		}
 		switch *s.platform.Config().ServiceSettings.SystemBusBackend {
 		case "PostgreSQL":
-			s.systemBus, err = systembus.NewPostgres(s.platform.Store.GetInternalMasterDB(), s.Log())
+			s.systemBus, err = systembus.NewPostgres(s.platform.Store.GetInternalMasterDB(), logger)
 		case "InMemory":
-			s.systemBus, err = systembus.NewGoChannel(s.Log())
+			s.systemBus, err = systembus.NewGoChannel(logger)
 		default:
 			return nil, errors.New("invalid system bus backend")
 		}

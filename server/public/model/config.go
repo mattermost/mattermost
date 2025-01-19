@@ -321,8 +321,9 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 type ServiceSettings struct {
 	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable"`
 	WebsocketURL        *string `access:"write_restrictable,cloud_restrictable"`
-	EnableSystemBus     *bool   `access:"experimental_features"`
-	SystemBusBackend    *string `access:"experimental_features"`
+	EnableSystemBus      *bool   `access:"experimental_features"`
+	SystemBusBackend     *string `access:"experimental_features"`
+	EnableSystemBusTrace *bool   `access:"experimental_features"`
 	LicenseFileLocation *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
 	ListenAddress       *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
 	ConnectionSecurity  *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -462,6 +463,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.SystemBusBackend == nil {
 		s.SystemBusBackend = NewPointer("InMemory")
+	}
+
+	if s.EnableSystemBusTrace == nil {
+		s.EnableSystemBusTrace = NewPointer(false)
 	}
 
 	if s.SiteURL == nil {
