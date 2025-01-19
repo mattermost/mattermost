@@ -50,7 +50,7 @@ export function matchEmoticons(text: string): string[] | null {
 export function handleEmoticons(
     text: string,
     tokens: Map<string, {value: string; originalText: string}>,
-    renderEmoticonsAsEmoji?: boolean,
+    renderEmoticonsAsEmoji = true,
 ): string {
     let output = text;
 
