@@ -91,7 +91,7 @@ describe('formatText', () => {
     });
 
     test('emoticons should not be rendered as emojis when renderEmoticonsAsEmoji is undefined', () => {
-        const output = formatText('':)', {}, emptyEmojiMap);
+        const output = formatText(':)', {}, emptyEmojiMap);
         expect(output).toBe('<p>:)</p>');
     });
 
