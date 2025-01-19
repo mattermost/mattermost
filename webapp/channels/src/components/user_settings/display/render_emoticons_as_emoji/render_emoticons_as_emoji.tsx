@@ -84,7 +84,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSections
                 title={
                     <FormattedMessage
                         id='user.settings.display.renderEmoticonsAsEmojiTitle'
-                        defaultMessage='Auto-render emoticons as emojis'
+                        defaultMessage='Render emoticons as emojis'
                     />
                 }
                 inputs={[
@@ -92,7 +92,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSections
                         <legend className='form-legend hidden-label'>
                             <FormattedMessage
                                 id='user.settings.display.renderEmoticonsAsEmojiTitle'
-                                defaultMessage='Auto-render emoticons as emojis'
+                                defaultMessage='Render emoticons as emojis'
                             />
                         </legend>
                         <div className='radio'>
