@@ -37,8 +37,6 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSections
 
     const [isSaving] = useState<boolean>(false);
 
-    const [serverError] = useState<string | undefined>(undefined);
-
     const minRef = useRef<SettingItemMinComponent>(null);
 
     const focusEditButton = () => {
@@ -142,7 +140,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSections
                 setting='renderEmoticonsAsEmoji'
                 submit={handleSubmit}
                 saving={isSaving}
-                serverError={serverError}
+                serverError={undefined}
                 updateSection={handleUpdateSection}
             />
         );
