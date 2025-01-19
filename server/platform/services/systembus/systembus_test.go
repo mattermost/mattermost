@@ -6,9 +6,11 @@ package systembus
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -61,7 +63,7 @@ func TestPublishSubscribe(t *testing.T) {
 	})
 
 	t.Run("subscribe to non-existent topic", func(t *testing.T) {
-		_, err := bus.Subscribe(context.Background(), "non.existent")
+		err := bus.Subscribe(context.Background(), "non.existent", func(msg *message.Message) error { return nil })
 		require.Error(t, err)
 	})
 

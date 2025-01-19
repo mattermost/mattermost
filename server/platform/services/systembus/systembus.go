@@ -232,6 +232,7 @@ func (b *SystemBus) handleMessages(ctx context.Context, topic string, msgs <-cha
 			for _, handler := range handlers {
 				if err := handler(msg); err != nil {
 					b.logger.Error("error executing message handler",
+						err,
 						watermill.LogFields{
 							"topic": topic,
 							"error": err.Error(),
