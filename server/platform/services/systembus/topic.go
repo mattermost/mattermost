@@ -3,7 +3,11 @@
 
 package systembus
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/xeipuuv/gojsonschema"
+)
 
 // TopicDefinition contains metadata about a topic
 type TopicDefinition struct {
@@ -14,6 +18,24 @@ type TopicDefinition struct {
 
 // ValidatePayload checks if the given payload matches the topic's schema
 func (t *TopicDefinition) ValidatePayload(payload []byte) error {
-	// TODO: Implement JSON schema validation
+	if len(t.Schema) == 0 {
+		return nil // No schema defined means validation passes
+	}
+
+	schemaLoader := gojsonschema.NewStringLoader(string(t.Schema))
+	documentLoader := gojsonschema.NewStringLoader(string(payload))
+
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	if err != nil {
+		return err
+	}
+
+	if !result.Valid() {
+		// Return the first validation error if any exist
+		if len(result.Errors()) > 0 {
+			return result.Errors()[0]
+		}
+	}
+
 	return nil
 }
