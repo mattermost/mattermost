@@ -855,6 +855,16 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableSystemBusTrace',
+                            label: defineMessage({id: 'admin.service.enableSystemBusTrace', defaultMessage: 'Enable System Bus Tracing:'}),
+                            help_text: defineMessage({id: 'admin.service.enableSystemBusTraceDescription', defaultMessage: '[Experimental] When true, outputs debug messages to help when developing an integration that uses the system bus.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                                it.stateIsFalse('ServiceSettings.EnableSystemBus'),
+                            ),
+                        },
+                        {
                             type: 'text',
                             key: 'ServiceSettings.ManagedResourcePaths',
                             label: defineMessage({id: 'admin.service.managedResourcePaths', defaultMessage: 'Managed Resource Paths:'}),
