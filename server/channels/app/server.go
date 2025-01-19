@@ -34,6 +34,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
+	"github.com/mattermost/mattermost/server/v8/channels/app/events"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
@@ -204,12 +205,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// TODO: Configure the systembus to use postgres or not
 	var err error
-	s.systemBus, err = systembus.New(nil, s.Log())
+	s.systemBus, err = systembus.NewGoChannel(s.Log())
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to initialize the system bus")
 	}
 
-	if err = InitSystemEventBus(s); err != nil {
+	if err = events.InitSystemBusEvents(s.systemBus); err != nil {
 		return nil, errors.Wrap(err, "unable to initialize system event bus topics")
 	}
 
