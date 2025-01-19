@@ -82,7 +82,7 @@ function makeMapStateToProps() {
             hideGuestTags: getConfig(state).HideGuestTags === 'true',
             isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
             isEnterpriseReady,
-            renderEmoticonsAsEmoji: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.RENDER_EMOTICONS_AS_EMOJI, true),
+            renderEmoticonsAsEmoji: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.RENDER_EMOTICONS_AS_EMOJI, Preferences.RENDER_EMOTICONS_AS_EMOJI_DEFAULT === 'true'),
         };
     };
 }
