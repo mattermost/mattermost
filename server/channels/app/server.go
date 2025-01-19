@@ -207,12 +207,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.platform.Config().ServiceSettings.EnableSystemBus != nil && *s.platform.Config().ServiceSettings.EnableSystemBus {
 		switch *s.platform.Config().ServiceSettings.SystemBusBackend {
 		case "PostgreSQL":
-			s.systemBus, err = systembus.NewPostgres(&systembus.PostgreSQLConfig{
-				DB:              s.platform.Store.GetInternalMasterDB(),
-				SchemaAdapter:   s.platform.Store.GetInternalMasterDB(),
-				ConsumerGroup:   "mattermost",
-				AutoCreateTable: true,
-			}, s.Log())
+			s.systemBus, err = systembus.NewPostgres(s.platform.Store.GetInternalMasterDB(), s.Log())
 		case "InMemory":
 			s.systemBus, err = systembus.NewGoChannel(s.Log())
 		default:

@@ -18,14 +18,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// PostgreSQLConfig holds PostgreSQL specific configuration
-type PostgreSQLConfig struct {
-	DB              *sql.DB // Database connection
-	SchemaAdapter   watermillSQL.SchemaAdapter
-	ConsumerGroup   string // Unique name for the consumer group
-	AutoCreateTable bool   // Whether to create required tables automatically
-}
-
 // SystemBus represents an in-memory message bus for system-wide events
 type SystemBus struct {
 	publisher     message.Publisher
@@ -37,7 +29,7 @@ type SystemBus struct {
 }
 
 // New creates a new SystemBus instance using postgres
-func NewPostgres(config *PostgreSQLConfig, logger *mlog.Logger) (*SystemBus, error) {
+func NewPostgres(db *sql.DB, logger *mlog.Logger) (*SystemBus, error) {
 	// TODO: Make logger optional via config when we add systembus settings
 	wmLogger := newWatermillLoggerAdapter(logger)
 
@@ -45,15 +37,15 @@ func NewPostgres(config *PostgreSQLConfig, logger *mlog.Logger) (*SystemBus, err
 	var subscriber message.Subscriber
 	var err error
 
-	if config == nil {
+	if db == nil {
 		return nil, errors.New("PostgreSQL configuration is required")
 	}
 
 	// PostgreSQL implementation
 	publisher, err = watermillSQL.NewPublisher(
-		config.DB,
+		db,
 		watermillSQL.PublisherConfig{
-			SchemaAdapter: config.SchemaAdapter,
+			SchemaAdapter: watermillSQL.DefaultPostgreSQLSchema{},
 		},
 		wmLogger,
 	)
@@ -62,10 +54,10 @@ func NewPostgres(config *PostgreSQLConfig, logger *mlog.Logger) (*SystemBus, err
 	}
 
 	subscriber, err = watermillSQL.NewSubscriber(
-		config.DB,
+		db,
 		watermillSQL.SubscriberConfig{
-			SchemaAdapter: config.SchemaAdapter,
-			ConsumerGroup: config.ConsumerGroup,
+			SchemaAdapter: watermillSQL.DefaultPostgreSQLSchema{},
+			ConsumerGroup: "mattermost",
 		},
 		wmLogger,
 	)
