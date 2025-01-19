@@ -48,7 +48,7 @@ test('MM-T5643_6 should create a scheduled message under a thread post ', async 
     const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
-    const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
+    const {channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
     // # Visit default channel page
     await channelsPage.goto();
