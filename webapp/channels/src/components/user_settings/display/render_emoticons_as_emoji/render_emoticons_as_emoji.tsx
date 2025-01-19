@@ -153,7 +153,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSections
             title={
                 <FormattedMessage
                     id='user.settings.display.renderEmoticonsAsEmojiTitle'
-                    defaultMessage='Auto-render emoticons as emojis'
+                    defaultMessage='Render emoticons as emojis'
                 />
             }
             describe={renderOnOffLabel(renderEmoticonsAsEmoji)}
