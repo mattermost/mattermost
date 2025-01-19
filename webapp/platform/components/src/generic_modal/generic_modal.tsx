@@ -213,16 +213,15 @@ export class GenericModal extends React.PureComponent<Props, State> {
                                     {this.props.headerInput}
                                 </>
                             )}
-
                             {
                                 this.props.modalSubheaderText &&
                                 <div className='modal-subheading-container'>
-                                    <p
+                                    <div
                                         id='genericModalSubheading'
                                         className='modal-subheading'
                                     >
                                         {this.props.modalSubheaderText}
-                                    </p>
+                                    </div>
                                 </div>
                             }
                         </div>
