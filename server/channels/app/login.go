@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/events"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -55,14 +56,14 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 		}
 
 		if sysBus := a.Srv().SystemBus(); sysBus != nil && err != nil {
-			event := &UserLoginFailedEvent{
+			event := &events.UserLoginFailedEvent{
 				LoginID:   loginId,
 				UserAgent: c.UserAgent(),
 				IPAddress: c.IPAddress(),
 				Reason:    err.Error(),
 			}
 			if payload, jsonErr := json.Marshal(event); jsonErr == nil {
-				if sysErr := sysBus.Publish(TopicUserLoginFailed, payload); sysErr != nil {
+				if sysErr := sysBus.Publish(events.TopicUserLoginFailed, payload); sysErr != nil {
 					c.Logger().Error("Failed to publish login failed event", mlog.Err(sysErr))
 				}
 			}
@@ -251,13 +252,13 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 
 		// Publish login event to system bus
 		if sysBus := a.Srv().SystemBus(); sysBus != nil {
-			event := &UserLoggedInEvent{
+			event := &events.UserLoggedInEvent{
 				UserID:    user.Id,
 				UserAgent: c.UserAgent(),
 				IPAddress: c.IPAddress(),
 			}
 			if payload, err := json.Marshal(event); err == nil {
-				if err := sysBus.Publish(TopicUserLoggedIn, payload); err != nil {
+				if err := sysBus.Publish(events.TopicUserLoggedIn, payload); err != nil {
 					c.Logger().Error("Failed to publish login event", mlog.Err(err))
 				}
 			}
