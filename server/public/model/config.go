@@ -456,6 +456,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		}
 	}
 
+	if s.EnableSystemBus == nil {
+		s.EnableSystemBus = NewPointer(false)
+	}
+
+	if s.SystemBusBackend == nil {
+		s.SystemBusBackend = NewPointer("InMemory")
+	}
+
 	if s.SiteURL == nil {
 		if s.EnableDeveloper != nil && *s.EnableDeveloper {
 			s.SiteURL = NewPointer(ServiceSettingsDefaultSiteURL)
