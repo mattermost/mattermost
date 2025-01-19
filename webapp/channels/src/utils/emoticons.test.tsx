@@ -28,7 +28,7 @@ describe('Emoticons', () => {
         };
         Array.prototype.concat(...Object.values(emoticonPatterns)).forEach((emoticon) => {
             test(`text sequence '${emoticon}' should be recognized as an emoticon`, () => {
-                expect(Emoticons.handleEmoticons(emoticon, new Map(), true)).toEqual('$MM_EMOTICON0$');
+                expect(Emoticons.handleEmoticons(emoticon, new Map())).toEqual('$MM_EMOTICON0$');
             });
         });
 
@@ -59,38 +59,33 @@ describe('Emoticons', () => {
         });
 
         test('should allow comma immediately following emoticon :)', () => {
-            expect(Emoticons.handleEmoticons(':),', new Map(), true)).
+            expect(Emoticons.handleEmoticons(':),', new Map())).
                 toEqual('$MM_EMOTICON0$,');
         });
 
         test('should allow comma immediately following emoticon :P', () => {
-            expect(Emoticons.handleEmoticons(':P,', new Map(), true)).
+            expect(Emoticons.handleEmoticons(':P,', new Map())).
                 toEqual('$MM_EMOTICON0$,');
         });
 
         test('should allow punctuation immediately following emoticon :)', () => {
-            expect(Emoticons.handleEmoticons(':)!', new Map(), true)).
+            expect(Emoticons.handleEmoticons(':)!', new Map())).
                 toEqual('$MM_EMOTICON0$!');
         });
 
         test('should allow punctuation immediately following emoticon :P', () => {
-            expect(Emoticons.handleEmoticons(':P!', new Map(), true)).
+            expect(Emoticons.handleEmoticons(':P!', new Map())).
                 toEqual('$MM_EMOTICON0$!');
         });
 
         test('should allow punctuation immediately before and following emoticon :)', () => {
-            expect(Emoticons.handleEmoticons('":)"', new Map(), true)).
+            expect(Emoticons.handleEmoticons('":)"', new Map())).
                 toEqual('"$MM_EMOTICON0$"');
         });
 
         test('should allow punctuation immediately before and following emoticon :P', () => {
-            expect(Emoticons.handleEmoticons('":P"', new Map(), true)).
-                toEqual('"$MM_EMOTICON0$"');
-        });
-
-        test('shouldn\'t render text-based emoticons as emoji when renderEmoticonsAsEmoji is undefined', () => {
             expect(Emoticons.handleEmoticons('":P"', new Map())).
-                toEqual('":P"');
+                toEqual('"$MM_EMOTICON0$"');
         });
 
         test('shouldn\'t render text-based emoticons as emoji when renderEmoticonsAsEmoji is false', () => {
