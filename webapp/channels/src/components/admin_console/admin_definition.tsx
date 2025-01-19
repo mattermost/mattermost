@@ -830,15 +830,15 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'ServiceSettings.EnableSystemBus',
-                            label: defineMessage({id: 'admin.service.enableSystemBus', defaultMessage: 'Enable System Bus:'}),
-                            help_text: defineMessage({id: 'admin.service.enableSystemBusDescription', defaultMessage: 'When true, enables the system bus for internal communication between services. The system bus can be configured to use either an in-memory implementation or PostgreSQL.'}),
+                            label: defineMessage({id: 'admin.service.enableSystemBus', defaultMessage: 'Enable System Bus (Experimental):'}),
+                            help_text: defineMessage({id: 'admin.service.enableSystemBusDescription', defaultMessage: '[Experimental] When true, enables the system bus for internal communication between services. The system bus can be configured to use either an in-memory implementation or PostgreSQL.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
                             type: 'dropdown',
                             key: 'ServiceSettings.SystemBusBackend',
-                            label: defineMessage({id: 'admin.service.systemBusBackend', defaultMessage: 'System Bus Backend:'}),
-                            help_text: defineMessage({id: 'admin.service.systemBusBackendDescription', defaultMessage: 'Select which backend to use for the system bus. InMemory is suitable for development and testing, while PostgreSQL is recommended for production use.'}),
+                            label: defineMessage({id: 'admin.service.systemBusBackend', defaultMessage: 'System Bus Backend (Experimental):'}),
+                            help_text: defineMessage({id: 'admin.service.systemBusBackendDescription', defaultMessage: '[Experimental] Select which backend to use for the system bus. InMemory is suitable for development and testing, while PostgreSQL is recommended for production use.'}),
                             options: [
                                 {
                                     value: 'InMemory',
