@@ -828,6 +828,33 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableSystemBus',
+                            label: defineMessage({id: 'admin.service.enableSystemBus', defaultMessage: 'Enable System Bus:'}),
+                            help_text: defineMessage({id: 'admin.service.enableSystemBusDescription', defaultMessage: 'When true, enables the system bus for internal communication between services. The system bus can be configured to use either an in-memory implementation or PostgreSQL.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'ServiceSettings.SystemBusBackend',
+                            label: defineMessage({id: 'admin.service.systemBusBackend', defaultMessage: 'System Bus Backend:'}),
+                            help_text: defineMessage({id: 'admin.service.systemBusBackendDescription', defaultMessage: 'Select which backend to use for the system bus. InMemory is suitable for development and testing, while PostgreSQL is recommended for production use.'}),
+                            options: [
+                                {
+                                    value: 'InMemory',
+                                    display_name: defineMessage({id: 'admin.service.systemBusBackend.inMemory', defaultMessage: 'In Memory'}),
+                                },
+                                {
+                                    value: 'PostgreSQL',
+                                    display_name: defineMessage({id: 'admin.service.systemBusBackend.postgresql', defaultMessage: 'PostgreSQL'}),
+                                },
+                            ],
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                                it.stateIsFalse('ServiceSettings.EnableSystemBus'),
+                            ),
+                        },
+                        {
                             type: 'text',
                             key: 'ServiceSettings.ManagedResourcePaths',
                             label: defineMessage({id: 'admin.service.managedResourcePaths', defaultMessage: 'Managed Resource Paths:'}),
