@@ -144,7 +144,7 @@ export default function SidebarTeamMenu(props: Props) {
                 labels={(
                     <FormattedMessage
                         id='sidebarLeft.teamMenu.addGroupsToTeamMenuItem.primaryLabel'
-                        defaultMessage='Add Groups to Team'
+                        defaultMessage='Add groups to team'
                     />
                 )}
             />
@@ -177,7 +177,7 @@ export default function SidebarTeamMenu(props: Props) {
     if (havePermissionToManageTeam) {
         teamSettingsMenuItem = (
             <Menu.Item
-                id='teamSettingMenuItem'
+                id='teamSettingsMenuItem'
                 onClick={onTeamSettingsMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -198,7 +198,7 @@ export default function SidebarTeamMenu(props: Props) {
                 labels={(
                     <FormattedMessage
                         id='sidebarLeft.teamMenu.manageGroupsMenuItem.primaryLabel'
-                        defaultMessage='Manage Groups'
+                        defaultMessage='Manage groups'
                     />
                 )}
             />
@@ -270,73 +270,59 @@ export default function SidebarTeamMenu(props: Props) {
     let createTeamMenuItem: JSX.Element | null = null;
     if (havePermissionToCreateTeam) {
         createTeamMenuItem = (
-            <>
-                <Menu.Separator/>
-                <Menu.Item
-                    id='createTeamMenuItem'
-                    disabled={isTeamsLimitReached}
-                    onClick={onCreateTeamMenuItemClick}
-                    labels={(
-                        <FormattedMessage
-                            id='sidebarLeft.teamMenu.createTeamMenuItem.primaryLabel'
-                            defaultMessage='Create a team'
-                        />
-                    )}
-                    trailingElements={isTeamCreateRestricted && <RestrictedIndicatorForCreateTeam isFreeTrial={isFreeTrial}/>}
-                />
-            </>
+            <Menu.Item
+                id='createTeamMenuItem'
+                disabled={isTeamsLimitReached}
+                onClick={onCreateTeamMenuItemClick}
+                labels={(
+                    <FormattedMessage
+                        id='sidebarLeft.teamMenu.createTeamMenuItem.primaryLabel'
+                        defaultMessage='Create a team'
+                    />
+                )}
+                trailingElements={isTeamCreateRestricted && <RestrictedIndicatorForCreateTeam isFreeTrial={isFreeTrial}/>}
+            />
         );
     }
 
     const learnAboutTeamsMenuItem = (
-        <>
-            <Menu.Separator/>
-            <Menu.Item
-                id='learnAboutTeamsMenuItem'
-                onClick={onLearnAboutTeamsMenuItemClick}
-                leadingElement={(
-                    <LightbulbOutlineIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                labels={(
-                    <FormattedMessage
-                        id='sidebarLeft.teamMenu.learnAboutTeamsMenuItem.primaryLabel'
-                        defaultMessage='Learn about teams'
-                    />
-                )}
-            />
-        </>
+        <Menu.Item
+            key='learnAboutTeamsMenuItem'
+            id='learnAboutTeamsMenuItem'
+            onClick={onLearnAboutTeamsMenuItemClick}
+            leadingElement={(
+                <LightbulbOutlineIcon
+                    size={18}
+                    aria-hidden='true'
+                />
+            )}
+            labels={(
+                <FormattedMessage
+                    id='sidebarLeft.teamMenu.learnAboutTeamsMenuItem.primaryLabel'
+                    defaultMessage='Learn about teams'
+                />
+            )}
+        />
     );
 
-    let pluginMenuItems: JSX.Element | null = null;
+    let pluginMenuItems: JSX.Element[] | null = null;
     if (pluginInMainMenu.length > 0) {
-        pluginMenuItems = (
-            <>
-                <Menu.Separator/>
-                {pluginInMainMenu.map((plugin) => {
-                    function handleClick() {
-                        if (plugin.action) {
-                            plugin.action();
-                        }
-                    }
+        pluginMenuItems = pluginInMainMenu.map((plugin) => {
+            function handleClick() {
+                if (plugin.action) {
+                    plugin.action();
+                }
+            }
 
-                    return (
-                        <Menu.Item
-                            id={`${plugin.id}_pluginmenuitem`}
-                            key={plugin.id}
-                            onClick={handleClick}
-                            labels={(
-                                <span>
-                                    {plugin.text}
-                                </span>
-                            )}
-                        />
-                    );
-                })}
-            </>
-        );
+            return (
+                <Menu.Item
+                    id={`${plugin.id}_pluginmenuitem`}
+                    key={plugin.id}
+                    onClick={handleClick}
+                    labels={<span>{plugin.text}</span>}
+                />
+            );
+        });
     }
 
     return (
@@ -367,8 +353,11 @@ export default function SidebarTeamMenu(props: Props) {
             {manageViewMembersMenuItem}
             {joinAnotherTeamMenuItem}
             {leaveTeamMenuItem}
+            {Boolean(createTeamMenuItem) && <Menu.Separator/>}
             {createTeamMenuItem}
+            {Boolean(learnAboutTeamsMenuItem) && <Menu.Separator/>}
             {learnAboutTeamsMenuItem}
+            {Boolean(pluginMenuItems) && <Menu.Separator/>}
             {pluginMenuItems}
         </Menu.Container>
     );

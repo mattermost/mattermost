@@ -88,6 +88,7 @@ describe('components/Root', () => {
         shouldShowAppBar: false,
         isCloud: false,
         enableDesktopLandingPage: true,
+        isMobileView: false,
         actions: {
             loadConfigAndMe: jest.fn().mockImplementation(() => {
                 return Promise.resolve({
