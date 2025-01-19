@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Parser, ProcessNodeDefinitions} from 'html-to-react';
+import type {AllHTMLAttributes} from 'react';
 import React from 'react';
 
 import AtMention from 'components/at_mention';
@@ -10,8 +11,8 @@ import AtSumOfMembersMention from 'components/at_sum_members_mention';
 import CodeBlock from 'components/code_block/code_block';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
-import LinkTooltip from 'components/link_tooltip/link_tooltip';
 import MarkdownImage from 'components/markdown_image';
+import PluginLinkTooltip from 'components/plugin_link_tooltip';
 import PostEmoji from 'components/post_emoji';
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
@@ -64,7 +65,7 @@ type ProcessingInstruction = {
  * - hasPluginTooltips - If specified, the LinkTooltip component is placed inside links. Defaults to false.
  * - channelId = If specified, to be passed along to ProfilePopover via AtMention
  */
-export function messageHtmlToComponent(html: string, options: Options = {}) {
+export default function messageHtmlToComponent(html: string, options: Options = {}) {
     if (!html) {
         return null;
     }
@@ -107,18 +108,14 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
     ];
 
     if (options.hasPluginTooltips) {
-        const hrefAttrib = 'href';
         processingInstructions.push({
-            replaceChildren: true,
-            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs[hrefAttrib],
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => node.type === 'tag' && node.name === 'a' && node.attribs.href,
             processNode: (node: any, children: any) => {
                 return (
-                    <LinkTooltip
-                        href={node.attribs[hrefAttrib]}
-                        attributes={node.attribs}
-                    >
+                    <PluginLinkTooltip nodeAttributes={convertPropsToReactStandard(node.attribs)}>
                         {children}
-                    </LinkTooltip>
+                    </PluginLinkTooltip>
                 );
             },
         });
@@ -285,4 +282,32 @@ export function messageHtmlToComponent(html: string, options: Options = {}) {
     return parser.parseWithInstructions(html, isValidNode, processingInstructions);
 }
 
-export default messageHtmlToComponent;
+/**
+ * This function converts HTML attributes to React-specific props.
+ * For example, it changes 'class' to 'className'. Note that this function
+ * is not exhaustive and may not cover all HTML attributes. Add more cases as needed.
+ */
+export function convertPropsToReactStandard(propsToConvert: AllHTMLAttributes<HTMLElement>): Record<string, unknown> {
+    const newProps: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(propsToConvert)) {
+        switch (key) {
+        case 'class':
+            newProps.className = value;
+            break;
+        case 'for':
+            newProps.htmlFor = value;
+            break;
+        case 'tabindex':
+            newProps.tabIndex = value;
+            break;
+        case 'readonly':
+            newProps.readOnly = value;
+            break;
+        default:
+            newProps[key] = value;
+        }
+    }
+
+    return newProps;
+}
