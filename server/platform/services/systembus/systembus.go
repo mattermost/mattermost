@@ -45,7 +45,8 @@ func NewPostgres(db *sql.DB, logger *mlog.Logger) (*SystemBus, error) {
 	publisher, err = watermillSQL.NewPublisher(
 		db,
 		watermillSQL.PublisherConfig{
-			SchemaAdapter: watermillSQL.DefaultPostgreSQLSchema{},
+			SchemaAdapter:        watermillSQL.DefaultPostgreSQLSchema{},
+			AutoInitializeSchema: true,
 		},
 		wmLogger,
 	)
@@ -56,8 +57,10 @@ func NewPostgres(db *sql.DB, logger *mlog.Logger) (*SystemBus, error) {
 	subscriber, err = watermillSQL.NewSubscriber(
 		db,
 		watermillSQL.SubscriberConfig{
-			SchemaAdapter: watermillSQL.DefaultPostgreSQLSchema{},
-			ConsumerGroup: "mattermost",
+			SchemaAdapter:    watermillSQL.DefaultPostgreSQLSchema{},
+			OffsetsAdapter:   watermillSQL.DefaultPostgreSQLOffsetsAdapter{},
+			InitializeSchema: true,
+			ConsumerGroup:    "mattermost",
 		},
 		wmLogger,
 	)
