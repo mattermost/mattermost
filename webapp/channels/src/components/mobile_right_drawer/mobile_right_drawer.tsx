@@ -6,25 +6,30 @@ import React, {memo} from 'react';
 import {Link} from 'react-router-dom';
 import {CSSTransition} from 'react-transition-group';
 
-import MainMenu from 'components/main_menu';
+import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 
 import {Constants} from 'utils/constants';
 
-import {TRANSITION_TIMEOUT} from './constant';
+import MobileRightDrawerItems from './mobile_right_drawer_items';
 
-type Props = {
-    isMobileView: boolean;
-    isOpen: boolean;
-    teamDisplayName?: string;
-    siteName?: string;
-};
+import type {PropsFromRedux} from './index';
 
-const SidebarRightMenu = ({
+const TRANSITION_TIMEOUT = 500; // in ms
+
+type Props = PropsFromRedux;
+
+const MobileRightDrawer = ({
     siteName: defaultSiteName,
     teamDisplayName: defaultTeamDisplayName,
     isOpen,
-    isMobileView,
+    currentUser,
 }: Props) => {
+    const usageDeltas = useGetUsageDeltas();
+
+    if (!currentUser) {
+        return null;
+    }
+
     let siteName = '';
     if (defaultSiteName != null) {
         siteName = defaultSiteName;
@@ -36,7 +41,7 @@ const SidebarRightMenu = ({
 
     return (
         <div
-            className={classNames('sidebar--menu', {'move--left': isOpen && isMobileView})}
+            className={classNames('sidebar--menu', {'move--left': isOpen})}
             id='sidebar-menu'
         >
             <div className='team__header theme'>
@@ -47,10 +52,9 @@ const SidebarRightMenu = ({
                     {teamDisplayName}
                 </Link>
             </div>
-
             <div className='nav-pills__container mobile-main-menu'>
                 <CSSTransition
-                    in={isOpen && isMobileView}
+                    in={isOpen}
                     classNames='MobileRightSidebarMenu'
                     enter={true}
                     exit={true}
@@ -58,11 +62,13 @@ const SidebarRightMenu = ({
                     unmountOnExit={true}
                     timeout={TRANSITION_TIMEOUT}
                 >
-                    <MainMenu mobile={true}/>
+                    <MobileRightDrawerItems
+                        usageDeltaTeams={usageDeltas.teams.active}
+                    />
                 </CSSTransition>
             </div>
         </div>
     );
 };
 
-export default memo(SidebarRightMenu);
+export default memo(MobileRightDrawer);

@@ -13,54 +13,39 @@ import Menu from 'components/widgets/menu/menu';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-import {TestHelper} from 'utils/test_helper';
 
-import {MainMenu} from './main_menu';
-import type {Props} from './main_menu';
+import {MobileRightDrawerItems} from './mobile_right_drawer_items';
+import type {Props} from './mobile_right_drawer_items';
 
 describe('components/Menu', () => {
-    // Neccessary for components enhanced by HOCs due to issue with enzyme.
-    // See https://github.com/enzymejs/enzyme/issues/539
     const getMainMenuWrapper = (props: Props) => {
-        return shallow(<MainMenu {...props}/>);
-
-        // const wrapper = shallowWithIntl(<MainMenu {...props}/>);
-        // return wrapper.find('MainMenu').shallow();
+        return shallow(<MobileRightDrawerItems {...props}/>);
     };
 
-    const defaultProps: ComponentProps<typeof MainMenu> = {
-        mobile: false,
+    const defaultProps: Props = {
         teamId: 'team-id',
         teamName: 'team_name',
-        currentUser: TestHelper.getUserMock(),
         appDownloadLink: undefined,
-        enableCommands: false,
-        enableIncomingWebhooks: false,
-        enableOAuthServiceProvider: false,
-        enableOutgoingWebhooks: false,
-        canManageSystemBots: false,
-        canManageIntegrations: true,
         experimentalPrimaryTeam: undefined,
         helpLink: undefined,
         reportAProblemLink: undefined,
         moreTeamsToJoin: false,
         pluginMenuItems: [],
         isMentionSearch: false,
+        usageDeltaTeams: 0,
+        siteName: 'site-name',
+        isLicensedForLDAPGroups: false,
         intl: createIntl({locale: 'en', defaultLocale: 'en', timeZone: 'Etc/UTC', textComponent: 'span'}),
         guestAccessEnabled: true,
-        canInviteTeamMember: true,
         actions: {
-            openModal: jest.fn(),
             showMentions: jest.fn(),
             showFlaggedPosts: jest.fn(),
             closeRightHandSide: jest.fn(),
             closeRhsMenu: jest.fn(),
         },
         teamIsGroupConstrained: false,
-        isCloud: false,
         isStarterFree: false,
         isFreeTrial: false,
-        usageDeltaTeams: 1,
     };
 
     const defaultState = {
@@ -169,7 +154,7 @@ describe('components/Menu', () => {
     });
 
     test('should match snapshot with plugins', () => {
-        const props: ComponentProps<typeof MainMenu> = {
+        const props: ComponentProps<typeof MobileRightDrawerItems> = {
             ...defaultProps,
             pluginMenuItems: [{
                 id: 'plugin-id-1',
@@ -192,9 +177,8 @@ describe('components/Menu', () => {
     });
 
     test('should match snapshot with plugins in mobile', () => {
-        const props: ComponentProps<typeof MainMenu> = {
+        const props: ComponentProps<typeof MobileRightDrawerItems> = {
             ...defaultProps,
-            mobile: true,
             pluginMenuItems: [{
                 id: 'plugin-id-1',
                 pluginId: 'plugin-1',
@@ -245,7 +229,7 @@ describe('components/Menu', () => {
 
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <MainMenu {...defaultProps}/>
+                <MobileRightDrawerItems {...defaultProps}/>
             </Provider>,
         );
 
@@ -257,7 +241,7 @@ describe('components/Menu', () => {
 
         const wrapper = mountWithIntl(
             <Provider store={store}>
-                <MainMenu {...defaultProps}/>
+                <MobileRightDrawerItems {...defaultProps}/>
             </Provider>,
         );
 

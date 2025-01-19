@@ -358,14 +358,6 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       />
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
-      <MenuItemLink
-        id="integrations"
-        show={false}
-        text="Integrations"
-        to="/somename/integrations"
-      />
-    </Memo(MenuGroup)>
-    <Memo(MenuGroup)>
       <MenuItemExternalLink
         icon={
           <i
@@ -436,7 +428,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
 
 exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
 <div
-  aria-label="team menu"
+  aria-label="main menu"
   className="a11y__popup Menu"
   role="menu"
 >
@@ -445,6 +437,108 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
     onClick={[Function]}
     style={Object {}}
   >
+    <Memo(MenuGroup)>
+      <Memo(SystemPermissionGate)
+        permissions={
+          Array [
+            "sysconsole_write_billing",
+          ]
+        }
+      >
+        <MenuCloudTrial
+          id="menuCloudTrial"
+        />
+      </Memo(SystemPermissionGate)>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
+      <Memo(SystemPermissionGate)
+        permissions={
+          Array [
+            "sysconsole_write_about_edition_and_license",
+          ]
+        }
+      >
+        <MenuStartTrial
+          id="startTrial"
+        />
+      </Memo(SystemPermissionGate)>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
+      <MenuItemAction
+        icon={
+          <i
+            className="mentions"
+          >
+            @
+          </i>
+        }
+        id="recentMentions"
+        onClick={[Function]}
+        show={true}
+        text="Recent Mentions"
+      />
+      <MenuItemAction
+        icon={
+          <i
+            className="fa fa-bookmark"
+          />
+        }
+        id="flaggedPosts"
+        onClick={[Function]}
+        show={true}
+        text="Saved messages"
+      />
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "isContentProductSettings": false,
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        icon={
+          <i
+            className="fa fa-user"
+          />
+        }
+        id="profileSettings"
+        modalId="user_settings"
+        show={true}
+        text="Profile"
+      />
+      <MenuItemToggleModalRedux
+        dialogProps={
+          Object {
+            "isContentProductSettings": true,
+          }
+        }
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        icon={
+          <i
+            className="fa fa-cog"
+          />
+        }
+        id="accountSettings"
+        modalId="user_settings"
+        show={true}
+        text="Settings"
+      />
+    </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <Memo(TeamPermissionGate)
         permissions={
@@ -462,6 +556,11 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
               "compare": null,
               "type": [Function],
             }
+          }
+          icon={
+            <i
+              className="fa fa-user-plus"
+            />
           }
           id="addGroupsToTeam"
           modalId="add_groups_to_team"
@@ -488,7 +587,11 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
             }
           }
           extraText="Add people to the team"
-          icon={false}
+          icon={
+            <i
+              className="fa fa-user-plus"
+            />
+          }
           id="invitePeople"
           modalId="invitation"
           onClick={[Function]}
@@ -496,6 +599,8 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
           text="Invite People"
         />
       </Memo(TeamPermissionGate)>
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
       <Memo(TeamPermissionGate)
         permissions={
           Array [
@@ -512,6 +617,11 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
               "compare": null,
               "type": [Function],
             }
+          }
+          icon={
+            <i
+              className="fa fa-globe"
+            />
           }
           id="teamSettings"
           modalId="team_settings"
@@ -541,6 +651,11 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
               "type": [Function],
             }
           }
+          icon={
+            <i
+              className="fa fa-user-plus"
+            />
+          }
           id="manageGroups"
           modalId="manage_team_groups"
           show={true}
@@ -564,6 +679,11 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
               "compare": null,
               "type": [Function],
             }
+          }
+          icon={
+            <i
+              className="fa fa-users"
+            />
           }
           id="manageMembers"
           modalId="team_members"
@@ -590,33 +710,17 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
               "type": [Function],
             }
           }
+          icon={
+            <i
+              className="fa fa-users"
+            />
+          }
           id="viewMembers"
           modalId="team_members"
           show={true}
           text="View Members"
         />
       </Memo(TeamPermissionGate)>
-      <MenuItemLink
-        id="joinTeam"
-        show={true}
-        text="Join Another Team"
-        to="/select_team"
-      />
-      <MenuItemToggleModalRedux
-        className="destructive"
-        dialogType={
-          Object {
-            "$$typeof": Symbol(react.memo),
-            "WrappedComponent": [Function],
-            "compare": null,
-            "type": [Function],
-          }
-        }
-        id="leaveTeam"
-        modalId="leave_team"
-        show={false}
-        text="Leave Team"
-      />
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <Memo(SystemPermissionGate)
@@ -627,31 +731,121 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         }
       >
         <MenuItemLink
-          className=""
-          disabled={false}
+          icon={
+            <i
+              className="fa fa-plus-square"
+            />
+          }
           id="createTeam"
           show={true}
-          sibling={false}
           text="Create a Team"
           to="/create_team"
         />
       </Memo(SystemPermissionGate)>
-      <Memo(MenuGroup)>
-        <div
-          className="MainMenu_dropdown-link"
-        >
-          <LearnAboutTeamsLink />
-        </div>
-      </Memo(MenuGroup)>
+      <MenuItemLink
+        icon={
+          <i
+            className="fa fa-plus-square"
+          />
+        }
+        id="joinTeam"
+        show={true}
+        text="Join Another Team"
+        to="/select_team"
+      />
+      <MenuItemToggleModalRedux
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        icon={<LeaveTeamIcon />}
+        id="leaveTeam"
+        modalId="leave_team"
+        show={false}
+        text="Leave Team"
+      />
     </Memo(MenuGroup)>
     <Memo(MenuGroup)>
       <MenuItemAction
-        icon={false}
+        icon={
+          <i
+            className="fa fa-anchor"
+          />
+        }
         id="someplugin_pluginmenuitem"
         key="someplugin_pluginmenuitem"
         onClick={[Function]}
         show={true}
         text="some plugin text"
+      />
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
+      <MenuItemExternalLink
+        icon={
+          <i
+            className="fa fa-question"
+          />
+        }
+        id="helpLink"
+        show={false}
+        text="Help"
+      />
+      <MenuItemExternalLink
+        icon={
+          <i
+            className="fa fa-phone"
+          />
+        }
+        id="reportLink"
+        show={false}
+        text="Report a Problem"
+      />
+      <MenuItemExternalLink
+        icon={
+          <i
+            className="fa fa-mobile"
+          />
+        }
+        id="nativeAppLink"
+        show={true}
+        text="Download Apps"
+        url=""
+      />
+      <MenuItemToggleModalRedux
+        dialogType={
+          Object {
+            "$$typeof": Symbol(react.memo),
+            "WrappedComponent": [Function],
+            "compare": null,
+            "type": [Function],
+          }
+        }
+        icon={
+          <i
+            className="fa fa-info"
+          />
+        }
+        id="about"
+        modalId="about"
+        show={true}
+        text="About Mattermost"
+      />
+    </Memo(MenuGroup)>
+    <Memo(MenuGroup)>
+      <MenuItemAction
+        icon={
+          <i
+            className="fa fa-sign-out"
+          />
+        }
+        id="logout"
+        onClick={[Function]}
+        show={true}
+        text="Log Out"
       />
     </Memo(MenuGroup)>
   </ul>

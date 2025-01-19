@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import MainMenu from 'components/main_menu/main_menu';
+import MainMenu from 'components/mobile_right_drawer/mobile_right_drawer_items/mobile_right_drawer_items';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
