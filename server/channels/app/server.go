@@ -203,11 +203,29 @@ func NewServer(options ...Option) (*Server, error) {
 		s.platform = ps
 	}
 
-	// TODO: Configure the systembus to use postgres or not
 	var err error
-	s.systemBus, err = systembus.NewGoChannel(s.Log())
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to initialize the system bus")
+	if s.platform.Config().ExperimentalSettings.EnableSystemBus != nil && *s.platform.Config().ExperimentalSettings.EnableSystemBus {
+		switch *s.platform.Config().ExperimentalSettings.SystemBusBackend {
+		case "PostgreSQL":
+			s.systemBus, err = systembus.NewPostgres(&systembus.PostgreSQLConfig{
+				DB:              s.platform.Store.GetInternalMasterDB(),
+				SchemaAdapter:   s.platform.Store.GetInternalMasterDB(),
+				ConsumerGroup:   "mattermost",
+				AutoCreateTable: true,
+			}, s.Log())
+		case "InMemory":
+			s.systemBus, err = systembus.NewGoChannel(s.Log())
+		default:
+			return nil, errors.New("invalid system bus backend")
+		}
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to initialize the system bus")
+		}
+	} else {
+		s.systemBus, err = systembus.NewGoChannel(s.Log())
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to initialize the system bus")
+		}
 	}
 
 	if err = events.InitSystemBusEvents(s.systemBus); err != nil {

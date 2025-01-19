@@ -1108,6 +1108,8 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable                                  *bool   `access:"experimental_features,cloud_restrictable"`
 	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
+	EnableSystemBus                                       *bool   `access:"experimental_features"`
+	SystemBusBackend                                      *string `access:"experimental_features"`
 	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
 	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
@@ -1127,6 +1129,14 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ClientSideCertCheck == nil {
 		s.ClientSideCertCheck = NewPointer(ClientSideCertCheckSecondaryAuth)
+	}
+
+	if s.EnableSystemBus == nil {
+		s.EnableSystemBus = NewPointer(false)
+	}
+
+	if s.SystemBusBackend == nil {
+		s.SystemBusBackend = NewPointer("InMemory")
 	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
