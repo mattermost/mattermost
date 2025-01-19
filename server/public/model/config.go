@@ -321,6 +321,8 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 type ServiceSettings struct {
 	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable"`
 	WebsocketURL        *string `access:"write_restrictable,cloud_restrictable"`
+	EnableSystemBus     *bool   `access:"environment_web_server"`
+	SystemBusBackend    *string `access:"environment_web_server"`
 	LicenseFileLocation *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
 	ListenAddress       *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
 	ConnectionSecurity  *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -1108,8 +1110,6 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable                                  *bool   `access:"experimental_features,cloud_restrictable"`
 	ClientSideCertCheck                                   *string `access:"experimental_features,cloud_restrictable"`
-	EnableSystemBus                                       *bool   `access:"experimental_features"`
-	SystemBusBackend                                      *string `access:"experimental_features"`
 	LinkMetadataTimeoutMilliseconds                       *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin                                   *bool   `access:"experimental_features,write_restrictable"`
 	EnableSharedChannels                                  *bool   `access:"experimental_features"` // Deprecated: use `ConnectedWorkspacesSettings.EnableSharedChannels`
@@ -1131,13 +1131,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.ClientSideCertCheck = NewPointer(ClientSideCertCheckSecondaryAuth)
 	}
 
-	if s.EnableSystemBus == nil {
-		s.EnableSystemBus = NewPointer(false)
-	}
-
-	if s.SystemBusBackend == nil {
-		s.SystemBusBackend = NewPointer("InMemory")
-	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
 		s.LinkMetadataTimeoutMilliseconds = NewPointer(int64(ExperimentalSettingsDefaultLinkMetadataTimeoutMilliseconds))

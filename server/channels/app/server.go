@@ -204,8 +204,8 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	var err error
-	if s.platform.Config().ExperimentalSettings.EnableSystemBus != nil && *s.platform.Config().ExperimentalSettings.EnableSystemBus {
-		switch *s.platform.Config().ExperimentalSettings.SystemBusBackend {
+	if s.platform.Config().ServiceSettings.EnableSystemBus != nil && *s.platform.Config().ServiceSettings.EnableSystemBus {
+		switch *s.platform.Config().ServiceSettings.SystemBusBackend {
 		case "PostgreSQL":
 			s.systemBus, err = systembus.NewPostgres(&systembus.PostgreSQLConfig{
 				DB:              s.platform.Store.GetInternalMasterDB(),
