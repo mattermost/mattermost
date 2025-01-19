@@ -5607,8 +5607,6 @@
   "user.settings.display.oneClickReactionsOnPostsTitle": "Quick reactions on messages",
   "user.settings.display.preferTime": "Select how you prefer time displayed.",
   "user.settings.display.renderEmoticonsAsEmojiDesc": "When enabled, text emoticons in messages will automatically be rendered as emojis (For example :D as 😄)",
-  "user.settings.display.renderEmoticonsAsEmojiOff": "Off",
-  "user.settings.display.renderEmoticonsAsEmojiOn": "On",
   "user.settings.display.renderEmoticonsAsEmojiTitle": "Auto-render emoticons as emojis",
   "user.settings.display.teammateNameDisplay": "This field is handled through your System Administrator. If you want to change it, you need to do so through your System Administrator.",
   "user.settings.display.teammateNameDisplayDescription": "Set how to display other user's names in posts and the Direct Messages list.",
