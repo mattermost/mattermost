@@ -125,7 +125,7 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({userId, active, areAllSections
                                     onChange={handleOnChange}
                                 />
                                 <FormattedMessage
-                                    id='user.settings.display.renderEmoticonsAsEmojiOff'
+                                    id='user.settings.advance.off'
                                     defaultMessage='Off'
                                 />
                             </label>
