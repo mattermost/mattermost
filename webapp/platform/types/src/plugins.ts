@@ -55,6 +55,7 @@ export type PluginSettingSection = {
     header?: string;
     footer?: string;
     custom?: boolean;
+    fallback?: boolean;
 };
 
 export type PluginSetting = {

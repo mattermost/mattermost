@@ -11,7 +11,7 @@ export default class ChannelsSidebarRight {
     readonly closeButton;
     readonly postCreate;
     readonly rhsPostBody;
-    readonly scheduledDraftChannelInfo;
+    readonly postBoxIndicator;
     readonly scheduledDraftChannelInfoMessage;
     readonly scheduledDraftSeeAllLink;
     readonly scheduledDraftChannelInfoMessageText;
@@ -19,7 +19,7 @@ export default class ChannelsSidebarRight {
     constructor(container: Locator) {
         this.container = container;
 
-        this.scheduledDraftChannelInfo = container.locator('div.postBoxIndicator');
+        this.postBoxIndicator = container.locator('div.postBoxIndicator');
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
         this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all scheduled messages")');
         this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
