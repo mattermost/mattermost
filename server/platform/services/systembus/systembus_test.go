@@ -228,6 +228,12 @@ func TestUnsubscribe(t *testing.T) {
 	case <-time.After(100 * time.Millisecond):
 		// Success - no message received
 	}
+
+	// Verify subscription was removed
+	bus.mutex.RLock()
+	_, exists = bus.subscriptions["test.topic"]
+	bus.mutex.RUnlock()
+	assert.False(t, exists, "subscription should have been removed")
 }
 
 func TestTopics(t *testing.T) {

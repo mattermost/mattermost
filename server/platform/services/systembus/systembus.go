@@ -164,6 +164,7 @@ type MessageHandler func(msg *Message) error
 type topicSubscription struct {
 	msgs     <-chan *message.Message
 	handlers map[uintptr]MessageHandler
+	cancel   context.CancelFunc
 }
 
 // Subscribe registers a callback handler for the specified topic
@@ -188,14 +189,17 @@ func (b *SystemBus) Subscribe(ctx context.Context, topic string, handler Message
 			return fmt.Errorf("failed to subscribe to topic %q: %w", topic, err)
 		}
 
+		// Create cancellable context for this subscription
+		subCtx, cancel := context.WithCancel(ctx)
 		sub = &topicSubscription{
 			handlers: make(map[uintptr]MessageHandler),
 			msgs:     msgs,
+			cancel:   cancel,
 		}
 		b.subscriptions[topic] = sub
 
 		// Start message processing goroutine
-		go b.handleMessages(ctx, topic, msgs)
+		go b.handleMessages(subCtx, topic, msgs)
 	}
 
 	// Add handler to subscription
@@ -294,8 +298,9 @@ func (b *SystemBus) Unsubscribe(topic string, handler MessageHandler) error {
 
 	delete(sub.handlers, handlerPtr)
 
-	// If no handlers left, remove the subscription
+	// If no handlers left, cancel the subscription and remove it
 	if len(sub.handlers) == 0 {
+		sub.cancel()           // Signal the handler goroutine to stop
 		delete(b.subscriptions, topic)
 	}
 
