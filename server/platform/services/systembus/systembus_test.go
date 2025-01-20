@@ -183,6 +183,53 @@ func TestMultipleSubscribers(t *testing.T) {
 	assert.ElementsMatch(t, messages, received3)
 }
 
+func TestUnsubscribe(t *testing.T) {
+	bus, err := NewGoChannel(nil)
+	require.NoError(t, err)
+	defer bus.Close()
+
+	schema := json.RawMessage(`{"type": "object"}`)
+	err = bus.RegisterTopic("test.topic", "Test topic", schema)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	received := make(chan []byte, 1)
+	handler := func(msg *Message) error {
+		received <- msg.Payload
+		return nil
+	}
+
+	// Subscribe
+	err = bus.Subscribe(ctx, "test.topic", handler)
+	require.NoError(t, err)
+
+	// Test unsubscribe with non-existent topic
+	err = bus.Unsubscribe("non.existent", handler)
+	require.Error(t, err)
+
+	// Test unsubscribe with non-existent handler
+	nonExistentHandler := func(msg *Message) error { return nil }
+	err = bus.Unsubscribe("test.topic", nonExistentHandler)
+	require.Error(t, err)
+
+	// Test successful unsubscribe
+	err = bus.Unsubscribe("test.topic", handler)
+	require.NoError(t, err)
+
+	// Verify handler is removed by publishing a message
+	payload := []byte(`{"test": "data"}`)
+	err = bus.Publish("test.topic", ByteEvent{data: payload})
+	require.NoError(t, err)
+
+	// Message should not be received
+	select {
+	case <-received:
+		t.Fatal("received message after unsubscribe")
+	case <-time.After(100 * time.Millisecond):
+		// Success - no message received
+	}
+}
+
 func TestTopics(t *testing.T) {
 	bus, err := NewGoChannel(nil)
 	require.NoError(t, err)
