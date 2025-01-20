@@ -7,8 +7,8 @@ toolchain go1.22.6
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.2.1
-	github.com/ThreeDotsLabs/watermill v1.4.4 // indirect
-	github.com/ThreeDotsLabs/watermill-sql/v3 v3.1.0 // indirect
+	github.com/ThreeDotsLabs/watermill v1.4.4
+	github.com/ThreeDotsLabs/watermill-sql/v3 v3.1.0
 	github.com/avct/uasurfer v0.0.0-20240501094946-ca0c4d1e541b
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/blang/semver/v4 v4.0.0
@@ -75,7 +75,7 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	github.com/wiggin77/merror v1.0.5
-	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
+	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.7.4
 	golang.org/x/crypto v0.25.0
