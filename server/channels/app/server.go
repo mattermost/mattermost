@@ -1919,7 +1919,3 @@ func (s *Server) NotificationsLog() *mlog.Logger {
 func (s *Server) SystemBus() *systembus.SystemBus {
 	return s.systemBus
 }
-
-func (s *Server) SetSystemBus(bus *systembus.SystemBus) {
-	s.systemBus = bus
-}
