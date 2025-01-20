@@ -96,7 +96,7 @@ func TestPublishSubscribe(t *testing.T) {
 		case msg := <-received:
 			assert.Equal(t, string(payload), string(msg))
 		case <-ctx.Done():
-			t.Fatal("timeout waiting for message")
+			require.FailNow(t, "timeout waiting for message")
 		}
 	})
 }
@@ -173,7 +173,7 @@ func TestMultipleSubscribers(t *testing.T) {
 	case <-done:
 		// Success
 	case <-ctx.Done():
-		t.Fatal("timeout waiting for messages")
+		require.FailNow(t, "timeout waiting for messages")
 	}
 
 	mu.Lock()
@@ -223,7 +223,7 @@ func TestUnsubscribe(t *testing.T) {
 	// Message should not be received
 	select {
 	case <-received:
-		t.Fatal("received message after unsubscribe")
+		require.FailNow(t, "received message after unsubscribe")
 	case <-time.After(100 * time.Millisecond):
 		// Success - no message received
 	}
