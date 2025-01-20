@@ -1,6 +1,10 @@
 package events
 
-import "github.com/mattermost/mattermost/server/v8/platform/services/systembus"
+import (
+	"encoding/json"
+
+	"github.com/mattermost/mattermost/server/v8/platform/services/systembus"
+)
 
 const (
 	// Login Events
@@ -15,12 +19,22 @@ type UserLoggedInEvent struct {
 	IPAddress string `json:"ip_address"`
 }
 
+func (e *UserLoggedInEvent) Serialize() []byte {
+	data, _ := json.Marshal(e)
+	return data
+}
+
 // UserLoginFailedEvent represents the payload for a failed login attempt
 type UserLoginFailedEvent struct {
 	LoginID   string `json:"login_id"`
 	UserAgent string `json:"user_agent"`
 	IPAddress string `json:"ip_address"`
 	Reason    string `json:"reason"`
+}
+
+func (e *UserLoginFailedEvent) Serialize() []byte {
+	data, _ := json.Marshal(e)
+	return data
 }
 
 // Event schemas
