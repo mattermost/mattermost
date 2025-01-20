@@ -183,14 +183,15 @@ func (b *SystemBus) Subscribe(topic string, handler MessageHandler) error {
 
 	sub, exists := b.subscriptions[topic]
 	if !exists {
-		// Create new subscription
-		msgs, err := b.subscriber.Subscribe(context.Background(), topic)
-		if err != nil {
-			return fmt.Errorf("failed to subscribe to topic %q: %w", topic, err)
-		}
-
 		// Create cancellable context for this subscription
 		subCtx, cancel := context.WithCancel(context.Background())
+
+		// Create new subscription using the cancellable context
+		msgs, err := b.subscriber.Subscribe(subCtx, topic)
+		if err != nil {
+			cancel() // Clean up the context if subscription fails
+			return fmt.Errorf("failed to subscribe to topic %q: %w", topic, err)
+		}
 		sub = &topicSubscription{
 			handlers: make(map[uintptr]MessageHandler),
 			msgs:     msgs,
