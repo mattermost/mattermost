@@ -273,6 +273,35 @@ func (b *SystemBus) Close() error {
 	return b.subscriber.Close()
 }
 
+// Unsubscribe removes a handler from the specified topic
+func (b *SystemBus) Unsubscribe(topic string, handler MessageHandler) error {
+	if handler == nil {
+		return errors.New("handler cannot be nil")
+	}
+
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	sub, exists := b.subscriptions[topic]
+	if !exists {
+		return fmt.Errorf("no subscriptions found for topic %q", topic)
+	}
+
+	handlerPtr := reflect.ValueOf(handler).Pointer()
+	if _, exists := sub.handlers[handlerPtr]; !exists {
+		return fmt.Errorf("handler not found for topic %q", topic)
+	}
+
+	delete(sub.handlers, handlerPtr)
+
+	// If no handlers left, remove the subscription
+	if len(sub.handlers) == 0 {
+		delete(b.subscriptions, topic)
+	}
+
+	return nil
+}
+
 // Topics returns a list of all registered topic definitions
 func (b *SystemBus) Topics() []*TopicDefinition {
 	b.mutex.RLock()
