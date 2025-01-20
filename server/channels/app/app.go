@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/v8/platform/services/systembus"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
@@ -64,6 +65,9 @@ func (a *App) Srv() *Server {
 }
 func (a *App) Log() *mlog.Logger {
 	return a.ch.srv.Log()
+}
+func (a *App) SystemBus() *systembus.SystemBus {
+	return a.ch.srv.SystemBus()
 }
 func (a *App) NotificationsLog() *mlog.Logger {
 	return a.ch.srv.NotificationsLog()

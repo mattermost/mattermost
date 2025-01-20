@@ -5,7 +5,6 @@ package app
 
 import (
 	"crypto/subtle"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -55,17 +54,15 @@ func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfa
 			}
 		}
 
-		if sysBus := a.Srv().SystemBus(); sysBus != nil && err != nil {
+		if err != nil {
 			event := &events.UserLoginFailedEvent{
 				LoginID:   loginId,
 				UserAgent: c.UserAgent(),
 				IPAddress: c.IPAddress(),
 				Reason:    err.Error(),
 			}
-			if payload, jsonErr := json.Marshal(event); jsonErr == nil {
-				if sysErr := sysBus.Publish(events.TopicUserLoginFailed, payload); sysErr != nil {
-					c.Logger().Error("Failed to publish login failed event", mlog.Err(sysErr))
-				}
+			if sysErr := a.SystemBus().Publish(events.TopicUserLoginFailed, event); sysErr != nil {
+				c.Logger().Error("Failed to publish login failed event", mlog.Err(sysErr))
 			}
 		}
 	}()
@@ -251,17 +248,13 @@ func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, use
 		}, plugin.UserHasLoggedInID)
 
 		// Publish login event to system bus
-		if sysBus := a.Srv().SystemBus(); sysBus != nil {
-			event := &events.UserLoggedInEvent{
-				UserID:    user.Id,
-				UserAgent: c.UserAgent(),
-				IPAddress: c.IPAddress(),
-			}
-			if payload, err := json.Marshal(event); err == nil {
-				if err := sysBus.Publish(events.TopicUserLoggedIn, payload); err != nil {
-					c.Logger().Error("Failed to publish login event", mlog.Err(err))
-				}
-			}
+		event := &events.UserLoggedInEvent{
+			UserID:    user.Id,
+			UserAgent: c.UserAgent(),
+			IPAddress: c.IPAddress(),
+		}
+		if err := a.SystemBus().Publish(events.TopicUserLoggedIn, event); err != nil {
+			c.Logger().Error("Failed to publish login event", mlog.Err(err))
 		}
 	})
 

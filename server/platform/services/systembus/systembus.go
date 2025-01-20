@@ -18,6 +18,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Event interface {
+	Serialize() []byte
+}
+
 type Message struct {
 	UUID     string
 	Metadata map[string]string
@@ -101,12 +105,6 @@ func NewGoChannel(logger *mlog.Logger) (*SystemBus, error) {
 	publisher = pubSub
 	subscriber = pubSub
 
-	// Create a new FanOut instance
-	// fanout, err := gochannel.NewFanOut(subscriber, wmLogger)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to create fanout: %w", err)
-	// }
-
 	bus := &SystemBus{
 		publisher:     publisher,
 		subscriber:    subscriber,
@@ -137,10 +135,15 @@ func (b *SystemBus) RegisterTopic(name, description string, schema json.RawMessa
 }
 
 // Publish sends a message to the specified topic
-func (b *SystemBus) Publish(topic string, payload []byte) error {
+func (b *SystemBus) Publish(topic string, event Event) error {
+	if b == nil {
+		return nil
+	}
 	b.mutex.RLock()
 	topicDef, exists := b.topics[topic]
 	b.mutex.RUnlock()
+
+	payload := event.Serialize()
 
 	if !exists {
 		return fmt.Errorf("topic %q not registered", topic)
