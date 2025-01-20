@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -162,7 +163,7 @@ type MessageHandler func(msg *Message) error
 
 type topicSubscription struct {
 	msgs     <-chan *message.Message
-	handlers []MessageHandler
+	handlers map[uintptr]MessageHandler
 }
 
 // Subscribe registers a callback handler for the specified topic
@@ -188,16 +189,18 @@ func (b *SystemBus) Subscribe(ctx context.Context, topic string, handler Message
 		}
 
 		sub = &topicSubscription{
-			handlers: []MessageHandler{handler},
+			handlers: make(map[uintptr]MessageHandler),
 			msgs:     msgs,
 		}
 		b.subscriptions[topic] = sub
 
 		// Start message processing goroutine
 		go b.handleMessages(ctx, topic, msgs)
-	} else {
-		// Add handler to existing subscription
-		sub.handlers = append(sub.handlers, handler)
+	}
+
+	// Add handler to subscription
+	handlerPtr := reflect.ValueOf(handler).Pointer()
+	sub.handlers[handlerPtr] = handler
 	}
 
 	return nil
@@ -215,13 +218,17 @@ func (b *SystemBus) handleMessages(ctx context.Context, topic string, msgs <-cha
 
 			b.mutex.RLock()
 			sub, exists := b.subscriptions[topic]
-			if !exists || len(sub.handlers) == 0 {
+			if !exists {
 				b.mutex.RUnlock()
 				msg.Ack()
 				continue
 			}
-			handlers := make([]MessageHandler, len(sub.handlers))
-			copy(handlers, sub.handlers)
+			
+			// Copy handlers to avoid holding lock during execution
+			handlers := make(map[uintptr]MessageHandler, len(sub.handlers))
+			for k, v := range sub.handlers {
+				handlers[k] = v
+			}
 			b.mutex.RUnlock()
 
 			handlerMessage := &Message{
