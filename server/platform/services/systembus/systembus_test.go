@@ -72,7 +72,7 @@ func TestPublishSubscribe(t *testing.T) {
 		defer cancel()
 
 		received := make(chan []byte, 1)
-		handler := func(msg *message.Message) error {
+		handler := func(msg *Message) error {
 			received <- msg.Payload
 			return nil
 		}
@@ -110,7 +110,7 @@ func TestMultipleSubscribers(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(12) // 4 messages * 3 handlers
 
-	handler1 := func(msg *message.Message) error {
+	handler1 := func(msg *Message) error {
 		mu.Lock()
 		received1 = append(received1, string(msg.Payload))
 		mu.Unlock()
@@ -118,7 +118,7 @@ func TestMultipleSubscribers(t *testing.T) {
 		return nil
 	}
 
-	handler2 := func(msg *message.Message) error {
+	handler2 := func(msg *Message) error {
 		mu.Lock()
 		received2 = append(received2, string(msg.Payload))
 		mu.Unlock()
@@ -126,7 +126,7 @@ func TestMultipleSubscribers(t *testing.T) {
 		return nil
 	}
 
-	handler3 := func(msg *message.Message) error {
+	handler3 := func(msg *Message) error {
 		mu.Lock()
 		received3 = append(received3, string(msg.Payload))
 		mu.Unlock()
