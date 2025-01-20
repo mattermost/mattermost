@@ -2,36 +2,36 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
-import { useDispatch, useSelector } from 'react-redux';
+import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
-import type { ServerError } from '@mattermost/types/errors';
-import type { SchedulingInfo } from '@mattermost/types/schedule_post';
+import type {ServerError} from '@mattermost/types/errors';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
-import { FileTypes } from 'mattermost-redux/action_types';
-import { savePreferences } from 'mattermost-redux/actions/preferences';
-import { Permissions } from 'mattermost-redux/constants';
-import { getChannel, makeGetChannel, getDirectChannel } from 'mattermost-redux/selectors/entities/channels';
-import { getFilesIdsForPost } from 'mattermost-redux/selectors/entities/files';
-import { getConfig, getFeatureFlagValue } from 'mattermost-redux/selectors/entities/general';
-import { get, getBool, getInt } from 'mattermost-redux/selectors/entities/preferences';
-import { haveIChannelPermission } from 'mattermost-redux/selectors/entities/roles';
-import { getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName } from 'mattermost-redux/selectors/entities/users';
+import {FileTypes} from 'mattermost-redux/action_types';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Permissions} from 'mattermost-redux/constants';
+import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
+import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
-import type { CreatePostOptions } from 'actions/post_actions';
-import { actionOnGlobalItemsWithPrefix } from 'actions/storage';
-import type { SubmitPostReturnType } from 'actions/views/create_comment';
-import { removeDraft, updateDraft } from 'actions/views/drafts';
-import { openModal } from 'actions/views/modals';
-import { makeGetDraft } from 'selectors/drafts';
-import { getSelectedPostFocussedAt } from 'selectors/rhs';
-import { connectionErrorCount } from 'selectors/views/system';
+import type {CreatePostOptions} from 'actions/post_actions';
+import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
+import type {SubmitPostReturnType} from 'actions/views/create_comment';
+import {removeDraft, updateDraft} from 'actions/views/drafts';
+import {openModal} from 'actions/views/modals';
+import {makeGetDraft} from 'selectors/drafts';
+import {getSelectedPostFocussedAt} from 'selectors/rhs';
+import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
-import { makeAsyncComponent } from 'components/async_load';
+import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import DeletePostModal from 'components/delete_post_modal';
@@ -43,10 +43,10 @@ import {
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
-import type { TextboxElement } from 'components/textbox';
+import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
-import { OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName } from 'components/tours/constant';
-import { SendMessageTour } from 'components/tours/onboarding_tour';
+import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
+import {SendMessageTour} from 'components/tours/onboarding_tour';
 
 import Constants, {
     Locations,
@@ -56,22 +56,22 @@ import Constants, {
     UserStatuses,
     ModalIdentifiers,
 } from 'utils/constants';
-import { canUploadFiles as canUploadFilesAccordingToConfig } from 'utils/file_utils';
-import type { ApplyMarkdownOptions } from 'utils/markdown/apply_markdown';
-import { applyMarkdown as applyMarkdownUtil } from 'utils/markdown/apply_markdown';
-import { isErrorInvalidSlashCommand } from 'utils/post_utils';
-import { allAtMentions } from 'utils/text_formatting';
+import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
+import {isErrorInvalidSlashCommand} from 'utils/post_utils';
+import {allAtMentions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
-import type { GlobalState } from 'types/store';
-import type { PostDraft } from 'types/store/draft';
-import { isPostDraftEmpty } from 'types/store/draft';
+import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
+import {isPostDraftEmpty} from 'types/store/draft';
 
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
 import FormattingBar from './formatting_bar';
-import { FormattingBarSpacer, Separator } from './formatting_bar/formatting_bar';
+import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import MessageWithMentionsFooter from './message_with_mentions_footer';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
@@ -124,7 +124,7 @@ const AdvancedTextEditor = ({
     afterSubmit,
     storageKey,
 }: Props) => {
-    const { formatMessage } = useIntl();
+    const {formatMessage} = useIntl();
 
     const dispatch = useDispatch();
 
@@ -224,7 +224,7 @@ const AdvancedTextEditor = ({
         GlobalActions.emitLocalUserTypingEvent(channelId, postId);
     }, [channelId, postId]);
 
-    const handleDraftChange = useCallback((draftToChange: PostDraft, options: { instant?: boolean; show?: boolean } = { instant: false, show: false }) => {
+    const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
         if (saveDraftFrame.current) {
             clearTimeout(saveDraftFrame.current);
         }
@@ -246,7 +246,7 @@ const AdvancedTextEditor = ({
             }
 
             if (options.show) {
-                dispatch(updateDraft(key, { ...draftToChange, show: true }, draftToChange.rootId, true));
+                dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
                 return;
             }
 
@@ -310,7 +310,7 @@ const AdvancedTextEditor = ({
         isInEditMode,
     );
 
-    const emojiPickerOffset = isInEditMode ? { right: 40 } : undefined;
+    const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;
     const {
         emojiPicker,
         enableEmojiPicker,
@@ -340,7 +340,7 @@ const AdvancedTextEditor = ({
         isInEditMode,
     );
 
-    const onSubmit = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+    const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
         handleSubmit(submittingDraft, schedulingInfo, options);
         if (!errorClass) {
             const messageStatusElement = messageStatusRef.current;
@@ -407,8 +407,8 @@ const AdvancedTextEditor = ({
             handleFileChangesOnSave(draft);
         }
 
-        handleSubmit();
-    }, [dispatch, draft, handleFileChangesOnSave, handleSubmit, isInEditMode, isRHS]);
+        handleSubmitWithErrorHandling();
+    }, [dispatch, draft, handleFileChangesOnSave, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -433,8 +433,8 @@ const AdvancedTextEditor = ({
 
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit();
-    }, [onSubmit]);
+        handleSubmitWithErrorHandling();
+    }, [handleSubmitWithErrorHandling]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -554,7 +554,7 @@ const AdvancedTextEditor = ({
         if (selectedPostFocussedAt) {
             focusTextbox();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedPostFocussedAt]);
 
     // Remove show preview when we switch channels or posts
@@ -570,13 +570,13 @@ const AdvancedTextEditor = ({
                 return draft;
             }
 
-            return { ...draft, uploadsInProgress: [] };
+            return {...draft, uploadsInProgress: []};
         }));
     }, []);
 
     // Register listener to store the draft when the page unloads
     useEffect(() => {
-        const callback = () => handleDraftChange(draft, { instant: true, show: true });
+        const callback = () => handleDraftChange(draft, {instant: true, show: true});
         window.addEventListener('beforeunload', callback);
         return () => {
             window.removeEventListener('beforeunload', callback);
@@ -589,8 +589,8 @@ const AdvancedTextEditor = ({
     }, [draft]);
 
     const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => {
-        onSubmit(undefined, schedulingInfo);
-    }, [onSubmit]);
+        handleSubmitWithErrorHandling(undefined, schedulingInfo);
+    }, [handleSubmitWithErrorHandling]);
 
     // Set the draft from store when changing post or channels, and store the previous one
     useEffect(() => {
@@ -601,7 +601,7 @@ const AdvancedTextEditor = ({
 
         return () => {
             if (draftOnOpen !== draftRef.current) {
-                handleDraftChange(draftRef.current, { instant: true, show: true });
+                handleDraftChange(draftRef.current, {instant: true, show: true});
             }
         };
     }, [channelId, postId]);
@@ -631,7 +631,7 @@ const AdvancedTextEditor = ({
                 id: 'create_post.write',
                 defaultMessage: 'Write to {channelDisplayName}',
             },
-            { channelDisplayName },
+            {channelDisplayName},
         );
     } else if (readOnlyChannel) {
         createMessage = formatMessage(
@@ -648,7 +648,7 @@ const AdvancedTextEditor = ({
             },
         );
     } else {
-        createMessage = formatMessage({ id: 'create_comment.addComment', defaultMessage: 'Reply to this thread...' });
+        createMessage = formatMessage({id: 'create_comment.addComment', defaultMessage: 'Reply to this thread...'});
     }
 
     const messageValue = isDisabled ? '' : draft.message_source || draft.message;
@@ -656,15 +656,15 @@ const AdvancedTextEditor = ({
     let textboxId = 'textbox';
 
     switch (location) {
-        case Locations.CENTER:
-            textboxId = 'post_textbox';
-            break;
-        case Locations.RHS_COMMENT:
-            textboxId = 'reply_textbox';
-            break;
-        case Locations.MODAL:
-            textboxId = 'modal_textbox';
-            break;
+    case Locations.CENTER:
+        textboxId = 'post_textbox';
+        break;
+    case Locations.RHS_COMMENT:
+        textboxId = 'reply_textbox';
+        break;
+    case Locations.MODAL:
+        textboxId = 'modal_textbox';
+        break;
     }
 
     if (isInEditMode) {
@@ -752,9 +752,9 @@ const AdvancedTextEditor = ({
             onSubmit={handleSubmitWithEvent}
         >
             {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
-                <FileLimitStickyBanner />
+                <FileLimitStickyBanner/>
             )}
-            {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName} />}
+            {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
             {!isInEditMode && (
                 <PostBoxIndicator
                     channelId={channelId}
@@ -848,7 +848,7 @@ const AdvancedTextEditor = ({
                                     active={showFormattingBar}
                                     disabled={showPreview}
                                 />
-                                <Separator />
+                                <Separator/>
                                 {fileUploadJSX}
                                 {emojiPicker}
                                 {sendButton}
@@ -865,7 +865,7 @@ const AdvancedTextEditor = ({
                 </div>
             </div>
             {isInEditMode && containsAtMentionsInMessage && (
-                <MessageWithMentionsFooter />
+                <MessageWithMentionsFooter/>
             )}
             <Footer
                 postError={postError}
