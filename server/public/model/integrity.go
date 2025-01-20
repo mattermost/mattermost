@@ -8,6 +8,11 @@ import (
 	"errors"
 )
 
+type NameIntegrityCheckData struct {
+	RelName string   `json:"rel_name"`
+	Names   []string `json:"names"`
+}
+
 type OrphanedRecord struct {
 	ParentId *string `json:"parent_id"`
 	ChildId  *string `json:"child_id"`
@@ -48,6 +53,19 @@ func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {
 				if val := m["child_id"]; val != nil {
 					record.ChildId = NewPointer(val.(string))
 				}
+				rdata.Records = append(rdata.Records, record)
+			}
+		}
+
+		//This is for data of type [NameIntegrityCheckData]
+		if len(rdata.ParentName) == 0 {
+			rdata.ParentName = m["rel_name"].(string)
+		}
+		if _, ok := m["names"].([]string); ok {
+			for _, invalidChannelName := range m["names"].([]string) {
+				var record OrphanedRecord
+				record.ParentId = NewPointer("Channel")
+				record.ChildId = NewPointer(invalidChannelName)
 				rdata.Records = append(rdata.Records, record)
 			}
 		}

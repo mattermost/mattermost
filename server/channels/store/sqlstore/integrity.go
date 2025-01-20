@@ -4,9 +4,6 @@
 package sqlstore
 
 import (
-	"context"
-	"strings"
-
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -522,7 +519,10 @@ func checkUsersIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult
 	results <- checkUsersStatusIntegrity(ss)
 	results <- checkUsersTeamMembersIntegrity(ss)
 	results <- checkUsersUserAccessTokensIntegrity(ss)
-	results <- validateDMChannelPattern(ss)
+	for _, v := range validateDMChannelPattern(ss) {
+		results <- v
+		mlog.Warn("********hitting target!***********")
+	}
 }
 
 func checkThreadsTeamsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
@@ -548,72 +548,64 @@ func CheckRelationalIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckR
 	close(results)
 }
 
-func validateDMChannelPattern(ss *SqlStore) model.IntegrityCheckResult {
+func validateDMChannelPattern(ss *SqlStore) []model.IntegrityCheckResult {
 	relationalData := model.RelationalIntegrityCheckData{}
 	records := []model.OrphanedRecord{}
-	dirtyIDs := []string{}
-	result := model.IntegrityCheckResult{}
+	invalidChannelRecords := model.NameIntegrityCheckData{}
+	result := []model.IntegrityCheckResult{}
 
-	err := ss.GetMaster().SelectBuilder(&records, ss.getQueryBuilder().
+	err := ss.GetMaster().SelectBuilder(&invalidChannelRecords.Names, ss.getQueryBuilder().
 		Select().
-		Column("CT.name AS ParentId").
+		Column("CT.name AS names").
 		From("Channels AS CT").
-		Where(sq.Eq{"CT.Type": []model.ChannelType{model.ChannelTypeDirect}}))
+		Where(sq.And{
+			sq.Eq{"CT.Type": model.ChannelTypeDirect},
+			sq.Or{
+				sq.NotLike{"CT.name": `%\_\_%`},
+				sq.NotEq{"LENGTH(CT.name)": 54},
+			},
+		}))
 	if err != nil {
-		mlog.Error("There is an issue with querying the DM channel names", mlog.Err(err))
+		mlog.Error("There is performing a pattern check on DM channel names", mlog.Err(err))
+		return result
+	}
+	invalidChannelRecords.RelName = "Channel"
+
+	err = ss.GetMaster().SelectBuilder(&records, ss.getQueryBuilder().
+		Select().
+		Column("CT.name AS ParentId, CT.Id AS ChildId").
+		From(`SELECT 
+			  Id AS ChildId, 
+			  SUBSTRING(name, 1, 26) AS ParentId
+			FROM 
+			  Channels 
+			WHERE 
+			  Type = 'D'
+		  ) AS CT`).
+		Where(`NOT EXISTS (
+			SELECT 
+			  1
+			FROM 
+			  Users AS PT 
+			WHERE 
+			  PT.id = CT.ParentId
+		  )`).OrderBy("CT.ParentId"))
+	if err != nil {
+		mlog.Error("There is performing an inegrity check on DM Channel names", mlog.Err(err))
 		return result
 	}
 
-	for k := range records {
-		if records[k].ParentId != nil {
-			dirtyIDs = append(dirtyIDs, *records[k].ParentId)
-		}
-	}
+	relationalData.ParentName = "Channels"
+	relationalData.ChildName = "ChannelId"
+	relationalData.Records = append(relationalData.Records, records...)
 
-	userIDs := []string{}
-	invalidChannels := []string{}
-	for _, v := range dirtyIDs {
-		if strings.Contains(v, "__") {
-			temp := strings.Split(v, "__")
-			userIDs = append(userIDs, temp[1])
-			if temp[0] == temp[1] {
-				invalidChannels = append(invalidChannels, v)
-			}
-		} else {
-			invalidChannels = append(invalidChannels, v)
-		}
-	}
+	temp := model.IntegrityCheckResult{}
+	temp.Data = relationalData
+	result = append(result, temp)
 
-	usersFromTable, err := ss.User().GetProfileByIds(context.Background(), userIDs, nil, false)
-	if err != nil {
-		mlog.Error("There is an issue with fetching valid user IDs", mlog.Err(err))
-		return result
-	}
+	temp = model.IntegrityCheckResult{}
+	temp.Data = invalidChannelRecords
+	result = append(result, temp)
 
-	invalidIDs := make([]string, 0)
-	validIDSet := make(map[string]bool)
-	for _, v := range usersFromTable {
-		validIDSet[v.Id] = true
-	}
-
-	for _, v := range userIDs {
-		if _, ok := validIDSet[v]; !ok {
-			invalidIDs = append(invalidIDs, v)
-		}
-	}
-
-	relationalData.ParentName = "invalidChannels"
-	relationalData.ChildName = "invalidIDs"
-	idx := 0
-	for idx < len(invalidIDs) {
-		rec := model.OrphanedRecord{
-			ParentId: &invalidChannels[idx],
-			ChildId:  &invalidIDs[idx],
-		}
-		relationalData.Records = append(relationalData.Records, rec)
-		idx++
-	}
-
-	result.Data = relationalData
 	return result
 }
