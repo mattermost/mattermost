@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl'; // new line
+import type {WrappedComponentProps} from 'react-intl'; // new line
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -32,7 +33,7 @@ type ProviderSuggestions = {
     component: React.ReactNode;
 };
 
-export type Props = {
+export type Props = WrappedComponentProps & { // new line
     onExited: () => void;
 
     isMobileView: boolean;
@@ -54,7 +55,7 @@ type State = {
     pretext: string;
 };
 
-export default class QuickSwitchModal extends React.PureComponent<Props, State> {
+export class QuickSwitchModal extends React.PureComponent<Props, State> { // new line
     private channelProviders: SwitchChannelProvider[];
     private switchBox: SuggestionBoxComponent | null;
 
@@ -213,7 +214,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 bodyPadding={false}
                 enforceFocus={false}
                 onExited={this.hideOnCancel}
-                ariaLabel={Utils.localizeMessage({id: 'quick_switch_modal.input', defaultMessage: 'Quick switch modal'})}
+                ariaLabel={this.props.intl.formatMessage({id: 'quick_switch_modal.input', defaultMessage: 'Quick switch modal'})} // new line
                 modalHeaderText={modalHeaderText}
                 modalSubheaderText={modalSubheaderText}
                 compassDesign={true}
@@ -225,7 +226,7 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                         // @ts-ignore
                         ref={this.setSwitchBoxRef}
                         id='quickSwitchInput'
-                        aria-label={Utils.localizeMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})}
+                        aria-label={this.props.intl.formatMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})} // new line
                         className='form-control focused'
                         onChange={this.onChange}
                         value={this.state.text}
@@ -259,3 +260,5 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
         );
     };
 }
+
+export default injectIntl(QuickSwitchModal); // new line
