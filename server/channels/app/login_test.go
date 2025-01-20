@@ -85,7 +85,7 @@ func TestLoginEvents(t *testing.T) {
 
 		// Perform login
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotNil(t, session)
 
 		// Wait for and verify the success event
@@ -95,7 +95,7 @@ func TestLoginEvents(t *testing.T) {
 			require.Equal(t, "test-agent", event.UserAgent)
 			require.Equal(t, "192.168.1.1", event.IPAddress)
 		case <-time.After(5 * time.Second):
-			t.Fatal("Timed out waiting for login success event")
+			require.FailNow(t, "Timed out waiting for login success event")
 		}
 	})
 
@@ -123,7 +123,7 @@ func TestLoginEvents(t *testing.T) {
 			require.Equal(t, "192.168.1.1", event.IPAddress)
 			require.NotEmpty(t, event.Reason)
 		case <-time.After(5 * time.Second):
-			t.Fatal("Timed out waiting for login failure event")
+			require.FailNow(t, "Timed out waiting for login failure event")
 		}
 	})
 }

@@ -136,6 +136,9 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               "name": "environment_web_server",
             },
             Object {
+              "name": "environment_system_bus",
+            },
+            Object {
               "name": "environment_database",
             },
             Object {

@@ -722,6 +722,17 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               }
             />
             <AdminSidebarSection
+              definitionKey="environment.system_bus"
+              key="environment.system_bus"
+              name="environment/system_bus"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Bus"
+                  id="admin.sidebar.systemBus"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="environment.database"
               key="environment.database"
               name="environment/database"
@@ -1412,6 +1423,17 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.system_bus"
+              key="environment.system_bus"
+              name="environment/system_bus"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Bus"
+                  id="admin.sidebar.systemBus"
                 />
               }
             />
@@ -2165,6 +2187,17 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               }
             />
             <AdminSidebarSection
+              definitionKey="environment.system_bus"
+              key="environment.system_bus"
+              name="environment/system_bus"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Bus"
+                  id="admin.sidebar.systemBus"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="environment.database"
               key="environment.database"
               name="environment/database"
@@ -2855,6 +2888,17 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.system_bus"
+              key="environment.system_bus"
+              name="environment/system_bus"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Bus"
+                  id="admin.sidebar.systemBus"
                 />
               }
             />
@@ -3571,6 +3615,17 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.system_bus"
+              key="environment.system_bus"
+              name="environment/system_bus"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Bus"
+                  id="admin.sidebar.systemBus"
                 />
               }
             />
@@ -4464,6 +4519,17 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Web Server"
                   id="admin.sidebar.webServer"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="environment.system_bus"
+              key="environment.system_bus"
+              name="environment/system_bus"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System Bus"
+                  id="admin.sidebar.systemBus"
                 />
               }
             />
