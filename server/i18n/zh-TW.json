@@ -4300,10 +4300,6 @@
     "translation": "ID 無效。"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "訊息無效。"
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "原始 ID 無效。"
   },
@@ -7922,10 +7918,6 @@
   {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "檔案 ID 無效。"
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "訊息無效。"
   },
   {
     "id": "model.draft.is_valid.priority.app_error",

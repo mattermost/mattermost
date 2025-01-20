@@ -174,7 +174,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 show={this.props.show}
                 onHide={this.handleCancel}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-modal={true}
                 aria-labelledby='confirmModalLabel'
                 aria-describedby='confirmModalBody'

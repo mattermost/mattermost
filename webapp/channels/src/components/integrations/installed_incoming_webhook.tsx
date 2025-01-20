@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -160,6 +160,10 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
                             />
                             <span>
                                 <CopyText
+                                    label={defineMessage({
+                                        id: 'integrations.copy_url',
+                                        defaultMessage: 'Copy URL',
+                                    })}
                                     value={incomingWebhookId}
                                 />
                             </span>

@@ -15,8 +15,8 @@ import {isSendOnCtrlEnter} from 'selectors/preferences';
 
 import {SendPostOptions} from 'components/advanced_text_editor/send_button/send_post_options';
 import WithTooltip from 'components/with_tooltip';
-import type {ShortcutDefinition} from 'components/with_tooltip/shortcut';
-import {ShortcutKeys} from 'components/with_tooltip/shortcut';
+import type {ShortcutDefinition} from 'components/with_tooltip/tooltip_shortcut';
+import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import './send_button.scss';
 
@@ -65,8 +65,6 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
     return (
         <div className={classNames('splitSendButton', {disabled, scheduledPost: isScheduledPostEnabled})}>
             <WithTooltip
-                placement='top'
-                id='send_post_now_tooltip'
                 title={formatMessage({id: 'create_post_button.option.send_now', defaultMessage: 'Send Now'})}
                 shortcut={sendNowKeyboardShortcutDescriptor}
                 disabled={disabled}

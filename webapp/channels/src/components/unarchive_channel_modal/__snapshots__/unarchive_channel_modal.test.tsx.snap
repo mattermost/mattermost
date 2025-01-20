@@ -28,7 +28,7 @@ exports[`components/unarchive_channel_modal should match snapshot for unarchive_
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

@@ -11,6 +11,8 @@ export default class ChannelsPostCreate {
     readonly emojiButton;
     readonly sendMessageButton;
     readonly scheduleDraftMessageButton;
+    readonly priorityButton;
+    readonly suggestionList;
 
     constructor(container: Locator, isRHS = false) {
         this.container = container;
@@ -25,6 +27,8 @@ export default class ChannelsPostCreate {
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
+        this.priorityButton = container.getByLabel('Message priority');
+        this.suggestionList = container.getByTestId('suggestionList');
     }
 
     async toBeVisible() {
@@ -77,6 +81,15 @@ export default class ChannelsPostCreate {
         await expect(this.scheduleDraftMessageButton).toBeEnabled();
 
         await this.scheduleDraftMessageButton.click();
+    }
+
+    /**
+     * Opens the message priority menu
+     */
+    async openPriorityMenu() {
+        await expect(this.priorityButton).toBeVisible();
+        await expect(this.priorityButton).toBeEnabled();
+        await this.priorityButton.click();
     }
 
     /**
