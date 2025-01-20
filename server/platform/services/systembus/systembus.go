@@ -201,7 +201,6 @@ func (b *SystemBus) Subscribe(ctx context.Context, topic string, handler Message
 	// Add handler to subscription
 	handlerPtr := reflect.ValueOf(handler).Pointer()
 	sub.handlers[handlerPtr] = handler
-	}
 
 	return nil
 }
