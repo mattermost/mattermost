@@ -63,7 +63,7 @@ func TestPublishSubscribe(t *testing.T) {
 	})
 
 	t.Run("subscribe to non-existent topic", func(t *testing.T) {
-		err := bus.Subscribe(context.Background(), "non.existent", func(msg *message.Message) error { return nil })
+		err := bus.Subscribe(context.Background(), "non.existent", func(msg *Message) error { return nil })
 		require.Error(t, err)
 	})
 
