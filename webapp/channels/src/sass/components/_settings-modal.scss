@@ -1,13 +1,22 @@
 @use "utils/functions";
 
 .app__body {
-    .settings-modal {
+    .settings-modal {  
         h3 {
             font-size: 18px;
         }
 
         .modal-header {
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+            &__title {
+                color: var(--center-channel-color);
+                font-family: 'Metropolis', serif;
+                font-size: 22px;
+                font-weight: 600;
+                line-height: 28px;
+                word-break: break-word;
+            }
         }
 
         // Tabs
