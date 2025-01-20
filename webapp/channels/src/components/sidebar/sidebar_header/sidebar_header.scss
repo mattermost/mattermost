@@ -6,32 +6,24 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
-}
+    gap: 8px;
 
-// MAKE USE OF THIS STYLE
-.sidebarHeader {
-    display: flex;
-    margin: 0;
-    color: var(--sidebar-text);
-    cursor: pointer;
-    font-family: Metropolis, sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
-
-    .title {
-        display: inline-block;
+    button#sidebarTeamMenuButton {
+        display: flex;
         overflow: hidden;
+        height: 32px;
+        align-content: center;
+        align-items: center;
+        padding: 2px 6px;
+        font-family: Metropolis, sans-serif;
+        gap: 0;
         text-overflow: ellipsis;
         white-space: nowrap;
-    }
 
-    .icon-chevron-down {
-        margin-right: -1px;
-        margin-left: -3px;
-    }
-
-    #SidebarContainer & {
-        font-family: Metropolis, sans-serif;
+        & > span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
 }

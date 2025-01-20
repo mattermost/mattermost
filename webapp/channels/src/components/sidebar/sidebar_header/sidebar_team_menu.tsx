@@ -6,10 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
-import {
-    ChevronDownIcon,
-    LightbulbOutlineIcon,
-} from '@mattermost/compass-icons/components';
+import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -329,11 +326,11 @@ export default function SidebarTeamMenu(props: Props) {
         <Menu.Container
             menuButton={{
                 id: 'sidebarTeamMenuButton',
-                class: 'btn btn-sm',
+                class: 'btn btn-lg btn-quaternary btn-inverted',
                 children: (
                     <>
                         <span>{props.currentTeam.display_name}</span>
-                        <ChevronDownIcon size={18}/>
+                        <i className='icon icon-chevron-down'/>
                     </>
                 ),
             }}
