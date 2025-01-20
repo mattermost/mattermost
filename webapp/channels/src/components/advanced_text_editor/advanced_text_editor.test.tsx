@@ -14,12 +14,13 @@ import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
-import {StoragePrefixes} from 'utils/constants';
+import {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
 
 import AdvancedTextEditor from './advanced_text_editor';
+import type {Props} from './advanced_text_editor';
 
 jest.mock('actions/views/drafts', () => ({
     ...jest.requireActual('actions/views/drafts'),
@@ -411,5 +412,37 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         );
 
         expect(screen.getByText('Editing this message with an \'@mention\' will not notify the recipient.')).toBeVisible();
+    });
+
+    it('should have file upload overlay', () => {
+        const props: Props = {
+            ...baseProps,
+        };
+
+        const {container, rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...props}
+            />,
+        );
+        expect(container.querySelector('#createPostFileDropOverlay')).toBeVisible();
+
+        props.postId = 'post_id_1';
+        rerender(<AdvancedTextEditor {...props}/>);
+        expect(container.querySelector('#createCommentFileDropOverlay')).toBeVisible();
+
+        // in center channel editing a post
+        props.isInEditMode = true;
+        rerender(<AdvancedTextEditor {...props}/>);
+        expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+
+        // in RHS editing a post
+        props.location = Locations.RHS_COMMENT;
+        rerender(<AdvancedTextEditor {...props}/>);
+        expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+
+        // in threads
+        props.isThreadView = true;
+        rerender(<AdvancedTextEditor {...props}/>);
+        expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
     });
 });

@@ -130,6 +130,9 @@ class RhsCardHeader extends React.PureComponent<Props> {
             );
         }
 
+        const collapseIconLabel = this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'});
+        const expandIconLabel = this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
+
         return (
             <div className='sidebar--right__header'>
                 <span className='sidebar--right__title'>
@@ -146,16 +149,14 @@ class RhsCardHeader extends React.PureComponent<Props> {
                         <button
                             type='button'
                             className='sidebar--right__expand btn btn-icon btn-sm'
-                            aria-label='Expand'
+                            aria-label={this.props.isExpanded ? collapseIconLabel : expandIconLabel}
                             onClick={this.props.actions.toggleRhsExpanded}
                         >
                             <i
                                 className='icon icon-arrow-expand'
-                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
                             />
                             <i
                                 className='icon icon-arrow-collapse'
-                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
                     </WithTooltip>
