@@ -18,6 +18,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Message struct {
+	UUID     string
+	Metadata map[string]string
+	Payload  []byte
+}
+
 // SystemBus represents an in-memory message bus for system-wide events
 type SystemBus struct {
 	publisher     message.Publisher
@@ -149,7 +155,7 @@ func (b *SystemBus) Publish(topic string, payload []byte) error {
 }
 
 // MessageHandler is a callback function that processes messages for a topic
-type MessageHandler func(msg *message.Message) error
+type MessageHandler func(msg *Message) error
 
 type topicSubscription struct {
 	msgs     <-chan *message.Message
@@ -215,9 +221,15 @@ func (b *SystemBus) handleMessages(ctx context.Context, topic string, msgs <-cha
 			copy(handlers, sub.handlers)
 			b.mutex.RUnlock()
 
+			handlerMessage := &Message{
+				UUID:     msg.UUID,
+				Metadata: msg.Metadata,
+				Payload:  msg.Payload,
+			}
+
 			// Execute all handlers
 			for _, handler := range handlers {
-				if err := handler(msg); err != nil {
+				if err := handler(handlerMessage); err != nil {
 					b.logger.Error("error executing message handler",
 						err,
 						watermill.LogFields{

@@ -124,6 +124,12 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
             defaultMessage: 'Web Server',
         },
     }),
+    environment_system_bus: defineMessages({
+        name: {
+            id: 'admin.permissions.sysconsole_section_environment_system_bus.name',
+            defaultMessage: 'System Bus',
+        },
+    }),
     environment_database: defineMessages({
         name: {
             id: 'admin.permissions.sysconsole_section_environment_database.name',

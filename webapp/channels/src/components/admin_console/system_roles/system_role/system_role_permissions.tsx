@@ -70,6 +70,7 @@ const sectionsList: SystemSection[] = [
         hasDescription: true,
         subsections: [
             {name: 'environment_web_server'},
+            {name: 'environment_system_bus'},
             {name: 'environment_database'},
             {name: 'environment_elasticsearch'},
             {name: 'environment_file_storage'},

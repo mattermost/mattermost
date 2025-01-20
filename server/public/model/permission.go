@@ -216,6 +216,9 @@ var PermissionSysconsoleWriteEnvironment *Permission
 var PermissionSysconsoleReadEnvironmentWebServer *Permission
 var PermissionSysconsoleWriteEnvironmentWebServer *Permission
 
+var PermissionSysconsoleReadEnvironmentSystemBus *Permission
+var PermissionSysconsoleWriteEnvironmentSystemBus *Permission
+
 var PermissionSysconsoleReadEnvironmentDatabase *Permission
 var PermissionSysconsoleWriteEnvironmentDatabase *Permission
 
@@ -1478,6 +1481,18 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+	PermissionSysconsoleReadEnvironmentSystemBus = &Permission{
+		"sysconsole_read_environment_system_bus",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteEnvironmentSystemBus = &Permission{
+		"sysconsole_write_environment_system_bus",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
 	PermissionSysconsoleReadEnvironmentDatabase = &Permission{
 		"sysconsole_read_environment_database",
 		"",
@@ -2250,6 +2265,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadUserManagementPermissions,
 		PermissionSysconsoleReadUserManagementSystemRoles,
 		PermissionSysconsoleReadEnvironmentWebServer,
+		PermissionSysconsoleReadEnvironmentSystemBus,
 		PermissionSysconsoleReadEnvironmentDatabase,
 		PermissionSysconsoleReadEnvironmentElasticsearch,
 		PermissionSysconsoleReadEnvironmentFileStorage,
@@ -2309,6 +2325,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteUserManagementPermissions,
 		PermissionSysconsoleWriteUserManagementSystemRoles,
 		PermissionSysconsoleWriteEnvironmentWebServer,
+		PermissionSysconsoleWriteEnvironmentSystemBus,
 		PermissionSysconsoleWriteEnvironmentDatabase,
 		PermissionSysconsoleWriteEnvironmentElasticsearch,
 		PermissionSysconsoleWriteEnvironmentFileStorage,

@@ -1124,6 +1124,19 @@ func (a *App) getAddUploadFilePermissionMigration() (permissionsMap, error) {
 	}, nil
 }
 
+func (a *App) getAddSystemBusPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  permissionExists(model.PermissionSysconsoleWriteEnvironmentWebServer.Id),
+			Add: []string{model.PermissionSysconsoleWriteEnvironmentSystemBus.Id},
+		},
+		permissionTransformation{
+			On:  permissionExists(model.PermissionSysconsoleReadEnvironmentWebServer.Id),
+			Add: []string{model.PermissionSysconsoleReadEnvironmentSystemBus.Id},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1173,6 +1186,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddChannelBookmarksPermissions, Migration: a.getAddChannelBookmarksPermissionsMigration},
 		{Key: model.MigrationKeyAddManageJobAncillaryPermissions, Migration: a.getAddManageJobAncillaryPermissionsMigration},
 		{Key: model.MigrationKeyAddUploadFilePermission, Migration: a.getAddUploadFilePermissionMigration},
+		{Key: model.MigrationKeyAddSystemBusPermission, Migration: a.getAddSystemBusPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
