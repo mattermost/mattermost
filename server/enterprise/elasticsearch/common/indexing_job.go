@@ -408,18 +408,18 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 
 			data, err := json.Marshal(searchPost)
 			if err != nil {
-				worker.logger.Warn("Failed to marshal JSON, skipping this post.", mlog.String("post_id", post.Id))
+				worker.logger.Warn("Failed to marshal JSON, skipping this post.", mlog.String("post_id", post.Id), mlog.Err(err))
 				continue
 			}
 
 			err = worker.addItemToBulkProcessor(indexName, indexOp, searchPost.Id, bytes.NewReader(data))
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 			}
 		} else {
 			err := worker.addItemToBulkProcessor(indexName, deleteOp, post.Id, nil)
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 			}
 		}
 	}
@@ -484,18 +484,18 @@ func (worker *IndexerWorker) BulkIndexFiles(files []*model.FileForIndexing, prog
 
 			data, err := json.Marshal(searchFile)
 			if err != nil {
-				worker.logger.Warn("Failed to marshal JSON")
+				worker.logger.Warn("Failed to marshal JSON", mlog.Err(err))
 				continue
 			}
 
 			err = worker.addItemToBulkProcessor(indexName, indexOp, searchFile.Id, bytes.NewReader(data))
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 			}
 		} else {
 			err := worker.addItemToBulkProcessor(indexName, deleteOp, file.Id, nil)
 			if err != nil {
-				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+				worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 			}
 		}
 	}
@@ -578,13 +578,13 @@ func BulkIndexChannels(config *model.Config,
 
 		data, err := json.Marshal(searchChannel)
 		if err != nil {
-			logger.Warn("Failed to marshal JSON")
+			logger.Warn("Failed to marshal JSON", mlog.Err(err))
 			continue
 		}
 
 		err = addItemToBulkProcessorFn(indexName, indexOp, searchChannel.Id, bytes.NewReader(data))
 		if err != nil {
-			logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+			logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 		}
 	}
 
@@ -646,13 +646,13 @@ func (worker *IndexerWorker) BulkIndexUsers(users []*model.UserForIndexing, prog
 
 		data, err := json.Marshal(searchUser)
 		if err != nil {
-			worker.logger.Warn("Failed to marshal JSON")
+			worker.logger.Warn("Failed to marshal JSON", mlog.Err(err))
 			continue
 		}
 
 		err = worker.addItemToBulkProcessor(indexName, indexOp, searchUser.Id, bytes.NewReader(data))
 		if err != nil {
-			worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName))
+			worker.logger.Warn("Failed to add item to bulk processor", mlog.String("indexName", indexName), mlog.Err(err))
 		}
 	}
 
