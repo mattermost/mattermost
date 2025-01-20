@@ -32,6 +32,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
+	"github.com/mattermost/mattermost/server/v8/platform/services/systembus"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
@@ -1167,6 +1168,7 @@ type AppIface interface {
 	SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)
 	SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPassword string) (string, *model.AppError)
 	SwitchOAuthToEmail(c request.CTX, email, password, requesterId string) (string, *model.AppError)
+	SystemBus() *systembus.SystemBus
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
 	TelemetryId() string
 	TestElasticsearch(rctx request.CTX, cfg *model.Config) *model.AppError
