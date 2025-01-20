@@ -3,6 +3,15 @@
 
 package systembus
 
+// ByteEvent implements Event interface for testing
+type ByteEvent struct {
+	data []byte
+}
+
+func (e ByteEvent) Serialize() []byte {
+	return e.data
+}
+
 import (
 	"context"
 	"encoding/json"
@@ -57,7 +66,7 @@ func TestPublishSubscribe(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("publish to non-existent topic", func(t *testing.T) {
-		err := bus.Publish("non.existent", []byte(`{}`))
+		err := bus.Publish("non.existent", ByteEvent{data: []byte(`{}`)})
 		require.Error(t, err)
 	})
 
@@ -80,7 +89,7 @@ func TestPublishSubscribe(t *testing.T) {
 		require.NoError(t, err)
 
 		payload := []byte(`{"test": "data"}`)
-		err = bus.Publish("test.topic", payload)
+		err = bus.Publish("test.topic", ByteEvent{data: payload})
 		require.NoError(t, err)
 
 		select {
@@ -149,7 +158,7 @@ func TestMultipleSubscribers(t *testing.T) {
 	}
 
 	for _, msg := range messages {
-		err = bus.Publish("test.topic", []byte(msg))
+		err = bus.Publish("test.topic", ByteEvent{data: []byte(msg)})
 		require.NoError(t, err)
 	}
 
