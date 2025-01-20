@@ -62,6 +62,7 @@ exports[`components/widgets/menu/menu_items/submenu_item empty subMenu should ma
       onKeyDown={[Function]}
       onMouseEnter={[Function]}
       onMouseLeave={[Function]}
+      role="button"
       tabIndex={0}
     >
       <div
@@ -79,6 +80,7 @@ exports[`components/widgets/menu/menu_items/submenu_item empty subMenu should ma
       </div>
       <ul
         className="a11y__popup Menu dropdown-menu SubMenu"
+        id="1_submenu"
         style={
           Object {
             "right": "100%",
@@ -156,6 +158,9 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
   text="test"
 >
   <li
+    aria-controls="1_submenu"
+    aria-expanded={false}
+    aria-haspopup="menu"
     className="SubMenuItem MenuItem"
     id="1_menuitem"
     onClick={[Function]}
@@ -167,6 +172,7 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
       onKeyDown={[Function]}
       onMouseEnter={[Function]}
       onMouseLeave={[Function]}
+      role="button"
       tabIndex={0}
     >
       <div
@@ -184,6 +190,7 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
       </div>
       <ul
         className="a11y__popup Menu dropdown-menu SubMenu"
+        id="1_submenu"
         style={
           Object {
             "right": "100%",
@@ -257,6 +264,7 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
                 onKeyDown={[Function]}
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
+                role="button"
                 tabIndex={1}
               >
                 <div
@@ -274,6 +282,7 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
                 </div>
                 <ul
                   className="a11y__popup Menu dropdown-menu SubMenu"
+                  id="A_submenu"
                   style={
                     Object {
                       "right": "100%",
@@ -351,6 +360,7 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
                 onKeyDown={[Function]}
                 onMouseEnter={[Function]}
                 onMouseLeave={[Function]}
+                role="button"
                 tabIndex={1}
               >
                 <div
@@ -368,6 +378,7 @@ exports[`components/widgets/menu/menu_items/submenu_item present subMenu should 
                 </div>
                 <ul
                   className="a11y__popup Menu dropdown-menu SubMenu"
+                  id="B_submenu"
                   style={
                     Object {
                       "right": "100%",

@@ -240,7 +240,7 @@ export function reconnect() {
         }
 
         dispatch(fetchAllMyTeamsChannels());
-        dispatch(fetchTeamScheduledPosts(currentTeamId, true));
+        dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
         loadProfilesForSidebar();
