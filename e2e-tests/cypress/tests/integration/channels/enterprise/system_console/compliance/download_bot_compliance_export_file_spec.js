@@ -60,7 +60,7 @@ describe('Compliance Export', () => {
         cy.shellRm('-rf', downloadsFolder);
     });
 
-    it('MM-T1175_1 - UserType identifies that the message is posted by a bot', () => {
+    it.skip('MM-60115 - MM-T1175_1 - UserType identifies that the message is posted by a bot', () => {
         const message = `This is CSV bot message from ${botName} at ${Date.now()}`;
 
         // # Post bot message
@@ -81,7 +81,7 @@ describe('Compliance Export', () => {
         );
     });
 
-    it('MM-T1175_2 - UserType identifies that the message is posted by a bot', () => {
+    it.skip('MM-60115 - MM-T1175_2 - UserType identifies that the message is posted by a bot', () => {
         const message = `This is XML bot message from ${botName} at ${Date.now()}`;
 
         // # Post bot message

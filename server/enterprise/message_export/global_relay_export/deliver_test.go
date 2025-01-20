@@ -30,8 +30,8 @@ func TestDeliver(t *testing.T) {
 		defer emptyFile.Close()
 		defer os.Remove(emptyFile.Name())
 
-		appErr := Deliver(emptyFile, config)
-		assert.NotNil(t, appErr)
+		err = Deliver(emptyFile, config)
+		assert.Error(t, err)
 	})
 
 	t.Run("Testing empty zip file", func(t *testing.T) {
@@ -46,8 +46,8 @@ func TestDeliver(t *testing.T) {
 		err = mail.DeleteMailBox(*config.MessageExportSettings.GlobalRelaySettings.EmailAddress)
 		require.NoError(t, err)
 
-		appErr := Deliver(emptyZipFile, config)
-		assert.Nil(t, appErr)
+		err = Deliver(emptyZipFile, config)
+		assert.NoError(t, err)
 
 		_, err = mail.GetMailBox(*config.MessageExportSettings.GlobalRelaySettings.EmailAddress)
 		require.Error(t, err)
@@ -87,8 +87,8 @@ func TestDeliver(t *testing.T) {
 		err = mail.DeleteMailBox(*config.MessageExportSettings.GlobalRelaySettings.EmailAddress)
 		require.NoError(t, err)
 
-		appErr := Deliver(emptyZipFile, config)
-		assert.Nil(t, appErr)
+		err = Deliver(emptyZipFile, config)
+		assert.NoError(t, err)
 
 		mailbox, err := mail.GetMailBox(*config.MessageExportSettings.GlobalRelaySettings.EmailAddress)
 		require.NoError(t, err)
@@ -130,8 +130,8 @@ func TestDeliver(t *testing.T) {
 		err = mail.DeleteMailBox(*config.MessageExportSettings.GlobalRelaySettings.EmailAddress)
 		require.NoError(t, err)
 
-		appErr := Deliver(emptyZipFile, config)
-		assert.Nil(t, appErr)
+		err = Deliver(emptyZipFile, config)
+		assert.NoError(t, err)
 
 		mailbox, err := mail.GetMailBox(*config.MessageExportSettings.GlobalRelaySettings.EmailAddress)
 		require.NoError(t, err)

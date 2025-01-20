@@ -20,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -112,14 +113,10 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileDatas := c.App.GenerateSupportPacket(c.AppContext, supportPacketOptions)
 
-	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
-	// Note that this filename is also being checked at the webapp, please update the
-	// regex within the commercial_support_modal.tsx file if the naming convention ever changes.
 	now := time.Now()
-	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
+	outputZipFilename := supportPacketFileName(now, c.App.License().Customer.Company)
 
 	fileStorageBackend := c.App.FileBackend()
-
 	// We do this incase we get concurrent requests, we will always have a unique directory.
 	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
 	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
@@ -145,6 +142,13 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
 	web.WriteFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
+}
+
+// supportPacketFileName returns the ZIP file name in the format mm_support_packet_$CUSTOMER_NAME_YYYY-MM-DDTHH-MM.zip.
+// Note that this filename is also being checked at the webapp, please update the
+// regex within the commercial_support_modal.tsx file if the naming convention ever changes.
+func supportPacketFileName(now time.Time, customerName string) string {
+	return fmt.Sprintf("mm_support_packet_%s_%s.zip", utils.SanitizeFileName(customerName), now.Format("2006-01-02T15-04"))
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
