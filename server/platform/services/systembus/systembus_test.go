@@ -192,7 +192,6 @@ func TestUnsubscribe(t *testing.T) {
 	err = bus.RegisterTopic("test.topic", "Test topic", schema)
 	require.NoError(t, err)
 
-	ctx := context.Background()
 	received := make(chan []byte, 1)
 	handler := func(msg *Message) error {
 		received <- msg.Payload
@@ -231,7 +230,7 @@ func TestUnsubscribe(t *testing.T) {
 
 	// Verify subscription was removed
 	bus.mutex.RLock()
-	_, exists = bus.subscriptions["test.topic"]
+	_, exists := bus.subscriptions["test.topic"]
 	bus.mutex.RUnlock()
 	assert.False(t, exists, "subscription should have been removed")
 }
