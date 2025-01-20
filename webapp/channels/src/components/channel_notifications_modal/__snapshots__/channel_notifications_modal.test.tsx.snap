@@ -186,6 +186,7 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
+                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
                         <label
@@ -195,7 +196,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="All new messages (default)"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -208,7 +209,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="Mentions, direct messages, and keywords only "
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -220,7 +221,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="Nothing "
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -605,6 +606,7 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
+                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
                         <label
@@ -614,7 +616,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="All new messages (default)"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -627,7 +629,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="Mentions, direct messages, and keywords only "
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -639,7 +641,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="Nothing "
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -802,6 +804,7 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
+                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
                         <label
@@ -810,7 +813,7 @@ Object {
                           <input
                             data-testid="MobileNotification-all"
                             id="MobileNotification-all"
-                            name="All new messages "
+                            name="push"
                             type="radio"
                             value="all"
                           />
@@ -823,7 +826,7 @@ Object {
                             checked=""
                             data-testid="MobileNotification-mention"
                             id="MobileNotification-mention"
-                            name="Mentions, direct messages, and keywords only (default)"
+                            name="push"
                             type="radio"
                             value="mention"
                           />
@@ -836,7 +839,7 @@ Object {
                           <input
                             data-testid="MobileNotification-none"
                             id="MobileNotification-none"
-                            name="Nothing "
+                            name="push"
                             type="radio"
                             value="none"
                           />
@@ -1466,6 +1469,7 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
+                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
                         <label
@@ -1475,7 +1479,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="All new messages (default)"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -1488,7 +1492,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="Mentions, direct messages, and keywords only "
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -1500,7 +1504,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="Nothing "
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -1966,6 +1970,7 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
+                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
                         <label
@@ -1975,7 +1980,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="All new messages (default)"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -1988,7 +1993,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="Mentions, direct messages, and keywords only "
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -2000,7 +2005,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="Nothing "
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -2466,6 +2471,7 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
+                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
                         <label
@@ -2475,7 +2481,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="All new messages (default)"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -2488,7 +2494,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="Mentions, direct messages, and keywords only "
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -2500,7 +2506,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="Nothing "
+                            name="desktop"
                             type="radio"
                             value="none"
                           />

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessage, defineMessages, FormattedMessage, type IntlShape} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
 
 import type {FieldsetCheckbox} from 'components/widgets/modals/components/checkbox_setting_item';
 import type {FieldsetRadio} from 'components/widgets/modals/components/radio_setting_item';
@@ -46,7 +46,7 @@ const defaultMessage = defineMessage({
     defaultMessage: '(default)',
 });
 
-export const desktopNotificationInputFieldData = (defaultOption: string, formatMessage: IntlShape['formatMessage']): FieldsetRadio => {
+export const desktopNotificationInputFieldData = (defaultOption: string): FieldsetRadio => {
     const messages = defineMessages({
         allMessages: {
             id: 'channelNotifications.desktopNotification.allMessages',
@@ -78,11 +78,7 @@ export const desktopNotificationInputFieldData = (defaultOption: string, formatM
                         }}
                     />
                 ),
-                name: formatMessage(messages.allMessages, {
-                    optionalDefault: defaultOption === NotificationLevels.ALL ? (
-                        formatMessage(defaultMessage)
-                    ) : undefined,
-                }),
+                name: 'desktop',
                 key: `desktopNotification-${NotificationLevels.ALL}`,
                 value: NotificationLevels.ALL,
             },
@@ -99,11 +95,7 @@ export const desktopNotificationInputFieldData = (defaultOption: string, formatM
                         }}
                     />
                 ),
-                name: formatMessage(messages.mention, {
-                    optionalDefault: defaultOption === NotificationLevels.MENTION ? (
-                        formatMessage(defaultMessage)
-                    ) : undefined,
-                }),
+                name: 'desktop',
                 key: `desktopNotification-${NotificationLevels.MENTION}`,
                 value: NotificationLevels.MENTION,
             },
@@ -120,11 +112,7 @@ export const desktopNotificationInputFieldData = (defaultOption: string, formatM
                         }}
                     />
                 ),
-                name: formatMessage(messages.nothing, {
-                    optionalDefault: defaultOption === NotificationLevels.NONE ? (
-                        formatMessage(defaultMessage)
-                    ) : undefined,
-                }),
+                name: 'desktop',
                 key: `desktopNotification-${NotificationLevels.NONE}`,
                 value: NotificationLevels.NONE,
             },
@@ -143,7 +131,7 @@ export const desktopNotificationSoundsSelectFieldData: FieldsetReactSelect = {
     options: optionsOfMessageNotificationSoundsSelect,
 };
 
-export const mobileNotificationInputFieldData = (defaultOption: string, formatMessage: IntlShape['formatMessage']): FieldsetRadio => {
+export const mobileNotificationInputFieldData = (defaultOption: string): FieldsetRadio => {
     const messages = defineMessages({
         allMessages: {
             id: 'channelNotifications.mobileNotification.newMessages',
@@ -175,12 +163,7 @@ export const mobileNotificationInputFieldData = (defaultOption: string, formatMe
                         }}
                     />
                 ),
-
-                name: formatMessage(messages.allMessages, {
-                    optionalDefault: defaultOption === NotificationLevels.ALL ? (
-                        formatMessage(defaultMessage)
-                    ) : undefined,
-                }),
+                name: 'push',
                 key: `MobileNotification-${NotificationLevels.ALL}`,
                 value: NotificationLevels.ALL,
             },
@@ -198,11 +181,7 @@ export const mobileNotificationInputFieldData = (defaultOption: string, formatMe
                         }}
                     />
                 ),
-                name: formatMessage(messages.mention, {
-                    optionalDefault: defaultOption === NotificationLevels.MENTION ? (
-                        formatMessage(defaultMessage)
-                    ) : undefined,
-                }),
+                name: 'push',
                 key: `MobileNotification-${NotificationLevels.MENTION}`,
                 value: NotificationLevels.MENTION,
             },
@@ -219,11 +198,7 @@ export const mobileNotificationInputFieldData = (defaultOption: string, formatMe
                         }}
                     />
                 ),
-                name: formatMessage(messages.nothing, {
-                    optionalDefault: defaultOption === NotificationLevels.NONE ? (
-                        formatMessage(defaultMessage)
-                    ) : undefined,
-                }),
+                name: 'push',
                 key: `MobileNotification-${NotificationLevels.NONE}`,
                 value: NotificationLevels.NONE,
             },

@@ -54,7 +54,10 @@ function RadioSettingItem({
     });
 
     const content = (
-        <fieldset className='mm-modal-generic-section-item__fieldset-radio'>
+        <fieldset
+            className='mm-modal-generic-section-item__fieldset-radio'
+            aria-label={title}
+        >
             {[...fields]}
         </fieldset>
     );

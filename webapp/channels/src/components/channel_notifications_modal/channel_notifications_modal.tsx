@@ -166,7 +166,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     defaultMessage: 'Notify me about…',
                 })}
                 inputFieldValue={settings.desktop || ''}
-                inputFieldData={utils.desktopNotificationInputFieldData(props.currentUser.notify_props.desktop, formatMessage)}
+                inputFieldData={utils.desktopNotificationInputFieldData(props.currentUser.notify_props.desktop)}
                 handleChange={(e) => handleChange({desktop: e.target.value})}
             />
             {props.collapsedReplyThreads && settings.desktop === 'mention' &&
@@ -236,7 +236,7 @@ export default function ChannelNotificationsModal(props: Props) {
                             defaultMessage: 'Notify me about…',
                         })}
                         inputFieldValue={settings.push || ''}
-                        inputFieldData={utils.mobileNotificationInputFieldData(props.currentUser.notify_props.push, formatMessage)}
+                        inputFieldData={utils.mobileNotificationInputFieldData(props.currentUser.notify_props.push)}
                         handleChange={(e) => handleChange({push: e.target.value})}
                     />
                     {props.collapsedReplyThreads && settings.push === 'mention' &&
