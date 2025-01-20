@@ -26,11 +26,13 @@ func TestExportDelete(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	retentionDays := 1
+
 	updateConfig := func(cfg *model.Config) {
 		*cfg.FileSettings.DriverName = model.ImageDriverLocal
 		*cfg.FileSettings.Directory = fileSettingsDir
 		*cfg.ExportSettings.Directory = relExportDir
-		*cfg.ExportSettings.RetentionDays = 1
+		*cfg.ExportSettings.RetentionDays = retentionDays
 	}
 
 	th := SetupWithUpdateCfg(t, updateConfig)
@@ -65,7 +67,7 @@ func TestExportDelete(t *testing.T) {
 	}
 
 	// Set old timestamps for files that should be deleted
-	oldTime := time.Now().Add(-48 * time.Hour)
+	oldTime := time.Now().Add(-(time.Duration(retentionDays) * 24 * time.Hour) - 1*time.Hour)
 	err = os.Chtimes(filepath.Join(exportDir, "old_export.zip"), oldTime, oldTime)
 	require.NoError(t, err)
 	err = os.Chtimes(filepath.Join(exportDir, "test_export.zip"), oldTime, oldTime)
