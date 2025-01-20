@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/events"
+	"github.com/mattermost/mattermost/server/v8/platform/services/systembus"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -47,13 +49,6 @@ func TestLoginEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// Subscribe to login events
-	ctx := th.Context.Context()
-	successMessages, err := th.App.Srv().SystemBus().Subscribe(ctx, TopicUserLoggedIn)
-	require.NoError(t, err)
-	failureMessages, err := th.App.Srv().SystemBus().Subscribe(ctx, TopicUserLoginFailed)
-	require.NoError(t, err)
-
 	// Prepare test request with headers
 	r := &http.Request{
 		Header: http.Header{
@@ -76,18 +71,26 @@ func TestLoginEvents(t *testing.T) {
 	)
 	w := httptest.NewRecorder()
 
-	// Perform login
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
-	require.Nil(t, err)
-	require.NotNil(t, session)
-
 	t.Run("successful login", func(t *testing.T) {
+		eventChannel := make(chan events.UserLoggedInEvent, 1)
+		err := th.App.SystemBus().Subscribe(events.TopicUserLoggedIn, func(msg *systembus.Message) error {
+			var event events.UserLoggedInEvent
+			if err := json.Unmarshal(msg.Payload, &event); err != nil {
+				return err
+			}
+			eventChannel <- event
+			return nil
+		})
+		require.NoError(t, err)
+
+		// Perform login
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, err)
+		require.NotNil(t, session)
+
 		// Wait for and verify the success event
 		select {
-		case msg := <-successMessages:
-			var event UserLoggedInEvent
-			err := json.Unmarshal(msg.Payload, &event)
-			require.NoError(t, err)
+		case event := <-eventChannel:
 			require.Equal(t, th.BasicUser.Id, event.UserID)
 			require.Equal(t, "test-agent", event.UserAgent)
 			require.Equal(t, "192.168.1.1", event.IPAddress)
@@ -97,16 +100,24 @@ func TestLoginEvents(t *testing.T) {
 	})
 
 	t.Run("failed login", func(t *testing.T) {
+		eventChannel := make(chan events.UserLoginFailedEvent, 1)
+		err := th.App.Srv().SystemBus().Subscribe(events.TopicUserLoginFailed, func(msg *systembus.Message) error {
+			var event events.UserLoginFailedEvent
+			if err := json.Unmarshal(msg.Payload, &event); err != nil {
+				return err
+			}
+			eventChannel <- event
+			return nil
+		})
+		require.NoError(t, err)
+
 		// Attempt login with empty password in a goroutine
-		_, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", "", false)
+		_, err = th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", "", false)
 		require.Error(t, err)
 
 		// Now wait for and verify the failure event
 		select {
-		case msg := <-failureMessages:
-			var event UserLoginFailedEvent
-			err := json.Unmarshal(msg.Payload, &event)
-			require.NoError(t, err)
+		case event := <-eventChannel:
 			require.Equal(t, th.BasicUser.Username, event.LoginID)
 			require.Equal(t, "test-agent", event.UserAgent)
 			require.Equal(t, "192.168.1.1", event.IPAddress)

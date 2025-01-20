@@ -71,6 +71,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
+	*memoryConfig.ServiceSettings.EnableSystemBus = true
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}

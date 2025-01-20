@@ -169,6 +169,9 @@ type topicSubscription struct {
 
 // Subscribe registers a callback handler for the specified topic
 func (b *SystemBus) Subscribe(topic string, handler MessageHandler) error {
+	if b == nil {
+		return nil
+	}
 	if handler == nil {
 		return errors.New("handler cannot be nil")
 	}
@@ -227,7 +230,7 @@ func (b *SystemBus) handleMessages(ctx context.Context, topic string, msgs <-cha
 				msg.Ack()
 				continue
 			}
-			
+
 			// Copy handlers to avoid holding lock during execution
 			handlers := make(map[uintptr]MessageHandler, len(sub.handlers))
 			for k, v := range sub.handlers {
@@ -259,6 +262,10 @@ func (b *SystemBus) handleMessages(ctx context.Context, topic string, msgs <-cha
 
 // GetTopicDefinition returns the definition for a given topic
 func (b *SystemBus) GetTopicDefinition(name string) (*TopicDefinition, error) {
+	if b == nil {
+		return nil, nil
+	}
+
 	b.mutex.RLock()
 	defer b.mutex.RUnlock()
 
@@ -272,6 +279,9 @@ func (b *SystemBus) GetTopicDefinition(name string) (*TopicDefinition, error) {
 
 // Close cleans up resources used by the system bus
 func (b *SystemBus) Close() error {
+	if b == nil {
+		return nil
+	}
 	if err := b.publisher.Close(); err != nil {
 		return err
 	}
@@ -280,6 +290,9 @@ func (b *SystemBus) Close() error {
 
 // Unsubscribe removes a handler from the specified topic
 func (b *SystemBus) Unsubscribe(topic string, handler MessageHandler) error {
+	if b == nil {
+		return nil
+	}
 	if handler == nil {
 		return errors.New("handler cannot be nil")
 	}
@@ -301,7 +314,7 @@ func (b *SystemBus) Unsubscribe(topic string, handler MessageHandler) error {
 
 	// If no handlers left, cancel the subscription and remove it
 	if len(sub.handlers) == 0 {
-		sub.cancel()           // Signal the handler goroutine to stop
+		sub.cancel() // Signal the handler goroutine to stop
 		delete(b.subscriptions, topic)
 	}
 
@@ -310,6 +323,9 @@ func (b *SystemBus) Unsubscribe(topic string, handler MessageHandler) error {
 
 // Topics returns a list of all registered topic definitions
 func (b *SystemBus) Topics() []*TopicDefinition {
+	if b == nil {
+		return nil
+	}
 	b.mutex.RLock()
 	defer b.mutex.RUnlock()
 
