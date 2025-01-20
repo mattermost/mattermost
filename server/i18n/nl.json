@@ -9735,7 +9735,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Het schema van je Elasticsearch kanaalindex is verouderd. Het wordt aanbevolen om je kanaalindex te regenereren.\nKlik op de `Kanalenindex herbouwen` knop in [Elasticsearch sectie in System Console]({{.ElasticsearchSection}}) om het probleem op te lossen.\nZie Mattermost changelog voor meer informatie."
+    "translation": "Het schema van de index van je zoekkanalen is verouderd. We raden aan om je kanaalindex te regenereren.\nKlik op de `Rebuild Channels Index` knop in de [Elasticsearch pagina via de System Console]({{.ElasticsearchSection}}) om dit probleem op te lossen.\nZie de Mattermost changelog voor meer informatie."
   },
   {
     "id": "bleveengine.purge_list.not_implemented",
