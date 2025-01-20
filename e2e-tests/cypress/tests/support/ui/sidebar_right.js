@@ -19,7 +19,7 @@ Cypress.Commands.add('uiCloseRHS', () => {
 });
 
 Cypress.Commands.add('uiExpandRHS', () => {
-    cy.findByLabelText('Expand').click();
+    cy.findByLabelText('Expand Sidebar Icon').click();
 });
 
 Cypress.Commands.add('isExpanded', {prevSubject: true}, (subject) => {
