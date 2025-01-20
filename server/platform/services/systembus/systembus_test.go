@@ -3,15 +3,6 @@
 
 package systembus
 
-// ByteEvent implements Event interface for testing
-type ByteEvent struct {
-	data []byte
-}
-
-func (e ByteEvent) Serialize() []byte {
-	return e.data
-}
-
 import (
 	"context"
 	"encoding/json"
@@ -22,6 +13,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// ByteEvent implements Event interface for testing
+type ByteEvent struct {
+	data []byte
+}
+
+func (e ByteEvent) Serialize() []byte {
+	return e.data
+}
 
 func TestNew(t *testing.T) {
 	t.Run("in-memory bus", func(t *testing.T) {
