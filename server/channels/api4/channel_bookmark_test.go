@@ -222,7 +222,6 @@ func TestCreateChannelBookmark(t *testing.T) {
 
 	t.Run("a websockets event should be fired as part of creating a bookmark", func(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
-		defer webSocketClient.Close()
 
 		bookmark1 := &model.ChannelBookmark{
 			ChannelId:   th.BasicChannel.Id,
@@ -597,7 +596,6 @@ func TestEditChannelBookmark(t *testing.T) {
 
 	t.Run("a websockets event should be fired as part of editing a bookmark", func(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
-		defer webSocketClient.Close()
 
 		bookmark1 := &model.ChannelBookmark{
 			ChannelId:   th.BasicChannel.Id,
@@ -970,7 +968,6 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		now := model.GetMillis()
 
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
-		defer webSocketClient.Close()
 
 		bookmark := &model.ChannelBookmark{
 			ChannelId:   th.BasicChannel.Id,
@@ -1321,7 +1318,6 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 	t.Run("a websockets event should be fired as part of deleting a bookmark", func(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
-		defer webSocketClient.Close()
 
 		bookmark := &model.ChannelBookmark{
 			ChannelId:   th.BasicChannel.Id,
