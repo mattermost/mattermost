@@ -6,7 +6,7 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 export function clickCategoryMenuItem(categoryDisplayName, menuItemText, isSubMenu = false) {
     cy.get('#SidebarContainer').should('be.visible').within(() => {
         cy.findByText(categoryDisplayName).should('exist').parents('.SidebarChannelGroupHeader').within(() => {
-            cy.findByLabelText('Category options').should('exist').click({force: true});
+            cy.findByLabelText(`${categoryDisplayName} category options`).should('exist').click({force: true});
         });
     });
 

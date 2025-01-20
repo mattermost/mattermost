@@ -5160,7 +5160,7 @@
   "sidebar_left.sidebar_category_menu.createCategory": "Create New Category",
   "sidebar_left.sidebar_category_menu.deleteCategory": "Delete Category",
   "sidebar_left.sidebar_category_menu.dropdownAriaLabel": "Edit category menu",
-  "sidebar_left.sidebar_category_menu.editCategory": "Category options",
+  "sidebar_left.sidebar_category_menu.editCategory": "{name} category options",
   "sidebar_left.sidebar_category_menu.muteCategory": "Mute Category",
   "sidebar_left.sidebar_category_menu.renameCategory": "Rename Category",
   "sidebar_left.sidebar_category_menu.sort.dropdownAriaLabel": "Sort submenu",
