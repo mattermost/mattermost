@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"time"
 )
 
 const (
@@ -16,6 +17,9 @@ const (
 	StatusCacheSize      = SessionCacheSize
 	StatusChannelTimeout = 20000  // 20 seconds
 	StatusMinUpdateTime  = 120000 // 2 minutes
+
+	// DNDExpiryInterval is how often the job to expire temporary DND statuses runs.
+	DNDExpiryInterval = 1 * time.Minute
 )
 
 type Status struct {
