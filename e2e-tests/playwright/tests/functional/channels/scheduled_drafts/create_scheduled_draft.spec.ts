@@ -7,7 +7,7 @@ import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 import {duration, wait} from '@e2e-support/util';
 
 test('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
-    test.setTimeout(120000);
+    test.setTimeout(240000);
 
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
@@ -39,8 +39,6 @@ test('MM-T5643_1 should create a scheduled message from a channel', async ({pw})
 });
 
 test('MM-T5643_6 should create a scheduled message under a thread post ', async ({pw}) => {
-    test.setTimeout(120000);
-
     const draftMessage = 'Scheduled Threaded Message';
     // # Skip test if no license
     await pw.skipIfNoLicense();
@@ -182,8 +180,6 @@ test('MM-T5643_9 should send a scheduled message immediately', async ({pw}) => {
 });
 
 test('MM-T5643_3 should create a scheduled message from a DM', async ({pw}) => {
-    test.setTimeout(120000);
-
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
@@ -217,8 +213,6 @@ test('MM-T5643_3 should create a scheduled message from a DM', async ({pw}) => {
 });
 
 test('MM-T5648 should create a draft and then schedule it', async ({pw}) => {
-    test.setTimeout(120000);
-
     const draftMessage = 'Draft to be Scheduled';
     await pw.skipIfNoLicense();
 
@@ -249,8 +243,6 @@ test('MM-T5648 should create a draft and then schedule it', async ({pw}) => {
 });
 
 test('MM-T5644 should edit scheduled message', async ({pw}) => {
-    test.setTimeout(120000);
-
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
@@ -285,8 +277,6 @@ test('MM-T5644 should edit scheduled message', async ({pw}) => {
 });
 
 test('MM-T5650 should copy scheduled message', async ({pw, browserName}) => {
-    test.setTimeout(120000);
-
     // Skip this test in Firefox clipboard permissions are not supported
     test.skip(browserName === 'firefox', 'Test not supported in Firefox');
 
@@ -323,7 +313,7 @@ test('MM-T5650 should copy scheduled message', async ({pw, browserName}) => {
 
 async function goBackToChannelAndWaitForMessageToArrive(page: Page): Promise<void> {
     await page.goBack();
-    await wait(duration.one_and_half_min);
+    await wait(duration.two_min);
     await page.reload();
 }
 

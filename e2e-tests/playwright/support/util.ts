@@ -14,7 +14,6 @@ export const duration = {
     ten_sec: second * 10,
     half_min: minute / 2,
     one_min: minute,
-    one_and_half_min: minute * 1.5,
     two_min: minute * 2,
     four_min: minute * 4,
 };
