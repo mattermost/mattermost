@@ -71,7 +71,7 @@ func TestPublishSubscribe(t *testing.T) {
 	})
 
 	t.Run("subscribe to non-existent topic", func(t *testing.T) {
-		err := bus.Subscribe(context.Background(), "non.existent", func(msg *Message) error { return nil })
+		err := bus.Subscribe("non.existent", func(msg *Message) error { return nil })
 		require.Error(t, err)
 	})
 
@@ -85,7 +85,7 @@ func TestPublishSubscribe(t *testing.T) {
 			return nil
 		}
 
-		err := bus.Subscribe(ctx, "test.topic", handler)
+		err := bus.Subscribe("test.topic", handler)
 		require.NoError(t, err)
 
 		payload := []byte(`{"test": "data"}`)
@@ -142,11 +142,11 @@ func TestMultipleSubscribers(t *testing.T) {
 		return nil
 	}
 
-	err = bus.Subscribe(ctx, "test.topic", handler1)
+	err = bus.Subscribe("test.topic", handler1)
 	require.NoError(t, err)
-	err = bus.Subscribe(ctx, "test.topic", handler2)
+	err = bus.Subscribe("test.topic", handler2)
 	require.NoError(t, err)
-	err = bus.Subscribe(ctx, "test.topic", handler3)
+	err = bus.Subscribe("test.topic", handler3)
 	require.NoError(t, err)
 
 	// Send multiple messages
@@ -200,7 +200,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Subscribe
-	err = bus.Subscribe(ctx, "test.topic", handler)
+	err = bus.Subscribe("test.topic", handler)
 	require.NoError(t, err)
 
 	// Test unsubscribe with non-existent topic

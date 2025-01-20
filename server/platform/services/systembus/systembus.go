@@ -168,7 +168,7 @@ type topicSubscription struct {
 }
 
 // Subscribe registers a callback handler for the specified topic
-func (b *SystemBus) Subscribe(ctx context.Context, topic string, handler MessageHandler) error {
+func (b *SystemBus) Subscribe(topic string, handler MessageHandler) error {
 	if handler == nil {
 		return errors.New("handler cannot be nil")
 	}
@@ -184,13 +184,13 @@ func (b *SystemBus) Subscribe(ctx context.Context, topic string, handler Message
 	sub, exists := b.subscriptions[topic]
 	if !exists {
 		// Create new subscription
-		msgs, err := b.subscriber.Subscribe(ctx, topic)
+		msgs, err := b.subscriber.Subscribe(context.Background(), topic)
 		if err != nil {
 			return fmt.Errorf("failed to subscribe to topic %q: %w", topic, err)
 		}
 
 		// Create cancellable context for this subscription
-		subCtx, cancel := context.WithCancel(ctx)
+		subCtx, cancel := context.WithCancel(context.Background())
 		sub = &topicSubscription{
 			handlers: make(map[uintptr]MessageHandler),
 			msgs:     msgs,
