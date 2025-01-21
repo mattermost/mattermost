@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useSelector} from 'react-redux';
+
+import {getIsMobileView} from 'selectors/views/browser';
 
 import {isDesktopApp} from 'utils/user_agent';
 
@@ -11,12 +14,18 @@ import ProductMenu from './product_menu';
 
 import './left_controls.scss';
 
-const LeftControls = () => (
-    <div className='globalHeader-leftControlsContainer'>
-        <ProductMenu/>
-        <ProductBranding/>
-        {true && <HistoryButtons/>}
-    </div>
-);
+export default function LeftControls() {
+    const isMobileView = useSelector(getIsMobileView);
 
-export default LeftControls;
+    if (isMobileView) {
+        return null;
+    }
+
+    return (
+        <div className='globalHeader-left-controls-container'>
+            <ProductMenu/>
+            <ProductBranding/>
+            {isDesktopApp() && <HistoryButtons/>}
+        </div>
+    );
+}

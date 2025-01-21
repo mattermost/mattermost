@@ -7,23 +7,28 @@ import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import {
+    ProductsIcon,
+} from '@mattermost/compass-icons/components';
 
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {isSwitcherOpen} from 'selectors/views/product_menu';
 
+import * as Menu from 'components/menu';
 import {
     OnboardingTaskCategory,
     OnboardingTasksName,
     TaskNameMapToSteps,
     useHandleOnBoardingTaskData,
 } from 'components/onboarding_tasks';
-import Menu from 'components/widgets/menu/menu';
+import MenuOld from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
+import {useCurrentProductId, isChannels} from 'utils/products';
 
-import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
+import ProductSwitcherChannelsMenuItem from './product_switcher_channels_menuitem';
+import ProductSwitcherProductsMenuItems from './product_switcher_products_menuitems';
 
 import {useClickOutsideRef} from '../../hooks';
 
@@ -57,7 +62,6 @@ export const ProductMenuButton = styled(IconButton).attrs(() => ({
 
 const ProductMenu = (): JSX.Element => {
     const {formatMessage} = useIntl();
-    const products = useProducts();
     const dispatch = useDispatch();
     const switcherOpen = useSelector(isSwitcherOpen);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -81,24 +85,32 @@ const ProductMenu = (): JSX.Element => {
         dispatch(setProductMenuSwitcherOpen(false));
     });
 
-    console.log('product', products);
-
-    const productItems = products?.map((product) => {
-        let tourTip;
-
-        return (
-            <ProductMenuItem
-                key={product.id}
-                destination={product.switcherLinkURL}
-                icon={product.switcherIcon}
-                text={product.switcherText}
-                active={product.id === currentProductID}
-                onClick={handleClick}
-                tourTip={tourTip}
-                id={`product-menu-item-${product.pluginId || product.id}`}
+    return (
+        <Menu.Container
+            menuButton={{
+                id: 'productMenuButton',
+                class: 'btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader',
+                children: <ProductsIcon size={18}/>,
+                'aria-label': formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
+            }}
+            menuButtonTooltip={{
+                text: formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
+            }}
+            menu={{
+                id: 'productSwitcherMenu',
+                minWidth: '225px',
+                maxWidth: '270px',
+            }}
+        >
+            <ProductSwitcherChannelsMenuItem
+                currentProductID={currentProductID}
             />
-        );
-    });
+            <ProductSwitcherProductsMenuItems
+                currentProductID={currentProductID}
+            />
+            <Menu.Separator/>
+        </Menu.Container>
+    );
 
     return (
         <div ref={menuRef}>
@@ -113,31 +125,23 @@ const ProductMenu = (): JSX.Element => {
                         aria-controls='product-switcher-menu'
                     />
                 </ProductMenuContainer>
-                <Menu
+                <MenuOld
                     listId={'product-switcher-menu-dropdown'}
                     className={'product-switcher-menu'}
                     id={'product-switcher-menu'}
                     ariaLabel={'switcherOpen'}
                 >
-                    <ProductMenuItem
-                        destination={'/'}
-                        icon={'product-channels'}
-                        text={'Channels'}
-                        active={isChannels(currentProductID)}
-                        onClick={handleClick}
-                    />
-                    {productItems}
                     <ProductMenuList
                         isMessaging={isChannels(currentProductID)}
                         onClick={handleClick}
                         handleVisitConsoleClick={handleVisitConsoleClick}
                     />
-                    <Menu.Group>
-                        <Menu.StartTrial
+                    <MenuOld.Group>
+                        <MenuOld.StartTrial
                             id='startTrial'
                         />
-                    </Menu.Group>
-                </Menu>
+                    </MenuOld.Group>
+                </MenuOld>
             </MenuWrapper>
         </div>
     );

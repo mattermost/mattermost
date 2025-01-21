@@ -8,7 +8,7 @@ import {TopLevelProducts} from 'utils/constants';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
-import ProductBranding from '.';
+import ProductBranding from './product_branding_licensed';
 
 describe('components/ProductBranding', () => {
     test('should show Channels branding when no product is selected', () => {

@@ -1,4 +1,4 @@
-.globalHeader-leftControlsContainer {
+.globalHeader-left-controls-container {
     display: flex;
     align-items: center;
     justify-items: flex-start;
@@ -7,7 +7,7 @@
     flex-basis: 30%;
     gap: 12px;
 
-    .product_branding_container {
+    .product-branding-container {
         display: flex;
         align-items: center;
         justify-content: flex-start;
@@ -37,5 +37,38 @@
             line-height: 24px;
             color: rgba(var(--sidebar-text-rgb), 0.64);
         }
+    }
+
+    .history-buttons-container {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+
+        .btn + .btn {
+            margin-left: unset;
+        }
+    }
+
+    // This is needed because buttons in global header have a bit smaller sizing than sm-buttons
+    button.buttons-in-globalHeader.btn {
+        width: 28px;
+        min-width: 28px;
+        height: 28px;
+    }
+}
+
+#productSwitcherMenu[role="menu"] {
+    .product-switcher-products-menu-item {
+        & > .leading-element {
+            width: 24px;
+            height: 24px;
+
+            & > svg {
+                fill: var(--button-bg);
+            }
+        }
+    }
+    .product-switcher-menu-item-checked {
+        fill: var(--button-bg);
     }
 }

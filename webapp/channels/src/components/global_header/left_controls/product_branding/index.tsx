@@ -14,7 +14,7 @@ export default function ProductBranding() {
 
     if (license.IsLicensed === 'false') {
         return (
-            <div className='product_branding_container'>
+            <div className='product-branding-container'>
                 <ProductBrandingTeamEdition/>
             </div>
         );
@@ -22,7 +22,7 @@ export default function ProductBranding() {
 
     if (license.IsLicensed === 'true') {
         return (
-            <div className='product_branding_container'>
+            <div className='product-branding-container'>
                 <ProductBrandingLicensed/>
             </div>
         );

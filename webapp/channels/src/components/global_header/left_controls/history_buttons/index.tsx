@@ -4,31 +4,17 @@
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
-import styled from 'styled-components';
-
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import KeyboardShortcutSequence, {
-    KEYBOARD_SHORTCUTS,
-} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import WithTooltip from 'components/with_tooltip';
 
 import DesktopApp from 'utils/desktop_api';
 
-const HistoryButtonsContainer = styled.nav`
-    display: flex;
-    align-items: center;
-
-    > :first-child {
-           margin-right: 1px;
-    }
-`;
-
-const HistoryButtons = (): JSX.Element => {
+const HistoryButtons = () => {
     const history = useHistory();
     const intl = useIntl();
 
@@ -71,34 +57,38 @@ const HistoryButtons = (): JSX.Element => {
     }, []);
 
     return (
-        <HistoryButtonsContainer>
+        <nav className='history-buttons-container'>
             <WithTooltip
                 title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelPrev)}
             >
-                <IconButton
-                    icon={'arrow-left'}
+                <button
+                    className='btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader'
                     onClick={goBack}
-                    size={'sm'}
-                    compact={true}
-                    inverted={true}
                     disabled={!canGoBack}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
-                />
+                >
+                    <i
+                        className='icon icon-arrow-left'
+                        aria-hidden={true}
+                    />
+                </button>
             </WithTooltip>
             <WithTooltip
                 title={getTooltip(KEYBOARD_SHORTCUTS.browserChannelNext)}
             >
-                <IconButton
-                    icon={'arrow-right'}
+                <button
+                    className='btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader'
                     onClick={goForward}
-                    size={'sm'}
-                    compact={true}
-                    inverted={true}
                     disabled={!canGoForward}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}
-                />
+                >
+                    <i
+                        className='icon icon-arrow-right'
+                        aria-hidden={true}
+                    />
+                </button>
             </WithTooltip>
-        </HistoryButtonsContainer>
+        </nav>
     );
 };
 
