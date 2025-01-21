@@ -2396,7 +2396,6 @@
   "admin.service.ssoSessionHoursDesc.extendLength": "Set the number of hours from the last activity in Mattermost to the expiry of the user’s session for SSO authentication, such as SAML, GitLab and OAuth 2.0. If the authentication method is SAML or GitLab, the user may automatically be logged back in to Mattermost if they are already logged in to SAML or GitLab. After changing this setting, the setting will take effect after the next time the user enters their credentials.",
   "admin.service.systemBusBackend": "System Bus Backend (Experimental):",
   "admin.service.systemBusBackend.inMemory": "In Memory",
-  "admin.service.systemBusBackend.postgresql": "PostgreSQL",
   "admin.service.systemBusBackendDescription": "[Experimental] Select which backend to use for the system bus. InMemory is suitable for development and testing, while PostgreSQL is recommended for production use.",
   "admin.service.terminateSessionsOnPasswordChange.helpText": "When true, all sessions of a user will expire if their password is changed by themselves or an administrator. If password change is initiated by user, their current session is not terminated",
   "admin.service.terminateSessionsOnPasswordChange.label": "Terminate Sessions on Password Change: ",

@@ -211,8 +211,6 @@ func NewServer(options ...Option) (*Server, error) {
 			logger = s.Log()
 		}
 		switch *s.platform.Config().ServiceSettings.SystemBusBackend {
-		case "PostgreSQL":
-			s.systemBus, err = systembus.NewPostgres(s.platform.Store.GetInternalMasterDB(), logger)
 		case "InMemory":
 			s.systemBus, err = systembus.NewGoChannel(logger)
 		default:

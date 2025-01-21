@@ -5,14 +5,12 @@ package systembus
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"reflect"
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill"
-	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -37,56 +35,6 @@ type SystemBus struct {
 	mutex         sync.RWMutex
 	topics        map[string]*TopicDefinition
 	subscriptions map[string]*topicSubscription
-}
-
-// New creates a new SystemBus instance using postgres
-func NewPostgres(db *sql.DB, logger *mlog.Logger) (*SystemBus, error) {
-	wmLogger := newWatermillLoggerAdapter(logger)
-
-	var publisher message.Publisher
-	var subscriber message.Subscriber
-	var err error
-
-	if db == nil {
-		return nil, errors.New("PostgreSQL configuration is required")
-	}
-
-	// PostgreSQL implementation
-	publisher, err = watermillSQL.NewPublisher(
-		db,
-		watermillSQL.PublisherConfig{
-			SchemaAdapter:        watermillSQL.DefaultPostgreSQLSchema{},
-			AutoInitializeSchema: true,
-		},
-		wmLogger,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create PostgreSQL publisher: %w", err)
-	}
-
-	subscriber, err = watermillSQL.NewSubscriber(
-		db,
-		watermillSQL.SubscriberConfig{
-			SchemaAdapter:    watermillSQL.DefaultPostgreSQLSchema{},
-			OffsetsAdapter:   watermillSQL.DefaultPostgreSQLOffsetsAdapter{},
-			InitializeSchema: true,
-			ConsumerGroup:    "mattermost",
-		},
-		wmLogger,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create PostgreSQL subscriber: %w", err)
-	}
-
-	bus := &SystemBus{
-		publisher:     publisher,
-		subscriber:    subscriber,
-		logger:        wmLogger,
-		topics:        make(map[string]*TopicDefinition),
-		subscriptions: make(map[string]*topicSubscription),
-	}
-
-	return bus, nil
 }
 
 // New creates a new SystemBus instance using a go channels
