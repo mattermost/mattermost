@@ -36,7 +36,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -52,6 +51,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -455,7 +455,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -471,6 +470,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -1012,7 +1012,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -1028,6 +1027,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -1316,7 +1316,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -1332,6 +1331,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -1816,7 +1816,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -1832,6 +1831,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -2316,7 +2316,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -2332,6 +2331,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i

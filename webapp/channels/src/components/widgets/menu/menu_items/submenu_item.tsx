@@ -48,8 +48,8 @@ export type Props = WrappedComponentProps & {
     subMenu?: Menu[];
     subMenuClass?: string;
     icon?: React.ReactNode;
-    action?: (id?: string) => void;
-    filter?: (id?: string) => boolean;
+    action?: (id: string) => void;
+    filter?: (id: string) => boolean;
     ariaLabel?: string;
     root?: boolean;
     show?: boolean;
@@ -111,14 +111,14 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
                 }
                 showMobileSubMenuModal(subMenu);
             } else if (action) { // leaf node in the tree handles action only
-                action(postId);
+                action(postId || '');
             }
         } else {
             const shouldCallAction =
                 (event.type === 'keydown' && event.currentTarget.id === id) ||
                 event.target.parentElement.id === id;
             if (shouldCallAction && action) {
-                action(postId);
+                action(postId || '');
             }
         }
     };
@@ -153,7 +153,7 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
         const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex, intl} = this.props;
         const isMobile = isMobileViewHack();
 
-        if (filter && !filter(id)) {
+        if (filter && !filter(id || '')) {
             return ('');
         }
 
