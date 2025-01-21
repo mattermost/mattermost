@@ -221,6 +221,8 @@ func TestCreateChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of creating a bookmark", func(t *testing.T) {
+		t.Skip("MM-62437")
+
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
 		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")

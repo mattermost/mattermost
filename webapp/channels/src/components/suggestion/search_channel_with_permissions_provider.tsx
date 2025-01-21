@@ -36,7 +36,7 @@ interface WrappedChannel {
 
 type ChannelSearchFunction = (teamId: string, channelPrefix: string) => Promise<ActionResult>
 
-const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<WrappedChannel>>((props, ref) => {
+const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<WrappedChannel>>((props, ref) => {
     const {item} = props;
     const channel = item.channel;
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
