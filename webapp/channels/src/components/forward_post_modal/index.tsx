@@ -155,15 +155,14 @@ const ForwardPostModal = ({onExited, post}: Props) => {
         } else {
             const allParticipants = channel?.display_name.split(', ') || []; // gives the names of all the participants except the user's
             const participants = allParticipants.map((participant) => <strong key={participant}>{participant}</strong>);
-    
             if (allParticipants.length >= 2) {
                 // Group Message
                 notificationText = (
                     <FormattedMessage
-                        id="forward_post_modal.notification.group_message"
-                        defaultMessage="Group Messages can&apos;t be forwarded to other channels. Selecting <strong>Forward</strong> will post the message in the current Group Message with {participants}."
+                        id='forward_post_modal.notification.group_message'
+                        defaultMessage='Group Messages can&apos;t be forwarded to other channels. Selecting <strong>Forward</strong> will post the message in the current Group Message with {participants}.'
                         values={{
-                            participants: <FormattedList value={participants} />,
+                            participants: <FormattedList value={participants}/>,
                             strong: (x: React.ReactNode) => <strong>{x}</strong>,
                         }}
                     />
@@ -172,10 +171,10 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                 // Direct Message
                 notificationText = (
                     <FormattedMessage
-                        id="forward_post_modal.notification.direct_message"
-                        defaultMessage="Direct Messages can&apos;t be forwarded to other channels. Selecting <strong>Forward</strong> will post the message in the current Direct Message with {participants}."
+                        id='forward_post_modal.notification.direct_message'
+                        defaultMessage='Direct Messages can&apos;t be forwarded to other channels. Selecting <strong>Forward</strong> will post the message in the current Direct Message with {participants}.'
                         values={{
-                            participants: <FormattedList value={participants} />,
+                            participants: <FormattedList value={participants}/>,
                             strong: (x: React.ReactNode) => <strong>{x}</strong>,
                         }}
                     />
