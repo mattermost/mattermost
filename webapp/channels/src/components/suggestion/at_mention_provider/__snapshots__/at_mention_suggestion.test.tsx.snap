@@ -34,7 +34,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
     onMouseMove={[MockFunction]}
     term="@user"
   >
-    <div
+    <li
       className="suggestion-list__item"
       data-testid="mentionSuggestion_user2"
       onClick={[Function]}
@@ -48,7 +48,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
         <span
           className="profile-icon"
         >
-          <Memo(Avatar)
+          <Avatar
             size="sm"
             url="/api/v4/users/userid2/image?_=0"
             username="user2"
@@ -60,7 +60,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
               onError={[Function]}
               src="/api/v4/users/userid2/image?_=0"
             />
-          </Memo(Avatar)>
+          </Avatar>
         </span>
         <Memo(StatusIcon) />
       </span>
@@ -88,7 +88,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
           <div />
         </Component>
       </span>
-    </div>
+    </li>
   </SuggestionContainer>
 </AtMentionSuggestion>
 `;
@@ -129,7 +129,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
     onMouseMove={[MockFunction]}
     term="@user"
   >
-    <div
+    <li
       className="suggestion-list__item"
       data-testid="mentionSuggestion_user"
       onClick={[Function]}
@@ -143,7 +143,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
         <span
           className="profile-icon"
         >
-          <Memo(Avatar)
+          <Avatar
             size="sm"
             url="/api/v4/users/userid1/image?_=0"
             username="user"
@@ -155,7 +155,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
               onError={[Function]}
               src="/api/v4/users/userid1/image?_=0"
             />
-          </Memo(Avatar)>
+          </Avatar>
         </span>
         <Memo(StatusIcon) />
       </span>
@@ -191,7 +191,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
           <div />
         </Component>
       </span>
-    </div>
+    </li>
   </SuggestionContainer>
 </AtMentionSuggestion>
 `;

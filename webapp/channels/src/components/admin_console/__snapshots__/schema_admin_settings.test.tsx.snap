@@ -675,8 +675,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div

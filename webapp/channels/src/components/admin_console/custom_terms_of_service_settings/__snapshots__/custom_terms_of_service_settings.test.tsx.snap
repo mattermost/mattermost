@@ -31,8 +31,6 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div
@@ -79,8 +77,6 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div
@@ -127,8 +123,6 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div
@@ -175,8 +169,6 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
         }
       />
       <WithTooltip
-        id="error-tooltip"
-        placement="top"
         title=""
       >
         <div

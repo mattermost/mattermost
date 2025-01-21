@@ -10,7 +10,7 @@ import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import type {RHSStates} from 'utils/constants';
 
-export type SearchType = '' | 'files' | 'messages';
+export type SearchType = '' | 'files' | 'messages' | 'omnisearch';
 
 export type FakePost = {
     id: Post['id'];

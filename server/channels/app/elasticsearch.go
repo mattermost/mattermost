@@ -114,7 +114,7 @@ func (a *App) elasticsearchChannelIndexCheck() {
 	}
 
 	// TODO include a link to changelog
-	postMessage := i18n.T("app.channel.elasticsearch_channel_index.notify_admin.message", map[string]interface{}{"ElasticsearchSection": elasticsearchSettingsSectionLink})
+	postMessage := i18n.T("app.channel.elasticsearch_channel_index.notify_admin.message", map[string]any{"ElasticsearchSection": elasticsearchSettingsSectionLink})
 
 	for _, sysAdmin := range sysAdmins {
 		var channel *model.Channel

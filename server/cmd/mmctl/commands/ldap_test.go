@@ -18,7 +18,7 @@ import (
 func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 	s.Run("Sync without errors", func() {
 		printer.Clean()
-		outputMessage := map[string]interface{}{"status": "ok"}
+		outputMessage := map[string]any{"status": "ok"}
 
 		s.client.
 			EXPECT().
@@ -35,7 +35,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 	s.Run("Not able to Sync", func() {
 		printer.Clean()
-		outputMessage := map[string]interface{}{"status": "error"}
+		outputMessage := map[string]any{"status": "error"}
 
 		s.client.
 			EXPECT().
