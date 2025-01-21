@@ -6455,6 +6455,13 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.desc', defaultMessage: 'When true, the referrer policy for embedded YouTube videos will be set to "strict-origin-when-cross-origin" which resolves issues where YouTube video previews display as unavailable, while balancing the need to protect user privacy with some degree of referral data to support web functionalities, like analytics, logging, and third-party integrations. When false, the referrer policy will be set to "no-referrer" which enhances user privacy by not disclosing the source URL, but limits the ability to track user engagement and traffic sources in analytics tools.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalSettings.EnableOmniSearch',
+                            label: defineMessage({id: 'admin.experimental.enableOmniSearch.title', defaultMessage: 'Enable Omnisearch:'}),
+                            help_text: defineMessage({id: 'admin.experimental.enableOmniSearch.desc', defaultMessage: 'When true, enables the Omnisearch feature which allows plugins to contribute additional results to the search interface. This experimental feature provides an extensible search framework for plugins to surface their data in search results.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
                     ],
                 },
             },
