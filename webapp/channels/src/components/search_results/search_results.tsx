@@ -28,9 +28,9 @@ import {isFileAttachmentsEnabled} from 'utils/file_utils';
 
 import FilesFilterMenu from './files_filter_menu';
 import MessageOrFileSelector from './messages_or_files_selector';
+import OmniSearchResultItem from './omnisearch_result_item';
 import PostSearchResultsItem from './post_search_results_item';
 import SearchLimitsBanner from './search_limits_banner';
-import OmniSearchResultItem from './omnisearch_result_item';
 import type {Props} from './types';
 
 import './search_results.scss';
@@ -363,11 +363,12 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                         title={result.title}
                         subtitle={result.subtitle || ''}
                         description={result.description}
-                        create_at={result.create_at}
+                        createAt={result.create_at}
                         source={result.source}
                     />
                 );
             }
+            return null;
         });
 
         loadingMorePostsComponent = (showLoadMore) ? (
