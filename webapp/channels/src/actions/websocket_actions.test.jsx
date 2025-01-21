@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {CloudTypes} from 'mattermost-redux/action_types';
+import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
+import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
@@ -9,16 +11,18 @@ import {
 } from 'mattermost-redux/actions/posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
+import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
+import realConfigureStore from 'store';
 import store from 'stores/redux_store';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {SocketEvents, UserStatuses, ActionTypes} from 'utils/constants';
+import Constants, {SocketEvents, ActionTypes, UserStatuses} from 'utils/constants';
 
 import {
     handleChannelUpdatedEvent,
@@ -36,12 +40,18 @@ import {
     handleAppsPluginDisabled,
     handleCloudSubscriptionChanged,
     handleGroupAddedMemberEvent,
+    handleStatusChangedEvent,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
     getMentionsAndStatusesForPosts: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/channel_categories', () => ({
+    ...jest.requireActual('mattermost-redux/actions/channel_categories'),
+    fetchMyCategories: jest.fn(),
 }));
 
 jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
@@ -63,11 +73,17 @@ jest.mock('mattermost-redux/actions/users', () => ({
 jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
     fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
+    fetchAllMyTeamsChannels: jest.fn(),
 }));
 
 jest.mock('actions/post_actions', () => ({
     ...jest.requireActual('actions/post_actions'),
     handleNewPost: jest.fn(() => ({type: 'HANDLE_NEW_POST'})),
+}));
+
+jest.mock('actions/user_actions', () => ({
+    ...jest.requireActual('actions/user_actions'),
+    loadProfilesForSidebar: jest.fn(),
 }));
 
 jest.mock('actions/global_actions', () => ({
@@ -485,6 +501,8 @@ describe('handleNewPostEvent', () => {
         },
     };
 
+    const otherUserId = 'user2';
+
     test('should receive post correctly', () => {
         const testStore = configureStore(initialState);
 
@@ -502,9 +520,9 @@ describe('handleNewPostEvent', () => {
     });
 
     test('should set other user to online', () => {
-        const testStore = configureStore(initialState);
+        const testStore = realConfigureStore(initialState);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: 'user2'};
+        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId};
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -512,18 +530,17 @@ describe('handleNewPostEvent', () => {
             },
         };
 
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
+
         testStore.dispatch(handleNewPostEvent(msg));
 
-        expect(testStore.getActions()).toContainEqual({
-            type: UserTypes.RECEIVED_STATUSES,
-            data: [{[post.user_id]: UserStatuses.ONLINE}],
-        });
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(UserStatuses.ONLINE);
     });
 
     test('should not set other user to online if post was from autoresponder', () => {
-        const testStore = configureStore(initialState);
+        const testStore = realConfigureStore(initialState);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: 'user2', type: Constants.AUTO_RESPONDER};
+        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId, type: Constants.AUTO_RESPONDER};
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -531,21 +548,23 @@ describe('handleNewPostEvent', () => {
             },
         };
 
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
+
         testStore.dispatch(handleNewPostEvent(msg));
 
-        expect(testStore.getActions()).not.toContainEqual({
-            type: UserTypes.RECEIVED_STATUSES,
-            data: [{[post.user_id]: UserStatuses.ONLINE}],
-        });
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
     });
 
     test('should not set other user to online if status was manually set', () => {
-        const testStore = configureStore({
+        const testStore = realConfigureStore({
             ...initialState,
             entities: {
                 ...initialState.entities,
                 users: {
                     ...initialState.entities.users,
+                    statuses: {
+                        [otherUserId]: UserStatuses.AWAY,
+                    },
                     isManualStatus: {
                         user2: true,
                     },
@@ -553,7 +572,7 @@ describe('handleNewPostEvent', () => {
             },
         });
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: 'user2'};
+        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId};
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -561,18 +580,19 @@ describe('handleNewPostEvent', () => {
             },
         };
 
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(UserStatuses.AWAY);
+
         testStore.dispatch(handleNewPostEvent(msg));
 
-        expect(testStore.getActions()).not.toContainEqual({
-            type: UserTypes.RECEIVED_STATUSES,
-            data: [{[post.user_id]: UserStatuses.ONLINE}],
-        });
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(UserStatuses.AWAY);
     });
 
     test('should not set other user to online based on data from the server', () => {
-        const testStore = configureStore(initialState);
+        const testStore = realConfigureStore(initialState);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: 'user2'};
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
+
+        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId};
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -582,10 +602,7 @@ describe('handleNewPostEvent', () => {
 
         testStore.dispatch(handleNewPostEvent(msg));
 
-        expect(testStore.getActions()).not.toContainEqual({
-            type: UserTypes.RECEIVED_STATUSES,
-            data: [{[post.user_id]: UserStatuses.ONLINE}],
-        });
+        expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
     });
 });
 
@@ -636,6 +653,16 @@ describe('reconnect', () => {
     test('should call syncPostsInChannel when socket reconnects', () => {
         reconnect();
         expect(syncPostsInChannel).toHaveBeenCalledWith('otherChannel', '12345');
+    });
+
+    test('should call fetchMyCategories when socket reconnects', () => {
+        reconnect();
+        expect(fetchMyCategories).toHaveBeenCalledWith('currentTeamId');
+    });
+
+    test('should call fetchAllMyTeamsChannels when socket reconnects', () => {
+        reconnect();
+        expect(fetchAllMyTeamsChannels).toHaveBeenCalled();
     });
 });
 
@@ -1200,5 +1227,58 @@ describe('handleLeaveTeam', () => {
             type: 'BATCHING_REDUCER.BATCH',
         };
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+});
+
+describe('handleStatusChangedEvent', () => {
+    const currentUserId = 'user1';
+
+    function makeInitialState() {
+        return {
+            entities: {
+                users: {
+                    currentUserId,
+                    statuses: {
+                        [currentUserId]: 'online',
+                    },
+                },
+            },
+        };
+    }
+
+    test('should modify the status of the current user', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
+
+        testStore.dispatch(handleStatusChangedEvent({
+            event: SocketEvents.STATUS_CHANGED,
+            data: {
+                user_id: currentUserId,
+                status: UserStatuses.AWAY,
+            },
+        }));
+
+        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.AWAY);
+
+        testStore.dispatch(handleStatusChangedEvent({
+            event: SocketEvents.STATUS_CHANGED,
+            data: {
+                user_id: currentUserId,
+                status: UserStatuses.ONLINE,
+            },
+        }));
+
+        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
+
+        testStore.dispatch(handleStatusChangedEvent({
+            event: SocketEvents.STATUS_CHANGED,
+            data: {
+                user_id: currentUserId,
+                status: UserStatuses.OFFLINE,
+            },
+        }));
+
+        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.OFFLINE);
     });
 });

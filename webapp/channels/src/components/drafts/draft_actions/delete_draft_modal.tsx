@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import noop from 'lodash/noop';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -43,7 +44,7 @@ function DeleteDraftModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
-            handleCancel={() => {}}
+            handleCancel={noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}
             onExited={onExited}

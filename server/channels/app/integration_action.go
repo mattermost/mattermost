@@ -107,12 +107,13 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 
 		channel, err := a.Srv().Store().Channel().Get(cookie.ChannelId, true)
 		if err != nil {
+			errCtx := map[string]any{"channel_id": cookie.ChannelId}
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 
@@ -270,7 +271,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, appErr = a.UpdatePost(c, response.Update, false); appErr != nil {
+		if _, appErr = a.UpdatePost(c, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
 			return "", appErr
 		}
 	}

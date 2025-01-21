@@ -1,0 +1,10 @@
+with-expecter: false
+packages:
+  github.com/mattermost/mattermost/server/v8/platform/services/telemetry:
+    config:
+      all: true
+      dir: "platform/services/telemetry/mocks"
+      filename: "{{.InterfaceName}}.go"
+      mockname: "{{.InterfaceName}}"
+      outpkg: "mocks"
+      note: "Regenerate this file using `make telemetry-mocks`."

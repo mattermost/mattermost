@@ -1,5 +1,3 @@
-@charset 'UTF-8';
-
 #browseChannelsModal {
     .modal-dialog {
         margin-top: calc(45vh - 240px) !important;
@@ -11,24 +9,24 @@
 
         .input-clear {
             top: 16px;
-            right: 46px;
+            right: 14px;
         }
 
         #searchIcon {
             position: absolute;
             z-index: 2;
             top: 16px;
-            left: 46px;
+            left: 42px;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             pointer-events: none;
         }
 
         #searchChannelsTextbox {
             height: 48px;
-            padding-left: 40px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             box-shadow: none;
             font-size: 16px;
+            padding-inline: 40px;
 
             &::placeholder {
                 color: var(--center-channel-color);
@@ -252,6 +250,7 @@
         margin-top: 8px;
         color: var(--center-channel-color);
         line-height: 28px;
+        word-wrap: break-word;
     }
 
     .secondary-message {

@@ -1,4 +1,4 @@
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .CenterMessageLock {
     display: flex;
@@ -28,7 +28,7 @@
         padding-top: 12px;
 
         .btn {
-            @include tertiary-button;
+            @include mixins.tertiary-button;
 
             font-size: 12px;
 
@@ -42,7 +42,7 @@
             }
 
             &.is-admin {
-                @include primary-button;
+                @include mixins.primary-button;
 
                 &:hover,
                 &:focus {

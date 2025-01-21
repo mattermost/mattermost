@@ -33,12 +33,12 @@ func TestChannelBookmarkStore(t *testing.T, rctx request.CTX, ss store.Store, s 
 }
 
 func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
-	channelId := model.NewId()
-	userId := model.NewId()
+	channelID := model.NewId()
+	userID := model.NewId()
 
 	bookmark1 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "Link bookmark test",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelBookmarkLink,
@@ -61,8 +61,8 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 
 	bookmark2 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "file bookmark test",
 		FileId:      file.Id,
 		Type:        model.ChannelBookmarkFile,
@@ -70,8 +70,8 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 
 	bookmark3 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "file already attached",
 		FileId:      file.Id,
 		Type:        model.ChannelBookmarkFile,
@@ -80,7 +80,7 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	file2 := &model.FileInfo{
 		Id:              model.NewId(),
-		CreatorId:       userId,
+		CreatorId:       userID,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
 		PreviewPath:     "prevPath",
@@ -94,8 +94,8 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 
 	bookmark4 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "file already attached to a post",
 		FileId:      file2.Id,
 		Type:        model.ChannelBookmarkFile,
@@ -110,7 +110,7 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	defer ss.FileInfo().PermanentDelete(rctx, file2.Id)
 
-	err = ss.FileInfo().AttachToPost(rctx, file2.Id, model.NewId(), channelId, userId)
+	err = ss.FileInfo().AttachToPost(rctx, file2.Id, model.NewId(), channelID, userID)
 	require.NoError(t, err)
 
 	t.Run("save bookmarks", func(t *testing.T) {
@@ -128,7 +128,7 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, bookmark2.ChannelId, bookmarkResp.ChannelId)
 		assert.NotNil(t, bookmarkResp.FileInfo)
 
-		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelId, 0)
+		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelID, 0)
 		assert.NoError(t, err)
 		assert.Len(t, bookmarks, 2)
 
@@ -141,12 +141,12 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testUpdateChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
-	channelId := model.NewId()
-	userId := model.NewId()
+	channelID := model.NewId()
+	userID := model.NewId()
 
 	bookmark1 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "Link bookmark test",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelBookmarkLink,
@@ -167,7 +167,7 @@ func testUpdateChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.ChannelBookmark().Update(bookmark2.Clone())
 		assert.NoError(t, err)
 
-		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelId, now)
+		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelID, now)
 		assert.NoError(t, err)
 		assert.Len(t, bookmarks, 1)
 
@@ -190,12 +190,12 @@ func testUpdateChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
-	channelId := model.NewId()
-	userId := model.NewId()
+	channelID := model.NewId()
+	userID := model.NewId()
 
 	bookmark0 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "Bookmark 0",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelBookmarkLink,
@@ -218,8 +218,8 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 	}
 
 	bookmark1 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "Bookmark 1",
 		FileId:      file.Id,
 		Type:        model.ChannelBookmarkFile,
@@ -231,24 +231,24 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
 
 	bookmark2 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "Bookmark 2",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelBookmarkLink,
 	}
 
 	bookmark3 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "Bookmark 3",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelBookmarkLink,
 	}
 
 	bookmark4 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "Bookmark 4",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelBookmarkLink,
@@ -279,7 +279,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 	bookmark4 = bookmarkResp.ChannelBookmark.Clone()
 
 	t.Run("change order of bookmarks first to last", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 4)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelID, 4)
 		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
@@ -290,7 +290,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 	})
 
 	t.Run("change order of bookmarks last to first", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 0)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelID, 0)
 		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
@@ -301,7 +301,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 	})
 
 	t.Run("change order of bookmarks first to third", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 2)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelID, 2)
 		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
@@ -311,11 +311,11 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
 
 		// now reset order
-		ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelId, 0)
+		ss.ChannelBookmark().UpdateSortOrder(bookmark0.Id, channelID, 0)
 	})
 
 	t.Run("change order of bookmarks second to third", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark1.Id, channelId, 2)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark1.Id, channelID, 2)
 		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
@@ -326,7 +326,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 	})
 
 	t.Run("change order of bookmarks third to second", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark1.Id, channelId, 1)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark1.Id, channelID, 1)
 		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
@@ -337,7 +337,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 	})
 
 	t.Run("change order of bookmarks last to previous last", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark4.Id, channelId, 3)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark4.Id, channelID, 3)
 		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
@@ -348,7 +348,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 	})
 
 	t.Run("change order of bookmarks last to second", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelId, 1)
+		bookmarks, sortError := ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelID, 1)
 		assert.NoError(t, sortError)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
@@ -360,16 +360,16 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 
 	t.Run("change order of bookmarks error when new index is out of bounds", func(t *testing.T) {
 		var iiErr *store.ErrInvalidInput
-		_, err = ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelId, -1)
+		_, err = ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelID, -1)
 		assert.Error(t, err)
 		assert.ErrorAs(t, err, &iiErr)
-		_, err = ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelId, 5)
+		_, err = ss.ChannelBookmark().UpdateSortOrder(bookmark3.Id, channelID, 5)
 		assert.Error(t, err)
 		assert.ErrorAs(t, err, &iiErr)
 	})
 
 	t.Run("change order of bookmarks error when bookmark not found", func(t *testing.T) {
-		_, err = ss.ChannelBookmark().UpdateSortOrder(model.NewId(), channelId, 0)
+		_, err = ss.ChannelBookmark().UpdateSortOrder(model.NewId(), channelID, 0)
 		assert.Error(t, err)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, err, &nfErr)
@@ -377,12 +377,12 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 }
 
 func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
-	channelId := model.NewId()
-	userId := model.NewId()
+	channelID := model.NewId()
+	userID := model.NewId()
 
 	bookmark1 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "Link bookmark test",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelBookmarkLink,
@@ -405,8 +405,8 @@ func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 
 	bookmark2 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "file bookmark test",
 		FileId:      file.Id,
 		Type:        model.ChannelBookmarkFile,
@@ -439,7 +439,7 @@ func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, err, &nfErr)
 
-		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelId, now)
+		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelID, now)
 		assert.NoError(t, err)
 		assert.Len(t, bookmarks, 2) // we have two as the deleted record also gets returned for sync'ing purposes
 
@@ -450,12 +450,12 @@ func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
-	channelId := model.NewId()
-	userId := model.NewId()
+	channelID := model.NewId()
+	userID := model.NewId()
 
 	bookmark1 := &model.ChannelBookmark{
-		ChannelId:   channelId,
-		OwnerId:     userId,
+		ChannelId:   channelID,
+		OwnerId:     userID,
 		DisplayName: "Link bookmark test",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelBookmarkLink,

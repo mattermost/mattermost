@@ -1,14 +1,16 @@
-@charset "utf-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 .channel-header {
     position: relative;
-    z-index: 15;
+    z-index: variables.$z-index-channel-header;
     width: 100%;
     max-height: 56px;
     padding: 12px;
     border-radius: 12px 12px 0 0;
     border-bottom: var(--border-default);
-    background: v(center-channel-bg);
+    background: functions.v(center-channel-bg);
     font-size: 14px;
 
     #channelHeaderDropdownButton {
@@ -26,15 +28,15 @@
         margin-right: 2px;
 
         &:hover {
-            background: rgba(v(center-channel-color-rgb), 0.08);
+            background: rgba(functions.v(center-channel-color-rgb), 0.08);
         }
 
         &.active {
-            background: rgba(v(button-bg-rgb), 0.08);
+            background: rgba(functions.v(button-bg-rgb), 0.08);
 
             .heading,
             .header-dropdown-chevron-icon {
-                color: v(button-bg);
+                color: functions.v(button-bg);
             }
         }
 
@@ -65,7 +67,7 @@
         }
 
         &:hover {
-            background: rgba(v(center-channel-color-rgb), 0.08);
+            background: rgba(functions.v(center-channel-color-rgb), 0.08);
 
             i {
                 opacity: 0.8;
@@ -74,7 +76,7 @@
 
         &.inactive {
             .icon {
-                color: v(center-channel-color);
+                color: functions.v(center-channel-color);
             }
         }
 
@@ -109,14 +111,6 @@
             min-width: 0;
             flex: 1;
             padding: 0 24px 0 2px;
-        }
-
-        .markdown__paragraph-inline {
-            display: inline-block;
-            overflow: hidden;
-            width: 100%;
-            margin: 0;
-            text-overflow: ellipsis;
         }
     }
 
@@ -215,6 +209,7 @@
     .heading {
         overflow: hidden;
         align-self: center;
+        padding: 4px;
         margin: 0 0 0 2px;
         color: var(--center-channel-color);
         font-family: Metropolis, sans-serif;
@@ -388,19 +383,6 @@
             }
         }
 
-        blockquote {
-            overflow: hidden;
-            padding: 0 0 0 20px;
-            font-size: 13px;
-            text-overflow: ellipsis;
-
-            &::before {
-                top: 0;
-                left: 2px;
-                font-size: 15px;
-            }
-        }
-
         .header-placeholder {
             display: none;
             overflow: hidden;
@@ -444,6 +426,8 @@
             overflow: hidden;
             height: 24px;
             line-height: inherit;
+            text-overflow: ellipsis;
+            white-space: nowrap;
 
             ul {
                 &:first-child {
@@ -460,6 +444,20 @@
                 }
             }
 
+            &>blockquote {
+                display: inline-block;
+                overflow: hidden;
+                padding: 0 0 0 20px;
+                font-size: 13px;
+                text-overflow: ellipsis;
+
+                &::before {
+                    top: 0;
+                    left: 2px;
+                    font-size: 15px;
+                }
+            }
+
             .emoticon {
                 width: 18.8px;
                 min-width: 18.8px;
@@ -467,6 +465,17 @@
                 height: 18.8px;
                 min-height: 18.8px;
                 max-height: 18.8px;
+            }
+
+            &>p.markdown__paragraph-inline:first-child {
+                display: inline;
+                overflow: hidden;
+                margin: 0;
+                text-overflow: ellipsis;
+            }
+
+            &>p.markdown__paragraph-inline:not(:first-child) {
+                display: block;
             }
         }
 
@@ -563,7 +572,6 @@
     }
 }
 
-.channel-header__popover,
 .navbar__popover {
     p {
         white-space: pre-wrap;
@@ -699,7 +707,7 @@
     }
 
     .team__header {
-        @include pie-clearfix;
+        @include mixins.pie-clearfix;
 
         position: relative;
         display: flex;
@@ -717,7 +725,7 @@
             height: 100%;
             background: none;
             content: "";
-            transition: all $transition-quick ease-in-out;
+            transition: all variables.$transition-quick ease-in-out;
         }
 
         &:hover {
@@ -807,7 +815,7 @@
                 height: 100%;
                 padding: 10px;
                 background: none;
-                color: $white;
+                color: variables.$white;
                 font-size: 1em;
                 line-height: 1.8;
                 opacity: 0.8;
@@ -833,7 +841,7 @@
                 width: 36px;
                 height: 36px;
                 border-radius: 36px;
-                fill: $white;
+                fill: variables.$white;
                 float: right;
                 line-height: 36px;
                 text-align: center;
@@ -881,7 +889,7 @@
             color: rgba(var(--sidebar-header-text-color-rgb), 0.8);
             font-size: 14px;
             font-weight: 400;
-            transition: all $transition-quick ease-in-out;
+            transition: all variables.$transition-quick ease-in-out;
         }
 
         .custom-status {

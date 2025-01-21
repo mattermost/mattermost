@@ -191,9 +191,9 @@ func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterID strin
 	return r0, r1
 }
 
-// GetEditHistoryForPost provides a mock function with given fields: postId
-func (_m *PostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
-	ret := _m.Called(postId)
+// GetEditHistoryForPost provides a mock function with given fields: postID
+func (_m *PostStore) GetEditHistoryForPost(postID string) ([]*model.Post, error) {
+	ret := _m.Called(postID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetEditHistoryForPost")
@@ -202,10 +202,10 @@ func (_m *PostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error)
 	var r0 []*model.Post
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string) ([]*model.Post, error)); ok {
-		return rf(postId)
+		return rf(postID)
 	}
 	if rf, ok := ret.Get(0).(func(string) []*model.Post); ok {
-		r0 = rf(postId)
+		r0 = rf(postID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Post)
@@ -213,7 +213,7 @@ func (_m *PostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error)
 	}
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(postId)
+		r1 = rf(postID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -946,9 +946,9 @@ func (_m *PostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*
 	return r0, r1
 }
 
-// HasAutoResponsePostByUserSince provides a mock function with given fields: options, userId
-func (_m *PostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
-	ret := _m.Called(options, userId)
+// HasAutoResponsePostByUserSince provides a mock function with given fields: options, userID
+func (_m *PostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userID string) (bool, error) {
+	ret := _m.Called(options, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for HasAutoResponsePostByUserSince")
@@ -957,16 +957,16 @@ func (_m *PostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceO
 	var r0 bool
 	var r1 error
 	if rf, ok := ret.Get(0).(func(model.GetPostsSinceOptions, string) (bool, error)); ok {
-		return rf(options, userId)
+		return rf(options, userID)
 	}
 	if rf, ok := ret.Get(0).(func(model.GetPostsSinceOptions, string) bool); ok {
-		r0 = rf(options, userId)
+		r0 = rf(options, userID)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	if rf, ok := ret.Get(1).(func(model.GetPostsSinceOptions, string) error); ok {
-		r1 = rf(options, userId)
+		r1 = rf(options, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

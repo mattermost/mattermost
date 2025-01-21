@@ -12,6 +12,8 @@ type Props = {
     children: ({hover}: {hover: boolean}) => React.ReactNode;
     onClick: () => void;
     hasError: boolean;
+    innerRef?: React.Ref<HTMLElement>;
+    isHighlighted?: boolean;
 };
 
 const isEligibleForClick = makeIsEligibleForClick('.hljs, code');
@@ -20,6 +22,8 @@ function Panel({
     children,
     onClick,
     hasError,
+    innerRef,
+    isHighlighted,
 }: Props) {
     const [hover, setHover] = useState(false);
 
@@ -43,12 +47,14 @@ function Panel({
                 'Panel',
                 {
                     draftError: hasError,
+                    highlighted: isHighlighted,
                 },
             )}
             onMouseOver={handleMouseOver}
             onClick={handleOnClick}
             onMouseLeave={handleMouseLeave}
             role='button'
+            ref={innerRef}
         >
             {children({hover})}
         </article>

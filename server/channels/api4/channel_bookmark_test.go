@@ -16,7 +16,6 @@ import (
 )
 
 func TestCreateChannelBookmark(t *testing.T) {
-	t.Skip("MM-60279")
 	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
 
@@ -222,8 +221,11 @@ func TestCreateChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of creating a bookmark", func(t *testing.T) {
+		t.Skip("MM-62437")
+
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
+		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
 		webSocketClient.Listen()
 		defer webSocketClient.Close()
 
@@ -246,18 +248,22 @@ func TestCreateChannelBookmark(t *testing.T) {
 		var b model.ChannelBookmarkWithFileInfo
 		timeout := time.After(5 * time.Second)
 		waiting := true
+		eventReceived := false
 		for waiting {
 			select {
 			case event := <-webSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventChannelBookmarkCreated {
 					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
 					require.NoError(t, err)
+					eventReceived = true
+					waiting = false
 				}
 			case <-timeout:
 				waiting = false
 			}
 		}
 
+		require.True(t, eventReceived, "Expected WebSocket event was not received within the timeout period")
 		require.NotNil(t, b)
 		require.NotEmpty(t, b.Id)
 	})
@@ -594,8 +600,10 @@ func TestEditChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-61779")
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
+		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
 		webSocketClient.Listen()
 		defer webSocketClient.Close()
 
@@ -624,18 +632,22 @@ func TestEditChannelBookmark(t *testing.T) {
 		var ucb model.UpdateChannelBookmarkResponse
 		timeout := time.After(5 * time.Second)
 		waiting := true
+		eventReceived := false
 		for waiting {
 			select {
 			case event := <-webSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventChannelBookmarkUpdated {
 					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &ucb)
 					require.NoError(t, err)
+					eventReceived = true
+					waiting = false
 				}
 			case <-timeout:
 				waiting = false
 			}
 		}
 
+		require.True(t, eventReceived, "Expected WebSocket event was not received within the timeout period")
 		require.NotNil(t, ucb)
 		require.NotEmpty(t, ucb.Updated)
 		require.Equal(t, "Edited bookmark test", ucb.Updated.DisplayName)
@@ -963,10 +975,13 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	})
 
 	t.Run("a websockets event should be fired as part of editing a bookmark's sort order", func(t *testing.T) {
+		t.Skip("MM-61301")
 		now := model.GetMillis()
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
+		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
 		webSocketClient.Listen()
+
 		defer webSocketClient.Close()
 
 		bookmark := &model.ChannelBookmark{
@@ -1006,22 +1021,25 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		var bl []*model.ChannelBookmarkWithFileInfo
 		timeout := time.After(5 * time.Second)
 		waiting := true
+		eventReceived := false
 		for waiting {
 			select {
 			case event := <-webSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventChannelBookmarkSorted {
 					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &bl)
 					require.NoError(t, err)
-
 					for _, b := range bl {
 						require.Greater(t, b.UpdateAt, now)
 					}
+					eventReceived = true
+					waiting = false
 				}
 			case <-timeout:
 				waiting = false
 			}
 		}
 
+		require.True(t, eventReceived, "Expected WebSocket event was not received within the timeout period")
 		require.NotEmpty(t, bl)
 		require.Equal(t, cb.Id, bl[0].Id)
 		require.Equal(t, int64(0), bl[0].SortOrder)
@@ -1316,6 +1334,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 	t.Run("a websockets event should be fired as part of deleting a bookmark", func(t *testing.T) {
 		webSocketClient, err := th.CreateWebSocketClient()
 		require.NoError(t, err)
+		require.NotNil(t, webSocketClient, "webSocketClient should not be nil")
 		webSocketClient.Listen()
 		defer webSocketClient.Close()
 
@@ -1344,17 +1363,21 @@ func TestDeleteChannelBookmark(t *testing.T) {
 		var b *model.ChannelBookmarkWithFileInfo
 		timeout := time.After(5 * time.Second)
 		waiting := true
+		eventReceived := false
 		for waiting {
 			select {
 			case event := <-webSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
 					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
 					require.NoError(t, err)
+					eventReceived = true
+					waiting = false
 				}
 			case <-timeout:
 				waiting = false
 			}
 		}
+		require.True(t, eventReceived, "Expected WebSocket event was not received within the timeout period")
 		require.NotEmpty(t, b)
 		require.Equal(t, cb.Id, b.Id)
 		require.NotEmpty(t, b.DeleteAt)

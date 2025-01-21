@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: buildenv/checkout-repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: buildenv/calculate-golang-version
         working-directory: server/
@@ -21,13 +21,13 @@ jobs:
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/docker-login
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
 
       - name: buildenv/build-and-push
-        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v6.10.0
         with:
           provenance: false
           file: server/build/Dockerfile.buildenv

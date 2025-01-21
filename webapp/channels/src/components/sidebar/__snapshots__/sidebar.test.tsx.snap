@@ -32,11 +32,11 @@ exports[`components/sidebar should match snapshot 1`] = `
   <div
     className="sidebar--left__icons"
   >
-    <Connect(Pluggable)
+    <Pluggable
       pluggableName="LeftSidebarHeader"
     />
   </div>
-  <Connect(SidebarList)
+  <Connect(injectIntl(SidebarList))
     handleOpenMoreDirectChannelsModal={[Function]}
     onDragEnd={[Function]}
     onDragStart={[Function]}
@@ -75,11 +75,11 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
   <div
     className="sidebar--left__icons"
   >
-    <Connect(Pluggable)
+    <Pluggable
       pluggableName="LeftSidebarHeader"
     />
   </div>
-  <Connect(SidebarList)
+  <Connect(injectIntl(SidebarList))
     handleOpenMoreDirectChannelsModal={[Function]}
     onDragEnd={[Function]}
     onDragStart={[Function]}
@@ -122,11 +122,11 @@ exports[`components/sidebar should match snapshot when more channels modal is op
   <div
     className="sidebar--left__icons"
   >
-    <Connect(Pluggable)
+    <Pluggable
       pluggableName="LeftSidebarHeader"
     />
   </div>
-  <Connect(SidebarList)
+  <Connect(injectIntl(SidebarList))
     handleOpenMoreDirectChannelsModal={[Function]}
     onDragEnd={[Function]}
     onDragStart={[Function]}

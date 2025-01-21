@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AdminSettings should match snapshot 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        Some title
+      </div>
+      Some settings
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;

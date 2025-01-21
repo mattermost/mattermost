@@ -71,14 +71,14 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 			IpAddress:     c.AppContext.IPAddress(),
 			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
-		Meta: map[string]interface{}{
+		Meta: map[string]any{
 			audit.KeyAPIPath:   c.AppContext.Path(),
 			audit.KeyClusterID: c.App.GetClusterId(),
 		},
 		EventData: audit.EventData{
-			Parameters:  map[string]interface{}{},
-			PriorState:  map[string]interface{}{},
-			ResultState: map[string]interface{}{},
+			Parameters:  map[string]any{},
+			PriorState:  map[string]any{},
+			ResultState: map[string]any{},
 			ObjectType:  "",
 		},
 	}
@@ -681,6 +681,17 @@ func (c *Context) RequireRoleId() *Context {
 
 	if !model.IsValidId(c.Params.RoleId) {
 		c.SetInvalidURLParam("role_id")
+	}
+	return c
+}
+
+func (c *Context) RequireFieldId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.FieldId) {
+		c.SetInvalidURLParam("field_id")
 	}
 	return c
 }

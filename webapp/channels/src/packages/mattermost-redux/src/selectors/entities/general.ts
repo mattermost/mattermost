@@ -4,7 +4,9 @@
 import {GiphyFetch} from '@giphy/js-fetch-api';
 
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import type {UserPropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -157,3 +159,15 @@ export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) 
         return null;
     },
 );
+
+export function developerModeEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableDeveloper === 'true';
+}
+
+export function testingEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableTesting === 'true';
+}
+
+export function getCustomProfileAttributes(state: GlobalState): IDMappedObjects<UserPropertyField> {
+    return state.entities.general.customProfileAttributes;
+}

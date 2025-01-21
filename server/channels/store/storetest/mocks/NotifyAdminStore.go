@@ -62,9 +62,9 @@ func (_m *NotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 	return r0, r1
 }
 
-// GetDataByUserIdAndFeature provides a mock function with given fields: userId, feature
-func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
-	ret := _m.Called(userId, feature)
+// GetDataByUserIdAndFeature provides a mock function with given fields: userID, feature
+func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userID string, feature model.MattermostFeature) ([]*model.NotifyAdminData, error) {
+	ret := _m.Called(userID, feature)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDataByUserIdAndFeature")
@@ -73,10 +73,10 @@ func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mod
 	var r0 []*model.NotifyAdminData
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, model.MattermostFeature) ([]*model.NotifyAdminData, error)); ok {
-		return rf(userId, feature)
+		return rf(userID, feature)
 	}
 	if rf, ok := ret.Get(0).(func(string, model.MattermostFeature) []*model.NotifyAdminData); ok {
-		r0 = rf(userId, feature)
+		r0 = rf(userID, feature)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.NotifyAdminData)
@@ -84,7 +84,7 @@ func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mod
 	}
 
 	if rf, ok := ret.Get(1).(func(string, model.MattermostFeature) error); ok {
-		r1 = rf(userId, feature)
+		r1 = rf(userID, feature)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -122,9 +122,9 @@ func (_m *NotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdmi
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: userId, requiredPlan, requiredFeature, now
-func (_m *NotifyAdminStore) Update(userId string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
-	ret := _m.Called(userId, requiredPlan, requiredFeature, now)
+// Update provides a mock function with given fields: userID, requiredPlan, requiredFeature, now
+func (_m *NotifyAdminStore) Update(userID string, requiredPlan string, requiredFeature model.MattermostFeature, now int64) error {
+	ret := _m.Called(userID, requiredPlan, requiredFeature, now)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -132,7 +132,7 @@ func (_m *NotifyAdminStore) Update(userId string, requiredPlan string, requiredF
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, model.MattermostFeature, int64) error); ok {
-		r0 = rf(userId, requiredPlan, requiredFeature, now)
+		r0 = rf(userID, requiredPlan, requiredFeature, now)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -66,7 +66,7 @@ func (s ByUserId) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s ByUserId) Less(i, j int) bool { return s[i].UserId < s[j].UserId }
 
 func testUpdateExpiredDNDStatuses(t *testing.T, rctx request.CTX, ss store.Store) {
-	userID := NewTestId()
+	userID := NewTestID()
 
 	status := &model.Status{UserId: userID, Status: model.StatusDnd, Manual: true,
 		DNDEndTime: time.Now().Add(5 * time.Second).Unix(), PrevStatus: model.StatusOnline}

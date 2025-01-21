@@ -25,7 +25,6 @@ import {CloudProducts, LicenseSkus, MattermostFeatures, TELEMETRY_CATEGORIES, Re
 import {findOnlyYearlyProducts, findProductBySku} from 'utils/products';
 
 import Card, {BlankCard, ButtonCustomiserClasses} from './card';
-import ContactSalesCTA from './contact_sales_cta';
 
 import './content.scss';
 
@@ -218,7 +217,6 @@ function Content(props: ContentProps) {
                                 />) : undefined}
                         buttonDetails={enterpriseBtnDetails()}
                         planTrialDisclaimer={undefined}
-                        contactSalesCTA={(isPostTrial || !isAdmin) ? undefined : <ContactSalesCTA/>}
                         briefing={{
                             title: formatMessage({id: 'pricing_modal.briefing.title_large_scale', defaultMessage: 'Large scale collaboration'}),
                             items: [

@@ -16,7 +16,7 @@ import (
 )
 
 func TestBusySet(t *testing.T) {
-	cluster := &ClusterMock{Busy: &Busy{}}
+	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
 	isNotBusy := func() bool {
@@ -54,7 +54,7 @@ func TestBusySet(t *testing.T) {
 }
 
 func TestBusyExpires(t *testing.T) {
-	cluster := &ClusterMock{Busy: &Busy{}}
+	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
 	isNotBusy := func() bool {
@@ -90,7 +90,7 @@ func TestBusyExpires(t *testing.T) {
 }
 
 func TestBusyRace(t *testing.T) {
-	cluster := &ClusterMock{Busy: &Busy{}}
+	cluster := &ClusterMock{Busy: &Busy{}, t: t}
 	busy := NewBusy(cluster)
 
 	busy.Set(500 * time.Millisecond)
@@ -119,11 +119,13 @@ func compareBusyState(t *testing.T, busy1 *Busy, busy2 *Busy) bool {
 // ClusterMock simulates the busy state of a cluster.
 type ClusterMock struct {
 	Busy *Busy
+	t    *testing.T
 }
 
 func (c *ClusterMock) SendClusterMessage(msg *model.ClusterMessage) {
 	var sbs model.ServerBusyState
-	json.Unmarshal(msg.Data, &sbs)
+	err := json.Unmarshal(msg.Data, &sbs)
+	require.NoError(c.t, err)
 	c.Busy.ClusterEventChanged(&sbs)
 }
 
@@ -159,4 +161,7 @@ func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *mod
 func (c *ClusterMock) HealthScore() int { return 0 }
 func (c *ClusterMock) WebConnCountForUser(userID string) (int, *model.AppError) {
 	return 0, nil
+}
+func (c *ClusterMock) GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
+	return nil, nil
 }

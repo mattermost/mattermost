@@ -61,7 +61,7 @@ services:
       retries: 3
   minio:
     image: "minio/minio:RELEASE.2024-06-22T05-26-45Z"
-    command: "server /data"
+    command: "server /data --console-address :9002"
     networks:
       - mm-test
     environment:

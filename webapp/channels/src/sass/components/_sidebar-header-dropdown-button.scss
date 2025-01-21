@@ -1,3 +1,5 @@
+@use "utils/variables";
+
 .SidebarHeaderDropdownButton {
     position: relative;
     display: flex;
@@ -8,7 +10,7 @@
         width: 100%;
         flex-grow: 1;
         padding: 3px 15px 0 8px;
-        color: $white;
+        color: variables.$white;
 
         .team__name {
             overflow: hidden;
@@ -45,7 +47,7 @@
     }
 
     .menu-icon {
-        fill: $white;
+        fill: variables.$white;
         opacity: 0.8;
     }
 

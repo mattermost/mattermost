@@ -18,8 +18,6 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
     topOffset={-7}
   />
   <WithTooltip
-    id="reaction-icon-tooltip"
-    placement="top"
     title={
       Object {
         "defaultMessage": "Add Reaction",
@@ -28,7 +26,7 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
     }
   >
     <button
-      aria-label="add reaction"
+      aria-label="Add Reaction"
       className="post-menu__item post-menu__item--reactions"
       data-testid="post-reaction-emoji-icon"
       id="CENTER_reaction_post_id_1"

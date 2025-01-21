@@ -134,7 +134,7 @@ describe('Channel RHS', () => {
 
         // # Enter the search terms and hit enter to start the search
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').clear().type(MESSAGES.TINY).type('{enter}');
+        cy.uiGetSearchBox().first().clear().type(MESSAGES.TINY).type('{enter}');
 
         // * Verify that the search results is opened in RHS
         verifyRHSisOpenAndHasTitle('Search Results');

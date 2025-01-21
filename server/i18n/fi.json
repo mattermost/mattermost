@@ -1528,10 +1528,6 @@
     "translation": "Virheellinen alkuperäinen ID"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Virheellinen viesti"
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Virheellinen ID"
   },
@@ -2206,10 +2202,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Ei voida päivittää webhookia tiimien välillä"
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Ei voitu dekoodata sisääntulevan webhookin moniosaista sisältöä."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",

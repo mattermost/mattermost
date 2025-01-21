@@ -168,7 +168,7 @@ const ConvertGmToChannelModal = (props: Props) => {
             );
         } else {
             subBody = (
-                <React.Fragment>
+                <>
                     <WarningTextSection channelMemberNames={channelMemberNames}/>
 
                     {
@@ -199,7 +199,7 @@ const ConvertGmToChannelModal = (props: Props) => {
                         </div>
                     }
 
-                </React.Fragment>
+                </>
             );
         }
 

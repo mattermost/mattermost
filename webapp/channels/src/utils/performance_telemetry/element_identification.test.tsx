@@ -37,6 +37,11 @@ describe('identifyElementRegion', () => {
         const user = TestHelper.getUserMock({
             id: 'test-user-id',
             roles: 'system_admin system_user',
+            timezone: {
+                useAutomaticTimezone: 'true',
+                automaticTimezone: 'America/New_York',
+                manualTimezone: '',
+            },
         });
         const post = TestHelper.getPostMock({
             id: 'test-post-id',
@@ -143,6 +148,6 @@ describe('identifyElementRegion', () => {
             expect(identifyElementRegion(screen.getByText(post.message))).toEqual('post');
         });
 
-        expect(identifyElementRegion(screen.getByText('Write to ' + channel.display_name))).toEqual('post_textbox');
+        expect(identifyElementRegion(screen.getByPlaceholderText('Write to ' + channel.display_name))).toEqual('post_textbox');
     });
 });

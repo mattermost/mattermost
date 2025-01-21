@@ -1,6 +1,6 @@
 @use 'sass:color';
 
-@import 'utils/variables';
+@use 'utils/variables';
 
 #searchInput {
     flex: none;
@@ -11,9 +11,9 @@
     height: auto;
     flex-direction: row;
     padding: 8px;
-    border: 1px solid $light-gray;
+    border: 1px solid variables.$light-gray;
     border-top: none;
-    background: $white;
+    background: variables.$white;
     color: rgba(0, 0, 0, 0.5);
     font-size: 1.1em;
     text-align: right;

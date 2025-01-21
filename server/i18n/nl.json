@@ -2295,10 +2295,6 @@
     "translation": "Ofwel trigger_words of channel_id moet ingesteld zijn."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Kan multipart payload van inkomende webhook niet decoderen."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Kan webhook niet bijwerken tussen teams."
   },
@@ -3064,31 +3060,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch-aggregator kon geen indexeertaak aanmaken"
+    "translation": "{{.Backend}}-aggregator kon geen indexeertaak aanmaken"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch-aggregator kon de indexen niet wissen"
+    "translation": "{{.Backend}}-aggregator kon de indexen niet wissen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch-aggregator kon de indexen niet ophalen"
+    "translation": "{{.Backend}}-aggregator kon de indexen niet ophalen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch-aggregator werker mislukte omwille van een gefaalde indexeertaak"
+    "translation": "{{.Backend}}-aggregator werker mislukte omwille van een gefaalde indexeertaak"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Het opzetten van Elasticsearch Client mislukte"
+    "translation": "Het opzetten van {{.Backend}} Client mislukte"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Fout bij het verwijderen van de Elastisearch index"
+    "translation": "Fout bij het verwijderen van de {{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Fout bij het verwijderen van de Elastisearch indexen"
+    "translation": "Fout bij het verwijderen van de {{.Backend}} indexen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3096,7 +3092,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch-zoeken is niet ingeschakeld op deze server"
+    "translation": "{{.Backend}} zoeken is niet ingeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3104,15 +3100,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker is er niet in geslaagd de eindtijd te verwerken"
+    "translation": "{{.Backend}} indexing worker is er niet in geslaagd de eindtijd te verwerken"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker is er niet in geslaagd de starttijd te verwerken"
+    "translation": "{{.Backend}} indexing worker is er niet in geslaagd de starttijd te verwerken"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is niet gestart"
+    "translation": "{{.Backend}} is niet gestart"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3120,7 +3116,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch zoeken is uitgeschakeld op deze server"
+    "translation": "{{.Backend}} zoeken is uitgeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3136,11 +3132,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is reeds gestopt."
+    "translation": "{{.Backend}} is reeds gestopt."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is uitgeschakeld."
+    "translation": "{{.Backend}} is uitgeschakeld."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3708,27 +3704,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "De Elasticsearch AggregatePostsAfterDays instelling moet een getal zijn dat groter is dan of gelijk is aan 1."
+    "translation": "De AggregatePostsAfterDays instelling moet een getal zijn dat groter is dan of gelijk is aan 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search Username instelling moet ingevuld zijn wanneer Elastic Search indexing is ingeschakeld."
+    "translation": "Search Username instelling moet ingevuld zijn wanneer indexing is ingeschakeld."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "De instelling Elastisearch IndexingEnabled moet worden ingesteld op waar als de functie Elastisearch SearchEnabled ingesteld is op waar"
+    "translation": "De instelling Search IndexingEnabled moet worden ingesteld op waar als de functie Elastisearch SearchEnabled ingesteld is op waar"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size moet ten minste 1 zijn."
+    "translation": "Search Live Indexing Batch Size moet ten minste 1 zijn."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "De Elasticsearch PostsAggregatorJobStartTime instelling moet een tijd zijn in de notatie \"uu:mm\"."
+    "translation": "De search PostsAggregatorJobStartTime instelling moet een tijd zijn in de notatie \"uu:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Timeout Aanvraag moet ten minste 1 seconde zijn."
+    "translation": "Search Timeout Aanvraag moet ten minste 1 seconde zijn."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4311,10 +4307,6 @@
     "translation": "Ongeldig Id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Ongeldige orgineel id."
   },
@@ -4612,11 +4604,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Kon de opdracht niet vinden."
+    "translation": "Kon de opdracht {{.command_id}} niet vinden."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Kan binnenkomende data niet verwerken."
+    "translation": "Kan inkomende gegevens voor webhook {{.hook_id}} niet verwerken."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4628,7 +4620,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Deze webhook is niet toegestaan om te posten naar het aangevraagde kanaal."
+    "translation": "Deze webhook mag niet posten naar het gevraagde kanaal {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4644,7 +4636,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Onjuiste kanaal rechten."
+    "translation": "Gebruiker {{.user}} heeft niet de juiste rechten voor kanaal {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4656,7 +4648,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "De gebruiker kan niet worden gevonden."
+    "translation": "Kon de gebruiker {{.user}} niet vinden"
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -4736,19 +4728,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versie 17.0+"
+    "translation": "Versie 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 115+"
+    "translation": "Versie 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 126+"
+    "translation": "Versie 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 126+"
+    "translation": "Versie 130+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4964,11 +4956,11 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Verwerken van Elasticsearch-serverversie is mislukt."
+    "translation": "Verwerken van {{.Backend}}-serverversie is mislukt."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Ophalen van Elasticsearch-serverversie is mislukt."
+    "translation": "Ophalen van {{.Backend}}-serverversie is mislukt."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4988,7 +4980,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch zoeken is uitgeschakeld op deze server"
+    "translation": "{{.Backend}} zoeken is uitgeschakeld op deze server"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -5016,15 +5008,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor gebruikers is mislukt"
+    "translation": "Het aanmaken van het {{.Backend}}-sjabloon voor gebruikers is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor berichten is mislukt"
+    "translation": "Het aanmaken van het {{.Backend}}-sjabloon voor berichten is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor kanalen kon niet aangemaakt worden"
+    "translation": "{{.Backend}}-sjabloon voor kanalen kon niet aangemaakt worden"
   },
   {
     "id": "ent.compliance.csv.warning.appError",
@@ -5400,11 +5392,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal."
+    "translation": "Er is een fout opgetreden bij het vinden van het kanaal {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Het bestaande kanaal kon niet gevonden worden."
+    "translation": "Kan het bestaande kanaal {{.channel_id}} niet vinden."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -7440,7 +7432,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor berichten aanmaken is mislukt"
+    "translation": "{{.Backend}}-sjabloon voor berichten aanmaken is mislukt"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -7480,7 +7472,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elastichsearch naar bestanden is op deze server uitgeschakeld"
+    "translation": "{{.Backend}} naar bestanden is op deze server uitgeschakeld"
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -8611,7 +8603,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
+    "translation": "Bulkzoek Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8819,7 +8811,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Je kan niet bevestigen in een gearchiveerd kanaal."
+    "translation": "Je kan geen bevestig bewaren in een gearchiveerd kanaal."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -8848,10 +8840,6 @@
   {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Ongeldige prioriteit"
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ongeldig bericht."
   },
   {
     "id": "model.draft.is_valid.file_ids.app_error",
@@ -8947,19 +8935,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Kon het client-keybestand voor Elasticsearch niet openen"
+    "translation": "Kon het client-keybestand voor {{.Backend}}niet openen"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Kon het client-certificaatbestand voor Elasticsearch niet openen"
+    "translation": "Kon het client-certificaatbestand voor {{.Backend}} niet openen"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Het decoderen van het client-certificaat voor Elasticsearch is mislukt"
+    "translation": "Het decoderen van het client-certificaat voor {{.Backend}} is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Kon het CA-bestand voor Elasticsearch niet openen"
+    "translation": "Kon het CA-bestand voor {{.Backend}} niet openen"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9067,7 +9055,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch versie {{.Version}} is hoger dan de maximaal ondersteunde versie van {{.MaxVersion}}"
+    "translation": "{{.Backend}} versie {{.Version}} is hoger dan de maximaal ondersteunde versie van {{.MaxVersion}}"
   },
   {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
@@ -10163,7 +10151,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kan remote niet afmelden voor kanaal"
+    "translation": "Kan uitnodiging voor kanaal niet intrekken voor remote"
   },
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
@@ -10208,5 +10196,263 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Fout bij het definitief verwijderen van bericht."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Kan geen direct kanaal maken met een gebruiker op afstand"
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Kan geen groepskanaal maken met externe gebruikers"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Fout bij het kopiëren van de licentie naar de buffer"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Kan cluster op afstand niet uitnodigen"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Kan het bericht niet maken in een privé-bericht of groepsbericht met externe gebruikers"
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Ongeldig extern id."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Ongeldige site-URL."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Ongeldig token."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "ongeldig_verzoek: Bad request."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "Functie voor geplande berichten is uitgeschakeld"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Voor de functie Geplande berichten is een licentie nodig"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Kan de bot niet bijwerken."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Je hebt geen toestemming om deze resource te verwijderen."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Fout bij het verwijderen van de gepland bericht uit de database."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Geplande post bestaat niet."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Kan de eigenaar van de bot niet vinden"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Kan bestaande gepland bericht niet ophalen uit database."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Fout opgetreden bij het ophalen van geplande berichten."
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Regel met importgegevens heeft type \"bot\" maar het botobject is null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot eigenaar ontbreekt"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Kan geen bericht plannen in een gearchiveerd kanaal."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Er is een fout opgetreden bij het opslaan van het gepland bericht."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Gepland bericht bestaat niet."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Kan bestaand gepland bericht niet ophalen uit database."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Het is niet gelukt om bijgewerkte geplande berichten op te slaan in de database."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Je hebt geen toestemming om deze resourcebij te werken."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Kan geen leeg bericht plannen. Geplande berichten moeten minstens een bericht of bestandsbijlagen hebben."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Geplande berichten moeten een ID hebben."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Fout verwerkt op het moment."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Ongeldig gepland op tijdstip."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Het bericht kan niet worden aangemaakt"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Kan de systeembot niet ophalen"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Kan de systeembot geen privé-bericht sturen"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Kan de gebruiker niet ophalen"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Als je deze testmelding hebt ontvangen, dan werkt het!"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Kan niet naar het begin van de GIF-gegevens zoeken."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanaal is gearchiveerd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Geen lid van het kanaal"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Geen toestemming om in kanaal te posten"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Draadje is verwijderd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Kan het bericht niet verzenden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Onbekende fout"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Gebruikersaccount is verwijderd"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Gebruiker bestaat niet"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Ongeldige opslagklasse {{.Value}}."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanaal niet gevonden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Ongeldige inhoud van bericht"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}",
+      "other": "- {{.Count}} in kanaal {{.ChannelName}}. Reden: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privé-kanaal"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Fout bij het verzenden {{.Count}} gepland bericht.",
+      "other": "Fout bij het verzenden {{.Count}} geplande berichten."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Kan geplande berichten voor gebruiker niet verwijderen."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Onbekend Kanaal"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Kan post niet in cache plaatsen na ontdubbelen van een client die hetzelfde verzoek herhaalt."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Kan de leespositie niet terugzetten naar het begin van de plugin-bundel."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Kon de opdracht webhook {{.hook_id}} niet verwerken."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Kan de payload van mediatype {{.media_type}} voor inkomende webhook {{.hook_id}} niet decoderen."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Kan de payload van mediatype {{.media_type}} voor inkomende webhook {{.hook_id}} niet verwerken."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Kan de media voor inkomende webhook {{.hook_id}} niet verwerken."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "De eigenschap Conceptbericht is langer dan de maximaal toegestane lengte."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "De eigenschap Postbericht is langer dan de maximaal toegestane lengte."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Kan de configuratie niet filteren."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Kan geen map maken voor aangepaste emoji-afbeeldingen"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Gebruikersrollen zijn niet consistent met de gaststatus."
   }
 ]

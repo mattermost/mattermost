@@ -523,7 +523,7 @@ describe('runDesktopNotificationHooks', () => {
 
         const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
-        expect(result.args).toEqual(args);
+        expect(result.data).toEqual(args);
     });
 
     test('should pass the args through every hook', async () => {
@@ -557,7 +557,7 @@ describe('runDesktopNotificationHooks', () => {
 
         const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
-        expect(result.args).toEqual(args);
+        expect(result.data).toEqual(args);
         expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
         expect(hook2).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
         expect(hook3).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
@@ -668,7 +668,7 @@ describe('runDesktopNotificationHooks', () => {
 
         const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
-        expect(result.args).toEqual(args);
+        expect(result.data).toEqual(args);
         expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
         expect(hook2).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
         expect(hook3).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
@@ -717,7 +717,7 @@ describe('runDesktopNotificationHooks', () => {
 
         const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
-        expect(result.args).toEqual({...args, title: 'Notification titleabc', notify: true});
+        expect(result.data).toEqual({...args, title: 'Notification titleabc', notify: true});
         expect(hook1).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
         expect(hook2).toHaveBeenCalledWith(post, msgProps, channel, teamId, {...args, title: 'Notification titlea'});
         expect(hook3).toHaveBeenCalledWith(post, msgProps, channel, teamId, {...args, title: 'Notification titleab', notify: false});
@@ -760,7 +760,7 @@ describe('runDesktopNotificationHooks', () => {
 
         const result = await store.dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
 
-        expect(result.args).toEqual({...args, title: 'Notification title async'});
+        expect(result.data).toEqual({...args, title: 'Notification title async'});
         expect(hook).toHaveBeenCalledWith(post, msgProps, channel, teamId, args);
     });
 });

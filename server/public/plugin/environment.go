@@ -599,7 +599,7 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 //
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
 // plugins is not specified.
-func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
+func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks, manifest *model.Manifest) bool, hookId int) {
 	startTime := time.Now()
 
 	env.registeredPlugins.Range(func(key, value any) bool {
@@ -610,7 +610,7 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 		}
 
 		hookStartTime := time.Now()
-		result := hookRunnerFunc(rp.supervisor.Hooks())
+		result := hookRunnerFunc(rp.supervisor.Hooks(), rp.BundleInfo.Manifest)
 
 		if env.metrics != nil {
 			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)

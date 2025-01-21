@@ -30,8 +30,8 @@ func TestGetConfig(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		cfg, _, err := client.GetConfig(context.Background())
+	t.Run("Get config for system admin client", func(t *testing.T) {
+		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 		require.NoError(t, err)
 
 		require.NotEqual(t, "", cfg.TeamSettings.SiteName)
@@ -58,6 +58,14 @@ func TestGetConfig(t *testing.T) {
 		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FakeSetting) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}
+	})
+
+	t.Run("Get config for local client", func(t *testing.T) {
+		cfg, _, err := th.LocalClient.GetConfig(context.Background())
+		require.NoError(t, err)
+
+		require.NotEqual(t, model.FakeSetting, *cfg.SqlSettings.DataSource)
+		require.NotEqual(t, model.FakeSetting, *cfg.FileSettings.PublicLinkSalt)
 	})
 }
 
@@ -273,7 +281,7 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
 
 		// Check that the Site URL can't be cleared
-		cfg.ServiceSettings.SiteURL = sToP("")
+		cfg.ServiceSettings.SiteURL = model.NewPointer("")
 		cfg, resp, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)

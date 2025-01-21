@@ -210,7 +210,6 @@ export default class Reaction extends React.PureComponent<Props, State> {
 
         return (
             <ReactionTooltip
-                id={`${this.props.post.id}-${this.props.emojiName}-reaction`}
                 canAddReactions={canAddReactions}
                 canRemoveReactions={canRemoveReactions}
                 currentUserReacted={currentUserReacted}

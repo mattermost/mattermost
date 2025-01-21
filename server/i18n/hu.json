@@ -1488,10 +1488,6 @@
     "translation": "Érvénytelen eredeti azonosító."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Érvénytelen üzenet."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Érvénytelen azonosító."
   },
@@ -4406,10 +4402,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Nem frissíthet webhookokat csapatok között."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nem sikerült dekódolni a bejövő webhook többrészes adatát."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",

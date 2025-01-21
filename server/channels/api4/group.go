@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 func (api *API) InitGroup() {
@@ -300,6 +301,14 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventResultState(group)
 	auditRec.AddEventObjectType("group")
+
+	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
+		telemetry.TrackGroupsFeature,
+		"modify_group__edit_details",
+		map[string]any{
+			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup: group.Id,
+		})
 
 	b, err := json.Marshal(group)
 	if err != nil {
@@ -1339,6 +1348,13 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
+		telemetry.TrackGroupsFeature,
+		"modify_group__add_members",
+		map[string]any{
+			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup: group.Id,
+		})
 }
 
 func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1400,6 +1416,13 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+	c.App.Srv().GetTelemetryService().SendTelemetryForFeature(
+		telemetry.TrackGroupsFeature,
+		"modify_group__remove_members",
+		map[string]any{
+			telemetry.TrackPropertyUser:  c.AppContext.Session().UserId,
+			telemetry.TrackPropertyGroup: group.Id,
+		})
 }
 
 // hasPermissionToReadGroupMembers check if a user has the permission to read the list of members of a given team.

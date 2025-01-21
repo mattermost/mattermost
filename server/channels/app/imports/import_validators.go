@@ -122,7 +122,7 @@ func ValidateTeamImportData(data *TeamImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_length.error", nil, "", http.StatusBadRequest)
 	} else if model.IsReservedTeamName(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_reserved.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidTeamName(*data.Name) {
+	} else if !model.IsValidTeamName(strings.ToLower(*data.Name)) { // uppercase letters are not allowed in team names, but for import path we are more forgiving
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -158,7 +158,7 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	} else if len(*data.Name) > model.ChannelNameMaxLength {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_length.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidChannelIdentifier(*data.Name) {
+	} else if !model.IsValidChannelIdentifier(strings.ToLower(*data.Name)) { // uppercase letters are not allowed in channel names, but for import path we are more forgiving
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -192,13 +192,15 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 func ValidateUserImportData(data *UserImportData) *model.AppError {
 	if data.ProfileImage != nil && data.ProfileImageData == nil {
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusNotFound).Wrap(err)
+		} else if err != nil {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
 	if data.Username == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidUsername(*data.Username) {
+	} else if !model.IsValidUsername(model.NormalizeUsername(*data.Username)) { // we already lowercase the username while saving and querying so we are more forgiving here
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -259,6 +261,10 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.roles_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
+	if !isValidGuestRoles(*data) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.guest_roles_conflict.error", nil, "", http.StatusBadRequest)
+	}
+
 	if data.NotifyProps != nil {
 		if data.NotifyProps.Desktop != nil && !isValidUserNotifyLevel(*data.NotifyProps.Desktop) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_invalid.error", nil, "", http.StatusBadRequest)
@@ -307,6 +313,34 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Teams != nil {
 		return ValidateUserTeamsImportData(data.Teams)
+	}
+
+	return nil
+}
+
+func ValidateBotImportData(data *BotImportData) *model.AppError {
+	if data.ProfileImage != nil && data.ProfileImageData == nil {
+		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusNotFound).Wrap(err)
+		} else if err != nil {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	if data.Username == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
+	} else if !model.IsValidUsername(model.NormalizeUsername(*data.Username)) { // we already lowercase the username while saving and querying so we are more forgiving here
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.DisplayName != nil && utf8.RuneCountInString(*data.DisplayName) > model.UserFirstNameMaxRunes {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.first_name_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Owner == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_bot_import_data.owner_missing.error", nil, "", http.StatusBadRequest)
+	} else if !model.IsValidUsername(*data.Owner) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -440,6 +474,19 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int("reply_create_at", *data.CreateAt), mlog.Int("parent_create_at", parentCreateAt))
 	}
 
+	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Reactions != nil {
+		for _, reaction := range *data.Reactions {
+			reaction := reaction
+			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -471,14 +518,18 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			ValidateReactionImportData(&reaction, *data.CreateAt)
+			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
+				return err
+			}
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -587,14 +638,18 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			ValidateReactionImportData(&reaction, *data.CreateAt)
+			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
+				return err
+			}
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -649,4 +704,48 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 	return emailInterval == model.PreferenceEmailIntervalImmediately ||
 		emailInterval == model.PreferenceEmailIntervalFifteen ||
 		emailInterval == model.PreferenceEmailIntervalHour
+}
+
+// isValidGuestRoles checks if the user has both guest roles in the same team or channel.
+// at this point we assume that the user has a valid role scheme.
+func isValidGuestRoles(data UserImportData) bool {
+	if data.Roles == nil {
+		return true
+	}
+	isSystemGuest := model.IsInRole(*data.Roles, model.SystemGuestRoleId)
+
+	var isTeamGuest, isChannelGuest bool
+	if data.Teams != nil {
+		// counters for guest roles for teams and channels
+		// we expect the total count of guest roles to be equal to the total count of teams and channels
+		var gtc, ctc int
+		for _, team := range *data.Teams {
+			if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
+				gtc++
+			}
+
+			if *team.Channels != nil {
+				for _, channel := range *team.Channels {
+					if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
+						ctc++
+					}
+				}
+
+				if ctc == len(*team.Channels) {
+					isChannelGuest = true
+				}
+			}
+		}
+		if gtc == len(*data.Teams) {
+			isTeamGuest = true
+		}
+	}
+
+	// basically we want to be sure if the user either fully guest in all 3 places or not at all
+	// (a | b | c) & !(a & b & c) -> 3-way XOR?
+	if (isSystemGuest || isTeamGuest || isChannelGuest) && !(isSystemGuest && isTeamGuest && isChannelGuest) {
+		return false
+	}
+
+	return true
 }

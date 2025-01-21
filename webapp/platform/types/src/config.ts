@@ -58,6 +58,7 @@ export type ClientConfig = {
     EnableCustomEmoji: string;
     EnableCustomGroups: string;
     EnableCustomUserStatuses: string;
+    EnableExperimentalLocales: string;
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
     EnableTimedDND: string;
@@ -122,6 +123,7 @@ export type ClientConfig = {
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
+    FeatureFlagCustomProfileAttributes: string;
     FeatureFlagWebSocketEventScope: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -213,6 +215,7 @@ export type ClientConfig = {
     UniqueEmojiReactionLimitPerPost: string;
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: string;
     YoutubeReferrerPolicy: 'true' | 'false';
+    ScheduledPosts: string;
 };
 
 export type License = {
@@ -398,6 +401,7 @@ export type ServiceSettings = {
     EnableAPIPostDeletion: boolean;
     EnableDesktopLandingPage: boolean;
     MaximumURLLength: number;
+    ScheduledPosts: boolean;
 };
 
 export type TeamSettings = {
@@ -543,6 +547,7 @@ export type FileSettings = {
     AmazonS3Trace: boolean;
     AmazonS3RequestTimeoutMilliseconds: number;
     AmazonS3UploadPartSizeBytes: number;
+    AmazonS3StorageClass: string;
     DedicatedExportStore: boolean;
     ExportDriverName: string;
     ExportDirectory: string;
@@ -559,6 +564,7 @@ export type FileSettings = {
     ExportAmazonS3RequestTimeoutMilliseconds: number;
     ExportAmazonS3PresignExpiresSeconds: number;
     ExportAmazonS3UploadPartSizeBytes: number;
+    ExportAmazonS3StorageClass: string;
 };
 
 export type EmailSettings = {
@@ -717,6 +723,7 @@ export type LocalizationSettings = {
     DefaultServerLocale: string;
     DefaultClientLocale: string;
     AvailableLocales: string;
+    EnableExperimentalLocales: boolean;
 };
 
 export type SamlSettings = {

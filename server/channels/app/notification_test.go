@@ -41,7 +41,8 @@ func TestSendNotifications(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.Nil(t, appErr)
 
 	post1, createPostErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -169,8 +170,6 @@ func TestSendNotifications(t *testing.T) {
 	})
 
 	t.Run("replies to post created by OAuth bot should not notify user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
 		testUserNotNotified := func(t *testing.T, user *model.User) {
 			rootPost := &model.Post{
 				UserId:    user.Id,
@@ -297,7 +296,8 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		require.Nil(t, appErr)
 
 		defer func() {
-			th.App.UpdateChannelMemberRoles(th.Context, member.ChannelId, member.UserId, originalRoles)
+			_, appErr = th.App.UpdateChannelMemberRoles(th.Context, member.ChannelId, member.UserId, originalRoles)
+			require.Nil(t, appErr)
 		}()
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuEnterprise))
@@ -521,7 +521,7 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 		Locale:       "en",
 		ConnectionID: connectionID,
 	}, th.App, th.App.Channels())
-	th.App.Srv().Platform().HubRegister(webConn)
+	require.NoError(t, th.App.Srv().Platform().HubRegister(webConn))
 
 	// Start reading from it
 	go webConn.Pump()
@@ -571,7 +571,8 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		user := th.CreateUser()
 		th.LinkUserToTeam(user, th.BasicTeam)
-		th.App.AddUserToChannel(th.Context, user, th.BasicChannel, false)
+		_, appErr := th.App.AddUserToChannel(th.Context, user, th.BasicChannel, false)
+		require.Nil(t, appErr)
 		users = append(users, user)
 	}
 
@@ -669,13 +670,19 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	guest := th.CreateGuest()
 	user4 := th.CreateUser()
 	guestAndUser4Channel := th.CreateChannel(th.Context, th.BasicTeam)
-	defer th.App.PermanentDeleteUser(th.Context, guest)
+	defer func() {
+		appErr := th.App.PermanentDeleteUser(th.Context, guest)
+		require.Nil(t, appErr)
+	}()
 	th.LinkUserToTeam(user3, th.BasicTeam)
 	th.LinkUserToTeam(user4, th.BasicTeam)
 	th.LinkUserToTeam(guest, th.BasicTeam)
-	th.App.AddUserToChannel(th.Context, guest, channel, false)
-	th.App.AddUserToChannel(th.Context, user4, guestAndUser4Channel, false)
-	th.App.AddUserToChannel(th.Context, guest, guestAndUser4Channel, false)
+	_, appErr := th.App.AddUserToChannel(th.Context, guest, channel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, user4, guestAndUser4Channel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, guest, guestAndUser4Channel, false)
+	require.Nil(t, appErr)
 
 	t.Run("should return users not in the channel", func(t *testing.T) {
 		post := &model.Post{}
@@ -1617,7 +1624,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"mention_keys": "User,@User,MENTION",
 		},
 	}
-	mentionableUser1ID := MentionableUserID(user1.Id)
+	mentionableUser1ID := mentionableUserID(user1.Id)
 
 	channelMemberNotifyPropsMap1Off := map[string]model.StringMap{
 		user1.Id: {
@@ -1648,7 +1655,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"first_name": "true",
 		},
 	}
-	mentionableUser2ID := MentionableUserID(user2.Id)
+	mentionableUser2ID := mentionableUserID(user2.Id)
 
 	channelMemberNotifyPropsMap2Off := map[string]model.StringMap{
 		user2.Id: {
@@ -1673,7 +1680,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"channel": "true",
 		},
 	}
-	mentionableUser3ID := MentionableUserID(user3.Id)
+	mentionableUser3ID := mentionableUserID(user3.Id)
 
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap3Off := map[string]model.StringMap{
@@ -1739,7 +1746,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"channel":      "true",
 		},
 	}
-	mentionableUser4ID := MentionableUserID(user4.Id)
+	mentionableUser4ID := mentionableUserID(user4.Id)
 
 	// Channel-wide mentions are not ignored on channel level
 	channelMemberNotifyPropsMap4Off := map[string]model.StringMap{
@@ -1926,7 +1933,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	assert.Equal(t, 1, len(keywords), "should've returned one mention keyword")
 	ids, ok = keywords["@user"]
 	assert.True(t, ok)
-	assert.Equal(t, MentionableUserID(userNoMentionKeys.Id), ids[0], "should've returned mention key of @user")
+	assert.Equal(t, mentionableUserID(userNoMentionKeys.Id), ids[0], "should've returned mention key of @user")
 }
 
 func TestGetMentionKeywords_Groups(t *testing.T) {
@@ -1935,8 +1942,8 @@ func TestGetMentionKeywords_Groups(t *testing.T) {
 
 	userID1 := model.NewId()
 	userID2 := model.NewId()
-	mentionableUserID1 := MentionableUserID(userID1)
-	mentionableUserID2 := MentionableUserID(userID2)
+	mentionableUserID1 := mentionableUserID(userID1)
+	mentionableUserID2 := mentionableUserID(userID2)
 
 	for name, tc := range map[string]struct {
 		Profiles                 map[string]*model.User
@@ -2524,7 +2531,8 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in the case user is a bot", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.ConvertUserToBot(th.Context, user)
+		_, appErr := th.App.ConvertUserToBot(th.Context, user)
+		require.Nil(t, appErr)
 
 		channelMemberNotifcationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
@@ -2549,19 +2557,22 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	groupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(groupChannelMember, team)
-	th.App.AddUserToChannel(th.Context, groupChannelMember, channel, false)
+	_, appErr := th.App.AddUserToChannel(th.Context, groupChannelMember, channel, false)
+	require.Nil(t, appErr)
 	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
 	senderGroupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(senderGroupChannelMember, team)
-	th.App.AddUserToChannel(th.Context, senderGroupChannelMember, channel, false)
+	_, appErr = th.App.AddUserToChannel(th.Context, senderGroupChannelMember, channel, false)
+	require.Nil(t, appErr)
 	_, err = th.App.UpsertGroupMember(group.Id, senderGroupChannelMember.Id)
 	require.Nil(t, err)
 
 	nonGroupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(nonGroupChannelMember, team)
-	th.App.AddUserToChannel(th.Context, nonGroupChannelMember, channel, false)
+	_, appErr = th.App.AddUserToChannel(th.Context, nonGroupChannelMember, channel, false)
+	require.Nil(t, appErr)
 
 	nonChannelGroupMember := th.CreateUser()
 	th.LinkUserToTeam(nonChannelGroupMember, team)
@@ -2623,8 +2634,10 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	t.Run("should keep existing mentions", func(t *testing.T) {
 		mentions := &MentionResults{}
-		th.App.insertGroupMentions(senderGroupChannelMember.Id, group, channel, profileMap, mentions)
-		th.App.insertGroupMentions(senderGroupChannelMember.Id, groupWithNoMembers, channel, profileMap, mentions)
+		_, appErr := th.App.insertGroupMentions(senderGroupChannelMember.Id, group, channel, profileMap, mentions)
+		require.Nil(t, appErr)
+		_, appErr = th.App.insertGroupMentions(senderGroupChannelMember.Id, groupWithNoMembers, channel, profileMap, mentions)
+		require.Nil(t, appErr)
 
 		// Ensure mentions from group are kept after running with groupWithNoMembers
 		require.Equal(t, len(mentions.Mentions), 1)
@@ -2636,13 +2649,15 @@ func TestInsertGroupMentions(t *testing.T) {
 		emptyProfileMap := make(map[string]*model.User)
 
 		groupChannel := &model.Channel{Type: model.ChannelTypeGroup}
-		usersMentioned, _ := th.App.insertGroupMentions(senderGroupChannelMember.Id, group, groupChannel, emptyProfileMap, mentions)
+		usersMentioned, appErr := th.App.insertGroupMentions(senderGroupChannelMember.Id, group, groupChannel, emptyProfileMap, mentions)
+		require.Nil(t, appErr)
 		// Ensure group channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
 		require.Equal(t, len(mentions.Mentions), 0)
 
 		directChannel := &model.Channel{Type: model.ChannelTypeDirect}
-		usersMentioned, _ = th.App.insertGroupMentions(senderGroupChannelMember.Id, group, directChannel, emptyProfileMap, mentions)
+		usersMentioned, appErr = th.App.insertGroupMentions(senderGroupChannelMember.Id, group, directChannel, emptyProfileMap, mentions)
+		require.Nil(t, appErr)
 		// Ensure direct channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
 		require.Equal(t, len(mentions.Mentions), 0)
@@ -2653,7 +2668,8 @@ func TestInsertGroupMentions(t *testing.T) {
 		require.Nil(t, err)
 
 		mentions := &MentionResults{}
-		th.App.insertGroupMentions(senderGroupChannelMember.Id, group, groupChannel, profileMap, mentions)
+		_, appErr := th.App.insertGroupMentions(senderGroupChannelMember.Id, group, groupChannel, profileMap, mentions)
+		require.Nil(t, appErr)
 
 		require.Equal(t, len(mentions.Mentions), 1)
 		_, found := mentions.Mentions[groupChannelMember.Id]
@@ -3078,13 +3094,13 @@ func TestRemoveNotifications(t *testing.T) {
 
 func TestShouldAckWebsocketNotification(t *testing.T) {
 	t.Run("should return true if channel notify level is ALL", func(t *testing.T) {
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyNone, model.ChannelNotifyAll))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyNone, model.ChannelNotifyAll))
 	})
 	t.Run("should return true if user notify level is ALL and the channel is unchanged", func(t *testing.T) {
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyAll, model.ChannelNotifyDefault))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeOpen, model.UserNotifyAll, model.ChannelNotifyDefault))
 	})
 	t.Run("should return true if its a group channel, and the level is mention", func(t *testing.T) {
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyMention, model.ChannelNotifyDefault))
-		assert.True(t, ShouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyNone, model.ChannelNotifyMention))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyMention, model.ChannelNotifyDefault))
+		assert.True(t, shouldAckWebsocketNotification(model.ChannelTypeGroup, model.UserNotifyNone, model.ChannelNotifyMention))
 	})
 }

@@ -113,7 +113,7 @@ func (*ExportLinkProvider) DoCommand(a *app.App, c request.CTX, args *model.Comm
 	}
 
 	// return link
-	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.link.text", map[string]interface{}{
+	return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command_exportlink.link.text", map[string]any{
 		"Link":       res.URL,
 		"Expiration": res.Expiration.String(),
 	})}

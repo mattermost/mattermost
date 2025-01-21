@@ -395,7 +395,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 
-			//If email verification is required and user email is not verified don't send email.
+			// If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonEmailNotVerified, model.NotificationNoPlatform)
 				a.NotificationsLog().Debug("Email not verified",
@@ -619,7 +619,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if statusReason := DoesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId, true); statusReason == "" {
+			if statusReason := doesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId, true); statusReason == "" {
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
@@ -696,7 +696,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
 		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
 
-		if ShouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
+		if shouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
 			usersToAck = append(usersToAck, id)
 		}
 	}
@@ -869,16 +869,22 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				a.Srv().telemetryService.SendTelemetryForFeature(
 					telemetry.TrackGuestFeature,
 					"post_mentioned_guest",
-					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
 				)
 			} else if reason == DMMention {
 				a.Srv().telemetryService.SendTelemetryForFeature(
 					telemetry.TrackGuestFeature,
 					"direct_message_to_guest",
-					map[string]any{"user_actual_id": user.Id, "post_owner_id": sender.Id},
+					map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id},
 				)
 			}
 		}
+		if user.IsRemote() {
+			a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackSharedChannelsFeature, "mentioned_remote_user", map[string]any{telemetry.TrackPropertyUser: user.Id, telemetry.TrackPropertyPostAuthor: sender.Id})
+		}
+	}
+	for groupId := range mentions.GroupMentions {
+		a.Srv().telemetryService.SendTelemetryForFeature(telemetry.TrackGroupsFeature, "post_mentioned_custom_group", map[string]any{telemetry.TrackPropertyUser: sender.Id, telemetry.TrackPropertyGroup: groupId, "group_size": groups[groupId].MemberCount})
 	}
 	return mentionedUsersList, nil
 }
@@ -1576,6 +1582,13 @@ func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *
 	for _, user := range outOfChannelGroupMembers {
 		potentialGroupMembersMentioned = append(potentialGroupMembersMentioned, user.Username)
 	}
+	if len(potentialGroupMembersMentioned) != 0 {
+		a.Srv().telemetryService.SendTelemetryForFeature(
+			telemetry.TrackGroupsFeature,
+			"invite_group_to_channel__post",
+			map[string]any{telemetry.TrackPropertyUser: senderID, telemetry.TrackPropertyGroup: group.Id},
+		)
+	}
 	if mentions.OtherPotentialMentions == nil {
 		mentions.OtherPotentialMentions = potentialGroupMembersMentioned
 	} else {
@@ -1742,7 +1755,7 @@ func shouldChannelMemberNotifyCRT(userNotifyProps model.StringMap, channelMember
 	return
 }
 
-func ShouldAckWebsocketNotification(channelType model.ChannelType, userNotificationLevel, channelNotificationLevel string) bool {
+func shouldAckWebsocketNotification(channelType model.ChannelType, userNotificationLevel, channelNotificationLevel string) bool {
 	if channelNotificationLevel == model.ChannelNotifyAll {
 		// Should ACK on if we notify for all messages in the channel
 		return true

@@ -32,8 +32,8 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         interface Chainable {
-            uiSearchPosts(searchTerm: string): ChainableT;
-            uiJumpToSearchResult(postId: string): ChainableT;
+            uiSearchPosts(searchTerm: string): ChainableT<void>;
+            uiJumpToSearchResult(postId: string): ChainableT<void>;
         }
     }
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 )
 
 type InviteProvider struct {
@@ -185,23 +186,23 @@ func (i *InviteProvider) doCommand(a *app.App, c request.CTX, args *model.Comman
 	return ""
 }
 
-func (i *InviteProvider) getUsersFromMentionName(a *app.App, mentionName string) []*model.User {
+func (i *InviteProvider) getUsersFromMentionName(a *app.App, mentionName string) ([]*model.User, *model.Group) {
 	userProfile, err := a.Srv().Store().User().GetByUsername(mentionName)
 	if err == nil && userProfile.DeleteAt == 0 {
-		return []*model.User{userProfile}
+		return []*model.User{userProfile}, nil
 	}
 
 	group, appErr := a.GetGroupByName(mentionName, model.GroupSearchOpts{FilterAllowReference: true})
 	if appErr != nil || group == nil {
-		return nil
+		return nil, nil
 	}
 
 	members, appErr := a.GetGroupMemberUsers(group.Id)
 	if appErr != nil {
-		return nil
+		return nil, nil
 	}
 
-	return members
+	return members, group
 }
 
 func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.CommandArgs, resps *[]string, message string) ([]*model.User, []*model.Channel, string) {
@@ -217,7 +218,14 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 
 		if msg[0] == '@' || (msg[0] != '~' && j == 0) {
 			targetMentionName := strings.TrimPrefix(msg, "@")
-			users := i.getUsersFromMentionName(a, targetMentionName)
+			users, group := i.getUsersFromMentionName(a, targetMentionName)
+			if group != nil {
+				a.Srv().GetTelemetryService().SendTelemetryForFeature(
+					telemetry.TrackGroupsFeature,
+					"invite_group_to_channel__command",
+					map[string]any{telemetry.TrackPropertyUser: c.Session().UserId, telemetry.TrackPropertyGroup: group.Id},
+				)
+			}
 			if len(users) == 0 {
 				*resps = append(*resps, args.T("api.command_invite.missing_user.app_error", map[string]any{
 					"User": targetMentionName,

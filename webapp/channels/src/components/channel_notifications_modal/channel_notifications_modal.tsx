@@ -350,7 +350,7 @@ export default function ChannelNotificationsModal(props: Props) {
             show={show}
             onHide={handleHide}
             onExited={props.onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='channelNotificationModalLabel'
             style={{display: 'flex', placeItems: 'center'}}
         >

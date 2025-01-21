@@ -633,9 +633,11 @@ func TestNoticeFetch(t *testing.T) {
 	require.NoError(t, err)
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "notices.json") {
-			w.Write(noticesBytes)
+			_, err = w.Write(noticesBytes)
+			require.NoError(t, err)
 		} else {
-			w.Write(noticesBytes2)
+			_, err = w.Write(noticesBytes2)
+			require.NoError(t, err)
 		}
 	}))
 	defer server1.Close()

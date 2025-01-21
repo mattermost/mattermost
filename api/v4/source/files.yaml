@@ -375,7 +375,7 @@
                     from a user include `from:someusername`, using a user's
                     username. To search in a specific channel include
                     `in:somechannel`, using the channel name (not the display
-                    name). To search for specific extensions included `ext:extension`.
+                    name). To search for specific extensions include `ext:extension`.
                 is_or_search:
                   type: boolean
                   description: Set to true if an Or search should be performed vs an And
@@ -411,3 +411,72 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/files/search":
+    post:
+      tags:
+        - files
+        - search
+      summary: Search files across the teams of the current user
+      description: >
+        Search for files in the teams of the current user based on file name,
+        extention and file content (if file content extraction is enabled and
+        supported for the files).
+
+        __Minimum server version__: 10.2
+
+        ##### Permissions
+
+        Must be authenticated and have the `view_team` permission.
+      operationId: SearchFiles
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - terms
+                - is_or_search
+              properties:
+                terms:
+                  type: string
+                  description: The search terms as entered by the user. To search for files
+                    from a user include `from:someusername`, using a user's
+                    username. To search in a specific channel include
+                    `in:somechannel`, using the channel name (not the display
+                    name). To search for specific extensions include `ext:extension`.
+                is_or_search:
+                  type: boolean
+                  description: Set to true if an Or search should be performed vs an And
+                    search.
+                time_zone_offset:
+                  type: integer
+                  default: 0
+                  description: Offset from UTC of user timezone for date searches.
+                include_deleted_channels:
+                  type: boolean
+                  description: Set to true if deleted channels should be included in the
+                    search. (archived channels)
+                page:
+                  type: integer
+                  default: 0
+                  description: The page to select. (Only works with Elasticsearch)
+                per_page:
+                  type: integer
+                  default: 60
+                  description: The number of posts per page. (Only works with Elasticsearch)
+        description: The search terms and logic to use in the search.
+        required: true
+      responses:
+        "200":
+          description: Files list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileInfoList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+

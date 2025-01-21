@@ -441,7 +441,8 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	require.True(t, actual)
 
 	// delete the syncable, should be false again
-	th.App.DeleteGroupSyncable(group2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	_, appErr := th.App.DeleteGroupSyncable(group2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, appErr)
 	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 	require.False(t, actual)

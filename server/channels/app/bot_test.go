@@ -79,7 +79,10 @@ func TestCreateBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, "a bot", bot.Description)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
@@ -197,12 +200,15 @@ func TestPatchBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
 
 		botPatch := &model.BotPatch{
-			Username:    sToP("invalid username"),
-			DisplayName: sToP("an updated bot"),
-			Description: sToP("updated bot"),
+			Username:    model.NewPointer("invalid username"),
+			DisplayName: model.NewPointer("an updated bot"),
+			Description: model.NewPointer("updated bot"),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -220,12 +226,15 @@ func TestPatchBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
 
 		botPatch := &model.BotPatch{
-			Username:    sToP("username"),
-			DisplayName: sToP("display name"),
-			Description: sToP(strings.Repeat("x", 1025)),
+			Username:    model.NewPointer("username"),
+			DisplayName: model.NewPointer("display name"),
+			Description: model.NewPointer(strings.Repeat("x", 1025)),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -246,12 +255,15 @@ func TestPatchBot(t *testing.T) {
 
 		createdBot, err := th.App.CreateBot(th.Context, bot)
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
+			require.Nil(t, err)
+		}()
 
 		botPatch := &model.BotPatch{
-			Username:    sToP("username2"),
-			DisplayName: sToP("updated bot"),
-			Description: sToP("an updated bot"),
+			Username:    model.NewPointer("username2"),
+			DisplayName: model.NewPointer("updated bot"),
+			Description: model.NewPointer("an updated bot"),
 		}
 
 		patchedBot, err := th.App.PatchBot(th.Context, createdBot.UserId, botPatch)
@@ -278,10 +290,13 @@ func TestPatchBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
 
 		botPatch := &model.BotPatch{
-			Username: sToP(th.BasicUser2.Username),
+			Username: model.NewPointer(th.BasicUser2.Username),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -300,7 +315,10 @@ func TestGetBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, bot1.UserId)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, bot1.UserId)
+		require.Nil(t, err)
+	}()
 
 	bot2, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username2",
@@ -308,7 +326,10 @@ func TestGetBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, bot2.UserId)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, bot2.UserId)
+		require.Nil(t, err)
+	}()
 
 	deletedBot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username3",
@@ -318,7 +339,10 @@ func TestGetBot(t *testing.T) {
 	require.Nil(t, err)
 	deletedBot, err = th.App.UpdateBotActive(th.Context, deletedBot.UserId, false)
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, deletedBot.UserId)
+	defer func() {
+		err := th.App.PermanentDeleteBot(th.Context, deletedBot.UserId)
+		require.Nil(t, err)
+	}()
 
 	t.Run("get unknown bot", func(t *testing.T) {
 		_, err := th.App.GetBot(th.Context, model.NewId(), false)
@@ -364,7 +388,10 @@ func TestGetBots(t *testing.T) {
 		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, bot1.UserId)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, bot1.UserId)
+		require.Nil(t, err)
+	}()
 
 	deletedBot1, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username4",
@@ -374,7 +401,10 @@ func TestGetBots(t *testing.T) {
 	require.Nil(t, err)
 	deletedBot1, err = th.App.UpdateBotActive(th.Context, deletedBot1.UserId, false)
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, deletedBot1.UserId)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, deletedBot1.UserId)
+		require.Nil(t, err)
+	}()
 
 	bot2, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username2",
@@ -382,7 +412,10 @@ func TestGetBots(t *testing.T) {
 		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, bot2.UserId)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, bot2.UserId)
+		require.Nil(t, err)
+	}()
 
 	bot3, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username3",
@@ -390,7 +423,10 @@ func TestGetBots(t *testing.T) {
 		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, bot3.UserId)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, bot3.UserId)
+		require.Nil(t, err)
+	}()
 
 	bot4, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username5",
@@ -398,7 +434,10 @@ func TestGetBots(t *testing.T) {
 		OwnerId:     OwnerId2,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, bot4.UserId)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, bot4.UserId)
+		require.Nil(t, err)
+	}()
 
 	deletedBot2, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username6",
@@ -408,7 +447,10 @@ func TestGetBots(t *testing.T) {
 	require.Nil(t, err)
 	deletedBot2, err = th.App.UpdateBotActive(th.Context, deletedBot2.UserId, false)
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, deletedBot2.UserId)
+	defer func() {
+		err := th.App.PermanentDeleteBot(th.Context, deletedBot2.UserId)
+		require.Nil(t, err)
+	}()
 
 	t.Run("get bots, page=0, perPage=10", func(t *testing.T) {
 		bots, err := th.App.GetBots(th.Context, &model.BotGetOptions{
@@ -563,7 +605,10 @@ func TestUpdateBotActive(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
 
 		disabledBot, err := th.App.UpdateBotActive(th.Context, bot.UserId, false)
 		require.Nil(t, err)
@@ -613,7 +658,8 @@ func TestDisableUserBots(t *testing.T) {
 	bots := []*model.Bot{}
 	defer func() {
 		for _, bot := range bots {
-			th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			err := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
 		}
 	}()
 
@@ -634,7 +680,10 @@ func TestDisableUserBots(t *testing.T) {
 		OwnerId:     ownerId2,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, u2bot1.UserId)
+	defer func() {
+		err = th.App.PermanentDeleteBot(th.Context, u2bot1.UserId)
+		require.Nil(t, err)
+	}()
 
 	err = th.App.disableUserBots(th.Context, ownerId1)
 	require.Nil(t, err)
@@ -667,7 +716,8 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	userBots := []*model.Bot{}
 	defer func() {
 		for _, bot := range userBots {
-			th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			err := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
 		}
 	}()
 
@@ -680,7 +730,8 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err := th.App.CreateUser(th.Context, &sysadmin1)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(th.Context, sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	_, err = th.App.UpdateUserRoles(th.Context, sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	require.Nil(t, err)
 
 	sysadmin2 := model.User{
 		Email:    "sys2@example.com",
@@ -690,7 +741,8 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err = th.App.CreateUser(th.Context, &sysadmin2)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(th.Context, sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	_, err = th.App.UpdateUserRoles(th.Context, sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	require.Nil(t, err)
 
 	// create user to be disabled
 	user1, err := th.App.CreateUser(th.Context, &model.User{
@@ -820,18 +872,34 @@ func TestConvertUserToBot(t *testing.T) {
 		})
 	})
 
-	t.Run("valid user", func(t *testing.T) {
+	t.Run("valid user and session revoked", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+
+		// make sure session is valid
+		testSession, err := th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, testSession.IsExpired())
 
 		bot, err := th.App.ConvertUserToBot(th.Context, &model.User{
 			Username: "username",
 			Id:       th.BasicUser.Id,
 		})
 		require.Nil(t, err)
-		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+
+		// make sure session is no longer valid
+		_, err = th.App.GetSession(session.Token)
+		require.NotNil(t, err)
+		require.Equal(t, "api.context.invalid_token.error", err.Id)
 	})
 }
 
@@ -871,8 +939,4 @@ func TestGetSystemBot(t *testing.T) {
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
 	})
-}
-
-func sToP(s string) *string {
-	return &s
 }

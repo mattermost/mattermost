@@ -10,6 +10,7 @@ import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/e
 
 import type {GlobalState} from 'types/store';
 
+import {getMissingMentionedUsers} from './actions';
 import AtMention from './at_mention';
 
 function mapStateToProps(state: GlobalState) {
@@ -21,7 +22,11 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-const connector = connect(mapStateToProps);
+const mapDispatchToProps = {
+    getMissingMentionedUsers,
+};
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connector(AtMention);

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {ChainableT} from 'tests/types';
+import {LdapUser} from './ldap_server_commands';
 import * as TIMEOUTS from '../fixtures/timeouts';
 
 const {
@@ -36,8 +37,8 @@ function keycloakGetAccessTokenAPI(): ChainableT<string> {
         data: 'grant_type=password&username=mmuser&password=mostest&client_id=admin-cli',
     }).then((response: any) => {
         expect(response.status).to.equal(200);
-        const token = response.data.access_token;
-        return cy.wrap(token as string);
+        const token: string = response.data.access_token;
+        return cy.wrap(token);
     });
 }
 
@@ -52,7 +53,7 @@ Cypress.Commands.add('keycloakGetAccessTokenAPI', keycloakGetAccessTokenAPI);
 * @example
 *   cy.keycloakCreateUserAPI('abcde', {firstName: 'test', lastName: 'test', email: 'test', username: 'test', enabled: true,});
 */
-function keycloakCreateUserAPI(accessToken: string, user: any = {}) {
+function keycloakCreateUserAPI(accessToken: string, user: any = {}): ChainableT {
     const profile = buildProfile(user);
     return cy.task('keycloakRequest', {
         baseUrl,
@@ -152,7 +153,6 @@ function keycloakDeleteUserAPI(accessToken: string, userId: string): ChainableT 
         expect(response.data).is.empty;
     });
 }
-
 Cypress.Commands.add('keycloakDeleteUserAPI', keycloakDeleteUserAPI);
 
 /**
@@ -179,7 +179,6 @@ function keycloakUpdateUserAPI(accessToken: string, userId: string, data: any): 
         expect(response.data).is.empty;
     });
 }
-
 Cypress.Commands.add('keycloakUpdateUserAPI', keycloakUpdateUserAPI);
 
 /**
@@ -191,7 +190,7 @@ Cypress.Commands.add('keycloakUpdateUserAPI', keycloakUpdateUserAPI);
 * @example
 *   cy.keycloakDeleteSessionAPI('abcde', '12345');
 */
-function keycloakDeleteSessionAPI(accessToken: string, sessionId: string): ChainableT<any> {
+function keycloakDeleteSessionAPI(accessToken: string, sessionId: string): ChainableT {
     return cy.task('keycloakRequest', {
         baseUrl,
         path: `sessions/${sessionId}`,
@@ -293,7 +292,7 @@ Cypress.Commands.add('keycloakResetUsers', keycloakResetUsers);
 * @example
 *   cy.keycloakCreateUser({firstName: 'test', lastName: 'test', email: 'test', username: 'test', enabled: true});
 */
-function keycloakCreateUser(accessToken, user: any): ChainableT {
+function keycloakCreateUser(accessToken: string, user: any): ChainableT {
     return cy.keycloakCreateUserAPI(accessToken, user).then(() => {
         cy.keycloakGetUserAPI(accessToken, user.email).then((newId) => {
             cy.keycloakResetPasswordAPI(accessToken, newId, user.password).then(() => {
@@ -304,9 +303,15 @@ function keycloakCreateUser(accessToken, user: any): ChainableT {
         });
     });
 }
-
 Cypress.Commands.add('keycloakCreateUser', keycloakCreateUser);
 
+/**
+* keycloakCreateUsers is a command that creates keycloak users.
+* @param {User[]} users - an array of users
+*
+* @example
+*   cy.keycloakCreateUsers(users);
+*/
 function keycloakCreateUsers(users = []) {
     return cy.keycloakGetAccessTokenAPI().then((accessToken) => {
         return users.forEach((user) => {
@@ -317,7 +322,15 @@ function keycloakCreateUsers(users = []) {
 
 Cypress.Commands.add('keycloakCreateUsers', keycloakCreateUsers);
 
-function keycloakUpdateUser(userEmail, data): ChainableT {
+/**
+* keycloakUpdateUser is a command that updates a keycloak user data.
+* @param {string} userEmail - the user email
+* @param {any} data - the user data to update
+*
+* @example
+*   cy.keycloakUpdateUser('user@example.com', {firstName: 'test', lastName: 'test'});
+*/
+function keycloakUpdateUser(userEmail: string, data: any) {
     return cy.keycloakGetAccessTokenAPI().then((accessToken) => {
         return cy.keycloakGetUserAPI(accessToken, userEmail).then((userId) => {
             return cy.keycloakUpdateUserAPI(accessToken, userId, data);
@@ -375,7 +388,7 @@ Cypress.Commands.add('checkKeycloakLoginPage', checkKeycloakLoginPage);
 * @example
 *   cy.doKeycloakLogin();
 */
-function doKeycloakLogin(user) {
+function doKeycloakLogin(user: LdapUser) {
     cy.apiLogout();
     cy.visit('/login');
     cy.findByText('SAML').click();
@@ -418,7 +431,7 @@ declare global {
             keycloakSuspendUser(userEmail: string): ChainableT<void>;
             keycloakUnsuspendUser: typeof keycloakUnsuspendUser;
             checkKeycloakLoginPage: typeof checkKeycloakLoginPage;
-            doKeycloakLogin(user): ChainableT<void>;
+            doKeycloakLogin(user: LdapUser): ChainableT<void>;
             verifyKeycloakLoginFailed: typeof verifyKeycloakLoginFailed;
         }
     }

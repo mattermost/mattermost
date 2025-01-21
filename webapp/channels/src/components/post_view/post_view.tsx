@@ -9,13 +9,13 @@ import {Preferences} from 'utils/constants';
 
 import PostList from './post_list';
 
-interface Props {
+type Props = {
     lastViewedAt?: number;
     channelLoading: boolean;
     channelId: string;
     focusedPostId?: string;
     unreadScrollPosition: string;
-}
+};
 
 interface State {
     unreadChunkTimeStamp?: number;

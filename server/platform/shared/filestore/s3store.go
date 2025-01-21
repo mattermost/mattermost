@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -44,6 +45,7 @@ type S3FileBackend struct {
 	presignExpires time.Duration
 	isCloud        bool // field to indicate whether this is running under Mattermost cloud or not.
 	uploadPartSize int64
+	storageClass   string
 }
 
 type S3FileBackendAuthError struct {
@@ -118,6 +120,7 @@ func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBacken
 		timeout:        timeout,
 		presignExpires: time.Duration(settings.AmazonS3PresignExpiresSeconds) * time.Second,
 		uploadPartSize: settings.AmazonS3UploadPartSizeBytes,
+		storageClass:   settings.AmazonS3StorageClass,
 	}
 	cli, err := backend.s3New(isCloud)
 	if err != nil {
@@ -213,7 +216,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to list objects in the S3 bucket: %v", typedErr)}
 			}
 			exists = false
 		}
@@ -222,7 +225,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if err != nil {
 			typedErr := s3.ToErrorResponse(err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to check if the S3 bucket exists: %v", typedErr)}
 			}
 		}
 	}
@@ -504,7 +507,7 @@ func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 
 	objSize := int64(-1)
 	if b.isCloud {
@@ -548,7 +551,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		contentType = "binary/octet-stream"
 	}
 
-	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize)
+	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 	sse := options.ServerSideEncryption
 	partName := fp + ".part"
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
@@ -759,13 +762,14 @@ func (b *S3FileBackend) prefixedPath(s string) (string, error) {
 	return filepath.Join(b.pathPrefix, s), nil
 }
 
-func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64) s3.PutObjectOptions {
+func s3PutOptions(encrypted bool, contentType string, uploadPartSize int64, storageClass string) s3.PutObjectOptions {
 	options := s3.PutObjectOptions{}
 	if encrypted {
 		options.ServerSideEncryption = encrypt.NewSSE()
 	}
 	options.ContentType = contentType
 	options.PartSize = uint64(uploadPartSize)
+	options.StorageClass = storageClass
 
 	return options
 }

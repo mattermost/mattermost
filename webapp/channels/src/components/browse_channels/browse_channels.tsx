@@ -339,7 +339,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         );
 
         const body = this.state.loading ? <LoadingScreen/> : (
-            <React.Fragment>
+            <>
                 <SearchableChannelList
                     channels={this.activeChannels}
                     channelsPerPage={CHANNELS_PER_PAGE}
@@ -359,7 +359,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     channelsMemberCount={this.props.channelsMemberCount}
                 />
                 {serverError}
-            </React.Fragment>
+            </>
         );
 
         const title = (
@@ -371,9 +371,9 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         return (
             <GenericModal
-                onExited={this.handleExit}
                 id='browseChannelsModal'
                 aria-labelledby='browseChannelsModalLabel'
+                onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}
                 headerButton={createNewChannelButton('btn-secondary btn-sm')}

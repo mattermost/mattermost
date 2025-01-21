@@ -234,6 +234,10 @@ const ChannelError = (props: {id: string; err: ServerError}) => {
 };
 
 const ChannelLabelWrapper = styled.span`
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
     svg {
         vertical-align: middle;
         margin-left: 6px;
@@ -281,7 +285,12 @@ const ChannelIcon = ({channel, size = 16, ...otherProps}: {channel: Channel} & I
 
 const SecondaryTextRight = styled.span`
     color: rgba(var(--center-channel-color-rgb), 0.64);
-    margin-left: 5px;
+    padding-left: 5px;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
     &:last-child {
         margin-left: auto;
     }

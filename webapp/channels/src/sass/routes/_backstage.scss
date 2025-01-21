@@ -1,9 +1,13 @@
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
+
 .backstage-navbar {
     z-index: 100;
-    height: $backstage-bar-height;
+    height: variables.$backstage-bar-height;
     padding: 10px 20px;
-    border-bottom: 1px solid $light-gray;
-    background: $white;
+    border-bottom: 1px solid variables.$light-gray;
+    background: variables.$white;
     grid-area: header;
 }
 
@@ -27,7 +31,7 @@
 .backstage-body {
     overflow: auto;
     width: 100%;
-    background-color: $bg--gray;
+    background-color: variables.$bg--gray;
     grid-area: main;
 }
 
@@ -35,7 +39,7 @@
     max-width: 1200px;
     padding-left: 135px;
     margin: 46px auto;
-    background-color: $bg--gray;
+    background-color: variables.$bg--gray;
     vertical-align: top;
 }
 
@@ -51,11 +55,11 @@
     }
 
     > ul {
-        @include clearfix;
+        @include mixins.clearfix;
         border-radius: 2px;
 
-        border-right: 1px solid $light-gray;
-        border-left: 1px solid $light-gray;
+        border-right: 1px solid variables.$light-gray;
+        border-left: 1px solid variables.$light-gray;
     }
 }
 
@@ -70,9 +74,9 @@
         position: relative;
         display: block;
         padding: 0 10px;
-        border-top: 1px solid $light-gray;
-        border-bottom: 1px solid $light-gray;
-        color: $black;
+        border-top: 1px solid variables.$light-gray;
+        border-bottom: 1px solid variables.$light-gray;
+        color: variables.$black;
         line-height: 35px;
 
         .fa {
@@ -89,8 +93,8 @@
     }
 
     .category-title--active {
-        background-color: $primary-color;
-        color: $white;
+        background-color: variables.$primary-color;
+        color: variables.$white;
 
         .fa {
             opacity: 1;
@@ -103,8 +107,8 @@
     }
 
     .sections {
-        border-bottom: 1px solid $light-gray;
-        background: $white;
+        border-bottom: 1px solid variables.$light-gray;
+        background: variables.$white;
     }
 
     .section-title,
@@ -122,19 +126,19 @@
 
     .section-title--active,
     .subsection-title--active {
-        background-color: $primary-color;
-        color: $white;
+        background-color: variables.$primary-color;
+        color: variables.$white;
         font-weight: 600;
     }
 }
 
 .backstage-header__divider {
     margin: 0 10px;
-    color: $gray;
+    color: variables.$gray;
 }
 
 .backstage-header {
-    @include clearfix;
+    @include mixins.clearfix;
 
     display: flex;
     width: 100%;
@@ -188,15 +192,15 @@
 
     input {
         padding-left: 30px;
-        background: $white;
+        background: variables.$white;
     }
 }
 
 .backstage-list {
     min-height: 50px;
     padding: 5px 15px;
-    border: 1px solid $light-gray;
-    background-color: $white;
+    border: 1px solid variables.$light-gray;
+    background-color: variables.$white;
 }
 
 .backstage-list__help {
@@ -207,7 +211,7 @@
 .backstage-list__item {
     position: relative;
     padding: 20px 15px;
-    border-bottom: 1px solid $light-gray;
+    border-bottom: 1px solid variables.$light-gray;
 
     &:last-child {
         border: none;
@@ -221,7 +225,7 @@
     }
 
     .item-details__row + .item-details__row {
-        @include clearfix;
+        @include mixins.clearfix;
 
         text-overflow: ellipsis;
     }
@@ -260,8 +264,8 @@
 .backstage-form {
     position: relative;
     padding: 40px 30px 30px;
-    border: 1px solid $light-gray;
-    background-color: $white;
+    border: 1px solid variables.$light-gray;
+    background-color: variables.$white;
 
     &.backstage-form__confirmation {
         padding: 30px 30px 20px;
@@ -287,16 +291,16 @@
     }
 
     .form-control {
-        background: $white;
+        background: variables.$white;
 
         &:focus {
-            border-color: $primary-color;
+            border-color: variables.$primary-color;
         }
     }
 
     .form__help {
         margin-top: 1em;
-        color: $dark-gray;
+        color: variables.$dark-gray;
         font-size: 0.95em;
 
         & + .form__help {
@@ -308,7 +312,7 @@
 .backstage-form__footer {
     overflow: hidden;
     padding-top: 1.8em;
-    border-top: 1px solid $light-gray;
+    border-top: 1px solid variables.$light-gray;
     margin-top: 2.5em;
     text-align: right;
 
@@ -338,10 +342,10 @@
 .integration-option {
     flex: 0 0 30%;
     padding: 20px;
-    border: 1px solid $light-gray;
+    border: 1px solid variables.$light-gray;
     border-radius: 4px;
     margin: 0 30px 30px 0;
-    background-color: $white;
+    background-color: variables.$white;
     text-align: center;
     transition: all 0.2s ease;
 
@@ -360,11 +364,11 @@
 
 .integration-option__title {
     margin-bottom: 10px;
-    color: $black;
+    color: variables.$black;
 }
 
 .integration-option__description {
-    color: $dark-gray;
+    color: variables.$dark-gray;
 }
 
 .emoji-list__table {
@@ -433,7 +437,7 @@
 
 .bot-list__item {
     padding: 8px 12px;
-    background: alpha-color($black, 0.02);
+    background: functions.alpha-color(variables.$black, 0.02);
     font-size: 13px;
 
     &:first-child {
@@ -441,7 +445,7 @@
     }
 
     &:hover {
-        background: alpha-color($black, 0.06);
+        background: functions.alpha-color(variables.$black, 0.06);
     }
 
     &.alert {
@@ -519,8 +523,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: $black;
-    color: $white;
+    background: variables.$black;
+    color: variables.$white;
     text-decoration: none;
     transition: all 0.15s ease;
 
@@ -537,7 +541,7 @@
 
 .bot-list__disabled {
     .item-details {
-        color: rgba($black, 0.75);
+        color: rgba(variables.$black, 0.75);
     }
 
     .bot-list {
