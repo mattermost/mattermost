@@ -1,0 +1,57 @@
+  /api/v4/omnisearch/search:
+    post:
+      tags:
+        - omnisearch
+      summary: Search for items across the server
+      description: >
+        Perform a search across different types of content on the server.
+        
+        __Minimum server version__: 9.0
+        
+        ##### Permissions
+        Must be authenticated.
+      operationId: SearchInOmniSearch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - terms
+              properties:
+                terms:
+                  type: string
+                  description: The search terms to match against
+                time_zone_offset:
+                  type: integer
+                  description: Offset from UTC of user timezone in seconds
+                  default: 0
+                is_or_search:
+                  type: boolean
+                  description: Set to true if an Or search should be performed vs an And search
+                  default: false
+                page:
+                  type: integer
+                  description: The page number to return, starting with 0
+                  default: 0
+                per_page:
+                  type: integer
+                  description: The number of results per page
+                  default: 60
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OmniSearchResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
