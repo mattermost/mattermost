@@ -137,11 +137,14 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='more-modal__actions'>
-                    <div className='more-modal__actions--round'>
+                    <button
+                        className='more-modal__actions--round'
+                        aria-label='Add users to role'
+                    >
                         <i
                             className='icon icon-plus'
                         />
-                    </div>
+                    </button>
                 </div>
             </div>
         );
