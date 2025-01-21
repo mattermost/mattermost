@@ -17,6 +17,8 @@ export default class ChannelsSidebarRight {
     readonly scheduledDraftChannelInfoMessageText;
     readonly editTextbox;
     readonly postEdit;
+    readonly currentVersionEditedPosttext;
+    readonly restorePreviousPostVersionIcon;
 
     constructor(container: Locator) {
         this.container = container;
@@ -30,6 +32,10 @@ export default class ChannelsSidebarRight {
         this.closeButton = container.locator('#rhsCloseButton');
         this.editTextbox = container.locator('#edit_textbox');
         this.postEdit = new components.ChannelsPostEdit(container.locator('.post-edit__container'));
+        this.currentVersionEditedPosttext = (postID: any) => container.locator(`#rhsPostMessageText_${postID} p`);
+        this.restorePreviousPostVersionIcon = container.locator(
+            'button[aria-label="Select to restore an old message."]',
+        );
     }
 
     async toBeVisible() {
@@ -78,6 +84,15 @@ export default class ChannelsSidebarRight {
 
     async toContainText(text: string) {
         await expect(this.container).toContainText(text);
+    }
+
+    async verifyCurrentVersionPostMessage(postID: string | null, postMessageContent: string) {
+        expect(await this.currentVersionEditedPosttext(postID).textContent()).toBe(postMessageContent);
+    }
+
+    async restorePreviousPostVersion() {
+        await this.restorePreviousPostVersionIcon.isVisible();
+        await this.restorePreviousPostVersionIcon.click();
     }
 }
 

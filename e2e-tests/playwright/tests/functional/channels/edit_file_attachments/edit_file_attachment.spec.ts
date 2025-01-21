@@ -6,7 +6,7 @@ import pages from '@e2e-support/ui/pages';
 import {expect} from '@playwright/test';
 import {duration, wait} from '@e2e-support/util';
 
-test('MM-T5654 should be able to edit post message', async ({pw}) => {
+test('MM-T5654_1 should be able to edit post message', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -37,7 +37,7 @@ test('MM-T5654 should be able to edit post message', async ({pw}) => {
     await updatedPost.toContainText('Edited message');
 });
 
-test('MM-T5655 should be able to edit post message in RHS', async ({pw}) => {
+test('MM-T5655_3 should be able to edit post message in RHS', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -117,7 +117,7 @@ test('MM-T5655 should be able to edit post message in RHS', async ({pw}) => {
     expect(updatedReplyPost).not.toContain('mattermost.png');
 });
 
-test('should be able to edit post message originally containing files', async ({pw}) => {
+test('MM-T5654_2 should be able to edit post message originally containing files', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -148,7 +148,7 @@ test('should be able to edit post message originally containing files', async ({
     await updatedPost.toContainText('Edited message');
 });
 
-test('should be able to add files when editing a post', async ({pw}) => {
+test('MM-T5654_1 should be able to add files when editing a post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -196,7 +196,7 @@ test('should be able to add files when editing a post', async ({pw}) => {
     await secondUpdatedPost.toContainText('archive.zip');
 });
 
-test('should be able to remove some files when editing a post', async ({pw}) => {
+test('MM-T5654_3 should be able to remove some files when editing a post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -238,7 +238,7 @@ test('should be able to remove some files when editing a post', async ({pw}) => 
     expect(updatedPost).not.toContain('archive.zip');
 });
 
-test('MM-T5655 should be able to remove all files when editing a post', async ({pw}) => {
+test('MM-T5655_1 should be able to remove all files when editing a post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -277,12 +277,12 @@ test('MM-T5655 should be able to remove all files when editing a post', async ({
     const updatedPost = await channelPage.centerView.getLastPost();
     await updatedPost.toBeVisible();
     await updatedPost.toContainText(originalMessage);
-    await expect(updatedPost).not.toContain('archive.zip');
-    await expect(updatedPost).not.toContain('mattermost.png');
-    await expect(updatedPost).not.toContain('sample_text_file.txt');
+    expect(updatedPost).not.toContain('archive.zip');
+    expect(updatedPost).not.toContain('mattermost.png');
+    expect(updatedPost).not.toContain('sample_text_file.txt');
 });
 
-test('MM-T5655 removing message content and files should delete the post', async ({pw}) => {
+test('MM-T5655_2 removing message content and files should delete the post', async ({pw}) => {
     test.setTimeout(120000);
 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
@@ -317,4 +317,56 @@ test('MM-T5655 removing message content and files should delete the post', async
 
     expect(channelPage).not.toContain(originalMessage);
     expect(channelPage).not.toContain('sample_text_file.txt');
+});
+
+test('MM-T5656_1 should be able to restore previously edited post version that contains attachments', async ({pw}) => {
+    test.setTimeout(120000);
+
+    const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
+    const newMessage = 'New Message';
+
+    const {user} = await pw.initSetup();
+    const {page} = await pw.testBrowser.login(user);
+    const channelPage = new pages.ChannelsPage(page);
+
+    await channelPage.goto();
+    await channelPage.toBeVisible();
+    await channelPage.centerView.postCreate.postMessage(originalMessage, ['sample_text_file.txt']);
+
+    const post = await channelPage.centerView.getLastPost();
+    await post.toBeVisible();
+    await post.toContainText(originalMessage);
+    await post.toContainText('sample_text_file.txt');
+
+    await post.hover();
+    await post.postMenu.toBeVisible();
+    await post.postMenu.dotMenuButton.click();
+
+    await channelPage.postDotMenu.toBeVisible();
+    await channelPage.postDotMenu.editMenuItem.click();
+    await channelPage.centerView.postEdit.toBeVisible();
+    await channelPage.centerView.postEdit.removeFile('sample_text_file.txt');
+    await channelPage.centerView.postEdit.writeMessage(newMessage);
+    await channelPage.centerView.postEdit.sendMessage();
+
+    const updatedPost = await channelPage.centerView.getLastPost();
+    await updatedPost.toBeVisible();
+    await updatedPost.toContainText(newMessage);
+    expect(updatedPost).not.toContain('sample_text_file.txt');
+
+    const postID = await channelPage.centerView.getLastPostID();
+    await channelPage.centerView.clickOnLastEditedPost(postID);
+
+    await channelPage.sidebarRight.toBeVisible();
+    await channelPage.sidebarRight.verifyCurrentVersionPostMessage(postID, newMessage);
+
+    await channelPage.sidebarRight.restorePreviousPostVersion();
+
+    await channelPage.centerView.postEdit.restorePostConfirmationDialog.toBeVisible();
+    await channelPage.centerView.postEdit.restorePostConfirmationDialog.confirmRestore();
+    await channelPage.centerView.postEdit.restorePostConfirmationDialog.notToBeVisible();
+
+    const restoredPost = await channelPage.centerView.getLastPost();
+    await restoredPost.toBeVisible();
+    expect(restoredPost.toContainText('sample_text_file.txt'));
 });

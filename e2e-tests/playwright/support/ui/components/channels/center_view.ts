@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {expect, Locator, Page} from '@playwright/test';
 
 import {components} from '@e2e-support/ui/components';
 import {waitUntil} from '@e2e-support/test_action';
@@ -20,6 +20,7 @@ export default class ChannelsCenterView {
     readonly scheduledDraftChannelInfoMessageText;
     readonly scheduledDraftSeeAllLink;
     readonly postEdit;
+    readonly editedPostIcon;
 
     constructor(container: Locator) {
         this.container = container;
@@ -35,6 +36,7 @@ export default class ChannelsCenterView {
         this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
         this.scheduledDraftChannelInfoMessageText = container.locator(this.scheduledDraftChannelInfoMessageLocator);
         this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
+        this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
     }
 
     async toBeVisible() {
@@ -66,6 +68,17 @@ export default class ChannelsCenterView {
         const lastPost = this.container.getByTestId('postView').last();
         await lastPost.waitFor();
         return new components.ChannelsPost(lastPost);
+    }
+
+    /**
+     * Return the ID of the last post in the Center
+     */
+    async getLastPostID() {
+        return this.container
+            .getByTestId('postView')
+            .last()
+            .getAttribute('id')
+            .then((id) => (id ? id.split('_')[1] : null));
     }
 
     /**
@@ -117,6 +130,12 @@ export default class ChannelsCenterView {
         await this.scheduledDraftChannelIcon.isVisible();
         const messageLocator = this.scheduledDraftChannelInfoMessage.first();
         await expect(messageLocator).toContainText('Message scheduled for');
+    }
+
+    async clickOnLastEditedPost(postID: string | null) {
+        if (postID) {
+            await this.editedPostIcon(postID).click();
+        }
     }
 }
 

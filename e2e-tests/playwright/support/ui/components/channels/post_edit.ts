@@ -13,6 +13,7 @@ export default class ChannelsPostEdit {
     readonly emojiButton;
     readonly sendMessageButton;
     readonly deleteConfirmationDialog;
+    readonly restorePostConfirmationDialog;
 
     constructor(container: Locator) {
         this.container = container;
@@ -22,9 +23,11 @@ export default class ChannelsPostEdit {
         this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.locator('.save');
-
         this.deleteConfirmationDialog = new components.DeletePostConfirmationDialog(
             container.page().locator('#deletePostModal'),
+        );
+        this.restorePostConfirmationDialog = new components.RestorePostConfirmationDialog(
+            container.page().locator('#restorePostModal'),
         );
     }
 
