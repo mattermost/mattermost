@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getSearchButtons} from 'selectors/plugins';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
@@ -75,15 +76,17 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                     defaultMessage='Files'
                 />
             </SearchTypeItem>
-            <SearchTypeItem
-                selected={searchType === 'omnisearch'}
-                onClick={setOmnisearchSearchType}
-            >
-                <FormattedMessage
-                    id='search_bar.usage.search_type_omnisearch'
-                    defaultMessage='Omnisearch'
-                />
-            </SearchTypeItem>
+            {useSelector((state) => getConfig(state).EnableOmniSearch === 'true') && (
+                <SearchTypeItem
+                    selected={searchType === 'omnisearch'}
+                    onClick={setOmnisearchSearchType}
+                >
+                    <FormattedMessage
+                        id='search_bar.usage.search_type_omnisearch'
+                        defaultMessage='Omnisearch'
+                    />
+                </SearchTypeItem>
+            )}
             {searchPluginButtons.map(({component, pluginId}: any) => {
                 const Component = component as React.ComponentType;
                 return (
