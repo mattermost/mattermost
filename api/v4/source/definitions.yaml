@@ -3755,38 +3755,35 @@ components:
     OmniSearchResult:
       type: object
       properties:
-        order:
-          type: array
-          items:
-            type: string
-          description: The order of the search results
-        matches:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: string
-          description: A mapping of result IDs to a list of matched terms
-        posts:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/Post"
-          description: A map of post IDs to posts
-        fileInfos:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/FileInfo" 
-          description: A map of file IDs to file infos
-        users:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/User"
-          description: A map of user IDs to users
-        channels:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/Channel"
-          description: A map of channel IDs to channels
+        source:
+          type: string
+          description: The source of the search result
+        id:
+          type: string
+          description: The unique identifier for this result
+        icon:
+          type: string
+          description: Icon to display with the result
+        title:
+          type: string
+          description: Title of the search result
+        subtitle:
+          type: string
+          description: Subtitle or secondary text for the result
+        link:
+          type: string
+          description: URL to navigate to when selecting this result  
+        description:
+          type: string
+          description: Description or preview text for the result
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds this result was created
+        update_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds this result was last updated
     UserReport:
       type: object
       properties:
