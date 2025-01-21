@@ -37,14 +37,18 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
         document.removeEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
 
+    private buttonRef = React.createRef<HTMLButtonElement>();
+
     openQuickSwitcher = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
+        const focusOriginElement = this.buttonRef;
 
         trackEvent('ui', 'ui_sidebar_open_channel_switcher_v2');
 
         this.props.actions.openModal({
             modalId: ModalIdentifiers.QUICK_SWITCH,
             dialogType: QuickSwitchModal,
+            dialogProps: {focusOriginElement},
         });
     };
 
@@ -95,6 +99,7 @@ export default class ChannelNavigator extends React.PureComponent<Props> {
                     aria-label={Utils.localizeMessage({id: 'sidebar_left.channel_navigator.channelSwitcherLabel', defaultMessage: 'Channel Switcher'})}
                     aria-haspopup='dialog'
                     data-testid='SidebarChannelNavigatorButton'
+                    ref={this.buttonRef}
                 >
                     <i className='icon icon-magnify'/>
                     <FormattedMessage

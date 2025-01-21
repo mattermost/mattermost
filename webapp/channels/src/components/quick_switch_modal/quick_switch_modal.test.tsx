@@ -14,6 +14,7 @@ import Constants from 'utils/constants';
 
 describe('components/QuickSwitchModal', () => {
     const baseProps = {
+        focusOriginElement: {current: document.createElement('div')},
         onExited: jest.fn(),
         showTeamSwitcher: false,
         isMobileView: false,
