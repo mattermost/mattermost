@@ -186,9 +186,13 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
-                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -606,9 +610,13 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
-                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -804,9 +812,13 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
-                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -1469,9 +1481,13 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
-                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -1970,9 +1986,13 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
-                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -2471,9 +2491,13 @@ Object {
                       data-testid="mm-modal-generic-section-item__content"
                     >
                       <fieldset
-                        aria-label="Notify me about…"
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
