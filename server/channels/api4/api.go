@@ -92,7 +92,7 @@ type Routes struct {
 	LDAP *mux.Router // 'api/v4/ldap'
 
 	Elasticsearch *mux.Router // 'api/v4/elasticsearch'
-	OmniSearch    *mux.Router // 'api/v4/elasticsearch'
+	OmniSearch    *mux.Router // 'api/v4/omnisearch'
 
 	Bleve *mux.Router // 'api/v4/bleve'
 
