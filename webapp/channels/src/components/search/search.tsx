@@ -207,8 +207,16 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         handleUpdateSearchTerms(pretextArray.join(' '));
     };
 
-    const handleUpdateSearchTeam = async (teamId: string) => {
+    const handleUpdateSearchTeamFromResult = async (teamId: string) => {
         actions.updateSearchTeam(teamId);
+        const newTerms = searchTerms.
+                replace(/\bin:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
+                replace(/\bfrom:[^\s]*/gi, '').replace(/\s{2,}/g, ' ');
+
+        if (newTerms.trim() != searchTerms.trim()) {
+            actions.updateSearchTerms(newTerms);
+        }
+
         handleSearch().then(() => {
             setKeepInputFocused(false);
             setFocused(false);
@@ -553,7 +561,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     channelDisplayName={props.channelDisplayName}
                     isOpened={props.isSideBarRightOpen}
                     updateSearchTerms={handleAddSearchTerm}
-                    updateSearchTeam={handleUpdateSearchTeam}
+                    updateSearchTeam={handleUpdateSearchTeamFromResult}
                     handleSearchHintSelection={handleSearchHintSelection}
                     isSideBarExpanded={props.isRhsExpanded}
                     getMorePostsForSearch={props.actions.getMorePostsForSearch}
