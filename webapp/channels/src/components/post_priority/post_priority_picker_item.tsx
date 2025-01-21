@@ -5,9 +5,9 @@ import MenuList from '@mui/material/MenuList';
 import React from 'react';
 import styled from 'styled-components';
 
-import { CheckIcon, AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon } from '@mattermost/compass-icons/components';
+import {CheckIcon, AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
 
-import { MenuItem } from 'components/menu/menu_item';
+import {MenuItem} from 'components/menu/menu_item';
 import Toggle from 'components/toggle';
 
 type ToggleProps = {
@@ -65,8 +65,9 @@ const Header = styled.h4`
     font-weight: 600;
     letter-spacing: 0;
     line-height: 20px;
-    padding: 14px 16px 6px;
+    padding: 14px 20px;
     text-align: left;
+    color: var(--center-channel-color);
 `;
 
 const Footer = styled.div`
@@ -139,6 +140,6 @@ function ToggleItem({
     );
 }
 
-export { MenuItem, ToggleItem, StyledCheckIcon, Header, UrgentIcon, ImportantIcon, StandardIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer };
+export {MenuItem, ToggleItem, StyledCheckIcon, Header, UrgentIcon, ImportantIcon, StandardIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer};
 
 export default Menu;
