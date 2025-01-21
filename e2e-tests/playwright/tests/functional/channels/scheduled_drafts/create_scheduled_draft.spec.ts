@@ -303,10 +303,9 @@ test('MM-T5650 should copy scheduled message', async ({pw, browserName}) => {
 
     await channelsPage.centerView.postCreate.input.focus();
 
-    const isMac = process.platform === 'darwin';
-    await page.keyboard.down(isMac ? 'Meta' : 'Control');
+    await page.keyboard.down('ControlOrMeta');
     await page.keyboard.press('V');
-    await page.keyboard.down(isMac ? 'Meta' : 'Control');
+    await page.keyboard.up('ControlOrMeta');
 
     // * Assert the message typed is same as the copied message
     await expect(channelsPage.centerView.postCreate.input).toHaveText(draftMessage);
