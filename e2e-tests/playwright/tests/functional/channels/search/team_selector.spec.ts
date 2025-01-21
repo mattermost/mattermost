@@ -4,7 +4,7 @@
 import {createRandomTeam} from '@e2e-support/server';
 import {expect, test} from '@e2e-support/test_fixture';
 
-test('team selector must show all my teams', async ({pw, pages}) => {
+test('team selector must show all my teams', async ({pw}) => {
     const {adminClient, adminConfig, user, team} = await pw.initSetup();
 
     // # Enable Cross Team Search Feature Flag
@@ -26,10 +26,9 @@ test('team selector must show all my teams', async ({pw, pages}) => {
     }
 
     // # Log in a user in new browser context
-    const {page} = await pw.testBrowser.login(user);
+    const {channelsPage} = await pw.testBrowser.login(user);
 
-    // # Open the search box
-    const channelsPage = new pages.ChannelsPage(page);
+    // # Visit a default channel page
     await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();
 
@@ -37,6 +36,7 @@ test('team selector must show all my teams', async ({pw, pages}) => {
     await channelsPage.globalHeader.openSearch();
 
     // * Check that the team selector is visible
+    const page = channelsPage.page;
     await expect(page.getByTestId('searchTeamsSelectorMenuButton')).toBeVisible();
 
     // # Click on the team selector
@@ -62,7 +62,7 @@ test('team selector must show all my teams', async ({pw, pages}) => {
     }
 
     // refresh the page
-    await page.reload();
+    await channelsPage.goto(team.name);
 
     // # Open the search UI
     await channelsPage.globalHeader.openSearch();
