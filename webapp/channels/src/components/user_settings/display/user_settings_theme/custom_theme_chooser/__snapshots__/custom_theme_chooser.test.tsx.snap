@@ -15,7 +15,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
       <button
         aria-controls="sidebarStylesSection"
         aria-expanded={false}
-        aria-label="Sidebar Styles"
+        className="theme-elements__header"
         id="sidebarStylesAccordion"
         onClick={[Function]}
       >
@@ -27,9 +27,11 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
           className="header__icon"
         >
           <i
+            aria-hidden={true}
             className="fa fa-plus"
           />
           <i
+            aria-hidden={true}
             className="fa fa-minus"
           />
         </div>
@@ -275,7 +277,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
       <button
         aria-controls="centerChannelStylesSection"
         aria-expanded={false}
-        aria-label="Center Channel Styles"
+        className="theme-elements__header"
         id="centerChannelStylesAccordion"
         onClick={[Function]}
       >
@@ -287,9 +289,11 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
           className="header__icon"
         >
           <i
+            aria-hidden={true}
             className="fa fa-plus"
           />
           <i
+            aria-hidden={true}
             className="fa fa-minus"
           />
         </div>
@@ -479,7 +483,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
       <button
         aria-controls="linkAndButtonsStylesSection"
         aria-expanded={false}
-        aria-label="Link and Button Styles"
+        className="theme-elements__header"
         id="linkAndButtonsStylesAccordion"
         onClick={[Function]}
       >
@@ -491,9 +495,11 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
           className="header__icon"
         >
           <i
+            aria-hidden={true}
             className="fa fa-plus"
           />
           <i
+            aria-hidden={true}
             className="fa fa-minus"
           />
         </div>

@@ -283,7 +283,19 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
             themeUI = (
                 <SettingItemMax
-                    inputs={inputs}
+                    inputs={
+                        <fieldset>
+                            <legend className='hidden-label'>
+                                <FormattedMessage
+                                    id='user.settings.display.theme.title'
+                                    defaultMessage='Theme'
+                                />
+                            </legend>
+                            <div>
+                                {inputs}
+                            </div>
+                        </fieldset>
+                    }
                     submitExtra={allTeamsCheckbox}
                     submit={this.submitTheme}
                     disableEnterSubmit={true}
