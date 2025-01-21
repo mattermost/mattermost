@@ -46,12 +46,16 @@ export type Props = {
     footerDivider?: boolean;
     appendedContent?: React.ReactNode;
     headerButton?: React.ReactNode;
+    focusableElement?: React.RefObject<HTMLElement>; // a ref to the object you want to set the focus in the modal
+    focusOriginElement?: React.RefObject<HTMLElement>; // a ref to the element that triggered the focus of the modal
 };
 
 type State = {
     show: boolean;
     isFocalTrapActive: boolean;
 }
+
+const CUSTOM_FOCUS_EVENT = 'a11yfocus';
 
 export class GenericModal extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
@@ -73,8 +77,39 @@ export class GenericModal extends React.PureComponent<Props, State> {
         };
     }
 
+    componentDidMount(): void {
+        const {focusableElement} = this.props;
+        if (focusableElement && focusableElement.current) {
+            setTimeout(() => {
+                document.dispatchEvent(
+                    new CustomEvent(CUSTOM_FOCUS_EVENT, {
+                        detail: {
+                            target: focusableElement.current,
+                            keyboardOnly: false,
+                        },
+                    }),
+                );
+            }, 0);
+        }
+    }
+
     onHide = () => {
         this.setState({show: false});
+
+        // send focus event to element that triggered the opening of the modal
+        const {focusOriginElement} = this.props;
+        if (focusOriginElement && focusOriginElement.current) {
+            setTimeout(() => {
+                document.dispatchEvent(
+                    new CustomEvent(CUSTOM_FOCUS_EVENT, {
+                        detail: {
+                            target: focusOriginElement.current,
+                            keyboardOnly: false,
+                        },
+                    }),
+                );
+            }, 0);
+        }
     };
 
     handleCancel = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -206,7 +241,9 @@ export class GenericModal extends React.PureComponent<Props, State> {
                     className='GenericModal__wrapper-enter-key-press-catcher'
                 >
                     <Modal.Header closeButton={true}>
-                        <div className='GenericModal__header__text_container'>
+                        <div
+                            className='GenericModal__header__text_container'
+                        >
                             {this.props.compassDesign && (
                                 <>
                                     {headerText}

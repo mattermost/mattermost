@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl'; // new line
-import type {WrappedComponentProps} from 'react-intl'; // new line
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -33,7 +33,7 @@ type ProviderSuggestions = {
     component: React.ReactNode;
 };
 
-export type Props = WrappedComponentProps & { // new line
+export type Props = WrappedComponentProps & {
     onExited: () => void;
 
     isMobileView: boolean;
@@ -45,6 +45,7 @@ export type Props = WrappedComponentProps & { // new line
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
         closeRightHandSide: () => void;
     };
+    focusOriginElement: React.RefObject<HTMLElement>;
 };
 
 type State = {
@@ -55,7 +56,7 @@ type State = {
     pretext: string;
 };
 
-export class QuickSwitchModal extends React.PureComponent<Props, State> { // new line
+export class QuickSwitchModal extends React.PureComponent<Props, State> {
     private channelProviders: SwitchChannelProvider[];
     private switchBox: SuggestionBoxComponent | null;
 
@@ -214,10 +215,11 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> { // new
                 bodyPadding={false}
                 enforceFocus={false}
                 onExited={this.hideOnCancel}
-                ariaLabel={this.props.intl.formatMessage({id: 'quick_switch_modal.input', defaultMessage: 'Quick switch modal'})} // new line
+                ariaLabel={this.props.intl.formatMessage({id: 'quick_switch_modal.input', defaultMessage: 'Quick switch modal'})}
                 modalHeaderText={modalHeaderText}
                 modalSubheaderText={modalSubheaderText}
                 compassDesign={true}
+                focusOriginElement={this.props.focusOriginElement}
             >
                 <div className='channel-switcher__suggestion-box'>
                     <i className='icon icon-magnify icon-16'/>
@@ -226,7 +228,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> { // new
                         // @ts-ignore
                         ref={this.setSwitchBoxRef}
                         id='quickSwitchInput'
-                        aria-label={this.props.intl.formatMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})} // new line
+                        aria-label={this.props.intl.formatMessage({id: 'quick_switch_modal.input', defaultMessage: 'quick switch input'})}
                         className='form-control focused'
                         onChange={this.onChange}
                         value={this.state.text}
@@ -261,4 +263,4 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> { // new
     };
 }
 
-export default injectIntl(QuickSwitchModal); // new line
+export default injectIntl(QuickSwitchModal);

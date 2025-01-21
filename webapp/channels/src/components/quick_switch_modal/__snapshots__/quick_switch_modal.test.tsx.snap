@@ -9,6 +9,11 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
   className="a11y__modal channel-switcher"
   compassDesign={true}
   enforceFocus={false}
+  focusOriginElement={
+    Object {
+      "current": <div />,
+    }
+  }
   id="quickSwitchModal"
   keyboardEscape={true}
   modalHeaderText={

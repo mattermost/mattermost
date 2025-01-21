@@ -14,6 +14,7 @@ import Constants from 'utils/constants';
 
 describe('components/QuickSwitchModal', () => {
     const baseProps = {
+        focusOriginElement: {current: document.createElement('div')},
         onExited: jest.fn(),
         showTeamSwitcher: false,
         isMobileView: false,
@@ -30,7 +31,6 @@ describe('components/QuickSwitchModal', () => {
     };
 
     it('should match snapshot', () => {
-        // Use shallowWithIntl to ensure the injectIntl wrapper has a valid intl context
         const wrapper = shallowWithIntl(<QuickSwitchModal {...baseProps}/>);
         expect(wrapper).toMatchSnapshot();
     });
