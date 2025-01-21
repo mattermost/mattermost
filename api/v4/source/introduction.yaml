@@ -537,6 +537,8 @@ tags:
     description: Endpoints for configuring and interacting with high availability clusters.
   - name: elasticsearch
     description: Endpoints for configuring and interacting with Elasticsearch.
+  - name: omnisearch
+    description: Endpoints for configuring and interacting with Omnisearch feature.
   - name: data retention
     description: Endpoint for getting data retention policy settings.
   - name: jobs

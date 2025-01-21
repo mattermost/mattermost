@@ -2,12 +2,12 @@
     post:
       tags:
         - omnisearch
-      summary: Search for items across the server
+      summary: Search for items across different services
       description: >
-        Perform a search across different types of content on the server.
-        
-        __Minimum server version__: 9.0
-        
+        Perform a search across different services provided by plugins.
+
+        __Minimum server version__: 11.0
+
         ##### Permissions
         Must be authenticated.
       operationId: SearchInOmniSearch
