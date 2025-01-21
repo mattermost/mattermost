@@ -8,8 +8,6 @@ import styled from 'styled-components';
 
 import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {isSwitcherOpen} from 'selectors/views/product_menu';
 
@@ -24,8 +22,6 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
 
-import ProductBranding from './product_branding';
-import ProductBrandingTeamEdition from './product_branding_team_edition';
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
 
@@ -66,7 +62,6 @@ const ProductMenu = (): JSX.Element => {
     const switcherOpen = useSelector(isSwitcherOpen);
     const menuRef = useRef<HTMLDivElement>(null);
     const currentProductID = useCurrentProductId();
-    const license = useSelector(getLicense);
 
     const handleClick = () => dispatch(setProductMenuSwitcherOpen(!switcherOpen));
 
@@ -85,6 +80,8 @@ const ProductMenu = (): JSX.Element => {
         }
         dispatch(setProductMenuSwitcherOpen(false));
     });
+
+    console.log('product', products);
 
     const productItems = products?.map((product) => {
         let tourTip;
@@ -115,8 +112,6 @@ const ProductMenu = (): JSX.Element => {
                         aria-label={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
                         aria-controls='product-switcher-menu'
                     />
-                    {license.IsLicensed === 'false' && <ProductBrandingTeamEdition/>}
-                    {license.IsLicensed === 'true' && <ProductBranding/>}
                 </ProductMenuContainer>
                 <Menu
                     listId={'product-switcher-menu-dropdown'}

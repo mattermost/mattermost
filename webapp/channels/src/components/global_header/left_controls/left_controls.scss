@@ -1,0 +1,41 @@
+.globalHeader-leftControlsContainer {
+    display: flex;
+    align-items: center;
+    justify-items: flex-start;
+    height: 40px;
+    flex-shrink: 0;
+    flex-basis: 30%;
+    gap: 12px;
+
+    .product_branding_container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+
+        svg.logo_dark_blue {
+            path {
+                fill: rgba(var(--sidebar-text-rgb), 0.75);
+            }
+        }
+
+        .free_edition_badge {
+            padding: 2px 6px;
+            border-radius: var(--radius-s);
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: rgba(var(--sidebar-text-rgb), 0.75);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            line-height: 16px;
+        }
+
+        .product_heading {
+            font-family: Metropolis, sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 24px;
+            color: rgba(var(--sidebar-text-rgb), 0.64);
+        }
+    }
+}

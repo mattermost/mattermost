@@ -8,7 +8,7 @@ import {TopLevelProducts} from 'utils/constants';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
-import ProductBranding from './product_branding';
+import ProductBranding from '.';
 
 describe('components/ProductBranding', () => {
     test('should show correct icon glyph when we are on Channels', () => {
