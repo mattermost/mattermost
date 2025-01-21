@@ -37,6 +37,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
     filesCounter="10"
     isFileAttachmentsEnabled={true}
     messagesCounter="5"
+    omnisearchCounter="7"
     onChange={[MockFunction]}
     onFilter={[MockFunction]}
     onTeamChange={[MockFunction]}
@@ -83,6 +84,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
     filesCounter="10"
     isFileAttachmentsEnabled={true}
     messagesCounter="5"
+    omnisearchCounter="7"
     onChange={[MockFunction]}
     onFilter={[MockFunction]}
     onTeamChange={[MockFunction]}
@@ -129,6 +131,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
     filesCounter="10"
     isFileAttachmentsEnabled={false}
     messagesCounter="5"
+    omnisearchCounter="7"
     onChange={[MockFunction]}
     onFilter={[MockFunction]}
     onTeamChange={[MockFunction]}
