@@ -243,10 +243,16 @@ export function performSearch(terms: string, teamId: string, isMentionSearch?: b
         // timezone offset in seconds
         const userCurrentTimezone = getCurrentTimezone(getState());
         const timezoneOffset = ((userCurrentTimezone && (userCurrentTimezone.length > 0)) ? getUtcOffsetForTimeZone(userCurrentTimezone) : getBrowserUtcOffset()) * 60;
-        const messagesPromise = dispatch(searchPostsWithParams(teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
-        const filesPromise = dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
-        const omnisearchPromise = dispatch(searchInOmniSearch({terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: false, time_zone_offset: timezoneOffset, page: 0, per_page: 20}));
-        return Promise.all([filesPromise, messagesPromise, omnisearchPromise]);
+        const promises = [
+            dispatch(searchPostsWithParams(teamId, {terms: searchTerms, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20})),
+            dispatch(searchFilesWithParams(teamId, {terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: viewArchivedChannels, time_zone_offset: timezoneOffset, page: 0, per_page: 20})),
+        ];
+
+        if (config.EnableOmniSearch === 'true') {
+            promises.push(dispatch(searchInOmniSearch({terms: termsWithExtensionsFilters, is_or_search: Boolean(isMentionSearch), include_deleted_channels: false, time_zone_offset: timezoneOffset, page: 0, per_page: 20})));
+        }
+
+        return Promise.all(promises);
     };
 }
 
