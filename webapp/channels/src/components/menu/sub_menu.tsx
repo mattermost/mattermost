@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiPopoverStyled from '@mui/material/Popover';
 import MuiMenuList from '@mui/material/MenuList';
+import MuiPopover from '@mui/material/Popover';
 import type {PopoverOrigin} from '@mui/material/Popover';
 import React, {
     useState,
@@ -33,7 +33,7 @@ import {SubMenuContext, useMenuContextValue} from './menu_context';
 import {MenuItem} from './menu_item';
 import type {Props as MenuItemProps} from './menu_item';
 
-import './sub_menu.scss';
+import './menu.scss';
 
 interface Props {
     id: MenuItemProps['id'];
@@ -172,12 +172,12 @@ export function SubMenu(props: Props) {
             onKeyDown={handleKeyDown}
         >
             <SubMenuContext.Provider value={providerValue}>
-                <MuiPopoverStyled
+                <MuiPopover
                     anchorEl={anchorElement}
                     open={isSubMenuOpen}
                     anchorOrigin={originOfAnchorAndTransform.anchorOrigin}
                     transformOrigin={originOfAnchorAndTransform.transformOrigin}
-                    className='popover_popoverStyled'
+                    className='menu_menuStyled AsSubMenu'
                 >
                     {subMenuHeader}
                     <MuiMenuList
@@ -193,7 +193,7 @@ export function SubMenu(props: Props) {
                     >
                         {children}
                     </MuiMenuList>
-                </MuiPopoverStyled>
+                </MuiPopover>
             </SubMenuContext.Provider>
         </MenuItem>
     );
