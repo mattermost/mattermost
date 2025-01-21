@@ -3752,6 +3752,41 @@ components:
         Description:
           description: A description for the CIDRBlock
           type: string
+    OmniSearchResult:
+      type: object
+      properties:
+        order:
+          type: array
+          items:
+            type: string
+          description: The order of the search results
+        matches:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: A mapping of result IDs to a list of matched terms
+        posts:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/Post"
+          description: A map of post IDs to posts
+        fileInfos:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/FileInfo" 
+          description: A map of file IDs to file infos
+        users:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/User"
+          description: A map of user IDs to users
+        channels:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/Channel"
+          description: A map of channel IDs to channels
     UserReport:
       type: object
       properties:
