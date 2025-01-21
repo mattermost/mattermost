@@ -17,7 +17,7 @@ import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
 
 export enum ButtonCustomiserClasses {
-    grayed = 'grayed',
+    hidden = 'hidden',
     active = 'active',
     special = 'special',
     secondary = 'secondary',
@@ -161,7 +161,7 @@ function Card(props: CardProps) {
                         {props.customButtonDetails || (
                             <button
                                 id={props.id + '_action'}
-                                className={`plan_action_btn ${props.buttonDetails?.disabled ? ButtonCustomiserClasses.grayed : props.buttonDetails?.customClass}`}
+                                className={`plan_action_btn ${props.buttonDetails?.disabled ? ButtonCustomiserClasses.hidden : props.buttonDetails?.customClass}`}
                                 disabled={props.buttonDetails?.disabled}
                                 onClick={props.buttonDetails?.action}
                             >

@@ -310,10 +310,8 @@
                             color: var(--denim-button-bg);
                             font-weight: 600;
 
-                            &.grayed {
-                                background: rgba(var(--center-channel-color-rgb), 0.08);
-                                color: rgba(var(--center-channel-color-rgb), 0.32);
-                                cursor: not-allowed;
+                            &.hidden {
+                                visibility: hidden;
                             }
 
                             &.secondary {

@@ -132,7 +132,7 @@ function SelfHostedContent(props: ContentProps) {
                 telemetryId='start_trial_from_self_hosted_pricing_modal'
                 renderAsButton={true}
                 disabled={isSelfHostedEnterpriseTrial}
-                btnClass={`plan_action_btn ${isSelfHostedEnterpriseTrial ? ButtonCustomiserClasses.grayed : ButtonCustomiserClasses.special}`}
+                btnClass={`plan_action_btn ${isSelfHostedEnterpriseTrial ? ButtonCustomiserClasses.hidden : ButtonCustomiserClasses.special}`}
                 onClick={closePricingModal}
             />
         );
