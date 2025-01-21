@@ -6457,7 +6457,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'ExperimentalSettings.EnableOmniSearch',
+                            key: 'ServiceSettings.EnableOmniSearch',
                             label: defineMessage({id: 'admin.experimental.enableOmniSearch.title', defaultMessage: 'Enable Omnisearch:'}),
                             help_text: defineMessage({id: 'admin.experimental.enableOmniSearch.desc', defaultMessage: 'When true, enables the Omnisearch feature which allows plugins to contribute additional results to the search interface. This experimental feature provides an extensible search framework for plugins to surface their data in search results.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
