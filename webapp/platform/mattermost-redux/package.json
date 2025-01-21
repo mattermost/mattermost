@@ -1,0 +1,47 @@
+{
+  "name": "mattermost-redux",
+  "version": "9.4.0-0",
+  "description": "Common code (API client, Redux stores, logic, utility functions) for building a Mattermost client",
+  "keywords": [
+    "mattermost"
+  ],
+  "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/mattermost-redux#readme",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "exports": {
+    "./*": [
+      "./lib/*/index.js",
+      "./lib/*.js"
+    ]
+  },
+  "typesVersions": {
+    ">=3.1": {
+      "*": [
+        "./lib/*.d.ts",
+        "./lib/*/index.d.ts"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattermost/mattermost.git",
+    "directory": "webapp/platform/mattermost-redux"
+  },
+  "peerDependencies": {
+    "typescript": "^4.3.0 || ^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "tsc --build --verbose",
+    "postbuild": "cp ../../channels/src/packages/mattermost-redux/src/selectors/create_selector/index.d.ts lib/selectors/create_selector/index.d.ts",
+    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
+    "run": "tsc --watch --preserveWatchOutput",
+    "clean": "rm -rf lib node_modules *.tsbuildinfo"
+  }
+}

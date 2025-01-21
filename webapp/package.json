@@ -108,6 +108,7 @@
     "platform/client",
     "platform/components",
     "platform/eslint-plugin",
+    "platform/mattermost-redux",
     "platform/types"
   ]
 }
