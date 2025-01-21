@@ -278,7 +278,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
             items.push(
                 <Component
-                    data-option-index={i}
                     key={term}
                     ref={(ref: any) => this.itemRefs.set(term, ref)}
                     item={this.props.items[i]}
