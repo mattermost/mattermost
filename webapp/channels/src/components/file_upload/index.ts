@@ -14,7 +14,6 @@ import {getEditingPostDetailsAndPost} from 'selectors/posts';
 import {canUploadFiles} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
-import type {FilesWillUploadHook} from 'types/store/plugins';
 
 import FileUpload from './file_upload';
 
@@ -31,7 +30,7 @@ function mapStateToProps(state: GlobalState) {
         canUploadFiles: canUploadFiles(config),
         locale: getCurrentLocale(state),
         pluginFileUploadMethods: state.plugins.components.FileUploadMethod,
-        pluginFilesWillUploadHooks: state.plugins.components.FilesWillUploadHook as unknown as FilesWillUploadHook[],
+        pluginFilesWillUploadHooks: state.plugins.components.FilesWillUploadHook,
         centerChannelPostBeingEdited,
         rhsPostBeingEdited,
     };

@@ -36,7 +36,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -456,7 +455,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -1014,7 +1012,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -1319,7 +1316,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -1820,7 +1816,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -2321,7 +2316,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
