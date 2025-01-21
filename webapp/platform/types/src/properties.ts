@@ -3,7 +3,7 @@
 
 export type PropertyField = {
     id: string;
-    group_id?: string;
+    group_id: string;
     name: string;
     type: string;
     attrs?: {[key: string]: unknown};
