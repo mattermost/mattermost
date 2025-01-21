@@ -47,6 +47,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
     // REFS to the tabs so there is ability to pass the custom A11y focus event
     const messagesTabRef = useRef<HTMLButtonElement>(null);
     const filesTabRef = useRef<HTMLButtonElement>(null);
+    const config = useSelector(getConfig);
 
     const options = [{value: '', label: 'All teams', selected: searchTeam === ''}];
     for (const team of teams) {
@@ -142,7 +143,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                         <span className='counter'>{props.filesCounter}</span>
                     </button>
                 )}
-                {useSelector((state: GlobalState) => getConfig(state).EnableOmniSearch === 'true') && (
+                {(config.EnableOmniSearch === 'true') && (
                     <button
                         onClick={() => props.onChange('omnisearch')}
                         onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Keyboard.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('omnisearch')}

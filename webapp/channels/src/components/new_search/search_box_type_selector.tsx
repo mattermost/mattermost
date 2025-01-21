@@ -56,6 +56,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
     const setOmnisearchSearchType = useCallback(() => setSearchType('omnisearch'), [setSearchType]);
 
     const searchPluginButtons = useSelector(getSearchButtons);
+    const config = useSelector(getConfig);
 
     return (
         <SearchTypeSelectorContainer>
@@ -77,7 +78,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                     defaultMessage='Files'
                 />
             </SearchTypeItem>
-            {useSelector((state) => getConfig(state).EnableOmniSearch === 'true') && (
+            {(config.EnableOmniSearch === 'true') && (
                 <SearchTypeItem
                     selected={searchType === 'omnisearch'}
                     onClick={setOmnisearchSearchType}

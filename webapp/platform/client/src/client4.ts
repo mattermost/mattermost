@@ -31,7 +31,6 @@ import type {
 } from '@mattermost/types/channels';
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
 import {LogLevel} from '@mattermost/types/client4';
-import {OmniSearchResult} from '@mattermost/types/search';
 import type {
     Address,
     Product,
@@ -121,6 +120,7 @@ import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
+import type {OmniSearchResult} from '@mattermost/types/search';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
@@ -2380,13 +2380,13 @@ export default class Client4 {
     searchInOmniSearch = (params: any) => {
         this.trackEvent('api', 'api_omnisearch_search');
 
-        let route = `${this.getBaseRoute()}/omnisearch/search`;
+        const route = `${this.getBaseRoute()}/omnisearch/search`;
 
         return this.doFetch<OmniSearchResult[]>(
             route,
             {method: 'post', body: JSON.stringify(params)},
         );
-    }
+    };
 
     searchPostsWithParams = (teamId: string, params: any) => {
         let route = `${this.getPostsRoute()}/search`;

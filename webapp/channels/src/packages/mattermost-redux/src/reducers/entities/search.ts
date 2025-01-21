@@ -54,7 +54,7 @@ function fileResults(state: string[] = [], action: MMReduxAction) {
     }
 }
 
-function omniSearchResults(state: string[] = [], action: AnyAction) {
+function omniSearchResults(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_OMNISEARCH_RESULTS: {
         if (action.isGettingMore) {

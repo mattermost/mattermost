@@ -85,6 +85,7 @@ export type ClientConfig = {
     EnableMobileFileUpload: string;
     EnableMultifactorAuthentication: string;
     EnableOAuthServiceProvider: string;
+    EnableOmniSearch: string;
     EnableOutgoingOAuthConnections: string;
     EnableOpenServer: string;
     EnableOutgoingWebhooks: string;

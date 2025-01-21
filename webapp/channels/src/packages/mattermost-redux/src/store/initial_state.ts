@@ -147,6 +147,7 @@ const state: GlobalState = {
         search: {
             results: [],
             fileResults: [],
+            omniSearchResults: [],
             current: {},
             matches: {},
             flagged: [],
