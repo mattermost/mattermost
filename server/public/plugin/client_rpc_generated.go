@@ -1161,6 +1161,42 @@ func (s *hooksRPCServer) GenerateSupportData(args *Z_GenerateSupportDataArgs, re
 	return nil
 }
 
+func init() {
+	hookNameToId["OnSAMLLogin"] = OnSAMLLoginID
+}
+
+type Z_OnSAMLLoginArgs struct {
+	A *Context
+	B *model.User
+}
+
+type Z_OnSAMLLoginReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnSAMLLogin(c *Context, user *model.User) error {
+	_args := &Z_OnSAMLLoginArgs{c, user}
+	_returns := &Z_OnSAMLLoginReturns{}
+	if g.implemented[OnSAMLLoginID] {
+		if err := g.client.Call("Plugin.OnSAMLLogin", _args, _returns); err != nil {
+			g.log.Error("RPC call OnSAMLLogin to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) OnSAMLLogin(args *Z_OnSAMLLoginArgs, returns *Z_OnSAMLLoginReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnSAMLLogin(c *Context, user *model.User) error
+	}); ok {
+		returns.A = hook.OnSAMLLogin(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnSAMLLogin called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
