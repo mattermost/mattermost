@@ -210,10 +210,10 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
     const handleUpdateSearchTeamFromResult = async (teamId: string) => {
         actions.updateSearchTeam(teamId);
         const newTerms = searchTerms.
-                replace(/\bin:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
-                replace(/\bfrom:[^\s]*/gi, '').replace(/\s{2,}/g, ' ');
+            replace(/\bin:[^\s]*/gi, '').replace(/\s{2,}/g, ' ').
+            replace(/\bfrom:[^\s]*/gi, '').replace(/\s{2,}/g, ' ');
 
-        if (newTerms.trim() != searchTerms.trim()) {
+        if (newTerms.trim() !== searchTerms.trim()) {
             actions.updateSearchTerms(newTerms);
         }
 
