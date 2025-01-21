@@ -394,6 +394,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnableFileSearch                                  *bool   `access:"write_restrictable"`
+	EnableOmniSearch                                  *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
 	EnableUserTypingMessages                          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableChannelViewedMessages                       *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
@@ -628,6 +629,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableFileSearch == nil {
 		s.EnableFileSearch = NewPointer(true)
+	}
+
+	if s.EnableOmniSearch == nil {
+		s.EnableOmniSearch = NewPointer(false)
 	}
 
 	if s.MinimumHashtagLength == nil {

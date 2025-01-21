@@ -67,6 +67,7 @@
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
         "EnableFileSearch": true,
+        "EnableOmniSearch": false,
         "MinimumHashtagLength": 3,
         "EnableUserTypingMessages": true,
         "EnableChannelViewedMessages": true,
@@ -453,7 +454,10 @@
         "LoginButtonTextColor": "#ffffff"
     },
     "NativeAppSettings": {
-        "AppCustomURLSchemes": ["mmauth://", "mmauthbeta://"],
+        "AppCustomURLSchemes": [
+            "mmauth://",
+            "mmauthbeta://"
+        ],
         "AppDownloadLink": "https://mattermost.com/pl/download-apps",
         "AndroidAppDownloadLink": "https://mattermost.com/pl/android-app/",
         "IosAppDownloadLink": "https://mattermost.com/pl/ios-app/"
