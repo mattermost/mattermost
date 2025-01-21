@@ -1002,7 +1002,11 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div>
+            <div
+                id='securitySettings'
+                aria-labelledby='securityButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
