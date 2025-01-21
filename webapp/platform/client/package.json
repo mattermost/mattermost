@@ -7,6 +7,7 @@
   ],
   "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/client#readme",
   "license": "MIT",
+  "type": "commonjs",
   "files": [
     "lib"
   ],
