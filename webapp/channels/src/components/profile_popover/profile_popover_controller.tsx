@@ -84,8 +84,15 @@ interface Props<TriggerComponentType> {
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
     const intl = useIntl();
 
-    const profileAriaLabel = intl.formatMessage({id: 'profile_popover.aria_label', defaultMessage: 'profile popover'});
-    const userProfileAriaLabel = intl.formatMessage({id: 'profile_popover.aria_label.user', defaultMessage: "'s profile popover"});
+    const profileAriaLabel = intl.formatMessage({id: 'profile_popover.aria_label.without_username', defaultMessage: 'profile popover'});
+    const userProfileAriaLabel = intl.formatMessage({
+        id: 'profile_popover.aria_label.with_username',
+        defaultMessage: '{userName}\'s profile popover',
+    },
+    {
+        userName: props.username,
+    });
+
     const [isOpen, setOpen] = useState(false);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
@@ -136,7 +143,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 ref={refs.setFloating}
                                 style={{...floatingStyles, ...transitionStyles}}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
-                                aria-label={props.username ? `${props.username}${userProfileAriaLabel}` : profileAriaLabel}
+                                aria-label={props.username ? userProfileAriaLabel : profileAriaLabel}
                                 {...getFloatingProps()}
                             >
                                 <ProfilePopover
