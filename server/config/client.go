@@ -34,6 +34,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableCommands"] = strconv.FormatBool(*c.ServiceSettings.EnableCommands)
 	props["EnablePostUsernameOverride"] = strconv.FormatBool(*c.ServiceSettings.EnablePostUsernameOverride)
 	props["EnablePostIconOverride"] = strconv.FormatBool(*c.ServiceSettings.EnablePostIconOverride)
+	props["EnableOmniSearch"] = strconv.FormatBool(*c.ServiceSettings.EnableOmniSearch)
 	props["EnableUserAccessTokens"] = strconv.FormatBool(*c.ServiceSettings.EnableUserAccessTokens)
 	props["EnableLinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnableLinkPreviews)
 	props["EnablePermalinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnablePermalinkPreviews)
