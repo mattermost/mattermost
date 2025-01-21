@@ -1300,6 +1300,87 @@ type API interface {
 	// Minimum server version: 9.5
 	UninviteRemoteFromChannel(channelID string, remoteID string) error
 
+	// UpsertGroupMember adds a user to a group or updates their existing membership.
+	//
+	// @tag Group
+	// @tag User
+	// Minimum server version: 9.5
+	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
+
+	// UpsertGroupMembers adds multiple users to a group or updates their existing memberships.
+	//
+	// @tag Group
+	// @tag User
+	// Minimum server version: 9.5
+	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
+
+	// GetGroupByRemoteID gets a group by its remote ID.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
+
+	// CreateGroup creates a new group.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	CreateGroup(group *model.Group) (*model.Group, *model.AppError)
+
+	// UpdateGroup updates a group.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
+
+	// DeleteGroup soft deletes a group.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	DeleteGroup(groupID string) (*model.Group, *model.AppError)
+
+	// RestoreGroup restores a soft deleted group.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	RestoreGroup(groupID string) (*model.Group, *model.AppError)
+
+	// DeleteGroupMember removes a user from a group.
+	//
+	// @tag Group
+	// @tag User
+	// Minimum server version: 9.5
+	DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
+
+	// GetGroupSyncable gets a group syncable.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
+
+	// GetGroupSyncables gets all group syncables for the given group.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)
+
+	// UpsertGroupSyncable creates or updates a group syncable.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+
+	// UpdateGroupSyncable updates a group syncable.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+
+	// DeleteGroupSyncable deletes a group syncable.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
+
 	// UpdateUserRoles updates the role for a user.
 	//
 	// @tag Team
@@ -1312,6 +1393,13 @@ type API interface {
 	// @tag Plugin
 	// Minimum server version: 10.1
 	GetPluginID() string
+
+	// SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
+	// syncable.
+	//
+	// @tag Group
+	// Minimum server version: 9.5
+	SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64)
 }
 
 var handshake = plugin.HandshakeConfig{

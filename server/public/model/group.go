@@ -11,6 +11,7 @@ import (
 const (
 	GroupSourceLdap   GroupSource = "ldap"
 	GroupSourceCustom GroupSource = "custom"
+	GroupSourceSaml   GroupSource = "saml"
 
 	GroupNameMaxLength        = 64
 	GroupSourceMaxLength      = 64
@@ -24,10 +25,12 @@ type GroupSource string
 var allGroupSources = []GroupSource{
 	GroupSourceLdap,
 	GroupSourceCustom,
+	GroupSourceSaml,
 }
 
 var groupSourcesRequiringRemoteID = []GroupSource{
 	GroupSourceLdap,
+	GroupSourceSaml,
 }
 
 type Group struct {

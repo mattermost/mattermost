@@ -270,16 +270,10 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 // syncable.
-func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
+func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64) {
 	appErr := a.SyncSyncableRoles(rctx, syncableID, syncableType)
 	if appErr != nil {
 		rctx.Logger().Warn("Error syncing syncable roles", mlog.Err(appErr))
-	}
-
-	lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
-	var since int64
-	if lastJob != nil {
-		since = lastJob.StartAt
 	}
 
 	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: includeRemovedMembers}

@@ -656,6 +656,58 @@ func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.Ap
 	return api.app.GetGroupsByUserId(userID)
 }
 
+func (api *PluginAPI) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	return api.app.UpsertGroupMember(groupID, userID)
+}
+
+func (api *PluginAPI) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+	return api.app.UpsertGroupMembers(groupID, userIDs)
+}
+
+func (api *PluginAPI) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
+	return api.app.GetGroupByRemoteID(remoteID, groupSource)
+}
+
+func (api *PluginAPI) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	return api.app.CreateGroup(group)
+}
+
+func (api *PluginAPI) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	return api.app.UpdateGroup(group)
+}
+
+func (api *PluginAPI) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
+	return api.app.DeleteGroup(groupID)
+}
+
+func (api *PluginAPI) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
+	return api.app.RestoreGroup(groupID)
+}
+
+func (api *PluginAPI) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	return api.app.DeleteGroupMember(groupID, userID)
+}
+
+func (api *PluginAPI) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	return api.app.GetGroupSyncable(groupID, syncableID, syncableType)
+}
+
+func (api *PluginAPI) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+	return api.app.GetGroupSyncables(groupID, syncableType)
+}
+
+func (api *PluginAPI) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	return api.app.UpsertGroupSyncable(groupSyncable)
+}
+
+func (api *PluginAPI) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	return api.app.UpdateGroupSyncable(groupSyncable)
+}
+
+func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	return api.app.DeleteGroupSyncable(groupID, syncableID, syncableType)
+}
+
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	post.AddProp("from_plugin", "true")
 
@@ -1346,4 +1398,8 @@ func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID strin
 
 func (api *PluginAPI) GetPluginID() string {
 	return api.id
+}
+
+func (api *PluginAPI) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64) {
+	api.app.SyncRolesAndMembership(api.ctx, syncableID, syncableType, includeRemovedMembers, since)
 }

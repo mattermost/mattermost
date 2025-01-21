@@ -354,7 +354,7 @@ type AppIface interface {
 	SyncPlugins() *model.AppError
 	// SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 	// syncable.
-	SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool)
+	SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64)
 	// SyncSharedChannel forces a shared channel to send any changed content to all remote clusters.
 	SyncSharedChannel(channelID string) error
 	// SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of

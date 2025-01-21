@@ -17793,7 +17793,7 @@ func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
+func (a *OpenTracingAppLayer) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncRolesAndMembership")
 
@@ -17805,7 +17805,7 @@ func (a *OpenTracingAppLayer) SyncRolesAndMembership(rctx request.CTX, syncableI
 	}()
 
 	defer span.Finish()
-	a.app.SyncRolesAndMembership(rctx, syncableID, syncableType, includeRemovedMembers)
+	a.app.SyncRolesAndMembership(rctx, syncableID, syncableType, includeRemovedMembers, since)
 }
 
 func (a *OpenTracingAppLayer) SyncSharedChannel(channelID string) error {

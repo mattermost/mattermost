@@ -394,7 +394,12 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		lastJob, _ := c.App.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
+		var since int64
+		if lastJob != nil {
+			since = lastJob.StartAt
+		}
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false, since)
 	})
 
 	w.WriteHeader(http.StatusCreated)
@@ -579,7 +584,12 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		lastJob, _ := c.App.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
+		var since int64
+		if lastJob != nil {
+			since = lastJob.StartAt
+		}
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false, since)
 	})
 
 	b, err := json.Marshal(groupSyncable)
@@ -641,7 +651,12 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
+		lastJob, _ := c.App.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
+		var since int64
+		if lastJob != nil {
+			since = lastJob.StartAt
+		}
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false, since)
 	})
 
 	auditRec.Success()
