@@ -67,14 +67,12 @@ const AtMention = (props: Props) => {
                     returnFocus={returnFocus}
                     triggerComponentAs='button'
                 >
-                    <a
+                    <span
                         ref={ref}
                         className='mention-link'
-                        role='button'
-                        tabIndex={0}
                     >
                         {'@' + userDisplayName}
-                    </a>
+                    </span>
                 </ProfilePopover>
                 {userMentionNameSuffix}
             </>

@@ -100,13 +100,11 @@ exports[`components/AtMention should match snapshot when mentioning current user
     triggerComponentClass="style--none mention--highlight"
     userId="abc1"
   >
-    <a
+    <span
       className="mention-link"
-      role="button"
-      tabIndex={0}
     >
       @First Last
-    </a>
+    </span>
   </ProfilePopoverController>
 </Fragment>
 `;
@@ -120,13 +118,11 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
     triggerComponentClass="style--none"
     userId="abc2"
   >
-    <a
+    <span
       className="mention-link"
-      role="button"
-      tabIndex={0}
     >
       @Nick
-    </a>
+    </span>
   </ProfilePopoverController>
 </Fragment>
 `;
@@ -140,13 +136,11 @@ exports[`components/AtMention should match snapshot when mentioning user contain
     triggerComponentClass="style--none"
     userId="abc3"
   >
-    <a
+    <span
       className="mention-link"
-      role="button"
-      tabIndex={0}
     >
       @Dot Matrix
-    </a>
+    </span>
   </ProfilePopoverController>
   .
 </Fragment>
@@ -161,13 +155,11 @@ exports[`components/AtMention should match snapshot when mentioning user contain
     triggerComponentClass="style--none"
     userId="abc3"
   >
-    <a
+    <span
       className="mention-link"
-      role="button"
-      tabIndex={0}
     >
       @Dot Matrix
-    </a>
+    </span>
   </ProfilePopoverController>
 </Fragment>
 `;
@@ -181,13 +173,11 @@ exports[`components/AtMention should match snapshot when mentioning user followe
     triggerComponentClass="style--none"
     userId="abc2"
   >
-    <a
+    <span
       className="mention-link"
-      role="button"
-      tabIndex={0}
     >
       @Nick
-    </a>
+    </span>
   </ProfilePopoverController>
   ...
 </Fragment>
@@ -202,13 +192,11 @@ exports[`components/AtMention should match snapshot when mentioning user with di
     triggerComponentClass="style--none"
     userId="abc2"
   >
-    <a
+    <span
       className="mention-link"
-      role="button"
-      tabIndex={0}
     >
       @user1
-    </a>
+    </span>
   </ProfilePopoverController>
 </Fragment>
 `;
@@ -222,13 +210,11 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
     triggerComponentClass="style--none"
     userId="abc2"
   >
-    <a
+    <span
       className="mention-link"
-      role="button"
-      tabIndex={0}
     >
       @Nick
-    </a>
+    </span>
   </ProfilePopoverController>
 </Fragment>
 `;

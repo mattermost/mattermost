@@ -21,6 +21,15 @@ del .group-mention-link:focus {
     color: variables.$white;
 }
 
+.mention-link {
+    color:rgb(56, 111, 229)
+}
+
+.mention-link:hover,
+.mention-link:focus {
+    text-decoration: underline;
+}
+
 .badge {
     display: inline-block;
     min-width: 10px;
