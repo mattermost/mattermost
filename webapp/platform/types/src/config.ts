@@ -323,7 +323,6 @@ export type ServiceSettings = {
     EnableDeveloper: boolean;
     DeveloperFlags: string;
     EnableClientPerformanceDebugging: boolean;
-    EnableOpenTracing: boolean;
     EnableSecurityFixAlert: boolean;
     EnableInsecureOutgoingConnections: boolean;
     AllowedUntrustedInternalConnections: string;
