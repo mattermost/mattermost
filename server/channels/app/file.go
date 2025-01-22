@@ -124,15 +124,19 @@ func fileReader(backend filestore.FileBackend, path string) (filestore.ReadClose
 	return result, nil
 }
 
-func zipReader(backend filestore.FileBackend, path string, deflate bool) io.ReadCloser {
-	return backend.ZipReader(path, deflate)
+func zipReader(backend filestore.FileBackend, path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	result, err := backend.ZipReader(path, deflate)
+	if err != nil {
+		return nil, model.NewAppError("ZipReader", "api.file.zip_file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
 }
 
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.FileBackend(), path)
 }
 
-func (s *Server) zipReader(path string, deflate bool) io.ReadCloser {
+func (s *Server) zipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
 	return zipReader(s.FileBackend(), path, deflate)
 }
 
@@ -140,17 +144,23 @@ func (s *Server) exportFileReader(path string) (filestore.ReadCloseSeeker, *mode
 	return fileReader(s.ExportFileBackend(), path)
 }
 
-// FileReader caller is responsible for closing the returned ReadCloseSeeker.
+// FileReader returns a ReadCloseSeeker for path from the FileBackend.
+//
+// The caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().fileReader(path)
 }
 
-// ZipReader caller is responsible for closing the returned ReadCloser.
-func (a *App) ZipReader(path string, deflate bool) io.ReadCloser {
+// ZipReader returns a ReadCloser for path. If deflate is true, the zip will use compression.
+//
+// The caller is responsible for closing the returned ReadCloser.
+func (a *App) ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
 	return a.Srv().zipReader(path, deflate)
 }
 
-// ExportFileReader caller is responsible for closing the returned ReadCloseSeeker.
+// ExportFileReader returns a ReadCloseSeeker for path from the ExportFileBackend.
+//
+// The caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().exportFileReader(path)
 }

@@ -707,7 +707,7 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 
 // ZipReader will create a zip of path. If path is a single file, it will zip the single file.
 // If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
-func (b *S3FileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
+func (b *S3FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
 	deflateMethod := zip.Store
 	if deflate {
 		deflateMethod = zip.Deflate
@@ -715,7 +715,7 @@ func (b *S3FileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 
 	path, err := b.prefixedPath(path)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	pr, pw := io.Pipe()
@@ -766,7 +766,7 @@ func (b *S3FileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 		}
 	}()
 
-	return pr
+	return pr, nil
 }
 
 func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.ObjectInfo, stripPath string, deflateMethod uint16) error {
@@ -781,6 +781,7 @@ func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.
 		Method:   deflateMethod,
 		Modified: object.LastModified,
 	}
+	header.SetMode(0600) // rw------- permissions
 
 	writer, err := zipWriter.CreateHeader(header)
 	if err != nil {

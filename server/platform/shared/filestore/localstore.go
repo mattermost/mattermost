@@ -261,10 +261,16 @@ func (b *LocalFileBackend) RemoveDirectory(path string) error {
 
 // ZipReader will create a zip of path. If path is a single file, it will zip the single file.
 // If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
-func (b *LocalFileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
+func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
 	deflateMethod := zip.Store
 	if deflate {
 		deflateMethod = zip.Deflate
+	}
+
+	fullPath := filepath.Join(b.directory, path)
+	baseInfo, err := os.Stat(fullPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to stat path %s", path)
 	}
 
 	pr, pw := io.Pipe()
@@ -274,13 +280,6 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 
 		zipWriter := zip.NewWriter(pw)
 		defer zipWriter.Close()
-
-		fullPath := filepath.Join(b.directory, path)
-		baseInfo, err := os.Stat(fullPath)
-		if err != nil {
-			pw.CloseWithError(errors.Wrapf(err, "unable to stat path %s", path))
-			return
-		}
 
 		err = filepath.Walk(fullPath, func(filePath string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -320,6 +319,7 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 
 			// Create file entry
 			header.Method = deflateMethod
+			header.SetMode(0600) // rw------- permissions
 			writer, err := zipWriter.CreateHeader(header)
 			if err != nil {
 				return errors.Wrapf(err, "unable to create zip entry for %s", relPath)
@@ -343,5 +343,5 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) io.ReadCloser {
 		}
 	}()
 
-	return pr
+	return pr, nil
 }

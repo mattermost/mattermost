@@ -833,7 +833,8 @@ func (s *FileBackendTestSuite) TestZipReaderSingleFile() {
 	defer s.backend.RemoveFile(path2)
 
 	// Test without compression
-	reader := s.backend.ZipReader(path, false)
+	reader, err := s.backend.ZipReader(path, false)
+	s.NoError(err)
 	defer reader.Close()
 
 	// Read the zip file
@@ -877,7 +878,8 @@ func (s *FileBackendTestSuite) TestZipReaderSingleFileCompressed() {
 	s.EqualValues(len(b2), written)
 	defer s.backend.RemoveFile(path2)
 
-	reader := s.backend.ZipReader(path, true)
+	reader, err := s.backend.ZipReader(path, true)
+	s.NoError(err)
 	defer reader.Close()
 
 	zipBytes, err := io.ReadAll(reader)
@@ -919,7 +921,8 @@ func (s *FileBackendTestSuite) TestZipReaderDirectory() {
 	}
 
 	// Test without compression
-	reader := s.backend.ZipReader(dirPath, false)
+	reader, err := s.backend.ZipReader(dirPath, false)
+	s.NoError(err)
 	defer reader.Close()
 
 	// Read and verify zip contents
@@ -971,7 +974,8 @@ func (s *FileBackendTestSuite) TestZipReaderDirectoryCompressed() {
 	}
 
 	// Test with compression
-	reader := s.backend.ZipReader(dirPath, true)
+	reader, err := s.backend.ZipReader(dirPath, true)
+	s.NoError(err)
 	defer reader.Close()
 
 	// Read and verify zip contents
@@ -1007,7 +1011,8 @@ func (s *FileBackendTestSuite) TestZipReaderDirectoryCompressed() {
 
 func (s *FileBackendTestSuite) TestZipReaderErrors() {
 	// Test non-existent path
-	reader := s.backend.ZipReader("path/to/nonexistent.txt", false)
+	reader, err := s.backend.ZipReader("path/to/nonexistent.txt", false)
+	s.NoError(err)
 	defer reader.Close()
 
 	content, err := io.ReadAll(reader)
@@ -1025,7 +1030,8 @@ func (s *FileBackendTestSuite) TestZipReaderErrors() {
 	s.NoError(err)
 	defer os.RemoveAll(filepath.Join(s.settings.Directory, emptyDir))
 
-	reader = s.backend.ZipReader(emptyDir, false)
+	reader, err = s.backend.ZipReader(emptyDir, false)
+	s.NoError(err)
 	defer reader.Close()
 	content, err = io.ReadAll(reader)
 	s.NoError(err)
@@ -1034,7 +1040,8 @@ func (s *FileBackendTestSuite) TestZipReaderErrors() {
 
 func (s *FileBackendTestSuite) TestZipReaderErrorsCompressed() {
 	// Test non-existent path with compression
-	reader := s.backend.ZipReader("path/to/nonexistent.txt", true)
+	reader, err := s.backend.ZipReader("path/to/nonexistent.txt", true)
+	s.NoError(err)
 	defer reader.Close()
 
 	content, err := io.ReadAll(reader)
@@ -1052,7 +1059,8 @@ func (s *FileBackendTestSuite) TestZipReaderErrorsCompressed() {
 	s.NoError(err)
 	defer os.RemoveAll(filepath.Join(s.settings.Directory, emptyDir))
 
-	reader = s.backend.ZipReader(emptyDir, true)
+	reader, err = s.backend.ZipReader(emptyDir, true)
+	s.NoError(err)
 	defer reader.Close()
 	content, err = io.ReadAll(reader)
 	s.NoError(err)

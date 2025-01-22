@@ -143,13 +143,17 @@ type AppIface interface {
 	// attributes of the attachment structure. The Slack attachment structure is
 	// documented here: https://api.slack.com/docs/attachments
 	ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment
-	// ExportFileReader caller is responsible for closing the returned ReadCloseSeeker.
+	// ExportFileReader returns a ReadCloseSeeker for path from the ExportFileBackend.
+	//
+	// The caller is responsible for closing the returned ReadCloseSeeker.
 	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 	// A new ExpiresAt is only written if enough time has elapsed since last update.
 	// Returns true only if the session was extended.
 	ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Session) bool
-	// FileReader caller is responsible for closing the returned ReadCloseSeeker.
+	// FileReader returns a ReadCloseSeeker for path from the FileBackend.
+	//
+	// The caller is responsible for closing the returned ReadCloseSeeker.
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// FillInPostProps should be invoked before saving posts to fill in properties such as
 	// channel_mentions.
@@ -422,8 +426,10 @@ type AppIface interface {
 	ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
-	// ZipReader caller is responsible for closing the returned ReadCloser.
-	ZipReader(path string, deflate bool) io.ReadCloser
+	// ZipReader returns a ReadCloser for path. If deflate is true, the zip will use compression.
+	//
+	// The caller is responsible for closing the returned ReadCloser.
+	ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError)
 	// validateMoveOrCopy performs validation on a provided post list to determine
 	// if all permissions are in place to allow the for the posts to be moved or
 	// copied.
