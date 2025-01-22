@@ -11,7 +11,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
 
-const ButtonListContainer = styled.nav`
+const MenuContainer = styled.nav`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -22,7 +22,7 @@ const ButtonListContainer = styled.nav`
     color: rgb(var(--center-channel-color-rgb));
 `;
 
-const ItemButton = styled.button`
+const MenuItemButton = styled.button`
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -44,7 +44,7 @@ const Icon = styled.div`
     color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 `;
 
-const ItemText = styled.div`
+const MenuItemText = styled.div`
     padding-left: 8px;
     flex: 1;
 `;
@@ -62,7 +62,7 @@ const Badge = styled.div`
     place-content: center;
 `;
 
-interface ItemProps {
+interface MenuItemProps {
     icon: JSX.Element;
     text: string;
     opensSubpanel?: boolean;
@@ -70,18 +70,18 @@ interface ItemProps {
     onClick: () => void;
 }
 
-function Item(props: ItemProps) {
+function MenuItem(props: MenuItemProps) {
     const {icon, text, opensSubpanel, badge, onClick} = props;
     const hasRightSide = (badge !== undefined) || opensSubpanel;
 
     return (
-        <ItemButton
+        <MenuItemButton
             onClick={onClick}
             aria-label={text}
             type='button'
         >
             <Icon>{icon}</Icon>
-            <ItemText>{text}</ItemText>
+            <MenuItemText>{text}</MenuItemText>
             {hasRightSide && (
                 <RightSide>
                     {badge !== undefined && (
@@ -92,7 +92,7 @@ function Item(props: ItemProps) {
                     )}
                 </RightSide>
             )}
-        </ItemButton>
+        </MenuItemButton>
     );
 }
 
@@ -138,7 +138,7 @@ export default function Menu(props: MenuProps) {
     }, [channel.id]);
 
     return (
-        <ButtonListContainer
+        <MenuContainer
             className={className}
             data-testid='channel_info_rhs-menu'
             aria-label={formatMessage({
@@ -147,7 +147,7 @@ export default function Menu(props: MenuProps) {
             })}
         >
             {showNotificationPreferences && (
-                <Item
+                <MenuItem
                     icon={<i className='icon icon-bell-outline'/>}
                     text={formatMessage({
                         id: 'channel_info_rhs.menu.notification_preferences',
@@ -157,7 +157,7 @@ export default function Menu(props: MenuProps) {
                 />
             )}
             {showMembers && (
-                <Item
+                <MenuItem
                     icon={<i className='icon icon-account-outline'/>}
                     text={formatMessage({
                         id: 'channel_info_rhs.menu.members',
@@ -168,7 +168,7 @@ export default function Menu(props: MenuProps) {
                     onClick={() => actions.showChannelMembers(channel.id)}
                 />
             )}
-            <Item
+            <MenuItem
                 icon={<i className='icon icon-pin-outline'/>}
                 text={formatMessage({
                     id: 'channel_info_rhs.menu.pinned',
@@ -178,7 +178,7 @@ export default function Menu(props: MenuProps) {
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
-            <Item
+            <MenuItem
                 icon={<i className='icon icon-file-text-outline'/>}
                 text={formatMessage({
                     id: 'channel_info_rhs.menu.files',
@@ -188,6 +188,6 @@ export default function Menu(props: MenuProps) {
                 badge={loadingStats ? <LoadingSpinner/> : fileCount}
                 onClick={() => actions.showChannelFiles(channel.id)}
             />
-        </ButtonListContainer>
+        </MenuContainer>
     );
 }

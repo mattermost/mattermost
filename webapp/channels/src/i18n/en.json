@@ -3254,7 +3254,7 @@
   "channel_info_rhs.menu.members": "Members",
   "channel_info_rhs.menu.notification_preferences": "Notification Preferences",
   "channel_info_rhs.menu.pinned": "Pinned messages",
-  "channel_info_rhs.menu.title": "Channel Info Menu",
+  "channel_info_rhs.menu.title": "Channel Info Actions",
   "channel_info_rhs.top_buttons.add_people": "Add People",
   "channel_info_rhs.top_buttons.add_people.tooltip": "Add team members to this channel",
   "channel_info_rhs.top_buttons.copied": "Copied",
