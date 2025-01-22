@@ -135,6 +135,10 @@ type AppIface interface {
 	// DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 	// Notifies cluster peers through config change.
 	DisablePlugin(id string) *model.AppError
+	// DoActionRequest performs an HTTP POST request to an integration's action endpoint.
+	// Caller must consume and close returned http.Response as necessary.
+	// For internal requests, requests are routed directly to a plugin ServerHTTP hook
+	DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
 	// DoPermissionsMigrations execute all the permissions migrations need by the current version.
 	DoPermissionsMigrations() error
 	// EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
@@ -290,10 +294,6 @@ type AppIface interface {
 	PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
 	// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
-	// Perform an HTTP POST request to an integration's action endpoint.
-	// Caller must consume and close returned http.Response as necessary.
-	// For internal requests, requests are routed directly to a plugin ServerHTTP hook
-	DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
 	// PermanentDeleteBot permanently deletes a bot and its corresponding user.
 	PermanentDeleteBot(rctx request.CTX, botUserId string) *model.AppError
 	// PopulateWebConnConfig checks if the connection id already exists in the hub,
@@ -486,7 +486,6 @@ type AppIface interface {
 	CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError
 	CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
-	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
 	CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError
 	CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError
 	ClearChannelMembersCache(c request.CTX, channelID string) error
