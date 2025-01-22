@@ -42,7 +42,7 @@ const CompanyInfo: React.FC<Props> = () => {
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
-                    {customerError ? <CloudFetchError/> : <CompanyInfoDisplay/>}
+                     <CompanyInfoDisplay/>
                 </div>
             </div>
         </div>
