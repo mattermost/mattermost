@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, type KeyboardEvent, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
@@ -11,7 +11,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
 
-const MenuContainer = styled.nav`
+const ButtonListContainer = styled.nav`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -22,11 +22,19 @@ const MenuContainer = styled.nav`
     color: rgb(var(--center-channel-color-rgb));
 `;
 
-const MenuItemContainer = styled.div`
-    padding: 8px 16px;
-    flex: 1;
+const ItemButton = styled.button`
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    padding: 8px 16px;
+
+    background: none;
+    border: none;
+    text-align: left;
     cursor: pointer;
+
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
     }
@@ -36,7 +44,7 @@ const Icon = styled.div`
     color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 `;
 
-const MenuItemText = styled.div`
+const ItemText = styled.div`
     padding-left: 8px;
     flex: 1;
 `;
@@ -54,62 +62,39 @@ const Badge = styled.div`
     place-content: center;
 `;
 
-interface MenuItemProps {
-    className?: string;
+interface ItemProps {
     icon: JSX.Element;
     text: string;
     opensSubpanel?: boolean;
-    badge?: string|number|JSX.Element;
+    badge?: string | number | JSX.Element;
     onClick: () => void;
 }
 
-// handle keyboard activation by pressing Enter or Space.
-function handleKeyDown(e: KeyboardEvent<HTMLDivElement>, onClick: () => void) {
-    if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        onClick();
-    }
-}
-
-const menuItem = ({icon, text, className, opensSubpanel, badge, onClick}: MenuItemProps) => {
+function Item(props: ItemProps) {
+    const {icon, text, opensSubpanel, badge, onClick} = props;
     const hasRightSide = (badge !== undefined) || opensSubpanel;
 
     return (
-        <div
-            className={className}
-            role='menuitem'
-            tabIndex={0}
+        <ItemButton
+            onClick={onClick}
             aria-label={text}
-            onKeyDown={(e) => handleKeyDown(e, onClick)}
+            type='button'
         >
-            <MenuItemContainer onClick={onClick}>
-                <Icon>{icon}</Icon>
-                <MenuItemText>
-                    {text}
-                </MenuItemText>
-
-                {hasRightSide && (
-                    <RightSide>
-                        {badge !== undefined && (
-                            <Badge>{badge}</Badge>
-                        )}
-                        {opensSubpanel && (
-                            <Icon><i className='icon icon-chevron-right'/></Icon>
-                        )}
-                    </RightSide>
-                )}
-            </MenuItemContainer>
-        </div>
+            <Icon>{icon}</Icon>
+            <ItemText>{text}</ItemText>
+            {hasRightSide && (
+                <RightSide>
+                    {badge !== undefined && (
+                        <Badge>{badge}</Badge>
+                    )}
+                    {opensSubpanel && (
+                        <Icon><i className='icon icon-chevron-right'/></Icon>
+                    )}
+                </RightSide>
+            )}
+        </ItemButton>
     );
-};
-
-const MenuItem = styled(menuItem)`
-    display: flex;
-    width: 100%;
-    height: 40px;
-    flex-direction: row;
-    align-items: center;
-`;
+}
 
 interface MenuProps {
     channel: Channel;
@@ -127,8 +112,16 @@ interface MenuProps {
     };
 }
 
-const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps) => {
+export default function Menu(props: MenuProps) {
     const {formatMessage} = useIntl();
+    const {
+        channel,
+        channelStats,
+        isArchived,
+        className,
+        actions,
+    } = props;
+
     const [loadingStats, setLoadingStats] = useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
@@ -145,44 +138,56 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
     }, [channel.id]);
 
     return (
-        <MenuContainer
+        <ButtonListContainer
             className={className}
             data-testid='channel_info_rhs-menu'
-            role='menu'
-            aria-label={formatMessage({id: 'channel_info_rhs.menu.title', defaultMessage: 'Channel Info Menu'})}
+            aria-label={formatMessage({
+                id: 'channel_info_rhs.menu.title',
+                defaultMessage: 'Channel Info Actions',
+            })}
         >
             {showNotificationPreferences && (
-                <MenuItem
+                <Item
                     icon={<i className='icon icon-bell-outline'/>}
-                    text={formatMessage({id: 'channel_info_rhs.menu.notification_preferences', defaultMessage: 'Notification Preferences'})}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.notification_preferences',
+                        defaultMessage: 'Notification Preferences',
+                    })}
                     onClick={actions.openNotificationSettings}
                 />
             )}
             {showMembers && (
-                <MenuItem
+                <Item
                     icon={<i className='icon icon-account-outline'/>}
-                    text={formatMessage({id: 'channel_info_rhs.menu.members', defaultMessage: 'Members'})}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.members',
+                        defaultMessage: 'Members',
+                    })}
                     opensSubpanel={true}
                     badge={channelStats.member_count}
                     onClick={() => actions.showChannelMembers(channel.id)}
                 />
             )}
-            <MenuItem
+            <Item
                 icon={<i className='icon icon-pin-outline'/>}
-                text={formatMessage({id: 'channel_info_rhs.menu.pinned', defaultMessage: 'Pinned messages'})}
+                text={formatMessage({
+                    id: 'channel_info_rhs.menu.pinned',
+                    defaultMessage: 'Pinned messages',
+                })}
                 opensSubpanel={true}
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
-            <MenuItem
+            <Item
                 icon={<i className='icon icon-file-text-outline'/>}
-                text={formatMessage({id: 'channel_info_rhs.menu.files', defaultMessage: 'Files'})}
+                text={formatMessage({
+                    id: 'channel_info_rhs.menu.files',
+                    defaultMessage: 'Files',
+                })}
                 opensSubpanel={true}
                 badge={loadingStats ? <LoadingSpinner/> : fileCount}
                 onClick={() => actions.showChannelFiles(channel.id)}
             />
-        </MenuContainer>
+        </ButtonListContainer>
     );
-};
-
-export default Menu;
+}
