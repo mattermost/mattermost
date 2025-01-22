@@ -781,7 +781,7 @@ func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.
 		Method:   deflateMethod,
 		Modified: object.LastModified,
 	}
-	header.SetMode(0600) // rw------- permissions
+	header.SetMode(0644) // rw-r--r-- permissions
 
 	writer, err := zipWriter.CreateHeader(header)
 	if err != nil {

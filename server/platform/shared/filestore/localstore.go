@@ -319,7 +319,7 @@ func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, 
 
 			// Create file entry
 			header.Method = deflateMethod
-			header.SetMode(0600) // rw------- permissions
+			header.SetMode(0644) // rw-r--r-- permissions
 			writer, err := zipWriter.CreateHeader(header)
 			if err != nil {
 				return errors.Wrapf(err, "unable to create zip entry for %s", relPath)
