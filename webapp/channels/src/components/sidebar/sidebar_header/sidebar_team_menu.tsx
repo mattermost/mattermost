@@ -326,7 +326,7 @@ export default function SidebarTeamMenu(props: Props) {
         <Menu.Container
             menuButton={{
                 id: 'sidebarTeamMenuButton',
-                class: 'btn btn-lg btn-quaternary btn-inverted',
+                class: 'btn btn-sm btn-quaternary btn-inverted',
                 children: (
                     <>
                         <span>{props.currentTeam.display_name}</span>

@@ -8,21 +8,21 @@
     padding: 0 16px;
 
     button#sidebarTeamMenuButton {
-        display: flex;
         overflow: hidden;
-        height: 32px;
-        align-content: center;
-        align-items: center;
+        font-size: 16px;
         padding: 2px 6px;
         font-family: Metropolis, sans-serif;
-        gap: 0;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        gap: 1px;
 
         & > span {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        & > .icon {
+            display: flex;
+            justify-content: center;
         }
     }
 }
