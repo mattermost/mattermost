@@ -241,7 +241,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
 
         let serverError = null;
         if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+            serverError = <div className='form-group has-error'><div className='as-bs-label control-label'>{this.state.serverError}</div></div>;
         }
 
         const {formatMessage} = this.props.intl;
@@ -263,7 +263,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                 onHide={this.handleCancel}
                 onEntering={this.handleEntering}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='renameChannelModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -280,7 +280,10 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                 <form role='form'>
                     <Modal.Body>
                         <div className='form-group'>
-                            <label className='control-label'>
+                            <label
+                                className='control-label'
+                                htmlFor='display_name'
+                            >
                                 <FormattedMessage
                                     id='rename_channel.displayName'
                                     defaultMessage='Display Name'
@@ -303,12 +306,15 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                             {displayNameError}
                         </div>
                         <div className='form-group'>
-                            <label className='control-label'>{urlInputLabel}</label>
+                            <label
+                                className='control-label'
+                                htmlFor='channel_name'
+                            >
+                                {urlInputLabel}
+                            </label>
 
                             <div className={urlInputClass}>
                                 <WithTooltip
-                                    id='renameChannelModalShortUrlTooltip'
-                                    placement='top'
                                     title={fullUrl}
                                 >
                                     <span className='input-group-addon'>{shortUrl}</span>

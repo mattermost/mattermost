@@ -1512,10 +1512,6 @@
     "translation": "Невалиден оригинален id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Невалидно съобщение."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Невалиден id."
   },
