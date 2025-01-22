@@ -408,13 +408,9 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                                 {displayName}
                                 {option.is_bot && <BotTag/>}
                                 {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
-                                {displayName === option.username ?
-                                    null :
-                                    <UsernameSpan
-                                        className='ml-2 light'
-                                    >
-                                        {'@'}{option.username}
-                                    </UsernameSpan>
+                                {displayName === option.username ? null : <UsernameSpan className='ml-2 light'>
+                                    {'@'}{option.username}
+                                </UsernameSpan>
                                 }
                                 <UserMappingSpan
                                     className='light'
@@ -425,11 +421,14 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                         </div>
                     </div>
                     <div className='more-modal__actions'>
-                        <div className='more-modal__actions--round'>
+                        <button
+                            className='more-modal__actions--round'
+                            aria-label='Add channel to invite'
+                        >
                             <i
                                 className='icon icon-plus'
                             />
-                        </div>
+                        </button>
                     </div>
                 </div>
             );

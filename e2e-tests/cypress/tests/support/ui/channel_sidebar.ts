@@ -13,11 +13,8 @@ import {getRandomId} from '../../utils';
  *   cy.uiCreateSidebarCategory();
  */
 function uiCreateSidebarCategory(categoryName: string = `category-${getRandomId()}`): ChainableT<any> {
-    // # Click the New Category/Channel Dropdown button
-    cy.uiGetLHSAddChannelButton().click();
-
-    // # Click the Create new category dropdown item
-    cy.get('.AddChannelDropdown').should('be.visible').contains('.MenuItem', 'Create new category').click();
+    // # Click on the sidebar menu dropdown and select Create Category
+    cy.uiBrowseOrCreateChannel('Create new category');
 
     cy.findByRole('dialog', {name: 'Rename Category'}).should('be.visible').within(() => {
         // # Fill in the category name and click 'Create'
