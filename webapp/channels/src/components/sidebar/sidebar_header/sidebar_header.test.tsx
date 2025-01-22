@@ -6,6 +6,7 @@ import React from 'react';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import SidebarHeader from './sidebar_header';
 import type {Props} from './sidebar_header';
@@ -24,6 +25,10 @@ describe('SidebarHeader', () => {
         canCreateCustomGroups: true,
     };
 
+    const team = TestHelper.getTeamMock({
+        display_name: 'Steadfast',
+    });
+
     const initialState = {
         entities: {
             general: {
@@ -33,13 +38,9 @@ describe('SidebarHeader', () => {
                 myPreferences: {},
             },
             teams: {
-                currentTeamId: 'currentteam',
+                currentTeamId: team.id,
                 teams: {
-                    currentteam: {
-                        id: 'currentteam',
-                        display_name: 'Steadfast',
-                        description: 'et iste illum reprehenderit aliquid in rem itaque in maxime eius.',
-                    },
+                    [team.id]: team,
                 },
             },
             users: {
@@ -115,7 +116,7 @@ describe('SidebarHeader', () => {
         renderWithContext(<SidebarHeader {...defaultProps}/>, initialState);
 
         expect(screen.getByText('Steadfast')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: /Steadfast/i})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: team.display_name})).toBeInTheDocument();
     });
 
     test('should render the \'Browse or create channels\' menu button', () => {
@@ -129,7 +130,7 @@ describe('SidebarHeader', () => {
         state.entities.teams.currentTeamId = '';
         renderWithContext(<SidebarHeader {...defaultProps}/>, state);
 
-        expect(screen.queryByRole('button', {name: /Steadfast/i})).toBeNull();
+        expect(screen.queryByRole('button', {name: team.display_name})).toBeNull();
         expect(screen.queryByRole('button', {name: /Add Channel Dropdown/i})).toBeNull();
     });
 });
