@@ -30,7 +30,7 @@ func TestCreateCPAField(t *testing.T) {
 	}, "endpoint should not work if no valid license is present")
 
 	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("a user without admin permissions should not be able to create a field", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -94,7 +94,7 @@ func TestListCPAFields(t *testing.T) {
 	})
 
 	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("any user should be able to list fields", func(t *testing.T) {
 		fields, resp, err := th.Client.ListCPAFields(context.Background())
@@ -130,7 +130,7 @@ func TestPatchCPAField(t *testing.T) {
 	}, "endpoint should not work if no valid license is present")
 
 	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("a user without admin permissions should not be able to patch a field", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -179,7 +179,7 @@ func TestDeleteCPAField(t *testing.T) {
 	}, "endpoint should not work if no valid license is present")
 
 	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("a user without admin permissions should not be able to delete a field", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -244,7 +244,7 @@ func TestListCPAValues(t *testing.T) {
 	})
 
 	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	// login with Client2 from this point on
 	th.LoginBasic2()
@@ -292,7 +292,7 @@ func TestPatchCPAValues(t *testing.T) {
 	})
 
 	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("any team member should be able to create their own values", func(t *testing.T) {
 		values := map[string]string{}
