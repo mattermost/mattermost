@@ -43,7 +43,6 @@ type Props = {
 
 type State = {
     pluginSiteStats: Record<string, PluginAnalyticsRow>;
-    lineChartsExpanded: boolean;
 }
 
 const messages = defineMessages({
@@ -91,7 +90,6 @@ export const searchableStrings = [
 export default class SystemAnalytics extends React.PureComponent<Props, State> {
     state = {
         pluginSiteStats: {} as Record<string, PluginAnalyticsRow>,
-        lineChartsExpanded: false,
     };
 
     public async componentDidMount() {
@@ -114,8 +112,6 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
     private handleLineChartsToggle = (e: React.MouseEvent<HTMLDetailsElement>) => {
         const details = e.currentTarget;
         const isExpanding = details.open;
-
-        this.setState({lineChartsExpanded: isExpanding});
 
         if (isExpanding) {
             this.loadLineChartData();
@@ -432,25 +428,27 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             switch (stat.visualizationType) {
             case AnalyticsVisualizationType.LineChart:
                 pluginLineCharts.push((
-                    <LineChart
-                        id={key}
-                        key={'pluginstat.' + key}
-                        title={stat.name}
-                        data={stat.value}
-                        width={740}
-                        height={225}
-                    />
+                    <div className='row' key={'pluginstat.' + key}>
+                        <LineChart
+                            id={key}
+                            title={stat.name}
+                            data={stat.value}
+                            width={740}
+                            height={225}
+                        />
+                    </div>
                 ));
                 break;
             case AnalyticsVisualizationType.DoughnutChart:
                 pluginDoughnutCharts.push((
-                    <DoughnutChart
-                        key={'pluginstat.' + key}
-                        title={stat.name}
-                        data={stat.value}
-                        width={300}
-                        height={225}
-                    />
+                    <div className='row' key={'pluginstat.' + key}>
+                        <DoughnutChart
+                            title={stat.name}
+                            data={stat.value}
+                            width={300}
+                            height={225}
+                        />
+                    </div>
                 ));
                 break;
             case AnalyticsVisualizationType.Count:
@@ -512,22 +510,20 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                             {pluginCounts}
                         </div>
                         {advancedGraphs}
-                        {pluginDoughnutCharts}
                         <details onToggle={this.handleLineChartsToggle}>
                             <summary>
                                 <FormattedMessage
                                     id='analytics.system.perDayStatistics'
-                                    defaultMessage='Per Day Statistics'
+                                    defaultMessage='Load Advanced Statistics'
                                 />
                             </summary>
-                            {this.state.lineChartsExpanded && (
-                                <>
-                                    {postTotalGraph}
-                                    {botPostTotalGraph}
-                                    {activeUserGraph}
-                                    {pluginLineCharts}
-                                </>
-                            )}
+                            <>
+                                {pluginDoughnutCharts}
+                                {postTotalGraph}
+                                {botPostTotalGraph}
+                                {activeUserGraph}
+                                {pluginLineCharts}
+                            </>
                         </details>
                     </div>
                 </div>

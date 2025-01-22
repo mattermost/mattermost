@@ -91,7 +91,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
 
         renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
-        const detailsElement = screen.getByText('Per Day Statistics');
+        const detailsElement = screen.getByText('Load Advanced Statistics');
         fireEvent.click(detailsElement);
 
         await screen.findByTestId('totalPostsLineChart');
@@ -239,7 +239,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
 
         await new Promise(process.nextTick);
 
-        const detailsElement = screen.getByText('Per Day Statistics');
+        const detailsElement = screen.getByText('Load Advanced Statistics');
         fireEvent.click(detailsElement);
 
         await screen.findByTestId('totalPostsLineChart');
