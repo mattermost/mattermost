@@ -11,6 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {getIsRhsOpen} from 'selectors/rhs';
 
@@ -41,6 +42,7 @@ const ChannelHeaderTitle = ({
     const [showTooltip, setShowTooltip] = useState(false);
     const intl = useIntl();
     const channel = useSelector(getCurrentChannel);
+    const currentUser = useSelector(getCurrentUser);
 
     const headerItemRef = useRef<HTMLElement | null>(null);
     const isRHSOpen = useSelector(getIsRhsOpen);
@@ -107,11 +109,8 @@ const ChannelHeaderTitle = ({
                     aria-level={2}
                     id='channelHeaderTitle'
                     className='heading'
-                    aria-labelledby='channelHeaderTitle_bot'
                 >
-                    <span
-                        id='channelHeaderTitle_bot'
-                    >
+                    <span>
                         {archivedIcon}
                         {channelTitle}
                     </span>
@@ -120,6 +119,20 @@ const ChannelHeaderTitle = ({
             </div>
         );
     }
+
+    const personalChannelHeaderAriaLabel = intl.formatMessage({
+        id: 'channel_header.directchannel',
+        defaultMessage: '{displayName} (you) Channel Menu',
+    }, {
+        displayName: channel.display_name,
+    });
+
+    const othersChannelHeaderAriaLabel = intl.formatMessage({
+        id: 'channel_header.otherchannel',
+        defaultMessage: '{displayName} Channel Menu',
+    }, {
+        displayName: channel.display_name,
+    });
 
     return (
         <div className='channel-header__top'>
@@ -145,9 +158,9 @@ const ChannelHeaderTitle = ({
                         <button
                             id='channel_header.menuAriaLabel'
                             className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
-                            aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: '{channelName} Channel Menu'}, {
-                                channelName: isDirect ? channel.display_name + '(you)' : channel.display_name,
-                            }).toLowerCase()}
+                            aria-label={
+                                (isDirect && currentUser.id === dmUser?.id) ? personalChannelHeaderAriaLabel.toLowerCase() : othersChannelHeaderAriaLabel.toLowerCase()
+                            }
                             aria-expanded={titleMenuOpen}
                             aria-controls='channelHeaderDropdownMenu'
                         >
@@ -176,7 +189,10 @@ const ChannelHeaderTitle = ({
                         </button>
                     </strong>
                 </div>
-                <ChannelHeaderDropdown/>
+                <ChannelHeaderDropdown
+                    ariaLabel={
+                        (isDirect && currentUser.id === dmUser?.id) ? personalChannelHeaderAriaLabel.toLowerCase() : othersChannelHeaderAriaLabel.toLowerCase()}
+                />
             </MenuWrapper>
         </div>
     );
