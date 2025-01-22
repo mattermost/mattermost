@@ -428,7 +428,10 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             switch (stat.visualizationType) {
             case AnalyticsVisualizationType.LineChart:
                 pluginLineCharts.push((
-                    <div className='row' key={'pluginstat.' + key}>
+                    <div
+                        className='row'
+                        key={'pluginstat.' + key}
+                    >
                         <LineChart
                             id={key}
                             title={stat.name}
@@ -441,7 +444,10 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                 break;
             case AnalyticsVisualizationType.DoughnutChart:
                 pluginDoughnutCharts.push((
-                    <div className='row' key={'pluginstat.' + key}>
+                    <div
+                        className='row'
+                        key={'pluginstat.' + key}
+                    >
                         <DoughnutChart
                             title={stat.name}
                             data={stat.value}
