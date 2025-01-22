@@ -10,6 +10,7 @@ import {
     useDismiss,
     useInteractions,
     useRole,
+    shift,
     FloatingFocusManager,
     FloatingOverlay,
     FloatingPortal,
@@ -82,7 +83,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
         open: isOpen,
         onOpenChange: setOpen,
         whileElementsMounted: autoUpdate,
-        middleware: [autoPlacement()],
+        middleware: [autoPlacement(), shift()],
     });
 
     const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);
@@ -118,7 +119,6 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
                     <FloatingOverlay
-                        id='user-profile-popover-floating-overlay'
                         className='user-profile-popover-floating-overlay'
                         lockScroll={true}
                     >

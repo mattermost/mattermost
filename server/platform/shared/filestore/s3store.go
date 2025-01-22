@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -216,7 +217,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to list objects in the S3 bucket: %v", typedErr)}
 			}
 			exists = false
 		}
@@ -225,7 +226,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if err != nil {
 			typedErr := s3.ToErrorResponse(err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to check if the S3 bucket exists: %v", typedErr)}
 			}
 		}
 	}
