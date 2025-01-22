@@ -21,7 +21,6 @@ describe('SidebarHeader', () => {
         handleOpenDirectMessagesModal: jest.fn(),
         unreadFilterEnabled: true,
         showCreateUserGroupModal: jest.fn(),
-        userGroupsEnabled: false,
         canCreateCustomGroups: true,
     };
 
@@ -108,11 +107,6 @@ describe('SidebarHeader', () => {
                         },
                     },
                 },
-            },
-        },
-        views: {
-            addChannelDropdown: {
-                isOpen: false,
             },
         },
     };

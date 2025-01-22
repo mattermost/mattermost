@@ -21,7 +21,7 @@
     }
 }
 
-.rounded-button {
+.btn-round {
     border-radius: 50%;
 }
 
@@ -50,6 +50,10 @@ button {
     gap: 8px;
     outline: none !important;
     transition: all 0.15s ease;
+
+    &.btn-round {
+        border-radius: 50%;
+    }
 
     &.btn-icon {
         width: 40px;
@@ -296,6 +300,20 @@ button {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
             }
+        }
+    }
+    &.btn-tertiary.btn-inverted {
+        background-color: rgba(var(--sidebar-text-rgb), 0.12);
+        color: rgba(var(--sidebar-text-rgb), 1);
+
+        &:hover {
+            background-color: rgb(var(--sidebar-text-rgb), 0.16);
+        }
+
+        &:active,
+        &[aria-expanded="true"][aria-haspopup="true"] {
+            background-color: rgb(var(--sidebar-text-rgb), 0.24);
+            outline: none;
         }
     }
 

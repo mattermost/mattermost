@@ -1,20 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import React from 'react';
+import {useSelector} from 'react-redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import {setAddChannelDropdown} from 'actions/views/add_channel_dropdown';
-import {isAddChannelDropdownOpen} from 'selectors/views/add_channel_dropdown';
-
-import AddChannelDropdown from 'components/sidebar/add_channel_dropdown';
-import {OnboardingTourSteps} from 'components/tours';
-import {useShowOnboardingTutorialStep} from 'components/tours/onboarding_tour';
-
-import type {GlobalState} from 'types/store';
-
+import SidebarBrowseOrAddChannelMenu from './sidebar_browse_or_add_channel_menu';
 import SidebarTeamMenu from './sidebar_team_menu';
 
 import './sidebar_header.scss';
@@ -27,21 +19,13 @@ export type Props = {
     showCreateCategoryModal: () => void;
     canCreateChannel: boolean;
     canJoinPublicChannel: boolean;
-    handleOpenDirectMessagesModal: (e: Event) => void;
+    handleOpenDirectMessagesModal: () => void;
     unreadFilterEnabled: boolean;
-    userGroupsEnabled: boolean;
     canCreateCustomGroups: boolean;
 }
 
 const SidebarHeader = (props: Props) => {
-    const dispatch = useDispatch();
-    const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
-    const showCreateTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
-    const showInviteTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
-    const isAddChannelOpen = useSelector(isAddChannelDropdownOpen);
-    const openAddChannelOpen = useCallback((open: boolean) => {
-        dispatch(setAddChannelDropdown(open));
-    }, []);
+    const currentTeam = useSelector(getCurrentTeam);
 
     if (!currentTeam) {
         return null;
@@ -50,23 +34,20 @@ const SidebarHeader = (props: Props) => {
     return (
         <header className='sidebarHeaderContainer'>
             <SidebarTeamMenu currentTeam={currentTeam}/>
-            <AddChannelDropdown
-                showNewChannelModal={props.showNewChannelModal}
-                showMoreChannelsModal={props.showMoreChannelsModal}
-                invitePeopleModal={props.invitePeopleModal}
-                showCreateCategoryModal={props.showCreateCategoryModal}
-                canCreateChannel={props.canCreateChannel}
-                canJoinPublicChannel={props.canJoinPublicChannel}
-                handleOpenDirectMessagesModal={props.handleOpenDirectMessagesModal}
-                unreadFilterEnabled={props.unreadFilterEnabled}
-                showCreateTutorialTip={showCreateTutorialTip}
-                showInviteTutorialTip={showInviteTutorialTip}
-                isAddChannelOpen={isAddChannelOpen}
-                openAddChannelOpen={openAddChannelOpen}
-                canCreateCustomGroups={props.canCreateCustomGroups}
-                showCreateUserGroupModal={props.showCreateUserGroupModal}
-                userGroupsEnabled={props.userGroupsEnabled}
-            />
+            {(props.canCreateChannel || props.canJoinPublicChannel) && (
+                <SidebarBrowseOrAddChannelMenu
+                    canCreateChannel={props.canCreateChannel}
+                    onCreateNewChannelClick={props.showNewChannelModal}
+                    canJoinPublicChannel={props.canJoinPublicChannel}
+                    onBrowseChannelClick={props.showMoreChannelsModal}
+                    onOpenDirectMessageClick={props.handleOpenDirectMessagesModal}
+                    canCreateCustomGroups={props.canCreateCustomGroups}
+                    onCreateNewUserGroupClick={props.showCreateUserGroupModal}
+                    unreadFilterEnabled={props.unreadFilterEnabled}
+                    onCreateNewCategoryClick={props.showCreateCategoryModal}
+                    onInvitePeopleClick={props.invitePeopleModal}
+                />
+            )}
         </header>
     );
 };
