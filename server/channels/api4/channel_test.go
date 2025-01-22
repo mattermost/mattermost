@@ -2498,6 +2498,12 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, th.BasicChannel.Name, channel.Name, "names did not match")
 
+	TeamAdminClient := th.CreateClient()
+	th.LoginTeamAdminWithClient(TeamAdminClient)
+	channel, _, err = TeamAdminClient.GetChannelByNameForTeamName(context.Background(), th.BasicChannel.Name, th.BasicTeam.Name, "")
+	require.NoError(t, err)
+	require.Equal(t, th.BasicChannel.Name, channel.Name, "names did not match")
+
 	_, _, err = client.GetChannelByNameForTeamName(context.Background(), th.BasicChannel.Name, th.BasicTeam.Name, "")
 	require.NoError(t, err)
 	require.Equal(t, th.BasicChannel.Name, channel.Name, "names did not match")
