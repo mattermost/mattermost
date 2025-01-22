@@ -105,6 +105,9 @@ const SidebarHeader = (props: Props) => {
                             <button
                                 className='style--none sidebar-header'
                                 type='button'
+                                aria-haspopup='menu'
+                                aria-expanded={menuToggled}
+                                aria-controls='sidebarDropdownMenu'
                             >
                                 <span className='title'>{currentTeam.display_name}</span>
                                 <i
