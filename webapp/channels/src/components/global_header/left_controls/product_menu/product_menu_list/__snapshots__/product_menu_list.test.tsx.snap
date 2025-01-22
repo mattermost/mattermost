@@ -433,20 +433,7 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   id="userGroups"
   modalId="user_groups"
   show={true}
-  sibling={
-    <RestrictedIndicator
-      blocked={true}
-      feature="mattermost.feature.custom_user_groups"
-      messageAdminPostTrial="User groups are a way to organize users and apply actions to all users within that group. Upgrade to the Professional plan to create unlimited user groups."
-      messageAdminPreTrial="Create unlimited user groups with one of our paid plans. Get the full experience of Enterprise when you start a free, 30 day trial."
-      messageEndUser="User groups are a way to organize users and apply actions to all users within that group."
-      minimumPlanRequiredForFeature="professional"
-      titleAdminPostTrial="Upgrade to create unlimited user groups"
-      titleAdminPreTrial="Try unlimited user groups with a free trial"
-      titleEndUser="User groups available in paid plans"
-      tooltipMessage="During your trial you are able to create user groups. These user groups will be archived after your trial."
-    />
-  }
+  sibling={false}
   text="User Groups"
 />
 `;
@@ -478,20 +465,7 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   id="userGroups"
   modalId="user_groups"
   show={true}
-  sibling={
-    <RestrictedIndicator
-      blocked={false}
-      feature="mattermost.feature.custom_user_groups"
-      messageAdminPostTrial="User groups are a way to organize users and apply actions to all users within that group. Upgrade to the Professional plan to create unlimited user groups."
-      messageAdminPreTrial="Create unlimited user groups with one of our paid plans. Get the full experience of Enterprise when you start a free, 30 day trial."
-      messageEndUser="User groups are a way to organize users and apply actions to all users within that group."
-      minimumPlanRequiredForFeature="professional"
-      titleAdminPostTrial="Upgrade to create unlimited user groups"
-      titleAdminPreTrial="Try unlimited user groups with a free trial"
-      titleEndUser="User groups available in paid plans"
-      tooltipMessage="During your trial you are able to create user groups. These user groups will be archived after your trial."
-    />
-  }
+  sibling={false}
   text="User Groups"
 />
 `;
