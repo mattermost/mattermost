@@ -2844,7 +2844,7 @@ func (s *MmctlUnitTestSuite) TestPromoteGuestToUserCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) eTestDemoteUserToGuestCmd() {
+func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 	s.Run("demote a user to a guest", func() {
 		printer.Clean()
 		emailArg := "example@example.com"
