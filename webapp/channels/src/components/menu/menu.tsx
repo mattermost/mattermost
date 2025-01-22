@@ -34,6 +34,8 @@ import {MenuContext, useMenuContextValue} from './menu_context';
 
 import './menu.scss';
 
+export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
+
 const MENU_OPEN_ANIMATION_DURATION = 150;
 const MENU_CLOSE_ANIMATION_DURATION = 100;
 
@@ -56,8 +58,13 @@ type MenuButtonTooltipProps = {
 }
 
 type MenuProps = {
+
+    /**
+     * ID is mandatory as it is used in mobileWebview to open modal equivalent to menu
+     */
     id: string;
     'aria-label'?: string;
+    'aria-labelledby'?: string;
 
     /**
      * @warning Make the styling of your components such a way that they don't need this handler
@@ -246,7 +253,8 @@ export function Menu(props: Props) {
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
                     MenuListProps={{
                         id: props.menu.id,
-                        'aria-label': props.menu?.['aria-label'] ?? '',
+                        'aria-label': props.menu?.['aria-label'],
+                        'aria-labelledby': props.menu?.['aria-labelledby'],
                         style: {
                             width: props.menu?.width,
                             minWidth: props.menu?.minWidth,
@@ -259,6 +267,11 @@ export function Menu(props: Props) {
                         timeout: {
                             enter: MENU_OPEN_ANIMATION_DURATION,
                             exit: MENU_CLOSE_ANIMATION_DURATION,
+                        },
+                    }}
+                    slotProps={{
+                        backdrop: {
+                            id: ELEMENT_ID_FOR_MENU_BACKDROP,
                         },
                     }}
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
