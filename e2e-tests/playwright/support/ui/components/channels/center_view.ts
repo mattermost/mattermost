@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator, Page} from '@playwright/test';
+import {expect, Locator} from '@playwright/test';
 
 import {components} from '@e2e-support/ui/components';
 import {waitUntil} from '@e2e-support/test_action';
