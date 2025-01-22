@@ -111,20 +111,20 @@ describe('SidebarHeader', () => {
         },
     };
 
-    test('should render the team name and menu button', () => {
+    test('should render the team menu button', () => {
         renderWithContext(<SidebarHeader {...defaultProps}/>, initialState);
 
         expect(screen.getByText('Steadfast')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /Steadfast/i})).toBeInTheDocument();
     });
 
-    test('should render the add channel dropdown', () => {
+    test('should render the \'Browse or create channels\' menu button', () => {
         renderWithContext(<SidebarHeader {...defaultProps}/>, initialState);
 
-        expect(screen.getByRole('button', {name: /Add Channel Dropdown/i})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Browse or create channels/i})).toBeInTheDocument();
     });
 
-    test('should don\'t render anything when team is empty', () => {
+    test('should not render anything when team is empty', () => {
         const state = {...initialState};
         state.entities.teams.currentTeamId = '';
         renderWithContext(<SidebarHeader {...defaultProps}/>, state);
