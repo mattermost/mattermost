@@ -8,14 +8,13 @@ import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import ContactUsSvg from 'components/common/svg_images_components/contact_us_svg';
 import ExternalLink from 'components/external_link';
 
 import {HostedCustomerLinks} from 'utils/constants';
 
-import BlankCardImage from './blank_card_image.svg';
 import BuildingSvg from './building.svg';
 import TadaSvg from './tada.svg';
-import ContactUsSvg from 'components/common/svg_images_components/contact_us_svg';
 
 export enum ButtonCustomiserClasses {
     grayed = 'grayed',
@@ -75,7 +74,10 @@ export function BlankCard() {
     return (
         <div className='BlankCard'>
             <div className='image'>
-                <ContactUsSvg width={125} height={97}/>
+                <ContactUsSvg
+                    width={125}
+                    height={97}
+                />
             </div>
 
             <div className='description'>
