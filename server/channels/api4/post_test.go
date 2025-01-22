@@ -1328,30 +1328,6 @@ func TestUpdatePost(t *testing.T) {
 	assert.EqualValues(t, 0, rpost.EditAt, "Newly created post shouldn't have EditAt set")
 	assert.Equal(t, model.StringArray(fileIds), rpost.FileIds, "FileIds should have been set")
 
-	t.Run("same message, fewer files", func(t *testing.T) {
-		msg := "zz" + model.NewId() + " update post"
-		rpost.Message = msg
-		rpost.UserId = ""
-
-		rupost, _, err := client.UpdatePost(context.Background(), rpost.Id, &model.Post{
-			Id:      rpost.Id,
-			Message: rpost.Message,
-			FileIds: fileIds[0:2], // one fewer file id
-		})
-		require.NoError(t, err)
-
-		assert.Equal(t, rupost.Message, msg, "failed to updates")
-		assert.NotEqual(t, 0, rupost.EditAt, "EditAt not updated for post")
-		assert.Equal(t, model.StringArray(fileIds), rupost.FileIds, "FileIds should have not have been updated")
-
-		actual, _, err := client.GetPost(context.Background(), rpost.Id, "")
-		require.NoError(t, err)
-
-		assert.Equal(t, actual.Message, msg, "failed to updates")
-		assert.NotEqual(t, 0, actual.EditAt, "EditAt not updated for post")
-		assert.Equal(t, model.StringArray(fileIds), actual.FileIds, "FileIds should have not have been updated")
-	})
-
 	t.Run("new message, invalid props", func(t *testing.T) {
 		msg1 := "#hashtag a" + model.NewId() + " update post again"
 		rpost.Message = msg1
@@ -1397,22 +1373,6 @@ func TestUpdatePost(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
-
-	t.Run("new message, add files", func(t *testing.T) {
-		up3 := &model.Post{
-			Id:        rpost3.Id,
-			ChannelId: channel.Id,
-			Message:   "zz" + model.NewId() + " update post 3",
-			FileIds:   fileIds[0:2],
-		}
-		rrupost3, _, err := client.UpdatePost(context.Background(), rpost3.Id, up3)
-		require.NoError(t, err)
-		assert.Empty(t, rrupost3.FileIds)
-
-		actual, _, err := client.GetPost(context.Background(), rpost.Id, "")
-		require.NoError(t, err)
-		assert.Equal(t, model.StringArray(fileIds), actual.FileIds)
-	})
 
 	t.Run("add slack attachments", func(t *testing.T) {
 		up4 := &model.Post{
@@ -1509,6 +1469,184 @@ func TestUpdatePost(t *testing.T) {
 		_, _, err := th.SystemAdminClient.UpdatePost(context.Background(), rpost.Id, rpost)
 		require.NoError(t, err)
 	})
+
+	t.Run("should be able to add new files", func(t *testing.T) {
+		th.LoginBasic()
+		// create new file
+		fileResponse, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		// create new post
+		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+		}, channel, model.CreatePostFlags{SetOnline: true})
+
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+
+		// update post with new file
+		post.FileIds = []string{fileInfo.Id}
+		_, _, err = client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+
+		updatedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, post.Id, updatedPost.Id)
+		require.Equal(t, 1, len(updatedPost.FileIds))
+		require.Equal(t, fileInfo.Id, updatedPost.FileIds[0])
+
+		// verify file is attached to the post
+		fetchedFileInfo, _, err := client.GetFileInfo(context.Background(), fileInfo.Id)
+		require.NoError(t, err)
+		require.Equal(t, fileInfo.Id, fetchedFileInfo.Id)
+		require.Equal(t, post.Id, fetchedFileInfo.PostId)
+	})
+
+	t.Run("should be able to remove files", func(t *testing.T) {
+		th.LoginBasic()
+		// create new file
+		fileResponse, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		// create new post
+		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			FileIds:   []string{fileInfo.Id},
+		}, channel, model.CreatePostFlags{SetOnline: true})
+
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+		require.Equal(t, 1, len(post.FileIds))
+
+		// remove files from post
+		post.FileIds = []string{}
+		_, _, err = client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+
+		updatedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, post.Id, updatedPost.Id)
+		require.Equal(t, 0, len(updatedPost.FileIds))
+
+		// verify file is removed from the post
+		postFileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(postFileInfos))
+		require.Equal(t, fileInfo.Id, postFileInfos[0].Id)
+		require.Greater(t, postFileInfos[0].DeleteAt, int64(0))
+	})
+
+	t.Run("post files remain unchanged when fileIds is nil", func(t *testing.T) {
+		th.LoginBasic()
+		// create new file
+		fileResponse, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		// create new post
+		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			FileIds:   []string{fileInfo.Id},
+		}, channel, model.CreatePostFlags{SetOnline: true})
+
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+		require.Equal(t, 1, len(post.FileIds))
+
+		// update post without specifying fileIds
+		post.FileIds = nil
+		post.Message = "updated message"
+		_, _, err = client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+
+		updatedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, post.Id, updatedPost.Id)
+		require.Equal(t, 1, len(updatedPost.FileIds))
+		require.Equal(t, fileInfo.Id, updatedPost.FileIds[0])
+		require.Equal(t, "updated message", updatedPost.Message)
+
+		// verify file is still part of the post
+		postFileInfos, err := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, false, false)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(postFileInfos))
+		require.Equal(t, fileInfo.Id, postFileInfos[0].Id)
+		require.Equal(t, int64(0), postFileInfos[0].DeleteAt)
+	})
+
+	t.Run("should be able to add and remove files simultaneously", func(t *testing.T) {
+		th.LoginBasic()
+		// create new file
+		fileResponse1, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse1.FileInfos))
+		fileInfo1 := fileResponse1.FileInfos[0]
+
+		fileResponse2, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse2.FileInfos))
+		fileInfo2 := fileResponse2.FileInfos[0]
+
+		// create new post
+		post, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "zz" + model.NewId() + "a",
+			FileIds:   model.StringArray{fileInfo1.Id, fileInfo2.Id},
+		}, channel, model.CreatePostFlags{SetOnline: true})
+
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+		require.Equal(t, 2, len(post.FileIds))
+
+		// update post with new file
+
+		fileResponse3, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse3.FileInfos))
+		fileInfo3 := fileResponse3.FileInfos[0]
+
+		fileResponse4, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse4.FileInfos))
+		fileInfo4 := fileResponse4.FileInfos[0]
+
+		post.FileIds = []string{fileInfo3.Id, fileInfo4.Id}
+		_, _, err = client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err)
+
+		updatedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, post.Id, updatedPost.Id)
+		require.Equal(t, 2, len(updatedPost.FileIds))
+		require.Contains(t, updatedPost.FileIds, fileInfo3.Id)
+		require.Contains(t, updatedPost.FileIds, fileInfo4.Id)
+
+		postFiles, err := th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
+		require.NoError(t, err)
+		require.Equal(t, 4, len(postFiles))
+
+		for _, postFile := range postFiles {
+			if postFile.Id == fileInfo1.Id || postFile.Id == fileInfo2.Id {
+				require.Greater(t, postFile.DeleteAt, int64(0))
+			}
+
+			if postFile.Id == fileInfo3.Id || postFile.Id == fileInfo4.Id {
+				require.Equal(t, postFile.PostId, post.Id)
+			}
+		}
+	})
 }
 
 func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
@@ -1583,7 +1721,7 @@ func TestPatchPost(t *testing.T) {
 		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
 		assert.Equal(t, *patch.Props, rpost.GetProps(), "Props did not update properly")
 		assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
-		assert.Equal(t, model.StringArray(fileIDs[0:2]), rpost.FileIds, "FileIds should not update")
+		assert.Equal(t, model.StringArray(fileIDs), rpost.FileIds, "FileIds should not update")
 		assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
 	})
 
@@ -1730,6 +1868,135 @@ func TestPatchPost(t *testing.T) {
 
 		require.Error(t, patchErr)
 		CheckBadRequestStatus(t, patchResp)
+	})
+
+	t.Run("should be able to add new files", func(t *testing.T) {
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+		})
+
+		require.NoError(t, err)
+
+		fileResponse, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		patch := &model.PostPatch{
+			FileIds: &model.StringArray{fileInfo.Id},
+		}
+
+		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
+		require.NoError(t, err)
+
+		patchedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(patchedPost.FileIds))
+		require.Equal(t, fileInfo.Id, patchedPost.FileIds[0])
+	})
+
+	t.Run("should be able to remove some files", func(t *testing.T) {
+		fileResponse1, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse1.FileInfos))
+		fileInfo1 := fileResponse1.FileInfos[0]
+
+		fileResponse2, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse2.FileInfos))
+		fileInfo2 := fileResponse2.FileInfos[0]
+
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+			FileIds:   model.StringArray{fileInfo1.Id, fileInfo2.Id},
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, 2, len(post.FileIds))
+
+		patch := &model.PostPatch{
+			FileIds: &model.StringArray{fileInfo2.Id},
+		}
+
+		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
+		require.NoError(t, err)
+
+		patchedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(patchedPost.FileIds))
+		require.Equal(t, fileInfo2.Id, patchedPost.FileIds[0])
+	})
+
+	t.Run("should be able to remove all files", func(t *testing.T) {
+		fileResponse1, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse1.FileInfos))
+		fileInfo1 := fileResponse1.FileInfos[0]
+
+		fileResponse2, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse2.FileInfos))
+		fileInfo2 := fileResponse2.FileInfos[0]
+
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+			FileIds:   model.StringArray{fileInfo1.Id, fileInfo2.Id},
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, 2, len(post.FileIds))
+
+		patch := &model.PostPatch{
+			FileIds: &model.StringArray{},
+		}
+
+		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
+		require.NoError(t, err)
+
+		patchedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, 0, len(patchedPost.FileIds))
+	})
+
+	t.Run("post files remain unchanged when fileIds is nil", func(t *testing.T) {
+		fileResponse1, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse1.FileInfos))
+		fileInfo1 := fileResponse1.FileInfos[0]
+
+		fileResponse2, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse2.FileInfos))
+		fileInfo2 := fileResponse2.FileInfos[0]
+
+		post, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "#hashtag a message",
+			CreateAt:  model.GetMillis() - 2000,
+			FileIds:   model.StringArray{fileInfo1.Id, fileInfo2.Id},
+		})
+
+		require.NoError(t, err)
+		require.Equal(t, 2, len(post.FileIds))
+
+		patch := &model.PostPatch{
+			FileIds: nil,
+		}
+
+		_, _, err = client.PatchPost(context.Background(), post.Id, patch)
+		require.NoError(t, err)
+
+		patchedPost, _, err := client.GetPost(context.Background(), post.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, 2, len(patchedPost.FileIds))
+		require.Contains(t, patchedPost.FileIds, fileInfo1.Id)
+		require.Contains(t, patchedPost.FileIds, fileInfo2.Id)
 	})
 }
 
@@ -4153,6 +4420,58 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("edit history includes file metadata", func(t *testing.T) {
+		th.LoginBasic()
+		fileInfo1, appErr := th.App.UploadFile(th.Context, []byte("data"), th.BasicChannel.Id, "test")
+		require.Nil(t, appErr)
+
+		fileInfo2, appErr := th.App.UploadFile(th.Context, []byte("data"), th.BasicChannel.Id, "test")
+		require.Nil(t, appErr)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "new message",
+			UserId:    th.BasicUser.Id,
+			FileIds:   []string{fileInfo1.Id, fileInfo2.Id},
+		}
+
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.Contains(t, createdPost.FileIds, fileInfo1.Id)
+		require.Contains(t, createdPost.FileIds, fileInfo2.Id)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message 1"),
+		}
+		_, response, err := client.PatchPost(context.Background(), createdPost.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message 2"),
+		}
+		_, response, err = client.PatchPost(context.Background(), createdPost.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		patch = &model.PostPatch{
+			Message: model.NewPointer("new message 3"),
+		}
+		_, response, err = client.PatchPost(context.Background(), createdPost.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		editHistory, resp, err := client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		for _, editHistoryItem := range editHistory {
+			require.Len(t, editHistoryItem.FileIds, 2)
+			require.Contains(t, editHistoryItem.FileIds, fileInfo1.Id)
+			require.Contains(t, editHistoryItem.FileIds, fileInfo2.Id)
+		}
+	})
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
@@ -4778,4 +5097,231 @@ func TestUnacknowledgePost(t *testing.T) {
 	resp, err = client.UnacknowledgePost(context.Background(), post.Id, th.BasicUser.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestRestorePostVersion(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	t.Run("should restore post version successfully", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 1"),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 1", patch.Message)
+
+		patch, response, err = client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 2"),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 2", patch.Message)
+
+		// verify edit history
+		editHistory, response, err := client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 2, len(editHistory))
+		require.Equal(t, "edited message 1", editHistory[0].Message)
+		require.Equal(t, "original message", editHistory[1].Message)
+
+		// now we'll restore to the original version
+		restoredPost, response, err := client.RestorePostVersion(context.Background(), createdPost.Id, editHistory[1].Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "original message", restoredPost.Message)
+		require.Equal(t, createdPost.Id, restoredPost.Id)
+
+		// verify restored post
+		fetchedPost, response, err := client.GetPost(context.Background(), createdPost.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "original message", fetchedPost.Message)
+
+		// verify edit history after restoring
+		editHistory, response, err = client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 3, len(editHistory))
+		require.Equal(t, "edited message 2", editHistory[0].Message)
+		require.Equal(t, "edited message 1", editHistory[1].Message)
+		require.Equal(t, "original message", editHistory[2].Message)
+	})
+
+	t.Run("should restore post version successfully with files", func(t *testing.T) {
+		fileResp, _, err := client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{fileId},
+		}
+
+		createdPost, response, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		require.Equal(t, 1, len(createdPost.FileIds))
+
+		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 1"),
+			FileIds: &model.StringArray{},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 1", patch.Message)
+		require.Equal(t, 0, len(patch.FileIds))
+
+		// verify edit history
+		editHistory, response, err := client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 1, len(editHistory))
+		require.Equal(t, "original message", editHistory[0].Message)
+		require.Equal(t, 1, len(editHistory[0].FileIds))
+
+		// now we'll restore to the original version
+		restoredPost, response, err := client.RestorePostVersion(context.Background(), createdPost.Id, editHistory[0].Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "original message", restoredPost.Message)
+		require.Equal(t, createdPost.Id, restoredPost.Id)
+		require.Equal(t, 1, len(restoredPost.FileIds))
+
+		// verify restored post
+		fetchedPost, response, err := client.GetPost(context.Background(), createdPost.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "original message", fetchedPost.Message)
+		require.Equal(t, 1, len(fetchedPost.FileIds))
+
+		// verify edit history after restoring
+		editHistory, response, err = client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 2, len(editHistory))
+		require.Equal(t, "edited message 1", editHistory[0].Message)
+		require.Equal(t, 0, len(editHistory[0].FileIds))
+
+		require.Equal(t, "original message", editHistory[1].Message)
+		require.Equal(t, 1, len(editHistory[1].FileIds))
+	})
+
+	t.Run("should get error when trying to restore non existent post ori history ID", func(t *testing.T) {
+		restoredPost, response, err := client.RestorePostVersion(context.Background(), model.NewId(), model.NewId())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		require.Nil(t, restoredPost)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		restoredPost, response, err = client.RestorePostVersion(context.Background(), createdPost.Id, model.NewId())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		require.Nil(t, restoredPost)
+
+		post2 := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message 2",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err = client.CreatePost(context.Background(), post2)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		restoredPost, response, err = client.RestorePostVersion(context.Background(), createdPost.Id, post2.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, response)
+		require.Nil(t, restoredPost)
+	})
+
+	t.Run("user should not be able to restore someone else's post", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		patch, response, err := client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 1"),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 1", patch.Message)
+
+		// verify edit history
+		editHistory, response, err := client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 1, len(editHistory))
+		require.Equal(t, "original message", editHistory[0].Message)
+
+		// now we'll restore to the original version
+		th.LoginBasic2()
+		restoredPost, response, err := th.Client.RestorePostVersion(context.Background(), createdPost.Id, editHistory[0].Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		require.Nil(t, restoredPost)
+	})
+
+	t.Run("system admin should not be able to restore someone else's post", func(t *testing.T) {
+		th.LoginBasic()
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+		}
+
+		createdPost, response, err := th.Client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		patch, response, err := th.Client.PatchPost(context.Background(), createdPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message 1"),
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, "edited message 1", patch.Message)
+
+		// verify edit history
+		editHistory, response, err := th.Client.GetEditHistoryForPost(context.Background(), createdPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 1, len(editHistory))
+		require.Equal(t, "original message", editHistory[0].Message)
+
+		// now we'll restore to the original version
+		th.LoginSystemAdmin()
+		restoredPost, response, err := th.SystemAdminClient.RestorePostVersion(context.Background(), createdPost.Id, editHistory[0].Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		require.Nil(t, restoredPost)
+	})
 }
