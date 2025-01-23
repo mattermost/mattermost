@@ -62,6 +62,7 @@ services:
       MM_SERVICEENVIRONMENT: "test"
       MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
+      MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
     network_mode: host
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do
