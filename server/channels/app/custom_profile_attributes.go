@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
