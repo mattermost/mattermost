@@ -234,8 +234,11 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.RequireUserId()
-	if c.Err != nil {
+	// This check is unnecessary for now
+	// Will be required when/if admins can patch other's values
+	userID := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -245,6 +248,9 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("patchCPAValues", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameter(auditRec, "user_id", userID)
 	results := make([]*model.PropertyValue, 0, len(updates))
 	for fieldID, rawValue := range updates {
 		field, appErr := c.App.GetCPAField(fieldID)
@@ -266,6 +272,9 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		results = append(results, attribute)
 	}
+
+	auditRec.Success()
+	auditRec.AddEventObjectType("patchCPAValues")
 
 	if err := json.NewEncoder(w).Encode(results); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
