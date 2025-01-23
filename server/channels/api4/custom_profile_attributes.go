@@ -21,7 +21,7 @@ func (api *API) InitCustomProfileAttributes() {
 		api.BaseRoutes.CustomProfileAttributesField.Handle("", api.APISessionRequired(patchCPAField)).Methods(http.MethodPatch)
 		api.BaseRoutes.CustomProfileAttributesField.Handle("", api.APISessionRequired(deleteCPAField)).Methods(http.MethodDelete)
 		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(listCPAValues)).Methods(http.MethodGet)
-		api.BaseRoutes.CustomProfileAttributesValues.Handle("", api.APISessionRequired(patchCustomProfileAttribute)).Methods(http.MethodPatch)
+		api.BaseRoutes.CustomProfileAttributesValues.Handle("", api.APISessionRequired(patchCPAValues)).Methods(http.MethodPatch)
 	}
 }
 
@@ -228,9 +228,9 @@ func sanitizePropertyValue(fieldType model.PropertyFieldType, rawValue json.RawM
 	}
 }
 
-func patchCustomProfileAttribute(c *Context, w http.ResponseWriter, r *http.Request) {
+func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
-		c.Err = model.NewAppError("Api4.patchCustomProfileAttribute", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -301,51 +301,4 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(returnValue); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
-}
-package api4
-
-import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-
-	"github.com/mattermost/mattermost/server/public/model"
-)
-
-func patchCustomProfileAttribute(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	var updates map[string]json.RawMessage
-	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
-		c.SetInvalidParamWithErr("value", err)
-		return
-	}
-
-	results := make([]*model.PropertyValue, 0, len(updates))
-	for fieldID, rawValue := range updates {
-		field, appErr := c.App.GetCPAField(fieldID)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		sanitizedValue, err := sanitizePropertyValue(field.Type, rawValue)
-		if err != nil {
-			c.SetInvalidParam(fmt.Sprintf("value for field %s: %v", fieldID, err))
-			return
-		}
-
-		// Pass the json.RawMessage directly to the App layer
-		attribute, appErr := c.App.PatchCPAValue(c.Params.UserId, fieldID, sanitizedValue)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-		results = append(results, attribute)
-	}
-
-	ReturnJSON(w, results)
 }
