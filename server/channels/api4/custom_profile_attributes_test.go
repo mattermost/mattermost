@@ -232,7 +232,7 @@ func TestListCPAValues(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
-	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, "Field Value")
+	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`))
 	require.Nil(t, appErr)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
@@ -283,7 +283,7 @@ func TestPatchCPAValues(t *testing.T) {
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
-		values := map[string]string{createdField.ID: "Field Value"}
+		values := map[string]json.RawMessage{createdField.ID: json.RawMessage(`"Field Value"`)}
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
@@ -295,22 +295,26 @@ func TestPatchCPAValues(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("any team member should be able to create their own values", func(t *testing.T) {
-		values := map[string]string{}
+		values := map[string]json.RawMessage{}
 		value := "Field Value"
-		values[createdField.ID] = fmt.Sprintf("  %s ", value) // value should be sanitized
+		values[createdField.ID] = json.RawMessage(fmt.Sprintf(`"  %s "`, value)) // value should be sanitized
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.NotEmpty(t, patchedValues)
 		require.Len(t, patchedValues, 1)
-		require.Equal(t, value, patchedValues[createdField.ID])
+		var actualValue string
+		require.NoError(t, json.Unmarshal(patchedValues[createdField.ID], &actualValue))
+		require.Equal(t, value, actualValue)
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.NotEmpty(t, values)
 		require.Len(t, values, 1)
-		require.Equal(t, "Field Value", values[createdField.ID])
+		var actualValue string
+		require.NoError(t, json.Unmarshal(values[createdField.ID], &actualValue))
+		require.Equal(t, "Field Value", actualValue)
 	})
 
 	t.Run("any team member should be able to patch their own values", func(t *testing.T) {
@@ -321,15 +325,19 @@ func TestPatchCPAValues(t *testing.T) {
 		require.Len(t, values, 1)
 
 		value := "Updated Field Value"
-		values[createdField.ID] = fmt.Sprintf(" %s  \t", value) // value should be sanitized
+		values[createdField.ID] = json.RawMessage(fmt.Sprintf(`" %s  \t"`, value)) // value should be sanitized
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, value, patchedValues[createdField.ID])
+		var actualValue string
+		require.NoError(t, json.Unmarshal(patchedValues[createdField.ID], &actualValue))
+		require.Equal(t, value, actualValue)
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, value, values[createdField.ID])
+		var actualValue string
+		require.NoError(t, json.Unmarshal(values[createdField.ID], &actualValue))
+		require.Equal(t, value, actualValue)
 	})
 }
