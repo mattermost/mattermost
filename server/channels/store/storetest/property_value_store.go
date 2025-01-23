@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -84,7 +85,7 @@ func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    model.NewId(),
 			FieldID:    model.NewId(),
-			Value:      "test value",
+			Value:      json.RawMessage(`"test value"`),
 		}
 		_, err := ss.PropertyValue().Create(newValue)
 		require.NoError(t, err)
@@ -111,7 +112,7 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    model.NewId(),
 			FieldID:    model.NewId(),
-			Value:      fmt.Sprintf("test value %d", i),
+			Value:      json.RawMessage(fmt.Sprintf(`"test value %d"`, i)),
 		}
 		_, err := ss.PropertyValue().Create(newValue)
 		require.NoError(t, err)
@@ -142,7 +143,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    model.NewId(),
 			FieldID:    model.NewId(),
-			Value:      "test value",
+			Value:      json.RawMessage(`"test value"`),
 			CreateAt:   model.GetMillis(),
 		}
 		updatedValue, err := ss.PropertyValue().Update([]*model.PropertyValue{value})
@@ -157,7 +158,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    model.NewId(),
 			FieldID:    model.NewId(),
-			Value:      "test value",
+			Value:      json.RawMessage(`"test value"`),
 		}
 		_, err := ss.PropertyValue().Create(value)
 		require.NoError(t, err)
@@ -181,7 +182,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    model.NewId(),
 			FieldID:    model.NewId(),
-			Value:      "value 1",
+			Value:      json.RawMessage(`"value 1"`),
 		}
 
 		value2 := &model.PropertyValue{
@@ -189,7 +190,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    model.NewId(),
 			FieldID:    model.NewId(),
-			Value:      "value 2",
+			Value:      json.RawMessage(`"value 2"`),
 		}
 
 		for _, value := range []*model.PropertyValue{value1, value2} {
@@ -199,8 +200,8 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		}
 		time.Sleep(10 * time.Millisecond)
 
-		value1.Value = "updated value 1"
-		value2.Value = "updated value 2"
+		value1.Value = json.RawMessage(`"updated value 1"`)
+		value2.Value = json.RawMessage(`"updated value 2"`)
 
 		_, err := ss.PropertyValue().Update([]*model.PropertyValue{value1, value2})
 		require.NoError(t, err)
@@ -208,13 +209,13 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		// Verify first value
 		updated1, err := ss.PropertyValue().Get(value1.ID)
 		require.NoError(t, err)
-		require.Equal(t, "updated value 1", updated1.Value)
+		require.Equal(t, json.RawMessage(`"updated value 1"`), updated1.Value)
 		require.Greater(t, updated1.UpdateAt, updated1.CreateAt)
 
 		// Verify second value
 		updated2, err := ss.PropertyValue().Get(value2.ID)
 		require.NoError(t, err)
-		require.Equal(t, "updated value 2", updated2.Value)
+		require.Equal(t, json.RawMessage(`"updated value 2"`), updated2.Value)
 		require.Greater(t, updated2.UpdateAt, updated2.CreateAt)
 	})
 
@@ -226,7 +227,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    groupID,
 			FieldID:    model.NewId(),
-			Value:      "Value 1",
+			Value:      json.RawMessage(`"Value 1"`),
 		}
 
 		value2 := &model.PropertyValue{
@@ -234,7 +235,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    groupID,
 			FieldID:    model.NewId(),
-			Value:      "Value 2",
+			Value:      json.RawMessage(`"Value 2"`),
 		}
 
 		for _, value := range []*model.PropertyValue{value1, value2} {
@@ -256,7 +257,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		// Check that values were not updated
 		updated1, err := ss.PropertyValue().Get(value1.ID)
 		require.NoError(t, err)
-		require.Equal(t, "Value 1", updated1.Value)
+		require.Equal(t, json.RawMessage(`"Value 1"`), updated1.Value)
 		require.Equal(t, originalUpdateAt1, updated1.UpdateAt)
 
 		updated2, err := ss.PropertyValue().Get(value2.ID)
@@ -320,7 +321,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetID:   targetID,
 		TargetType: "test_type",
 		FieldID:    fieldID,
-		Value:      "value 1",
+		Value:      json.RawMessage(`"value 1"`),
 	}
 
 	value2 := &model.PropertyValue{
@@ -328,7 +329,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetID:   targetID,
 		TargetType: "other_type",
 		FieldID:    model.NewId(),
-		Value:      "value 2",
+		Value:      json.RawMessage(`"value 2"`),
 	}
 
 	value3 := &model.PropertyValue{
@@ -336,7 +337,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetID:   model.NewId(),
 		TargetType: "test_type",
 		FieldID:    model.NewId(),
-		Value:      "value 3",
+		Value:      json.RawMessage(`"value 3"`),
 	}
 
 	value4 := &model.PropertyValue{
@@ -344,7 +345,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetID:   model.NewId(),
 		TargetType: "test_type",
 		FieldID:    fieldID,
-		Value:      "value 4",
+		Value:      json.RawMessage(`"value 4"`),
 	}
 
 	for _, value := range []*model.PropertyValue{value1, value2, value3, value4} {
@@ -493,7 +494,7 @@ func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetType: "test_type",
 		GroupID:    model.NewId(),
 		FieldID:    fieldID,
-		Value:      "value 1",
+		Value:      json.RawMessage(`"value 1"`),
 	}
 
 	value2 := &model.PropertyValue{
@@ -501,7 +502,7 @@ func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetType: "test_type",
 		GroupID:    model.NewId(),
 		FieldID:    fieldID,
-		Value:      "value 2",
+		Value:      json.RawMessage(`"value 2"`),
 	}
 
 	value3 := &model.PropertyValue{
@@ -509,7 +510,7 @@ func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetType: "test_type",
 		GroupID:    model.NewId(),
 		FieldID:    model.NewId(), // Different field ID
-		Value:      "value 3",
+		Value:      json.RawMessage(`"value 3"`),
 	}
 
 	for _, value := range []*model.PropertyValue{value1, value2, value3} {
