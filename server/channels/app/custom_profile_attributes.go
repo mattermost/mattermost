@@ -192,7 +192,7 @@ func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError
 	return value, nil
 }
 
-func (a *App) PatchCPAValue(userID string, fieldID string, rawValue json.RawMessage) (*model.PropertyValue, *model.AppError) {
+func (a *App) PatchCPAValue(userID string, fieldID string, value json.RawMessage) (*model.PropertyValue, *model.AppError) {
 	groupID, err := a.cpaGroupID()
 	if err != nil {
 		return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -219,7 +219,7 @@ func (a *App) PatchCPAValue(userID string, fieldID string, rawValue json.RawMess
 	}
 
 	if existingValue != nil {
-		existingValue.Value = rawValue
+		existingValue.Value = value
 		_, err = a.ch.srv.propertyService.UpdatePropertyValue(existingValue)
 		if err != nil {
 			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_value_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -230,7 +230,7 @@ func (a *App) PatchCPAValue(userID string, fieldID string, rawValue json.RawMess
 			TargetType: "user",
 			TargetID:   userID,
 			FieldID:    fieldID,
-			Value:      rawValue,
+			Value:      value,
 		}
 		existingValue, err = a.ch.srv.propertyService.CreatePropertyValue(propertyValue)
 		if err != nil {
