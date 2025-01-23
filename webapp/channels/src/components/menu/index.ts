@@ -10,3 +10,4 @@ export {MenuItemInput as Input} from './menu_item_input';
 export {MenuTitle as Title} from './menu_title';
 export type {FirstMenuItemProps} from './menu_item';
 export {MenuItemSeparator as Separator} from './menu_item_separator';
+export {openMenu, dismissMenu} from './menu_utils';
