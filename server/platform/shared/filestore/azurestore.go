@@ -48,7 +48,18 @@ func (b *AzureFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
 
-	return download.Body(azblob.RetryReaderOptions{}), nil
+	// Wrap the body in a seekable reader
+	body := download.Body(azblob.RetryReaderOptions{})
+	data, err := io.ReadAll(body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read response body")
+	}
+	body.Close()
+	
+	return &seekableReader{
+		reader: bytes.NewReader(data),
+		data:   data,
+	}, nil
 }
 
 func (b *AzureFileBackend) ReadFile(path string) ([]byte, error) {
@@ -158,13 +169,20 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
+	// Convert io.Reader to io.ReadSeeker
+	data, err := io.ReadAll(fr)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to read input")
+	}
+	readSeeker := bytes.NewReader(data)
+
 	blobURL := b.containerURL.NewAppendBlobURL(path)
-	response, err := blobURL.AppendBlock(ctx, fr, azblob.AppendBlobAccessConditions{}, nil)
+	response, err := blobURL.AppendBlock(ctx, readSeeker, azblob.AppendBlobAccessConditions{}, nil, azblob.ClientProvidedKeyOptions{})
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to append to file %s", path)
 	}
 
-	return response.BlobAppendOffset(), nil
+	return response.ContentLength(), nil
 }
 
 func (b *AzureFileBackend) RemoveFile(path string) error {
@@ -250,28 +268,38 @@ func (b *AzureFileBackend) RemoveDirectory(path string) error {
 
 func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duration, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel()
-
 	blobURL := b.containerURL.NewBlockBlobURL(path)
-	credentials, err := azblob.NewSASQueryParameters(azblob.SASSignatureValues{
-		Protocol:      azblob.SASProtocolHTTPS,
-		ExpiryTime:    time.Now().Add(b.presignExpires),
-		Permissions:   azblob.BlobSASPermissions{Read: true}.String(),
-		ContainerName: b.container,
-		BlobName:      path,
-	}, azblob.SharedKeyCredential{})
 
+	// Create a SAS token that's valid for the specified duration
+	sasToken, err := blobURL.GetSASToken(azblob.BlobSASPermissions{Read: true}, time.Now().Add(b.presignExpires), nil)
 	if err != nil {
 		return "", 0, errors.Wrapf(err, "unable to generate public link for %s", path)
 	}
 
-	sasURL := fmt.Sprintf("%s?%s", blobURL.URL(), credentials.Encode())
+	sasURL := fmt.Sprintf("%s?%s", blobURL.URL(), sasToken)
 	return sasURL, b.presignExpires, nil
 }
 
 func (b *AzureFileBackend) DriverName() string {
 	return "azure"
+}
+
+// seekableReader implements ReadCloseSeeker interface
+type seekableReader struct {
+	reader *bytes.Reader
+	data   []byte
+}
+
+func (s *seekableReader) Read(p []byte) (n int, err error) {
+	return s.reader.Read(p)
+}
+
+func (s *seekableReader) Seek(offset int64, whence int) (int64, error) {
+	return s.reader.Seek(offset, whence)
+}
+
+func (s *seekableReader) Close() error {
+	return nil
 }
 
 func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error) {
