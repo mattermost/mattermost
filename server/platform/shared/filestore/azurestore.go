@@ -279,7 +279,10 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 	blobURL := b.containerURL.NewBlockBlobURL(path)
 
 	// Create SAS query parameters with the specified permissions and expiry
-	credential := azblob.NewSharedKeyCredential(b.storageAccount, b.accessKey)
+	credential, err := azblob.NewSharedKeyCredential(b.storageAccount, b.accessKey)
+	if err != nil {
+		return "", 0, errors.Wrap(err, "failed to create shared key credential")
+	}
 	sasQueryParams, err := azblob.BlobSASSignatureValues{
 		Protocol:      azblob.SASProtocolHTTPS,
 		ExpiryTime:    time.Now().Add(b.presignExpires),
