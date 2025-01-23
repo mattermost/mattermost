@@ -1012,14 +1012,14 @@ func (s *FileBackendTestSuite) TestZipReaderDirectoryCompressed() {
 func (s *FileBackendTestSuite) TestZipReaderErrors() {
 	// Test non-existent path
 	reader, err := s.backend.ZipReader("path/to/nonexistent.txt", false)
-	s.NoError(err)
-	defer reader.Close()
-
-	content, err := io.ReadAll(reader)
 	if s.settings.DriverName == driverLocal {
-		// Reading from the pipe should give us the error, but only with local
+		// Only local will return the error immediately.
 		s.Error(err)
+		s.Nil(reader)
 	} else {
+		s.NoError(err)
+		defer reader.Close()
+		content, err := io.ReadAll(reader)
 		s.NoError(err)
 		s.assertEmptyZip(content)
 	}
@@ -1033,7 +1033,7 @@ func (s *FileBackendTestSuite) TestZipReaderErrors() {
 	reader, err = s.backend.ZipReader(emptyDir, false)
 	s.NoError(err)
 	defer reader.Close()
-	content, err = io.ReadAll(reader)
+	content, err := io.ReadAll(reader)
 	s.NoError(err)
 	s.assertEmptyZip(content)
 }
@@ -1041,14 +1041,14 @@ func (s *FileBackendTestSuite) TestZipReaderErrors() {
 func (s *FileBackendTestSuite) TestZipReaderErrorsCompressed() {
 	// Test non-existent path with compression
 	reader, err := s.backend.ZipReader("path/to/nonexistent.txt", true)
-	s.NoError(err)
-	defer reader.Close()
-
-	content, err := io.ReadAll(reader)
 	if s.settings.DriverName == driverLocal {
-		// Reading from the pipe should give us the error, but only with local
+		// Only local will return the error immediately.
 		s.Error(err)
+		s.Nil(reader)
 	} else {
+		s.NoError(err)
+		defer reader.Close()
+		content, err := io.ReadAll(reader)
 		s.NoError(err)
 		s.assertEmptyZip(content)
 	}
@@ -1062,7 +1062,7 @@ func (s *FileBackendTestSuite) TestZipReaderErrorsCompressed() {
 	reader, err = s.backend.ZipReader(emptyDir, true)
 	s.NoError(err)
 	defer reader.Close()
-	content, err = io.ReadAll(reader)
+	content, err := io.ReadAll(reader)
 	s.NoError(err)
 	s.assertEmptyZip(content)
 }
