@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -20,7 +21,7 @@ func (api *API) InitCustomProfileAttributes() {
 		api.BaseRoutes.CustomProfileAttributesField.Handle("", api.APISessionRequired(patchCPAField)).Methods(http.MethodPatch)
 		api.BaseRoutes.CustomProfileAttributesField.Handle("", api.APISessionRequired(deleteCPAField)).Methods(http.MethodDelete)
 		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(listCPAValues)).Methods(http.MethodGet)
-		api.BaseRoutes.CustomProfileAttributesValues.Handle("", api.APISessionRequired(patchCPAValues)).Methods(http.MethodPatch)
+		api.BaseRoutes.CustomProfileAttributesValues.Handle("", api.APISessionRequired(patchCustomProfileAttribute)).Methods(http.MethodPatch)
 	}
 }
 
@@ -172,46 +173,101 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
+func sanitizePropertyValue(fieldType model.PropertyFieldType, rawValue json.RawMessage) (json.RawMessage, error) {
+	switch fieldType {
+	case model.PropertyFieldTypeText, model.PropertyFieldTypeDate, model.PropertyFieldTypeSelect:
+		var value string
+		if err := json.Unmarshal(rawValue, &value); err != nil {
+			return nil, err
+		}
+		value = strings.TrimSpace(value)
+		if value == "" {
+			return nil, fmt.Errorf("empty value")
+		}
+		return json.Marshal(value)
+
+	case model.PropertyFieldTypeUser:
+		var value string
+		if err := json.Unmarshal(rawValue, &value); err != nil {
+			return nil, err
+		}
+		value = strings.TrimSpace(value)
+		if value == "" || !model.IsValidId(value) {
+			return nil, fmt.Errorf("invalid user id")
+		}
+		return json.Marshal(value)
+
+	case model.PropertyFieldTypeMultiselect:
+		var values []string
+		if err := json.Unmarshal(rawValue, &values); err != nil {
+			return nil, err
+		}
+		for i, v := range values {
+			values[i] = strings.TrimSpace(v)
+			if values[i] == "" {
+				return nil, fmt.Errorf("empty value in array")
+			}
+		}
+		return json.Marshal(values)
+
+	case model.PropertyFieldTypeMultiuser:
+		var values []string
+		if err := json.Unmarshal(rawValue, &values); err != nil {
+			return nil, err
+		}
+		for i, v := range values {
+			values[i] = strings.TrimSpace(v)
+			if values[i] == "" || !model.IsValidId(values[i]) {
+				return nil, fmt.Errorf("invalid user id in array")
+			}
+		}
+		return json.Marshal(values)
+
+	default:
+		return nil, fmt.Errorf("unknown field type: %s", fieldType)
+	}
+}
+
+func patchCustomProfileAttribute(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil || !c.App.Channels().License().IsE20OrEnterprise() {
-		c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.patchCustomProfileAttribute", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	var attributeValues map[string]string
-	if jsonErr := json.NewDecoder(r.Body).Decode(&attributeValues); jsonErr != nil {
-		c.SetInvalidParamWithErr("attrs", jsonErr)
+	c.RequireUserId()
+	if c.Err != nil {
 		return
 	}
 
-	// This check is unnecessary for now
-	// Will be required when/if admins can patch other's values
-	userID := c.AppContext.Session().UserId
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
+	var updates map[string]json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+		c.SetInvalidParamWithErr("value", err)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchCPAValues", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "user_id", userID)
-
-	results := make(map[string]string)
-	for fieldID, value := range attributeValues {
-		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, strings.TrimSpace(value))
+	results := make([]*model.PropertyValue, 0, len(updates))
+	for fieldID, rawValue := range updates {
+		field, appErr := c.App.GetCPAField(fieldID)
 		if appErr != nil {
 			c.Err = appErr
 			return
 		}
-		results[fieldID] = patchedValue.Value
+
+		sanitizedValue, err := sanitizePropertyValue(field.Type, rawValue)
+		if err != nil {
+			c.SetInvalidParam(fmt.Sprintf("value for field %s: %v", fieldID, err))
+			return
+		}
+
+		attribute, appErr := c.App.PatchCPAValue(c.Params.UserId, fieldID, sanitizedValue)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		results = append(results, attribute)
 	}
 
-	auditRec.Success()
-	auditRec.AddEventObjectType("patchCPAValues")
-
-	if err := json.NewEncoder(w).Encode(results); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
+	ReturnJSON(w, results)
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
