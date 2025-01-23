@@ -191,7 +191,7 @@ func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError
 	return value, nil
 }
 
-func (a *App) PatchCPAValue(userID string, fieldID string, rawValue string) (*model.PropertyValue, *model.AppError) {
+func (a *App) PatchCPAValue(userID string, fieldID string, rawValue json.RawMessage) (*model.PropertyValue, *model.AppError) {
 	groupID, err := a.cpaGroupID()
 	if err != nil {
 		return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -203,15 +203,6 @@ func (a *App) PatchCPAValue(userID string, fieldID string, rawValue string) (*mo
 		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 	} else if existingField.DeleteAt > 0 {
 		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
-	}
-
-	sanitizedValue, err := existingField.SanitizeValue(rawValue)
-	if err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
-			return nil, appErr
-		}
-		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.sanitize_value.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	existingValues, appErr := a.ListCPAValues(userID)
@@ -227,7 +218,7 @@ func (a *App) PatchCPAValue(userID string, fieldID string, rawValue string) (*mo
 	}
 
 	if existingValue != nil {
-		existingValue.Value = sanitizedValue
+		existingValue.Value = rawValue
 		_, err = a.ch.srv.propertyService.UpdatePropertyValue(existingValue)
 		if err != nil {
 			return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_value_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -238,7 +229,7 @@ func (a *App) PatchCPAValue(userID string, fieldID string, rawValue string) (*mo
 			TargetType: "user",
 			TargetID:   userID,
 			FieldID:    fieldID,
-			Value:      sanitizedValue,
+			Value:      rawValue,
 		}
 		existingValue, err = a.ch.srv.propertyService.CreatePropertyValue(propertyValue)
 		if err != nil {

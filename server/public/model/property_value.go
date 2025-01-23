@@ -11,7 +11,7 @@ type PropertyValue struct {
 	TargetType string `json:"target_type"`
 	GroupID    string `json:"group_id"`
 	FieldID    string `json:"field_id"`
-	Value      string `json:"value"`
+	Value      json.RawMessage `json:"value"`
 	CreateAt   int64  `json:"create_at"`
 	UpdateAt   int64  `json:"update_at"`
 	DeleteAt   int64  `json:"delete_at"`
