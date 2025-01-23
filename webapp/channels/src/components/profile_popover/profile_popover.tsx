@@ -154,7 +154,7 @@ const ProfilePopover = ({
     const fullname = overwriteName || Utils.getFullName(user);
 
     return (
-        <>
+        <div className='user-profile-popover_container'>
             <ProfilePopoverTitle
                 channelId={channelId}
                 isBot={user.is_bot}
@@ -211,6 +211,8 @@ const ProfilePopover = ({
                     returnFocus={handleReturnFocus}
                     hide={hide}
                 />
+            </div>
+            <div className='user-profile-popover-bottom-row'>
                 <hr className='user-popover__bottom-row-hr'/>
                 <ProfilePopoverOverrideDisclaimer
                     haveOverrideProp={haveOverrideProp}
@@ -242,7 +244,7 @@ const ProfilePopover = ({
                     status={hideStatus ? null : status}
                 />
             </div>
-        </>
+        </div>
     );
 };
 
