@@ -269,6 +269,120 @@ func TestListCPAValues(t *testing.T) {
 	})
 }
 
+func TestSanitizePropertyValue(t *testing.T) {
+	t.Run("text field type", func(t *testing.T) {
+		// Valid text
+		result, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`"hello world"`))
+		require.NoError(t, err)
+		var value string
+		require.NoError(t, json.Unmarshal(result, &value))
+		require.Equal(t, "hello world", value)
+
+		// Empty text
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`""`))
+		require.Error(t, err)
+		require.Equal(t, "empty value", err.Error())
+
+		// Invalid JSON
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`invalid`))
+		require.Error(t, err)
+	})
+
+	t.Run("date field type", func(t *testing.T) {
+		// Valid date
+		result, err := sanitizePropertyValue(model.PropertyFieldTypeDate, json.RawMessage(`"2023-01-01"`))
+		require.NoError(t, err)
+		var value string
+		require.NoError(t, json.Unmarshal(result, &value))
+		require.Equal(t, "2023-01-01", value)
+
+		// Empty date
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeDate, json.RawMessage(`""`))
+		require.Error(t, err)
+		require.Equal(t, "empty value", err.Error())
+	})
+
+	t.Run("select field type", func(t *testing.T) {
+		// Valid option
+		result, err := sanitizePropertyValue(model.PropertyFieldTypeSelect, json.RawMessage(`"option1"`))
+		require.NoError(t, err)
+		var value string
+		require.NoError(t, json.Unmarshal(result, &value))
+		require.Equal(t, "option1", value)
+
+		// Empty option
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeSelect, json.RawMessage(`""`))
+		require.Error(t, err)
+		require.Equal(t, "empty value", err.Error())
+	})
+
+	t.Run("user field type", func(t *testing.T) {
+		// Valid user ID
+		result, err := sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`"q1w2e3r4t5y6u7i8o9p0"`))
+		require.NoError(t, err)
+		var value string
+		require.NoError(t, json.Unmarshal(result, &value))
+		require.Equal(t, "q1w2e3r4t5y6u7i8o9p0", value)
+
+		// Empty user ID
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`""`))
+		require.Error(t, err)
+		require.Equal(t, "invalid user id", err.Error())
+
+		// Invalid user ID format
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`"invalid-id"`))
+		require.Error(t, err)
+		require.Equal(t, "invalid user id", err.Error())
+	})
+
+	t.Run("multiselect field type", func(t *testing.T) {
+		// Valid options
+		result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`["option1", "option2"]`))
+		require.NoError(t, err)
+		var values []string
+		require.NoError(t, json.Unmarshal(result, &values))
+		require.Equal(t, []string{"option1", "option2"}, values)
+
+		// Empty array
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`[]`))
+		require.NoError(t, err)
+
+		// Array with empty value
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`["option1", ""]`))
+		require.Error(t, err)
+		require.Equal(t, "empty value in array", err.Error())
+	})
+
+	t.Run("multiuser field type", func(t *testing.T) {
+		// Valid user IDs
+		result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(`["q1w2e3r4t5y6u7i8o9p0", "a1s2d3f4g5h6j7k8l9z0"]`))
+		require.NoError(t, err)
+		var values []string
+		require.NoError(t, json.Unmarshal(result, &values))
+		require.Equal(t, []string{"q1w2e3r4t5y6u7i8o9p0", "a1s2d3f4g5h6j7k8l9z0"}, values)
+
+		// Empty array
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(`[]`))
+		require.NoError(t, err)
+
+		// Array with empty user ID
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(`["q1w2e3r4t5y6u7i8o9p0", ""]`))
+		require.Error(t, err)
+		require.Equal(t, "invalid user id in array", err.Error())
+
+		// Array with invalid user ID format
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(`["q1w2e3r4t5y6u7i8o9p0", "invalid-id"]`))
+		require.Error(t, err)
+		require.Equal(t, "invalid user id in array", err.Error())
+	})
+
+	t.Run("unknown field type", func(t *testing.T) {
+		_, err := sanitizePropertyValue("unknown", json.RawMessage(`"value"`))
+		require.Error(t, err)
+		require.Equal(t, "unknown field type: unknown", err.Error())
+	})
+}
+
 func TestPatchCPAValues(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
