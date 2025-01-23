@@ -117,6 +117,19 @@ export function searchPosts(teamId: string, terms: string, isOrSearch: boolean, 
     return searchPostsWithParams(teamId, {terms, is_or_search: isOrSearch, include_deleted_channels: includeDeletedChannels, page: 0, per_page: WEBAPP_SEARCH_PER_PAGE});
 }
 
+export function getMoreOmnisearchForSearch(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const teamId = getCurrentTeamId(getState());
+        const {params, isOmniSearchAtEnd} = getState().entities.search.current[teamId];
+        if (!isOmniSearchAtEnd) {
+            const newParams = Object.assign({}, params);
+            newParams.page += 1;
+            return dispatch(searchInOmniSearch(newParams));
+        }
+        return {data: true};
+    };
+}
+
 export function getMorePostsForSearch(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const teamId = getCurrentTeamId(getState());
@@ -184,6 +197,7 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
 
 export function searchInOmniSearch(params: SearchParameter): ActionFuncAsync {
     return async (dispatch, getState) => {
+        const teamId = getCurrentTeamId(getState());
         const isGettingMore = params.page > 0;
         dispatch({
             type: SearchTypes.SEARCH_OMNISEARCH_REQUEST,
@@ -208,8 +222,9 @@ export function searchInOmniSearch(params: SearchParameter): ActionFuncAsync {
             {
                 type: SearchTypes.RECEIVED_SEARCH_TERM,
                 data: {
+                    teamId,
                     params,
-                    isFilesEnd: results.length === 0,
+                    isOmniSearchAtEnd: results.length === 0,
                 },
             },
             {

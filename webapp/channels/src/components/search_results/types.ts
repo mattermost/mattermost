@@ -20,6 +20,7 @@ export type OwnProps = {
     updateSearchTerms: (terms: string) => void;
     getMorePostsForSearch: () => void;
     getMoreFilesForSearch: () => void;
+    getMoreOmnisearchForSearch: () => void;
     shrink: () => void;
     isCard?: boolean;
     isOpened?: boolean;

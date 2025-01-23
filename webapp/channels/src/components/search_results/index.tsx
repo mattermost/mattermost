@@ -95,7 +95,7 @@ function makeMapStateToProps() {
 
         // this is basically a hack to make ts compiler happy
         // add correct type when it is known what exactly is returned from the function
-        const currentSearch = (getCurrentSearchForCurrentTeam(state) as unknown as Record<string, any>) || {};
+        const currentSearch = getCurrentSearchForCurrentTeam(state) || {};
         const currentTeamName = getCurrentTeam(state)?.name ?? '';
 
         return {

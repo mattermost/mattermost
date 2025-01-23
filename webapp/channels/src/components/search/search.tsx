@@ -558,6 +558,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     isSideBarExpanded={props.isRhsExpanded}
                     getMorePostsForSearch={props.actions.getMorePostsForSearch}
                     getMoreFilesForSearch={props.actions.getMoreFilesForSearch}
+                    getMoreOmnisearchForSearch={props.actions.getMoreOmnisearchForSearch}
                     setSearchFilterType={handleSetSearchFilter}
                     searchFilterType={searchFilterType}
                     setSearchType={(value: SearchType) => actions.updateSearchType(value)}

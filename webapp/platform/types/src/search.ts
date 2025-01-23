@@ -6,8 +6,15 @@ export type Search = {
     isOrSearch: boolean;
 };
 
+export type CurrentSearch = {
+   isEnd : boolean;
+   isFilesEnd: boolean;
+   isOmniSearchAtEnd: boolean;
+   params?: SearchParameter
+}
+
 export type SearchState = {
-    current: any;
+    current: Record<string, CurrentSearch>;
     results: string[];
     fileResults: string[];
     flagged: string[];

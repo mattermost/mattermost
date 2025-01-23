@@ -206,7 +206,7 @@ const NewSearch = (): JSX.Element => {
             dispatch(updateSearchType(searchType));
             dispatch(updateSearchTerms(searchTerms));
 
-            if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+            if (searchType === '' || searchType === 'messages' || searchType === 'files' || searchType === 'omnisearch') {
                 dispatch(showSearchResults(false));
             } else {
                 pluginSearch.forEach((pluginData: any) => {

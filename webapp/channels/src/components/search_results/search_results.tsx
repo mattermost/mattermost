@@ -110,6 +110,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             setTimeout(() => {
                 props.getMorePostsForSearch();
                 props.getMoreFilesForSearch();
+                props.getMoreOmnisearchForSearch();
             }, 100);
         }
     }, [props.searchPage, props.searchTerms, props.isSearchingTerm]);
@@ -122,6 +123,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             if ((scrollTop + clientHeight + GET_MORE_BUFFER) >= scrollHeight) {
                 if (searchType === DataSearchTypes.FILES_SEARCH_TYPE) {
                     loadMoreFiles();
+                } else if (searchType === DataSearchTypes.OMNISEARCH_SEARCH_TYPE) {
+                    loadMoreOmnisearch();
                 } else {
                     loadMorePosts();
                 }
@@ -145,6 +148,15 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const loadMoreFiles = debounce(
         () => {
             props.getMoreFilesForSearch();
+        },
+        100,
+        false,
+        (): void => {},
+    );
+
+    const loadMoreOmnisearch = debounce(
+        () => {
+            props.getMoreOmnisearchForSearch();
         },
         100,
         false,
@@ -178,7 +190,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const noResults = (!results || !Array.isArray(results) || results.length === 0);
     const noFileResults = (!fileResults || !Array.isArray(fileResults) || fileResults.length === 0);
     const isLoading = isSearchingTerm || isSearchingFlaggedPost || isSearchingPinnedPost || !isOpened;
-    const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
+    const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd) || (searchType === DataSearchTypes.OMNISEARCH_SEARCH_TYPE && isOmniSearchAtEnd);
     const showLoadMore = !isAtEnd && !isChannelFiles && !isFlaggedPosts && !isPinnedPosts;
     const isMessagesSearch = (!isFlaggedPosts && !isMentionSearch && !isCard && !isPinnedPosts && !isChannelFiles);
 

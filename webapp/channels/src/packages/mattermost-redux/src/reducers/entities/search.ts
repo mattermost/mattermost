@@ -5,6 +5,7 @@ import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {CurrentSearch} from '@mattermost/types/search';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -219,17 +220,18 @@ function pinned(state: Record<string, string[]> = {}, action: MMReduxAction) {
     }
 }
 
-function current(state: any = {}, action: MMReduxAction) {
+function current(state: Record<string, CurrentSearch> = {}, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_TERM: {
         const nextState = {...state};
-        const {teamId, params, isEnd, isFilesEnd} = action.data;
+        const {teamId, params, isEnd, isFilesEnd, isOmniSearchAtEnd} = action.data;
         return {
             ...nextState,
             [teamId]: {
                 params,
                 isEnd: typeof isEnd === 'undefined' && state[teamId] ? state[teamId].isEnd : isEnd,
                 isFilesEnd: typeof isFilesEnd === 'undefined' && state[teamId] ? state[teamId].isFilesEnd : isFilesEnd,
+                isOmniSearchAtEnd: typeof isOmniSearchAtEnd === 'undefined' && state[teamId] ? state[teamId].isOmniSearchAtEnd : isOmniSearchAtEnd,
             },
         };
     }

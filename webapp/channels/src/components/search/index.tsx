@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getMorePostsForSearch, getMoreFilesForSearch} from 'mattermost-redux/actions/search';
+import {getMorePostsForSearch, getMoreFilesForSearch, getMoreOmnisearchForSearch} from 'mattermost-redux/actions/search';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
@@ -87,6 +87,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             autocompleteUsersInTeam,
             updateRhsState,
             getMorePostsForSearch,
+            getMoreOmnisearchForSearch,
             openRHSSearch,
             getMoreFilesForSearch,
             filterFilesSearchByExt,
