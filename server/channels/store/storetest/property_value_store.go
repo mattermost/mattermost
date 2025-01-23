@@ -52,7 +52,7 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetType: "test_type",
 		GroupID:    model.NewId(),
 		FieldID:    model.NewId(),
-		Value:      "test value",
+		Value:      json.RawMessage(`"test value"`),
 	}
 
 	t.Run("should be able to create a property value", func(t *testing.T) {
@@ -247,7 +247,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		originalUpdateAt2 := value2.UpdateAt
 
 		// Try to update both value, but make one invalid
-		value1.Value = "Valid update"
+		value1.Value = json.RawMessage(`"Valid update"`)
 		value2.GroupID = "Invalid ID"
 
 		_, err := ss.PropertyValue().Update([]*model.PropertyValue{value1, value2})
@@ -301,7 +301,7 @@ func testDeletePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    model.NewId(),
 			FieldID:    model.NewId(),
-			Value:      "test value",
+			Value:      json.RawMessage(`"test value"`),
 		}
 		value, err := ss.PropertyValue().Create(sameDetailsValue)
 		require.NoError(t, err)
