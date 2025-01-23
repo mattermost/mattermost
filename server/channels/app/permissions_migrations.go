@@ -1215,6 +1215,23 @@ func (a *App) getAddManageJobAncillaryPermissionsMigration() (permissionsMap, er
 	return transformations, nil
 }
 
+// Only sysadmins, team admins, and users with channels and groups managements have access to "convert channel to public"
+func (a *App) getRestrictAcessToChannelConversionToPublic() (permissionsMap, error) {
+	return []permissionTransformation{
+		{
+			On: permissionAnd(
+				isNotRole(model.SystemAdminRoleId),
+				isNotRole(model.TeamAdminRoleId),
+				permissionOr(
+					permissionNotExists(model.PermissionSysconsoleWriteUserManagementChannels.Id),
+					permissionNotExists(model.PermissionSysconsoleWriteUserManagementGroups.Id),
+				),
+			),
+			Remove: []string{PermissionConvertPrivateChannelToPublic},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1263,6 +1280,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Migration: a.getAddOutgoingOAuthConnectionsPermissions},
 		{Key: model.MigrationKeyAddChannelBookmarksPermissions, Migration: a.getAddChannelBookmarksPermissionsMigration},
 		{Key: model.MigrationKeyAddManageJobAncillaryPermissions, Migration: a.getAddManageJobAncillaryPermissionsMigration},
+		{Key: model.RestrictAccessToChannelConversionToPublic, Migration: a.getRestrictAcessToChannelConversionToPublic},
 	}
 
 	roles, err := s.Store().Role().GetAll()
