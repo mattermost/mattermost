@@ -64,6 +64,13 @@ type FileBackendSettings struct {
 	AmazonS3PresignExpiresSeconds      int64
 	AmazonS3UploadPartSizeBytes        int64
 	AmazonS3StorageClass               string
+	AzureAccessKey                     string
+	AzureAccessSecret                  string
+	AzureContainer                     string
+	AzureStorageAccount                string
+	AzurePathPrefix                    string
+	AzureRequestTimeoutMilliseconds    int64
+	AzurePresignExpiresSeconds         int64
 }
 
 func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
