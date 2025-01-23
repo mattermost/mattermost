@@ -251,13 +251,14 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchCPAValues", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "user_id", userID)
+
 	// Get all fields at once and build a map for quick lookup
 	allFields, appErr := c.App.ListCPAFields()
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
-	
+
 	fieldMap := make(map[string]*model.PropertyField)
 	for _, field := range allFields {
 		fieldMap[field.ID] = field
@@ -277,7 +278,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		attribute, appErr := c.App.PatchCPAValue(c.Params.UserId, fieldID, sanitizedValue)
+		attribute, appErr := c.App.PatchCPAValue(userID, fieldID, sanitizedValue)
 		if appErr != nil {
 			c.Err = appErr
 			return
