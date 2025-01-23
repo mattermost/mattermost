@@ -10394,5 +10394,13 @@
   {
     "id": "model.property_value.is_valid.app_error",
     "translation": "Ongeldige waarde voor de eigenschap: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Kan de waarden van eigenschappen niet ophalen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Kan de waarde van de eigenschap niet bijwerken"
   }
 ]
