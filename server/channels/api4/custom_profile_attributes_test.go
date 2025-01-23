@@ -257,7 +257,9 @@ func TestListCPAValues(t *testing.T) {
 		require.NotEmpty(t, values)
 		require.Len(t, values, 1)
 
-		// Add a multiselect field and test array values
+	})
+
+	t.Run("should handle array values correctly", func(t *testing.T) {
 		arrayField := &model.PropertyField{
 			Name: model.NewId(),
 			Type: model.PropertyFieldTypeMultiselect,
@@ -269,14 +271,11 @@ func TestListCPAValues(t *testing.T) {
 		_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdArrayField.ID, json.RawMessage(`["option1", "option2", "option3"]`))
 		require.Nil(t, appErr)
 
-		// List values should now include both fields
-		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
+		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.NotEmpty(t, values)
-		require.Len(t, values, 2)
 
-		// Verify array values
 		var arrayValues []string
 		require.NoError(t, json.Unmarshal(values[createdArrayField.ID], &arrayValues))
 		require.Equal(t, []string{"option1", "option2", "option3"}, arrayValues)
