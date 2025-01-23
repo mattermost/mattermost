@@ -247,6 +247,7 @@
   "add_teams_to_scheme.confirmation.message": "Dit team is al geselecteerd in een ander teamschema. Weet u zeker dat u deze wilt verplaatsen naar dit teamschema?",
   "add_teams_to_scheme.confirmation.title": "Team Wijzig Schemawijziging?",
   "add_teams_to_scheme.modalTitle": "Voeg Teams toe aan Team Selectie Lijst",
+  "add_teams_to_scheme.select_team.label": "Selecteer team {label}",
   "add_user_to_channel_modal.add": "Toevoegen",
   "add_user_to_channel_modal.cancel": "Annuleren",
   "add_user_to_channel_modal.help": "Tik om een kanaal te vinden. Gebruik ↑↓ om te bladeren, ↵ om te selecteren, ESC om te negeren.",
