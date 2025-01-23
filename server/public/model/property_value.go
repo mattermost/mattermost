@@ -3,7 +3,10 @@
 
 package model
 
-import "net/http"
+import (
+    "encoding/json"
+    "net/http"
+)
 
 type PropertyValue struct {
 	ID         string `json:"id"`
