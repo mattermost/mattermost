@@ -17,20 +17,10 @@ import (
 
 type SqlStatusStore struct {
 	*SqlStore
-
-	statusSelectQuery sq.SelectBuilder
 }
 
 func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
-	s := SqlStatusStore{
-		SqlStore: sqlStore,
-	}
-
-	s.statusSelectQuery = s.getQueryBuilder().
-		Select("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus").
-		From("Status")
-
-	return &s
+	return &SqlStatusStore{sqlStore}
 }
 
 func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
@@ -60,10 +50,9 @@ func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 }
 
 func (s SqlStatusStore) Get(userId string) (*model.Status, error) {
-	query := s.statusSelectQuery.Where(sq.Eq{"UserId": userId})
-
 	var status model.Status
-	if err := s.GetReplica().GetBuilder(&status, query); err != nil {
+
+	if err := s.GetReplica().Get(&status, "SELECT * FROM Status WHERE UserId = ?", userId); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Status", fmt.Sprintf("userId=%s", userId))
 		}
@@ -73,7 +62,10 @@ func (s SqlStatusStore) Get(userId string) (*model.Status, error) {
 }
 
 func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
-	query := s.statusSelectQuery.Where(sq.Eq{"UserId": userIds})
+	query := s.getQueryBuilder().
+		Select(fmt.Sprintf("UserId, Status, %s, LastActivityAt", quoteColumnName(s.DriverName(), "Manual"))).
+		From("Status").
+		Where(sq.Eq{"UserId": userIds})
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
@@ -86,7 +78,7 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var status model.Status
-		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt, &status.DNDEndTime, &status.PrevStatus); err != nil {
+		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt); err != nil {
 			return nil, errors.Wrap(err, "unable to scan from rows")
 		}
 		statuses = append(statuses, &status)
@@ -102,19 +94,20 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 func (s SqlStatusStore) updateExpiredStatuses(t *sqlxTxWrapper) ([]*model.Status, error) {
 	statuses := []*model.Status{}
 	currUnixTime := time.Now().UTC().Unix()
-	selectQuery := s.statusSelectQuery.Where(
-		sq.And{
-			sq.Eq{"Status": model.StatusDnd},
-			sq.Gt{"DNDEndTime": 0},
-			sq.LtOrEq{"DNDEndTime": currUnixTime},
-		},
-	)
-
-	selectQueryString, selectParams, err := selectQuery.ToSql()
+	selectQuery, selectParams, err := s.getQueryBuilder().
+		Select("*").
+		From("Status").
+		Where(
+			sq.And{
+				sq.Eq{"Status": model.StatusDnd},
+				sq.Gt{"DNDEndTime": 0},
+				sq.LtOrEq{"DNDEndTime": currUnixTime},
+			},
+		).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
-	err = t.Select(&statuses, selectQueryString, selectParams...)
+	err = t.Select(&statuses, selectQuery, selectParams...)
 	if err != nil {
 		return nil, errors.Wrap(err, "updateExpiredStatusesT: failed to get expired dnd statuses")
 	}
@@ -219,18 +212,8 @@ func (s SqlStatusStore) ResetAll() error {
 
 func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	time := model.GetMillis() - (1000 * 60 * 60 * 24)
-	query := s.getQueryBuilder().
-		Select("COUNT(UserId)").
-		From("Status").
-		Where(sq.Gt{"LastActivityAt": time})
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "status_tosql")
-	}
-
 	var count int64
-	err = s.GetReplica().Get(&count, queryString, args...)
+	err := s.GetReplica().Get(&count, "SELECT COUNT(UserId) FROM Status WHERE LastActivityAt > ?", time)
 	if err != nil {
 		return count, errors.Wrap(err, "failed to count active users")
 	}
@@ -238,12 +221,7 @@ func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, error) {
 }
 
 func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
-	builder := s.getQueryBuilder().
-		Update("Status").
-		Set("LastActivityAt", lastActivityAt).
-		Where(sq.Eq{"UserId": userId})
-
-	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+	if _, err := s.GetMaster().Exec("UPDATE Status SET LastActivityAt = ? WHERE UserId = ?", lastActivityAt, userId); err != nil {
 		return errors.Wrapf(err, "failed to update last activity for userId=%s", userId)
 	}
 
