@@ -1019,7 +1019,8 @@ func (s *FileBackendTestSuite) TestZipReaderErrors() {
 	} else {
 		s.NoError(err)
 		defer reader.Close()
-		content, err := io.ReadAll(reader)
+		var content []byte
+		content, err = io.ReadAll(reader)
 		s.NoError(err)
 		s.assertEmptyZip(content)
 	}
@@ -1048,7 +1049,8 @@ func (s *FileBackendTestSuite) TestZipReaderErrorsCompressed() {
 	} else {
 		s.NoError(err)
 		defer reader.Close()
-		content, err := io.ReadAll(reader)
+		var content []byte
+		content, err = io.ReadAll(reader)
 		s.NoError(err)
 		s.assertEmptyZip(content)
 	}
