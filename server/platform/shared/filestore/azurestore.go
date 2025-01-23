@@ -229,8 +229,19 @@ func (b *AzureFileBackend) ListDirectory(path string) ([]string, error) {
 
 		marker = listBlob.NextMarker
 
+		// Add files
 		for _, blob := range listBlob.Segment.BlobItems {
-			files = append(files, strings.TrimPrefix(blob.Name, b.pathPrefix))
+			name := strings.TrimPrefix(blob.Name, b.pathPrefix)
+			name = strings.TrimPrefix(name, path)
+			files = append(files, name)
+		}
+
+		// Add directories
+		for _, prefix := range listBlob.Segment.BlobPrefixes {
+			name := strings.TrimPrefix(prefix.Name, b.pathPrefix)
+			name = strings.TrimPrefix(name, path)
+			name = strings.TrimSuffix(name, "/")
+			files = append(files, name)
 		}
 	}
 
