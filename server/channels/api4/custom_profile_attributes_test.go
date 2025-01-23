@@ -323,7 +323,8 @@ func TestSanitizePropertyValue(t *testing.T) {
 
 	t.Run("user field type", func(t *testing.T) {
 		// Valid user ID
-		result, err := sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`"q1w2e3r4t5y6u7i8o9p0"`))
+		validID := model.NewId()
+		result, err := sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(fmt.Sprintf(`"%s"`, validID)))
 		require.NoError(t, err)
 		var value string
 		require.NoError(t, json.Unmarshal(result, &value))
@@ -360,7 +361,9 @@ func TestSanitizePropertyValue(t *testing.T) {
 
 	t.Run("multiuser field type", func(t *testing.T) {
 		// Valid user IDs
-		result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(`["q1w2e3r4t5y6u7i8o9p0", "a1s2d3f4g5h6j7k8l9z0"]`))
+		validID1 := model.NewId()
+		validID2 := model.NewId()
+		result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, validID1, validID2)))
 		require.NoError(t, err)
 		var values []string
 		require.NoError(t, json.Unmarshal(result, &values))
