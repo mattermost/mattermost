@@ -330,14 +330,14 @@ func TestPatchCPAValues(t *testing.T) {
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		var actualValue string
-		require.NoError(t, json.Unmarshal(patchedValues[createdField.ID], &actualValue))
-		require.Equal(t, value, actualValue)
+		var updatedValue string
+		require.NoError(t, json.Unmarshal(patchedValues[createdField.ID], &updatedValue))
+		require.Equal(t, value, updatedValue)
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		var actualValue string
+		var updatedValue string
 		require.NoError(t, json.Unmarshal(values[createdField.ID], &actualValue))
 		require.Equal(t, value, actualValue)
 	})
