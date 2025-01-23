@@ -89,71 +89,91 @@ func TestSqlX(t *testing.T) {
 			assert.Equal(t, q.out, out)
 		}
 	})
+}
 
+func TestSqlxSelect(t *testing.T) {
 	t.Run("Select Methods", func(t *testing.T) {
-		settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
-		if err != nil {
-			t.Skip("Skip test if postgres driver is not available")
-		}
-		*settings.QueryTimeout = 1
-		store := &SqlStore{
-			rrCounter:   0,
-			srCounter:   0,
-			settings:    settings,
-			logger:      mlog.CreateConsoleTestLogger(t),
-			quitMonitor: make(chan struct{}),
-			wgMonitor:   &sync.WaitGroup{},
+		testDrivers := []string{
+			model.DatabaseDriverPostgres,
+			model.DatabaseDriverMysql,
 		}
 
-		require.NoError(t, store.initConnection())
-		defer store.Close()
+		for _, driver := range testDrivers {
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				continue
+			}
+			*settings.QueryTimeout = 1
+			store := &SqlStore{
+				rrCounter:   0,
+				srCounter:   0,
+				settings:    settings,
+				logger:      mlog.CreateConsoleTestLogger(t),
+				quitMonitor: make(chan struct{}),
+				wgMonitor:   &sync.WaitGroup{},
+			}
 
-		t.Run("Select", func(t *testing.T) {
-			var result []string
-			err := store.GetMaster().Select(&result, "SELECT 'test' AS col")
-			require.NoError(t, err)
-			require.Equal(t, []string{"test"}, result)
-		})
+			require.NoError(t, store.initConnection())
+			defer store.Close()
 
-		t.Run("SelectCtx", func(t *testing.T) {
-			var result []string
-			err := store.GetMaster().SelectCtx(context.Background(), &result, "SELECT 'test' AS col")
-			require.NoError(t, err)
-			require.Equal(t, []string{"test"}, result)
+			t.Run("Select with "+driver, func(t *testing.T) {
+				var result []string
+				err := store.GetMaster().Select(&result, "SELECT 'test' AS col")
+				require.NoError(t, err)
+				require.Equal(t, []string{"test"}, result)
+			})
 
-			// Test timeout
-			ctx, cancel := context.WithTimeout(context.Background(), 1)
-			defer cancel()
-			err = store.GetMaster().SelectCtx(ctx, &result, "SELECT pg_sleep(2)")
-			require.Error(t, err)
-			require.Equal(t, context.DeadlineExceeded, err)
-		})
+			t.Run("SelectCtx with "+driver, func(t *testing.T) {
+				var result []string
+				err := store.GetMaster().SelectCtx(context.Background(), &result, "SELECT 'test' AS col")
+				require.NoError(t, err)
+				require.Equal(t, []string{"test"}, result)
 
-		t.Run("SelectBuilder", func(t *testing.T) {
-			var result []string
-			builder := store.getQueryBuilder().
-				Select("'test' AS col")
-			err := store.GetMaster().SelectBuilder(&result, builder)
-			require.NoError(t, err)
-			require.Equal(t, []string{"test"}, result)
-		})
+				// Test timeout
+				ctx, cancel := context.WithTimeout(context.Background(), 1)
+				defer cancel()
+				var query string
+				if driver == model.DatabaseDriverMysql {
+					query = "SELECT SLEEP(2)"
+				} else {
+					query = "SELECT pg_sleep(2)"
+				}
+				err = store.GetMaster().SelectCtx(ctx, &result, query)
+				require.Error(t, err)
+				require.Equal(t, context.DeadlineExceeded, err)
+			})
 
-		t.Run("SelectBuilderCtx", func(t *testing.T) {
-			var result []string
-			builder := store.getQueryBuilder().
-				Select("'test' AS col")
-			err := store.GetMaster().SelectBuilderCtx(context.Background(), &result, builder)
-			require.NoError(t, err)
-			require.Equal(t, []string{"test"}, result)
+			t.Run("SelectBuilder with "+driver, func(t *testing.T) {
+				var result []string
+				builder := store.getQueryBuilder().
+					Select("'test' AS col")
+				err := store.GetMaster().SelectBuilder(&result, builder)
+				require.NoError(t, err)
+				require.Equal(t, []string{"test"}, result)
+			})
 
-			// Test timeout
-			ctx, cancel := context.WithTimeout(context.Background(), 1)
-			defer cancel()
-			builder = store.getQueryBuilder().
-				Select("pg_sleep(2)")
-			err = store.GetMaster().SelectBuilderCtx(ctx, &result, builder)
-			require.Error(t, err)
-			require.Equal(t, context.DeadlineExceeded, err)
-		})
+			t.Run("SelectBuilderCtx with "+driver, func(t *testing.T) {
+				var result []string
+				builder := store.getQueryBuilder().
+					Select("'test' AS col")
+				err := store.GetMaster().SelectBuilderCtx(context.Background(), &result, builder)
+				require.NoError(t, err)
+				require.Equal(t, []string{"test"}, result)
+
+				// Test timeout
+				ctx, cancel := context.WithTimeout(context.Background(), 1)
+				defer cancel()
+				if driver == model.DatabaseDriverMysql {
+					builder = store.getQueryBuilder().
+						Select("SLEEP(2)")
+				} else {
+					builder = store.getQueryBuilder().
+						Select("pg_sleep(2)")
+				}
+				err = store.GetMaster().SelectBuilderCtx(ctx, &result, builder)
+				require.Error(t, err)
+				require.Equal(t, context.DeadlineExceeded, err)
+			})
+		}
 	})
 }
