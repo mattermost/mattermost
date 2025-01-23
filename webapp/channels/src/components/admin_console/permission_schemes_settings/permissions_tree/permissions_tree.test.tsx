@@ -4,6 +4,8 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import GeneralConstants from 'mattermost-redux/constants/general';
+
 import PermissionGroup from 'components/admin_console/permission_schemes_settings/permission_group';
 import PermissionsTree from 'components/admin_console/permission_schemes_settings/permissions_tree/permissions_tree';
 
@@ -105,6 +107,27 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         );
         wrapper.find(PermissionGroup).first().prop('onChange')(['test_permission', 'test_permission2']);
         expect(onToggle).toBeCalledWith('test', ['test_permission', 'test_permission2']);
+    });
+
+    test.each([
+        {roleName: GeneralConstants.SYSTEM_ADMIN_ROLE, shouldSeeConvertPrivateToPublic: true},
+        {roleName: GeneralConstants.TEAM_ADMIN_ROLE, shouldSeeConvertPrivateToPublic: true},
+        {roleName: GeneralConstants.CHANNEL_ADMIN_ROLE, shouldSeeConvertPrivateToPublic: false},
+        {roleName: GeneralConstants.SYSTEM_USER_ROLE, shouldSeeConvertPrivateToPublic: false},
+        {roleName: GeneralConstants.SYSTEM_GUEST_ROLE, shouldSeeConvertPrivateToPublic: false},
+    ])('should show convert private channel to public for $roleName: $shouldSeeConvertPrivateToPublic', ({roleName, shouldSeeConvertPrivateToPublic}) => {
+        const wrapper = shallow(
+            <PermissionsTree
+                {...defaultProps}
+                role={{name: roleName}}
+            />,
+        );
+        const groups = wrapper.find(PermissionGroup).first().prop('permissions') as Array<Group | Permission>;
+        if (shouldSeeConvertPrivateToPublic) {
+            expect(groups[2].permissions).toContain('convert_private_channel_to_public');
+        } else {
+            expect(groups[2].permissions).not.toContain('convert_private_channel_to_public');
+        }
     });
 
     test('should hide disabbled integration options', () => {
