@@ -18,6 +18,7 @@ import (
 
 func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyValue", func(t *testing.T) { testCreatePropertyValue(t, rctx, ss) })
+	t.Run("CreatePropertyValueWithArray", func(t *testing.T) { testCreatePropertyValueWithArray(t, rctx, ss) })
 	t.Run("GetPropertyValue", func(t *testing.T) { testGetPropertyValue(t, rctx, ss) })
 	t.Run("GetManyPropertyValues", func(t *testing.T) { testGetManyPropertyValues(t, rctx, ss) })
 	t.Run("UpdatePropertyValue", func(t *testing.T) { testUpdatePropertyValue(t, rctx, ss) })
@@ -483,6 +484,56 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			require.ElementsMatch(t, tc.expectedIDs, ids)
 		})
 	}
+}
+
+func testCreatePropertyValueWithArray(t *testing.T, _ request.CTX, ss store.Store) {
+	t.Run("should create a property value with array", func(t *testing.T) {
+		newValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`["option1", "option2", "option3"]`),
+		}
+
+		value, err := ss.PropertyValue().Create(newValue)
+		require.NoError(t, err)
+		require.NotZero(t, value.ID)
+		require.NotZero(t, value.CreateAt)
+		require.NotZero(t, value.UpdateAt)
+		require.Zero(t, value.DeleteAt)
+
+		// Verify array values
+		var arrayValues []string
+		require.NoError(t, json.Unmarshal(value.Value, &arrayValues))
+		require.Equal(t, []string{"option1", "option2", "option3"}, arrayValues)
+	})
+
+	t.Run("should update array values", func(t *testing.T) {
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`["initial1", "initial2"]`),
+		}
+
+		created, err := ss.PropertyValue().Create(value)
+		require.NoError(t, err)
+		require.NotZero(t, created.ID)
+
+		created.Value = json.RawMessage(`["updated1", "updated2", "updated3"]`)
+		updated, err := ss.PropertyValue().Update([]*model.PropertyValue{created})
+		require.NoError(t, err)
+		require.NotZero(t, updated)
+
+		// Verify updated array values
+		retrieved, err := ss.PropertyValue().Get(created.ID)
+		require.NoError(t, err)
+		var arrayValues []string
+		require.NoError(t, json.Unmarshal(retrieved.Value, &arrayValues))
+		require.Equal(t, []string{"updated1", "updated2", "updated3"}, arrayValues)
+	})
 }
 
 func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
