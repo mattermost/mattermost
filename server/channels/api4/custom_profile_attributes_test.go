@@ -313,9 +313,9 @@ func TestPatchCPAValues(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, values)
 		require.Len(t, values, 1)
-		var actualValue string
+		actualValue = ""
 		require.NoError(t, json.Unmarshal(values[createdField.ID], &actualValue))
-		require.Equal(t, "Field Value", actualValue)
+		require.Equal(t, value, actualValue)
 	})
 
 	t.Run("any team member should be able to patch their own values", func(t *testing.T) {
@@ -330,14 +330,14 @@ func TestPatchCPAValues(t *testing.T) {
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		var updatedValue string
-		require.NoError(t, json.Unmarshal(patchedValues[createdField.ID], &updatedValue))
-		require.Equal(t, value, updatedValue)
+		var actualValue string
+		require.NoError(t, json.Unmarshal(patchedValues[createdField.ID], &actualValue))
+		require.Equal(t, value, actualValue)
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		var updatedValue string
+		actualValue = ""
 		require.NoError(t, json.Unmarshal(values[createdField.ID], &actualValue))
 		require.Equal(t, value, actualValue)
 	})

@@ -278,12 +278,12 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		value, appErr := c.App.PatchCPAValue(userID, fieldID, sanitizedValue)
+		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, sanitizedValue)
 		if appErr != nil {
 			c.Err = appErr
 			return
 		}
-		results[fieldID] = value.Value
+		results[fieldID] = patchedValue.Value
 	}
 
 	auditRec.Success()

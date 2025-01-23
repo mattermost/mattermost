@@ -4,6 +4,8 @@
 package model
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -100,7 +102,7 @@ func (pf *PropertyField) SanitizeValue(rawValue string) (string, error) {
 	case PropertyFieldTypeText, PropertyFieldTypeDate, PropertyFieldTypeSelect:
 		value := strings.TrimSpace(rawValue)
 		if value == "" {
-			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error", 
+			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
 				map[string]any{"Reason": "empty value"}, "", http.StatusBadRequest)
 		}
 		return value, nil

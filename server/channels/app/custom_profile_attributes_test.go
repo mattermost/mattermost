@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -295,7 +296,7 @@ func TestDeleteCPAField(t *testing.T) {
 			TargetType: "user",
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
-			Value:      fmt.Sprintf("Value %d", i),
+			Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
 		}
 		value, err := th.App.Srv().propertyService.CreatePropertyValue(newValue)
 		require.NoError(t, err)
@@ -375,7 +376,7 @@ func TestGetCPAValue(t *testing.T) {
 			TargetType: "user",
 			GroupID:    model.NewId(),
 			FieldID:    fieldID,
-			Value:      "Value",
+			Value:      json.RawMessage(`"Value"`),
 		}
 		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
 		require.NoError(t, err)
@@ -391,7 +392,7 @@ func TestGetCPAValue(t *testing.T) {
 			TargetType: "user",
 			GroupID:    cpaGroupID,
 			FieldID:    fieldID,
-			Value:      "Value",
+			Value:      json.RawMessage(`"Value"`),
 		}
 		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
 		require.NoError(t, err)
@@ -413,7 +414,7 @@ func TestPatchCPAValue(t *testing.T) {
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		invalidFieldID := model.NewId()
-		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, "fieldValue")
+		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, json.RawMessage(`"fieldValue"`))
 		require.NotNil(t, appErr)
 	})
 
@@ -427,14 +428,14 @@ func TestPatchCPAValue(t *testing.T) {
 		require.NoError(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`))
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
 		require.Equal(t, "test value", patchedValue.Value)
 		require.Equal(t, userID, patchedValue.TargetID)
 
 		t.Run("should correctly patch the CPA property value", func(t *testing.T) {
-			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, "new patched value")
+			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"new patched value"`))
 			require.Nil(t, appErr)
 			require.NotNil(t, patch2)
 			require.Equal(t, patchedValue.ID, patch2.ID)
@@ -455,7 +456,7 @@ func TestPatchCPAValue(t *testing.T) {
 		require.NoError(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`))
 		require.NotNil(t, appErr)
 		require.Nil(t, patchedValue)
 	})
