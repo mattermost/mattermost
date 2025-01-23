@@ -159,12 +159,17 @@ func (b *AzureFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 		MaxBuffers: 2,
 	}
 
-	response, err := azblob.UploadStreamToBlockBlob(ctx, fr, blobURL, uploadOptions)
+	data, err := io.ReadAll(fr)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to read input")
+	}
+
+	response, err := azblob.UploadStreamToBlockBlob(ctx, bytes.NewReader(data), blobURL, uploadOptions)
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to write file %s", path)
 	}
 
-	return response.Response().ContentLength, nil
+	return int64(len(data)), nil
 }
 
 func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
