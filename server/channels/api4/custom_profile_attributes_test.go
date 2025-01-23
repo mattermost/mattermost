@@ -463,4 +463,36 @@ func TestPatchCPAValues(t *testing.T) {
 		require.NoError(t, json.Unmarshal(values[createdField.ID], &actualValue))
 		require.Equal(t, value, actualValue)
 	})
+
+	t.Run("should handle array values correctly", func(t *testing.T) {
+		arrayField := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeMultiselect,
+		}
+		createdArrayField, appErr := th.App.CreateCPAField(arrayField)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdArrayField)
+
+		values := map[string]json.RawMessage{
+			createdArrayField.ID: json.RawMessage(`["option1", "option2", "option3"]`),
+		}
+		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, patchedValues)
+		
+		var actualValues []string
+		require.NoError(t, json.Unmarshal(patchedValues[createdArrayField.ID], &actualValues))
+		require.Equal(t, []string{"option1", "option2", "option3"}, actualValues)
+
+		// Test updating array values
+		values[createdArrayField.ID] = json.RawMessage(`["newOption1", "newOption2"]`)
+		patchedValues, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		
+		actualValues = nil
+		require.NoError(t, json.Unmarshal(patchedValues[createdArrayField.ID], &actualValues))
+		require.Equal(t, []string{"newOption1", "newOption2"}, actualValues)
+	})
 }
