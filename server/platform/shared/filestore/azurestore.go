@@ -294,7 +294,7 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 		return "", 0, errors.Wrapf(err, "unable to generate public link for %s", path)
 	}
 
-	sasURL := fmt.Sprintf("%s?%s", blobURL.URL(), sasQueryParams.Encode())
+	sasURL := fmt.Sprintf("%s?%s", blobURL.URL().String(), sasQueryParams.Encode())
 	return sasURL, b.presignExpires, nil
 }
 
