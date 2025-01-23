@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, act, waitFor} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
@@ -11,7 +11,6 @@ import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
-import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
