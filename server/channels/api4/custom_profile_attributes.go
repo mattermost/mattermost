@@ -296,7 +296,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	returnValue := make(map[string]string)
+	returnValue := make(map[string]json.RawMessage)
 	for _, value := range values {
 		returnValue[value.FieldID] = value.Value
 	}
