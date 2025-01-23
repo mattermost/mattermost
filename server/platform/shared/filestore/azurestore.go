@@ -164,7 +164,7 @@ func (b *AzureFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 		return 0, errors.Wrap(err, "failed to read input")
 	}
 
-	response, err := azblob.UploadStreamToBlockBlob(ctx, bytes.NewReader(data), blobURL, uploadOptions)
+	_, err = azblob.UploadStreamToBlockBlob(ctx, bytes.NewReader(data), blobURL, uploadOptions)
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to write file %s", path)
 	}
