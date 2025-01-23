@@ -246,3 +246,50 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
+package api4
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/mattermost/mattermost/server/public/model"
+)
+
+func patchCustomProfileAttribute(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	var updates map[string]json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+		c.SetInvalidParamWithErr("value", err)
+		return
+	}
+
+	results := make([]*model.PropertyValue, 0, len(updates))
+	for fieldID, rawValue := range updates {
+		field, appErr := c.App.GetCPAField(fieldID)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		sanitizedValue, err := sanitizePropertyValue(field.Type, rawValue)
+		if err != nil {
+			c.SetInvalidParam(fmt.Sprintf("value for field %s: %v", fieldID, err))
+			return
+		}
+
+		// Pass the json.RawMessage directly to the App layer
+		attribute, appErr := c.App.PatchCPAValue(c.Params.UserId, fieldID, sanitizedValue)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		results = append(results, attribute)
+	}
+
+	ReturnJSON(w, results)
+}
