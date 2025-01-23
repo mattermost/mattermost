@@ -58,6 +58,7 @@ type MenuButtonTooltipProps = {
 type MenuProps = {
     id: string;
     'aria-label'?: string;
+    className?: string;
 
     /**
      * @warning Make the styling of your components such a way that they don't need this handler
@@ -161,6 +162,7 @@ export function Menu(props: Props) {
                         menuButtonId: props.menuButton.id,
                         menuId: props.menu.id,
                         menuAriaLabel: props.menu?.['aria-label'] ?? '',
+                        className: props.menu.className,
                         onModalClose: handleMenuModalClose,
                         children: props.children,
                         onKeyDown: props.menu.onKeyDown,
@@ -245,6 +247,7 @@ export function Menu(props: Props) {
                     MenuListProps={{
                         id: props.menu.id,
                         'aria-label': props.menu?.['aria-label'] ?? '',
+                        className: props.menu.className,
                         style: {
                             width: props.menu.width || 'inherit',
                         },
@@ -272,6 +275,7 @@ interface MenuModalProps {
     menuButtonId: MenuButtonProps['id'];
     menuId: MenuProps['id'];
     menuAriaLabel: MenuProps['aria-label'];
+    className: MenuProps['className'];
     onModalClose: (modalId: MenuProps['id']) => void;
     children: Props['children'];
     onKeyDown?: MenuProps['onKeyDown'];
@@ -318,6 +322,7 @@ function MenuModal(props: MenuModalProps) {
                     component='div'
                     aria-labelledby={props.menuButtonId}
                     onClick={handleModalClickCapture}
+                    className={props.className}
                 >
                     {props.children}
                 </MuiMenuList>

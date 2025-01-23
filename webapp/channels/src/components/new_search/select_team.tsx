@@ -137,7 +137,11 @@ const SelectTeam = (props: Props) => {
                 children: button,
                 dataTestId: 'searchTeamsSelectorMenuButton',
             }}
-            menu={{id: 'searchTeamSelectorMenu', 'aria-label': 'Select team'}}
+            menu={{
+                id: 'searchTeamSelectorMenu',
+                'aria-label': 'Select team',
+                className: 'select-team-mui-menu',
+            }}
             anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
         >
