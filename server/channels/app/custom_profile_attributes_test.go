@@ -211,7 +211,6 @@ func TestCreateCPAField(t *testing.T) {
 			require.NotZero(t, createdField.ID)
 		})
 	})
-
 }
 
 func TestPatchCPAField(t *testing.T) {
@@ -432,7 +431,7 @@ func TestPatchCPAValue(t *testing.T) {
 		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`))
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
-		require.Equal(t, "test value", patchedValue.Value)
+		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
 		require.Equal(t, userID, patchedValue.TargetID)
 
 		t.Run("should correctly patch the CPA property value", func(t *testing.T) {
@@ -440,7 +439,7 @@ func TestPatchCPAValue(t *testing.T) {
 			require.Nil(t, appErr)
 			require.NotNil(t, patch2)
 			require.Equal(t, patchedValue.ID, patch2.ID)
-			require.Equal(t, "new patched value", patch2.Value)
+			require.Equal(t, json.RawMessage(`"new patched value"`), patch2.Value)
 			require.Equal(t, userID, patch2.TargetID)
 		})
 	})
