@@ -211,6 +211,8 @@ function updateSearchResultsType(searchType: string) {
 
 export function performSearch(terms: string, teamId: string, isMentionSearch?: boolean): ThunkActionFunc<unknown> {
     return (dispatch, getState) => {
+        dispatch(clearSearch());
+
         let searchTerms = terms;
         const config = getConfig(getState());
         const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';

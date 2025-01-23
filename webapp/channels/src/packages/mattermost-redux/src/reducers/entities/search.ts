@@ -63,6 +63,7 @@ function omniSearchResults(state: string[] = [], action: MMReduxAction) {
         }
         return action.data;
     }
+    case SearchTypes.REMOVE_SEARCH_OMNISEARCH:
     case UserTypes.LOGOUT_SUCCESS:
         return [];
 

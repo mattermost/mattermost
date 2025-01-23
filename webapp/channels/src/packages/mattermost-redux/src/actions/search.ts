@@ -147,6 +147,7 @@ export function clearSearch(): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: SearchTypes.REMOVE_SEARCH_POSTS});
         dispatch({type: SearchTypes.REMOVE_SEARCH_FILES});
+        dispatch({type: SearchTypes.REMOVE_SEARCH_OMNISEARCH});
 
         return {data: true};
     };
