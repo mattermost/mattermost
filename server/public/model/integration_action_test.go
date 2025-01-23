@@ -355,7 +355,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "default value \"default\" doesn't exist in options")
 	})
-	t.Run("should fail on nil radio default value, and not fail with nil dereference", func(t *testing.T) {
+	t.Run("should fail on wrong radio default value, and not fail with nil dereference", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
 			DisplayName: "Radio element name",
