@@ -186,18 +186,18 @@ export function goToChannelByChannelName(match: Match, history: History): Action
         }
 
         if (!channel || !member) {
-            // Prompt system admin before joining the private channel
-            const user = getCurrentUser(getState());
-            const isSystemAdmin = UserUtils.isSystemAdmin(user?.roles);
-            let prompt = false;
-            if (isSystemAdmin) {
-                prompt = true;
-            } else {
-                const teamMember = getMyTeamMember(state, teamObj.id);
-                prompt = Boolean(teamMember && teamMember.scheme_admin);
-            }
-            if (prompt) {
-                if (channel?.type === Constants.PRIVATE_CHANNEL) {
+            if (channel?.type === Constants.PRIVATE_CHANNEL) {
+                // Prompt system admins and team admins before joining the private channel
+                const user = getCurrentUser(getState());
+                const isSystemAdmin = UserUtils.isSystemAdmin(user?.roles);
+                let prompt = false;
+                if (isSystemAdmin) {
+                    prompt = true;
+                } else {
+                    const teamMember = getMyTeamMember(state, teamObj.id);
+                    prompt = Boolean(teamMember && teamMember.scheme_admin);
+                }
+                if (prompt) {
                     const joinPromptResult = await dispatch(joinPrivateChannelPrompt(teamObj, channel.display_name));
                     if ('data' in joinPromptResult && !joinPromptResult.data!.join) {
                         return {data: undefined};
