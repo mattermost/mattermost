@@ -205,6 +205,15 @@ func (a *App) PatchCPAValue(userID string, fieldID string, rawValue string) (*mo
 		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
 	}
 
+	sanitizedValue, err := existingField.SanitizeValue(rawValue)
+	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.sanitize_value.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
 	existingValues, appErr := a.ListCPAValues(userID)
 	if appErr != nil {
 		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_value_list.app_error", nil, "", http.StatusNotFound).Wrap(err)
