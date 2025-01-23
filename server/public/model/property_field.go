@@ -95,6 +95,70 @@ func (pf *PropertyField) SanitizeInput() {
 	pf.Name = strings.TrimSpace(pf.Name)
 }
 
+func (pf *PropertyField) SanitizeValue(rawValue string) (string, error) {
+	switch pf.Type {
+	case PropertyFieldTypeText, PropertyFieldTypeDate, PropertyFieldTypeSelect:
+		value := strings.TrimSpace(rawValue)
+		if value == "" {
+			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error", 
+				map[string]any{"Reason": "empty value"}, "", http.StatusBadRequest)
+		}
+		return value, nil
+
+	case PropertyFieldTypeUser:
+		value := strings.TrimSpace(rawValue)
+		if value == "" || !IsValidId(value) {
+			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
+				map[string]any{"Reason": "invalid user id"}, "", http.StatusBadRequest)
+		}
+		return value, nil
+
+	case PropertyFieldTypeMultiselect:
+		var values []string
+		if err := json.Unmarshal([]byte(rawValue), &values); err != nil {
+			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
+				map[string]any{"Reason": "invalid json array"}, err.Error(), http.StatusBadRequest)
+		}
+		for i, v := range values {
+			values[i] = strings.TrimSpace(v)
+			if values[i] == "" {
+				return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
+					map[string]any{"Reason": "empty value in array"}, "", http.StatusBadRequest)
+			}
+		}
+		sanitized, err := json.Marshal(values)
+		if err != nil {
+			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
+				map[string]any{"Reason": "marshal error"}, err.Error(), http.StatusInternalServerError)
+		}
+		return string(sanitized), nil
+
+	case PropertyFieldTypeMultiuser:
+		var values []string
+		if err := json.Unmarshal([]byte(rawValue), &values); err != nil {
+			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
+				map[string]any{"Reason": "invalid json array"}, err.Error(), http.StatusBadRequest)
+		}
+		for i, v := range values {
+			values[i] = strings.TrimSpace(v)
+			if values[i] == "" || !IsValidId(values[i]) {
+				return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
+					map[string]any{"Reason": "invalid user id in array"}, "", http.StatusBadRequest)
+			}
+		}
+		sanitized, err := json.Marshal(values)
+		if err != nil {
+			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
+				map[string]any{"Reason": "marshal error"}, err.Error(), http.StatusInternalServerError)
+		}
+		return string(sanitized), nil
+
+	default:
+		return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
+			map[string]any{"Reason": fmt.Sprintf("unknown field type: %s", pf.Type)}, "", http.StatusBadRequest)
+	}
+}
+
 type PropertyFieldPatch struct {
 	Name       *string            `json:"name"`
 	Type       *PropertyFieldType `json:"type"`
