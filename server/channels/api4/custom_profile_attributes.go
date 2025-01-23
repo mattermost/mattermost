@@ -264,7 +264,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		fieldMap[field.ID] = field
 	}
 
-	results := make([]*model.PropertyValue, 0, len(updates))
+	results := make(map[string]json.RawMessage, len(updates))
 	for fieldID, rawValue := range updates {
 		field, ok := fieldMap[fieldID]
 		if !ok {
@@ -278,12 +278,12 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		attribute, appErr := c.App.PatchCPAValue(userID, fieldID, sanitizedValue)
+		value, appErr := c.App.PatchCPAValue(userID, fieldID, sanitizedValue)
 		if appErr != nil {
 			c.Err = appErr
 			return
 		}
-		results = append(results, attribute)
+		results[fieldID] = value.Value
 	}
 
 	auditRec.Success()
