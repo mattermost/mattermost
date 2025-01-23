@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 )
@@ -73,12 +71,12 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	if !(pf.Type == PropertyFieldTypeText ||
-		pf.Type == PropertyFieldTypeSelect ||
-		pf.Type == PropertyFieldTypeMultiselect ||
-		pf.Type == PropertyFieldTypeDate ||
-		pf.Type == PropertyFieldTypeUser ||
-		pf.Type == PropertyFieldTypeMultiuser) {
+	if pf.Type != PropertyFieldTypeText &&
+		pf.Type != PropertyFieldTypeSelect &&
+		pf.Type != PropertyFieldTypeMultiselect &&
+		pf.Type != PropertyFieldTypeDate &&
+		pf.Type != PropertyFieldTypeUser &&
+		pf.Type != PropertyFieldTypeMultiuser {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
@@ -95,70 +93,6 @@ func (pf *PropertyField) IsValid() error {
 
 func (pf *PropertyField) SanitizeInput() {
 	pf.Name = strings.TrimSpace(pf.Name)
-}
-
-func (pf *PropertyField) SanitizeValue(rawValue string) (string, error) {
-	switch pf.Type {
-	case PropertyFieldTypeText, PropertyFieldTypeDate, PropertyFieldTypeSelect:
-		value := strings.TrimSpace(rawValue)
-		if value == "" {
-			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
-				map[string]any{"Reason": "empty value"}, "", http.StatusBadRequest)
-		}
-		return value, nil
-
-	case PropertyFieldTypeUser:
-		value := strings.TrimSpace(rawValue)
-		if value == "" || !IsValidId(value) {
-			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
-				map[string]any{"Reason": "invalid user id"}, "", http.StatusBadRequest)
-		}
-		return value, nil
-
-	case PropertyFieldTypeMultiselect:
-		var values []string
-		if err := json.Unmarshal([]byte(rawValue), &values); err != nil {
-			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
-				map[string]any{"Reason": "invalid json array"}, err.Error(), http.StatusBadRequest)
-		}
-		for i, v := range values {
-			values[i] = strings.TrimSpace(v)
-			if values[i] == "" {
-				return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
-					map[string]any{"Reason": "empty value in array"}, "", http.StatusBadRequest)
-			}
-		}
-		sanitized, err := json.Marshal(values)
-		if err != nil {
-			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
-				map[string]any{"Reason": "marshal error"}, err.Error(), http.StatusInternalServerError)
-		}
-		return string(sanitized), nil
-
-	case PropertyFieldTypeMultiuser:
-		var values []string
-		if err := json.Unmarshal([]byte(rawValue), &values); err != nil {
-			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
-				map[string]any{"Reason": "invalid json array"}, err.Error(), http.StatusBadRequest)
-		}
-		for i, v := range values {
-			values[i] = strings.TrimSpace(v)
-			if values[i] == "" || !IsValidId(values[i]) {
-				return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
-					map[string]any{"Reason": "invalid user id in array"}, "", http.StatusBadRequest)
-			}
-		}
-		sanitized, err := json.Marshal(values)
-		if err != nil {
-			return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
-				map[string]any{"Reason": "marshal error"}, err.Error(), http.StatusInternalServerError)
-		}
-		return string(sanitized), nil
-
-	default:
-		return "", NewAppError("PropertyField.SanitizeValue", "model.property_field.sanitize_value.app_error",
-			map[string]any{"Reason": fmt.Sprintf("unknown field type: %s", pf.Type)}, "", http.StatusBadRequest)
-	}
 }
 
 type PropertyFieldPatch struct {
