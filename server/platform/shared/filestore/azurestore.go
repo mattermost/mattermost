@@ -4,7 +4,8 @@
 package filestore
 
 import (
-	"context"
+	"bytes"
+	"context" 
 	"fmt"
 	"io"
 	"net/url"
@@ -182,7 +183,7 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 		return 0, errors.Wrapf(err, "unable to append to file %s", path)
 	}
 
-	return response.ContentLength(), nil
+	return response.BlobAppendOffset(), nil
 }
 
 func (b *AzureFileBackend) RemoveFile(path string) error {
@@ -270,13 +271,20 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 	path = filepath.Join(b.pathPrefix, path)
 	blobURL := b.containerURL.NewBlockBlobURL(path)
 
-	// Create a SAS token that's valid for the specified duration
-	sasToken, err := blobURL.GetSASToken(azblob.BlobSASPermissions{Read: true}, time.Now().Add(b.presignExpires), nil)
+	// Create SAS query parameters with the specified permissions and expiry
+	sasQueryParams, err := azblob.BlobSASSignatureValues{
+		Protocol:      azblob.SASProtocolHTTPS,
+		ExpiryTime:    time.Now().Add(b.presignExpires),
+		ContainerName: b.container,
+		BlobName:      path,
+		Permissions:   azblob.BlobSASPermissions{Read: true}.String(),
+	}.NewSASQueryParameters(blobURL.GetCredential())
+
 	if err != nil {
 		return "", 0, errors.Wrapf(err, "unable to generate public link for %s", path)
 	}
 
-	sasURL := fmt.Sprintf("%s?%s", blobURL.URL(), sasToken)
+	sasURL := fmt.Sprintf("%s?%s", blobURL.URL(), sasQueryParams.Encode())
 	return sasURL, b.presignExpires, nil
 }
 
