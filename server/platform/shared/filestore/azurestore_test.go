@@ -6,10 +6,8 @@ package filestore
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/stretchr/testify/require"

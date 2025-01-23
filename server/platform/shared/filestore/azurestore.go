@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/url"
 	"strconv"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
