@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strconv"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,6 +25,8 @@ type AzureFileBackend struct {
 	pathPrefix     string
 	timeout        time.Duration
 	presignExpires time.Duration
+	storageAccount string
+	accessKey      string
 }
 
 func (b *AzureFileBackend) TestConnection() error {
@@ -183,7 +186,11 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, path string) (int64, error) 
 		return 0, errors.Wrapf(err, "unable to append to file %s", path)
 	}
 
-	return response.BlobAppendOffset(), nil
+	offset, err := strconv.ParseInt(response.BlobAppendOffset(), 10, 64)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to parse blob append offset")
+	}
+	return offset, nil
 }
 
 func (b *AzureFileBackend) RemoveFile(path string) error {
@@ -272,13 +279,14 @@ func (b *AzureFileBackend) GeneratePublicLink(path string) (string, time.Duratio
 	blobURL := b.containerURL.NewBlockBlobURL(path)
 
 	// Create SAS query parameters with the specified permissions and expiry
+	credential := azblob.NewSharedKeyCredential(b.storageAccount, b.accessKey)
 	sasQueryParams, err := azblob.BlobSASSignatureValues{
 		Protocol:      azblob.SASProtocolHTTPS,
 		ExpiryTime:    time.Now().Add(b.presignExpires),
 		ContainerName: b.container,
 		BlobName:      path,
 		Permissions:   azblob.BlobSASPermissions{Read: true}.String(),
-	}.NewSASQueryParameters(blobURL.GetCredential())
+	}.NewSASQueryParameters(credential)
 
 	if err != nil {
 		return "", 0, errors.Wrapf(err, "unable to generate public link for %s", path)
@@ -330,6 +338,8 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		pathPrefix:     settings.AzurePathPrefix,
 		timeout:        time.Duration(settings.AzureRequestTimeoutMilliseconds) * time.Millisecond,
 		presignExpires: time.Duration(settings.AzurePresignExpiresSeconds) * time.Second,
+		storageAccount: settings.AzureStorageAccount,
+		accessKey:      settings.AzureAccessKey,
 	}
 
 	return backend, nil
