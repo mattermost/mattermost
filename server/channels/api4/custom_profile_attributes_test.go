@@ -286,6 +286,11 @@ func TestSanitizePropertyValue(t *testing.T) {
 		// Invalid JSON
 		_, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`invalid`))
 		require.Error(t, err)
+
+		// Wrong type (number instead of string)
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`123`))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "json: cannot unmarshal number into Go value of type string")
 	})
 
 	t.Run("date field type", func(t *testing.T) {
