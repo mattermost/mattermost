@@ -280,7 +280,7 @@ func testDeletePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 			TargetType: "test_type",
 			GroupID:    model.NewId(),
 			FieldID:    model.NewId(),
-			Value:      "test value",
+			Value:      json.RawMessage(`"test value"`),
 		}
 		value, err := ss.PropertyValue().Create(newValue)
 		require.NoError(t, err)
