@@ -26,9 +26,10 @@ export type PropertyValue<T> = {
 }
 
 export type UserPropertyFieldType = 'text';
-export type UserPropertyFieldGroupID = 'user_properties';
+export type UserPropertyFieldGroupID = 'custom_profile_attributes';
 
 export type UserPropertyField = PropertyField & {
     type: UserPropertyFieldType;
+    group_id: UserPropertyFieldGroupID;
 }
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
