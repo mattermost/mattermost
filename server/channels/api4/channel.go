@@ -1439,8 +1439,6 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	channelOk := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel)
-
-	mlog.Debug("channel OK", mlog.Bool("ok", channelOk))
 	if channel.Type == model.ChannelTypeOpen {
 		teamOk := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)
 		if !teamOk && !channelOk {
