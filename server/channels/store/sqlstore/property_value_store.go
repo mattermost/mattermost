@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -16,10 +15,7 @@ import (
 )
 
 func (s *SqlPropertyValueStore) propertyValueToInsertMap(value *model.PropertyValue) (map[string]any, error) {
-	valueJSON, err := json.Marshal(value.Value)
-	if err != nil {
-		return nil, errors.Wrap(err, "property_value_to_insert_map_marshal_value")
-	}
+	valueJSON := value.Value
 	if s.IsBinaryParamEnabled() {
 		valueJSON = AppendBinaryFlag(valueJSON)
 	}
@@ -38,10 +34,7 @@ func (s *SqlPropertyValueStore) propertyValueToInsertMap(value *model.PropertyVa
 }
 
 func (s *SqlPropertyValueStore) propertyValueToUpdateMap(value *model.PropertyValue) (map[string]any, error) {
-	valueJSON, err := json.Marshal(value.Value)
-	if err != nil {
-		return nil, errors.Wrap(err, "property_value_to_udpate_map_marshal_value")
-	}
+	valueJSON := value.Value
 	if s.IsBinaryParamEnabled() {
 		valueJSON = AppendBinaryFlag(valueJSON)
 	}
@@ -58,7 +51,6 @@ func propertyValuesFromRows(rows *sql.Rows) ([]*model.PropertyValue, error) {
 
 	for rows.Next() {
 		var value model.PropertyValue
-		var valueJSON string
 
 		err := rows.Scan(
 			&value.ID,
@@ -66,17 +58,13 @@ func propertyValuesFromRows(rows *sql.Rows) ([]*model.PropertyValue, error) {
 			&value.TargetType,
 			&value.GroupID,
 			&value.FieldID,
-			&valueJSON,
+			&value.Value,
 			&value.CreateAt,
 			&value.UpdateAt,
 			&value.DeleteAt,
 		)
 		if err != nil {
 			return nil, err
-		}
-
-		if err := json.Unmarshal([]byte(valueJSON), &value.Value); err != nil {
-			return nil, errors.Wrap(err, "property_values_from_rows_unmarshal_value")
 		}
 
 		results = append(results, &value)
