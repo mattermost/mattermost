@@ -338,7 +338,7 @@ const PostComponent = (props: Props): JSX.Element => {
     const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code'), []);
 
     const handlePostClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
-        if (!post || (props.channelIsArchived && !props.clickToReply)) {
+        if (!post) {
             return;
         }
 
@@ -354,7 +354,7 @@ const PostComponent = (props: Props): JSX.Element => {
             props.actions.selectPost(post);
         }
 
-        if (e.altKey) {
+        if (e.altKey && !props.channelIsArchived) {
             props.actions.markPostAsUnread(post, props.location);
         }
     }, [
