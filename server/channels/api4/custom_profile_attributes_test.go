@@ -403,12 +403,17 @@ func TestSanitizePropertyValue(t *testing.T) {
 		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(`[]`))
 		require.NoError(t, err)
 
-		// Array with empty or invalid user IDs should filter them out
-		result, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "", "invalid-id", "%s"]`, validID1, validID2)))
+		// Array with empty strings should be filtered out
+		result, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "", "   ", "%s"]`, validID1, validID2)))
 		require.NoError(t, err)
 		values = nil
 		require.NoError(t, json.Unmarshal(result, &values))
 		require.Equal(t, []string{validID1, validID2}, values)
+
+		// Array with invalid ID should return error
+		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "invalid-id"]`, validID1)))
+		require.Error(t, err)
+		require.Equal(t, "invalid user id: invalid-id", err.Error())
 	})
 
 	t.Run("unknown field type", func(t *testing.T) {

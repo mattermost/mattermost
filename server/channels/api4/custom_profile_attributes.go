@@ -216,7 +216,10 @@ func sanitizePropertyValue(fieldType model.PropertyFieldType, rawValue json.RawM
 		filteredValues := make([]string, 0, len(values))
 		for _, v := range values {
 			trimmed := strings.TrimSpace(v)
-			if trimmed != "" && model.IsValidId(trimmed) {
+			if trimmed != "" {
+				if !model.IsValidId(trimmed) {
+					return nil, fmt.Errorf("invalid user id: %s", trimmed)
+				}
 				filteredValues = append(filteredValues, trimmed)
 			}
 		}
