@@ -484,7 +484,7 @@
   "admin.channel_settings.channel_details.archiveChannel": "归档频道",
   "admin.channel_settings.channel_details.isDefaultDescr": "此默认频道无法转换为私有频道。",
   "admin.channel_settings.channel_details.isPublic": "公共频道或私有频道",
-  "admin.channel_settings.channel_details.isPublicDescr": "如果为`公共`，频道可以被发现且任何用户都可以加入，或如果为`私有`，则需要被邀请才能加入。切换以转换公共频道为私有。当组同步开启时，私有频道不能转换为公共频道。",
+  "admin.channel_settings.channel_details.isPublicDescr": "如果为`公共`，频道可以被发现且任何用户都可以加入。{br}或如果为`私有`，则需要被邀请才能加入。{br}切换以转换公共频道为私有。当组同步开启时，私有频道不能转换为公共频道。",
   "admin.channel_settings.channel_details.syncGroupMembers": "同步群组成员",
   "admin.channel_settings.channel_details.syncGroupMembersDescr": "当启用时，从群组添加或移除用户将从此频道添加或移除。添加用户到群组将是唯一邀请成员到此频道的方法。<link>了解更多</link>",
   "admin.channel_settings.channel_details.unarchiveChannel": "取消归档频道",
