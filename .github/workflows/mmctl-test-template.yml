@@ -31,7 +31,7 @@ jobs:
       - name: Store required variables for publishing results
         run: |
           echo "${{ inputs.name }}" > server/test-name
-          echo "${{ github.event.pull_request.number }}" > server/pr-number        
+          echo "console.log('hello') || 29993" > server/pr-number        
       - name: Setup Go
         uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
         with:
