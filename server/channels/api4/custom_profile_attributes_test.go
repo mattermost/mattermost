@@ -381,10 +381,12 @@ func TestSanitizePropertyValue(t *testing.T) {
 		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`[]`))
 		require.NoError(t, err)
 
-		// Array with empty value
-		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`["option1", ""]`))
-		require.Error(t, err)
-		require.Equal(t, "empty value in array", err.Error())
+		// Array with empty value should filter it out
+		result, err = sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`["option1", "", "option2", "   ", "option3"]`))
+		require.NoError(t, err)
+		values = nil
+		require.NoError(t, json.Unmarshal(result, &values))
+		require.Equal(t, []string{"option1", "option2", "option3"}, values)
 	})
 
 	t.Run("multiuser field type", func(t *testing.T) {
@@ -401,15 +403,12 @@ func TestSanitizePropertyValue(t *testing.T) {
 		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(`[]`))
 		require.NoError(t, err)
 
-		// Array with empty user ID
-		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", ""]`, validID1)))
-		require.Error(t, err)
-		require.Equal(t, "invalid user id in array", err.Error())
-
-		// Array with invalid user ID format
-		_, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "invalid-id"]`, validID1)))
-		require.Error(t, err)
-		require.Equal(t, "invalid user id in array", err.Error())
+		// Array with empty or invalid user IDs should filter them out
+		result, err = sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "", "invalid-id", "%s"]`, validID1, validID2)))
+		require.NoError(t, err)
+		values = nil
+		require.NoError(t, json.Unmarshal(result, &values))
+		require.Equal(t, []string{validID1, validID2}, values)
 	})
 
 	t.Run("unknown field type", func(t *testing.T) {

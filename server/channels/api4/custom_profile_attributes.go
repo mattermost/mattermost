@@ -199,26 +199,28 @@ func sanitizePropertyValue(fieldType model.PropertyFieldType, rawValue json.RawM
 		if err := json.Unmarshal(rawValue, &values); err != nil {
 			return nil, err
 		}
-		for i, v := range values {
-			values[i] = strings.TrimSpace(v)
-			if values[i] == "" {
-				return nil, fmt.Errorf("empty value in array")
+		filteredValues := make([]string, 0, len(values))
+		for _, v := range values {
+			trimmed := strings.TrimSpace(v)
+			if trimmed != "" {
+				filteredValues = append(filteredValues, trimmed)
 			}
 		}
-		return json.Marshal(values)
+		return json.Marshal(filteredValues)
 
 	case model.PropertyFieldTypeMultiuser:
 		var values []string
 		if err := json.Unmarshal(rawValue, &values); err != nil {
 			return nil, err
 		}
-		for i, v := range values {
-			values[i] = strings.TrimSpace(v)
-			if values[i] == "" || !model.IsValidId(values[i]) {
-				return nil, fmt.Errorf("invalid user id in array")
+		filteredValues := make([]string, 0, len(values))
+		for _, v := range values {
+			trimmed := strings.TrimSpace(v)
+			if trimmed != "" && model.IsValidId(trimmed) {
+				filteredValues = append(filteredValues, trimmed)
 			}
 		}
-		return json.Marshal(values)
+		return json.Marshal(filteredValues)
 
 	default:
 		return nil, fmt.Errorf("unknown field type: %s", fieldType)
