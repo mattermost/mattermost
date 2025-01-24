@@ -181,9 +181,6 @@ func sanitizePropertyValue(fieldType model.PropertyFieldType, rawValue json.RawM
 			return nil, err
 		}
 		value = strings.TrimSpace(value)
-		if value == "" {
-			return nil, fmt.Errorf("empty value")
-		}
 		return json.Marshal(value)
 
 	case model.PropertyFieldTypeUser:

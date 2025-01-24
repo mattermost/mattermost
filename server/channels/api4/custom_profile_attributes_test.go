@@ -300,10 +300,12 @@ func TestSanitizePropertyValue(t *testing.T) {
 		require.NoError(t, json.Unmarshal(result, &value))
 		require.Equal(t, "hello world", value)
 
-		// Empty text
-		_, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`""`))
-		require.Error(t, err)
-		require.Equal(t, "empty value", err.Error())
+		// Empty text should be allowed
+		result, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`""`))
+		require.NoError(t, err)
+		value = ""
+		require.NoError(t, json.Unmarshal(result, &value))
+		require.Empty(t, value)
 
 		// Invalid JSON
 		_, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`invalid`))
@@ -323,10 +325,12 @@ func TestSanitizePropertyValue(t *testing.T) {
 		require.NoError(t, json.Unmarshal(result, &value))
 		require.Equal(t, "2023-01-01", value)
 
-		// Empty date
-		_, err = sanitizePropertyValue(model.PropertyFieldTypeDate, json.RawMessage(`""`))
-		require.Error(t, err)
-		require.Equal(t, "empty value", err.Error())
+		// Empty date should be allowed
+		result, err = sanitizePropertyValue(model.PropertyFieldTypeDate, json.RawMessage(`""`))
+		require.NoError(t, err)
+		value = ""
+		require.NoError(t, json.Unmarshal(result, &value))
+		require.Empty(t, value)
 	})
 
 	t.Run("select field type", func(t *testing.T) {
@@ -337,10 +341,12 @@ func TestSanitizePropertyValue(t *testing.T) {
 		require.NoError(t, json.Unmarshal(result, &value))
 		require.Equal(t, "option1", value)
 
-		// Empty option
-		_, err = sanitizePropertyValue(model.PropertyFieldTypeSelect, json.RawMessage(`""`))
-		require.Error(t, err)
-		require.Equal(t, "empty value", err.Error())
+		// Empty option should be allowed
+		result, err = sanitizePropertyValue(model.PropertyFieldTypeSelect, json.RawMessage(`""`))
+		require.NoError(t, err)
+		value = ""
+		require.NoError(t, json.Unmarshal(result, &value))
+		require.Empty(t, value)
 	})
 
 	t.Run("user field type", func(t *testing.T) {
