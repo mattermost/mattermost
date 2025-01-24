@@ -9,6 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -33,6 +34,7 @@ const ChannelHeaderTitle = ({
     gmMembers,
 }: Props) => {
     const channel = useSelector(getCurrentChannel);
+    const currentUser = useSelector(getCurrentUser);
 
     if (!channel) {
         return null;
@@ -90,6 +92,20 @@ const ChannelHeaderTitle = ({
             </div>
         );
     }
+
+    const personalChannelHeaderAriaLabel = intl.formatMessage({
+        id: 'channel_header.directchannel',
+        defaultMessage: '{displayName} (you) Channel Menu',
+    }, {
+        displayName: channel.display_name,
+    });
+
+    const othersChannelHeaderAriaLabel = intl.formatMessage({
+        id: 'channel_header.otherchannel',
+        defaultMessage: '{displayName} Channel Menu',
+    }, {
+        displayName: channel.display_name,
+    });
 
     return (
         <div className='channel-header__top'>
