@@ -29,6 +29,8 @@ import './user_account_menu.scss';
 
 type Props = PropsFromRedux;
 
+export const ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON = 'userAccountMenuButton';
+
 export default function UserAccountMenu(props: Props) {
     const {formatMessage} = useIntl();
 
@@ -46,7 +48,7 @@ export default function UserAccountMenu(props: Props) {
     return (
         <Menu.Container
             menuButton={{
-                id: 'userAccountMenuButton',
+                id: ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON,
                 class: classNames('userAccountMenu_menuButton', {
                     withCustomStatus: isCustomStatusSet,
                 }),

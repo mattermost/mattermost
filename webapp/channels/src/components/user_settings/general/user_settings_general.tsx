@@ -11,6 +11,8 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
+import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
@@ -111,7 +113,7 @@ export type Props = {
     maxFileSize: number;
     customProfileAttributeFields: IDMappedObjects<UserPropertyField>;
     actions: {
-        logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
+        logError: ({message, type}: {message: any; type: string}, options?: LogErrorOptions) => void;
         clearErrors: () => void;
         updateMe: (user: UserProfile) => Promise<ActionResult>;
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
@@ -324,7 +326,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         this.props.actions.logError({
                             message: AnnouncementBarMessages.EMAIL_VERIFICATION_REQUIRED,
                             type: AnnouncementBarTypes.SUCCESS,
-                        }, true);
+                        }, {errorBarMode: LogErrorBarMode.Always});
                     }
                 } else if (err) {
                     let serverError;
@@ -1537,7 +1539,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         const pictureSection = this.createPictureSection();
 
         return (
-            <div id='generalSettings'>
+            <div
+                id='profileSettings'
+                aria-labelledby='profileButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
