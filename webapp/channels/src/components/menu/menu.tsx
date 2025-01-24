@@ -1,7 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MuiMenu from '@mui/material/Menu';
 import MuiMenuList from '@mui/material/MenuList';
+import type {PopoverOrigin} from '@mui/material/Popover';
+import classNames from 'classnames';
 import React, {
     useState,
     useEffect,
@@ -28,7 +31,10 @@ import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import {MenuContext, useMenuContextValue} from './menu_context';
-import {MuiMenuStyled} from './menu_styled';
+
+import './menu.scss';
+
+export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
 
 const MENU_OPEN_ANIMATION_DURATION = 150;
 const MENU_CLOSE_ANIMATION_DURATION = 100;
@@ -37,6 +43,7 @@ type MenuButtonProps = {
     id: string;
     dateTestId?: string;
     'aria-label'?: string;
+    'aria-describedby'?: string;
     disabled?: boolean;
     class?: string;
     as?: keyof JSX.IntrinsicElements;
@@ -44,7 +51,6 @@ type MenuButtonProps = {
 }
 
 type MenuButtonTooltipProps = {
-    id: string;
     isVertical?: boolean;
     class?: string;
     text: string;
@@ -52,22 +58,24 @@ type MenuButtonTooltipProps = {
 }
 
 type MenuProps = {
-    id: string;
-    'aria-label'?: string;
 
     /**
-     * @warning Make the styling of your components such a way that they dont need this handler
+     * ID is mandatory as it is used in mobileWebview to open modal equivalent to menu
+     */
+    id: string;
+    'aria-label'?: string;
+    'aria-labelledby'?: string;
+
+    /**
+     * @warning Make the styling of your components such a way that they don't need this handler
      */
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
 }
 
-const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'};
-const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'};
-
-type VerticalOrigin = 'top' | 'center' | 'bottom';
-type HorizontalOrigin = 'left' | 'center' | 'right';
+const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
+const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'} as PopoverOrigin;
 
 interface Props {
     menuButton: MenuButtonProps;
@@ -77,14 +85,8 @@ interface Props {
 
     // Use MUI Anchor Playgroup to try various anchorOrigin
     // and transformOrigin values - https://mui.com/material-ui/react-popover/#anchor-playground
-    anchorOrigin?: {
-        vertical: VerticalOrigin;
-        horizontal: HorizontalOrigin;
-    };
-    transformOrigin?: {
-        vertical: VerticalOrigin;
-        horizontal: HorizontalOrigin;
-    };
+    anchorOrigin?: PopoverOrigin;
+    transformOrigin?: PopoverOrigin;
 }
 
 /**
@@ -108,7 +110,7 @@ export function Menu(props: Props) {
     const [disableAutoFocusItem, setDisableAutoFocusItem] = useState(false);
     const isMenuOpen = Boolean(anchorElement);
 
-    // Callback funtion handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
+    // Callback function handler called when menu is closed by escapeKeyDown, backdropClick or tabKeyDown
     function handleMenuClose(event: MouseEvent<HTMLDivElement>) {
         event.preventDefault();
         setAnchorElement(null);
@@ -126,9 +128,9 @@ export function Menu(props: Props) {
         setAnchorElement(null);
     }
 
-    // Stop sythetic events from bubbling up to the parent
+    // Stop synthetic events from bubbling up to the parent
     // @see https://github.com/mui/material-ui/issues/32064
-    function handleMenuClick(e: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+    function handleMenuClick(e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) {
         e.stopPropagation();
     }
 
@@ -194,7 +196,8 @@ export function Menu(props: Props) {
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
                 disabled={props.menuButton?.disabled ?? false}
-                aria-label={props.menuButton?.['aria-label'] ?? ''}
+                aria-label={props.menuButton?.['aria-label']}
+                aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}
                 onMouseDown={handleMenuButtonMouseDown}
@@ -235,21 +238,24 @@ export function Menu(props: Props) {
         <CompassDesignProvider theme={theme}>
             {renderMenuButton()}
             <MenuContext.Provider value={providerValue}>
-                <MuiMenuStyled
+                <MuiMenu
                     anchorEl={anchorElement}
                     open={isMenuOpen}
                     onClose={handleMenuClose}
                     onClick={handleMenuClick}
-                    onTransitionExited={providerValue.handleClosed}
                     onKeyDown={handleMenuKeyDown}
-                    className={A11yClassNames.POPUP}
-                    width={props.menu.width}
+                    className={classNames(A11yClassNames.POPUP, 'menu_menuStyled')}
+                    marginThreshold={0}
                     anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                     transformOrigin={props.transformOrigin || defaultTransformOrigin}
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
                     MenuListProps={{
                         id: props.menu.id,
-                        'aria-label': props.menu?.['aria-label'] ?? '',
+                        'aria-label': props.menu?.['aria-label'],
+                        'aria-labelledby': props.menu?.['aria-labelledby'],
+                        style: {
+                            width: props.menu?.width,
+                        },
                     }}
                     TransitionProps={{
                         mountOnEnter: true,
@@ -259,9 +265,17 @@ export function Menu(props: Props) {
                             exit: MENU_CLOSE_ANIMATION_DURATION,
                         },
                     }}
+                    slotProps={{
+                        backdrop: {
+                            id: ELEMENT_ID_FOR_MENU_BACKDROP,
+                        },
+                    }}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error This exists in source code of mui, but its types are missing
+                    onTransitionExited={providerValue.handleClosed}
                 >
                     {props.children}
-                </MuiMenuStyled>
+                </MuiMenu>
             </MenuContext.Provider>
         </CompassDesignProvider>
     );

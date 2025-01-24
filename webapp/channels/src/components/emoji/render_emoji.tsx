@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
@@ -14,7 +15,7 @@ interface ComponentProps {
     emojiName: string;
     size?: number;
     emojiStyle?: React.CSSProperties;
-    onClick?: () => void;
+    onClick?: (event: MouseEvent<HTMLSpanElement> | KeyboardEvent<HTMLSpanElement>) => void;
 }
 
 const RenderEmoji = ({emojiName, emojiStyle, size, onClick}: ComponentProps) => {
