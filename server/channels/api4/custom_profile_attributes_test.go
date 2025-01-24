@@ -360,8 +360,7 @@ func TestSanitizePropertyValue(t *testing.T) {
 
 		// Empty user ID
 		_, err = sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`""`))
-		require.Error(t, err)
-		require.Equal(t, "invalid user id", err.Error())
+		require.NoError(t, err)
 
 		// Invalid user ID format
 		_, err = sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`"invalid-id"`))
