@@ -20,7 +20,7 @@ import {Constants} from 'utils/constants';
 import MenuItemAddMembers from '../menu_items/add_channel_members';
 import MenuItemArchiveChannel from '../menu_items/archive_channel';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
-import MenuItemChannelSettings from '../menu_items/channel_settings';
+import MenuItemChannelSettings from '../menu_items/channel_settings_submenu';
 import MenuItemCloseChannel from '../menu_items/close_channel';
 import MenuItemGroupsMenuItems from '../menu_items/groups';
 import MenuItemLeaveChannel from '../menu_items/leave_channel';
@@ -60,7 +60,6 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                 channel={channel}
             />
             <MenuItemToggleMuteChannel
-                id='channelToggleMuteChannel'
                 user={user}
                 channel={channel}
                 isMuted={isMuted}

@@ -51,8 +51,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                 </>
             )}
             <MenuItemToggleMuteChannel
-                id='channelToggleMuteChannel'
-                user={user}
+                userID={user.id}
                 channel={channel}
                 isMuted={isMuted}
             />

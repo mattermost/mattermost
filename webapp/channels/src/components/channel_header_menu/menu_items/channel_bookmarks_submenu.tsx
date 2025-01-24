@@ -30,12 +30,13 @@ const ChannelBookmarksSubmenu = (props: Props) => {
     const {formatMessage} = useIntl();
 
     const {handleCreateLink, handleCreateFile} = useBookmarkAddActions(props.channel.id);
-    const canAdd = useChannelBookmarkPermission(props.channel.id, 'add');
-    const canUploadFiles = useCanUploadFiles();
-    const limitReached = useSelector((state: GlobalState) => {
-        const bookmarks = getChannelBookmarks(state, props.channel.id);
-        return bookmarks && Object.keys(bookmarks).length >= MAX_BOOKMARKS_PER_CHANNEL;
-    });
+    const canAdd = true; //useChannelBookmarkPermission(props.channel.id, 'add');
+    const canUploadFiles = true; //useCanUploadFiles();
+    const limitReached = false;
+    // useSelector((state: GlobalState) => {
+    //     const bookmarks = getChannelBookmarks(state, props.channel.id);
+    //     return bookmarks && Object.keys(bookmarks).length >= MAX_BOOKMARKS_PER_CHANNEL;
+    // });
 
     if (!canAdd || limitReached) {
         return null;

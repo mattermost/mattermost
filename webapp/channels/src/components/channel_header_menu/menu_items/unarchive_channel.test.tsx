@@ -18,8 +18,6 @@ import UnarchiveChannel from './unarchive_channel';
 describe('components/ChannelHeaderMenu/MenuItem.EditConversationHeader', () => {
     beforeEach(() => {
         jest.spyOn(modalActions, 'openModal');
-
-        // Mock useDispatch to return our custom dispatch function
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 

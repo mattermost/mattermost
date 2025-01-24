@@ -7,7 +7,6 @@ import {useDispatch} from 'react-redux';
 
 import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
 
@@ -16,23 +15,21 @@ import * as Menu from 'components/menu';
 import {Constants, NotificationLevels} from 'utils/constants';
 
 type Props = {
-    user: UserProfile;
+    userID: string;
     channel: Channel;
     isMuted: boolean;
-    id?: string;
 };
 
-export default function MenuItemToggleMuteChannel({
-    id,
+export default function ToggleMuteChannel({
     isMuted,
     channel,
-    user,
+    userID,
 }: Props) {
     const dispatch = useDispatch();
 
     const handleClick = () => {
         dispatch(updateChannelNotifyProps(
-            user.id,
+            userID,
             channel.id,
             {
                 mark_unread: (isMuted ? NotificationLevels.ALL : NotificationLevels.MENTION) as 'all' | 'mention',
@@ -76,7 +73,7 @@ export default function MenuItemToggleMuteChannel({
     return (
         <Menu.Item
             leadingElement={<BellOffOutlineIcon size='18px'/>}
-            id={id}
+            id='channelToggleMuteChannel'
             onClick={handleClick}
             labels={text}
         />

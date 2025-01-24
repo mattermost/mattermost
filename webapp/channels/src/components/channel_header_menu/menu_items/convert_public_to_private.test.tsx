@@ -15,7 +15,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import ConvertPublictoPrivate from './convert_public_to_private';
 
-describe('components/ChannelHeaderMenu/MenuItem.ConvertGMtoPrivate', () => {
+describe('components/ChannelHeaderMenu/MenuItems/ConvertGMtoPrivate', () => {
     beforeEach(() => {
         jest.spyOn(modalActions, 'openModal');
 

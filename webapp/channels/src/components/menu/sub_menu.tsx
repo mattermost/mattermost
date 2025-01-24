@@ -93,6 +93,7 @@ export function SubMenu(props: Props) {
 
     const hasSubmenuItems = Boolean(children);
     if (!hasSubmenuItems) {
+        console.log('no subment items');
         return null;
     }
 

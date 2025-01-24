@@ -7,7 +7,7 @@ import {useDispatch} from 'react-redux';
 import * as channelActions from 'actions/views/channel';
 import * as modalActions from 'actions/views/modals';
 
-import LeaveChannelModal from 'components/add_groups_to_channel_modal';
+import LeaveChannelModal from 'components/leave_channel_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
@@ -16,7 +16,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import LeaveChannel from './leave_channel';
 
-describe('components/ChannelHeaderMenu/MenuItem.EditConversationHeader', () => {
+describe('components/ChannelHeaderMenu/MenuItem/LeaveChannelTest', () => {
     beforeEach(() => {
         jest.spyOn(modalActions, 'openModal');
         jest.spyOn(channelActions, 'leaveChannel');

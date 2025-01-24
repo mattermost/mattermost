@@ -1,116 +1,126 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {useDispatch} from 'react-redux';
 
-import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
+import * as channelActions from 'mattermost-redux/actions/channels';
 
-import Menu from 'components/widgets/menu/menu';
-import MenuItemAction from 'components/widgets/menu/menu_items/menu_item_action';
+import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {Constants, NotificationLevels} from 'utils/constants';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {NotificationLevels} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
-import MenuItemToggleMuteChannel from './toggle_mute_channel';
+import ToggleMuteChannel from './toggle_mute_channel';
 
-describe('components/ChannelHeaderDropdown/MenuItemToggleMuteChannel', () => {
-    const baseProps = {
-        user: {
-            id: 'user_id',
-        } as UserProfile,
-        channel: {
-            id: 'channel_id',
-            type: 'O',
-        } as Channel,
-        isMuted: false,
-        actions: {
-            updateChannelNotifyProps: jest.fn(),
-        },
-    };
+describe('components/ChannelHeaderMenu/MenuItem.ToggleMuteChannel', () => {
+    const channel = TestHelper.getChannelMock();
+    const user = TestHelper.getUserMock();
 
-    it('should match snapshot', () => {
-        const wrapper = shallow(<MenuItemToggleMuteChannel {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    beforeEach(() => {
+        jest.spyOn(channelActions, 'updateChannelNotifyProps').mockReturnValue(() => Promise.resolve({data: true}));
+        jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    it('should unmute channel on click the channel was muted', () => {
-        const props = {
-            ...baseProps,
-            isMuted: true,
-            actions: {
-                updateChannelNotifyProps: jest.fn(),
-            },
-        };
-        const wrapper = shallow(<MenuItemToggleMuteChannel {...props}/>);
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
-        wrapper.find(Menu.ItemAction).simulate('click');
-
-        expect(props.actions.updateChannelNotifyProps).toBeCalledWith(
-            props.user.id,
-            props.channel.id,
-            {mark_unread: NotificationLevels.ALL},
+    test('renders the component correctly, public channel, not muted', () => {
+        renderWithContext(
+            <WithTestMenuContext>
+                <ToggleMuteChannel
+                    channel={channel}
+                    userID={user.id}
+                    isMuted={false}
+                />
+            </WithTestMenuContext>, {},
         );
-    });
 
-    it('should mute channel on click the channel was unmuted', () => {
-        const props = {
-            ...baseProps,
-            isMuted: false,
-            actions: {
-                updateChannelNotifyProps: jest.fn(),
-            },
-        };
-        const wrapper = shallow(<MenuItemToggleMuteChannel {...props}/>);
+        const menuItem = screen.getByText('Mute Channel');
+        expect(menuItem).toBeInTheDocument();
 
-        wrapper.find(Menu.ItemAction).simulate('click');
-
-        expect(props.actions.updateChannelNotifyProps).toBeCalledWith(
-            props.user.id,
-            props.channel.id,
+        fireEvent.click(menuItem); // Simulate click on the menu item
+        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
+        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
+            user.id,
+            channel.id,
             {mark_unread: NotificationLevels.MENTION},
         );
     });
 
-    it('should show Mute Channel to all channel types except DM_CHANNEL and GM_CHANNEL', () => {
-        [
-            Constants.OPEN_CHANNEL,
-            Constants.PRIVATE_CHANNEL,
-            Constants.ARCHIVED_CHANNEL,
-        ].forEach((channelType) => {
-            const channel = {
-                id: 'channel_id',
-                type: channelType,
-            } as Channel;
-
-            const wrapper = shallow(
-                <MenuItemToggleMuteChannel
-                    {...baseProps}
+    test('renders the component correctly, public channel, muted', () => {
+        renderWithContext(
+            <WithTestMenuContext>
+                <ToggleMuteChannel
                     channel={channel}
-                />,
-            );
-            expect(wrapper.find(MenuItemAction).props().show).toEqual(true);
-            expect(wrapper.find(MenuItemAction).props().text).toEqual('Mute Channel');
-        });
+                    userID={user.id}
+                    isMuted={true}
+                />
+            </WithTestMenuContext>, {},
+        );
+
+        const menuItem = screen.getByText('Unmute Channel');
+        expect(menuItem).toBeInTheDocument();
+
+        fireEvent.click(menuItem); // Simulate click on the menu item
+        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
+        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
+            user.id,
+            channel.id,
+            {mark_unread: NotificationLevels.ALL},
+        );
     });
-    it('should show Mute Conversation to  channel types DM_CHANNEL and GM_CHANNEL', () => {
-        [
-            Constants.DM_CHANNEL,
-            Constants.GM_CHANNEL,
-        ].forEach((channelType) => {
-            const channel = {
-                id: 'channel_id',
-                type: channelType,
-            } as Channel;
 
-            const wrapper = shallow(
-                <MenuItemToggleMuteChannel
-                    {...baseProps}
+    test('renders the component correctly, dm channel, not muted', () => {
+        const channel = TestHelper.getChannelMock({type: 'D'});
+        renderWithContext(
+            <WithTestMenuContext>
+                <ToggleMuteChannel
                     channel={channel}
-                />,
-            );
-            expect(wrapper.find(MenuItemAction).props().show).toEqual(true);
-            expect(wrapper.find(MenuItemAction).props().text).toEqual('Mute Conversation');
-        });
+                    userID={user.id}
+                    isMuted={false}
+                />
+            </WithTestMenuContext>, {},
+        );
+
+        const menuItem = screen.getByText('Mute Conversation');
+        expect(menuItem).toBeInTheDocument();
+
+        fireEvent.click(menuItem); // Simulate click on the menu item
+        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
+        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
+            user.id,
+            channel.id,
+            {mark_unread: NotificationLevels.MENTION},
+        );
+    });
+    test('renders the component correctly, dm channel, muted', () => {
+        const channel = TestHelper.getChannelMock({type: 'D'});
+        renderWithContext(
+            <WithTestMenuContext>
+                <ToggleMuteChannel
+                    channel={channel}
+                    userID={user.id}
+                    isMuted={true}
+                />
+            </WithTestMenuContext>, {},
+        );
+
+        const menuItem = screen.getByText('Unmute Conversation');
+        expect(menuItem).toBeInTheDocument();
+
+        fireEvent.click(menuItem); // Simulate click on the menu item
+        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
+        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
+            user.id,
+            channel.id,
+            {mark_unread: NotificationLevels.ALL},
+        );
     });
 });

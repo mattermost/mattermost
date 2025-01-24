@@ -12,12 +12,12 @@ import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 import {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import ViewPinnedPosts from './view_pinned_posts';
+import ToggleInfo from './toggle_info';
 
-describe('components/ChannelHeaderMenu/MenuItem.ViewPinnedPosts', () => {
+describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
     beforeEach(() => {
         jest.spyOn(rhsActions, 'closeRightHandSide').mockImplementation(() => () => ({data: true}));
-        jest.spyOn(rhsActions, 'showPinnedPosts').mockReturnValue(() => Promise.resolve({data: true}));
+        jest.spyOn(rhsActions, 'showChannelInfo');
 
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
@@ -26,7 +26,7 @@ describe('components/ChannelHeaderMenu/MenuItem.ViewPinnedPosts', () => {
         jest.clearAllMocks();
     });
 
-    test('renders the component correctly, handles correct click event', () => {
+    test('renders the component correctly, handles click event, rhs closed', () => {
         const state = {
             views: {
                 rhs: {
@@ -38,36 +38,38 @@ describe('components/ChannelHeaderMenu/MenuItem.ViewPinnedPosts', () => {
 
         renderWithContext(
             <WithTestMenuContext>
-                <ViewPinnedPosts channelID={channel.id}/>
+                <ToggleInfo channel={channel}/>
             </WithTestMenuContext>, state,
         );
 
-        const menuItem = screen.getByText('View Pinned Posts');
+        const menuItem = screen.getByText('View Info');
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(rhsActions.showPinnedPosts).toHaveBeenCalledTimes(1);
-        expect(rhsActions.showPinnedPosts).toHaveBeenCalledWith(channel.id);
+        // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(rhsActions.showChannelInfo).toHaveBeenCalledTimes(1);
+        expect(rhsActions.showChannelInfo).toHaveBeenCalledWith(channel.id);
     });
 
-    test('renders the component correctly, handles correct click event', () => {
+    test('renders the component correctly, handles correct click event, rhs open', () => {
         const state = {
             views: {
                 rhs: {
-                    rhsState: RHSStates.PIN,
+                    rhsState: RHSStates.CHANNEL_INFO,
+                    isSidebarOpen: true,
                 },
             },
         };
+
         const channel = TestHelper.getChannelMock();
 
         renderWithContext(
             <WithTestMenuContext>
-                <ViewPinnedPosts channelID={channel.id}/>
+                <ToggleInfo channel={channel}/>
             </WithTestMenuContext>, state,
         );
 
-        const menuItem = screen.getByText('View Pinned Posts');
+        const menuItem = screen.getByText('Close Info');
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item

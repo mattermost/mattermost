@@ -30,8 +30,7 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
     return (
         <>
             <MenuItemToggleMuteChannel
-                id='channelToggleMuteChannel'
-                user={user}
+                userID={user.id}
                 channel={channel}
                 isMuted={isMuted}
             />
