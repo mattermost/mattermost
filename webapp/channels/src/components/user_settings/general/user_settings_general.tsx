@@ -117,7 +117,7 @@ export type Props = {
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
-        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult>;
+        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult<Record<string, string>>>;
         getCustomProfileAttributeFields: () => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
@@ -427,6 +427,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             then(({data, error: err}) => {
                 if (data) {
                     this.updateSection('');
+                    this.setState({customAttributeValues: {...this.state.customAttributeValues, ...data}});
                 } else if (err) {
                     const serverError = err;
                     this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
