@@ -8,10 +8,11 @@ import * as channelActions from 'actions/views/channel';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
-import CloseChannel from './close_channel';
+import ConvertGMtoPrivate from './convert_gm_to_private';
 
-describe('CloseChannel', () => {
+describe('components/ChannelHeaderMenu/MenuItem.ConvertGMtoPrivate', () => {
     beforeEach(() => {
         jest.spyOn(channelActions, 'goToLastViewedChannel');
     });
@@ -19,15 +20,16 @@ describe('CloseChannel', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
+    const channel = TestHelper.getChannelMock();
 
     test('renders the component correctly, handle click event', () => {
         renderWithContext(
             <WithTestMenuContext>
-                <CloseChannel/>
+                <ConvertGMtoPrivate channel={channel}/>
             </WithTestMenuContext>, {},
         );
 
-        const menuItem = screen.getByText('Close Channel');
+        const menuItem = screen.getByText('Convert to Private Channel');
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item

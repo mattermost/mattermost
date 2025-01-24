@@ -7,7 +7,6 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getRedirectChannelNameForCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
@@ -21,7 +20,7 @@ import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 
 type Props = {
-    currentUser: UserProfile;
+    currentUserID: string;
     channel: Channel;
     id?: string;
 };
@@ -34,7 +33,7 @@ export default function CloseMessage(props: Props) {
     const handleClose = () => {
         const {
             channel,
-            currentUser,
+            currentUserID,
         } = props;
 
         let name: string;
@@ -48,7 +47,7 @@ export default function CloseMessage(props: Props) {
         }
 
         dispatch(leaveDirectChannel(channel.name));
-        dispatch(savePreferences(currentUser.id, [{user_id: currentUser.id, category, name, value: 'false'}]));
+        dispatch(savePreferences(currentUserID, [{user_id: currentUserID, category, name, value: 'false'}]));
 
         if (currentTeam) {
             getHistory().push(`/${currentTeam.name}/channels/${redirectChannel}`);

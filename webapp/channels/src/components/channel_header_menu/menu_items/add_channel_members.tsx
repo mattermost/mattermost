@@ -30,8 +30,7 @@ const AddChannelMembers = ({channel}: Props): JSX.Element => {
                 dispatch(openModal({
                     modalId: ModalIdentifiers.CHANNEL_INVITE,
                     dialogType: ChannelInviteModal,
-                    dialogProps: {channel},
-                }),
+                    dialogProps: {channel}}),
                 );
             }}
             labels={

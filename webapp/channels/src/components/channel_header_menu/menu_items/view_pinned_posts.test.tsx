@@ -1,51 +1,78 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {useDispatch} from 'react-redux';
 
-import Menu from 'components/widgets/menu/menu';
+import * as rhsActions from 'actions/views/rhs';
+import {showPinnedPosts, closeRightHandSide} from 'actions/views/rhs';
+
+import {WithTestMenuContext} from 'components/menu/menu_context_test';
+
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {RHSStates} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import ViewPinnedPosts from './view_pinned_posts';
 
-describe('components/ChannelHeaderDropdown/MenuItem.ViewPinnedPosts', () => {
-    const baseProps = {
-        channel: {
-            id: 'channel_id',
-        },
-        hasPinnedPosts: true,
-        actions: {
-            closeRightHandSide: jest.fn(),
-            showPinnedPosts: jest.fn(),
-        },
-    };
+describe('components/ChannelHeaderMenu/MenuItem.ViewPinnedPosts', () => {
+    beforeEach(() => {
+        jest.spyOn(rhsActions, 'closeRightHandSide').mockImplementation(() => () => ({data: true}));
+        jest.spyOn(rhsActions, 'showPinnedPosts').mockReturnValue(() => Promise.resolve({data: true}));
 
-    it('should match snapshot', () => {
-        const wrapper = shallow(<ViewPinnedPosts {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    it('should runs closeRightHandSide function if has any pinned posts', () => {
-        const wrapper = shallow(<ViewPinnedPosts {...baseProps}/>);
-
-        wrapper.find(Menu.ItemAction).simulate('click', {
-            preventDefault: jest.fn(),
-        });
-
-        expect(baseProps.actions.closeRightHandSide).toHaveBeenCalled();
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
-    it('should runs showPinnedPosts function if has not pinned posts', () => {
-        const props = {
-            ...baseProps,
-            hasPinnedPosts: false,
+    test('renders the component correctly, handles correct click event', () => {
+        const state = {
+            views: {
+                rhs: {
+                    rhsState: '',
+                },
+            },
         };
-        const wrapper = shallow(<ViewPinnedPosts {...props}/>);
+        const channel = TestHelper.getChannelMock();
 
-        wrapper.find(Menu.ItemAction).simulate('click', {
-            preventDefault: jest.fn(),
-        });
+        renderWithContext(
+            <WithTestMenuContext>
+                <ViewPinnedPosts channelID={channel.id}/>
+            </WithTestMenuContext>, state,
+        );
 
-        expect(baseProps.actions.showPinnedPosts).toHaveBeenCalled();
+        const menuItem = screen.getByText('View Pinned Posts');
+        expect(menuItem).toBeInTheDocument();
+
+        fireEvent.click(menuItem); // Simulate click on the menu item
+        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(rhsActions.showPinnedPosts).toHaveBeenCalledTimes(1);
+        expect(rhsActions.showPinnedPosts).toHaveBeenCalledWith(channel.id);
+    });
+
+    test('renders the component correctly, handles correct click event', () => {
+        const state = {
+            views: {
+                rhs: {
+                    rhsState: RHSStates.PIN,
+                },
+            },
+        };
+        const channel = TestHelper.getChannelMock();
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ViewPinnedPosts channelID={channel.id}/>
+            </WithTestMenuContext>, state,
+        );
+
+        const menuItem = screen.getByText('View Pinned Posts');
+        expect(menuItem).toBeInTheDocument();
+
+        fireEvent.click(menuItem); // Simulate click on the menu item
+        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(rhsActions.closeRightHandSide).toHaveBeenCalledTimes(1);
     });
 });
