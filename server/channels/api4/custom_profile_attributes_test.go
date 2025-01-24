@@ -256,7 +256,6 @@ func TestListCPAValues(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, values)
 		require.Len(t, values, 1)
-
 	})
 
 	t.Run("should handle array values correctly", func(t *testing.T) {
@@ -503,7 +502,7 @@ func TestPatchCPAValues(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.NotEmpty(t, patchedValues)
-		
+
 		var actualValues []string
 		require.NoError(t, json.Unmarshal(patchedValues[createdArrayField.ID], &actualValues))
 		require.Equal(t, []string{"option1", "option2", "option3"}, actualValues)
@@ -513,7 +512,7 @@ func TestPatchCPAValues(t *testing.T) {
 		patchedValues, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		
+
 		actualValues = nil
 		require.NoError(t, json.Unmarshal(patchedValues[createdArrayField.ID], &actualValues))
 		require.Equal(t, []string{"newOption1", "newOption2"}, actualValues)
