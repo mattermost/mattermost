@@ -175,26 +175,18 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func sanitizePropertyValue(fieldType model.PropertyFieldType, rawValue json.RawMessage) (json.RawMessage, error) {
 	switch fieldType {
-	case model.PropertyFieldTypeText, model.PropertyFieldTypeDate, model.PropertyFieldTypeSelect:
+	case model.PropertyFieldTypeText, model.PropertyFieldTypeDate, model.PropertyFieldTypeSelect, model.PropertyFieldTypeUser:
 		var value string
 		if err := json.Unmarshal(rawValue, &value); err != nil {
 			return nil, err
 		}
 		value = strings.TrimSpace(value)
-		return json.Marshal(value)
-
-	case model.PropertyFieldTypeUser:
-		var value string
-		if err := json.Unmarshal(rawValue, &value); err != nil {
-			return nil, err
-		}
-		value = strings.TrimSpace(value)
-		if value == "" || !model.IsValidId(value) {
+		if fieldType == model.PropertyFieldTypeUser && value != "" && !model.IsValidId(value) {
 			return nil, fmt.Errorf("invalid user id")
 		}
 		return json.Marshal(value)
 
-	case model.PropertyFieldTypeMultiselect:
+	case model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeMultiuser:
 		var values []string
 		if err := json.Unmarshal(rawValue, &values); err != nil {
 			return nil, err
@@ -202,26 +194,13 @@ func sanitizePropertyValue(fieldType model.PropertyFieldType, rawValue json.RawM
 		filteredValues := make([]string, 0, len(values))
 		for _, v := range values {
 			trimmed := strings.TrimSpace(v)
-			if trimmed != "" {
-				filteredValues = append(filteredValues, trimmed)
+			if trimmed == "" {
+				continue
 			}
-		}
-		return json.Marshal(filteredValues)
-
-	case model.PropertyFieldTypeMultiuser:
-		var values []string
-		if err := json.Unmarshal(rawValue, &values); err != nil {
-			return nil, err
-		}
-		filteredValues := make([]string, 0, len(values))
-		for _, v := range values {
-			trimmed := strings.TrimSpace(v)
-			if trimmed != "" {
-				if !model.IsValidId(trimmed) {
-					return nil, fmt.Errorf("invalid user id: %s", trimmed)
-				}
-				filteredValues = append(filteredValues, trimmed)
+			if fieldType == model.PropertyFieldTypeMultiuser && !model.IsValidId(trimmed) {
+				return nil, fmt.Errorf("invalid user id: %s", trimmed)
 			}
+			filteredValues = append(filteredValues, trimmed)
 		}
 		return json.Marshal(filteredValues)
 
