@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"net/http"
 
 	"github.com/hashicorp/go-multierror"
@@ -32,6 +33,7 @@ const (
 
 func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	s.Run("Search for an existing channel on an existing team", func() {
+		s.Equal(rand.Intn(2), 0)
 		printer.Clean()
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Name: channelName}
