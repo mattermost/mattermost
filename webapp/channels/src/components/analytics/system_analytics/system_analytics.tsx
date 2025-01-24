@@ -98,6 +98,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         if (this.props.isLicensed) {
             AdminActions.getAdvancedAnalytics();
         }
+        this.fetchPluginStats();
     }
 
     private loadLineChartData = async () => {
@@ -105,7 +106,6 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
             AdminActions.getPostsPerDayAnalytics(),
             AdminActions.getBotPostsPerDayAnalytics(),
             AdminActions.getUsersPerDayAnalytics(),
-            this.fetchPluginStats(),
         ]);
     };
 
@@ -516,6 +516,8 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                             {pluginCounts}
                         </div>
                         {advancedGraphs}
+                        {pluginDoughnutCharts}
+                        {pluginLineCharts}
                         <details onToggle={this.handleLineChartsToggle}>
                             <summary>
                                 <FormattedMessage
@@ -524,11 +526,9 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                                 />
                             </summary>
                             <>
-                                {pluginDoughnutCharts}
                                 {postTotalGraph}
                                 {botPostTotalGraph}
                                 {activeUserGraph}
-                                {pluginLineCharts}
                             </>
                         </details>
                     </div>
