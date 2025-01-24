@@ -293,28 +293,32 @@ func TestListCPAValues(t *testing.T) {
 
 func TestSanitizePropertyValue(t *testing.T) {
 	t.Run("text field type", func(t *testing.T) {
-		// Valid text
-		result, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`"hello world"`))
-		require.NoError(t, err)
-		var value string
-		require.NoError(t, json.Unmarshal(result, &value))
-		require.Equal(t, "hello world", value)
+		t.Run("valid text", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`"hello world"`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Equal(t, "hello world", value)
+		})
 
-		// Empty text should be allowed
-		result, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`""`))
-		require.NoError(t, err)
-		value = ""
-		require.NoError(t, json.Unmarshal(result, &value))
-		require.Empty(t, value)
+		t.Run("empty text should be allowed", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`""`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Empty(t, value)
+		})
 
-		// Invalid JSON
-		_, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`invalid`))
-		require.Error(t, err)
+		t.Run("invalid JSON", func(t *testing.T) {
+			_, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`invalid`))
+			require.Error(t, err)
+		})
 
-		// Wrong type (number instead of string)
-		_, err = sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`123`))
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "json: cannot unmarshal number into Go value of type string")
+		t.Run("wrong type", func(t *testing.T) {
+			_, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`123`))
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "json: cannot unmarshal number into Go value of type string")
+		})
 	})
 
 	t.Run("date field type", func(t *testing.T) {
