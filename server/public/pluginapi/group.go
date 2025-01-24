@@ -58,7 +58,7 @@ func (g *GroupService) ListForUser(userID string) ([]*model.Group, error) {
 
 // UpsertMember adds a user to a group or updates their existing membership.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) UpsertMember(groupID string, userID string) (*model.GroupMember, error) {
 	member, appErr := g.api.UpsertGroupMember(groupID, userID)
 	return member, normalizeAppErr(appErr)
@@ -66,7 +66,7 @@ func (g *GroupService) UpsertMember(groupID string, userID string) (*model.Group
 
 // UpsertMembers adds multiple users to a group or updates their existing memberships.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) UpsertMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
 	members, appErr := g.api.UpsertGroupMembers(groupID, userIDs)
 	return members, normalizeAppErr(appErr)
@@ -74,7 +74,7 @@ func (g *GroupService) UpsertMembers(groupID string, userIDs []string) ([]*model
 
 // GetByRemoteID gets a group by its remote ID.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	group, appErr := g.api.GetGroupByRemoteID(remoteID, groupSource)
 	return group, normalizeAppErr(appErr)
@@ -82,7 +82,7 @@ func (g *GroupService) GetByRemoteID(remoteID string, groupSource model.GroupSou
 
 // Create creates a new group.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) Create(group *model.Group) (*model.Group, error) {
 	group, appErr := g.api.CreateGroup(group)
 	return group, normalizeAppErr(appErr)
@@ -90,7 +90,7 @@ func (g *GroupService) Create(group *model.Group) (*model.Group, error) {
 
 // Update updates a group.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) Update(group *model.Group) (*model.Group, error) {
 	group, appErr := g.api.UpdateGroup(group)
 	return group, normalizeAppErr(appErr)
@@ -98,7 +98,7 @@ func (g *GroupService) Update(group *model.Group) (*model.Group, error) {
 
 // Delete soft deletes a group.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) Delete(groupID string) (*model.Group, error) {
 	group, appErr := g.api.DeleteGroup(groupID)
 	return group, normalizeAppErr(appErr)
@@ -106,7 +106,7 @@ func (g *GroupService) Delete(groupID string) (*model.Group, error) {
 
 // Restore restores a soft deleted group.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) Restore(groupID string) (*model.Group, error) {
 	group, appErr := g.api.RestoreGroup(groupID)
 	return group, normalizeAppErr(appErr)
@@ -114,7 +114,7 @@ func (g *GroupService) Restore(groupID string) (*model.Group, error) {
 
 // DeleteMember removes a user from a group.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) DeleteMember(groupID string, userID string) (*model.GroupMember, error) {
 	member, appErr := g.api.DeleteGroupMember(groupID, userID)
 	return member, normalizeAppErr(appErr)
@@ -122,7 +122,7 @@ func (g *GroupService) DeleteMember(groupID string, userID string) (*model.Group
 
 // GetSyncable gets a group syncable.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) GetSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	syncable, appErr := g.api.GetGroupSyncable(groupID, syncableID, syncableType)
 	return syncable, normalizeAppErr(appErr)
@@ -130,7 +130,7 @@ func (g *GroupService) GetSyncable(groupID string, syncableID string, syncableTy
 
 // GetSyncables gets all group syncables for the given group.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) GetSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, error) {
 	syncables, appErr := g.api.GetGroupSyncables(groupID, syncableType)
 	return syncables, normalizeAppErr(appErr)
@@ -138,7 +138,7 @@ func (g *GroupService) GetSyncables(groupID string, syncableType model.GroupSync
 
 // UpsertSyncable creates or updates a group syncable.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) UpsertSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error) {
 	syncable, appErr := g.api.UpsertGroupSyncable(groupSyncable)
 	return syncable, normalizeAppErr(appErr)
@@ -146,7 +146,7 @@ func (g *GroupService) UpsertSyncable(groupSyncable *model.GroupSyncable) (*mode
 
 // UpdateSyncable updates a group syncable.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) UpdateSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error) {
 	syncable, appErr := g.api.UpdateGroupSyncable(groupSyncable)
 	return syncable, normalizeAppErr(appErr)
@@ -154,8 +154,16 @@ func (g *GroupService) UpdateSyncable(groupSyncable *model.GroupSyncable) (*mode
 
 // DeleteSyncable deletes a group syncable.
 //
-// Minimum server version: 9.5
+// Minimum server version: 10.5
 func (g *GroupService) DeleteSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	syncable, appErr := g.api.DeleteGroupSyncable(groupID, syncableID, syncableType)
 	return syncable, normalizeAppErr(appErr)
+}
+
+// GetGroups returns a list of all groups with the given options and restrictions.
+//
+// Minimum server version: 10.5
+func (g *GroupService) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+	groups, appErr := g.api.GetGroups(page, perPage, opts, viewRestrictions)
+	return groups, normalizeAppErr(appErr)
 }

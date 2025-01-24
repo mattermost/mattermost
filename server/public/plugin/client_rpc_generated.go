@@ -7080,6 +7080,38 @@ func (s *apiRPCServer) GetPluginID(args *Z_GetPluginIDArgs, returns *Z_GetPlugin
 	return nil
 }
 
+type Z_GetGroupsArgs struct {
+	A int
+	B int
+	C model.GroupSearchOpts
+	D *model.ViewUsersRestrictions
+}
+
+type Z_GetGroupsReturns struct {
+	A []*model.Group
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
+	_args := &Z_GetGroupsArgs{page, perPage, opts, viewRestrictions}
+	_returns := &Z_GetGroupsReturns{}
+	if err := g.client.Call("Plugin.GetGroups", _args, _returns); err != nil {
+		log.Printf("RPC call to GetGroups API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetGroups(args *Z_GetGroupsArgs, returns *Z_GetGroupsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetGroups(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API GetGroups called but not implemented."))
+	}
+	return nil
+}
+
 type Z_SyncRolesAndMembershipArgs struct {
 	A string
 	B model.GroupSyncableType

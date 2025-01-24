@@ -1477,6 +1477,13 @@ func (api *apiTimerLayer) GetPluginID() string {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetGroups(page, perPage, opts, viewRestrictions)
+	api.recordTime(startTime, "GetGroups", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64) {
 	startTime := timePkg.Now()
 	api.apiImpl.SyncRolesAndMembership(syncableID, syncableType, includeRemovedMembers, since)
