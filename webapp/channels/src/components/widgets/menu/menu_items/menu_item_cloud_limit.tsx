@@ -41,11 +41,11 @@ const MenuItemCloudLimit = ({id}: Props) => {
 
     const show = isCloud && !isFreeTrial;
 
-    // words and highestLimit checks placed here instead of as part of show
-    // because typescript doesn't correctly infer values later on otherwise
-    if (!show || !words || !highestLimit) {
-        return null;
-    }
+    // // words and highestLimit checks placed here instead of as part of show
+    // // because typescript doesn't correctly infer values later on otherwise
+    // if (!show || !words || !highestLimit) {
+    //     return null;
+    // }
 
     let itemClass = 'MenuItemCloudLimit';
     if (((highestLimit.usage / highestLimit.limit) * 100) >= limitThresholds.danger) {
@@ -61,7 +61,7 @@ const MenuItemCloudLimit = ({id}: Props) => {
             id={id}
         >
             <div className='MenuItemCloudLimit__title'>
-                {words.title}
+                {'Total messages'}
                 {' '}
                 <i
                     className='icon icon-information-outline'

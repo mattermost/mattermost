@@ -85,32 +85,32 @@ const ProductMenu = (): JSX.Element => {
         dispatch(setProductMenuSwitcherOpen(false));
     });
 
-    return (
-        <Menu.Container
-            menuButton={{
-                id: 'productMenuButton',
-                class: 'btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader',
-                children: <ProductsIcon size={18}/>,
-                'aria-label': formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
-            }}
-            menuButtonTooltip={{
-                text: formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
-            }}
-            menu={{
-                id: 'productSwitcherMenu',
-                minWidth: '225px',
-                maxWidth: '270px',
-            }}
-        >
-            <ProductSwitcherChannelsMenuItem
-                currentProductID={currentProductID}
-            />
-            <ProductSwitcherProductsMenuItems
-                currentProductID={currentProductID}
-            />
-            <Menu.Separator/>
-        </Menu.Container>
-    );
+    // return (
+    //     <Menu.Container
+    //         menuButton={{
+    //             id: 'productMenuButton',
+    //             class: 'btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader',
+    //             children: <ProductsIcon size={18}/>,
+    //             'aria-label': formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
+    //         }}
+    //         menuButtonTooltip={{
+    //             text: formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
+    //         }}
+    //         menu={{
+    //             id: 'productSwitcherMenu',
+    //             minWidth: '225px',
+    //             maxWidth: '270px',
+    //         }}
+    //     >
+    //         <ProductSwitcherChannelsMenuItem
+    //             currentProductID={currentProductID}
+    //         />
+    //         <ProductSwitcherProductsMenuItems
+    //             currentProductID={currentProductID}
+    //         />
+    //         <Menu.Separator/>
+    //     </Menu.Container>
+    // );
 
     return (
         <div ref={menuRef}>
