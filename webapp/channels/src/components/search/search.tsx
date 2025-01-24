@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import type {ChangeEvent, MouseEvent, FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -96,6 +96,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         isMobileView,
         searchTerms,
         searchType,
+        searchTeam,
         hideMobileSearchBarInRHS,
     } = props;
 
@@ -165,6 +166,14 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
             handleBlur();
         }
     }, [isMobileView, searchTerms]);
+
+    const getMorePostsForSearch = useCallback(() => {
+        props.actions.getMorePostsForSearch(searchTeam);
+    }, [searchTeam, props.actions]);
+
+    const getMoreFilesForSearch = useCallback(() => {
+        props.actions.getMoreFilesForSearch(searchTeam);
+    }, [searchTeam, props.actions]);
 
     // handle cloding of rhs-flyout
     const handleClose = (): void => actions.closeRightHandSide();
@@ -564,8 +573,8 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     updateSearchTeam={handleUpdateSearchTeamFromResult}
                     handleSearchHintSelection={handleSearchHintSelection}
                     isSideBarExpanded={props.isRhsExpanded}
-                    getMorePostsForSearch={props.actions.getMorePostsForSearch}
-                    getMoreFilesForSearch={props.actions.getMoreFilesForSearch}
+                    getMorePostsForSearch={getMorePostsForSearch}
+                    getMoreFilesForSearch={getMoreFilesForSearch}
                     setSearchFilterType={handleSetSearchFilter}
                     searchFilterType={searchFilterType}
                     setSearchType={(value: SearchType) => actions.updateSearchType(value)}

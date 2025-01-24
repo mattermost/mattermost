@@ -44,18 +44,13 @@ function mapStateToProps(state: GlobalState) {
     const isMobileView = getIsMobileView(state);
     const isRhsOpen = getIsRhsOpen(state);
 
-    let searchTeam = getSearchTeam(state);
-    if (!searchTeam) {
-        searchTeam = currentChannel?.team_id || '';
-    }
-
     return {
         currentChannel,
         isRhsExpanded: getIsRhsExpanded(state),
         isRhsOpen,
         isSearchingTerm: getIsSearchingTerm(state),
         searchTerms: getSearchTerms(state),
-        searchTeam,
+        searchTeam: getSearchTeam(state),
         searchType: getSearchType(state),
         searchVisible: rhsState !== null && (![
             RHSStates.PLUGIN,
