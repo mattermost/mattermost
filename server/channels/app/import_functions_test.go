@@ -1667,48 +1667,76 @@ func TestImportImportUser(t *testing.T) {
 		assert.Equal(t, "", channelMember.ExplicitRoles)
 	})
 
-	// Test importing deleted guest with a valid team & valid channel name in apply mode.
-	username = model.NewUsername()
-	deleteAt = model.GetMillis()
-	deletedGuestData := &imports.UserImportData{
-		Username: &username,
-		DeleteAt: &deleteAt,
-		Email:    model.NewPointer(model.NewId() + "@example.com"),
-		Roles:    model.NewPointer("system_guest"),
-		Teams: &[]imports.UserTeamImportData{
-			{
-				Name:  &team.Name,
-				Roles: model.NewPointer("team_guest"),
-				Channels: &[]imports.UserChannelImportData{
-					{
-						Name:  &channel.Name,
-						Roles: model.NewPointer("channel_guest"),
+	t.Run("import deleted guest with a valid team & valid channel name in apply mode", func(t *testing.T) {
+		teamData := &imports.TeamImportData{
+			Name:            model.NewPointer(model.NewRandomTeamName()),
+			DisplayName:     model.NewPointer("Display Name"),
+			Type:            model.NewPointer("O"),
+			Description:     model.NewPointer("The team description."),
+			AllowOpenInvite: model.NewPointer(true),
+		}
+		appErr := th.App.importTeam(th.Context, teamData, false)
+		assert.Nil(t, appErr)
+
+		team, appErr2 := th.App.GetTeamByName(*teamData.Name)
+		require.Nil(t, appErr2, "Failed to get team from database.")
+
+		channelData := &imports.ChannelImportData{
+			Team:        teamData.Name,
+			Name:        model.NewPointer(NewTestId()),
+			DisplayName: model.NewPointer("Display Name"),
+			Type:        model.NewPointer(model.ChannelTypeOpen),
+			Header:      model.NewPointer("Channel Header"),
+			Purpose:     model.NewPointer("Channel Purpose"),
+		}
+		appErr2 = th.App.importChannel(th.Context, channelData, false)
+		assert.Nil(t, appErr2)
+		channel, appErr2 := th.App.GetChannelByName(th.Context, *channelData.Name, team.Id, false)
+		require.Nil(t, appErr2, "Failed to get channel from database")
+
+		username := model.NewUsername()
+		deleteAt := model.GetMillis()
+		deletedGuestData := &imports.UserImportData{
+			Username: &username,
+			DeleteAt: &deleteAt,
+			Email:    model.NewPointer(model.NewId() + "@example.com"),
+			Roles:    model.NewPointer("system_guest"),
+			Teams: &[]imports.UserTeamImportData{
+				{
+					Name:  &team.Name,
+					Roles: model.NewPointer("team_guest"),
+					Channels: &[]imports.UserChannelImportData{
+						{
+							Name:  &channel.Name,
+							Roles: model.NewPointer("channel_guest"),
+						},
 					},
 				},
 			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, deletedGuestData, false)
-	assert.Nil(t, appErr)
+		}
 
-	user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+		appErr = th.App.importUser(th.Context, deletedGuestData, false)
+		assert.Nil(t, appErr)
 
-	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get the team member")
+		user, appErr := th.App.GetUserByUsername(*deletedGuestData.Username)
+		require.Nil(t, appErr, "Failed to get user from database.")
 
-	assert.False(t, teamMember.SchemeAdmin)
-	assert.False(t, teamMember.SchemeUser)
-	assert.True(t, teamMember.SchemeGuest)
-	assert.Equal(t, "", teamMember.ExplicitRoles)
+		teamMember, appErr := th.App.GetTeamMember(th.Context, team.Id, user.Id)
+		require.Nil(t, appErr, "Failed to get the team member")
 
-	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get the channel member")
+		assert.False(t, teamMember.SchemeAdmin)
+		assert.False(t, teamMember.SchemeUser)
+		assert.True(t, teamMember.SchemeGuest)
+		assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	assert.False(t, teamMember.SchemeAdmin)
-	assert.False(t, channelMember.SchemeUser)
-	assert.True(t, teamMember.SchemeGuest)
-	assert.Equal(t, "", channelMember.ExplicitRoles)
+		channelMember, appErr := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+		require.Nil(t, appErr, "Failed to get the channel member")
+
+		assert.False(t, teamMember.SchemeAdmin)
+		assert.False(t, channelMember.SchemeUser)
+		assert.True(t, teamMember.SchemeGuest)
+		assert.Equal(t, "", channelMember.ExplicitRoles)
+	})
 }
 
 func TestImportUserTeams(t *testing.T) {
@@ -2635,6 +2663,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 						User:     &user2.Username,
 						Message:  model.NewPointer("Message reply"),
 						CreateAt: &replyTime,
+						Props:    &model.StringInterface{"key": "value"},
 					}},
 				},
 			},
@@ -2665,6 +2694,10 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		reply := replies[0]
 		replyBool := reply.Message != *(*data.Post.Replies)[0].Message || reply.CreateAt != *(*data.Post.Replies)[0].CreateAt || reply.UserId != user2.Id
 		require.False(t, replyBool, "Post properties not as expected")
+
+		v := reply.GetProp("key")
+		require.NotNil(t, v, "Post prop should exist")
+		require.Equal(t, "value", v, "Post props not as expected")
 
 		require.Equal(t, post.Id, reply.RootId, "Unexpected reply RootId")
 	})

@@ -34,7 +34,7 @@ interface Group extends Item {
     member_count: number;
 }
 
-const AtMentionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Item>>((props, ref) => {
+const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item>>((props, ref) => {
     const {item} = props;
 
     const intl = useIntl();
@@ -149,7 +149,6 @@ const AtMentionSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Ite
 
     const sharedIcon = item.remote_id ? (
         <SharedUserIndicator
-            id={`sharedUserIndicator-${item.id}`}
             className='shared-user-icon'
         />
     ) : null;
