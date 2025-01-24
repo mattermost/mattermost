@@ -212,7 +212,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         // * Verify image alt in profile image
         cy.get('.profile-img').should('have.attr', 'alt', 'profile image');
 
-        cy.get('#generalSettings').then((el) => {
+        cy.get('#profileSettings').then((el) => {
             if (el.find('.profile-img__remove').length > 0) {
                 cy.findByTestId('removeSettingPicture').click();
                 cy.uiSave();

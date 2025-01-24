@@ -28,9 +28,18 @@ const (
 	ClientRHSLoadDuration           MetricType = "rhs_load"
 	ClientGlobalThreadsLoadDuration MetricType = "global_threads_load"
 
-	MobileClientLoadDuration          MetricType = "mobile_load"
-	MobileClientChannelSwitchDuration MetricType = "mobile_channel_switch"
-	MobileClientTeamSwitchDuration    MetricType = "mobile_team_switch"
+	MobileClientLoadDuration                           MetricType = "mobile_load"
+	MobileClientChannelSwitchDuration                  MetricType = "mobile_channel_switch"
+	MobileClientTeamSwitchDuration                     MetricType = "mobile_team_switch"
+	MobileClientNetworkRequestsAverageSpeed            MetricType = "mobile_network_requests_average_speed"
+	MobileClientNetworkRequestsEffectiveLatency        MetricType = "mobile_network_requests_effective_latency"
+	MobileClientNetworkRequestsElapsedTime             MetricType = "mobile_network_requests_elapsed_time"
+	MobileClientNetworkRequestsLatency                 MetricType = "mobile_network_requests_latency"
+	MobileClientNetworkRequestsTotalCompressedSize     MetricType = "mobile_network_requests_total_compressed_size"
+	MobileClientNetworkRequestsTotalParallelRequests   MetricType = "mobile_network_requests_total_parallel_requests"
+	MobileClientNetworkRequestsTotalRequests           MetricType = "mobile_network_requests_total_requests"
+	MobileClientNetworkRequestsTotalSequentialRequests MetricType = "mobile_network_requests_total_sequential_requests"
+	MobileClientNetworkRequestsTotalSize               MetricType = "mobile_network_requests_total_size"
 
 	DesktopClientCPUUsage    MetricType = "desktop_cpu"
 	DesktopClientMemoryUsage MetricType = "desktop_memory"
@@ -56,8 +65,22 @@ var (
 		"modal_content",
 		"other",
 	)
-	AcceptedTrueFalseLabels     = SliceToMapKey("true", "false")
-	AcceptedSplashScreenOrigins = SliceToMapKey("root", "team_controller")
+	AcceptedTrueFalseLabels      = SliceToMapKey("true", "false")
+	AcceptedSplashScreenOrigins  = SliceToMapKey("root", "team_controller")
+	AcceptedNetworkRequestGroups = SliceToMapKey(
+		"Cold Start",
+		"Cold Start Deferred",
+		"DeepLink",
+		"DeepLink Deferred",
+		"Login",
+		"Login Deferred",
+		"Notification",
+		"Notification Deferred",
+		"Server Switch",
+		"Server Switch Deferred",
+		"WebSocket Reconnect",
+		"WebSocket Reconnect Deferred",
+	)
 )
 
 type MetricSample struct {
@@ -110,9 +133,10 @@ func (r *PerformanceReport) IsValid() error {
 
 func (r *PerformanceReport) ProcessLabels() map[string]string {
 	return map[string]string{
-		"platform":            processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
-		"agent":               processLabel(r.Labels, "agent", acceptedAgents, "other"),
-		"desktop_app_version": r.Labels["desktop_app_version"],
+		"platform":              processLabel(r.Labels, "platform", acceptedPlatforms, "other"),
+		"agent":                 processLabel(r.Labels, "agent", acceptedAgents, "other"),
+		"desktop_app_version":   r.Labels["desktop_app_version"],
+		"network_request_group": processLabel(r.Labels, "network_request_group", AcceptedNetworkRequestGroups, "Login"),
 	}
 }
 

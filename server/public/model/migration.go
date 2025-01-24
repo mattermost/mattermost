@@ -50,4 +50,5 @@ const (
 	MigrationKeyDeleteDmsPreferences                   = "delete_dms_preferences_migration"
 	MigrationKeyAddManageJobAncillaryPermissions       = "add_manage_jobs_ancillary_permissions"
 	MigrationKeyAddUploadFilePermission                = "add_upload_file_permission"
+	RestrictAccessToChannelConversionToPublic          = "restrict_access_to_channel_conversion_to_public_permissions"
 )

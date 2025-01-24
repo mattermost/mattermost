@@ -51,7 +51,7 @@ describe('Messaging', () => {
         cy.get('#channelHeaderPinButton').click();
 
         // * Verify the pinned posts (4 & 6) are added to the Pinned Posts list on the right hand side
-        cy.get('#search-items-container').children().should('have.length', 2);
+        cy.get('.files-or-messages-panel').children().should('have.length', 2);
 
         // # Close out of the Pinned Post side bar
         cy.get('#searchResultsCloseButton').click();
@@ -78,11 +78,11 @@ describe('Messaging', () => {
                     cy.get('#channelHeaderPinButton').click();
 
                     // * Verify that there are now 3 pinned messages in the right-hand-side
-                    cy.get('#search-items-container').children().should('have.length', 3);
+                    cy.get('.files-or-messages-panel').children().should('have.length', 3);
 
                     // * Verify sorted by newest at top: 1st post is the newest, and 3rd post is the oldest
-                    cy.get('#search-items-container').children().eq(0).get(`#postMessageText_${lastPostId}`);
-                    cy.get('#search-items-container').children().eq(2).get(`#postMessageText_${postId}`).and('contain', pinnedPostText);
+                    cy.get('.files-or-messages-panel').children().eq(0).get(`#postMessageText_${lastPostId}`);
+                    cy.get('.files-or-messages-panel').children().eq(2).get(`#postMessageText_${postId}`).and('contain', pinnedPostText);
 
                     // # Scroll back up to the last pinned post.
                     cy.get(`#post_${postId}`).scrollIntoView();
@@ -93,10 +93,10 @@ describe('Messaging', () => {
                     cy.get(`#unpin_post_${postId}`).click();
 
                     // * Right-hand-side only has 2 initially pinned posts
-                    cy.get('#search-items-container').children().should('have.length', 2);
+                    cy.get('.files-or-messages-panel').children().should('have.length', 2);
 
                     // * Right-hand-side does not have the last pinned post.
-                    cy.get('#search-items-container').children().should('not.contain', `#rhsPostMessageText_${postId}`);
+                    cy.get('.files-or-messages-panel').children().should('not.contain', `#rhsPostMessageText_${postId}`);
                 });
             });
         });

@@ -64,7 +64,6 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     return (
         <Menu.Container
             menuButtonTooltip={{
-                id: 'send_post_option_schedule_post',
                 text: formatMessage({
                     id: 'create_post_button.option.schedule_message',
                     defaultMessage: 'Schedule message',

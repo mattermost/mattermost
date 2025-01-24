@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UserAccountNameMenuItem should not break if no props are passed 1`] = `
+<div>
+  <li
+    aria-haspopup="true"
+    class="MuiButtonBase-root-JvZdr dKFJFs MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXqYNm kIRdVO MuiMenuItem-root MuiMenuItem-gutters sc-gswNZR cUFZeQ userAccountMenu_nameMenuItem"
+    role="menuitem"
+    tabindex="-1"
+  >
+    <div
+      class="leading-element"
+    >
+      <img
+        alt="user profile image"
+        aria-hidden="true"
+        class="Avatar Avatar-lg"
+        loading="lazy"
+      />
+    </div>
+    <div
+      class="label-elements"
+    >
+      <h2
+        class="userAccountMenu_nameMenuItem_primaryLabel"
+      >
+        @undefined
+      </h2>
+    </div>
+  </li>
+</div>
+`;
