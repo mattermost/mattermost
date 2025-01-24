@@ -83,7 +83,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
         open: isOpen,
         onOpenChange: setOpen,
         whileElementsMounted: autoUpdate,
-        middleware: [autoPlacement({allowedPlacements: ['right']}), shift()],
+        middleware: [autoPlacement(), shift()],
     });
 
     const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);

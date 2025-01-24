@@ -31,8 +31,7 @@ Cypress.Commands.add('uiOpenTeamMenu', (item = '') => {
 });
 
 Cypress.Commands.add('uiGetLHSAddChannelButton', () => {
-    return cy.uiGetLHS().
-        find('.AddChannelDropdown_dropdownButton');
+    return cy.uiGetLHS().findByRole('button', {name: 'Browse or create channels'});
 });
 
 Cypress.Commands.add('uiGetLHSTeamMenu', () => {
@@ -88,15 +87,16 @@ Cypress.Commands.add('uiGetLhsSection', (section) => {
         parent();
 });
 
-Cypress.Commands.add('uiBrowseOrCreateChannel', (item) => {
-    cy.get('.AddChannelDropdown_dropdownButton').
-        should('be.visible').
-        click();
-    cy.get('.dropdown-menu').should('be.visible');
+Cypress.Commands.add('uiBrowseOrCreateChannel', (menuitem) => {
+    cy.uiGetLHSAddChannelButton().should('be.visible').click();
 
-    if (item) {
-        cy.findByRole('menuitem', {name: item});
-    }
+    cy.get('#browserOrAddChannelMenu').
+        should('exist').and('be.visible').
+        within(() => {
+            if (menuitem) {
+                cy.findByText(menuitem).should('exist').click();
+            }
+        });
 });
 
 Cypress.Commands.add('uiAddDirectMessage', () => {

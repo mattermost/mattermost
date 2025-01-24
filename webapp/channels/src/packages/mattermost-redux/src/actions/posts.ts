@@ -37,7 +37,7 @@ import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/e
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
-import {logError} from './errors';
+import {logError, LogErrorBarMode} from './errors';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
@@ -1325,7 +1325,7 @@ export function restorePostVersion(postId: string, restoreVersionId: string, con
         } catch (error) {
             // Send to error bar if it's an edit post error about time limit.
             if (error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
-                dispatch(logError({type: 'announcement', message: error.message}, true));
+                dispatch(logError({type: 'announcement', message: error.message}, {errorBarMode: LogErrorBarMode.Always}));
             } else {
                 dispatch(logError(error));
             }
