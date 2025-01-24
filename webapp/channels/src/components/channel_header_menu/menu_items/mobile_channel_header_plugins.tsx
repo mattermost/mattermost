@@ -53,6 +53,7 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
                 >
                     <span className='icon navbar-plugin-button'>
                         <img
+                            alt={binding.label}
                             src={binding.icon}
                             width='16'
                             height='16'
