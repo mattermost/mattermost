@@ -2,8 +2,6 @@
 
 exports[`components/file_attachment/FilenameOverlay should match snapshot, compact display 1`] = `
 <WithTooltip
-  id="file-name__tooltip"
-  placement="top"
   title="test_filename"
 >
   <a
@@ -33,9 +31,12 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, stand
   className="post-image__name"
 >
   <WithTooltip
-    id="file-name__tooltip"
-    placement="top"
-    title="Download"
+    title={
+      Object {
+        "defaultMessage": "Download",
+        "id": "view_image_popover.download",
+      }
+    }
   >
     <ForwardRef
       aria-label="download"
@@ -54,9 +55,12 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, with 
   className="post-image__name"
 >
   <WithTooltip
-    id="file-name__tooltip"
-    placement="top"
-    title="Download"
+    title={
+      Object {
+        "defaultMessage": "Download",
+        "id": "view_image_popover.download",
+      }
+    }
   >
     <ForwardRef
       aria-label="download"

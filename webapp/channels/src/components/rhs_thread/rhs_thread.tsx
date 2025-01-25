@@ -35,7 +35,7 @@ const RhsThread = ({
             // if team-scoped and mismatched team, close rhs
             dispatch(closeRightHandSide());
         }
-    }, [currentTeam, channel]);
+    }, [currentTeam, channel, dispatch]);
 
     if (selected == null || !channel) {
         return (

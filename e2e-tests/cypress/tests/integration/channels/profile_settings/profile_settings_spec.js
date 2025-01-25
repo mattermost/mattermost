@@ -71,7 +71,7 @@ describe('Profile Settings', () => {
     fileTypes.forEach((fileType, index) => {
         it(`MM-T2078_${index + 1} Profile picture: file ${fileType.extension} type accepted`, () => {
             // # Save the default profile picture link so it can be compared to the new one
-            cy.uiGetProfileHeader().findByRole('img').invoke('attr', 'src').as('defaultProfilePictureLink');
+            cy.uiGetSetStatusButton().get('img').invoke('attr', 'src').as('defaultProfilePictureLink');
 
             cy.uiOpenProfileModal('Profile Settings');
 
@@ -95,7 +95,7 @@ describe('Profile Settings', () => {
             cy.uiClose();
 
             // # Save the new custom profile picture link so it can be compared to the old one
-            cy.uiGetProfileHeader().findByRole('img').invoke('attr', 'src').as('customProfilePictureLink');
+            cy.uiGetSetStatusButton().get('img').invoke('attr', 'src').as('customProfilePictureLink');
 
             cy.then(function() {
                 expect(this.customProfilePictureLink).to.not.equal(this.defaultProfilePictureLink);

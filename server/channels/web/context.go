@@ -41,7 +41,7 @@ func (c *Context) LogAuditRec(rec *audit.Record) {
 	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
 
-// LogAuditRec logs an audit record using specified Level.
+// LogAuditRecWithLevel logs an audit record using specified Level.
 // If the context is flagged with a permissions error then `level`
 // is ignored and the audit record is emitted with `LevelPerms`.
 func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
@@ -59,7 +59,7 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 	c.App.Srv().Audit.LogRecord(level, *rec)
 }
 
-// MakeAuditRecord creates a audit record pre-populated with data from this context.
+// MakeAuditRecord creates an audit record pre-populated with data from this context.
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
 	rec := &audit.Record{
 		EventName: event,
@@ -71,14 +71,14 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 			IpAddress:     c.AppContext.IPAddress(),
 			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
-		Meta: map[string]interface{}{
+		Meta: map[string]any{
 			audit.KeyAPIPath:   c.AppContext.Path(),
 			audit.KeyClusterID: c.App.GetClusterId(),
 		},
 		EventData: audit.EventData{
-			Parameters:  map[string]interface{}{},
-			PriorState:  map[string]interface{}{},
-			ResultState: map[string]interface{}{},
+			Parameters:  map[string]any{},
+			PriorState:  map[string]any{},
+			ResultState: map[string]any{},
 			ObjectType:  "",
 		},
 	}
@@ -681,6 +681,17 @@ func (c *Context) RequireRoleId() *Context {
 
 	if !model.IsValidId(c.Params.RoleId) {
 		c.SetInvalidURLParam("role_id")
+	}
+	return c
+}
+
+func (c *Context) RequireFieldId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.FieldId) {
+		c.SetInvalidURLParam("field_id")
 	}
 	return c
 }

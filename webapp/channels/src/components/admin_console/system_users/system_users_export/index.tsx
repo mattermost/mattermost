@@ -113,10 +113,8 @@ export function SystemUsersExport(props: Props) {
         return (
             <>
                 <WithTooltip
-                    id='sharedTooltip'
                     title={formatMessage({id: 'admin.system_users.exportButton.notLicensed.title', defaultMessage: 'Professional feature'})}
                     hint={formatMessage({id: 'admin.system_users.exportButton.notLicensed.hint', defaultMessage: 'This feature is available on the professional plan'})}
-                    placement='top'
                 >
                     {button}
                 </WithTooltip>

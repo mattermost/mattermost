@@ -207,7 +207,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 		err := archiveCommandCmdF(c, &cobra.Command{}, []string{command.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(map[string]interface{}{"status": "ok"}, printer.GetLines()[0])
+		s.Require().Equal(map[string]any{"status": "ok"}, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		rcommand, err := s.th.App.GetCommand(command.Id)

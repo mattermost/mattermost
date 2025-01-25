@@ -123,6 +123,7 @@ export type ClientConfig = {
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
+    FeatureFlagCustomProfileAttributes: string;
     FeatureFlagWebSocketEventScope: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -878,6 +879,8 @@ export type MessageExportSettings = {
     DailyRunTime: string;
     ExportFromTimestamp: number;
     BatchSize: number;
+    ChannelBatchSize: number;
+    ChannelHistoryBatchSize: number;
     GlobalRelaySettings: {
         CustomerType: string;
         SMTPUsername: string;
