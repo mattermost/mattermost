@@ -3,7 +3,6 @@
 
 import {connect} from 'react-redux';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getCurrentChannel,
     isCurrentChannelDefault,
@@ -15,8 +14,6 @@ import {
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUser,
-    getUserStatuses,
-    getCurrentUserId,
 } from 'mattermost-redux/selectors/entities/users';
 
 import {getPenultimateViewedChannelName} from 'selectors/local_storage';
