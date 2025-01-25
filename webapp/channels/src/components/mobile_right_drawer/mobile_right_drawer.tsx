@@ -3,12 +3,9 @@
 
 import classNames from 'classnames';
 import React, {memo} from 'react';
-import {Link} from 'react-router-dom';
 import {CSSTransition} from 'react-transition-group';
 
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
-
-import {Constants} from 'utils/constants';
 
 import MobileRightDrawerItems from './mobile_right_drawer_items';
 
@@ -19,8 +16,6 @@ const TRANSITION_TIMEOUT = 500; // in ms
 type Props = PropsFromRedux;
 
 const MobileRightDrawer = ({
-    siteName: defaultSiteName,
-    teamDisplayName: defaultTeamDisplayName,
     isOpen,
     currentUser,
 }: Props) => {
@@ -30,28 +25,11 @@ const MobileRightDrawer = ({
         return null;
     }
 
-    let siteName = '';
-    if (defaultSiteName != null) {
-        siteName = defaultSiteName;
-    }
-    let teamDisplayName = siteName;
-    if (defaultTeamDisplayName) {
-        teamDisplayName = defaultTeamDisplayName;
-    }
-
     return (
         <div
             className={classNames('sidebar--menu', {'move--left': isOpen})}
             id='sidebar-menu'
         >
-            <div className='team__header theme'>
-                <Link
-                    className='team__name'
-                    to={`/channels/${Constants.DEFAULT_CHANNEL}`}
-                >
-                    {teamDisplayName}
-                </Link>
-            </div>
             <div className='nav-pills__container mobile-main-menu'>
                 <CSSTransition
                     in={isOpen}

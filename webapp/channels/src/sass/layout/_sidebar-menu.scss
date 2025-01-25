@@ -31,53 +31,6 @@
         padding-top: 5px;
     }
 
-    .team__header {
-        @include mixins.pie-clearfix;
-
-        display: none;
-        padding: 0 15px;
-        background: var(--sidebar-header-bg);
-
-        a {
-            color: variables.$white;
-        }
-
-        .navbar-right {
-            margin: 16px -5px 0;
-            font-size: 0.85em;
-
-            .dropdown-toggle {
-                padding: 0 10px;
-            }
-
-            .dropdown-menu {
-                li a {
-                    padding: 3 20px;
-                    color: #555;
-                }
-            }
-
-            .dropdown__icon {
-                display: inline-block;
-                width: 4px;
-                height: 16px;
-                background-size: 100% 100%;
-            }
-        }
-
-        .team__name {
-            overflow: hidden;
-            max-width: 80%;
-            float: left;
-            font-size: 1.2em;
-            font-weight: 600;
-            line-height: 50px;
-            text-decoration: none;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-    }
-
     .nav {
         > li {
             > a,

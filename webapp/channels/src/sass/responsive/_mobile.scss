@@ -1443,22 +1443,6 @@
             transform: translate3d(0, 0, 0);
         }
 
-        .team__header {
-            @include mixins.clearfix;
-
-            padding: 15px;
-            pointer-events: none;
-
-            .team__name,
-            .user__name {
-                max-width: 100%;
-            }
-
-            .sidebar-header-dropdown {
-                display: none;
-            }
-        }
-
         .search__form {
             display: block;
         }

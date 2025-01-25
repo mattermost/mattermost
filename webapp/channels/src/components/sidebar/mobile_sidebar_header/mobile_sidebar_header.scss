@@ -1,24 +1,35 @@
-.SidebarHeader {
+.mobileSidebarHeader {
     display: flex;
-    padding: 0;
-    cursor: pointer;
+    padding: 15px;
+    flex-direction: column;
+    gap: 4px;
 
-    .MenuWrapper {
-        height: 100%;
+    h1 {
+        margin: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 22px;
+        font-family: Metropolis, sans-serif;
+        color: var(--sidebar-header-text-color);
+        overflow: hidden;
     }
 
-    .MenuWrapper:first-child {
-        width: 100%;
-        height: 100%;
-    }
+    &__username {
+        display: flex;
+        flex-direction: row;
+        color: rgba(var(--sidebar-header-text-color-rgb), 0.75);
+        font-family: "Open Sans", sans-serif;
+        font-size: 14px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        gap: 2px;
 
-    .status-selector {
-        margin: 3px 8px 0 6px;
-    }
-
-    .sidebar-header-dropdown__icon {
-        svg {
-            fill: var(--sidebar-header-text-color);
+        span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     }
 }
