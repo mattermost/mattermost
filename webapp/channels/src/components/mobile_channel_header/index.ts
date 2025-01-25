@@ -24,7 +24,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store';
 
-import ChannelHeaderMobile from './channel_header_mobile';
+import MobileChannelHeader from './mobile_channel_header';
 
 const isCurrentChannelMuted = createSelector(
     'isCurrentChannelMuted',
@@ -53,4 +53,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }, dispatch),
 });
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ChannelHeaderMobile));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(MobileChannelHeader));
