@@ -601,10 +601,10 @@ func TestChannelBookmarkPreUpdate(t *testing.T) {
 
 func TestToBookmarkWithFileInfo(t *testing.T) {
 	testCases := []struct {
-		name           string
-		bookmark       *ChannelBookmark
-		fileInfo       *FileInfo
-		expectedEmoji  string
+		name          string
+		bookmark      *ChannelBookmark
+		fileInfo      *FileInfo
+		expectedEmoji string
 	}{
 		{
 			name: "emoji with colons",
