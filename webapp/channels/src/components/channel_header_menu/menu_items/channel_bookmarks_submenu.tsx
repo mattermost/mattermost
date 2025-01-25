@@ -4,7 +4,6 @@
 // Purpose of this file to exists is only required until channel header dropdown is migrated to new menus
 import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
 
 import {
     ChevronRightIcon,
@@ -14,13 +13,8 @@ import {
 } from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
-import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
-
 import {useBookmarkAddActions} from 'components/channel_bookmarks/channel_bookmarks_menu';
-import {MAX_BOOKMARKS_PER_CHANNEL, useCanUploadFiles, useChannelBookmarkPermission} from 'components/channel_bookmarks/utils';
 import * as Menu from 'components/menu';
-
-import type {GlobalState} from 'types/store';
 
 type Props = {
     channel: Channel;
@@ -33,6 +27,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
     const canAdd = true; //useChannelBookmarkPermission(props.channel.id, 'add');
     const canUploadFiles = true; //useCanUploadFiles();
     const limitReached = false;
+
     // useSelector((state: GlobalState) => {
     //     const bookmarks = getChannelBookmarks(state, props.channel.id);
     //     return bookmarks && Object.keys(bookmarks).length >= MAX_BOOKMARKS_PER_CHANNEL;

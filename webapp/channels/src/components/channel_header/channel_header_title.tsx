@@ -34,7 +34,6 @@ const ChannelHeaderTitle = ({
     gmMembers,
 }: Props) => {
     const channel = useSelector(getCurrentChannel);
-    const currentUser = useSelector(getCurrentUser);
 
     if (!channel) {
         return null;
@@ -92,20 +91,6 @@ const ChannelHeaderTitle = ({
             </div>
         );
     }
-
-    const personalChannelHeaderAriaLabel = intl.formatMessage({
-        id: 'channel_header.directchannel',
-        defaultMessage: '{displayName} (you) Channel Menu',
-    }, {
-        displayName: channel.display_name,
-    });
-
-    const othersChannelHeaderAriaLabel = intl.formatMessage({
-        id: 'channel_header.otherchannel',
-        defaultMessage: '{displayName} Channel Menu',
-    }, {
-        displayName: channel.display_name,
-    });
 
     return (
         <div className='channel-header__top'>

@@ -6,7 +6,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {
-    FolderMoveOutlineIcon,
     ChevronRightIcon,
     CogOutlineIcon,
 } from '@mattermost/compass-icons/components';

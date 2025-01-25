@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import type {ReactNode} from 'react';
-import React, {useState} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 

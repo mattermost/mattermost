@@ -22,38 +22,9 @@ import {
 import {getPenultimateViewedChannelName} from 'selectors/local_storage';
 import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 
-import {Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
-
 import type {GlobalState} from 'types/store';
 
 import Desktop from './channel_header_menu';
-
-const getTeammateId = createSelector(
-    'getTeammateId',
-    getCurrentChannel,
-    getCurrentUserId,
-    (channel, currentUserId) => {
-        if (channel?.type !== Constants.DM_CHANNEL) {
-            return null;
-        }
-
-        return Utils.getUserIdFromChannelId(channel.name, currentUserId);
-    },
-);
-
-const getTeammateStatus = createSelector(
-    'getTeammateStatus',
-    getUserStatuses,
-    getTeammateId,
-    (userStatuses, teammateId) => {
-        if (!teammateId) {
-            return undefined;
-        }
-
-        return userStatuses[teammateId];
-    },
-);
 
 const mapStateToProps = (state: GlobalState) => ({
     user: getCurrentUser(state),
@@ -93,4 +64,3 @@ const mapStateToProps = (state: GlobalState) => ({
 
 export const ChannelHeaderMenu = Desktop;
 export const ChannelHeaderMenuItems = connect(mapStateToProps)(Items);
-// export const MobileChannelHeaderMenu = connect(mobileMapStateToProps)(Mobile);
