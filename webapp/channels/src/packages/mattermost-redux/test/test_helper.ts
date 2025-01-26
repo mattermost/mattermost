@@ -575,6 +575,7 @@ class TestHelper {
         return {
             id: '',
             user_id: '',
+            channel_id: 'channel_id',
             create_at: 0,
             update_at: 0,
             delete_at: 0,
@@ -597,6 +598,7 @@ class TestHelper {
             files.push({
                 id: this.generateId(),
                 user_id: 'user_id',
+                channel_id: 'channel_id',
                 create_at: 1,
                 update_at: 1,
                 delete_at: 1,

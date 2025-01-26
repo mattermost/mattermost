@@ -34,7 +34,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
     onMouseMove={[MockFunction]}
     term="@user"
   >
-    <div
+    <li
       className="suggestion-list__item"
       data-testid="mentionSuggestion_user2"
       onClick={[Function]}
@@ -88,7 +88,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
           <div />
         </Component>
       </span>
-    </div>
+    </li>
   </SuggestionContainer>
 </AtMentionSuggestion>
 `;
@@ -129,7 +129,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
     onMouseMove={[MockFunction]}
     term="@user"
   >
-    <div
+    <li
       className="suggestion-list__item"
       data-testid="mentionSuggestion_user"
       onClick={[Function]}
@@ -191,7 +191,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
           <div />
         </Component>
       </span>
-    </div>
+    </li>
   </SuggestionContainer>
 </AtMentionSuggestion>
 `;
