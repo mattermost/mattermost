@@ -81,7 +81,7 @@ describe('Messaging', () => {
         });
     });
 
-    it('MM-{Zephyr number here} Navigating DM list using Up/Down arrow keys scrolls it', () => {
+    it('MM-T5669 Navigating DM list using Up/Down arrow keys scrolls it', () => {
         // # Login as test user and visit town-square
         cy.apiLogin(testUser);
         cy.visit(`/${testTeam.name}/channels/town-square`);
@@ -93,13 +93,13 @@ describe('Messaging', () => {
         cy.get('#moreDmModal').should('be.visible').contains('Direct Messages');
 
         // # Check the DM list for the first user that's out of view.
-        cy.get('#multiSelectList').then((DmList) => {
-            const DmListBottom = DmList[0].getBoundingClientRect().bottom;
+        cy.get('#multiSelectList').then((dmList) => {
+            const dmListBottom = dmList[0].getBoundingClientRect().bottom;
 
             cy.get('#multiSelectList>div').each((listItem, index, listItems) => {
                 const itemBottom = listItem[0].getBoundingClientRect().bottom;
 
-                if (itemBottom > DmListBottom) {
+                if (itemBottom > dmListBottom) {
                     // # Press the DOWN arrow key to scroll down to the user out of view.
                     for (let i = 0; i <= index; i++) {
                         cy.get('#moreDmModal').trigger('keydown', {key: 'ArrowDown'});
