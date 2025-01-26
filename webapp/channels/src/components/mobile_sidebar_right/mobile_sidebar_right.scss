@@ -4,15 +4,29 @@
 .sidebar--menu {
     position: absolute;
     right: 0;
-    display: none;
     overflow: auto;
-    width: 220px;
     height: 100%;
     padding: 0 0 2em;
+    width: 290px;
     border-right: variables.$border-gray;
     background: var(--sidebar-bg);
     color: rgba(var(--sidebar-text-rgb), 0.8);
+    transform: translate3d(290px, 0, 0);
+    transition: transform 0.3s linear;
     -webkit-overflow-scrolling: touch;
+
+    &.move--left {
+        transform: translate3d(0, 0, 0);
+    }
+
+    .mentions {
+        font-size: 17px;
+        font-weight: bold;
+    }
+
+    .Menu .MenuItem.MenuItem--with-icon .MenuItem__help-text {
+        padding-left: 0;
+    }
 
     .icon {
         display: inline-block;

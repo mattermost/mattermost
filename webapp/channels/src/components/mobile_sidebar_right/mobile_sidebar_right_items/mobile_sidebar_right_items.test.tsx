@@ -8,10 +8,10 @@ import {Permissions} from 'mattermost-redux/constants';
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {MobileRightDrawerItems} from './mobile_right_drawer_items';
-import type {Props} from './mobile_right_drawer_items';
+import {MobileSidebarRightItems} from './mobile_sidebar_right_items';
+import type {Props} from './mobile_sidebar_right_items';
 
-describe('MobileRightDrawerItems', () => {
+describe('MobileSidebarRightItems', () => {
     const defaultProps: Props = {
         teamId: 'team-id',
         teamName: 'team_name',
@@ -85,7 +85,7 @@ describe('MobileRightDrawerItems', () => {
     };
 
     test('should render basic menu items', () => {
-        renderWithContext(<MobileRightDrawerItems {...defaultProps}/>, defaultState);
+        renderWithContext(<MobileSidebarRightItems {...defaultProps}/>, defaultState);
         expect(screen.getByText('Recent Mentions')).toBeInTheDocument();
         expect(screen.getByText('Saved messages')).toBeInTheDocument();
         expect(screen.getByText('Profile')).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe('MobileRightDrawerItems', () => {
 
     test('should show leave team option when primary team is not set', () => {
         renderWithContext(
-            <MobileRightDrawerItems
+            <MobileSidebarRightItems
                 {...defaultProps}
                 teamIsGroupConstrained={false}
                 experimentalPrimaryTeam={undefined}
@@ -106,7 +106,7 @@ describe('MobileRightDrawerItems', () => {
 
     test('should hide leave team option when team is group constrained', () => {
         renderWithContext(
-            <MobileRightDrawerItems
+            <MobileSidebarRightItems
                 {...defaultProps}
                 teamIsGroupConstrained={true}
             />,
@@ -116,7 +116,7 @@ describe('MobileRightDrawerItems', () => {
     });
 
     test('should show create team option with proper permissions', () => {
-        renderWithContext(<MobileRightDrawerItems {...defaultProps}/>, defaultState);
+        renderWithContext(<MobileSidebarRightItems {...defaultProps}/>, defaultState);
         expect(screen.getByText('Create a Team')).toBeInTheDocument();
     });
 
@@ -131,7 +131,7 @@ describe('MobileRightDrawerItems', () => {
             },
         ];
         renderWithContext(
-            <MobileRightDrawerItems
+            <MobileSidebarRightItems
                 {...defaultProps}
                 pluginMenuItems={pluginMenuItems}
             />,
@@ -142,7 +142,7 @@ describe('MobileRightDrawerItems', () => {
 
     test('should show help link when provided', () => {
         renderWithContext(
-            <MobileRightDrawerItems
+            <MobileSidebarRightItems
                 {...defaultProps}
                 helpLink='https://help.example.com'
             />,
@@ -153,7 +153,7 @@ describe('MobileRightDrawerItems', () => {
 
     test('should show report link when provided', () => {
         renderWithContext(
-            <MobileRightDrawerItems
+            <MobileSidebarRightItems
                 {...defaultProps}
                 reportAProblemLink='https://report.example.com'
             />,

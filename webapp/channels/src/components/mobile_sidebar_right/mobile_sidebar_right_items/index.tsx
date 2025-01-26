@@ -24,7 +24,7 @@ import {isCloudLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
-import MainMenu from './mobile_right_drawer_items';
+import MobileSidebarRightItems from './mobile_sidebar_right_items';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -82,4 +82,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connector(MainMenu);
+export default connector(MobileSidebarRightItems);

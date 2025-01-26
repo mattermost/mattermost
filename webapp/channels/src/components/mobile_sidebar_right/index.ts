@@ -10,7 +10,7 @@ import {getIsRhsMenuOpen} from 'selectors/rhs';
 
 import type {GlobalState} from 'types/store';
 
-import MobileRightDrawer from './mobile_right_drawer';
+import MobileSidebarRight from './mobile_sidebar_right';
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -23,4 +23,4 @@ const connector = connect(mapStateToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connect(mapStateToProps)(MobileRightDrawer);
+export default connect(mapStateToProps)(MobileSidebarRight);

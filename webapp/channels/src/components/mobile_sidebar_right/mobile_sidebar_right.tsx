@@ -7,9 +7,10 @@ import {CSSTransition} from 'react-transition-group';
 
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 
-import MobileRightDrawerItems from './mobile_right_drawer_items';
+import MobileRightDrawerItems from './mobile_sidebar_right_items';
 
 import type {PropsFromRedux} from './index';
+import './mobile_sidebar_right.scss';
 
 const TRANSITION_TIMEOUT = 500; // in ms
 

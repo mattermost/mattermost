@@ -32,7 +32,7 @@ export interface Props extends PropsFromRedux, WrappedComponentProps {
     usageDeltaTeams: number;
 }
 
-export class MobileRightDrawerItems extends React.PureComponent<Props> {
+export class MobileSidebarRightItems extends React.PureComponent<Props> {
     static defaultProps = {
         pluginMenuItems: [],
     };
@@ -296,4 +296,4 @@ export class MobileRightDrawerItems extends React.PureComponent<Props> {
     }
 }
 
-export default injectIntl(MobileRightDrawerItems);
+export default injectIntl(MobileSidebarRightItems);

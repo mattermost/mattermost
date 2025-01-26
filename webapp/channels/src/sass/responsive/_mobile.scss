@@ -844,7 +844,7 @@
 
     .sidebar--left .team__header .Avatar,
     #SidebarContainer .team__header .Avatar,
-    .sidebar--menu .team__header .Avatar {
+    .team__header .Avatar {
         display: none;
     }
 
@@ -1309,34 +1309,6 @@
         }
     }
 
-    .sidebar--menu {
-        width: 290px;
-        border: none;
-        transform: translate3d(290px, 0, 0);
-        transition: transform 0.35s ease;
-        visibility: hidden;
-
-        &.visible {
-            display: block;
-            visibility: visible;
-        }
-
-        &.move--left {
-            display: block;
-            transform: translate3d(0, 0, 0);
-            visibility: visible;
-        }
-
-        .mentions {
-            font-size: 17px;
-            font-weight: bold;
-        }
-
-        .Menu .MenuItem.MenuItem--with-icon .MenuItem__help-text {
-            padding-left: 0;
-        }
-    }
-
     .sidebar--left {
         width: 290px;
         border: none;
@@ -1629,7 +1601,7 @@
     }
 
     .inner-wrap {
-        transition: all 0.35s ease;
+        transition: all 0.3s linear;
 
         .app__body & {
             &::before {

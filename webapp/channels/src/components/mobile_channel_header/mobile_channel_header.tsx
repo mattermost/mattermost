@@ -90,34 +90,39 @@ export default class MobileChannelHeader extends React.PureComponent<Props> {
         }
 
         return (
-            <nav
-                id='navbar'
-                className='navbar navbar-default navbar-fixed-top'
-                role='navigation'
+            <div
+                id='navbar_wrapper'
+                className='row header'
             >
-                <div className='container-fluid theme'>
-                    <div className='navbar-header'>
-                        <CollapseLhsButton/>
-                        <div className={classNames('navbar-brand', {GlobalThreads___title: inGlobalThreads})}>
-                            {heading}
+                <nav
+                    id='navbar'
+                    className='navbar navbar-default navbar-fixed-top'
+                    role='navigation'
+                >
+                    <div className='container-fluid theme'>
+                        <div className='navbar-header'>
+                            <CollapseLhsButton/>
+                            <div className={classNames('navbar-brand', {GlobalThreads___title: inGlobalThreads})}>
+                                {heading}
+                            </div>
+                            <div className='spacer'/>
+                            {channel && (
+                                <ChannelInfoButton
+                                    channel={channel}
+                                />
+                            )}
+                            <ShowSearchButton/>
+                            {channel && (
+                                <MobileChannelHeaderPlug
+                                    channel={channel}
+                                    isDropdown={false}
+                                />
+                            )}
+                            <CollapseRhsButton/>
                         </div>
-                        <div className='spacer'/>
-                        {channel && (
-                            <ChannelInfoButton
-                                channel={channel}
-                            />
-                        )}
-                        <ShowSearchButton/>
-                        {channel && (
-                            <MobileChannelHeaderPlug
-                                channel={channel}
-                                isDropdown={false}
-                            />
-                        )}
-                        <CollapseRhsButton/>
                     </div>
-                </div>
-            </nav>
+                </nav>
+            </div>
         );
     }
 }

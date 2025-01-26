@@ -76,15 +76,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                     'move--left-small': this.props.rhsMenuOpen,
                 })}
             >
-                {isMobileView && (
-                    <>
-                        <div className='row header'>
-                            <div id='navbar_wrapper'>
-                                <MobileChannelHeader/>
-                            </div>
-                        </div>
-                    </>
-                )}
+                {isMobileView && <MobileChannelHeader/>}
                 <div className='row main'>
                     <Switch>
                         <Route

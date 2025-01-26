@@ -78,7 +78,6 @@ const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('compo
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
 const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
-const MobileRightDrawer = makeAsyncComponent('MobileRightDrawer', lazy(() => import('components/mobile_right_drawer')));
 
 const Pluggable = makeAsyncPluggableComponent();
 
@@ -580,7 +579,6 @@ export default class Root extends React.PureComponent<Props, State> {
                         </div>
                         <Pluggable pluggableName='Global'/>
                         <AppBar/>
-                        {this.props.isMobileView && <MobileRightDrawer/>}
                     </CompassThemeProvider>
                 </Switch>
             </RootProvider>
