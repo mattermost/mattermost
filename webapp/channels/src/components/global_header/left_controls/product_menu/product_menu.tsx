@@ -90,6 +90,7 @@ const ProductMenu = (): JSX.Element => {
         dispatch(setProductMenuSwitcherOpen(false));
     });
 
+    // eslint-disable-next-line no-constant-condition
     if (true) {
         return (
             <Menu.Container

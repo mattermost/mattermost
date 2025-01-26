@@ -1,11 +1,11 @@
 .globalHeader-left-controls-container {
     display: flex;
-    align-items: center;
-    justify-items: flex-start;
     height: 40px;
-    flex-shrink: 0;
     flex-basis: 30%;
+    flex-shrink: 0;
+    align-items: center;
     gap: 8px;
+    justify-items: flex-start;
 
     .product-branding-container {
         display: flex;
@@ -31,11 +31,11 @@
         }
 
         .product_heading {
-            font-family: Metropolis, sans-serif;
-            font-weight: 600;
-            font-size: 16px;
-            line-height: 24px;
             color: rgba(var(--sidebar-text-rgb), 0.64);
+            font-family: Metropolis, sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 24px;
         }
     }
 

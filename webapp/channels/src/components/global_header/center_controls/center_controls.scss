@@ -1,9 +1,9 @@
 .globalHeader-center-controls-container {
     display: flex;
-    align-items: center;
     height: 40px;
-    justify-content: center;
-    flex-grow: 1;
     flex-basis: 40%;
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
 }
