@@ -5,15 +5,15 @@
     position: absolute;
     right: 0;
     overflow: auto;
+    width: 290px;
     height: 100%;
     padding: 0 0 2em;
-    width: 290px;
     border-right: variables.$border-gray;
     background: var(--sidebar-bg);
     color: rgba(var(--sidebar-text-rgb), 0.8);
+    -webkit-overflow-scrolling: touch;
     transform: translate3d(290px, 0, 0);
     transition: transform 0.3s linear;
-    -webkit-overflow-scrolling: touch;
 
     &.move--left {
         transform: translate3d(0, 0, 0);

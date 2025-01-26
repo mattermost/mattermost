@@ -1,13 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapshot 1`] = `
-<nav
-  className="navbar navbar-default navbar-fixed-top"
-  id="navbar"
-  role="navigation"
+<div
+  className="row header"
+  id="navbar_wrapper"
 >
-  <div
-    className="container-fluid theme"
+  <nav
+    className="navbar navbar-default navbar-fixed-top"
+    id="navbar"
+    role="navigation"
   >
     <div
       className="navbar-header"
@@ -67,18 +68,19 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
       />
       <Connect(CollapseRhsButton) />
     </div>
-  </div>
-</nav>
+  </nav>
+</div>
 `;
 
 exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapshot, for default channel 1`] = `
-<nav
-  className="navbar navbar-default navbar-fixed-top"
-  id="navbar"
-  role="navigation"
+<div
+  className="row header"
+  id="navbar_wrapper"
 >
-  <div
-    className="container-fluid theme"
+  <nav
+    className="navbar navbar-default navbar-fixed-top"
+    id="navbar"
+    role="navigation"
   >
     <div
       className="navbar-header"
@@ -138,18 +140,19 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
       />
       <Connect(CollapseRhsButton) />
     </div>
-  </div>
-</nav>
+  </nav>
+</div>
 `;
 
 exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapshot, for private channel 1`] = `
-<nav
-  className="navbar navbar-default navbar-fixed-top"
-  id="navbar"
-  role="navigation"
+<div
+  className="row header"
+  id="navbar_wrapper"
 >
-  <div
-    className="container-fluid theme"
+  <nav
+    className="navbar navbar-default navbar-fixed-top"
+    id="navbar"
+    role="navigation"
   >
     <div
       className="navbar-header"
@@ -209,18 +212,19 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
       />
       <Connect(CollapseRhsButton) />
     </div>
-  </div>
-</nav>
+  </nav>
+</div>
 `;
 
 exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapshot, if DM channel 1`] = `
-<nav
-  className="navbar navbar-default navbar-fixed-top"
-  id="navbar"
-  role="navigation"
+<div
+  className="row header"
+  id="navbar_wrapper"
 >
-  <div
-    className="container-fluid theme"
+  <nav
+    className="navbar navbar-default navbar-fixed-top"
+    id="navbar"
+    role="navigation"
   >
     <div
       className="navbar-header"
@@ -280,6 +284,6 @@ exports[`components/ChannelHeaderMobile/ChannelHeaderMobile should match snapsho
       />
       <Connect(CollapseRhsButton) />
     </div>
-  </div>
-</nav>
+  </nav>
+</div>
 `;

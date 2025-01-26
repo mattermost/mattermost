@@ -39,6 +39,7 @@ exports[`components/select_team/SelectTeam should match snapshot 1`] = `
             location="learn_about_teams"
           >
             <i
+              aria-hidden={true}
               className="icon icon-lightbulb-outline"
             />
             <MemoizedFormattedMessage
@@ -168,6 +169,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on create team
             location="learn_about_teams"
           >
             <i
+              aria-hidden={true}
               className="icon icon-lightbulb-outline"
             />
             <MemoizedFormattedMessage
@@ -434,6 +436,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
             location="learn_about_teams"
           >
             <i
+              aria-hidden={true}
               className="icon icon-lightbulb-outline"
             />
             <MemoizedFormattedMessage
@@ -675,6 +678,7 @@ exports[`components/select_team/SelectTeam should match snapshot, on no joinable
             location="learn_about_teams"
           >
             <i
+              aria-hidden={true}
               className="icon icon-lightbulb-outline"
             />
             <MemoizedFormattedMessage

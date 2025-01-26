@@ -44,7 +44,6 @@
   "accessibility.sections.centerContent": "message list main region",
   "accessibility.sections.centerFooter": "message input complimentary region",
   "accessibility.sections.channelHeader": "channel header region",
-  "accessibility.sections.lhsHeader": "team menu region",
   "accessibility.sections.lhsList": "channel sidebar region",
   "accessibility.sections.lhsNavigator": "channel navigator region",
   "accessibility.sections.rhs": "{regionTitle} complimentary region",

@@ -1,31 +1,31 @@
 .mobileSidebarHeader {
     display: flex;
-    padding: 15px;
     flex-direction: column;
+    padding: 15px;
     gap: 4px;
 
     h1 {
+        overflow: hidden;
         margin: 0;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        color: var(--sidebar-header-text-color);
+        font-family: Metropolis, sans-serif;
         font-size: 16px;
         font-weight: 600;
         line-height: 22px;
-        font-family: Metropolis, sans-serif;
-        color: var(--sidebar-header-text-color);
-        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__username {
         display: flex;
+        overflow: hidden;
         flex-direction: row;
         color: rgba(var(--sidebar-header-text-color-rgb), 0.75);
         font-family: "Open Sans", sans-serif;
         font-size: 14px;
+        gap: 2px;
         text-overflow: ellipsis;
         white-space: nowrap;
-        overflow: hidden;
-        gap: 2px;
 
         span:first-child {
             overflow: hidden;
