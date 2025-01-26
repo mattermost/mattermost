@@ -2988,60 +2988,8 @@
     "translation": "啟用高可用性時系統控制台將被設定成唯讀模式，在設定檔當中停用 ReadOnlyConfig 以停止此行為。"
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "未知的輸出格式 {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "無法複製附加檔案至 zip 檔案中。"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "無法新增附件至 CSV 匯出格式。"
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "無法建立暫存的 CSV 匯出檔案。"
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "無法新增標題至 CSV 匯出檔案。"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "無法新增中繼資料至 zip 檔案中。"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "無法轉換中繼資料成 json 格式。"
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "無法匯出訊息。"
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "無法建立 zip 匯出檔案。"
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "由於大小過大，上傳檔案已從 Global Relay 匯出檔案中被移除。"
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "無法開啟暫存的匯出檔案。"
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "無法重新讀取 Global Relay 匯出暫存檔。"
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "目前授權不提供法遵功能，請聯絡系統管理員將系統升級為企業版授權。"
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "無法讀取匯出範本。請重新嘗試。"
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3102,10 +3050,6 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch 沒有啟動"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "刪除 Elasticsearch 索引時失敗"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3222,58 +3166,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "取得使用者群組時錯誤"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "無法新增附件至 Global Relay 匯出格式。"
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "無法關閉 zip 檔案。"
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "無法建立 eml 檔案。"
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "無法產生 eml 檔案資料。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "無法寄送郵件至 Global Relay。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "無法設定電子郵件寄件人地址。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "無法設定電子郵件訊息。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "無法寫入電子郵件訊息。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "無法讀取電子郵件資訊。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "無法設定電子郵件收件人地址。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "無法取得匯出暫存檔的資訊。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "無法從暫存檔取得電子郵件。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "無法開啟匯出暫存檔。"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4988,14 +4880,6 @@
     "translation": "為頻道建立 Elasticsearch 範本失敗"
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "無法建立警告檔案。"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "無法建立 zip 檔案"
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "關閉使用者索引失敗。"
   },
@@ -5964,10 +5848,6 @@
     "translation": "無法遷移。"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "無法取得此頻道特定時間範圍內的使用者。"
-  },
-  {
     "id": "ent.elasticsearch.delete_user_posts.error",
     "translation": "刪除使用者訊息失敗"
   },
@@ -6380,10 +6260,6 @@
     "translation": " 已附加檔案。"
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "無法轉換匯出至 XML。"
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "無法更新工作。"
   },
@@ -6444,10 +6320,6 @@
     "translation": "ChannelId 值無效。"
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "取得訊息的檔案資訊失敗。"
-  },
-  {
     "id": "ent.ldap.do_login.key.app_error",
     "translation": "載入 LDAP TLS 金鑰檔案時發生錯誤。"
   },
@@ -6490,10 +6362,6 @@
   {
     "id": "model.config.is_valid.directory.app_error",
     "translation": "本地儲存目錄無效，不得為空字串。"
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "取得訊息的檔案資訊失敗。"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
@@ -6554,10 +6422,6 @@
   {
     "id": "model.command.is_valid.plugin_id.app_error",
     "translation": "擴充程式 ID 無效。"
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "取得訊息的檔案資訊失敗。"
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
@@ -7472,10 +7336,6 @@
     "translation": "無法解碼完整的使用教學請求。"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "無法連線至 SMTP 伺服器"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
     "translation": "取得對外 OAuth 連線時發生錯誤。"
   },
@@ -7634,10 +7494,6 @@
   {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "政策無效。"
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "無法寫入 CSV 檔案。"
   },
   {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
@@ -8864,14 +8720,6 @@
     "translation": "關閉檔案索引失敗。"
   },
   {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "無法寫入匯出檔案。"
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "無法寫入全域中繼檔案。"
-  },
-  {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "無法開啟 Elasticsearch 的 CA 檔案"
   },
@@ -10042,14 +9890,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "取得使用者數失敗"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "無法關閉 zip 文件"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "無法找到匯出文件以開此匯出。"
   },
   {
     "id": "app.channel.bookmark.delete.app_error",

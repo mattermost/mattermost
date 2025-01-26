@@ -6,10 +6,7 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
-import {
-    ProductsIcon,
-} from '@mattermost/compass-icons/components';
+import {ProductsIcon} from '@mattermost/compass-icons/components';
 
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {isSwitcherOpen} from 'selectors/views/product_menu';
@@ -42,21 +39,29 @@ export const ProductMenuContainer = styled.nav`
     }
 `;
 
-export const ProductMenuButton = styled(IconButton).attrs(() => ({
+export const ProductMenuButton = styled.button.attrs(() => ({
     id: 'product_switch_menu',
-    icon: 'products',
-    size: 'sm',
-
-    // we currently need this, since not passing a onClick handler is disabling the IconButton
-    // this is a known issue and is being tracked by UI platform team
-    // TODO@UI: remove the onClick, when it is not a mandatory prop anymore
-    onClick: () => {},
-    inverted: true,
-    compact: true,
+    type: 'button',
 }))`
-    > i::before {
-        font-size: 20px;
-        letter-spacing: 20px;
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 6px 3px 5px;
+
+    &:hover, &:focus {
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+        background-color: rgba(var(--sidebar-text-rgb), 0.08);
+    }
+
+    &:active {
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+        background-color: rgba(var(--sidebar-text-rgb), 0.16);
+    }
+
+    > * + * {
+        margin-left: 8px;
     }
 `;
 
@@ -85,32 +90,34 @@ const ProductMenu = (): JSX.Element => {
         dispatch(setProductMenuSwitcherOpen(false));
     });
 
-    // return (
-    //     <Menu.Container
-    //         menuButton={{
-    //             id: 'productMenuButton',
-    //             class: 'btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader',
-    //             children: <ProductsIcon size={18}/>,
-    //             'aria-label': formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
-    //         }}
-    //         menuButtonTooltip={{
-    //             text: formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
-    //         }}
-    //         menu={{
-    //             id: 'productSwitcherMenu',
-    //             minWidth: '225px',
-    //             maxWidth: '270px',
-    //         }}
-    //     >
-    //         <ProductSwitcherChannelsMenuItem
-    //             currentProductID={currentProductID}
-    //         />
-    //         <ProductSwitcherProductsMenuItems
-    //             currentProductID={currentProductID}
-    //         />
-    //         <Menu.Separator/>
-    //     </Menu.Container>
-    // );
+    if (true) {
+        return (
+            <Menu.Container
+                menuButton={{
+                    id: 'productMenuButton',
+                    class: 'btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader',
+                    children: <ProductsIcon size={18}/>,
+                    'aria-label': formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
+                }}
+                menuButtonTooltip={{
+                    text: formatMessage({id: 'global_header.productSwitchMenuButton.label', defaultMessage: 'Switch product'}),
+                }}
+                menu={{
+                    id: 'productSwitcherMenu',
+                    minWidth: '225px',
+                    maxWidth: '270px',
+                }}
+            >
+                <ProductSwitcherChannelsMenuItem
+                    currentProductID={currentProductID}
+                />
+                <ProductSwitcherProductsMenuItems
+                    currentProductID={currentProductID}
+                />
+                <Menu.Separator/>
+            </Menu.Container>
+        );
+    }
 
     return (
         <div ref={menuRef}>
@@ -119,7 +126,6 @@ const ProductMenu = (): JSX.Element => {
             >
                 <ProductMenuContainer onClick={handleClick}>
                     <ProductMenuButton
-                        active={switcherOpen}
                         aria-expanded={switcherOpen}
                         aria-label={formatMessage({id: 'global_header.productSwitchMenu', defaultMessage: 'Product switch menu'})}
                         aria-controls='product-switcher-menu'
