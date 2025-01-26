@@ -29,11 +29,11 @@
         }
 
         > i {
-            display: inline-flex !important;
+            display: inline-flex;
             padding: 3px;
             border-radius: 50%;
-            background-color: hsla(221, 77%, 48%, 0.08);
-            font-size: 14px !important;
+            background-color: rgba(var(--denim-button-bg-rgb), 0.08);
+            font-size: 14px;
 
             &::before {
                 margin: 0;

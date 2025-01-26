@@ -33,6 +33,7 @@ import './select_team.scss';
 
 export const TEAMS_PER_PAGE = 30;
 const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
+const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
 
 type Actions = {
     getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => any;
@@ -292,10 +293,13 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                         </h4>
                         <ExternalLink
                             location='learn_about_teams'
-                            href='https://mattermost.com/pl/mattermost-academy-team-training'
+                            href={MATTERMOST_ACADEMY_TEAM_TRAINING_LINK}
                             className='LearnAboutTeamsLink'
                         >
-                            <i className='icon icon-lightbulb-outline'/>
+                            <i
+                                className='icon icon-lightbulb-outline'
+                                aria-hidden={true}
+                            />
                             <FormattedMessage
                                 id='learn_about_teams'
                                 defaultMessage='Learn about teams'

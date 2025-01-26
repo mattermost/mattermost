@@ -340,10 +340,6 @@ button {
             &[aria-expanded="true"][aria-haspopup="true"] {
                 background-color: rgb(var(--button-color-rgb), 0.16);
             }
-
-            &:focus {
-                background-color: rgba(var(--button-color-rgb), 0.24);
-            }
         }
     }
 
