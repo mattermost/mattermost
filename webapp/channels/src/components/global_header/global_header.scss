@@ -1,0 +1,29 @@
+@use "utils/variables";
+
+.globalHeader-container {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    color: rgba(var(--sidebar-text-rgb), 0.64);
+    padding: 0 4px 0 8px;
+    gap: 12px;
+    z-index: variables.$z-index-global-header;
+
+    // This is needed because buttons in global header have a bit smaller sizing than sm-buttons
+    // and colors are a bit dimmer
+    button.buttons-in-globalHeader.btn {
+        color: rgba(var(--button-color-rgb), 0.56);
+        width: 28px;
+        min-width: 28px;
+        height: 28px;
+
+        &:hover,
+        &:active,
+        &[aria-expanded="true"][aria-haspopup="true"] {
+            color: rgba(var(--button-color-rgb), 0.72);
+        }
+    }
+}

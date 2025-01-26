@@ -5,6 +5,8 @@ import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
+import {ArrowRightIcon, ArrowLeftIcon} from '@mattermost/compass-icons/components';
+
 import {trackEvent} from 'actions/telemetry_actions';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -67,10 +69,7 @@ const HistoryButtons = () => {
                     disabled={!canGoBack}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
                 >
-                    <i
-                        className='icon icon-arrow-left'
-                        aria-hidden={true}
-                    />
+                    <ArrowLeftIcon size={20}/>
                 </button>
             </WithTooltip>
             <WithTooltip
@@ -82,10 +81,7 @@ const HistoryButtons = () => {
                     disabled={!canGoForward}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}
                 >
-                    <i
-                        className='icon icon-arrow-right'
-                        aria-hidden={true}
-                    />
+                    <ArrowRightIcon size={20}/>
                 </button>
             </WithTooltip>
         </nav>

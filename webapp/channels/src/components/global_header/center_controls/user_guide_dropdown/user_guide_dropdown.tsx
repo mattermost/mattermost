@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import {HelpCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -122,12 +122,6 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
 
     render() {
         const {intl} = this.props;
-        const tooltipText = (
-            <FormattedMessage
-                id={'channel_header.userHelpGuide'}
-                defaultMessage='Help'
-            />
-        );
 
         return (
             <MenuWrapper
@@ -136,19 +130,17 @@ class UserGuideDropdown extends React.PureComponent<Props, State> {
                 onToggle={this.buttonToggleState}
             >
                 <WithTooltip
-                    title={tooltipText}
+                    title={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                 >
-                    <IconButton
-                        size={'sm'}
-                        icon={'help-circle-outline'}
-                        onClick={() => {}} // icon button currently requires onclick ... needs to revisit
-                        active={this.state.buttonActive}
-                        inverted={true}
-                        compact={true}
+                    <button
+                        className='btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader'
+                        aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
                         aria-controls='AddChannelDropdown'
                         aria-expanded={this.state.buttonActive}
-                        aria-label={intl.formatMessage({id: 'channel_header.userHelpGuide', defaultMessage: 'Help'})}
-                    />
+                        aria-haspopup={true}
+                    >
+                        <HelpCircleOutlineIcon size={18}/>
+                    </button>
                 </WithTooltip>
                 <Menu
                     openLeft={false}

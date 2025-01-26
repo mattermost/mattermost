@@ -50,7 +50,7 @@ export type Props = {
     productId?: ProductIdentifier;
 }
 
-const RightControls = ({productId = null}: Props): JSX.Element => {
+export default function RightControls({productId = null}: Props) {
     // guest validation to see which point the messaging tour tip starts
     const isGuestUser = useSelector((state: GlobalState) => isCurrentUserGuestUser(state));
     const tourStep = isGuestUser ? OnboardingTourStepsForGuestUsers.CUSTOMIZE_EXPERIENCE : OnboardingTourSteps.CUSTOMIZE_EXPERIENCE;
@@ -75,18 +75,14 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
                 />
             )}
             <StyledCustomizeYourExperienceTour id='CustomizeYourExperienceTour'>
-                {
-                    isChannels(productId) ? (
-                        <>
-                            <SettingsButton/>
-                            {showCustomizeTip && <CustomizeYourExperienceTour/>}
-                        </>
-                    ) : null
-                }
+                {isChannels(productId) && (
+                    <>
+                        <SettingsButton/>
+                        {showCustomizeTip && <CustomizeYourExperienceTour/>}
+                    </>
+                )}
                 <UserAccountMenu/>
             </StyledCustomizeYourExperienceTour>
         </RightControlsContainer>
     );
-};
-
-export default RightControls;
+}

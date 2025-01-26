@@ -5,7 +5,7 @@
     height: 40px;
     flex-shrink: 0;
     flex-basis: 30%;
-    gap: 12px;
+    gap: 8px;
 
     .product-branding-container {
         display: flex;
@@ -47,13 +47,6 @@
         .btn + .btn {
             margin-left: unset;
         }
-    }
-
-    // This is needed because buttons in global header have a bit smaller sizing than sm-buttons
-    button.buttons-in-globalHeader.btn {
-        width: 28px;
-        min-width: 28px;
-        height: 28px;
     }
 }
 

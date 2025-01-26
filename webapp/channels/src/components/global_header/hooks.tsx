@@ -13,6 +13,7 @@ import {isModalOpen} from 'selectors/views/modals';
 
 import type {GlobalState} from 'types/store';
 
+// REMOVE THIS
 /**
  * Hook that alerts clicks outside of the passed ref.
  */

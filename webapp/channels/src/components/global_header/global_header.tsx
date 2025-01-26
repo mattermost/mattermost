@@ -3,9 +3,10 @@
 
 import React from 'react';
 import {useSelector} from 'react-redux';
-import styled from 'styled-components';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+
+import {getIsMobileView} from 'selectors/views/browser';
 
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 
@@ -16,44 +17,34 @@ import {useIsLoggedIn} from './hooks';
 import LeftControls from './left_controls/left_controls';
 import RightControls from './right_controls/right_controls';
 
-const GlobalHeaderContainer = styled.header`
-    position: relative;
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: space-between;
-    height: 44px;
-    color: rgba(var(--sidebar-text-rgb), 0.64);
-    padding: 0 4px 0 8px;
-    z-index: 99;
+import './global_header.scss';
 
-    > * + * {
-        margin-left: 12px;
-    }
-
-    @media screen and (max-width: 768px) {
-        display: none;
-    }
-`;
-
-const GlobalHeader = (): JSX.Element | null => {
+export default function GlobalHeader() {
     const isLoggedIn = useIsLoggedIn();
     const currentProductID = useCurrentProductId();
+
+    const isMobileView = useSelector(getIsMobileView);
+
     const theme = useSelector(getTheme);
 
     if (!isLoggedIn) {
         return null;
     }
 
+    if (isMobileView) {
+        return null;
+    }
+
     return (
         <CompassThemeProvider theme={theme}>
-            <GlobalHeaderContainer id='global-header'>
+            <div
+                id='global-header'
+                className='globalHeader-container'
+            >
                 <LeftControls/>
                 <CenterControls productId={currentProductID}/>
                 <RightControls productId={currentProductID}/>
-            </GlobalHeaderContainer>
+            </div>
         </CompassThemeProvider>
     );
-};
-
-export default GlobalHeader;
+}
