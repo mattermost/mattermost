@@ -34,7 +34,6 @@ const MobileRightDrawer = ({
             <div className='nav-pills__container mobile-main-menu'>
                 <CSSTransition
                     in={isOpen}
-                    classNames='MobileRightSidebarMenu'
                     enter={true}
                     exit={true}
                     mountOnEnter={true}
