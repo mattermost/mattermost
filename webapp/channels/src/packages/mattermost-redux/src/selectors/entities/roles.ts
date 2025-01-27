@@ -7,7 +7,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
+import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import type {PermissionsOptions} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {
     getMySystemPermissions as getMySystemPermissionsInternal,
@@ -17,7 +17,6 @@ import {
     haveISystemPermission as haveISystemPermissionInternal,
 } from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getTeamMemberships, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 // Re-define these types to ensure that these are typed correctly when mattermost-redux is published
 export const getMySystemPermissions: (state: GlobalState) => Set<string> = getMySystemPermissionsInternal;
