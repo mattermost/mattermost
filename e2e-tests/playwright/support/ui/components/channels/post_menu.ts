@@ -49,12 +49,10 @@ export default class PostMenu {
     }
 
     /**
-     * Clicks on dot menu and move the mouse away to not open sub menu
+     * Clicks on dot menu button.
      */
-    async clickOnDotMenu(page: Page) {
+    async clickOnDotMenu() {
         await this.dotMenuButton.click();
-        // move the mouse away from menu since the focus opens a submenu and causes test to fail
-        await page.mouse.move(0, 0);
     }
 }
 

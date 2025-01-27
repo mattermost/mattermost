@@ -7,7 +7,7 @@ import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 import {duration, wait} from '@e2e-support/util';
 
 test('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
-    test.setTimeout(240000);
+    test.setTimeout(duration.four_min);
 
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
