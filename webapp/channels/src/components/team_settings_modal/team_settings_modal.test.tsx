@@ -10,8 +10,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/team_settings_modal', () => {
     const baseProps = {
-        isCloud: false,
         onExited: jest.fn(),
+        canInviteUsers: true,
     };
 
     test('should hide the modal when the close button is clicked', async () => {
@@ -24,6 +24,32 @@ describe('components/team_settings_modal', () => {
         expect(modal.className).toBe('fade in modal');
         fireEvent.click(screen.getByText('Close'));
         expect(modal.className).toBe('fade modal');
+    });
+
+    test('should display access tab when can invite users', async () => {
+        const props = {...baseProps, canInviteUsers: true};
+        renderWithContext(
+            <TeamSettingsModal
+                {...props}
+            />,
+        );
+        const infoButton = screen.getByRole('tab', {name: 'info'});
+        expect(infoButton).toBeDefined();
+        const accessButton = screen.getByRole('tab', {name: 'access'});
+        expect(accessButton).toBeDefined();
+    });
+
+    test('should not display access tab when can not invite users', async () => {
+        const props = {...baseProps, canInviteUsers: false};
+        renderWithContext(
+            <TeamSettingsModal
+                {...props}
+            />,
+        );
+        const tabs = screen.getAllByRole('tab');
+        expect(tabs.length).toEqual(1);
+        const infoButton = screen.getByRole('tab', {name: 'info'});
+        expect(infoButton).toBeDefined();
     });
 });
 

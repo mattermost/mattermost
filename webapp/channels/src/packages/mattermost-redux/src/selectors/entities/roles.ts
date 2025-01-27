@@ -40,7 +40,7 @@ export const getMyGroupRoles: (state: GlobalState) => Record<string, Set<string>
         const roles: Record<string, Set<string>> = {};
         if (groupMemberships) {
             for (const key in groupMemberships) {
-                if (groupMemberships.hasOwnProperty(key) && groupMemberships[key].roles) {
+                if (Object.hasOwn(groupMemberships, key) && groupMemberships[key].roles) {
                     roles[key] = new Set<string>(groupMemberships[key].roles.split(' '));
                 }
             }
@@ -98,7 +98,7 @@ export const getMyTeamRoles: (state: GlobalState) => Record<string, Set<string>>
         const roles: Record<string, Set<string>> = {};
         if (teamsMemberships) {
             for (const key in teamsMemberships) {
-                if (teamsMemberships.hasOwnProperty(key) && teamsMemberships[key].roles) {
+                if (Object.hasOwn(teamsMemberships, key) && teamsMemberships[key].roles) {
                     roles[key] = new Set<string>(teamsMemberships[key].roles.split(' '));
                 }
             }

@@ -350,7 +350,7 @@ export default function ChannelNotificationsModal(props: Props) {
             show={show}
             onHide={handleHide}
             onExited={props.onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='channelNotificationModalLabel'
             style={{display: 'flex', placeItems: 'center'}}
         >
@@ -391,7 +391,10 @@ export default function ChannelNotificationsModal(props: Props) {
             </main>
             <footer className='channel-notifications-settings-modal__footer'>
                 {serverError &&
-                    <span className='channel-notifications-settings-modal__server-error'>
+                    <span
+                        role='alert'
+                        className='channel-notifications-settings-modal__server-error'
+                    >
                         {serverError}
                     </span>
                 }

@@ -37,7 +37,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	if err != nil {
 		panic(err)
 	}
-	store.GetMasterX().Close()
+	store.GetMaster().Close()
 
 	for _, isMaster := range []bool{true, false} {
 		handle := sql.OpenDB(driver.NewConnector(p.Driver, isMaster))
@@ -51,7 +51,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		storetest.TestChannelStore(p.t, rctx, store, wrapper)
 		storetest.TestBotStore(p.t, rctx, store, wrapper)
 
-		store.GetMasterX().Close()
+		store.GetMaster().Close()
 	}
 
 	// Use the API to instantiate the driver

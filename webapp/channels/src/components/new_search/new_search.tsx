@@ -14,7 +14,9 @@ import {getSearchTerms, getSearchType} from 'selectors/rhs';
 
 import Popover from 'components/widgets/popover';
 
-import Constants from 'utils/constants';
+import a11yController from 'utils/a11y_controller_instance';
+import type {A11yFocusEventDetail} from 'utils/constants';
+import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
@@ -92,6 +94,14 @@ const NewSearchContainer = styled.div`
     }
 `;
 
+const NewSearchTerms = styled.span`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    margin-right: 32px;
+    white-space: nowrap;
+`;
+
 const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
@@ -102,6 +112,7 @@ const NewSearch = (): JSX.Element => {
     const [focused, setFocused] = useState<boolean>(false);
     const [currentChannel, setCurrentChannel] = useState('');
     const searchBoxRef = useRef<HTMLDivElement | null>(null);
+    const searchButtonRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '4.7.0');
@@ -160,14 +171,32 @@ const NewSearch = (): JSX.Element => {
     const closeSearchBox = useCallback(() => {
         setFocused(false);
         setCurrentChannel('');
+        if (searchButtonRef.current) {
+            document.dispatchEvent(
+                new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
+                    detail: {
+                        target: searchButtonRef.current,
+                        keyboardOnly: false,
+                    },
+                }),
+            );
+            a11yController.resetOriginElement();
+        }
     }, []);
 
     const openSearchBox = useCallback(() => {
         setFocused(true);
+        if (searchButtonRef.current) {
+            a11yController.storeOriginElement(searchButtonRef.current);
+        }
     }, []);
 
     const openSearchBoxOnKeyPress = useCallback(
         (e: React.KeyboardEvent) => {
+            if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta') {
+                return;
+            }
+
             if (Keyboard.isKeyPressed(e, Constants.KeyCodes.TAB)) {
                 return;
             }
@@ -214,8 +243,9 @@ const NewSearch = (): JSX.Element => {
             onKeyDown={openSearchBoxOnKeyPress}
             onClick={openSearchBox}
             id='searchFormContainer'
-            role='search'
+            role='button'
             className='a11y__region'
+            ref={searchButtonRef}
         >
             <i className='icon icon-magnify'/>
             {(searchType === 'messages' || searchType === 'files') && (
@@ -238,7 +268,7 @@ const NewSearch = (): JSX.Element => {
                     />
                 </SearchTypeBadge>
             )}
-            {searchTerms && <span tabIndex={0}>{searchTerms}</span>}
+            {searchTerms && <NewSearchTerms tabIndex={0}>{searchTerms}</NewSearchTerms>}
             {searchTerms && (
                 <CloseIcon
                     data-testid='input-clear'

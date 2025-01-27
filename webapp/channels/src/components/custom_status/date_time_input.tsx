@@ -27,7 +27,7 @@ import type {A11yFocusEventDetail} from 'utils/constants';
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
-import {getCurrentMomentForTimezone} from 'utils/timezone';
+import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
@@ -117,9 +117,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
     const handleDayChange = (day: Date, modifiers: DayModifiers) => {
         if (modifiers.today) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            baseTime.hour(time.hours());
-            baseTime.minute(time.minutes());
-
+            if (isBeforeTime(baseTime, time)) {
+                baseTime.hour(time.hours());
+                baseTime.minute(time.minutes());
+            }
             const roundedTime = getRoundedTime(baseTime, timePickerInterval);
             handleChange(roundedTime);
         } else {

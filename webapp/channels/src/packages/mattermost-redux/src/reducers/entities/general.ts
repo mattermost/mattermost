@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
+import type {UserPropertyField} from '@mattermost/types/properties';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
 
-function config(state: Partial<ClientConfig> = {}, action: AnyAction) {
+function config(state: Partial<ClientConfig> = {}, action: MMReduxAction) {
     switch (action.type) {
     case GeneralTypes.CLIENT_CONFIG_RECEIVED:
         return Object.assign({}, state, action.data);
@@ -23,7 +25,7 @@ function config(state: Partial<ClientConfig> = {}, action: AnyAction) {
     }
 }
 
-function license(state: ClientLicense = {}, action: AnyAction) {
+function license(state: ClientLicense = {}, action: MMReduxAction) {
     switch (action.type) {
     case GeneralTypes.CLIENT_LICENSE_RECEIVED:
         return action.data;
@@ -37,7 +39,20 @@ function license(state: ClientLicense = {}, action: AnyAction) {
     }
 }
 
-function serverVersion(state = '', action: AnyAction) {
+function customProfileAttributes(state: IDMappedObjects<UserPropertyField> = {}, action: MMReduxAction) {
+    const data: UserPropertyField[] = action.data;
+    switch (action.type) {
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_RECEIVED:
+        return data.reduce<IDMappedObjects<UserPropertyField>>((acc, field) => {
+            acc[field.id] = field;
+            return acc;
+        }, {});
+    default:
+        return state;
+    }
+}
+
+function serverVersion(state = '', action: MMReduxAction) {
     switch (action.type) {
     case GeneralTypes.RECEIVED_SERVER_VERSION:
         return action.data;
@@ -48,7 +63,7 @@ function serverVersion(state = '', action: AnyAction) {
     }
 }
 
-function firstAdminVisitMarketplaceStatus(state = false, action: AnyAction) {
+function firstAdminVisitMarketplaceStatus(state = false, action: MMReduxAction) {
     switch (action.type) {
     case GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED:
         return action.data;
@@ -58,7 +73,7 @@ function firstAdminVisitMarketplaceStatus(state = false, action: AnyAction) {
     }
 }
 
-function firstAdminCompleteSetup(state = false, action: AnyAction) {
+function firstAdminCompleteSetup(state = false, action: MMReduxAction) {
     switch (action.type) {
     case GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED:
         return action.data;
@@ -71,6 +86,7 @@ function firstAdminCompleteSetup(state = false, action: AnyAction) {
 export default combineReducers({
     config,
     license,
+    customProfileAttributes,
     serverVersion,
     firstAdminVisitMarketplaceStatus,
     firstAdminCompleteSetup,

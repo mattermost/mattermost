@@ -63,7 +63,7 @@ export function showChannelOrThreadScheduledPostIndicator(state: GlobalState, ch
     const allChannelScheduledPosts = state.entities.scheduledPosts.byChannelOrThreadId[channelOrThreadId] || emptyList;
     const eligibleScheduledPosts = allChannelScheduledPosts.filter((scheduledPostId: string) => {
         const scheduledPost = state.entities.scheduledPosts.byId[scheduledPostId];
-        return !scheduledPost.error_code;
+        return !scheduledPost?.error_code;
     });
 
     const data = {

@@ -618,6 +618,39 @@ func TestPatchTeam(t *testing.T) {
 		_, _, err = client.PatchTeam(context.Background(), th.BasicTeam.Id, patch)
 		require.NoError(t, err)
 	})
+
+	t.Run("Changing AllowOpenInvite requires InviteUser permission", func(t *testing.T) {
+		th.LoginTeamAdmin()
+		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: true}
+		team2, _, _ = th.Client.CreateTeam(context.Background(), team2)
+
+		patch2 := &model.TeamPatch{
+			AllowOpenInvite: model.NewPointer(false),
+			AllowedDomains:  model.NewPointer("test.com"),
+		}
+
+		rteam2, _, err3 := th.Client.PatchTeam(context.Background(), team2.Id, patch2)
+		require.NoError(t, err3)
+		require.Equal(t, team2.Id, rteam2.Id)
+		require.False(t, rteam2.AllowOpenInvite)
+
+		// remove invite user permission from team admin and user roles
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
+		patch2 = &model.TeamPatch{
+			AllowOpenInvite: model.NewPointer(true),
+		}
+
+		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
+		require.Error(t, err3)
+
+		patch2 = &model.TeamPatch{
+			AllowedDomains: model.NewPointer("testDomain.com"),
+		}
+		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
+		require.Error(t, err3)
+	})
 }
 
 func TestRestoreTeam(t *testing.T) {

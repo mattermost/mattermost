@@ -7,7 +7,7 @@ import styled from 'styled-components';
 
 import * as Utils from 'utils/utils';
 
-import Setting from './setting';
+import SettingSet from './setting_set';
 
 const Label = styled.label<{isDisabled: boolean}>`
     display: inline-flex;
@@ -121,13 +121,12 @@ const BooleanSetting = ({
     }, [id, onChange]);
 
     return (
-        <Setting
+        <SettingSet
+            helpText={helptext}
             inputId={id}
             label={label}
-            helpText={helptext}
             setByEnv={setByEnv}
         >
-            <a id={id}/>
             <Label isDisabled={disabled || setByEnv}>
                 <input
                     data-testid={id + 'true'}
@@ -154,7 +153,7 @@ const BooleanSetting = ({
                 />
                 {falseText}
             </Label>
-        </Setting>
+        </SettingSet>
     );
 };
 

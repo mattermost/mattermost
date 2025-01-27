@@ -200,10 +200,6 @@
     "translation": "Props no vàlid"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Estat no vàlid"
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "ID no vàlid"
   },
@@ -564,10 +560,6 @@
     "translation": "No s'han pogut obtenir els índexs d'Elasticsearch"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "No s'ha pogut suprimir l'índex d'Elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "L'Elasticsearch no s'ha iniciat"
   },
@@ -648,68 +640,8 @@
     "translation": "El treball '{{.JobName}}' ha fallat en exportar la conformitat a '{{.FilePath}}'"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "No es poden carregar les plantilles d'exportació. Torna-ho a provar."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "La funció de compliment està desactivada per la llicència actual. Contacta amb l'administrador del sistema per actualitzar la teva llicència empresarial."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "No es pot tornar a llegir el fitxer d'exportació temporal Global Relay."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "No es pot obrir el fitxer temporal d'exportació."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "El fitxer pujat s'ha eliminat de l'exportació Global Relay perquè era massa gran per enviar-lo."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "No es pot crear el fitxer d'exportació zip."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "No es pot crear el fitxer eml."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "No es pot exportar una publicació."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "No es pot crear el fitxer eml."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "No es poden convertir les metadades a json."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "No es pot afegir el fitxer de metadades al fitxer zip."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "No es pot afegir la capçalera a l'exportació CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "No es pot crear el fitxer temporal d'exportació CSV."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "No es pot afegir un fitxer adjunt a l'exportació CSV."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "No es pot copiar el fitxer adjunt al fitxer zip."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Format de sortida desconegut {{.ExportType}}"
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -2388,58 +2320,6 @@
     "translation": "No es poden migrar els usuaris d'AD/LDAP amb un camp especificat. S'ha detectat una entrada duplicada. Elimina tots els duplicats i torna-ho a provar."
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "No es pot obrir el fitxer temporal d'exportació"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "No es pot obtenir un correu del fitxer temporal"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "No es pot obtenir la informació del fitxer temporal d'exportació"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "No es pot configurar l'adreça Per a del correu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "No es pot llegir la informació del correu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "No es pot escriure el missatge del correu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "No es pot configurar el missatge del correu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "No es pot establir la direcció De per al correu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "No es pot enviar el correu a Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "No es poden generar les dades del fitxer eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "No es pot crear el fitxer eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "No es pot tancar el fitxer zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "No es pot afegir un fitxer adjunt a l'exportació de Global Relay."
-  },
-  {
     "id": "ent.ldap.validate_guest_filter.app_error",
     "translation": "Filtre d'AD/LDAP no vàlid"
   },
@@ -3494,10 +3374,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "No es pot actualitzar el «webhook» a través d'equips"
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "No s'ha pogut codificar la càrrega multipart al «webhook» entrant."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",

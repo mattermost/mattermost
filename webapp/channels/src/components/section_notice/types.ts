@@ -7,4 +7,5 @@ export type SectionNoticeButtonProp = {
     trailingIcon?: string;
     leadingIcon?: string;
     loading?: boolean;
+    disabled?: boolean;
 }

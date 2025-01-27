@@ -2,9 +2,7 @@
 
 exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
 <WithTooltip
-  id="flagTooltip"
   key="flagtooltipkey"
-  placement="top"
   title={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Save Message"
@@ -27,9 +25,7 @@ exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
 
 exports[`components/post_view/PostFlagIcon should match snapshot 2`] = `
 <WithTooltip
-  id="flagTooltip"
   key="flagtooltipkeyflagged"
-  placement="top"
   title={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Remove from Saved"

@@ -5,7 +5,8 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
+
+import type {ThunkActionFunc} from 'types/store';
 
 export function getSelfHostedProducts(): ThunkActionFunc<Promise<boolean | ServerError>> {
     return async (dispatch) => {

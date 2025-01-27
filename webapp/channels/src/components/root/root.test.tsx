@@ -32,14 +32,12 @@ jest.mock('mattermost-redux/client/rudder', () => ({
     RudderTelemetryHandler: jest.fn(),
 }));
 
-jest.mock('mattermost-redux/client/rudder', () => {
-    const actual = jest.requireActual('mattermost-redux/client/rudder');
+jest.mock('rudder-sdk-js', () => {
     return {
-        ...actual,
-        rudderAnalytics: {
-            ...actual.rudderAnalytics,
-            ready: jest.fn((callback) => callback()),
-        },
+        identify: jest.fn(),
+        load: jest.fn(),
+        page: jest.fn(),
+        ready: jest.fn((callback) => callback()),
     };
 });
 

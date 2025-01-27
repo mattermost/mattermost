@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel
 
 describe('Archived channels', () => {
@@ -24,7 +23,7 @@ describe('Archived channels', () => {
         });
     });
 
-    it.skip('MM-T1721 Archive channel posts menu should have copy link and reply options', () => {
+    it('MM-T1721 Archive channel posts menu should have copy link and reply options', () => {
         // # Click to add a channel description
         //   Note that it is invisible until the mouse hovers it, which is unfeasible in Cypress
         //   https://docs.cypress.io/api/commands/hover

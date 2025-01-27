@@ -72,7 +72,7 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
 
 export function checkIfErrorsMatchElements(errors: Record<string, string> = {}, elements: DialogElement[] = []) {
     for (const name in errors) {
-        if (!errors.hasOwnProperty(name)) {
+        if (!Object.hasOwn(errors, name)) {
             continue;
         }
         for (const elem of elements) {
