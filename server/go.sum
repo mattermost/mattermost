@@ -67,8 +67,8 @@ github.com/bits-and-blooms/bloom/v3 v3.7.0 h1:VfknkqV4xI+PsaDIsoHueyxVDZrfvMn56j
 github.com/bits-and-blooms/bloom/v3 v3.7.0/go.mod h1:VKlUSvp0lFIYqxJjzdnSsZEw4iHb1kOL2tfHTgyJBHg=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
-github.com/blevesearch/bleve/v2 v2.4.4 h1:RwwLGjUm54SwyyykbrZs4vc1qjzYic4ZnAnY9TwNl60=
-github.com/blevesearch/bleve/v2 v2.4.4/go.mod h1:fa2Eo6DP7JR+dMFpQe+WiZXINKSunh7WBtlDGbolKXk=
+github.com/blevesearch/bleve/v2 v2.4.4-0.20250115090822-cbafdca08538 h1:61w7gtAsihs4iJEc0d65SgDrr4+XhzjHvwZd1r5oXQo=
+github.com/blevesearch/bleve/v2 v2.4.4-0.20250115090822-cbafdca08538/go.mod h1:Ah9SCMQTsRHCgaNKyuUzbnJLZ9UL8lZSQ03sVs8TmMM=
 github.com/blevesearch/bleve_index_api v1.2.1 h1:IuXwLvmyp7I7+e0FOA68gcHHLfzSQ4AqQ8wVab5uxk0=
 github.com/blevesearch/bleve_index_api v1.2.1/go.mod h1:rKQDl4u51uwafZxFrPD1R7xFOwKnzZW7s/LSeK4lgo0=
 github.com/blevesearch/geo v0.1.20 h1:paaSpu2Ewh/tn5DKn/FB5SzvH0EWupxHEIwbCk/QPqM=
@@ -101,8 +101,8 @@ github.com/blevesearch/zapx/v14 v14.3.11 h1:pg+c/YFzMJ32GkOwLzH/HAQ/GBr6y1Ar7/K5
 github.com/blevesearch/zapx/v14 v14.3.11/go.mod h1:qqyuR0u230jN1yMmE4FIAuCxmahRQEOehF78m6oTgns=
 github.com/blevesearch/zapx/v15 v15.3.18 h1:yJcQnQyHGNF6rAiwq85OHn3HaXo26t7vgd83RclEw7U=
 github.com/blevesearch/zapx/v15 v15.3.18/go.mod h1:vXRQzJJvlGVCdmOD5hg7t7JdjUT5DmDPhsAfjvtzIq8=
-github.com/blevesearch/zapx/v16 v16.1.10 h1:moxlODQYuwqsXWK7Yyj40Wr1G8A4QKB32+fz3OLlEDU=
-github.com/blevesearch/zapx/v16 v16.1.10/go.mod h1:Xtloe2uqSXH2j3yrQr9yGiHwz3Hz/fpHn5szTqpyizs=
+github.com/blevesearch/zapx/v16 v16.1.11-0.20250107152255-021e66397612 h1:LhORiqEVyUPUrVETzmmVuT0Yudsz2R3qGLFJWUpMsQo=
+github.com/blevesearch/zapx/v16 v16.1.11-0.20250107152255-021e66397612/go.mod h1:+FIylxb+5Z/sFVmNaGpppGLHKBMUEnPSbkKoi+izER8=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
 github.com/bsm/ginkgo/v2 v2.12.0/go.mod h1:SwYbGRRDovPVboqFv0tPTcG1sN61LM1Z4ARdbAV9g4c=

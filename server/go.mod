@@ -10,7 +10,7 @@ require (
 	github.com/avct/uasurfer v0.0.0-20240501094946-ca0c4d1e541b
 	github.com/aws/aws-sdk-go v1.55.6
 	github.com/blang/semver/v4 v4.0.0
-	github.com/blevesearch/bleve/v2 v2.4.4
+	github.com/blevesearch/bleve/v2 v2.4.4-0.20250115090822-cbafdca08538
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.2
@@ -117,7 +117,7 @@ require (
 	github.com/blevesearch/zapx/v13 v13.3.11 // indirect
 	github.com/blevesearch/zapx/v14 v14.3.11 // indirect
 	github.com/blevesearch/zapx/v15 v15.3.18 // indirect
-	github.com/blevesearch/zapx/v16 v16.1.10 // indirect
+	github.com/blevesearch/zapx/v16 v16.1.11-0.20250107152255-021e66397612 // indirect
 	github.com/corpix/uarand v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
