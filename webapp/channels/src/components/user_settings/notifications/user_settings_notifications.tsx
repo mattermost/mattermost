@@ -7,7 +7,8 @@ import React from 'react';
 import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import type {OnChangeValue, StylesConfig} from 'react-select';
+import type {InputProps, OnChangeValue, StylesConfig} from 'react-select';
+import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
@@ -335,7 +336,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     };
 
     setStateValue = (key: string, value: string | boolean): void => {
-        const data: { [key: string]: string | boolean } = {};
+        const data: {[key: string]: string | boolean } = {};
         data[key] = value;
         this.setState((prevState) => ({...prevState, ...data}));
     };
@@ -492,6 +493,19 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.props.closeModal();
     };
 
+    Input = (props: InputProps) => {
+        const ariaProps = {
+            'aria-labelledby': 'settingTitle',
+            'aria-describedby': 'extraInfo',
+        };
+
+        return (
+            <components.Input
+                {...props}
+                {...ariaProps}
+            />);
+    };
+
     createKeywordsWithNotificationSection = () => {
         const serverError = this.state.serverError;
         const user = this.props.user;
@@ -596,9 +610,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             DropdownIndicator: () => null,
                             Menu: () => null,
                             MenuList: () => null,
+                            Input: this.Input,
                         }}
-                        aria-labelledby='settingTitle'
-                        aria-describedby='extraInfo'
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
                         inputValue={this.state.customKeysWithNotificationInputValue}
@@ -748,7 +761,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                 tooltipMessageBlocked={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.disabledTooltipMessage',
                     defaultMessage:
-                        'This feature is available on the Professional plan',
+                    'This feature is available on the Professional plan',
                 })}
                 titleAdminPreTrial={this.props.intl.formatMessage({
                     id: 'user.settings.notifications.keywordsWithHighlight.userModal.titleAdminPreTrial',
