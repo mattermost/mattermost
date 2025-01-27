@@ -218,6 +218,6 @@ package-windows: package-prep
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/windows
 
-package: package-linux package-osx package-windows
+package: package-linux package-osx
 	rm -rf tmpprepackaged
 	rm -rf $(DIST_PATH)
