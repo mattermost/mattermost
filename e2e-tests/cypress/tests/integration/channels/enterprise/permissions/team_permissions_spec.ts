@@ -148,7 +148,7 @@ describe('Team Permissions', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Click on create new channel at LHS
-        cy.uiBrowseOrCreateChannel('Create new channel').click();
+        cy.uiBrowseOrCreateChannel('Create new channel');
 
         // * Verify that the create private channel is disabled
         cy.findByRole('dialog', {name: 'Create a new channel'}).find('#public-private-selector-button-P').should('have.class', 'disabled');

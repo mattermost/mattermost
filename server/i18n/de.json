@@ -2995,60 +2995,8 @@
     "translation": "Systemkonsole ist im Hochverfügbarkeitsmodus nur lesbar, außer ReadOnlyConfig ist in der Konfigurationsdatei deaktiviert."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unbekanntes Ausgabeformat {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Konnte den Anhang nicht in die ZIP-Datei kopieren."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Konnte den Anhang nicht dem CSV-Export hinzufügen."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Konnte temporäre CSV-Exportdatei nicht erstellen."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Konnte den Header nicht dem CSV-Export hinzufügen."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Konnte Metadaten nicht der ZIP-Datei hinzufügen."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Konnte Metadaten nicht in JSON konvertieren."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Konnte eine Nachricht nicht exportieren."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Konnte die ZIP-Exportdatei nicht erstellen."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Hochgeladene Datei wurde aus dem Global-Relay-Export entfernt, da sie zu groß zum Versenden war."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Konnte temporäre Exportdatei nicht öffnen."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Konnte die temporäre Global-Relay-Exportdatei nicht erneut lesen."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance Funktionalität durch die aktuelle Lizenz deaktiviert. Bitte kontaktiere deinen Systemadministrator wegen eines Enterprise Lizenzupgrades."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Konnte Export-Vorlagen nicht laden. Bitte erneut versuchen."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3111,10 +3059,6 @@
     "translation": "{{.Backend}} ist nicht gestartet"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Konnte ElasticSearch-Index nicht löschen"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "{{.Backend}} Suche ist auf diesem Server deaktiviert"
   },
@@ -3140,11 +3084,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Deine Lizenz unterstützt Elasticsearch nicht."
+    "translation": "Deine Mattermost-Lizenz unterstützt keine indizierte Suche."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "Elasticsearch-Server-URL oder -Benutzername hat sich geändert. Bitte gib das Elasticsearch-Passwort erneut ein, um die Verbindung zu testen."
+    "translation": "Die URL des Such-Servers oder der Benutzername hat sich geändert. Bitte gib das Passwort erneut ein, um die Verbindung zu testen."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3229,58 +3173,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "Fehler beim Abrufen der Gruppen für Benutzer"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Konnte den Anhang nicht dem Global-Relay-Export hinzufügen."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Konnte die ZIP-Datei nicht schließen."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Konnte die EML-Datei nicht erstellen."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Konnte EML-Datei nicht generieren."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Konnte E-Mail nicht an Global Relay liefern."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Konnte die Von-Adresse der E-Mail nicht setzen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Konnte die Nachricht der E-Mail nicht setzen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Konnte die Nachricht der E-Mail nicht schreiben."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Konnte die Informationen der E-Mail nicht lesen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Konnte die An-Adresse der E-Mail nicht setzen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Konnte die Informationen für die temporäre Exportdatei nicht abrufen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Konnte die E-Mail nicht aus der temporären Datei abrufen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Konnte die temporäre Exportdatei nicht öffnen."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3712,7 +3604,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Search-Einstellung IndexingEnabled muss true sein, wenn Search-Indizierung aktiviert ist"
+    "translation": "{{.EnableIndexing}} Einstellung muss auf Wahr gesetzt werden, wenn {{.Searching}} auf Wahr gesetzt ist"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4924,7 +4816,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Search IndexingEnabled muss auf wahr gesetzt sein, wenn die Suche-Einstellung AutocompleteEnabled auf wahr steht"
+    "translation": "{{.EnableIndexing}} Einstellung muss auf Wahr gesetzt werden, wenn {{.Autocomplete}} auf Wahr gesetzt ist"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -5004,7 +4896,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Fehler beim Abrufen des Elasticsearch-Index"
+    "translation": "Aktualisierung der Suchindizes fehlgeschlagen"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -5037,14 +4929,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Kanäle"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Konnte die EML-Datei nicht erstellen."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Konnte die EML-Datei nicht erstellen"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5979,10 +5863,6 @@
     "translation": "Konnte Direkt- oder Gruppen-Nachrichtenkanäle nicht löschen"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Fehler beim Abrufen der Mitglieder im Kanals während der spezifizierten Zeitperiode."
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Konnte das Emoji nicht speichern."
   },
@@ -6273,10 +6153,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " hat eine Datei hochgeladen."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Konnte Export nicht in XML konvertieren."
   },
   {
     "id": "app.job.update.app_error",
@@ -6697,10 +6573,6 @@
   {
     "id": "model.command.is_valid.plugin_id.app_error",
     "translation": "Ungültige Plugin ID."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Verbindung zum SMTP Server konnte nicht hergestellt werden"
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
@@ -8182,18 +8054,6 @@
     "translation": "Wir haben eine ungültige Signatur in der Antwort des Identity Providers erhalten. Bitte kontaktiere deinen Systemadministrator."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Konnte Dateiinformation für einen Nachricht nicht abrufen."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Konnte Dateiinformation für einen Nachricht nicht abrufen."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Konnte Dateiinformation für einen Nachricht nicht abrufen."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "konnte nicht migrieren."
   },
@@ -8238,24 +8098,12 @@
     "translation": "Wir sind bei der Durchführen der angefragten Operation auf einen Fehler gestoßen."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Konnte globale Austauschdatei nicht schreiben."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Konnte CSV-Datei nicht schreiben."
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Zeitüberschreitung beim Warten auf eine Cluster-Antwort"
   },
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Fehler beim Ordnen der JSON Abfragen aufgetreten"
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Konnte Exportdatei nicht schreiben."
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
@@ -9891,7 +9739,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Dein Elasticsearch-Kanal-Indexschema ist veraltet. Es wird empfohlen, deinen Kanal-Index neu zu erstellen.\nKlicke auf die Schaltfläche \"Kanal Index neu erstellen\" im [Elasticsearch-Abschnitt in der Systemkonsole] ({{.ElasticsearchSection}}), um das Problem zu beheben.\nWeitere Informationen findest du im Mattermost Changelog."
+    "translation": "Das Indexschema deines Suchkanals ist nicht mehr aktuell. Wir empfehlen dir, deinen Kanalindex neu zu erstellen.\nKlicke auf die Schaltfläche \"Index der Kanäle neu erstellen\" auf der [Elasticsearch-Seite über die Systemkonsole] ({{.ElasticsearchSection}}), um dieses Problem zu beheben.\nWeitere Informationen findest du im Mattermost Changelog."
   },
   {
     "id": "bleveengine.purge_list.not_implemented",
@@ -9899,7 +9747,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Fehler beim Löschen eines Elasticsearch-Index"
+    "translation": "Fehler beim Löschen eines Suchindex"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -9988,14 +9836,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Benutzeranzahl konnte nicht ermittelt werden"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Konnte die ZIP-Datei nicht schließen"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Kann nicht zum Anfang der Exportdatei suchen."
   },
   {
     "id": "store.sql_team.save_team.existing.app_error",
@@ -10430,5 +10270,125 @@
   {
     "id": "model.post.is_valid.message_length.app_error",
     "translation": "Die Post Message Eigenschaft ist länger als die maximal erlaubte Länge."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Konfiguration kann nicht gefiltert werden."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Verzeichnis für benutzerdefinierte Emoji-Bilder kann nicht erstellt werden"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Die Benutzerrollen stimmen nicht mit dem Gaststatus überein."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Die Eigenschaftsgruppe Benutzerdefinierte Profilattribute kann nicht registriert werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht erstellt werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Feldgrenze für benutzerdefinierte Profilattribute erreicht"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Benutzerdefinierte Profilattributwerte können nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht gelöscht werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld nicht gefunden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Eigenschaftswerte können nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Kann keinen Eigenschaftswert erstellen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Eigenschaftswert kann nicht aktualisiert werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Benutzerdefinierte Profilattributfelder können nicht durchsucht werden"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Die angeforderten Dateien konnten nicht aus der Datenbank entfernt werden"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Es ist nicht möglich, die Dateiinfos nach IDs für den Post-Editierverlauf zu erhalten."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Die Dateianhänge des Posts konnten nicht wiederhergestellt werden."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Es ist nicht gelungen, die alte Postversion zu erhalten."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Du hast nicht die erforderlichen Berechtigungen."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Die angegebene Post History ID entspricht keinem History Item für den angegebenen Post."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Die angegebene Post History ID entspricht nicht einem Post History Item."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Die Rolle kann nicht gelöscht werden."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Berechne die Kanalaktivität: {{.NumCompleted}}/{{.NumChannels}} Kanäle abgeschlossen."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exportieren von Kanalinformationen für {{.NumChannels}} Kanäle."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Die Berechnung der Kanalexportdaten ist fehlgeschlagen."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Ein Wert aus dem Datenfeld des Jobs konnte nicht konvertiert werden."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Die Länge der Link-Metadaten-URL ist {{ .Length }} Zeichen lang und überschreitet damit die maximale Grenze von {{ .MaxLength }} Zeichen."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Ungültiges Eigenschaftsfeld: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Ungültiger Eigenschaftswert: {{.FieldName}} ({{.Reason}})."
   }
 ]

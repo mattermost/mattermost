@@ -3000,60 +3000,8 @@
     "translation": "Системна консоль стає доступною лише для читання, коли увімкнено Високу доступність, якщо ReadOnlyConfig не вимкнено у конфігураційному файлі."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Невідомий формат виводу {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Не вдалося скопіювати вкладення в zip-файл."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Не вдалося додати вкладення до CSV-експорту."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Не вдалося створити тимчасовий файл експорту CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Не вдалося додати заголовок до експорту CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Не вдалося додати файл метаданих до zip-файлу."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Не вдається конвертувати метадані в json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Не вдалось експортувати допис."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Не вдалося створити файл експорту у форматі zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Завантажений файл було вилучено з експорту Global Relay, оскільки він був занадто великим для надсилання."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Не вдалось відкрити тимчасовий файл експорту."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Не вдалося перечитати тимчасовий файл експорту Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Функції відповідності відключено поточною ліцензією. Щоб оновити корпоративну ліцензію, зверніться до системного адміністратора."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Не вдалося завантажити шаблони експорту. Спробуйте ще раз."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3116,10 +3064,6 @@
     "translation": "{{.Backend}} не запущено"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Не вдалося видалити індекс Elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Пошук {{.Backend}} вимкнено на цьому сервері"
   },
@@ -3145,11 +3089,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Ваша ліцензія не підтримує Elasticsearch."
+    "translation": "Ваша ліцензія Mattermost не підтримує індексований пошук."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL-адреса сервера Elasticsearch або ім'я користувача змінилися. Будь ласка, введіть пароль Elasticsearch ще раз, щоб перевірити з'єднання."
+    "translation": "Змінено URL-адресу сервера пошуку або ім'я користувача. Будь ласка, введіть пароль ще раз, щоб перевірити з'єднання."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3234,58 +3178,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "помилка при отриманні груп для користувача"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Не вдалося додати вкладення до експорту Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Не вдалось закрити zip-файл."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Не вдалося створити файл eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Не вдається згенерувати дані eml-файлу."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Не вдалося доставити електронний лист до Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Не вдалося встановити адресу відправника електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Не вдалося встановити повідомлення електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Не вдалося написати повідомлення електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Не вдалося прочитати інформацію електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Не вдалося встановити адресу отримувача електронної пошти."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Не вдалося отримати інформацію про тимчасовий файл експорту."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Не вдається отримати електронний лист з тимчасового файлу."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Не вдалось відкрити тимчасовий файл для експорту."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3717,7 +3609,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Налаштування пошуку EnableIndexing повинно бути увімкнено, якщо Elasticsearch EnableSearching увімкнено"
+    "translation": "Параметр {{.EnableIndexing}} має бути увімкнений, якщо {{.Searching}} увімкнено"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4885,7 +4777,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Налаштування пошуку EnableIndexing повинен бути увімкнений, якщо Elasticsearch EnableAutocomplete увімкнений"
+    "translation": "Параметр {{.EnableIndexing}} має бути увімкнений, якщо {{.Autocomplete}} увімкнено"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4965,7 +4857,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Не вдалося оновити індекси Elasticsearch"
+    "translation": "Не вдалося оновити пошукові індекси"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -4998,14 +4890,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Не вдалося створити шаблон {{.Backend}} для каналів"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Не вдалося створити файл попередження."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Не вдалось створити zip-файл"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5980,10 +5864,6 @@
     "translation": "Неможливо перемістити канали приватних або групових повідомлень"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Не вдалося отримати користувачів у каналі за вказаний період часу."
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Неможливо зберегти емодзі."
   },
@@ -6262,10 +6142,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " додав(ла) файл."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Не вдалось конвертувати експорт у XML."
   },
   {
     "id": "app.job.update.app_error",
@@ -8405,7 +8281,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Схема індекса Elasticsearch для вашого каналу застаріла. Рекомендується перегенерувати індекс каналів.\nНатисніть кнопку `Перегенерувати індекс каналів` у [розділі Elasticsearch у системній консолі]({{.ElasticsearchSection}}), щоб виправити цю проблему. \nДивіться журнал змін Mattermost для отримання додаткової інформації."
+    "translation": "Схема індексу каналу пошуку застаріла. Ми рекомендуємо регенерувати індекс вашого каналу.\nНатисніть кнопку `Перебудувати індекс каналів` на [сторінці Elasticsearch через Системну консоль]({{.ElasticsearchSection}}), щоб вирішити цю проблему.\nДетальнішу інформацію ви можете переглянути у журналі змін Mattermost."
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
@@ -9220,10 +9096,6 @@
     "translation": "Не вдалося перевірити межі зображення. Роздільна здатність занадто висока."
   },
   {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Не вдалось записати файл експорту."
-  },
-  {
     "id": "ent.cluster.json_encode.error",
     "translation": "Сталася помилка під час серіалізації JSON-запиту"
   },
@@ -9468,16 +9340,8 @@
     "translation": "Не вдалося проіндексувати пакет файлів."
   },
   {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Не вдалося записати csv-файл."
-  },
-  {
     "id": "bleveengine.stop_file_index.error",
     "translation": "Не вдалося закрити індекс файлу."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Не вдалося закрити zip-файл"
   },
   {
     "id": "common.parse_error_int64",
@@ -9600,10 +9464,6 @@
     "translation": "{{.OtherItems}} і {{.LastItem}}"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Не вдається підключитися до smtp-сервера"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.license_disable.app_error",
     "translation": "Ваша ліцензія не підтримує вихідні з'єднання oauth."
   },
@@ -9712,20 +9572,12 @@
     "translation": "Користувачів LDAP не знайдено, перевірте фільтр користувачів і сертифікати."
   },
   {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Не вдалося отримати інформацію про файл для поста."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Не вдалося отримати інформацію про файл для поста."
-  },
-  {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
     "translation": "Для наданої аудиторії вже існує вихідне oauth-з'єднання: {{ .Audience }}"
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Не вдалося видалити індекс Elasticsearch"
+    "translation": "Не вдалося видалити пошуковий індекс"
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
@@ -9762,10 +9614,6 @@
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "не можуть мігрувати."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Не вдалося отримати інформацію про файл для поста."
   },
   {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
@@ -9818,10 +9666,6 @@
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
     "translation": "Усі параметри IncludeDeletedChannels повинні мати однакове значення."
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Не вдається спробувати запустити файл експорту."
   },
   {
     "id": "model.scheme.is_valid.app_error",
@@ -10288,10 +10132,6 @@
     "translation": "Неправильний Ідентифікатор користувача."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Не вдалося записати файл глобальної ретрансляції."
-  },
-  {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Невірне поле CreateAt для сесії."
   },
@@ -10361,7 +10201,7 @@
   },
   {
     "id": "app.scheduled_post.error_reason.thread_deleted",
-    "translation": "Обговорення видалено"
+    "translation": "Обговорення було видалено"
   },
   {
     "id": "app.scheduled_post.error_reason.unable_to_send",
@@ -10434,5 +10274,17 @@
   {
     "id": "model.draft.is_valid.message_length.app_error",
     "translation": "Властивість Draft Message довша за максимально допустиму довжину."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Не вдалось створити каталог для власних зображень емодзі"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Ролі користувачів не відповідають статусу гостя."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Не вдалося відфільтрувати конфігурацію."
   }
 ]

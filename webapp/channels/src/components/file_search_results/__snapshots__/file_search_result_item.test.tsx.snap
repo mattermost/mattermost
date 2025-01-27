@@ -13,6 +13,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       fileInfo={
         Object {
           "archived": false,
+          "channel_id": "channel_id",
           "clientId": "client_id",
           "create_at": 1,
           "delete_at": 1,
@@ -110,6 +111,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       fileInfo={
         Object {
           "archived": false,
+          "channel_id": "channel_id",
           "clientId": "client_id",
           "create_at": 1,
           "delete_at": 1,
@@ -216,6 +218,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       fileInfo={
         Object {
           "archived": false,
+          "channel_id": "channel_id",
           "clientId": "client_id",
           "create_at": 1,
           "delete_at": 1,
@@ -322,6 +325,7 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
       fileInfo={
         Object {
           "archived": false,
+          "channel_id": "channel_id",
           "clientId": "client_id",
           "create_at": 1,
           "delete_at": 1,

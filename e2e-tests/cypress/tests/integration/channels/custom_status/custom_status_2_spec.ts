@@ -28,15 +28,23 @@ describe('Custom Status - Setting a Custom Status', () => {
 
     it('MM-T3836_1 should open status dropdown', () => {
         // # Click on the sidebar header to open status dropdown
-        cy.get('.MenuWrapper .status-wrapper').click();
+        cy.uiGetSetStatusButton().click();
 
         // * Check if the status dropdown opens
-        cy.get('#statusDropdownMenu').should('exist');
+        cy.uiGetStatusMenuContainer();
+
+        // # Close the status dropdown
+        cy.get('body').type('{esc}');
     });
 
     it('MM-T3836_2 Custom status modal opens with 5 default statuses listed', () => {
+        // # Click on the sidebar header to open status dropdown
+        cy.uiGetSetStatusButton().click();
+
+        // * Check if the status dropdown opens
+        cy.uiGetStatusMenuContainer().findByText('Set custom status').click();
+
         // # Open custom status modal
-        cy.get('#statusDropdownMenu li#status-menu-custom-status').click();
         cy.get('#custom_status_modal').should('exist');
 
         // * Check if all the default suggestions exist
@@ -111,13 +119,15 @@ describe('Custom Status - Setting a Custom Status', () => {
             trigger('mouseover');
 
         // * Custom status tooltip should be visible
-        cy.get('#custom-status-tooltip').should('exist');
+        cy.get('#custom-status-tooltip').should('exist').and('be.visible');
 
-        // * Tooltip should contain the correct custom status emoji
-        cy.get('#custom-status-tooltip .custom-status span.emoticon').invoke('attr', 'data-emoticon').should('contain', customStatus.emoji);
+        cy.get('#custom-status-tooltip').within(() => {
+            // * Tooltip should contain the correct custom status emoji
+            cy.get(`span[data-emoticon="${customStatus.emoji}"]`).should('exist');
 
-        // * Tooltip should contain the correct custom status text
-        cy.get('#custom-status-tooltip .custom-status span.custom-status-text').should('have.text', customStatus.text);
+            // * Tooltip should contain the correct custom status text
+            cy.findByText(customStatus.text).should('exist');
+        });
     });
 
     it('MM-T3836_8 should open custom status modal when emoji in LHS header is clicked', () => {
