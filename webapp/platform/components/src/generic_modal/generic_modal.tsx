@@ -205,15 +205,16 @@ export class GenericModal extends React.PureComponent<Props, State> {
                     tabIndex={this.props.tabIndex || 0}
                     className='GenericModal__wrapper-enter-key-press-catcher'
                 >
-                    {this.props.compassDesign && (
-                        <Modal.Header closeButton={true}>
-                            <div className='GenericModal__header__text_container'>
+                    <Modal.Header closeButton={true}>
+                        <div className='GenericModal__header__text_container'>
+                            {this.props.compassDesign && (
                                 <>
                                     {headerText}
                                     {this.props.headerInput}
                                 </>
-
-                                {this.props.modalSubheaderText &&
+                            )}
+                            {
+                                this.props.modalSubheaderText &&
                                     <div className='modal-subheading-container'>
                                         <p
                                             id='genericModalSubheading'
@@ -222,10 +223,9 @@ export class GenericModal extends React.PureComponent<Props, State> {
                                             {this.props.modalSubheaderText}
                                         </p>
                                     </div>
-                                }
-                            </div>
-                        </Modal.Header>
-                    )}
+                            }
+                        </div>
+                    </Modal.Header>
                     <Modal.Body className={classNames({divider: this.props.bodyDivider, 'overflow-visible': this.props.bodyOverflowVisible})}>
                         {this.props.compassDesign ? (
                             this.props.errorText && (
