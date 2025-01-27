@@ -94,6 +94,14 @@ const NewSearchContainer = styled.div`
     }
 `;
 
+const NewSearchTerms = styled.span`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    margin-right: 32px;
+    white-space: nowrap;
+`;
+
 const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
@@ -260,7 +268,7 @@ const NewSearch = (): JSX.Element => {
                     />
                 </SearchTypeBadge>
             )}
-            {searchTerms && <span tabIndex={0}>{searchTerms}</span>}
+            {searchTerms && <NewSearchTerms tabIndex={0}>{searchTerms}</NewSearchTerms>}
             {searchTerms && (
                 <CloseIcon
                     data-testid='input-clear'
