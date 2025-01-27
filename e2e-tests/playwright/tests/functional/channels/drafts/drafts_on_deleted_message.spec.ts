@@ -62,7 +62,7 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     }
 
     // # Open the last post in the channel sent by admin again
-    await lastPostByAdmin.threadFooter.reply();
+    await lastPostByAdmin.body.click();
 
     // * Verify drafts in user's textbox is still visible
     const rhsTextboxValue = await sidebarRight.postCreate.getInputValue();

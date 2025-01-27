@@ -76,7 +76,7 @@ type Props = SuggestionProps<Channel> & {
     teammateIsBot: boolean;
 }
 
-const SearchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, ref) => {
+const SearchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>((props, ref) => {
     const {item, teammateIsBot, currentUserId} = props;
 
     const nameObject = itemToName(item, currentUserId);

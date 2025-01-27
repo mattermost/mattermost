@@ -74,7 +74,7 @@ type WebConnConfig struct {
 	XForwardedFor string
 
 	// These aren't necessary to be exported to api layer.
-	sequence         int
+	sequence         int64
 	activeQueue      chan model.WebSocketMessage
 	deadQueue        []*model.WebSocketEvent
 	deadQueuePointer int
@@ -161,9 +161,20 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		return nil, fmt.Errorf("invalid connection id: %s", cfg.ConnectionID)
 	}
 
+	// Sequence_number must be sent with connection id.
+	// A client must be either non-compliant or fully compliant.
+	if seqVal == "" {
+		return nil, errors.New("sequence number not present in websocket request")
+	}
+
+	seqNum, err := strconv.ParseInt(seqVal, 10, 0)
+	if err != nil {
+		return nil, fmt.Errorf("invalid sequence number %s in query param: %w", seqVal, err)
+	}
+
 	// This does not handle reconnect requests across nodes in a cluster.
 	// It falls back to the non-reliable case in that scenario.
-	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID)
+	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
 	if res == nil {
 		// If the connection is not present, then we assume either timeout,
 		// or server restart. In that case, we set a new one.
@@ -175,17 +186,7 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		cfg.deadQueuePointer = res.DeadQueuePointer
 		cfg.Active = false
 		cfg.ReuseCount = res.ReuseCount
-		// Now we get the sequence number
-		if seqVal == "" {
-			// Sequence_number must be sent with connection id.
-			// A client must be either non-compliant or fully compliant.
-			return nil, errors.New("sequence number not present in websocket request")
-		}
-		var err error
-		cfg.sequence, err = strconv.Atoi(seqVal)
-		if err != nil || cfg.sequence < 0 {
-			return nil, fmt.Errorf("invalid sequence number %s in query param: %v", seqVal, err)
-		}
+		cfg.sequence = seqNum
 	}
 	return cfg, nil
 }
@@ -235,7 +236,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		send:               cfg.activeQueue,
 		deadQueue:          cfg.deadQueue,
 		deadQueuePointer:   cfg.deadQueuePointer,
-		Sequence:           int64(cfg.sequence),
+		Sequence:           cfg.sequence,
 		WebSocket:          cfg.WebSocket,
 		lastUserActivityAt: model.GetMillis(),
 		UserId:             cfg.Session.UserId,
@@ -655,34 +656,48 @@ func (wc *WebConn) addToDeadQueue(msg *model.WebSocketEvent) {
 // hasMsgLoss indicates whether the next wanted sequence is right after
 // the latest element in the dead queue, which would mean there is no message loss.
 func (wc *WebConn) hasMsgLoss() bool {
+	return _hasMsgLoss(wc.deadQueue, wc.deadQueuePointer, wc.Sequence)
+}
+
+// isInDeadQueue checks whether a given sequence number is in the dead queue or not.
+// And if it is, it returns that index.
+func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
+	return _isInDeadQueue(wc.deadQueue, seq)
+}
+
+// _hasMsgLoss is called from 2 places: wc.hasMsgLoss and ps.GetWSQueues.
+// It is done this way because it is difficult to call wc.hasMsgLoss from inside
+// ps.GetWSQueues
+func _hasMsgLoss(deadQueue []*model.WebSocketEvent, deadQueuePtr int, seq int64) bool {
 	var index int
 	// deadQueuePointer = 0 means either no msg written or the pointer
 	// has rolled over to its starting position.
-	if wc.deadQueuePointer == 0 {
-		// If last entry is nil, it means no msg is written.
-		if wc.deadQueue[deadQueueSize-1] == nil {
+	if deadQueuePtr == 0 {
+		// If first entry is nil, it means no msg is written.
+		if deadQueue[0] == nil {
 			return false
 		}
 		// If it's not nil, that means it has rolled over to start, and we
 		// check the last position.
 		index = deadQueueSize - 1
 	} else { // deadQueuePointer != 0 means it's somewhere in the middle.
-		index = wc.deadQueuePointer - 1
+		index = deadQueuePtr - 1
 	}
 
-	if wc.deadQueue[index].GetSequence() == wc.Sequence-1 {
+	if deadQueue[index].GetSequence() == seq-1 {
 		return false
 	}
 	return true
 }
 
-// isInDeadQueue checks whether a given sequence number is in the dead queue or not.
-// And if it is, it returns that index.
-func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
+// _isInDeadQueue is called from 2 places: wc.isInDeadQueue and ps.GetWSQueues.
+// It is done this way because it is difficult to call wc.isInDeadQueue from inside
+// ps.GetWSQueues
+func _isInDeadQueue(deadQueue []*model.WebSocketEvent, seq int64) (bool, int) {
 	// Can be optimized to traverse backwards from deadQueuePointer
 	// Hopefully, traversing 128 elements is not too much overhead.
 	for i := 0; i < deadQueueSize; i++ {
-		elem := wc.deadQueue[i]
+		elem := deadQueue[i]
 		if elem == nil {
 			return false, 0
 		}

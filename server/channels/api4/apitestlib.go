@@ -561,6 +561,7 @@ func (th *TestHelper) CreateConnectedWebSocketClient(t *testing.T) *model.WebSoc
 	require.NoError(t, err)
 	require.NotNil(t, wsClient, "webSocketClient should not be nil")
 	wsClient.Listen()
+	t.Cleanup(wsClient.Close)
 
 	// Ensure WS is connected. First event should be hello message.
 	select {

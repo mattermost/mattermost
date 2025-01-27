@@ -246,7 +246,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('submitAttribute() should have called saveCustomProfileAttribute', async () => {
-        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: true});
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({1: 'Updated Value'});
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,

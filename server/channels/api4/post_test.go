@@ -69,38 +69,44 @@ func TestCreatePost(t *testing.T) {
 	require.NotNil(t, childPost)
 
 	t.Run("with file uploaded by same user", func(t *testing.T) {
-		fileResp, _, err := client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		postWithFiles, _, err := client.CreatePost(context.Background(), &model.Post{
+		postWithFiles, resp, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with files",
 			FileIds:   model.StringArray{fileId},
 		})
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
 
-		actualPostWithFiles, _, err := client.GetPost(context.Background(), postWithFiles.Id, "")
+		actualPostWithFiles, resp, err := client.GetPost(context.Background(), postWithFiles.Id, "")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
 	t.Run("with file uploaded by different user", func(t *testing.T) {
-		fileResp, _, err := th.SystemAdminClient.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
+		fileResp, resp, err := th.SystemAdminClient.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		postWithFiles, _, err := client.CreatePost(context.Background(), &model.Post{
+		postWithFiles, resp, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with files",
 			FileIds:   model.StringArray{fileId},
 		})
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		assert.Empty(t, postWithFiles.FileIds)
 
-		actualPostWithFiles, _, err := client.GetPost(context.Background(), postWithFiles.Id, "")
+		actualPostWithFiles, resp, err := client.GetPost(context.Background(), postWithFiles.Id, "")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Empty(t, actualPostWithFiles.FileIds)
 	})
 
@@ -109,22 +115,23 @@ func TestCreatePost(t *testing.T) {
 		require.Nil(t, appErr)
 		fileId := fileInfo.Id
 
-		postWithFiles, _, err := client.CreatePost(context.Background(), &model.Post{
+		postWithFiles, resp, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with files",
 			FileIds:   model.StringArray{fileId},
 		})
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
 
-		actualPostWithFiles, _, err := client.GetPost(context.Background(), postWithFiles.Id, "")
+		actualPostWithFiles, resp, err := client.GetPost(context.Background(), postWithFiles.Id, "")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
 	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
 		wsClient := th.CreateConnectedWebSocketClient(t)
-		t.Cleanup(wsClient.Close)
 
 		defaultPerms := th.SaveDefaultRolePermissions()
 		defer th.RestoreDefaultRolePermissions(defaultPerms)
@@ -178,7 +185,6 @@ func TestCreatePost(t *testing.T) {
 				if event.EventType() == model.WebsocketEventEphemeralMessage {
 					gotEvents++
 				}
-				//t.Logf("Got event: %v", event)
 			case <-timeout:
 				require.Fail(t, fmt.Sprintf("Got %d ephemeral messages, expected: %d", gotEvents, expectedEvents))
 				break
@@ -196,7 +202,7 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
 		})
 
-		_, postResp, postErr := client.CreatePost(context.Background(), &model.Post{
+		rpost, postResp, postErr := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with props",
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
@@ -204,46 +210,52 @@ func TestCreatePost(t *testing.T) {
 
 		require.Error(t, postErr)
 		CheckBadRequestStatus(t, postResp)
+		assert.Nil(t, rpost)
 	})
 
 	t.Run("invalid post type", func(t *testing.T) {
 		post := basicPost()
 		post.Type = model.PostTypeSystemGeneric
-		_, resp, err := client.CreatePost(context.Background(), post)
+		rpost, resp, err := client.CreatePost(context.Background(), post)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, rpost)
 	})
 
 	t.Run("invalid rootId type", func(t *testing.T) {
 		post := basicPost()
 		post.RootId = "junk"
-		_, resp, err := client.CreatePost(context.Background(), post)
+		rpost, resp, err := client.CreatePost(context.Background(), post)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, rpost)
 	})
 
 	t.Run("RootId points to child post", func(t *testing.T) {
 		post := basicPost()
 		post.RootId = childPost.Id
-		_, resp, err := client.CreatePost(context.Background(), post)
+		rpost, resp, err := client.CreatePost(context.Background(), post)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, rpost)
 	})
 
 	t.Run("invalid ChannelId", func(t *testing.T) {
 		post := basicPost()
 		post.ChannelId = "junk"
-		_, resp, err := client.CreatePost(context.Background(), post)
+		rpost, resp, err := client.CreatePost(context.Background(), post)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, rpost)
 	})
 
 	t.Run("invalid ChannelId", func(t *testing.T) {
 		post := basicPost()
 		post.ChannelId = model.NewId()
-		_, resp, err := client.CreatePost(context.Background(), post)
+		rpost, resp, err := client.CreatePost(context.Background(), post)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, rpost)
 	})
 
 	t.Run("invalid payload", func(t *testing.T) {
@@ -253,20 +265,23 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("not logged in", func(t *testing.T) {
-		_, err := client.Logout(context.Background())
+		resp, err := client.Logout(context.Background())
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
 		post := basicPost()
-		_, resp, err := client.CreatePost(context.Background(), post)
+		rpost, resp, err := client.CreatePost(context.Background(), post)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
+		assert.Nil(t, rpost)
 	})
 
 	t.Run("CreateAt should match the one provided in the request", func(t *testing.T) {
 		post := basicPost()
 		post.CreateAt = 123
-		rpost, _, err := th.SystemAdminClient.CreatePost(context.Background(), post)
+		rpost, resp, err := th.SystemAdminClient.CreatePost(context.Background(), post)
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		assert.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
 	})
 

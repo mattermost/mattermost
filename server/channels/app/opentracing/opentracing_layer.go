@@ -1438,23 +1438,6 @@ func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(rctx requ
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *platform.CheckConnResult {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckWebConn")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.CheckWebConn(userID, connectionID)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CleanUpAfterPostDeletion")
@@ -20069,6 +20052,28 @@ func (a *OpenTracingAppLayer) WriteFileContext(ctx context.Context, fr io.Reader
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.WriteFileContext(ctx, fr, path)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ZipReader")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.ZipReader(path, deflate)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
