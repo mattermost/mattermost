@@ -8,11 +8,11 @@
         max-width: 496px;
         max-height: 80vh;
         background-color: var(--center-channel-bg);
-        box-shadow: var(--elevation-4);
+        box-shadow: var(--elevation-4), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
     }
     &.AsSubMenu {
         & .MuiPaper-root {
-            box-shadow: var(--elevation-5);
+            box-shadow: var(--elevation-5), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
         }
     }
 }
