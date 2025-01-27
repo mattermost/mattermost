@@ -30,6 +30,19 @@
     "url": "git+https://github.com/mattermost/mattermost.git",
     "directory": "webapp/platform/mattermost-redux"
   },
+  "dependencies": {
+    "@mattermost/client": "10.6.0",
+    "@mattermost/types": "10.6.0",
+    "@redux-devtools/extension": "^3.2.3",
+    "lodash": "^4.17.21",
+    "moment-timezone": "^0.5.38",
+    "redux": "^4.2.0",
+    "redux-batched-actions": "^0.5.0",
+    "redux-thunk": "^2.4.2",
+    "serialize-error": "^11.0.3",
+    "shallow-equals": "^1.0.0",
+    "timezones.json": "^1.7.1"
+  },
   "peerDependencies": {
     "typescript": "^4.3.0 || ^5.0.0"
   },
