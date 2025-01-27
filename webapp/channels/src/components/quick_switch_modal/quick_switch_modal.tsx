@@ -219,7 +219,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                 modalHeaderText={modalHeaderText}
                 modalSubheaderText={modalSubheaderText}
                 compassDesign={true}
-                focusOriginElement={this.props.focusOriginElement}
+                focusOriginElementOnClose={'SidebarChannelNavigatorButton'}
             >
                 <div className='channel-switcher__suggestion-box'>
                     <i className='icon icon-magnify icon-16'/>

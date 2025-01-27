@@ -46,8 +46,7 @@ export type Props = {
     footerDivider?: boolean;
     appendedContent?: React.ReactNode;
     headerButton?: React.ReactNode;
-    focusableElement?: React.RefObject<HTMLElement>; // a ref to the object you want to set the focus in the modal
-    focusOriginElement?: React.RefObject<HTMLElement>; // a ref to the element that triggered the focus of the modal
+    focusOriginElementOnClose?: string; // the DOM id of the element that triggered the focus of the modal
 };
 
 type State = {
@@ -77,39 +76,32 @@ export class GenericModal extends React.PureComponent<Props, State> {
         };
     }
 
-    componentDidMount(): void {
-        const {focusableElement} = this.props;
-        if (focusableElement && focusableElement.current) {
-            setTimeout(() => {
-                document.dispatchEvent(
-                    new CustomEvent(CUSTOM_FOCUS_EVENT, {
-                        detail: {
-                            target: focusableElement.current,
-                            keyboardOnly: false,
-                        },
-                    }),
-                );
-            }, 0);
-        }
-    }
-
     onHide = () => {
         this.setState({show: false});
 
         // send focus event to element that triggered the opening of the modal
-        const {focusOriginElement} = this.props;
-        if (focusOriginElement && focusOriginElement.current) {
-            setTimeout(() => {
-                document.dispatchEvent(
-                    new CustomEvent(CUSTOM_FOCUS_EVENT, {
-                        detail: {
-                            target: focusOriginElement.current,
-                            keyboardOnly: false,
-                        },
-                    }),
-                );
-            }, 0);
+        const {focusOriginElementOnClose} = this.props;
+
+        // get the element that will get the focus with the id
+        if (!focusOriginElementOnClose) {
+            return;
         }
+
+        const originElement = document.getElementById(focusOriginElementOnClose);
+        if (!originElement) {
+            return;
+        }
+
+        setTimeout(() => {
+            document.dispatchEvent(
+                new CustomEvent(CUSTOM_FOCUS_EVENT, {
+                    detail: {
+                        target: originElement,
+                        keyboardOnly: false,
+                    },
+                }),
+            );
+        }, 0);
     };
 
     handleCancel = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
