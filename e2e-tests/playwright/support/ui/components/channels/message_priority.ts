@@ -24,8 +24,8 @@ export default class MessagePriority {
         this.standardPriorityOption = this.priorityMenu.locator('#menu-item-priority-standard');
 
         // Priority dialog elements
-        this.priorityDialog = container.page().getByRole('dialog');
-        this.dialogHeader = this.priorityDialog.locator('h2.modal-title');
+        this.priorityDialog = container.page().getByRole('menu');
+        this.dialogHeader = this.priorityDialog.locator('.modal-title');
     }
 
     async clickPriorityIcon() {

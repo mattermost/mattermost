@@ -42,7 +42,7 @@ test('Post actions tab support', async ({pw, axe}) => {
     await post.postMenu.toBeVisible();
 
     // # Open the dot menu
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.dotMenuButton.press('Enter');
 
     // * Dot menu should be visible and have focused
     await channelsPage.postDotMenu.toBeVisible();
