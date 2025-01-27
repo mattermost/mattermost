@@ -16,10 +16,10 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {moveChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {closeModal} from 'actions/views/modals';
 
-import type {Props} from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
-import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
-
 import type {GlobalState} from 'types/store';
+
+import type {Props} from './convert_gm_to_channel_modal';
+import ConvertGmToChannelModal from './convert_gm_to_channel_modal';
 
 function makeMapStateToProps() {
     const getProfilesInChannel = makeGetProfilesInChannel();

@@ -537,7 +537,7 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
     getStateFromConfig(config: Props['config']) {
         const state = {
             enable: config?.PluginSettings?.Enable,
-            enableUploads: config?.PluginSettings?.EnableUploads,
+            enableUploads: true, //config?.PluginSettings?.EnableUploads,
             allowInsecureDownloadUrl: config?.PluginSettings?.AllowInsecureDownloadURL,
             enableMarketplace: config?.PluginSettings?.EnableMarketplace,
             enableRemoteMarketplace: config?.PluginSettings?.EnableRemoteMarketplace,

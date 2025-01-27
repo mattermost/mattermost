@@ -89,9 +89,7 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
 
     return (
         <Menu.Container
-            hideTooltipWhenDisabled={true}
             menuButtonTooltip={{
-                id: 'channelHeaderTooltip',
                 text: channelTitle as string,
             }}
             menuButton={{

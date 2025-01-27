@@ -60,7 +60,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                 channel={channel}
             />
             <MenuItemToggleMuteChannel
-                user={user}
+                userID={user.id}
                 channel={channel}
                 isMuted={isMuted}
             />
