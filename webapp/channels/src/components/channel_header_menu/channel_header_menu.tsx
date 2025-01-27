@@ -25,7 +25,6 @@ import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 
 import * as Menu from 'components/menu';
 
-// import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 import {Constants} from 'utils/constants';
 
 import ChannelDirectMenu from './channel_header_menu_items/channel_header_direct_menu';
@@ -157,7 +156,6 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
             {isMobile &&
                 <MobileChannelHeaderPlugins
                     channel={channel}
-                    isDropdown={true}
                 />}
         </Menu.Container>
     );

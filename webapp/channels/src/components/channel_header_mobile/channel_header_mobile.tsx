@@ -8,8 +8,6 @@ import {FormattedMessage} from 'react-intl';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-// import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
-
 import ChannelInfoButton from './channel_info_button';
 import CollapseLhsButton from './collapse_lhs_button';
 import CollapseRhsButton from './collapse_rhs_button';
@@ -17,7 +15,6 @@ import ShowSearchButton from './show_search_button';
 import UnmuteChannelButton from './unmute_channel_button';
 
 import ChannelHeaderMenu from '../channel_header_menu/channel_header_menu';
-import MobileChannelHeaderPlug from '../channel_header_menu/menu_items/mobile_channel_header_plugins';
 
 type Props = {
     channel?: Channel;
@@ -113,12 +110,6 @@ export default class ChannelHeaderMobile extends React.PureComponent<Props> {
                             />
                         )}
                         <ShowSearchButton/>
-                        {channel && (
-                            <MobileChannelHeaderPlug
-                                channel={channel}
-                                isDropdown={false}
-                            />
-                        )}
                         <CollapseRhsButton/>
                     </div>
                 </div>

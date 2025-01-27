@@ -19,10 +19,9 @@ import * as Menu from 'components/menu';
 
 import {createCallContext} from 'utils/apps';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {MobileChannelHeaderButtonAction} from 'types/store/plugins';
 
 type Props = {
-    isDropdown: boolean;
     channel: Channel;
 }
 
@@ -35,62 +34,28 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
 
     const createAppButton = (binding: AppBinding) => {
         const onClick = () => fireAppAction(binding);
-        if (props.isDropdown) {
-            return (
-                <Menu.Item
-                    id={'mobileChannelHeaderItem' + binding.app_id + binding.location}
-                    onClick={onClick}
-                    labels={<span>{binding.label}</span>}
-                />
-            );
-        }
         return (
-            <li className='flex-parent--center'>
-                <button
-                    id={`${binding.app_id}_${binding.location}`}
-                    className='navbar-toggle navbar-right__icon'
-                    onClick={onClick}
-                >
-                    <span className='icon navbar-plugin-button'>
-                        <img
-                            alt={binding.label}
-                            src={binding.icon}
-                            width='16'
-                            height='16'
-                        />
-                    </span>
-                </button>
-            </li>
+            <Menu.Item
+                id={'mobileChannelHeaderItem' + binding.app_id + binding.location}
+                onClick={onClick}
+                labels={<span>{binding.label}</span>}
+            />
         );
     };
 
-    const createButton = (plug: PluginComponent) => {
+    const createButton = (plug: MobileChannelHeaderButtonAction) => {
         const onClick = () => fireAction(plug);
-        if (props.isDropdown) {
-            return (
-                <Menu.Item
-                    id={'mobileChannelHeaderItem' + plug.id}
-                    onClick={onClick}
-                    labels={<span>{plug.dropdownText}</span>}
-                />
-            );
-        }
-
         return (
-            <li className='flex-parent--center'>
-                <button
-                    className='navbar-toggle navbar-right__icon'
-                    onClick={onClick}
-                >
-                    <span className='icon navbar-plugin-button'>
-                        {plug.icon}
-                    </span>
-                </button>
-            </li>
+            <Menu.Item
+                key={'mobileChannelHeaderItem' + plug.id}
+                id={'mobileChannelHeaderItem' + plug.id}
+                onClick={onClick}
+                labels={<span>{plug.dropdownText}</span>}
+            />
         );
     };
 
-    const createList = (plugs: PluginComponent[]) => {
+    const createList = (plugs: MobileChannelHeaderButtonAction[]) => {
         return plugs.map(createButton);
     };
 
@@ -98,7 +63,7 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
         return bindings.map(createAppButton);
     };
 
-    const fireAction = (plug: PluginComponent) => {
+    const fireAction = (plug: MobileChannelHeaderButtonAction) => {
         return plug.action?.(props.channel, channelMember);
     };
 
@@ -157,10 +122,6 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
         return createButton(components[0]);
     } else if (components.length === 0 && bindings.length === 1) {
         return createAppButton(bindings[0]);
-    }
-
-    if (!props.isDropdown) {
-        return <></>;
     }
 
     const plugItems = createList(components);
