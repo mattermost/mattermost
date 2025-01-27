@@ -19,6 +19,11 @@ function getPlatformPackagesContainingCommand(scriptName) {
             return false;
         }
 
+        if (workspace === 'platform/mattermost-redux') {
+            // The workspace version of mattermost-redux is still part of the web app and built by it
+            return false;
+        }
+
         const workspacePackageFile = fs.readFileSync(path.join(workspace, 'package.json'));
         const workspacePackageJson = JSON.parse(workspacePackageFile, 'utf8');
 
