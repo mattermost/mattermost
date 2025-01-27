@@ -42,7 +42,7 @@ type Props = {
     isMobile: boolean;
     isFavorite: boolean;
     isLicensedForLDAPGroups: boolean;
-    pluginItems: ReactNode;
+    pluginItems: ReactNode[];
 };
 
 const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems}: Props) => {
@@ -167,7 +167,9 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
 
             <Menu.Separator/>
             <ChannelMoveToSubMenu channel={channel}/>
-            <MenuItemPluginItems pluginItems={pluginItems}/>
+            {!isMobile && (
+                <MenuItemPluginItems pluginItems={pluginItems}/>
+            )}
             <Menu.Separator/>
             {!isDefault && !isGuest(user.roles) && (
                 <MenuItemLeaveChannel

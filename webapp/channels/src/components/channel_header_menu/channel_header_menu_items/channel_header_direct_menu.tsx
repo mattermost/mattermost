@@ -23,7 +23,7 @@ type Props = {
     isMuted: boolean;
     isMobile: boolean;
     isFavorite: boolean;
-    pluginItems: ReactNode;
+    pluginItems: ReactNode[];
 };
 
 const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems}: Props) => {

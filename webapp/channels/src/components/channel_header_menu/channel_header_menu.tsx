@@ -153,10 +153,12 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
                 />
             )}
 
-            {isMobile &&
+            {isMobile && pluginItems}
+            {isMobile && (
                 <MobileChannelHeaderPlugins
                     channel={channel}
-                />}
+                />
+            )}
         </Menu.Container>
     );
 }

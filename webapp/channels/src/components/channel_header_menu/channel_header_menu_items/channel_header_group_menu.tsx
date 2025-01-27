@@ -30,7 +30,7 @@ type Props = {
     isMuted: boolean;
     isMobile: boolean;
     isFavorite: boolean;
-    pluginItems: ReactNode;
+    pluginItems: ReactNode[];
 };
 
 const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems}: Props) => {

@@ -13,7 +13,7 @@ import {
 import * as Menu from 'components/menu';
 
 type Props = {
-    pluginItems: ReactNode;
+    pluginItems: ReactNode[];
 };
 
 const PluginsSubmenu = (props: Props) => {
