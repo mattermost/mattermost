@@ -49,4 +49,6 @@ const (
 	MigrationKeyAddChannelBookmarksPermissions         = "add_channel_bookmarks_permissions"
 	MigrationKeyAddManageJobAncillaryPermissions       = "add_manage_jobs_ancillary_permissions"
 	RestrictAccessToChannelConversionToPublic          = "restrict_access_to_channel_conversion_to_public_permissions"
+	MigrationKeyFixReadAuditsPermission                = "fix_read_audits_permission"
+	MigrationRemoveGetAnalyticsPermission              = "remove_get_analytics_permission"
 )
