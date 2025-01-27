@@ -10382,5 +10382,13 @@
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Anpassade profilattribut-fältet hittades inte"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Det går inte att få filinformationen genom id för postredigeringshistorik."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Det går inte att hämta värden för egenskaper"
   }
 ]
