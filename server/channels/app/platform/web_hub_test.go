@@ -68,7 +68,9 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	th.Service.Start(nil)
+	err = th.Service.Start(nil)
+	require.NoError(t, err)
+
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -92,7 +94,9 @@ func TestHubStopRaceCondition(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	th.Service.Start(nil)
+	err = th.Service.Start(nil)
+	require.NoError(t, err)
+
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
 
@@ -234,10 +238,17 @@ func TestHubConnIndex(t *testing.T) {
 		wc4.SetConnectionID(model.NewId())
 		wc4.SetSession(&model.Session{})
 
-		connIndex.Add(wc1)
-		connIndex.Add(wc2)
-		connIndex.Add(wc3)
-		connIndex.Add(wc4)
+		err := connIndex.Add(wc1)
+		require.NoError(t, err)
+
+		err = connIndex.Add(wc2)
+		require.NoError(t, err)
+
+		err = connIndex.Add(wc3)
+		require.NoError(t, err)
+
+		err = connIndex.Add(wc4)
+		require.NoError(t, err)
 
 		t.Run("Basic", func(t *testing.T) {
 			assert.True(t, connIndex.Has(wc1))
@@ -324,8 +335,11 @@ func TestHubConnIndex(t *testing.T) {
 		})
 
 		t.Run("adding", func(t *testing.T) {
-			connIndex.Add(wc1)
-			connIndex.Add(wc3)
+			err := connIndex.Add(wc1)
+			require.NoError(t, err)
+
+			err = connIndex.Add(wc3)
+			require.NoError(t, err)
 
 			assert.Len(t, connIndex.byConnectionId, 2)
 			assert.Equal(t, wc1, connIndex.ForConnection(wc1ID))
@@ -375,9 +389,14 @@ func TestHubConnIndex(t *testing.T) {
 		wc3.SetConnectionID(wc3ID)
 		wc3.SetSession(&model.Session{})
 
-		connIndex.Add(wc1)
-		connIndex.Add(wc2)
-		connIndex.Add(wc3)
+		err := connIndex.Add(wc1)
+		require.NoError(t, err)
+
+		err = connIndex.Add(wc2)
+		require.NoError(t, err)
+
+		err = connIndex.Add(wc3)
+		require.NoError(t, err)
 
 		t.Run("ForChannel", func(t *testing.T) {
 			require.Len(t, connIndex.byChannelID, 1)
@@ -441,9 +460,14 @@ func TestHubConnIndexIncorrectRemoval(t *testing.T) {
 	wc4.SetConnectionID("last")
 	wc4.SetSession(&model.Session{})
 
-	connIndex.Add(wc2)
-	connIndex.Add(wc3)
-	connIndex.Add(wc4)
+	err := connIndex.Add(wc2)
+	require.NoError(t, err)
+
+	err = connIndex.Add(wc3)
+	require.NoError(t, err)
+
+	err = connIndex.Add(wc4)
+	require.NoError(t, err)
 
 	for _, wc := range connIndex.ForUser(wc2.UserId) {
 		if !connIndex.Has(wc) {
@@ -489,9 +513,14 @@ func TestHubConnIndexInactive(t *testing.T) {
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
 
-	connIndex.Add(wc1)
-	connIndex.Add(wc2)
-	connIndex.Add(wc3)
+	err := connIndex.Add(wc1)
+	require.NoError(t, err)
+
+	err = connIndex.Add(wc2)
+	require.NoError(t, err)
+
+	err = connIndex.Add(wc3)
+	require.NoError(t, err)
 
 	assert.Nil(t, connIndex.RemoveInactiveByConnectionID(wc2.UserId, "conn2"))
 	assert.Equal(t, connIndex.ForUserActiveCount(wc2.UserId), 1)
@@ -502,7 +531,10 @@ func TestHubConnIndexInactive(t *testing.T) {
 	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
 
 	wc3.lastUserActivityAt = model.GetMillis()
-	connIndex.Add(wc3)
+
+	err = connIndex.Add(wc3)
+	require.NoError(t, err)
+
 	connIndex.RemoveInactiveConnections()
 	assert.True(t, connIndex.Has(wc3))
 	assert.Len(t, connIndex.ForUser(wc2.UserId), 2)
@@ -568,7 +600,9 @@ func TestHubIsRegistered(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Service.Start(nil)
+	err = th.Service.Start(nil)
+	require.NoError(t, err)
+
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -603,7 +637,9 @@ func TestHubWebConnCount(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Service.Start(nil)
+	err = th.Service.Start(nil)
+	require.NoError(t, err)
+
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
@@ -639,8 +675,15 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	b.ResetTimer()
 	b.Run("Add", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			connIndex.Add(wc1)
-			connIndex.Add(wc2)
+			err := connIndex.Add(wc1)
+			if err != nil {
+				return
+			}
+
+			err = connIndex.Add(wc2)
+			if err != nil {
+				return
+			}
 
 			b.StopTimer()
 			connIndex.Remove(wc1)
@@ -652,8 +695,16 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	b.Run("Remove", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			b.StopTimer()
-			connIndex.Add(wc1)
-			connIndex.Add(wc2)
+			err := connIndex.Add(wc1)
+			if err != nil {
+				return
+			}
+
+			err = connIndex.Add(wc2)
+			if err != nil {
+				return
+			}
+
 			b.StartTimer()
 
 			connIndex.Remove(wc1)
@@ -681,7 +732,9 @@ func TestHubConnIndexRemoveMemLeak(t *testing.T) {
 		close(ch)
 	})
 
-	connIndex.Add(wc)
+	err := connIndex.Add(wc)
+	require.NoError(t, err)
+
 	connIndex.Remove(wc)
 
 	runtime.GC()
@@ -704,7 +757,10 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
 
-	th.Service.Start(nil)
+	err := th.Service.Start(nil)
+	if err != nil {
+		return
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
