@@ -83,9 +83,12 @@ jobs:
       - name: Report retried tests (pull request)
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.name == 'Server CI PR' }}
+        env:
+          TEST_NAME: "${{ matrix.test.name }}"
+          FLAKY_SUMMARY: "${{ steps.report.outputs.flaky_summary }}"
         with:
           script: |
-            const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Failing job: [github.com/mattermost/mattermost:${{ matrix.test.name }}](${{ github.event.workflow_run.html_url }})\n* Double check your code to ensure you haven't introduced a flaky test.\n* If this seems to be unrelated to your changes, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.\n\n${{ steps.report.outputs.flaky_summary }}`
+            const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Failing job: [github.com/mattermost/mattermost:${process.env.TEST_NAME}](${{ github.event.workflow_run.html_url }})\n* Double check your code to ensure you haven't introduced a flaky test.\n* If this seems to be unrelated to your changes, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.\n\n${process.env.FLAKY_SUMMARY}`
 
             await github.rest.issues.createComment({
               issue_number: ${{ steps.incoming-pr.outputs.NUMBER }},
