@@ -555,6 +555,25 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 	}
 }
 
+func (th *TestHelper) CreateConnectedWebSocketClient(t *testing.T) *model.WebSocketClient {
+	t.Helper()
+	wsClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	require.NotNil(t, wsClient, "webSocketClient should not be nil")
+	wsClient.Listen()
+	t.Cleanup(wsClient.Close)
+
+	// Ensure WS is connected. First event should be hello message.
+	select {
+	case ev := <-wsClient.EventChannel:
+		require.Equal(t, model.WebsocketEventHello, ev.EventType())
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "hello event was not received within the timeout period")
+	}
+
+	return wsClient
+}
+
 func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken)
 }

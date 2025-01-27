@@ -62,4 +62,19 @@ func TestFileInfoStoreCache(t *testing.T) {
 		cachedStore.FileInfo().GetForPost("123", true, true, true)
 		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 2)
 	})
+
+	t.Run("GetByIds cache test", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		fileInfos, err := cachedStore.FileInfo().GetByIds([]string{"123"}, true, true)
+		require.NoError(t, err)
+		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})
+		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetByIds", 1)
+		assert.Equal(t, fileInfos, []*model.FileInfo{&fakeFileInfo})
+		cachedStore.FileInfo().GetForPost("123", true, true, true)
+		mockStore.FileInfo().(*mocks.FileInfoStore).AssertNumberOfCalls(t, "GetForPost", 1)
+	})
 }
