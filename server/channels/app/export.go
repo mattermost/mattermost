@@ -154,9 +154,9 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		teamNames, appErr = a.exportAllTeams(ctx, job, writer)
 	} else {
 		ctx.Logger().Info("Bulk export: exporting a single team")
-		team, err := a.Srv().Store().Team().GetByName(*opts.TeamName)
-		if err != nil {
-			return model.NewAppError("BulkExport", "app.team.get.app_error", nil, "team="+*opts.TeamName, http.StatusInternalServerError).Wrap(err)
+		team, errGet := a.Srv().Store().Team().GetByName(*opts.TeamName)
+		if errGet != nil {
+			return model.NewAppError("BulkExport", "app.team.get.app_error", nil, "team="+*opts.TeamName, http.StatusInternalServerError).Wrap(errGet)
 		}
 		teamId = team.Id
 		teamNames, appErr = a.exportSingleTeam(ctx, job, writer, teamId)
