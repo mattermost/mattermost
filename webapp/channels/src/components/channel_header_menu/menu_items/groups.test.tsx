@@ -16,7 +16,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import Groups from './groups';
 
-describe('components/ChannelHeaderMenu/MenuItems/EditConversationHeader', () => {
+describe('components/ChannelHeaderMenu/MenuItems/Groups', () => {
     beforeEach(() => {
         jest.spyOn(modalActions, 'openModal');
 

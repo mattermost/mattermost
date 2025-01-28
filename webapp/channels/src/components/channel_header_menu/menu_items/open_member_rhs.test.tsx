@@ -15,7 +15,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import OpenMembersRHS from './open_members_rhs';
 
-describe('components/ChannelHeaderMenu/MenuItems/ToggleChannelMembersRHS', () => {
+describe('components/ChannelHeaderMenu/MenuItems/OpenMembersRHS', () => {
     beforeEach(() => {
         // jest.spyOn(rhsActions, 'closeRightHandSide').mockImplementation(() => () => ({data: true}));
         jest.spyOn(rhsActions, 'showChannelMembers').mockReturnValue(() => Promise.resolve({data: true}));

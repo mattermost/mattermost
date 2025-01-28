@@ -15,7 +15,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import EditChannelSettings from './edit_channel_settings';
 
-describe('components/ChannelHeaderMenu/MenuItems/EditConversationHeader', () => {
+describe('components/ChannelHeaderMenu/MenuItems/EditChannelSettings', () => {
     const channel = TestHelper.getChannelMock();
     beforeEach(() => {
         jest.spyOn(modalActions, 'openModal');
