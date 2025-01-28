@@ -45,7 +45,6 @@ export type Props = WrappedComponentProps & {
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
         closeRightHandSide: () => void;
     };
-    focusOriginElement: React.RefObject<HTMLElement>;
 };
 
 type State = {

@@ -3,9 +3,9 @@
 
 import debounce from 'lodash/debounce';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -18,12 +18,9 @@ import Constants from 'utils/constants';
 
 import List from './list';
 import {USERS_PER_PAGE} from './list/list';
-import {
-    isGroupChannel,
-    optionValue,
-} from './types';
-import type {
-    OptionValue} from './types';
+import {isGroupChannel, optionValue} from './types';
+import type {OptionValue} from './types';
+import './more_direct_channels.scss';
 
 export type Props = {
     currentUserId: string;
@@ -32,26 +29,14 @@ export type Props = {
     searchTerm: string;
     users: UserProfile[];
     totalCount: number;
-
-    /*
-    * List of current channel members of existing channel
-    */
     currentChannelMembers?: UserProfile[];
-
-    /*
-    * Whether the modal is for existing channel or not
-    */
     isExistingChannel: boolean;
-
-    /*
-    * The mode by which direct messages are restricted, if at all.
-    */
     restrictDirectMessage?: string;
     onModalDismissed?: () => void;
     onExited?: () => void;
     actions: {
-        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<ActionResult>;
-        getProfilesInTeam: (teamId: string, page: number, perPage?: number | undefined, sort?: string | undefined, options?: any) => Promise<ActionResult>;
+        getProfiles: (page?: number, perPage?: number, options?: any) => Promise<ActionResult>;
+        getProfilesInTeam: (teamId: string, page: number, perPage?: number, sort?: string, options?: any) => Promise<ActionResult>;
         loadProfilesMissingStatus: (users: UserProfile[]) => void;
         getTotalUsersStats: () => void;
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
@@ -77,6 +62,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     exitToChannel?: string;
     multiselect: React.RefObject<MultiSelect<OptionValue>>;
     selectedItemRef: React.RefObject<HTMLDivElement>;
+
     constructor(props: Props) {
         super(props);
 
@@ -85,15 +71,11 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         this.selectedItemRef = React.createRef();
 
         const values: OptionValue[] = [];
-
         if (props.currentChannelMembers) {
-            for (let i = 0; i < props.currentChannelMembers.length; i++) {
-                const user = Object.assign({}, props.currentChannelMembers[i]);
-
+            for (const user of props.currentChannelMembers) {
                 if (user.id === props.currentUserId) {
                     continue;
                 }
-
                 values.push(optionValue(user));
             }
         }
@@ -107,11 +89,19 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         };
     }
 
+    componentDidMount() {
+        this.loadModalData();
+    }
+
     loadModalData = () => {
         this.getUserProfiles();
         this.props.actions.getTotalUsersStats();
         this.props.actions.loadProfilesMissingStatus(this.props.users);
     };
+
+    componentDidUpdate(prevProps: Props) {
+        this.updateFromProps(prevProps);
+    }
 
     updateFromProps(prevProps: Props) {
         if (prevProps.searchTerm !== this.props.searchTerm) {
@@ -123,60 +113,49 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             } else {
                 const teamId = this.props.restrictDirectMessage === 'any' ? '' : this.props.currentTeamId;
 
-                this.searchTimeoutId = setTimeout(
-                    async () => {
-                        this.setUsersLoadingState(true);
-                        const [{data: profilesData}, {data: groupChannelsData}] = await Promise.all([
-                            this.props.actions.searchProfiles(searchTerm, {team_id: teamId}),
-                            this.props.actions.searchGroupChannels(searchTerm),
-                        ]);
-                        if (profilesData) {
-                            this.props.actions.loadStatusesForProfilesList(profilesData);
-                        }
-                        if (groupChannelsData) {
-                            this.props.actions.loadProfilesForGroupChannels(groupChannelsData);
-                        }
-                        this.resetPaging();
-                        this.setUsersLoadingState(false);
-                    },
-                    Constants.SEARCH_TIMEOUT_MILLISECONDS,
-                );
+                this.searchTimeoutId = setTimeout(async () => {
+                    this.setUsersLoadingState(true);
+                    const [{data: profilesData}, {data: groupChannelsData}] = await Promise.all([
+                        this.props.actions.searchProfiles(searchTerm, {team_id: teamId}),
+                        this.props.actions.searchGroupChannels(searchTerm),
+                    ]);
+                    if (profilesData) {
+                        this.props.actions.loadStatusesForProfilesList(profilesData);
+                    }
+                    if (groupChannelsData) {
+                        this.props.actions.loadProfilesForGroupChannels(groupChannelsData);
+                    }
+                    this.resetPaging();
+                    this.setUsersLoadingState(false);
+                }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
             }
         }
 
-        if (
-            prevProps.users.length !== this.props.users.length
-        ) {
+        if (prevProps.users.length !== this.props.users.length) {
             this.props.actions.loadProfilesMissingStatus(this.props.users);
         }
     }
 
-    componentDidUpdate(prevProps: Props) {
-        this.updateFromProps(prevProps);
-    }
+    setUsersLoadingState = (loadingState: boolean) => {
+        this.setState({loadingUsers: loadingState});
+    };
 
     handleHide = () => {
         this.props.actions.setModalSearchTerm('');
         this.setState({show: false});
     };
 
-    setUsersLoadingState = (loadingState: boolean) => {
-        this.setState({
-            loadingUsers: loadingState,
-        });
-    };
-
     handleExit = () => {
         if (this.exitToChannel) {
             getHistory().push(this.exitToChannel);
         }
-
         this.props.onModalDismissed?.();
         this.props.onExited?.();
     };
 
     handleSubmit = (values = this.state.values) => {
         const {actions} = this.props;
+
         if (this.state.saving) {
             return;
         }
@@ -209,26 +188,22 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         if (isGroupChannel(value)) {
             this.addUsers(value.profiles);
         } else {
-            const values = Object.assign([], this.state.values);
-
-            if (values.indexOf(value) === -1) {
+            const values = [...this.state.values];
+            if (!values.includes(value)) {
                 values.push(value);
             }
-
             this.setState({values});
         }
     };
 
     addUsers = (users: UserProfile[]) => {
-        const values: OptionValue[] = Object.assign([], this.state.values);
+        const values = [...this.state.values];
         const existingUserIds = values.map((user) => user.id);
         for (const user of users) {
-            if (existingUserIds.indexOf(user.id) !== -1) {
-                continue;
+            if (!existingUserIds.includes(user.id)) {
+                values.push(optionValue(user));
             }
-            values.push(optionValue(user));
         }
-
         this.setState({values});
     };
 
@@ -284,46 +259,28 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             />
         );
 
+        const modalHeaderText = (
+            <FormattedMessage
+                id='more_direct_channels.title'
+                defaultMessage='Direct Messages'
+            />
+        );
+
         return (
-            <Modal
-                dialogClassName='a11y__modal more-modal more-direct-channels'
-                show={this.state.show}
-                onHide={this.handleHide}
-                onExited={this.handleExit}
-                onEntered={this.loadModalData}
-                role='none'
-                aria-labelledby='moreDmModalLabel'
+            <GenericModal
                 id='moreDmModal'
+                className='a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal'
+                show={this.state.show}
+                modalHeaderText={modalHeaderText}
+                ariaLabel='moreDmModalLabel'
+                onExited={this.handleExit}
+                compassDesign={true}
+                bodyPadding={false}
             >
-                <Modal.Header closeButton={true}>
-                    <Modal.Title
-                        componentClass='h1'
-                        id='moreDmModalLabel'
-                    >
-                        <FormattedMessage
-                            id='more_direct_channels.title'
-                            defaultMessage='Direct Messages'
-                        />
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body
-                    role='application'
-                >
+                <div role='application'>
                     {body}
-                </Modal.Body>
-                <Modal.Footer className='modal-footer--invisible'>
-                    <button
-                        id='closeModalButton'
-                        type='button'
-                        className='btn btn-tertiary'
-                    >
-                        <FormattedMessage
-                            id='general_button.close'
-                            defaultMessage='Close'
-                        />
-                    </button>
-                </Modal.Footer>
-            </Modal>
+                </div>
+            </GenericModal>
         );
     }
 }
