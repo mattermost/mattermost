@@ -5,7 +5,8 @@ import classNames from 'classnames';
 import type {CSSProperties, RefObject} from 'react';
 import React, {PureComponent, createRef} from 'react';
 import {Tab, Tabs} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -17,7 +18,7 @@ import GifIcon from 'components/widgets/icons/giphy_icon';
 
 const GifPicker = makeAsyncComponent('GifPicker', React.lazy(() => import('components/gif_picker/gif_picker')));
 
-export interface Props {
+export interface Props extends WrappedComponentProps {
     style?: CSSProperties;
     rightOffset?: number;
     topOffset?: number;
@@ -33,9 +34,10 @@ export interface Props {
 type State = {
     emojiTabVisible: boolean;
     filter: string;
+    activeKey: number;
 }
 
-export default class EmojiPickerTabs extends PureComponent<Props, State> {
+class EmojiPickerTabs extends PureComponent<Props, State> {
     private rootPickerNodeRef: RefObject<HTMLDivElement>;
 
     static defaultProps = {
@@ -50,6 +52,7 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
         this.state = {
             emojiTabVisible: true,
             filter: '',
+            activeKey: 1,
         };
 
         this.rootPickerNodeRef = createRef();
@@ -68,7 +71,9 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
     };
 
     render() {
+        const {intl} = this.props;
         let pickerStyle;
+
         if (this.props.style && !(this.props.style.left === 0 && this.props.style.top === 0)) {
             if (this.props.placement === 'top' || this.props.placement === 'bottom') {
                 // Only take the top/bottom position passed by React Bootstrap since we want to be right-aligned
@@ -101,6 +106,11 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                     className={classNames('a11y__popup', 'emoji-picker', {
                         bottom: this.props.placement === 'bottom',
                     })}
+                    role='dialog'
+                    aria-label={this.state.activeKey === 1 ? intl.formatMessage({id: 'emoji_gif_picker.dialog.emojis', defaultMessage: 'Emoji Picker'}) : intl.formatMessage({id: 'emoji_gif_picker.dialog.gifs', defaultMessage: 'GIF Picker'})
+                    }
+
+                    aria-modal='true'
                 >
                     <Tabs
                         id='emoji-picker-tabs'
@@ -108,6 +118,8 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                         justified={true}
                         mountOnEnter={true}
                         unmountOnExit={true}
+                        activeKey={this.state.activeKey}
+                        onSelect={(activeKey) => this.setState({activeKey})}
                     >
                         <EmojiPickerHeader handleEmojiPickerClose={this.handleEmojiPickerClose}/>
                         <Tab
@@ -170,6 +182,10 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
                 className={classNames('a11y__popup', 'emoji-picker', 'emoji-picker--single', {
                     bottom: this.props.placement === 'bottom',
                 })}
+                role='dialog'
+                aria-label={
+                    intl.formatMessage({id: 'emoji_gif_picker.dialog.emojis', defaultMessage: 'Emoji Picker'})}
+                aria-modal='true'
             >
                 <EmojiPickerHeader handleEmojiPickerClose={this.handleEmojiPickerClose}/>
                 <EmojiPicker
@@ -183,3 +199,5 @@ export default class EmojiPickerTabs extends PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(EmojiPickerTabs);

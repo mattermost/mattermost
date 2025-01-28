@@ -71,6 +71,7 @@ export const SidebarCategoryHeader = React.forwardRef((props: Props, ref?: React
                 <div
                     className='SidebarChannelGroupHeader_text'
                     {...dragHandleProps}
+                    tabIndex={-1}
                 >
                     {wrapEmojis(props.displayName)}
                 </div>
