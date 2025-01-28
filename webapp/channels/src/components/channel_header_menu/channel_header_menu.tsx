@@ -157,6 +157,7 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
             {isMobile && (
                 <MobileChannelHeaderPlugins
                     channel={channel}
+                    isDropdown={true}
                 />
             )}
         </Menu.Container>

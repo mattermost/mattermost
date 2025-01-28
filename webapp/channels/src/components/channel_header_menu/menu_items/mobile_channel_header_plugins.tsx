@@ -23,35 +23,70 @@ import type {MobileChannelHeaderButtonAction} from 'types/store/plugins';
 
 type Props = {
     channel: Channel;
+    isDropdown: boolean;
 }
 
 const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
     const mobileComponents = useSelector(getChannelMobileHeaderPluginButtons);
     const channelMember = useSelector(getMyCurrentChannelMembership);
+    const getChannelHeaderBindings = useSelector(makeAppBindingsSelector(AppBindingLocations.CHANNEL_HEADER_ICON));
     const intl = useIntl();
     const dispatch = useDispatch();
-    const getChannelHeaderBindings = useSelector(makeAppBindingsSelector(AppBindingLocations.CHANNEL_HEADER_ICON));
 
     const createAppButton = (binding: AppBinding) => {
         const onClick = () => fireAppAction(binding);
+        if (props.isDropdown) {
+            return (
+                <Menu.Item
+                    key={'mobileChannelHeaderItem' + binding.app_id + binding.location}
+                    onClick={onClick}
+                    labels={<span>{binding.label}</span>}
+                />
+            );
+        }
         return (
-            <Menu.Item
-                id={'mobileChannelHeaderItem' + binding.app_id + binding.location}
-                onClick={onClick}
-                labels={<span>{binding.label}</span>}
-            />
+            <li className='flex-parent--center'>
+                <button
+                    id={`${binding.app_id}_${binding.location}`}
+                    className='navbar-toggle navbar-right__icon'
+                    onClick={onClick}
+                >
+                    <span className='icon navbar-plugin-button'>
+                        <img
+                            alt=''
+                            src={binding.icon}
+                            width='16'
+                            height='16'
+                        />
+                    </span>
+                </button>
+            </li>
         );
     };
-
     const createButton = (plug: MobileChannelHeaderButtonAction) => {
         const onClick = () => fireAction(plug);
+        if (props.isDropdown) {
+            return (
+                <Menu.Item
+                    key={'mobileChannelHeaderItem' + plug.id}
+                    id={'mobileChannelHeaderItem' + plug.id}
+                    onClick={onClick}
+                    labels={<span>{plug.dropdownText}</span>}
+                />
+            );
+        }
+
         return (
-            <Menu.Item
-                key={'mobileChannelHeaderItem' + plug.id}
-                id={'mobileChannelHeaderItem' + plug.id}
-                onClick={onClick}
-                labels={<span>{plug.dropdownText}</span>}
-            />
+            <li className='flex-parent--center'>
+                <button
+                    className='navbar-toggle navbar-right__icon'
+                    onClick={onClick}
+                >
+                    <span className='icon navbar-plugin-button'>
+                        {plug.icon}
+                    </span>
+                </button>
+            </li>
         );
     };
 

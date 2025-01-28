@@ -15,6 +15,7 @@ import ShowSearchButton from './show_search_button';
 import UnmuteChannelButton from './unmute_channel_button';
 
 import ChannelHeaderMenu from '../channel_header_menu/channel_header_menu';
+import MobileChannelHeaderPlugins from '../channel_header_menu/menu_items/mobile_channel_header_plugins';
 
 type Props = {
     channel?: Channel;
@@ -107,6 +108,12 @@ export default class ChannelHeaderMobile extends React.PureComponent<Props> {
                         {channel && (
                             <ChannelInfoButton
                                 channel={channel}
+                            />
+                        )}
+                        {channel && (
+                            <MobileChannelHeaderPlugins
+                                channel={channel}
+                                isDropdown={false}
                             />
                         )}
                         <ShowSearchButton/>

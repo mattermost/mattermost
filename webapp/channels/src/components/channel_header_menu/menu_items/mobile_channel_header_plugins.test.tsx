@@ -1,6 +1,237 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+import {useDispatch} from 'react-redux';
+
+import {AppBindingLocations} from 'mattermost-redux/constants/apps';
+
+import * as appsActions from 'actions/apps';
+import * as channelActions from 'actions/views/channel';
+import * as modalActions from 'actions/views/modals';
+
+import {WithTestMenuContext} from 'components/menu/menu_context_test';
+
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import MobileChannelHeaderPlugins from './mobile_channel_header_plugins';
+
+describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, with no extended components', () => {
+    beforeEach(() => {
+        jest.spyOn(modalActions, 'openModal');
+        jest.spyOn(channelActions, 'leaveChannel');
+
+        jest.spyOn(appsActions, 'handleBindingClick');
+        jest.spyOn(appsActions, 'openAppsModal');
+        jest.spyOn(appsActions, 'postEphemeralCallResponseForChannel');
+
+        // Mock useDispatch to return our custom dispatch function
+        jest.spyOn(require('react-redux'), 'useDispatch');
+    });
+
+    // afterEach(() => {
+    //     jest.clearAllMocks();
+    // });
+
+    // test('renders the component correctly', () => {
+    //     const channel = TestHelper.getChannelMock();
+
+    //     renderWithContext(
+    //         <WithTestMenuContext>
+    //             <MobileChannelHeaderPlugins channel={channel}/>
+    //         </WithTestMenuContext>, {},
+    //     );
+    //     expect(screen.getByRole('div')).toBeEmptyDOMElement();
+
+    //     // fireEvent.click(menuItem); // Simulate click on the menu item
+    //     // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+    //     // expect(channelActions.leaveChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+    //     // expect(channelActions.leaveChannel).toHaveBeenCalledWith(channel.id);
+    // });
+
+    // test('renders the component correctly, with one extended component', () => {
+    //     const state = {
+    //         plugins: {
+    //             components: {
+    //                 MobileChannelHeaderButton: [
+    //                     {
+    //                         id: 'someid',
+    //                         pluginId: 'pluginid',
+    //                         icon: <i className='fa fa-anchor'/>,
+    //                         action: jest.fn(),
+    //                         dropdownText: 'some dropdown text',
+    //                     },
+    //                 ],
+    //             },
+    //         },
+    //     };
+
+    //     const channel = TestHelper.getChannelMock();
+
+    //     renderWithContext(
+    //         <WithTestMenuContext>
+    //             <MobileChannelHeaderPlugins channel={channel}/>
+    //         </WithTestMenuContext>, state,
+    //     );
+
+    //     const menuItem = screen.getByText('some dropdown text');
+    //     expect(menuItem).toBeInTheDocument();
+    // });
+
+    // test('renders the component correctly, with two extended component', () => {
+    //     const state = {
+    //         plugins: {
+    //             components: {
+    //                 MobileChannelHeaderButton: [
+    //                     {
+    //                         id: 'someid',
+    //                         pluginId: 'pluginid',
+    //                         icon: <i className='fa fa-anchor'/>,
+    //                         action: jest.fn(),
+    //                         dropdownText: 'some dropdown text',
+    //                     },
+    //                     {
+    //                         id: 'someid2',
+    //                         pluginId: 'pluginid2',
+    //                         icon: <i className='fa fa-anchor'/>,
+    //                         action: jest.fn(),
+    //                         dropdownText: 'some other dropdown text',
+    //                     },
+    //                 ],
+    //             },
+    //         },
+    //     };
+
+    //     const channel = TestHelper.getChannelMock({type: 'P'});
+
+    //     renderWithContext(
+    //         <WithTestMenuContext>
+    //             <MobileChannelHeaderPlugins channel={channel}/>
+    //         </WithTestMenuContext>, state,
+    //     );
+    //     const menuItem = screen.getByText('some dropdown text');
+    //     expect(menuItem).toBeInTheDocument();
+    //     const menuItem2 = screen.getByText('some other dropdown text');
+    //     expect(menuItem2).toBeInTheDocument();
+
+    //     screen.debug();
+    // });
+
+    test('renders the component correctly, with one extended binding', () => {
+        const state = {
+            entities: {
+                apps: {
+                    main: {
+                        bindings: [
+                            {
+                                app_id: 'appid',
+                                location: AppBindingLocations.CHANNEL_HEADER_ICON,
+                                icon: 'http://test.com/icon.png',
+                                label: 'Label',
+                                hint: 'Hint',
+                                bindings: [
+                                    {
+                                        app_id: 'app1',
+                                        location: 'channel-header-1',
+                                        label: 'App 1 Channel Header',
+                                    },
+                                    // {
+                                    //     app_id: 'app2',
+                                    //     location: 'channel-header-2',
+                                    //     label: 'App 2 Channel Header',
+                                    // },
+                                ],
+                            },
+                        ],
+                    },
+                },
+                general: {
+                    config: {
+                        FeatureFlagAppsEnabled: 'true',
+                    },
+                },
+            },
+        };
+
+        const channel = TestHelper.getChannelMock();
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <MobileChannelHeaderPlugins
+                    channel={channel}
+                    isDropdown={true}
+                />
+            </WithTestMenuContext>, state,
+        );
+
+        const menuItem = screen.getByText('App 1 Channel Header');
+        expect(menuItem).toBeInTheDocument();
+        fireEvent.click(menuItem);
+        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+
+        expect(appsActions.handleBindingClick).toHaveBeenCalledTimes(1);
+
+        // expect(appsActions.handleBindingClick).toBeCalledWith(state.bin, context, expect.anything());
+
+        //         const context = createCallContext(
+        //             testBinding.app_id,
+        //             testBinding.location,
+        //             channel.id,
+        //             channel.team_id,
+        //         );
+
+        //         wrapper.instance().fireAppAction(testBinding);
+        //         expect(handleBindingClick).toHaveBeenCalledTimes(1);
+        //         expect(handleBindingClick).toBeCalledWith(testBinding, context, expect.anything());
+
+        // const menuItem2 = screen.getByText('App 2 Channel Header');
+        // expect(menuItem2).toBeInTheDocument();
+    });
+
+    // test('renders the component correctly, with two bindings', () => {
+    //     const state = {
+    //         plugins: {
+    //             components: {
+    //                 MobileChannelHeaderButton: [
+    //                     {
+    //                         id: 'someid',
+    //                         pluginId: 'pluginid',
+    //                         icon: <i className='fa fa-anchor'/>,
+    //                         action: jest.fn(),
+    //                         dropdownText: 'some dropdown text',
+    //                     },
+    //                     {
+    //                         id: 'someid2',
+    //                         pluginId: 'pluginid2',
+    //                         icon: <i className='fa fa-anchor'/>,
+    //                         action: jest.fn(),
+    //                         dropdownText: 'some other dropdown text',
+    //                     },
+    //                 ],
+    //             },
+    //         },
+    //     };
+
+    //     const channel = TestHelper.getChannelMock({type: 'P'});
+
+    //     renderWithContext(
+    //         <WithTestMenuContext>
+    //             <MobileChannelHeaderPlugins channel={channel}/>
+    //         </WithTestMenuContext>, state,
+    //     );
+    //     const menuItem = screen.getByText('some dropdown text');
+    //     expect(menuItem).toBeInTheDocument();
+    //     const menuItem2 = screen.getByText('some other dropdown text');
+    //     expect(menuItem2).toBeInTheDocument();
+
+    //     screen.debug();
+    // });
+});
+
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 // import {mount} from 'enzyme';
 // import React from 'react';
 
@@ -14,26 +245,6 @@
 // import {createCallContext} from 'utils/apps';
 
 // describe('plugins/MobileChannelHeaderPlug', () => {
-//     const testPlug = {
-//         id: 'someid',
-//         pluginId: 'pluginid',
-//         icon: <i className='fa fa-anchor'/>,
-//         action: jest.fn(),
-//         dropdownText: 'some dropdown text',
-//     };
-
-//     const testBinding = {
-//         app_id: 'appid',
-//         location: 'test',
-//         icon: 'http://test.com/icon.png',
-//         label: 'Label',
-//         hint: 'Hint',
-//         form: {
-//             submit: {
-//                 path: '/call/path',
-//             },
-//         },
-//     };
 
 //     const testChannel = {} as Channel;
 //     const testChannelMember = {} as ChannelMembership;
@@ -44,28 +255,6 @@
 //         },
 //     } as any;
 
-//     test('should match snapshot with no extended component', () => {
-//         const wrapper = mountWithIntl(
-//             <MobileChannelHeaderPlug
-//                 components={[]}
-//                 channel={testChannel}
-//                 channelMember={testChannelMember}
-//                 theme={testTheme}
-//                 isDropdown={false}
-//                 appsEnabled={false}
-//                 appBindings={[]}
-//                 actions={{
-//                     handleBindingClick: jest.fn(),
-//                     postEphemeralCallResponseForChannel: jest.fn(),
-//                     openAppsModal: jest.fn(),
-//                 }}
-//             />,
-//         );
-//         expect(wrapper).toMatchSnapshot();
-
-//         // Render nothing
-//         expect(wrapper.find('li').exists()).toBe(false);
-//     });
 
 //     test('should match snapshot with one extended component', () => {
 //         const wrapper = mount<RawMobileChannelHeaderPlug>(
