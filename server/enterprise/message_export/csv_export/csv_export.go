@@ -163,7 +163,16 @@ func CsvExport(rctx request.CTX, posts []*model.MessageExport, db store.Store, e
 
 			_, err = io.Copy(attachmentDst, attachmentSrc)
 			if err != nil {
-				return warningCount, model.NewAppError("CsvExport", "ent.compliance.csv.attachment.copy.appError", nil, "", 0).Wrap(err)
+				// s3 only errors _here_ if the object key wasn't found. So to handle that: if there is a read
+				// error (even for local), let's add a warning instead of failing the export.
+				// Failing the export would fail the entire export run, and every future run would also fail on
+				// this non-existent file -- not good.
+				missingFiles = append(missingFiles, fmt.Sprintf("Warning: %s - Post: %s - %s", common_export.MissingFileMessage, *post.PostId, attachment.Path))
+				rctx.Logger().Warn(common_export.MissingFileMessage,
+					mlog.String("post_id", *post.PostId),
+					mlog.String("filename", attachment.Path),
+					mlog.Err(err),
+				)
 			}
 		}
 	}
