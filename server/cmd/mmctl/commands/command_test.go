@@ -340,7 +340,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 	s.Run("Delete without errors", func() {
 		printer.Clean()
 		arg := "cmd1"
-		outputMessage := map[string]interface{}{"status": "ok"}
+		outputMessage := map[string]any{"status": "ok"}
 
 		s.client.
 			EXPECT().
@@ -358,7 +358,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 	s.Run("Not able to delete", func() {
 		printer.Clean()
 		arg := "cmd1"
-		outputMessage := map[string]interface{}{"status": "error"}
+		outputMessage := map[string]any{"status": "error"}
 
 		s.client.
 			EXPECT().
@@ -784,8 +784,8 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 	}
 
 	mockError := errors.New("mock error")
-	outputMessageOK := map[string]interface{}{"status": "ok"}
-	outputMessageError := map[string]interface{}{"status": "error"}
+	outputMessageOK := map[string]any{"status": "ok"}
+	outputMessageError := map[string]any{"status": "error"}
 
 	s.Run("Move custom slash command to another team by id", func() {
 		printer.Clean()

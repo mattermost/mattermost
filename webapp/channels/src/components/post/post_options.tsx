@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classnames from 'classnames';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -22,7 +22,7 @@ import PostRecentReactions from 'components/post_view/post_recent_reactions';
 import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {PostActionComponent} from 'types/store/plugins';
 
 type Props = {
     post: Post;
@@ -52,7 +52,7 @@ type Props = {
     isPostHeaderVisible?: boolean | null;
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
-    pluginActions: PluginComponent[];
+    pluginActions: PostActionComponent[];
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -65,6 +65,11 @@ const PostOptions = (props: Props): JSX.Element => {
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
 
+    const toggleEmojiPicker = useCallback(() => {
+        setShowEmojiPicker(!showEmojiPicker);
+        props.handleDropdownOpened!(!showEmojiPicker);
+    }, [props.handleDropdownOpened, showEmojiPicker]);
+
     useEffect(() => {
         const locationToUse = props.location === 'RHS_COMMENT' ? Locations.RHS_ROOT : props.location;
         if (props.isLastPost &&
@@ -73,7 +78,8 @@ const PostOptions = (props: Props): JSX.Element => {
             toggleEmojiPicker();
             props.actions.emitShortcutReactToLastPostFrom(Locations.NO_WHERE);
         }
-    }, [props.isLastPost, props.shortcutReactToLastPostEmittedFrom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.isLastPost, props.shortcutReactToLastPostEmittedFrom, props.location, props.isPostHeaderVisible]);
 
     const {
         channelIsArchived,
@@ -91,11 +97,6 @@ const PostOptions = (props: Props): JSX.Element => {
     function removePost() {
         props.removePost(props.post);
     }
-
-    const toggleEmojiPicker = () => {
-        setShowEmojiPicker(!showEmojiPicker);
-        props.handleDropdownOpened!(!showEmojiPicker);
-    };
 
     const handleDotMenuOpened = (open: boolean) => {
         setShowDotMenu(open);
@@ -190,7 +191,7 @@ const PostOptions = (props: Props): JSX.Element => {
         pluginItems = props.pluginActions?.
             map((item) => {
                 if (item.component) {
-                    const Component = item.component as any;
+                    const Component = item.component;
                     return (
                         <Component
                             post={props.post}

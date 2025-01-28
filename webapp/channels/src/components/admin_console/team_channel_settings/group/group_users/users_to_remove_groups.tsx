@@ -39,8 +39,6 @@ export default function UsersToRemoveGroups(props: UsersToRemoveGroupsProps): JS
 
         column = (
             <WithTooltip
-                id='groupsTooltip'
-                placement='bottom'
                 title={tooltip}
             >
                 <a href='#'>{message}</a>

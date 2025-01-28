@@ -54,10 +54,6 @@ type AppIface interface {
 	AddPublicKey(name string, key io.Reader) *model.AppError
 	// AddUserToChannel adds a user to a given channel.
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
-	// Caller must close the first return value
-	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	// Caller must close the first return value
-	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
 	// groups.
 	//
@@ -105,8 +101,6 @@ type AppIface interface {
 	// CreateUser creates a user and sets several fields of the returned User struct to
 	// their zero values.
 	CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError)
-	// Creates and stores FileInfos for a post created before the FileInfos table existed.
-	MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo
 	// DefaultChannelNames returns the list of system-wide default channel names.
 	//
 	// By default the list will be (not necessarily in this order):
@@ -135,6 +129,10 @@ type AppIface interface {
 	// DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 	// Notifies cluster peers through config change.
 	DisablePlugin(id string) *model.AppError
+	// DoActionRequest performs an HTTP POST request to an integration's action endpoint.
+	// Caller must consume and close returned http.Response as necessary.
+	// For internal requests, requests are routed directly to a plugin ServerHTTP hook
+	DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
 	// DoPermissionsMigrations execute all the permissions migrations need by the current version.
 	DoPermissionsMigrations() error
 	// EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
@@ -149,10 +147,18 @@ type AppIface interface {
 	// attributes of the attachment structure. The Slack attachment structure is
 	// documented here: https://api.slack.com/docs/attachments
 	ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment
+	// ExportFileReader returns a ReadCloseSeeker for path from the ExportFileBackend.
+	//
+	// The caller is responsible for closing the returned ReadCloseSeeker.
+	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 	// A new ExpiresAt is only written if enough time has elapsed since last update.
 	// Returns true only if the session was extended.
 	ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Session) bool
+	// FileReader returns a ReadCloseSeeker for path from the FileBackend.
+	//
+	// The caller is responsible for closing the returned ReadCloseSeeker.
+	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// FillInPostProps should be invoked before saving posts to fill in properties such as
 	// channel_mentions.
 	//
@@ -266,6 +272,8 @@ type AppIface interface {
 	// MentionsToTeamMembers returns all the @ mentions found in message that
 	// belong to users in the specified team, linking them to their users
 	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
+	// MigrateFilenamesToFileInfos creates and stores FileInfos for a post created before the FileInfos table existed.
+	MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo
 	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
 	// function is only exposed to sysadmins and the possibility of this edge case is relatively small.
 	MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError
@@ -290,10 +298,6 @@ type AppIface interface {
 	PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
 	// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
-	// Perform an HTTP POST request to an integration's action endpoint.
-	// Caller must consume and close returned http.Response as necessary.
-	// For internal requests, requests are routed directly to a plugin ServerHTTP hook
-	DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
 	// PermanentDeleteBot permanently deletes a bot and its corresponding user.
 	PermanentDeleteBot(rctx request.CTX, botUserId string) *model.AppError
 	// PopulateWebConnConfig checks if the connection id already exists in the hub,
@@ -422,6 +426,10 @@ type AppIface interface {
 	ValidateUserPermissionsOnChannels(c request.CTX, userId string, channelIds []string) []string
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
+	// ZipReader returns a ReadCloser for path. If deflate is true, the zip will use compression.
+	//
+	// The caller is responsible for closing the returned ReadCloser.
+	ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError)
 	// validateMoveOrCopy performs validation on a provided post list to determine
 	// if all permissions are in place to allow the for the posts to be moved or
 	// copied.
@@ -486,7 +494,6 @@ type AppIface interface {
 	CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError
 	CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
-	CheckWebConn(userID, connectionID string) *platform.CheckConnResult
 	CleanUpAfterPostDeletion(c request.CTX, post *model.Post, deleteByID string) *model.AppError
 	CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError
 	ClearChannelMembersCache(c request.CTX, channelID string) error
@@ -513,6 +520,7 @@ type AppIface interface {
 	CountNotification(notificationType model.NotificationType, platform string)
 	CountNotificationAck(notificationType model.NotificationType, platform string)
 	CountNotificationReason(notificationStatus model.NotificationStatus, notificationType model.NotificationType, notificationReason model.NotificationReason, platform string)
+	CreateCPAField(field *model.PropertyField) (*model.PropertyField, *model.AppError)
 	CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
 	CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBookmark, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
@@ -560,6 +568,7 @@ type AppIface interface {
 	DeleteAllExpiredPluginKeys() *model.AppError
 	DeleteAllKeysForPlugin(pluginID string) *model.AppError
 	DeleteBrandImage(rctx request.CTX) *model.AppError
+	DeleteCPAField(id string) *model.AppError
 	DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	DeleteChannelBookmark(bookmarkId, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	DeleteCommand(commandID string) *model.AppError
@@ -580,6 +589,7 @@ type AppIface interface {
 	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
 	DeleteRetentionPolicy(policyID string) *model.AppError
+	DeleteRole(id string) (*model.Role, *model.AppError)
 	DeleteScheduledPost(rctx request.CTX, userId, scheduledPostId, connectionId string) (*model.ScheduledPost, *model.AppError)
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteSharedChannelRemote(id string) (bool, error)
@@ -590,8 +600,8 @@ type AppIface interface {
 	DoAppMigrations()
 	DoCheckForAdminNotifications(trial bool) *model.AppError
 	DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError)
-	DoEmojisPermissionsMigration()
-	DoGuestRolesCreationMigration()
+	DoEmojisPermissionsMigration() error
+	DoGuestRolesCreationMigration() error
 	DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
 	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError)
 	DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
@@ -620,7 +630,7 @@ type AppIface interface {
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePresignURLForExport(name string) (*model.PresignURLResponse, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
-	GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData
+	GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData
 	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
 	GetAcknowledgementsForPostList(postList *model.PostList) (map[string][]*model.PostAcknowledgement, *model.AppError)
 	GetActivePluginManifests() ([]*model.Manifest, *model.AppError)
@@ -643,6 +653,8 @@ type AppIface interface {
 	GetBookmark(bookmarkId string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	GetBrandImage(rctx request.CTX) ([]byte, *model.AppError)
 	GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Reaction, *model.AppError)
+	GetCPAField(fieldID string) (*model.PropertyField, *model.AppError)
+	GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError)
 	GetChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError)
 	GetChannelBookmarks(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	GetChannelByName(c request.CTX, channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError)
@@ -943,11 +955,14 @@ type AppIface interface {
 	JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError
 	JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError)
 	Ldap() einterfaces.LdapInterface
+	LdapDiagnostic() einterfaces.LdapDiagnosticInterface
 	LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError
 	LeaveTeam(c request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError
 	License() *model.License
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
+	ListCPAFields() ([]*model.PropertyField, *model.AppError)
+	ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListDirectoryRecursively(path string) ([]string, *model.AppError)
 	ListExportDirectory(path string) ([]string, *model.AppError)
@@ -973,9 +988,11 @@ type AppIface interface {
 	OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	OutgoingOAuthConnections() einterfaces.OutgoingOAuthConnectionInterface
+	PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.AppError)
+	PatchCPAValue(userID string, fieldID string, value string) (*model.PropertyValue, *model.AppError)
 	PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError)
 	PatchChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError)
-	PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError)
+	PatchPost(c request.CTX, postID string, patch *model.PostPatch, patchPostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError)
 	PatchRemoteCluster(rcId string, patch *model.RemoteClusterPatch) (*model.RemoteCluster, *model.AppError)
 	PatchRetentionPolicy(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
@@ -1043,6 +1060,7 @@ type AppIface interface {
 	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError)
 	RestoreChannel(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	RestoreGroup(groupID string) (*model.Group, *model.AppError)
+	RestorePostVersion(c request.CTX, userID, postID, restoreVersionID string) (*model.Post, *model.AppError)
 	RestoreTeam(teamID string) *model.AppError
 	RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
@@ -1200,7 +1218,7 @@ type AppIface interface {
 	UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPassword string) *model.AppError
 	UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError
 	UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError
-	UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError)
 	UpdatePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError
 	UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError)
 	UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError)

@@ -114,12 +114,12 @@ function testGenericFile(properties) {
 
     // * Download button should exist
     cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-        expect(downloadLink.attr('download')).to.equal(fileName);
+        cy.wrap(downloadLink).parent().should('have.attr', 'download', fileName).then((link) => {
+            const fileAttachmentURL = link.attr('href');
 
-        const fileAttachmentURL = downloadLink.attr('href');
-
-        // * Verify that download link has correct name
-        downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, fileName, 'attachment');
+            // * Verify that download link has correct name
+            downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, fileName, 'attachment');
+        });
     });
 
     // # Close modal
