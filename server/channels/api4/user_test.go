@@ -7906,4 +7906,3 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
->>>>>>> 8b5a3e6217 ([MM-62502] Ensure MFA Check on search routes (#29880))
