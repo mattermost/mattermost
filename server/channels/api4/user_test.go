@@ -770,15 +770,8 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		_, _, err := guestClient.Login(context.Background(), guest.Email, guestPassword)
 		require.NoError(t, err)
 
-		guestWSClient, err := th.CreateWebSocketClientWithClient(guestClient)
-		require.NoError(t, err)
-		defer guestWSClient.Close()
-		guestWSClient.Listen()
-
-		userWSClient, err := th.CreateWebSocketClient()
-		require.NoError(t, err)
-		defer userWSClient.Close()
-		userWSClient.Listen()
+		guestWSClient := th.CreateConnectedWebSocketClientWithClient(t, guestClient)
+		userWSClient := th.CreateConnectedWebSocketClient(t)
 
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
@@ -2802,25 +2795,12 @@ func TestUpdateUserActive(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = true })
 
-		webSocketClient, err := th.CreateWebSocketClient()
-		assert.NoError(t, err)
-		defer webSocketClient.Close()
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		webSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
 		resp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
-		assert.NoError(t, err)
-		defer adminWebSocketClient.Close()
-
-		adminWebSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
-		resp = <-adminWebSocketClient.ResponseChannel
-		require.Equal(t, model.StatusOk, resp.Status)
+		adminWebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
 		// Verify that both admins and regular users see the email when privacy settings allow same,
 		// and confirm event is fired for SystemAdmin and Local mode
@@ -6288,27 +6268,13 @@ func TestDemoteUserToGuest(t *testing.T) {
 	}, "demote a user to guest")
 
 	t.Run("websocket update user event", func(t *testing.T) {
-		webSocketClient, err := th.CreateWebSocketClient()
-		assert.NoError(t, err)
-		defer webSocketClient.Close()
-
-		webSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 		resp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
-		assert.NoError(t, err)
-		defer adminWebSocketClient.Close()
+		adminWebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
-		adminWebSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
-		resp = <-adminWebSocketClient.ResponseChannel
-		require.Equal(t, model.StatusOk, resp.Status)
-
-		_, _, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		_, _, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
 		require.NoError(t, err)
 		_, err = th.SystemAdminClient.DemoteUserToGuest(context.Background(), user.Id)
 		require.NoError(t, err)
@@ -6358,28 +6324,14 @@ func TestPromoteGuestToUser(t *testing.T) {
 	}, "promote a guest to user")
 
 	t.Run("websocket update user event", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-61736")
-		webSocketClient, err := th.CreateWebSocketClient()
-		assert.NoError(t, err)
-		defer webSocketClient.Close()
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		webSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
 		resp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
-		assert.NoError(t, err)
-		defer adminWebSocketClient.Close()
+		adminWebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
-		adminWebSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
-		resp = <-adminWebSocketClient.ResponseChannel
-		require.Equal(t, model.StatusOk, resp.Status)
-
-		_, _, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		_, _, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
 		require.NoError(t, err)
 		_, err = th.SystemAdminClient.PromoteGuestToUser(context.Background(), user.Id)
 		require.NoError(t, err)
@@ -6584,17 +6536,12 @@ func TestPublishUserTyping(t *testing.T) {
 	})
 
 	t.Run("should send typing event via websocket when triggering a typing event for a user with a common channel", func(t *testing.T) {
-		webSocketClient, err := th.CreateWebSocketClient()
-		assert.NoError(t, err)
-		defer webSocketClient.Close()
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		webSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
 		wsResp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, wsResp.Status)
 
-		_, err = th.SystemAdminClient.PublishUserTyping(context.Background(), th.BasicUser2.Id, tr)
+		_, err := th.SystemAdminClient.PublishUserTyping(context.Background(), th.BasicUser2.Id, tr)
 		require.NoError(t, err)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventTyping, func(resp *model.WebSocketEvent) {
@@ -7240,10 +7187,7 @@ func TestThreadSocketEvents(t *testing.T) {
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
-	userWSClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer userWSClient.Close()
-	userWSClient.Listen()
+	userWSClient := th.CreateConnectedWebSocketClient(t)
 
 	client := th.Client
 
@@ -8280,19 +8224,13 @@ func TestUserUpdateEvents(t *testing.T) {
 
 	client1 := th.CreateClient()
 	th.LoginBasicWithClient(client1)
-	WebSocketClient, err := th.CreateWebSocketClientWithClient(client1)
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client1)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
 	client2 := th.CreateClient()
 	th.LoginBasic2WithClient(client2)
-	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
-	require.NoError(t, err)
-	defer WebSocketClient2.Close()
-	WebSocketClient2.Listen()
+	WebSocketClient2 := th.CreateConnectedWebSocketClientWithClient(t, client2)
 	resp = <-WebSocketClient2.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
