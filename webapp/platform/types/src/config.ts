@@ -878,6 +878,8 @@ export type MessageExportSettings = {
     DailyRunTime: string;
     ExportFromTimestamp: number;
     BatchSize: number;
+    ChannelBatchSize: number;
+    ChannelHistoryBatchSize: number;
     GlobalRelaySettings: {
         CustomerType: string;
         SMTPUsername: string;

@@ -2990,60 +2990,8 @@
     "translation": "高可用モードが有効な場合、設定ファイルのReadOnlyConfigが無効でない限りシステムコンソールは読み取り専用になります。"
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "不明な出力フォーマット {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "添付ファイルをzipファイルにコピーできません。"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "添付ファイルをCSVエクスポートに追加できません。"
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "一時的なCSVエクスポートファイルを作成できません。"
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "ヘッダーをCSVエクスポートに追加できません。"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "メタデータファイルをzipファイルに追加できません。"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "メタデータをjsonに変換できません。"
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "投稿をエクスポートできません。"
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "ZIP形式のエクスポートファイルを作成できません。"
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "アップロードされたファイルが大きすぎるため、Global Relayエクスポートから除去されました。"
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "一時的なエクスポートファイルを作成できません。"
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Global Relay一時エクスポートファイルを再読み込みできませんでした。"
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "コンプライアンス機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "エクスポートテンプレートをロードできません。再度実行してください。"
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3106,10 +3054,6 @@
     "translation": "{{.Backend}}が起動されていません"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Elasticsearchのインデックスを削除できませんでした"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "このサーバーでは {{.Backend}} による検索は無効です"
   },
@@ -3135,11 +3079,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "現在のライセンスはElasticsearchをサポートしていません。"
+    "translation": "あなたのMattermostライセンスはインデックス検索をサポートしていません。"
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "ElasticsearchサーバーのURLかユーザー名が変更されました。接続をテストするためにElasticsearchのパスワードを再度入力してください。"
+    "translation": "検索サーバーのURLかユーザー名が変更されました。接続をテストするためにパスワードを再度入力してください。"
   },
   {
     "id": "ent.ldap.app_error",
@@ -3224,58 +3168,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "ユーザーのグループを抽出できませんでした"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "添付ファイルをGlobal Relayエクスポートに追加できません。"
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "zipファイルを閉じることができません。"
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "emlファイルを作成できません。"
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "emlファイルデータを生成できませんでした。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Global Relayへの電子メールを送信できません。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "電子メールの送信元アドレスをを設定できません。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "電子メールメッセージを設定できません。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "電子メールメッセージを書き込めません。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "電子メール情報を読み込めません。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "電子メールの送信先アドレスを設定できません。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "一時エクスポートファイルの情報を取得できません。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "一時ファイルから電子メールを取得できません。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "一時エクスポートファイルを開けません。"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3707,7 +3599,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearchの検索有効化に有効が設定されている場合、検索インデックス有効化設定は有効でなければなりません"
+    "translation": "{{.Searching}}が有効の場合、{{.EnableIndexing}}設定も有効でなければなりません"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4875,7 +4767,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch 自動補完が有効に設定されている場合、検索のインデックス有効化設定は有効でなければなりません"
+    "translation": "{{.Autocomplete}}が有効の場合、{{.EnableIndexing}}も有効でなくてはなりません"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4955,7 +4847,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Elasticsearchのインデックスを更新できませんでした"
+    "translation": "検索インデックスを更新できませんでした"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -4988,14 +4880,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "チャンネルの{{.Backend}}テンプレートを作成できませんでした"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "warningファイルを作成できません。"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "zipファイルを作成できません"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -6062,10 +5946,6 @@
     "translation": "リクエスト内のチャンネルにユーザーが所属していません"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "指定日時内のチャンネル内ユーザーを取得できませんでした。"
-  },
-  {
     "id": "app.command.listautocompletecommands.internal_error",
     "translation": "自動補完コマンドのリストを表示できませんでした。"
   },
@@ -6396,10 +6276,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " がファイルを添付しました。"
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "エクスポート情報をXMLへ変換できませんでした。"
   },
   {
     "id": "app.job.update.app_error",
@@ -6882,18 +6758,6 @@
     "translation": "すべてのパラメータ IncludeDeletedChannels は同じ値となるはずです。"
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "投稿に対するファイル情報を取得できませんでした。"
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "投稿に関するファイル情報を取得できませんでした。"
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "投稿に関するファイル情報を取得できませんでした。"
-  },
-  {
     "id": "ent.ldap.do_login.x509.app_error",
     "translation": "鍵ペアを作成する際にエラーが発生しました"
   },
@@ -7330,18 +7194,6 @@
     "translation": "設定をマージできませんでした。"
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "グローバルリレーファイルを書き込めませんでした。"
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "CSVファイルを書き込めませんでした。"
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "エクスポートファイルを書き込めませんでした。"
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "ファイルを書き込めませんでした。"
   },
@@ -7536,10 +7388,6 @@
   {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "ディレクトリに対する値を入力してください。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "SMTPサーバーへ接続できませんでした"
   },
   {
     "id": "bleveengine.purge_file_index.error",
@@ -9723,7 +9571,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Elasticsearch チャネルインデックススキーマが古くなっています。チャンネルインデックスを再生成してください。\n問題を解決するには[システムコンソールの Elasticsearch セクション]({{.ElasticsearchSection}}) にある `チャンネルインデックスの再構築` ボタンをクリックしてください。\n詳しくは Mattermost changelog を参照してください。"
+    "translation": "検索チャネルインデックススキーマが古くなっています。チャンネルインデックスの再生成を推奨します。\nこの問題を解決するには、[システムコンソールの Elasticsearch ページ]({{.ElasticsearchSection}}) にある `チャンネルインデックスの再構築` ボタンをクリックしてください。\n詳しくは Mattermostの変更履歴を参照してください。"
   },
   {
     "id": "app.import.import_line.null_role.error",
@@ -9835,7 +9683,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Elasticsearchインデックスを削除できませんでした"
+    "translation": "検索インデックスを削除できませんでした"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -9980,14 +9828,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "ユーザー数を取得できませんでした"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "ZIPファイルをクローズできませんでした"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "エクスポートファイルの開始位置が見つかりませんでした。"
   },
   {
     "id": "store.sql_team.save_team.existing.app_error",
@@ -10420,5 +10260,125 @@
   {
     "id": "web.incoming_webhook.media_type.app_error",
     "translation": "内向きのウェブフック {{.hook_id}} のメディアを解析できませんでした。"
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "設定をフィルタリングできませんでした。"
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "カスタム絵文字の画像用のディレクトリを作成できませんでした"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "ユーザーロールがゲストのステータスと一致していません。"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "カスタムプロフィール属性のプロパティグループを登録できません"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "カスタムプロフィール属性の値を取得できませんでした"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "カスタムプロフィール属性のフィールドを削除できませんでした"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "カスタムプロフィール属性のフィールドを作成できませんでした"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "カスタムプロフィール属性のフィールドを取得できませんでした"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "カスタムプロフィール属性のフィールドの上限に達しました"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "カスタムプロフィール属性のフィールドが見つかりません"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "カスタムプロフィール属性のフィールドを更新できませんでした"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "プロパティ値を作成できません"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "プロパティ値を取得できませんでした"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "プロパティ値を更新できません"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "カスタムプロフィール属性のフィールドを検索できませんでした"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "要求されたファイルをデータベースから削除できませんでした"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "投稿編集履歴のファイル情報をIDで取得できませんでした。"
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "投稿の添付ファイルを復元できませんでした。"
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "あなたには必要な権限が付与されていません。"
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "指定された投稿履歴IDは、指定された投稿のどの履歴項目にも該当しません。"
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "投稿の過去のバージョンを取得できませんでした。"
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "指定された投稿履歴IDは、投稿の履歴項目に該当していません。"
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "ロールを削除できませんでした。"
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "チャンネルアクティビティを計算中: {{.NumCompleted}}/{{.NumChannels}} チャンネル完了済。"
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "チャンネルエクスポートデータを計算できませんでした。"
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "{{.NumChannels}}チャンネルのチャンネル情報をエクスポートしています。"
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "ジョブのデータフィールドからの値の変換に失敗しました。"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "リンクメタデータURLの長さが{{ .Length }}文字であり、上限の{{ .MaxLength }}文字を超えています。"
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "不正なプロパティフィールド: {{.FieldName}} {{.Reason}}。"
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "不正なプロパティ値: {{.FieldName}} {{.Reason}}。"
   }
 ]
