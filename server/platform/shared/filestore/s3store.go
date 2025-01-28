@@ -4,9 +4,11 @@
 package filestore
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -215,7 +217,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to list objects in the S3 bucket: %v", typedErr)}
 			}
 			exists = false
 		}
@@ -224,7 +226,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if err != nil {
 			typedErr := s3.ToErrorResponse(err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to check if the S3 bucket exists: %v", typedErr)}
 			}
 		}
 	}
@@ -699,6 +701,103 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 		if err.Err != nil {
 			return errors.Wrapf(err.Err, "unable to remove the directory %s", path)
 		}
+	}
+
+	return nil
+}
+
+// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
+func (b *S3FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+	deflateMethod := zip.Store
+	if deflate {
+		deflateMethod = zip.Deflate
+	}
+
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	pr, pw := io.Pipe()
+
+	go func() {
+		defer pw.Close()
+
+		zipWriter := zip.NewWriter(pw)
+		defer zipWriter.Close()
+
+		ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel()
+
+		// Is path a single file?
+		object, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
+		if err == nil {
+			// We want the zipped file to be at the root of the zip. E.g., given a path of
+			// "path/to/file.sh" we want the zip to have one file: "file.sh", not "path/to/file.sh".
+			stripPath := filepath.Dir(path)
+			if stripPath != "" {
+				stripPath += "/"
+			}
+			if err = b._copyObjectToZipWriter(zipWriter, object, stripPath, deflateMethod); err != nil {
+				pw.CloseWithError(err)
+			}
+			return
+		}
+
+		// Is path a directory?
+		path = path + "/"
+		opts := s3.ListObjectsOptions{
+			Prefix:    path,
+			Recursive: true,
+		}
+		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel2()
+
+		for object := range b.client.ListObjects(ctx2, b.bucket, opts) {
+			if object.Err != nil {
+				pw.CloseWithError(errors.Wrapf(object.Err, "unable to list the directory %s", path))
+				return
+			}
+
+			if err = b._copyObjectToZipWriter(zipWriter, object, path, deflateMethod); err != nil {
+				pw.CloseWithError(err)
+				return
+			}
+		}
+	}()
+
+	return pr, nil
+}
+
+func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.ObjectInfo, stripPath string, deflateMethod uint16) error {
+	// We strip the path prefix that gets applied,
+	// so that it remains transparent to the application.
+	object.Key = strings.TrimPrefix(object.Key, b.pathPrefix)
+
+	// We strip the path prefix + path so the zip file is relative to the root of the requested path
+	relPath := strings.TrimPrefix(object.Key, stripPath)
+	header := &zip.FileHeader{
+		Name:     relPath,
+		Method:   deflateMethod,
+		Modified: object.LastModified,
+	}
+	header.SetMode(0644) // rw-r--r-- permissions
+
+	writer, err := zipWriter.CreateHeader(header)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create zip entry for %s", object.Key)
+	}
+
+	reader, err := b.Reader(object.Key)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create reader for %s", object.Key)
+	}
+	defer reader.Close()
+
+	_, err = io.Copy(writer, reader)
+	if err != nil {
+		return errors.Wrapf(err, "unable to copy content for %s", object.Key)
 	}
 
 	return nil

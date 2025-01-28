@@ -30,7 +30,7 @@ describe('Channel Settings - Channel Header', () => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Click on the channel name in the channel header to open the channel menu options
-            cy.get('[aria-label="channel menu"]').click();
+            cy.get(`[aria-label="${channel.name.split('-').join(' ')} channel menu"]`).click();
 
             // # Select the "Edit Channel Header" option from the dropdown
             cy.findByText('Edit Channel Header').click();
