@@ -28,9 +28,7 @@ const ConvertGMtoPrivate = ({channel}: Props): JSX.Element => {
                     openModal({
                         modalId: ModalIdentifiers.CONVERT_GM_TO_CHANNEL,
                         dialogType: ConvertGmToChannelModal,
-                        dialogProps: {
-                            channel,
-                        },
+                        dialogProps: {channel},
                     }),
                 );
             }}
