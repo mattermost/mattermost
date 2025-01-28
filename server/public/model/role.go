@@ -68,7 +68,6 @@ func init() {
 		},
 		PermissionSysconsoleReadUserManagementUsers.Id: {
 			PermissionReadOtherUsersTeams,
-			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleReadUserManagementTeams.Id: {
 			PermissionListPrivateTeams,
@@ -109,6 +108,7 @@ func init() {
 		},
 		PermissionSysconsoleReadReportingTeamStatistics.Id: {
 			PermissionViewTeam,
+			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleWriteUserManagementUsers.Id: {
 			PermissionEditOtherUsers,
@@ -159,7 +159,7 @@ func init() {
 			PermissionReadComplianceExportJob,
 			PermissionDownloadComplianceExportResult,
 		},
-		PermissionSysconsoleReadComplianceCustomTermsOfService.Id: {
+		PermissionSysconsoleReadComplianceComplianceMonitoring.Id: {
 			PermissionReadAudits,
 		},
 		PermissionSysconsoleWriteExperimentalBleve.Id: {
