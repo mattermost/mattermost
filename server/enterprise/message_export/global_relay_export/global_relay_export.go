@@ -303,7 +303,9 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 
 			_, err = io.Copy(writer, reader)
 			if err != nil {
-				return model.NewAppError("GlobalRelayExport", "ent.message_export.global_relay.attach_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				// Log the error as a warning instead of propagating the error to the mail writer.
+				rctx.Logger().Warn("Error copying file", mlog.String("Filename", path), mlog.Err(err))
+				warningCount += 1
 			}
 			return nil
 		}))
