@@ -167,7 +167,7 @@
                 }
 
                 .nav-pills {
-                    >li {
+                    > &__tab {
                         &:hover {
                             a {
                                 background: transparent !important;
@@ -276,7 +276,9 @@
                         width: 100%;
                         margin: 0;
 
-                        >li {
+                        &-pills__tab {
+                            height: 48px;
+
                             >a {
                                 font-size: 1.1em;
                                 line-height: 2.7;
@@ -284,10 +286,6 @@
                                 .icon {
                                     margin: 0 7px;
                                 }
-                            }
-
-                            > button {
-                                height: 48px;
                             }
                         }
                     }
@@ -319,14 +317,12 @@
             }
 
             .nav-pills {
-                >li {
+                &__tab {
                     &.active {
-                        button {
-                            background: transparent;
+                        background: transparent;
 
-                            &::before {
-                                display: none;
-                            }
+                        &::before {
+                            display: none;
                         }
                     }
                 }
@@ -372,7 +368,6 @@
 
         .post,
         .SidebarMenu,
-        .AddChannelDropdown,
         .GlobalThreads {
             .Menu {
                 position: fixed;
@@ -760,66 +755,6 @@
     .settings-modal {
         .modal-body {
             overflow: auto;
-        }
-    }
-
-    #header-popover {
-        position: fixed;
-        top: 40px !important;
-        width: 100%;
-        max-width: 100%;
-        height: calc(100% - 50px);
-        border: none;
-        background: functions.alpha-color(variables.$black, 0.9);
-        box-shadow: none;
-        transform: translate3d(0, 100%, 0);
-        transition: all 0.35s ease;
-
-        &.in {
-            transform: translate3d(0, 0, 0);
-        }
-
-        a {
-            color: #0091ff;
-        }
-
-        .arrow {
-            display: none;
-        }
-
-        .popover-content {
-            padding: 15px 20px 100px;
-            color: variables.$white;
-            font-size: 15px;
-
-            >div {
-                &:first-child {
-                    overflow: auto;
-                    height: calc(100vh - 150px);
-                    -webkit-overflow-scrolling: touch;
-                }
-            }
-        }
-
-        .close {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            display: block;
-            width: 30px;
-            height: 30px;
-            padding-top: 13px;
-            border: 1px solid variables.$white;
-            border-radius: 50%;
-            margin-left: -15px;
-            color: variables.$white;
-            font-family: 'Open Sans', sans-serif;
-            font-size: 23px;
-            font-weight: 200;
-            line-height: 0;
-            opacity: 1;
-            text-align: center;
-            text-shadow: none;
         }
     }
 
@@ -1278,12 +1213,6 @@
         .overlay__circle {
             width: 300px;
             height: 300px;
-            margin: -150px 0 0 -150px;
-        }
-
-        .overlay__files {
-            width: 150px;
-            margin: 60px auto 15px;
         }
     }
 
@@ -1625,8 +1554,7 @@
             }
         }
 
-        .SidebarMenu,
-        .AddChannelDropdown {
+        .SidebarMenu {
             display: block !important;
 
             .Menu {

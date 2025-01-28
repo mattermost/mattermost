@@ -53,7 +53,7 @@ describe('Channel routing', () => {
 
     it('MM-T884_2 Creating new channel validates against two user IDs being used as channel name', () => {
         // # click on create public channel
-        cy.uiBrowseOrCreateChannel('Create new channel').click();
+        cy.uiBrowseOrCreateChannel('Create new channel');
 
         // * Verify that the new channel modal is visible
         cy.get('#new-channel-modal').should('be.visible').within(() => {
@@ -73,7 +73,7 @@ describe('Channel routing', () => {
 
     it('MM-T884_3 Creating a new channel validates against gm-like names being used as channel name', () => {
         // # click on create public channel
-        cy.uiBrowseOrCreateChannel('Create new channel').click();
+        cy.uiBrowseOrCreateChannel('Create new channel');
 
         // * Verify that the new channel modal is visible
         cy.findByRole('dialog', {name: 'Create a new channel'}).within(() => {
