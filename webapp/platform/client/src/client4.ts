@@ -2104,13 +2104,10 @@ export default class Client4 {
         );
     };
 
-    updateCustomProfileAttributeValues = (attributeID: string, attributeValue: string) => {
-        const obj: { [key: string]: string } = {};
-        obj[attributeID] = attributeValue;
-
+    updateCustomProfileAttributeValues = (attributeValues: Record<string, string>) => {
         return this.doFetch<Record<string, string>>(
             `${this.getCustomProfileAttributeValuesRoute()}`,
-            {method: 'PATCH', body: JSON.stringify(obj)},
+            {method: 'PATCH', body: JSON.stringify(attributeValues)},
         );
     };
 
