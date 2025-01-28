@@ -51,7 +51,7 @@ test('Post actions tab support', async ({pw, axe}) => {
     // # Analyze the page
     const accessibilityScanResults = await axe
         .builder(page, {disableColorContrast: true})
-        .include('.MuiMenu-list')
+        .include('.MuiMenu-root')
         .analyze();
 
     // * Should have no violation

@@ -2,26 +2,25 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { useCallback, useState, memo, useMemo } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
-import { useSelector } from 'react-redux';
+import React, {useCallback, useState, memo, useMemo} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
-import { AlertCircleOutlineIcon } from '@mattermost/compass-icons/components';
-import type { PostPriorityMetadata } from '@mattermost/types/posts';
-import { PostPriority } from '@mattermost/types/posts';
+import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import type {PostPriorityMetadata} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
 
-import { getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled } from 'mattermost-redux/selectors/entities/posts';
-import { getTheme } from 'mattermost-redux/selectors/entities/preferences';
+import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import { IconContainer } from 'components/advanced_text_editor/formatting_bar/formatting_icon';
+import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 
-
-import { Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIcon, UrgentIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer } from './post_priority_picker_item';
+import {Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIcon, UrgentIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer} from './post_priority_picker_item';
 
 import './post_priority_picker.scss';
 
@@ -38,7 +37,7 @@ function PostPriorityPicker({
     settings,
     disabled,
 }: Props) {
-    const { formatMessage } = useIntl();
+    const {formatMessage} = useIntl();
 
     const [pickerOpen, setPickerOpen] = useState(false);
     const [priority, setPriority] = useState<PostPriority | ''>(settings?.priority || '');
@@ -50,7 +49,7 @@ function PostPriorityPicker({
     const persistentNotificationsEnabled = useSelector(isPersistentNotificationsEnabled) && postAcknowledgementsEnabled;
     const interval = useSelector(getPersistentNotificationIntervalMinutes);
 
-    const messagePriority = formatMessage({ id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority' });
+    const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
 
     const handleClose = useCallback(() => {
         setPickerOpen(false);
@@ -106,8 +105,8 @@ function PostPriorityPicker({
             role='menuitemradio'
             aria-checked={!priority}
             onClick={makeOnSelectPriority()}
-            trailingElements={!priority && <StyledCheckIcon size={18} />}
-            leadingElement={<StandardIcon size={18} />}
+            trailingElements={!priority && <StyledCheckIcon size={18}/>}
+            leadingElement={<StandardIcon size={18}/>}
             labels={
                 <FormattedMessage
                     id='post_priority.priority.standard'
@@ -121,8 +120,8 @@ function PostPriorityPicker({
             role='menuitemradio'
             aria-checked={priority === PostPriority.IMPORTANT}
             onClick={makeOnSelectPriority(PostPriority.IMPORTANT)}
-            trailingElements={priority === PostPriority.IMPORTANT && <StyledCheckIcon size={18} />}
-            leadingElement={<ImportantIcon size={18} />}
+            trailingElements={priority === PostPriority.IMPORTANT && <StyledCheckIcon size={18}/>}
+            leadingElement={<ImportantIcon size={18}/>}
             labels={
                 <FormattedMessage
                     id='post_priority.priority.important'
@@ -136,8 +135,8 @@ function PostPriorityPicker({
             role='menuitemradio'
             aria-checked={priority === PostPriority.URGENT}
             onClick={makeOnSelectPriority(PostPriority.URGENT)}
-            trailingElements={priority === PostPriority.URGENT && <StyledCheckIcon size={18} />}
-            leadingElement={<UrgentIcon size={18} />}
+            trailingElements={priority === PostPriority.URGENT && <StyledCheckIcon size={18}/>}
+            leadingElement={<UrgentIcon size={18}/>}
             labels={
                 <FormattedMessage
                     id='post_priority.priority.urgent'
@@ -162,7 +161,7 @@ function PostPriorityPicker({
                 disabled={false}
                 onClick={handleAck}
                 toggled={requestedAck}
-                icon={<AcknowledgementIcon size={18} />}
+                icon={<AcknowledgementIcon size={18}/>}
                 text={formatMessage({
                     id: 'post_priority.requested_ack.text',
                     defaultMessage: 'Request acknowledgement',
@@ -182,7 +181,7 @@ function PostPriorityPicker({
                 disabled={priority !== PostPriority.URGENT}
                 onClick={handlePersistentNotifications}
                 toggled={persistentNotifications}
-                icon={<PersistentNotificationsIcon size={18} />}
+                icon={<PersistentNotificationsIcon size={18}/>}
                 text={formatMessage({
                     id: 'post_priority.persistent_notifications.text',
                     defaultMessage: 'Send persistent notifications',
@@ -192,15 +191,15 @@ function PostPriorityPicker({
                         id: 'post_priority.persistent_notifications.description',
                         defaultMessage: 'Recipients will be notified every {interval, plural, one {1 minute} other {{interval} minutes}} until they acknowledge or reply',
                     }, {
-                    interval,
-                },
+                        interval,
+                    },
                 )}
             />) : null,
     ] : []), [formatMessage, handleAck, handlePersistentNotifications, interval, persistentNotifications, persistentNotificationsEnabled, postAcknowledgementsEnabled, priority, requestedAck]);
 
     const footer = useMemo(() => postAcknowledgementsEnabled &&
         <div>
-            <Menu.Separator />
+            <Menu.Separator/>
             <Footer key='footer'>
                 <button
                     type='submit'
@@ -235,7 +234,7 @@ function PostPriorityPicker({
                 children: (
                     <IconContainer
                         id='messagePriority'
-                        className={classNames({ control: true, active: pickerOpen })}
+                        className={classNames({control: true, active: pickerOpen})}
                         disabled={disabled}
                         type='button'
                         aria-label={messagePriority}
@@ -264,7 +263,7 @@ function PostPriorityPicker({
                             defaultMessage: 'Message priority',
                         })}
                     </Header>
-                    <Menu.Separator />
+                    <Menu.Separator/>
                 </div>
             }
             anchorOrigin={{

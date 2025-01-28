@@ -25,7 +25,7 @@ test('MM-T5139: Message Priority - Standard message priority and system setting'
     await messagePriority.verifyStandardOptionSelected();
 
     // # Close menu and post message
-    await channelsPage.centerView.postCreate.priorityButton.click();
+    await messagePriority.standardPriorityOption.click();
     const testMessage = 'This is just a test message';
     await channelsPage.postMessage(testMessage);
 
