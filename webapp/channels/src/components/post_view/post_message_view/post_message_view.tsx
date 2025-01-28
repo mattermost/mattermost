@@ -18,6 +18,8 @@ import Pluggable from 'plugins/pluggable';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
+import type {PostPluginComponent} from 'types/store/plugins';
+
 type Props = {
     post: Post; /* The post to render the message for */
     enableFormatting?: boolean; /* Set to enable Markdown formatting */
@@ -27,7 +29,9 @@ type Props = {
     isRHSOpen?: boolean; /* Whether or not the RHS is visible */
     isRHSExpanded?: boolean; /* Whether or not the RHS is expanded */
     theme: Theme; /* Logged in user's theme */
-    pluginPostTypes?: any; /* Post type components from plugins */
+    pluginPostTypes?: {
+        [postType: string]: PostPluginComponent;
+    }; /* Post type components from plugins */
     currentRelativeTeamUrl: string;
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number; /* The max height used by the show more component */
