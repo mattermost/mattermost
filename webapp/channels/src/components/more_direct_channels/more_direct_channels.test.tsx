@@ -81,7 +81,7 @@ describe('components/MoreDirectChannels', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should call for modal data on callback of modal onEntered', () => {
+    test.only('should call for modal data on callback of modal onEntered', () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
 

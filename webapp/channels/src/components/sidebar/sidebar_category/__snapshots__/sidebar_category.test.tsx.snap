@@ -323,6 +323,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       <button
         aria-label="Create new direct message"
         className="SidebarChannelGroupHeader_addButton"
+        id="newDirectMessageButton"
         onClick={[Function]}
       >
         <i
@@ -434,6 +435,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       <button
         aria-label="Create new direct message"
         className="SidebarChannelGroupHeader_addButton"
+        id="newDirectMessageButton"
         onClick={[Function]}
       >
         <i

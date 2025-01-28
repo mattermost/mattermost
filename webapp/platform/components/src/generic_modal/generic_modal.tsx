@@ -11,6 +11,7 @@ import './generic_modal.scss';
 export type Props = {
     className?: string;
     onExited: () => void;
+    onEntered?: () => void;
     modalHeaderText?: React.ReactNode;
     modalSubheaderText?: React.ReactNode;
     show?: boolean;
@@ -76,6 +77,12 @@ export class GenericModal extends React.PureComponent<Props, State> {
         };
     }
 
+    componentDidUpdate(prevProps: Props) {
+        if (prevProps.show !== this.props.show) {
+            this.setState({show: Boolean(this.props.show)});
+        }
+    }
+
     onHide = () => {
         this.setState({show: false});
 
@@ -97,11 +104,11 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 new CustomEvent(CUSTOM_FOCUS_EVENT, {
                     detail: {
                         target: originElement,
-                        keyboardOnly: false,
+                        keyboardOnly: true,
                     },
                 }),
             );
-        }, 0);
+        }, 100);
     };
 
     handleCancel = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -226,6 +233,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 backdropClassName={this.props.backdropClassName}
                 container={this.props.container}
                 keyboard={this.props.keyboardEscape}
+                onEntered={this.props.onEntered}
             >
                 <div
                     onKeyDown={this.onEnterKeyDown}

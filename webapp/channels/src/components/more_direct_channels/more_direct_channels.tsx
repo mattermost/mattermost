@@ -29,8 +29,20 @@ export type Props = {
     searchTerm: string;
     users: UserProfile[];
     totalCount: number;
+
+    /*
+    * List of current channel members of existing channel
+    */
     currentChannelMembers?: UserProfile[];
+
+    /*
+    * Whether the modal is for existing channel or not
+    */
     isExistingChannel: boolean;
+
+    /*
+    * The mode by which direct messages are restricted, if at all.
+    */
     restrictDirectMessage?: string;
     onModalDismissed?: () => void;
     onExited?: () => void;
@@ -72,7 +84,8 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
         const values: OptionValue[] = [];
         if (props.currentChannelMembers) {
-            for (const user of props.currentChannelMembers) {
+            for (let i = 0; i < props.currentChannelMembers.length; i++) {
+                const user = Object.assign({}, props.currentChannelMembers[i]);
                 if (user.id === props.currentUserId) {
                     continue;
                 }
@@ -89,19 +102,11 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         };
     }
 
-    componentDidMount() {
-        this.loadModalData();
-    }
-
     loadModalData = () => {
         this.getUserProfiles();
         this.props.actions.getTotalUsersStats();
         this.props.actions.loadProfilesMissingStatus(this.props.users);
     };
-
-    componentDidUpdate(prevProps: Props) {
-        this.updateFromProps(prevProps);
-    }
 
     updateFromProps(prevProps: Props) {
         if (prevProps.searchTerm !== this.props.searchTerm) {
@@ -113,27 +118,34 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             } else {
                 const teamId = this.props.restrictDirectMessage === 'any' ? '' : this.props.currentTeamId;
 
-                this.searchTimeoutId = setTimeout(async () => {
-                    this.setUsersLoadingState(true);
-                    const [{data: profilesData}, {data: groupChannelsData}] = await Promise.all([
-                        this.props.actions.searchProfiles(searchTerm, {team_id: teamId}),
-                        this.props.actions.searchGroupChannels(searchTerm),
-                    ]);
-                    if (profilesData) {
-                        this.props.actions.loadStatusesForProfilesList(profilesData);
-                    }
-                    if (groupChannelsData) {
-                        this.props.actions.loadProfilesForGroupChannels(groupChannelsData);
-                    }
-                    this.resetPaging();
-                    this.setUsersLoadingState(false);
-                }, Constants.SEARCH_TIMEOUT_MILLISECONDS);
+                this.searchTimeoutId = setTimeout(
+                    async () => {
+                        this.setUsersLoadingState(true);
+                        const [{data: profilesData}, {data: groupChannelsData}] = await Promise.all([
+                            this.props.actions.searchProfiles(searchTerm, {team_id: teamId}),
+                            this.props.actions.searchGroupChannels(searchTerm),
+                        ]);
+                        if (profilesData) {
+                            this.props.actions.loadStatusesForProfilesList(profilesData);
+                        }
+                        if (groupChannelsData) {
+                            this.props.actions.loadProfilesForGroupChannels(groupChannelsData);
+                        }
+                        this.resetPaging();
+                        this.setUsersLoadingState(false);
+                    },
+                    Constants.SEARCH_TIMEOUT_MILLISECONDS,
+                );
             }
         }
 
         if (prevProps.users.length !== this.props.users.length) {
             this.props.actions.loadProfilesMissingStatus(this.props.users);
         }
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        this.updateFromProps(prevProps);
     }
 
     setUsersLoadingState = (loadingState: boolean) => {
@@ -143,6 +155,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     handleHide = () => {
         this.props.actions.setModalSearchTerm('');
         this.setState({show: false});
+        this.props.onExited?.();
     };
 
     handleExit = () => {
@@ -276,6 +289,8 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 onExited={this.handleExit}
                 compassDesign={true}
                 bodyPadding={false}
+                focusOriginElementOnClose='newDirectMessageButton'
+                onEntered={this.loadModalData}
             >
                 <div role='application'>
                     {body}

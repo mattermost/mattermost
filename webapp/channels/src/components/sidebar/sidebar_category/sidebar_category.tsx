@@ -288,6 +288,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         }
                     >
                         <button
+                            id='newDirectMessageButton'
                             className='SidebarChannelGroupHeader_addButton'
                             onClick={this.handleOpenDirectMessagesModal}
                             aria-label={addHelpLabel}
