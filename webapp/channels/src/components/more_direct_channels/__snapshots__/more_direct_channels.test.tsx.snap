@@ -18,6 +18,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
       id="more_direct_channels.title"
     />
   }
+  onEntered={[Function]}
   onExited={[Function]}
   show={true}
 >
@@ -264,6 +265,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
       id="more_direct_channels.title"
     />
   }
+  onEntered={[Function]}
   onExited={[Function]}
   show={true}
 >
