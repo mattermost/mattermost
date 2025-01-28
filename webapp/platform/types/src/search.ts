@@ -7,10 +7,10 @@ export type Search = {
 };
 
 export type CurrentSearch = {
-   isEnd : boolean;
-   isFilesEnd: boolean;
-   isOmniSearchAtEnd: boolean;
-   params?: SearchParameter
+    isEnd: boolean;
+    isFilesEnd: boolean;
+    isOmniSearchAtEnd: boolean;
+    params?: SearchParameter;
 }
 
 export type SearchState = {
