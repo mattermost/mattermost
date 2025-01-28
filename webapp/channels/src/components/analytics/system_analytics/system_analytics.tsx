@@ -8,7 +8,7 @@ import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow, Analyt
 import {AnalyticsVisualizationType} from '@mattermost/types/admin';
 import type {ClientLicense} from '@mattermost/types/config';
 
-import {formatBytes} from 'mattermost-redux/utils/file_utils';
+import {getFormattedFileSize} from 'mattermost-redux/utils/file_utils';
 
 import * as AdminActions from 'actions/admin_actions.jsx';
 
@@ -43,6 +43,7 @@ type Props = {
 
 type State = {
     pluginSiteStats: Record<string, PluginAnalyticsRow>;
+    lineChartsDataLoaded: boolean;
 }
 
 const messages = defineMessages({
@@ -90,6 +91,7 @@ export const searchableStrings = [
 export default class SystemAnalytics extends React.PureComponent<Props, State> {
     state = {
         pluginSiteStats: {} as Record<string, PluginAnalyticsRow>,
+        lineChartsDataLoaded: false,
     };
 
     public async componentDidMount() {
@@ -102,18 +104,19 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
     }
 
     private loadLineChartData = async () => {
-        await Promise.all([
+        await Promise.allSettled([
             AdminActions.getPostsPerDayAnalytics(),
             AdminActions.getBotPostsPerDayAnalytics(),
             AdminActions.getUsersPerDayAnalytics(),
         ]);
+        this.setState({lineChartsDataLoaded: true});
     };
 
     private handleLineChartsToggle = (e: React.MouseEvent<HTMLDetailsElement>) => {
         const details = e.currentTarget;
         const isExpanding = details.open;
 
-        if (isExpanding) {
+        if (isExpanding && !this.state.lineChartsDataLoaded) {
             this.loadLineChartData();
         }
     };
@@ -300,7 +303,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                     title={<FormattedMessage {...messages.totalFilesSize}/>}
                     icon='fa-files-o'
                     count={this.getStatValue(stats[StatTypes.TOTAL_FILE_SIZE])}
-                    formatter={formatBytes}
+                    formatter={getFormattedFileSize}
                 />
             );
 

@@ -7,8 +7,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import {Files, General} from '../constants';
 
-export function getFormattedFileSize(file: FileInfo): string {
-    const bytes = file.size;
+export function getFormattedFileSize(bytes: number): string {
     const fileSizes = [
         ['TB', 1024 * 1024 * 1024 * 1024],
         ['GB', 1024 * 1024 * 1024],
@@ -25,10 +24,6 @@ export function getFormattedFileSize(file: FileInfo): string {
     }
 
     return `${bytes} B`;
-}
-
-export function formatBytes(bytes: number): string {
-    return getFormattedFileSize({size: bytes} as FileInfo);
 }
 
 export function getFileType(file: FileInfo): string {

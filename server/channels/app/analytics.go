@@ -103,7 +103,7 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 	var postsCount int64
 	g.Go(func() error {
 		var err error
-		if postsCount, err = a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID}); err != nil {
+		if postsCount, err = a.Srv().Store().Post().AnalyticsPostCountByTeam(teamID); err != nil {
 			return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		return nil

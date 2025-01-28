@@ -2422,20 +2422,15 @@ func (s *SqlPostStore) countByTeam(teamID string) (int64, error) {
 	return v, nil
 }
 
-func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
+func (s *SqlPostStore) AnalyticsPostCountByTeam(teamID string) (int64, error) {
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		// Only call this method if no other options are passed.
-		// This is specialized for system console stats.
-		if !options.UsersPostsOnly &&
-			!options.MustHaveFile &&
-			!options.MustHaveHashtag &&
-			!options.ExcludeDeleted &&
-			!options.ExcludeSystemPosts &&
-			options.SinceUpdateAt == 0 &&
-			options.UntilUpdateAt == 0 {
-			return s.countByTeam(options.TeamId)
-		}
+		return s.countByTeam(teamID)
 	}
+
+	return s.AnalyticsPostCount(&model.PostCountOptions{TeamId: teamID})
+}
+
+func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(*) AS Value").
 		From("Posts p")
@@ -3379,11 +3374,11 @@ func (s *SqlPostStore) RefreshPostStats() error {
 		// is not a very frequent activity, we accept the tradeoff to let the
 		// refresh happen as fast as possible.
 		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
-			return errors.Wrap(err, "error refreshing materialized view posts_by_day")
+			return errors.Wrap(err, "error refreshing materialized view posts_by_team_day")
 		}
 
 		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {
-			return errors.Wrap(err, "error refreshing materialized view bot_posts_by_day")
+			return errors.Wrap(err, "error refreshing materialized view bot_posts_by_team_day")
 		}
 	}
 

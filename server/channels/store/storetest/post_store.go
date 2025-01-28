@@ -3049,6 +3049,10 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, int64(7), c)
 
+	c, err = ss.Post().AnalyticsPostCountByTeam(t1.Id)
+	require.NoError(t, err)
+	assert.Equal(t, int64(7), c)
+
 	// with files
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, MustHaveFile: true})
 	require.NoError(t, err)

@@ -48,6 +48,34 @@ func (_m *PostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64,
 	return r0, r1
 }
 
+// AnalyticsPostCountByTeam provides a mock function with given fields: teamID
+func (_m *PostStore) AnalyticsPostCountByTeam(teamID string) (int64, error) {
+	ret := _m.Called(teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AnalyticsPostCountByTeam")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(teamID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(teamID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(teamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AnalyticsPostCountsByDay provides a mock function with given fields: options
 func (_m *PostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 	ret := _m.Called(options)
