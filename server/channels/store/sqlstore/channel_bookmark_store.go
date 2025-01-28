@@ -52,7 +52,6 @@ func bookmarkWithFileInfoSliceColumns() []string {
 }
 
 func (s *SqlChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId string, channelId string) error {
-
 	existingQuery := s.getSubQueryBuilder().
 		Select("FileInfoId").
 		From("ChannelBookmarks").
