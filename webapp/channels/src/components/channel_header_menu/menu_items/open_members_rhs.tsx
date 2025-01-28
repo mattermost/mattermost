@@ -21,7 +21,7 @@ type Props = {
     text: React.ReactElement;
 };
 
-const ToggleChannelMembersRHS = ({
+const OpenMembersRHS = ({
     id,
     channel,
     text,
@@ -34,9 +34,12 @@ const ToggleChannelMembersRHS = ({
         rhsOpen = false;
     }
     const openRHSIfNotOpen = () => {
+        console.log('here');
         if (rhsOpen) {
+            console.log('there');
             return;
         }
+        console.log('there2');
         dispatch(showChannelMembers(channel.id, editMembers));
     };
 
@@ -50,4 +53,4 @@ const ToggleChannelMembersRHS = ({
     );
 };
 
-export default ToggleChannelMembersRHS;
+export default OpenMembersRHS;

@@ -14,7 +14,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import ViewPinnedPosts from './view_pinned_posts';
 
-describe('components/ChannelHeaderMenu/MenuItem.ViewPinnedPosts', () => {
+describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
     beforeEach(() => {
         jest.spyOn(rhsActions, 'closeRightHandSide').mockImplementation(() => () => ({data: true}));
         jest.spyOn(rhsActions, 'showPinnedPosts').mockReturnValue(() => Promise.resolve({data: true}));

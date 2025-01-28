@@ -15,7 +15,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import UnarchiveChannel from './unarchive_channel';
 
-describe('components/ChannelHeaderMenu/MenuItem.EditConversationHeader', () => {
+describe('components/ChannelHeaderMenu/MenuItems/UnarchiveChannel', () => {
     beforeEach(() => {
         jest.spyOn(modalActions, 'openModal');
         jest.spyOn(require('react-redux'), 'useDispatch');

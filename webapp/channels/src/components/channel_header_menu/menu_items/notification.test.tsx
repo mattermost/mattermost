@@ -15,7 +15,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import Notification from './notification';
 
-describe('components/ChannelHeaderMenu/MenuItem.EditConversationHeader', () => {
+describe('components/ChannelHeaderMenu/MenuItems/Notification', () => {
     beforeEach(() => {
         jest.spyOn(modalActions, 'openModal');
 

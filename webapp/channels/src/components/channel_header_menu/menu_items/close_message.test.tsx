@@ -17,7 +17,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import CloseMessage from './close_message';
 
-describe('components/ChannelHeaderMenu/MenuItem.CloseMessage', () => {
+describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
     const initialState = {
         entities: {
             channels: {

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import * as rhsActions from 'actions/views/rhs';
@@ -12,12 +13,12 @@ import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 import {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import ToggleInfo from './toggle_info';
+import OpenMembersRHS from './open_members_rhs';
 
-describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
+describe('components/ChannelHeaderMenu/MenuItems/ToggleChannelMembersRHS', () => {
     beforeEach(() => {
-        jest.spyOn(rhsActions, 'closeRightHandSide').mockImplementation(() => () => ({data: true}));
-        jest.spyOn(rhsActions, 'showChannelInfo');
+        // jest.spyOn(rhsActions, 'closeRightHandSide').mockImplementation(() => () => ({data: true}));
+        jest.spyOn(rhsActions, 'showChannelMembers').mockReturnValue(() => Promise.resolve({data: true}));
 
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
@@ -38,24 +39,33 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
 
         renderWithContext(
             <WithTestMenuContext>
-                <ToggleInfo channel={channel}/>
+                <OpenMembersRHS
+                    channel={channel}
+                    id={'testID'}
+                    text={
+                        <FormattedMessage
+                            id='channel_header.viewMembers'
+                            defaultMessage='View Members'
+                        />
+                    }
+                />
             </WithTestMenuContext>, state,
         );
 
-        const menuItem = screen.getByText('View Info');
+        const menuItem = screen.getByText('View Members');
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(rhsActions.showChannelInfo).toHaveBeenCalledTimes(1);
-        expect(rhsActions.showChannelInfo).toHaveBeenCalledWith(channel.id);
+        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(rhsActions.showChannelMembers).toHaveBeenCalledTimes(1);
+        expect(rhsActions.showChannelMembers).toHaveBeenCalledWith(channel.id, false);
     });
 
     test('renders the component correctly, handles correct click event, rhs open', () => {
         const state = {
             views: {
                 rhs: {
-                    rhsState: RHSStates.CHANNEL_INFO,
+                    rhsState: RHSStates.CHANNEL_MEMBERS,
                     isSidebarOpen: true,
                 },
             },
@@ -65,15 +75,23 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
 
         renderWithContext(
             <WithTestMenuContext>
-                <ToggleInfo channel={channel}/>
+                <OpenMembersRHS
+                    channel={channel}
+                    id={'testID'}
+                    text={
+                        <FormattedMessage
+                            id='channel_header.viewMembers'
+                            defaultMessage='View Members'
+                        />
+                    }
+                />
             </WithTestMenuContext>, state,
         );
 
-        const menuItem = screen.getByText('Close Info');
+        const menuItem = screen.getByText('View Members');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(rhsActions.closeRightHandSide).toHaveBeenCalledTimes(1);
+        fireEvent.click(menuItem); // Simulate click on the menu
+        expect(rhsActions.showChannelMembers).not.toHaveBeenCalled();
     });
 });

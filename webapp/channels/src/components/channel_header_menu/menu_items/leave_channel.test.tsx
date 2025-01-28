@@ -16,7 +16,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import LeaveChannel from './leave_channel';
 
-describe('components/ChannelHeaderMenu/MenuItem/LeaveChannelTest', () => {
+describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
     beforeEach(() => {
         jest.spyOn(modalActions, 'openModal');
         jest.spyOn(channelActions, 'leaveChannel');

@@ -16,7 +16,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import ArchiveChannel from './archive_channel';
 
-describe('components/ChannelHeaderMenu/MenuItem.ArchiveChannel', () => {
+describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
     const initialState = {
         entities: {
             channels: {

@@ -14,7 +14,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import ToggleMuteChannel from './toggle_mute_channel';
 
-describe('components/ChannelHeaderMenu/MenuItem.ToggleMuteChannel', () => {
+describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
     const channel = TestHelper.getChannelMock();
     const user = TestHelper.getUserMock();
 

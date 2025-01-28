@@ -14,7 +14,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import AddGroupMembers from './add_group_members';
 
-describe('components/ChannelHeaderMenu/MenuItem.AddGroupMembers', () => {
+describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
     beforeEach(() => {
         jest.spyOn(modalActions, 'openModal');
 

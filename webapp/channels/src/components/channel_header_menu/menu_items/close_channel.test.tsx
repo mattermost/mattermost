@@ -11,7 +11,7 @@ import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import CloseChannel from './close_channel';
 
-describe('CloseChannel', () => {
+describe('components/ChannelHeaderMenu/MenuItems/CloseChannel', () => {
     beforeEach(() => {
         jest.spyOn(channelActions, 'goToLastViewedChannel');
     });
