@@ -4,6 +4,7 @@
 export type FileInfo = {
     id: string;
     user_id: string;
+    channel_id: string;
     create_at: number;
     update_at: number;
     delete_at: number;

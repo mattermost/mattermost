@@ -32,7 +32,7 @@ const ItemButton = styled.button`
     align-items: center !important;
 `;
 
-const Wrapper = styled.div`
+const Wrapper = styled.li`
     cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
 
     &:hover {
@@ -94,6 +94,7 @@ function Item({
             aria-label={ariaLabel}
             className='style--none'
             onClick={onClick}
+            aria-pressed={isSelected}
         >
             {text && <span className='MenuItem__primary-text'>{text}</span>}
             {isSelected && (
@@ -116,7 +117,8 @@ function ToggleItem({
         <Wrapper
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
-            role='button'
+            role='menuitemcheckbox'
+            aria-pressed={toggled}
         >
             <ToggleMain>
                 {icon}

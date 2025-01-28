@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as TIMEOUTS from '../../../fixtures/timeouts';
+
 import {clickCategoryMenuItem} from './helpers';
 
 // ***************************************************************
@@ -22,6 +24,8 @@ describe('Sidebar category menu', () => {
     it('MM-T3171_1 Verify that the 3-dot menu on the Channels Category contains an option to Create New Category', () => {
         clickCategoryMenuItem('CHANNELS', 'Create New Category');
 
+        cy.wait(TIMEOUTS.ONE_SEC);
+
         cy.get('body').type('{esc}', {force: true});
     });
 
@@ -40,6 +44,8 @@ describe('Sidebar category menu', () => {
 
         // # Verify that Create New Category exists on Favorites category and click on it
         clickCategoryMenuItem('FAVORITES', 'Create New Category');
+
+        cy.wait(TIMEOUTS.ONE_SEC);
 
         cy.get('body').type('{esc}', {force: true});
     });

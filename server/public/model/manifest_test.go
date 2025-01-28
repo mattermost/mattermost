@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func TestIsValid(t *testing.T) {
@@ -90,6 +90,18 @@ func TestIsValid(t *testing.T) {
 						Settings: []*PluginSetting{
 							{
 								Key:         "section2setting1",
+								DisplayName: "thedisplayname",
+								Type:        "custom",
+							},
+						},
+					},
+					{
+						Key:      "section3",
+						Custom:   true,
+						Fallback: true,
+						Settings: []*PluginSetting{
+							{
+								Key:         "section3setting1",
 								DisplayName: "thedisplayname",
 								Type:        "custom",
 							},

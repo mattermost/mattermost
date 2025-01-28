@@ -6,6 +6,7 @@ import type {ErrorObject} from 'serialize-error';
 
 import {LogLevel} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {ErrorTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -28,7 +29,36 @@ export function getLogErrorAction(error: ErrorObject, displayable = false) {
     };
 }
 
-export function logError(error: ServerError, displayable = false, consoleError = false): ActionFuncAsync<boolean> {
+export type LogErrorOptions = {
+
+    /**
+     * errorBarMode controls how and when the error bar is shown for this error.
+     *
+     * If unspecified, this defaults to DontShow.
+     */
+    errorBarMode?: LogErrorBarMode;
+};
+
+export enum LogErrorBarMode {
+
+    /**
+     * Always show the error bar for this error.
+     */
+    Always = 'Always',
+
+    /**
+     * Never show the error bar for this error.
+     */
+    Never = 'Never',
+
+    /**
+     * Only shows the error bar if Developer Mode is enabled, and the message displayed will tell the user to check the
+     * JS console for more information.
+     */
+    InDevMode = 'InDevMode',
+}
+
+export function logError(error: ServerError, options: LogErrorOptions = {}): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         if (error.server_error_id === 'api.context.session_expired.app_error') {
             return {data: true};
@@ -55,22 +85,27 @@ export function logError(error: ServerError, displayable = false, consoleError =
             }
         }
 
-        if (consoleError) {
+        if (options && options.errorBarMode === LogErrorBarMode.InDevMode) {
             serializedError.message = 'A JavaScript error has occurred. Please use the JavaScript console to capture and report the error';
         }
 
-        const isDevMode = getState()?.entities.general?.config?.EnableDeveloper === 'true';
-        let shouldDisplay = displayable;
-
-        // Display announcements bar if error is a developer error and we are in dev mode
-        if (isDevMode && error.type === 'developer') {
-            shouldDisplay = true;
-        }
-
-        dispatch(getLogErrorAction(serializedError, shouldDisplay));
+        dispatch(getLogErrorAction(serializedError, shouldShowErrorBar(getState(), options)));
 
         return {data: true};
     };
+}
+
+export function shouldShowErrorBar(state: GlobalState, options: LogErrorOptions) {
+    if (options && options.errorBarMode === LogErrorBarMode.Always) {
+        return true;
+    }
+
+    if (options && options.errorBarMode === LogErrorBarMode.InDevMode) {
+        const isDevMode = state.entities.general.config?.EnableDeveloper === 'true';
+        return isDevMode;
+    }
+
+    return false;
 }
 
 export function clearErrors() {

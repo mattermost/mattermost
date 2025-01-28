@@ -5,6 +5,7 @@ package export_delete
 
 import (
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/wiggin77/merror"
@@ -41,6 +42,12 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		errors := merror.New()
 		for i := range exports {
 			filename := filepath.Base(exports[i])
+
+			// Ignore files that were not created by the bulk export command
+			if !strings.HasSuffix(filename, "_export.zip") {
+				continue
+			}
+
 			modTime, appErr := app.ExportFileModTime(filepath.Join(exportPath, filename))
 			if appErr != nil {
 				logger.Debug("Worker: Failed to get file modification time",

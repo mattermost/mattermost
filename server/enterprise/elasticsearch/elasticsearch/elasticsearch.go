@@ -1323,7 +1323,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 	_, err := es.client.Indices.Delete(indexesToDelete).Do(ctx)
 	if err != nil {
 		rctx.Logger().Error("Elastic Search PurgeIndexes Error", mlog.Err(err))
-		return model.NewAppError("Elasticsearch.PurgeIndexes", "ent.elasticsearch.purge_indexes.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.PurgeIndexes", "ent.elasticsearch.purge_index.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil

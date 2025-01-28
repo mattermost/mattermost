@@ -1,7 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable gitlab 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -140,7 +144,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable google 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -279,7 +287,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable office365 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -418,7 +430,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable openID 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
@@ -557,7 +573,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 `;
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, to email 1`] = `
-<div>
+<div
+  aria-labelledby="securityButton"
+  id="securitySettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}
