@@ -28,13 +28,11 @@ var PostCmd = &cobra.Command{
 var PostCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a post",
-	Long:  "This command cammand can be use to create a post on a channel and to send a direct message to user.",
-	Example: ` # Examples of post to a channel
-	post create myteam:mychannel --message "some text for the post"
+	Long:  "This command cammand can be use to create a post on a channel and to send a direct message to a user.",
+	Example: ` # Example of post on a channel
 	post create myteam:mychannel "some text for the post"
 
-	# Examples of a direct message
-	post create @some-user --message "some direct message"
+	# Example of a direct message
 	post create @some-user "some direct message"`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: withClient(postCreateCmdF),
