@@ -46,7 +46,7 @@ func (o *PostSearchResults) Auditable() map[string]interface{} {
 
 	if o.PostList != nil {
 		numResults = len(o.PostList.Posts)
-		hasNext = model.SafeDereference(o.PostList.HasNext)
+		hasNext = SafeDereference(o.PostList.HasNext)
 	}
 
 	return map[string]any{
