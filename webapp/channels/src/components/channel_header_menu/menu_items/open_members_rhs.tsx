@@ -34,12 +34,9 @@ const OpenMembersRHS = ({
         rhsOpen = false;
     }
     const openRHSIfNotOpen = () => {
-        console.log('here');
         if (rhsOpen) {
-            console.log('there');
             return;
         }
-        console.log('there2');
         dispatch(showChannelMembers(channel.id, editMembers));
     };
 

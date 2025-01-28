@@ -4480,6 +4480,7 @@
   "navbar.addMembers": "Add Members",
   "navbar.preferences": "Notification Preferences",
   "navbar.toggle2": "Toggle sidebar",
+  "navbar.toggle3": "Toggle right sidebar",
   "navbar.viewPinnedPosts": "View Pinned Posts",
   "newChannelWithBoard.tutorialTip.description": "The board you just created can be quickly accessed by clicking on the Boards icon in the App bar. You can view the boards that are linked to this channel in the right-hand sidebar and open one in full view.",
   "newChannelWithBoard.tutorialTip.title": "Access linked boards from the App Bar",
