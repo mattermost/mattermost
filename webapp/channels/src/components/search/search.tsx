@@ -6,10 +6,6 @@ import React, {useEffect, useState, useRef} from 'react';
 import type {ChangeEvent, MouseEvent, FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 
@@ -27,6 +23,11 @@ import MentionsIcon from 'components/widgets/icons/mentions_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
 import Popover from 'components/widgets/popover';
 import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
+
+import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
+import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import type {SearchType} from 'types/store/rhs';
 
