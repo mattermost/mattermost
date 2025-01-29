@@ -322,7 +322,6 @@ type ServiceSettings struct {
 	SiteURL              *string `access:"environment_web_server,authentication_saml,write_restrictable"`
 	WebsocketURL         *string `access:"write_restrictable,cloud_restrictable"`
 	EnableSystemBus      *bool   `access:"experimental_features,environment_system_bus"`
-	SystemBusBackend     *string `access:"experimental_features,environment_system_bus"`
 	EnableSystemBusTrace *bool   `access:"experimental_features,environment_system_bus"`
 	LicenseFileLocation  *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
 	ListenAddress        *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -458,10 +457,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableSystemBus == nil {
 		s.EnableSystemBus = NewPointer(false)
-	}
-
-	if s.SystemBusBackend == nil {
-		s.SystemBusBackend = NewPointer("InMemory")
 	}
 
 	if s.EnableSystemBusTrace == nil {

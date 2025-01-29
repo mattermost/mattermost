@@ -207,12 +207,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if *s.platform.Config().ServiceSettings.EnableSystemBusTrace {
 			logger = s.Log()
 		}
-		switch *s.platform.Config().ServiceSettings.SystemBusBackend {
-		case "InMemory":
-			s.systemBus, err = systembus.NewGoChannel(logger)
-		default:
-			return nil, errors.New("invalid system bus backend")
-		}
+		s.systemBus, err = systembus.NewGoChannel(logger)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to initialize the system bus")
 		}
