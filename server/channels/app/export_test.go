@@ -932,7 +932,8 @@ func TestExportFileWarnings(t *testing.T) {
 			require.Len(t, results.FileInfos, 1)
 
 			for _, info2 := range results.FileInfos {
-				th.App.RemoveFile(info2.Path)
+				err2 := th.App.RemoveFile(info2.Path)
+				require.Nil(t, err2)
 			}
 
 			exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
