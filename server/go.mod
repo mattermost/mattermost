@@ -8,7 +8,6 @@ require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/ThreeDotsLabs/watermill v1.4.4
-	github.com/ThreeDotsLabs/watermill-sql/v3 v3.1.0
 	github.com/avct/uasurfer v0.0.0-20240501094946-ca0c4d1e541b
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/blang/semver/v4 v4.0.0
