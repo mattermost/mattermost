@@ -1031,7 +1031,7 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 	// not if the root post has been deleted
 	const threadMembershipsQuery = `
 		DELETE FROM ThreadMemberships WHERE PostId IN (
-			SELECT * FROM (
+			SELECT A.PostID FROM (
 				SELECT ThreadMemberships.PostId FROM ThreadMemberships
 				LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
 				WHERE Threads.PostId IS NULL
@@ -1043,10 +1043,12 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 	if err != nil {
 		return
 	}
+
 	deleted, err = result.RowsAffected()
 	if err != nil {
 		return
 	}
+
 	return
 }
 

@@ -25,7 +25,12 @@
         overflow: hidden;
         padding-right: 5px;
         text-overflow: ellipsis;
-        white-space: nowrap;
+    }
+
+    .setting-list & {
+        .control-label {
+            white-space: nowrap;
+        }
     }
 
     &.form-group--small {
