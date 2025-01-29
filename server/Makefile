@@ -147,7 +147,7 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.5.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.9.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.1
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.2.0
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.40.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.0.1
@@ -303,11 +303,6 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 		$(GOBIN)/golangci-lint run $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
-
-app-layers: ## Extract interface from App struct
-	$(GO) install github.com/reflog/struct2interface@v0.6.1
-	$(GOBIN)/struct2interface -f "channels/app" -o "channels/app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./channels/app/layer_generators/app_iface.go.tmpl
-	$(GO) run ./channels/app/layer_generators -in ./channels/app/app_iface.go -out ./channels/app/opentracing/opentracing_layer.go -template ./channels/app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
 	cd ../tools/mmgotool && $(GO) install .

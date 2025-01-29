@@ -668,7 +668,7 @@ func testCreatePostWithOutgoingHook(
 			}
 		}
 
-		respPostType := "" //if is empty or post will do a normal post.
+		respPostType := "" // if is empty or post will do a normal post.
 		if commentPostType {
 			respPostType = model.OutgoingHookResponseTypeComment
 		}
@@ -1046,8 +1046,10 @@ func TestMoveThread(t *testing.T) {
 		// Set permitted role as channel admin
 		enabled := true
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.WranglerSettings = model.WranglerSettings{MoveThreadToAnotherTeamEnable: &enabled,
-				PermittedWranglerRoles: []string{model.PermissionsChannelAdmin}}
+			cfg.WranglerSettings = model.WranglerSettings{
+				MoveThreadToAnotherTeamEnable: &enabled,
+				PermittedWranglerRoles:        []string{model.PermissionsChannelAdmin},
+			}
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings = model.WranglerSettings{}
@@ -1215,9 +1217,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	inChannelUser := th.CreateUser()
 	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
@@ -1286,11 +1286,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	_, _, err = cli.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 	require.NoError(t, err)
 
-	wsClient, err := th.CreateWebSocketClientWithClient(cli)
-	require.NoError(t, err)
-	defer wsClient.Close()
-
-	wsClient.Listen()
+	wsClient := th.CreateConnectedWebSocketClientWithClient(t, cli)
 
 	waitForEvent := func(isSetOnline bool) {
 		timeout := time.After(5 * time.Second)
@@ -3394,11 +3390,7 @@ func TestWebHubMembership(t *testing.T) {
 		_, _, err := cli.Login(context.Background(), obj.user.Username, obj.user.Password)
 		require.NoError(t, err)
 
-		wsClient, err := th.CreateWebSocketClientWithClient(cli)
-		require.NoError(t, err)
-		defer wsClient.Close()
-
-		wsClient.Listen()
+		wsClient := th.CreateConnectedWebSocketClientWithClient(t, cli)
 
 		go func(testName string) {
 			defer wg.Done()
@@ -3509,12 +3501,9 @@ func TestDeletePostEvent(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	WebSocketClient.Listen()
-	defer WebSocketClient.Close()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
-	_, err = th.SystemAdminClient.DeletePost(context.Background(), th.BasicPost.Id)
+	_, err := th.SystemAdminClient.DeletePost(context.Background(), th.BasicPost.Id)
 	require.NoError(t, err)
 
 	var received, exit bool
@@ -3554,15 +3543,11 @@ func TestDeletePostMessage(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
-			wsClient, err := th.CreateWebSocketClientWithClient(tc.client)
-			require.NoError(t, err)
-			defer wsClient.Close()
-
-			wsClient.Listen()
+			wsClient := th.CreateConnectedWebSocketClientWithClient(t, tc.client)
 
 			post := th.CreatePost()
 
-			_, err = th.SystemAdminClient.DeletePost(context.Background(), post.Id)
+			_, err := th.SystemAdminClient.DeletePost(context.Background(), post.Id)
 			require.NoError(t, err)
 
 			timeout := time.After(5 * time.Second)
@@ -4310,12 +4295,9 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("Mark reply post as unread", func(t *testing.T) {
-		userWSClient, err := th.CreateWebSocketClient()
-		require.NoError(t, err)
-		defer userWSClient.Close()
-		userWSClient.Listen()
+		userWSClient := th.CreateConnectedWebSocketClient(t)
 
-		_, err = th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, replyPost1.Id, false)
+		_, err := th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, replyPost1.Id, false)
 		require.NoError(t, err)
 		channelUnread, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -4375,6 +4357,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		require.Equal(t, int64(3), channelUnread.MsgCountRoot)
 	})
 }
+
 func TestGetPostsByIds(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4623,10 +4606,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			userWSClient, err := th.CreateWebSocketClient()
-			require.NoError(t, err)
-			defer userWSClient.Close()
-			userWSClient.Listen()
+			userWSClient := th.CreateConnectedWebSocketClient(t)
 
 			patch := &model.UserPatch{}
 			patch.NotifyProps = model.CopyStringMap(th.BasicUser.NotifyProps)
@@ -4635,7 +4615,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			}
 
 			// update user's notify props
-			_, _, err = th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)
+			_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)
 			require.NoError(t, err)
 
 			// post a reply on the thread
@@ -4734,10 +4714,7 @@ func TestPostReminder(t *testing.T) {
 	defer th.TearDown()
 
 	client := th.Client
-	userWSClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer userWSClient.Close()
-	userWSClient.Listen()
+	userWSClient := th.CreateConnectedWebSocketClient(t)
 
 	targetTime := time.Now().UTC().Unix()
 	resp, err := client.SetPostReminder(context.Background(), &model.PostReminder{
