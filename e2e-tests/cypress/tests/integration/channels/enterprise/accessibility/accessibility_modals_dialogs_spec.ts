@@ -149,7 +149,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // # Open Add Members Dialog
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
         cy.findByText('Add Members').click();
 
         // * Verify the accessibility support in Add people Dialog

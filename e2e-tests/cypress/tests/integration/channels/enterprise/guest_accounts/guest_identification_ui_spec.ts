@@ -59,7 +59,7 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('MM-T1370 Verify Guest Badge in Channel Members dropdown and dialog', () => {
         // # Open Channel Members RHS
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
         cy.get('#channelManageMembers').click().wait(TIMEOUTS.HALF_SEC);
         cy.uiGetRHS().findByTestId(`memberline-${guestUser.id}`).within(($el) => {
             cy.wrap($el).get('.Tag').should('be.visible').should('have.text', 'GUEST');

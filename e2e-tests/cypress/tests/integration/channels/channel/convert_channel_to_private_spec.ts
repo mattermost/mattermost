@@ -41,14 +41,14 @@ describe('Channels', () => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Click the channel header dropdown
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
 
             // * Channel convert to private should be visible and confirm
             cy.get('#channelConvertToPrivate').should('be.visible').click();
             cy.findByTestId('convertChannelConfirm').should('be.visible').click();
 
             // # Click the channel header dropdown
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
 
             // * Channel convert to private should no longer be visible
             cy.get('#channelConvertToPrivate').should('not.exist');
@@ -66,7 +66,7 @@ describe('Channels', () => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Click the channel header dropdown
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
 
             // * Channel convert to private should no longer be visible
             cy.get('#channelConvertToPrivate').should('not.exist');
@@ -91,7 +91,7 @@ describe('Channels', () => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Click the channel header dropdown
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
 
             // * Channel convert to private should not be visible
             cy.get('#channelConvertToPrivate').should('not.exist');
@@ -109,14 +109,14 @@ describe('Channels', () => {
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
             // # Click the channel header dropdown
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
 
             // * Channel convert to private should be visible and confirm
             cy.get('#channelConvertToPrivate').should('be.visible').click();
             cy.findByTestId('convertChannelConfirm').should('be.visible').click();
 
             // # Click the channel header dropdown
-            cy.get('#channelHeaderDropdownIcon').click();
+            cy.get('#channelHeaderTitle').click();
 
             // * Channel convert to private should no longer be visible
             cy.get('#channelConvertToPrivate').should('not.exist');

@@ -35,7 +35,7 @@ describe('Channel routing', () => {
         cy.uiCreateChannel({name: 'Test__Channel'});
 
         // # Click on channel menu and press rename channel
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
         cy.findByText('Rename Channel').click();
 
         // # Assert if the rename modal present
@@ -97,7 +97,7 @@ describe('Channel routing', () => {
 
         // # In a test channel, click the "v" to the right of the channel name in the header
         cy.findByText(`${testChannel.display_name}`).click();
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
 
         // # Select "Rename Channel"
         cy.findByText('Rename Channel').click();
@@ -113,7 +113,7 @@ describe('Channel routing', () => {
         cy.get('#channelHeaderTitle').contains(`${firstWord} ${secondWord}`);
 
         // # In a test channel, click the "v" to the right of the channel name in the header
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
 
         // # Select "Rename Channel"
         cy.findByText('Rename Channel').click();

@@ -462,7 +462,7 @@ function getCurrentChannelId(): ChainableT<string> {
 Cypress.Commands.add('getCurrentChannelId', getCurrentChannelId);
 
 function updateChannelHeader(text: string) {
-    cy.get('#channelHeaderDropdownIcon').
+    cy.get('#channelHeaderTitle').
         should('be.visible').
         click();
     cy.get('.Menu__content').
