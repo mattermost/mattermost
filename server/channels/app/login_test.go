@@ -84,8 +84,8 @@ func TestLoginEvents(t *testing.T) {
 		require.NoError(t, err)
 
 		// Perform login
-		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
-		require.NoError(t, err)
+		session, appErr := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, appErr)
 		require.NotNil(t, session)
 
 		// Wait for and verify the success event
@@ -112,8 +112,8 @@ func TestLoginEvents(t *testing.T) {
 		require.NoError(t, err)
 
 		// Attempt login with empty password in a goroutine
-		_, err = th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", "", false)
-		require.Error(t, err)
+		_, appErr := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", "", false)
+		require.NotNil(t, appErr)
 
 		// Now wait for and verify the failure event
 		select {
