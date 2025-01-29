@@ -136,12 +136,11 @@ export default function SidebarTeamMenu(props: Props) {
     if (isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) {
         addGroupsToTeamMenuItem = (
             <Menu.Item
-                id='addGroupsToTeamMenuItem'
                 onClick={onAddGroupsToTeamMenuItemClick}
                 labels={(
                     <FormattedMessage
                         id='sidebarLeft.teamMenu.addGroupsToTeamMenuItem.primaryLabel'
-                        defaultMessage='Add groups to team'
+                        defaultMessage='Add groups'
                     />
                 )}
             />
@@ -152,7 +151,6 @@ export default function SidebarTeamMenu(props: Props) {
     if (isGuestAccessEnabled && havePermissionToAddUserToTeam && havePermissionToInviteGuest) {
         invitePeopleMenuItem = (
             <Menu.Item
-                id='invitePeopleMenuItem'
                 onClick={onInvitePeopleMenuItemClick}
                 labels={(
                     <>
@@ -162,7 +160,7 @@ export default function SidebarTeamMenu(props: Props) {
                         />
                         <FormattedMessage
                             id='sidebarLeft.teamMenu.invitePeopleMenuItem.secondaryLabel'
-                            defaultMessage='Add people to the team'
+                            defaultMessage='Add or invite people to team'
                         />
                     </>
                 )}
@@ -174,7 +172,6 @@ export default function SidebarTeamMenu(props: Props) {
     if (havePermissionToManageTeam) {
         teamSettingsMenuItem = (
             <Menu.Item
-                id='teamSettingsMenuItem'
                 onClick={onTeamSettingsMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -190,7 +187,6 @@ export default function SidebarTeamMenu(props: Props) {
     if (isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) {
         manageGroupsMenuItem = (
             <Menu.Item
-                id='manageGroupsMenuItem'
                 onClick={onManageGroupsMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -206,7 +202,6 @@ export default function SidebarTeamMenu(props: Props) {
     if (havePermissionToRemoveUserFromTeam && havePermissionToManageTeamRoles) {
         manageViewMembersMenuItem = (
             <Menu.Item
-                id='manageMembersMenuItem'
                 onClick={onManageViewMembersMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -219,7 +214,6 @@ export default function SidebarTeamMenu(props: Props) {
     } else {
         manageViewMembersMenuItem = (
             <Menu.Item
-                id='viewMembersMenuItem'
                 onClick={onManageViewMembersMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -235,7 +229,6 @@ export default function SidebarTeamMenu(props: Props) {
     if (!experimentalPrimaryTeam && haveMoreJoinableTeams) {
         joinAnotherTeamMenuItem = (
             <Menu.Item
-                id='joinAnotherTeamMenuItem'
                 onClick={onJoinAnotherTeamMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -251,7 +244,6 @@ export default function SidebarTeamMenu(props: Props) {
     if (!isTeamGroupConstrained && experimentalPrimaryTeam !== props.currentTeam.name) {
         leaveTeamMenuItem = (
             <Menu.Item
-                id='leaveTeamMenuItem'
                 onClick={onLeaveTeamMenuItemClick}
                 isDestructive={true}
                 labels={(
@@ -268,7 +260,6 @@ export default function SidebarTeamMenu(props: Props) {
     if (havePermissionToCreateTeam) {
         createTeamMenuItem = (
             <Menu.Item
-                id='createTeamMenuItem'
                 disabled={isTeamsLimitReached}
                 onClick={onCreateTeamMenuItemClick}
                 labels={(
@@ -284,8 +275,7 @@ export default function SidebarTeamMenu(props: Props) {
 
     const learnAboutTeamsMenuItem = (
         <Menu.Item
-            key='learnAboutTeamsMenuItem'
-            id='learnAboutTeamsMenuItem'
+            className='learnAboutTeamsMenuItem'
             onClick={onLearnAboutTeamsMenuItemClick}
             leadingElement={(
                 <LightbulbOutlineIcon
@@ -341,16 +331,15 @@ export default function SidebarTeamMenu(props: Props) {
                 id: 'sidebarTeamMenu',
                 width: '225px',
             }}
-
         >
-            {addGroupsToTeamMenuItem}
             {invitePeopleMenuItem}
+            {addGroupsToTeamMenuItem}
             {teamSettingsMenuItem}
-            {manageGroupsMenuItem}
             {manageViewMembersMenuItem}
-            {joinAnotherTeamMenuItem}
+            {manageGroupsMenuItem}
             {leaveTeamMenuItem}
             {Boolean(createTeamMenuItem) && <Menu.Separator/>}
+            {joinAnotherTeamMenuItem}
             {createTeamMenuItem}
             {Boolean(learnAboutTeamsMenuItem) && <Menu.Separator/>}
             {learnAboutTeamsMenuItem}
