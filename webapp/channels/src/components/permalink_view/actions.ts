@@ -103,11 +103,11 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
             return;
         }
 
-        if (!postInfo.has_joined_channel && postInfo.channel_type === Constants.PRIVATE_CHANNEL) {
+        if (!postInfo.has_joined_channel) {
             // Prompt system admins and team admins before joining the private channel
             const user = getCurrentUser(state);
             let prompt = false;
-            if (isSystemAdmin(user.roles)) {
+            if (postInfo.channel_type === Constants.PRIVATE_CHANNEL && isSystemAdmin(user.roles)) {
                 prompt = true;
             } else {
                 const teamMember = getMyTeamMember(state, currentTeam.id);
