@@ -2458,7 +2458,7 @@
   },
   {
     "id": "api.omnisearch.search.invalid_response",
-    "translation": ""
+    "translation": "An error occurred marshalling the JSON data for response."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
