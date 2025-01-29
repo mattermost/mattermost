@@ -121,7 +121,6 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
             dispatch(postEphemeralCallResponseForChannel(errorResponse, errorMessage, channel.id));
             return;
         }
-
         const callResp = res.data!;
         switch (callResp.type) {
         case AppCallResponseTypes.OK:
@@ -157,6 +156,10 @@ const MobileChannelHeaderPlugins = (props: Props): JSX.Element => {
         return createButton(components[0]);
     } else if (components.length === 0 && bindings.length === 1) {
         return createAppButton(bindings[0]);
+    }
+
+    if (!props.isDropdown) {
+        return <></>;
     }
 
     const plugItems = createList(components);
