@@ -136,7 +136,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
             if (event.nativeEvent.isComposing) {
                 return;
             }
-            if (this.props.autoCloseOnConfirmButton) {
+            if (this.props.handleConfirm && this.props.autoCloseOnConfirmButton) {
                 this.onHide();
             }
             if (this.props.handleEnterKeyPress) {

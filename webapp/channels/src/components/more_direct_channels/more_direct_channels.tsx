@@ -285,7 +285,6 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 className='a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal'
                 show={this.state.show}
                 modalHeaderText={modalHeaderText}
-                ariaLabel='moreDmModalLabel'
                 onExited={this.handleExit}
                 compassDesign={true}
                 bodyPadding={false}
