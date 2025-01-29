@@ -32,7 +32,7 @@ const ItemButton = styled.button`
     align-items: center !important;
 `;
 
-const Wrapper = styled.div`
+const Wrapper = styled.li`
     cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
 
     &:hover {
@@ -117,7 +117,7 @@ function ToggleItem({
         <Wrapper
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
-            role='button'
+            role='menuitemcheckbox'
             aria-pressed={toggled}
         >
             <ToggleMain>
