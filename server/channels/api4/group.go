@@ -81,6 +81,11 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups",
 		api.APISessionRequired(getGroupsByTeam)).Methods(http.MethodGet)
 
+	// POST /api/v4/groups/names
+	api.BaseRoutes.Groups.Handle("/names", api.APISessionRequired(getGroupsByNames)).Methods(http.MethodPost)
+
+	api.BaseRoutes.Users.Handle("/usernames", api.APISessionRequired(getUsersByNames)).Methods(http.MethodPost)
+
 	// GET /api/v4/teams/:team_id/groups_by_channels
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups_by_channels",
 		api.APISessionRequired(getGroupsAssociatedToChannelsByTeam)).Methods(http.MethodGet)
@@ -874,6 +879,38 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func getGroupsByNames(c *Context, w http.ResponseWriter, r *http.Request) {
+	groupNames, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("getGroupsByNames", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(groupNames) == 0 {
+		c.SetInvalidParam("usernames")
+		return
+	}
+	//TODO: Implement restrictions
+	// restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
+	// if appErr != nil {
+	// 	c.Err = appErr
+	// 	return
+	// }
+
+	//TODO: implement group search opts
+	groups, appErr := c.App.GetGroupsByNames(groupNames)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(groups)
+	if err != nil {
+		c.Err = model.NewAppError("getUsersByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
