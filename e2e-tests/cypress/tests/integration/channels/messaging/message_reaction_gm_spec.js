@@ -63,9 +63,6 @@ describe('Emoji reactions to posts/messages in GM channels', () => {
             // * Verify that the Add Reaction button isn't visible
             cy.findByLabelText('Add a reaction').should('not.be.visible');
 
-            // # Focus on the post since we can't hover with Cypress
-            // cy.get(`#post_${postId}`).focus().tab().tab();
-
             cy.get(`#post_${postId}`).within(() => {
                 // * Verify focus is on profile image
                 cy.get('.status-wrapper button').focus().tab();
