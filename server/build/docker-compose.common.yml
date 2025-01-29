@@ -42,7 +42,7 @@ services:
     volumes:
       - ./docker/mysql.conf.d/replica.cnf:/etc/mysql/conf.d/mysql.cnf
   postgres:
-    image: "postgres:11"
+    image: "postgres:13"
     restart: always
     networks:
       - mm-test
