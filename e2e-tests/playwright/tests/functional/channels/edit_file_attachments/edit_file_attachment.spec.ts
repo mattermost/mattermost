@@ -34,7 +34,7 @@ test('MM-T5654_1 should be able to add attachments while editing a post', async 
     await updatedPost.toContainText('Edited message');
 });
 
-test('MM-T5654_3 should be able to add attachments while editing a threaded post', async ({pw}) => {
+test('MM-T5654_2 should be able to add attachments while editing a threaded post', async ({pw}) => {
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
@@ -112,7 +112,7 @@ test('MM-T5654_3 should be able to add attachments while editing a threaded post
     expect(updatedReplyPost).not.toContain('mattermost.png');
 });
 
-test('MM-T5654_4 should be able to edit post message originally containing files', async ({pw}) => {
+test('MM-T5654_3 should be able to edit post message originally containing files', async ({pw}) => {
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
@@ -140,7 +140,7 @@ test('MM-T5654_4 should be able to edit post message originally containing files
     await updatedPost.toContainText('Edited message');
 });
 
-test('MM-T5654_5 should be able to add files when editing a post', async ({pw}) => {
+test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) => {
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
@@ -185,7 +185,7 @@ test('MM-T5654_5 should be able to add files when editing a post', async ({pw}) 
     await secondUpdatedPost.toContainText('archive.zip');
 });
 
-test('MM-5654_6 should be able to remove attachments while editing a post', async ({pw}) => {
+test('MM-5654_5 should be able to remove attachments while editing a post', async ({pw}) => {
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
