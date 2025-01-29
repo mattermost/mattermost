@@ -6,7 +6,17 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
-import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
+import {
+    LightbulbOutlineIcon,
+    AccountPlusOutlineIcon,
+    AccountMultiplePlusOutlineIcon,
+    SettingsOutlineIcon,
+    AccountMultipleOutlineIcon,
+    MonitorIcon,
+    ExitToAppIcon,
+    MessagePlusOutlineIcon,
+    PlusIcon,
+} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -34,6 +44,8 @@ import {LicenseSkus, ModalIdentifiers, MattermostFeatures, CloudProducts} from '
 import {isCloudLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
+
+const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
 
 interface Props {
     currentTeam: Team;
@@ -129,7 +141,7 @@ export default function SidebarTeamMenu(props: Props) {
     }, [history, isTeamsLimitReached]);
 
     const onLearnAboutTeamsMenuItemClick = useCallback(() => {
-        window.open('https://mattermost.com/pl/mattermost-academy-team-training', '_blank', 'noopener noreferrer');
+        window.open(MATTERMOST_ACADEMY_TEAM_TRAINING_LINK, '_blank', 'noopener noreferrer');
     }, []);
 
     let addGroupsToTeamMenuItem: JSX.Element | null = null;
@@ -137,12 +149,19 @@ export default function SidebarTeamMenu(props: Props) {
         addGroupsToTeamMenuItem = (
             <Menu.Item
                 onClick={onAddGroupsToTeamMenuItemClick}
+                leadingElement={(
+                    <AccountPlusOutlineIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
                 labels={(
                     <FormattedMessage
                         id='sidebarLeft.teamMenu.addGroupsToTeamMenuItem.primaryLabel'
                         defaultMessage='Add groups'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -152,6 +171,12 @@ export default function SidebarTeamMenu(props: Props) {
         invitePeopleMenuItem = (
             <Menu.Item
                 onClick={onInvitePeopleMenuItemClick}
+                leadingElement={(
+                    <AccountMultiplePlusOutlineIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
                 labels={(
                     <>
                         <FormattedMessage
@@ -164,6 +189,7 @@ export default function SidebarTeamMenu(props: Props) {
                         />
                     </>
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -172,6 +198,12 @@ export default function SidebarTeamMenu(props: Props) {
     if (havePermissionToManageTeam) {
         teamSettingsMenuItem = (
             <Menu.Item
+                leadingElement={(
+                    <SettingsOutlineIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
                 onClick={onTeamSettingsMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -179,6 +211,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Team settings'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -187,6 +220,12 @@ export default function SidebarTeamMenu(props: Props) {
     if (isTeamGroupConstrained && isLicensedForLDAPGroups && havePermissionToManageTeam) {
         manageGroupsMenuItem = (
             <Menu.Item
+                leadingElement={(
+                    <MonitorIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
                 onClick={onManageGroupsMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -194,6 +233,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Manage groups'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -202,6 +242,12 @@ export default function SidebarTeamMenu(props: Props) {
     if (havePermissionToRemoveUserFromTeam && havePermissionToManageTeamRoles) {
         manageViewMembersMenuItem = (
             <Menu.Item
+                leadingElement={(
+                    <AccountMultipleOutlineIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
                 onClick={onManageViewMembersMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -209,11 +255,18 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Manage members'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     } else {
         manageViewMembersMenuItem = (
             <Menu.Item
+                leadingElement={(
+                    <AccountMultipleOutlineIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
                 onClick={onManageViewMembersMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -221,6 +274,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='View members'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -229,6 +283,12 @@ export default function SidebarTeamMenu(props: Props) {
     if (!experimentalPrimaryTeam && haveMoreJoinableTeams) {
         joinAnotherTeamMenuItem = (
             <Menu.Item
+                leadingElement={(
+                    <MessagePlusOutlineIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
                 onClick={onJoinAnotherTeamMenuItemClick}
                 labels={(
                     <FormattedMessage
@@ -236,6 +296,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Join another team'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -244,6 +305,12 @@ export default function SidebarTeamMenu(props: Props) {
     if (!isTeamGroupConstrained && experimentalPrimaryTeam !== props.currentTeam.name) {
         leaveTeamMenuItem = (
             <Menu.Item
+                leadingElement={(
+                    <ExitToAppIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
                 onClick={onLeaveTeamMenuItemClick}
                 isDestructive={true}
                 labels={(
@@ -252,6 +319,7 @@ export default function SidebarTeamMenu(props: Props) {
                         defaultMessage='Leave team'
                     />
                 )}
+                aria-haspopup='true'
             />
         );
     }
@@ -261,6 +329,12 @@ export default function SidebarTeamMenu(props: Props) {
         createTeamMenuItem = (
             <Menu.Item
                 disabled={isTeamsLimitReached}
+                leadingElement={(
+                    <PlusIcon
+                        size={18}
+                        aria-hidden='true'
+                    />
+                )}
                 onClick={onCreateTeamMenuItemClick}
                 labels={(
                     <FormattedMessage
