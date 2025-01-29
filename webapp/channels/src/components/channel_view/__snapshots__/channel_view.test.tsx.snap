@@ -6,6 +6,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
   id="app-content"
 >
   <FileUploadOverlay
+    id="centerChannelFileDropOverlay"
     overlayType="center"
   />
   <ChannelHeader
@@ -70,6 +71,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
   id="app-content"
 >
   <FileUploadOverlay
+    id="centerChannelFileDropOverlay"
     overlayType="center"
   />
   <ChannelHeader
@@ -133,6 +135,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
   id="app-content"
 >
   <FileUploadOverlay
+    id="centerChannelFileDropOverlay"
     overlayType="center"
   />
   <ChannelHeader

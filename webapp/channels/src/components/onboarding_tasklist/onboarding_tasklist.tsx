@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useRef, useCallback, useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled, {css} from 'styled-components';
 
@@ -52,10 +52,12 @@ const TaskItems = styled.div`
     transform-origin: left bottom;
     max-height: ${document.documentElement.clientHeight}px;
     overflow-y: auto;
+    display: none;
 
     &.open {
         transform: scale(1);
         opacity: 1;
+        display: block;
     }
 
     h1 {
@@ -124,6 +126,7 @@ const Button = styled.button<{open: boolean}>(({open}) => {
 });
 
 const OnBoardingTaskList = (): JSX.Element | null => {
+    const {formatMessage} = useIntl();
     const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
 
     useEffect(() => {
@@ -253,6 +256,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                 ref={trigger}
                 open={open}
                 data-cy='onboarding-task-list-action-button'
+                aria-label={formatMessage({id: 'onboardingTask.checklist.start_onboarding_process', defaultMessage: 'Start the onboarding process.'})}
             >
                 {open ? <CloseIcon size={20}/> : <PlaylistCheckIcon size={20}/>}
                 {itemsLeft !== 0 && (<span>{itemsLeft}</span>)}

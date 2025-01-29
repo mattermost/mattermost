@@ -7,6 +7,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 
 import {makeAsyncComponent} from 'components/async_load';
 import deferComponentRender from 'components/deferComponentRender';
+import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_upload_overlay';
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -186,7 +187,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 id='app-content'
                 className='app__content'
             >
-                <FileUploadOverlay overlayType='center'/>
+                <FileUploadOverlay
+                    overlayType='center'
+                    id={DropOverlayIdCenterChannel}
+                />
                 <ChannelHeader {...this.props}/>
                 {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <DeferredPostView

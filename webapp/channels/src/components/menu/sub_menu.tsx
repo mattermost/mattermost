@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MuiMenu from '@mui/material/Menu';
 import MuiMenuList from '@mui/material/MenuList';
 import type {PopoverOrigin} from '@mui/material/Popover';
 import React, {
@@ -31,9 +32,6 @@ import {isKeyPressed} from 'utils/keyboard';
 import {SubMenuContext, useMenuContextValue} from './menu_context';
 import {MenuItem} from './menu_item';
 import type {Props as MenuItemProps} from './menu_item';
-import {MuiMenuStyled} from './menu_styled';
-
-import './sub_menu.scss';
 
 interface Props {
     id: MenuItemProps['id'];
@@ -41,10 +39,12 @@ interface Props {
     labels: MenuItemProps['labels'];
     trailingElements?: MenuItemProps['trailingElements'];
     isDestructive?: MenuItemProps['isDestructive'];
+    role?: MenuItemProps['role'];
 
     // Menu props
     menuId: string;
     menuAriaLabel?: string;
+    menuAriaDescribedBy?: string;
     forceOpenOnLeft?: boolean; // Most of the times this is not needed, since submenu position is calculated and placed
 
     children: ReactNode;
@@ -57,8 +57,10 @@ export function SubMenu(props: Props) {
         labels,
         trailingElements,
         isDestructive,
+        role,
         menuId,
         menuAriaLabel,
+        menuAriaDescribedBy,
         forceOpenOnLeft,
         children,
         ...rest
@@ -148,6 +150,7 @@ export function SubMenu(props: Props) {
         labels,
         trailingElements,
         isDestructive,
+        role,
         onClick: isMobileView ? handleOnClick : undefined, // OnClicks on parent menuItem of subMenu is only needed in mobile view
     };
 
@@ -163,13 +166,13 @@ export function SubMenu(props: Props) {
             onMouseLeave={handleMouseLeave}
             onKeyDown={handleKeyDown}
         >
-            <MuiMenuStyled
+            <MuiMenu
                 anchorEl={anchorElement}
                 open={isSubMenuOpen}
-                asSubMenu={true}
                 anchorOrigin={originOfAnchorAndTransform.anchorOrigin}
                 transformOrigin={originOfAnchorAndTransform.transformOrigin}
                 sx={{pointerEvents: 'none'}}
+                className='menu_menuStyled AsSubMenu'
             >
                 {/* This component is needed here to re enable pointer events for the submenu items which we had to disable above as */}
                 {/* pointer turns to default as soon as it leaves the parent menu */}
@@ -178,6 +181,7 @@ export function SubMenu(props: Props) {
                     id={menuId}
                     component='ul'
                     aria-label={menuAriaLabel}
+                    aria-describedby={menuAriaDescribedBy}
                     className={A11yClassNames.POPUP}
                     onKeyDown={handleSubMenuKeyDown}
                     sx={{
@@ -190,7 +194,7 @@ export function SubMenu(props: Props) {
                         {children}
                     </SubMenuContext.Provider>
                 </MuiMenuList>
-            </MuiMenuStyled>
+            </MuiMenu>
         </MenuItem>
     );
 }

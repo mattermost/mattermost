@@ -103,7 +103,7 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
 	}
 	if err != nil {
-		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("FileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	nErr := backend.TestConnection()
 	if nErr != nil {
@@ -124,20 +124,43 @@ func fileReader(backend filestore.FileBackend, path string) (filestore.ReadClose
 	return result, nil
 }
 
+func zipReader(backend filestore.FileBackend, path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	result, err := backend.ZipReader(path, deflate)
+	if err != nil {
+		return nil, model.NewAppError("ZipReader", "api.file.zip_file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.FileBackend(), path)
+}
+
+func (s *Server) zipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return zipReader(s.FileBackend(), path, deflate)
 }
 
 func (s *Server) exportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.ExportFileBackend(), path)
 }
 
-// Caller must close the first return value
+// FileReader returns a ReadCloseSeeker for path from the FileBackend.
+//
+// The caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().fileReader(path)
 }
 
-// Caller must close the first return value
+// ZipReader returns a ReadCloser for path. If deflate is true, the zip will use compression.
+//
+// The caller is responsible for closing the returned ReadCloser.
+func (a *App) ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return a.Srv().zipReader(path, deflate)
+}
+
+// ExportFileReader returns a ReadCloseSeeker for path from the ExportFileBackend.
+//
+// The caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().exportFileReader(path)
 }
@@ -424,7 +447,7 @@ func parseOldFilenames(rctx request.CTX, filenames []string, channelID, userID s
 	return parsed
 }
 
-// Creates and stores FileInfos for a post created before the FileInfos table existed.
+// MigrateFilenamesToFileInfos creates and stores FileInfos for a post created before the FileInfos table existed.
 func (a *App) MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
 		rctx.Logger().Warn("Unable to migrate post to use FileInfos with an empty Filenames field", mlog.String("post_id", post.Id))

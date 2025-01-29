@@ -52,6 +52,8 @@ type Props = PropsFromRedux & {
     compactDisplay?: boolean;
     disablePreview?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
+    disableThumbnail?: boolean;
+    disableActions?: boolean;
 };
 
 export default function FileAttachment(props: Props) {
@@ -81,12 +83,14 @@ export default function FileAttachment(props: Props) {
         }
         const fileType = getFileType(fileInfo.extension);
 
-        if (fileType === FileTypes.IMAGE) {
-            const thumbnailUrl = getFileThumbnailUrl(fileInfo.id);
+        if (!props.disableThumbnail) {
+            if (fileType === FileTypes.IMAGE) {
+                const thumbnailUrl = getFileThumbnailUrl(fileInfo.id);
 
-            loadImage(thumbnailUrl, handleImageLoaded);
-        } else if (fileInfo.extension === FileTypes.SVG && props.enableSVGs) {
-            loadImage(getFileUrl(fileInfo.id), handleImageLoaded);
+                loadImage(thumbnailUrl, handleImageLoaded);
+            } else if (fileInfo.extension === FileTypes.SVG && props.enableSVGs) {
+                loadImage(getFileUrl(fileInfo.id), handleImageLoaded);
+            }
         }
     };
 
@@ -116,10 +120,12 @@ export default function FileAttachment(props: Props) {
     }, [props.fileInfo.extension, props.fileInfo.id, props.enableSVGs]);
 
     const onAttachmentClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-        if (props.fileInfo.archived) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (props.fileInfo.archived || props.disablePreview) {
             return;
         }
-        e.preventDefault();
 
         if ('blur' in e.target) {
             (e.target as HTMLElement).blur();
@@ -264,13 +270,16 @@ export default function FileAttachment(props: Props) {
                 href='#'
                 onClick={onAttachmentClick}
             >
-                {loaded ? (
+                {loaded && !props.disableThumbnail ? (
                     <FileThumbnail
                         fileInfo={fileInfo}
                         disablePreview={props.disablePreview}
                     />
                 ) : (
-                    <div className='post-image__load'/>
+                    <FileThumbnail
+                        fileInfo={props.fileInfo}
+                        disablePreview={true}
+                    />
                 )}
             </a>
         );
@@ -313,7 +322,7 @@ export default function FileAttachment(props: Props) {
             </div>
         );
 
-        if (!fileInfo.archived) {
+        if (!fileInfo.archived && !props.disableActions) {
             fileActions = renderFileMenuItems();
         }
     }

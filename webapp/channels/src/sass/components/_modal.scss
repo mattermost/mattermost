@@ -45,6 +45,7 @@
 
 .app__body {
     .modal {
+        z-index: variables.$z-index-modal;
         color: rgb(var(--center-channel-color-rgb));
 
         .modal-content {
@@ -56,6 +57,11 @@
 
     .edit-modal-body {
         overflow: visible;
+
+        .textarea-label {
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
 
         .custom-textarea {
             height: auto;
@@ -932,7 +938,8 @@
         display: none;
         width: 32px;
         height: 32px;
-        line-height: 32px;
+        padding: 0;
+        border: none;
         opacity: 0.75;
         text-align: center;
     }

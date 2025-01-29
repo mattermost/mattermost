@@ -4,7 +4,7 @@
 
 .channel-header {
     position: relative;
-    z-index: 15;
+    z-index: variables.$z-index-channel-header;
     width: 100%;
     max-height: 56px;
     padding: 12px;
@@ -112,14 +112,6 @@
             flex: 1;
             padding: 0 24px 0 2px;
         }
-
-        .markdown__paragraph-inline {
-            display: inline-block;
-            overflow: hidden;
-            width: 100%;
-            margin: 0;
-            text-overflow: ellipsis;
-        }
     }
 
     .channel-header_plugin-dropdown {
@@ -217,6 +209,7 @@
     .heading {
         overflow: hidden;
         align-self: center;
+        padding: 4px;
         margin: 0 0 0 2px;
         color: var(--center-channel-color);
         font-family: Metropolis, sans-serif;
@@ -390,19 +383,6 @@
             }
         }
 
-        blockquote {
-            overflow: hidden;
-            padding: 0 0 0 20px;
-            font-size: 13px;
-            text-overflow: ellipsis;
-
-            &::before {
-                top: 0;
-                left: 2px;
-                font-size: 15px;
-            }
-        }
-
         .header-placeholder {
             display: none;
             overflow: hidden;
@@ -446,6 +426,8 @@
             overflow: hidden;
             height: 24px;
             line-height: inherit;
+            text-overflow: ellipsis;
+            white-space: nowrap;
 
             ul {
                 &:first-child {
@@ -462,6 +444,20 @@
                 }
             }
 
+            &>blockquote {
+                display: inline-block;
+                overflow: hidden;
+                padding: 0 0 0 20px;
+                font-size: 13px;
+                text-overflow: ellipsis;
+
+                &::before {
+                    top: 0;
+                    left: 2px;
+                    font-size: 15px;
+                }
+            }
+
             .emoticon {
                 width: 18.8px;
                 min-width: 18.8px;
@@ -469,6 +465,17 @@
                 height: 18.8px;
                 min-height: 18.8px;
                 max-height: 18.8px;
+            }
+
+            &>p.markdown__paragraph-inline:first-child {
+                display: inline;
+                overflow: hidden;
+                margin: 0;
+                text-overflow: ellipsis;
+            }
+
+            &>p.markdown__paragraph-inline:not(:first-child) {
+                display: block;
             }
         }
 
@@ -565,7 +572,6 @@
     }
 }
 
-.channel-header__popover,
 .navbar__popover {
     p {
         white-space: pre-wrap;

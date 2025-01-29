@@ -95,12 +95,10 @@ issues:
         channels/app/platform/license.go|\
         channels/app/platform/session.go|\
         channels/app/platform/status.go|\
-        channels/app/platform/web_broadcast_hook.go|\
         channels/app/platform/web_hub_test.go|\
         channels/app/plugin_test.go|\
         channels/app/post_helpers_test.go|\
         channels/app/post_test.go|\
-        channels/app/server.go|\
         channels/app/slack.go|\
         channels/app/slashcommands/auto_environment.go|\
         channels/app/slashcommands/command_test.go|\

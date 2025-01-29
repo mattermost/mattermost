@@ -1,13 +1,5 @@
 @use "utils/functions";
 
-.header-popover-text-measurer {
-    position: absolute;
-    width: auto;
-    height: auto;
-    visibility: hidden;
-    white-space: nowrap;
-}
-
 .popover {
     padding: 0;
     border-radius: var(--radius-s);
@@ -19,54 +11,6 @@
     .app__body & {
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    }
-
-    &.channel-header__popover {
-        z-index: 999;
-        min-width: 200px;
-        margin-left: 3px;
-        box-shadow: var(--elevation-4);
-        font-size: 12px;
-
-        &.chanel-header__popover--lhs_offset {
-            margin-left: 68px;
-        }
-
-        .popover-content {
-            padding: 5px 8px 8px 8px;
-
-            .markdown__list {
-                margin: 0;
-            }
-
-            p {
-                white-space: normal;
-                word-break: normal;
-
-                &:last-child {
-                    margin-bottom: 0;
-                }
-            }
-
-            .file-preview__button {
-                display: inline-block;
-
-                .markdown-inline-img {
-                    margin: 0 2px !important;
-                }
-            }
-
-            .emoticon {
-                min-width: 18px;
-                height: 18px;
-                min-height: 18px;
-                vertical-align: text-top;
-            }
-        }
-
-        &.bottom {
-            margin-top: -25px;
-        }
     }
 
     &.bottom,
@@ -190,13 +134,6 @@
                 margin-right: 5px;
             }
         }
-    }
-}
-
-.channel-header__info {
-    .popover-content {
-        overflow: auto;
-        max-height: 250px;
     }
 }
 

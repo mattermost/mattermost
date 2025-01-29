@@ -48,8 +48,8 @@ export type Props = WrappedComponentProps & {
     subMenu?: Menu[];
     subMenuClass?: string;
     icon?: React.ReactNode;
-    action?: (id?: string) => void;
-    filter?: (id?: string) => boolean;
+    action?: (id: string) => void;
+    filter?: (id: string) => boolean;
     ariaLabel?: string;
     root?: boolean;
     show?: boolean;
@@ -111,14 +111,14 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
                 }
                 showMobileSubMenuModal(subMenu);
             } else if (action) { // leaf node in the tree handles action only
-                action(postId);
+                action(postId || '');
             }
         } else {
             const shouldCallAction =
                 (event.type === 'keydown' && event.currentTarget.id === id) ||
                 event.target.parentElement.id === id;
             if (shouldCallAction && action) {
-                action(postId);
+                action(postId || '');
             }
         }
     };
@@ -153,7 +153,7 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
         const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex, intl} = this.props;
         const isMobile = isMobileViewHack();
 
-        if (filter && !filter(id)) {
+        if (filter && !filter(id || '')) {
             return ('');
         }
 
@@ -187,6 +187,7 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
                 <ul
                     className={classNames(['a11y__popup Menu dropdown-menu SubMenu', {styleSelectableItem}])}
                     style={subMenuStyle}
+                    id={`${id}_submenu`}
                 >
                     {hasSubmenu ? subMenu!.map((s) => {
                         const hasDivider = s.id === 'ChannelMenu-moveToDivider';
@@ -233,12 +234,14 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
                 id={id + '_menuitem'}
                 ref={this.node}
                 onClick={this.onClick}
+                {...(Boolean(hasSubmenu) && {'aria-haspopup': 'menu', 'aria-controls': id + '_submenu', 'aria-expanded': this.state.show})}
             >
                 <div
                     className={classNames([{styleSelectableItemDiv: styleSelectableItem}])}
                     id={id}
                     aria-label={ariaLabel}
                     onMouseEnter={this.show}
+                    role='button'
                     onMouseLeave={this.hide}
                     tabIndex={tabIndex ?? 0}
                     onKeyDown={this.handleKeyDown}

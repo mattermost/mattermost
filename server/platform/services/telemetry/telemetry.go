@@ -549,7 +549,6 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
 		"enable_latex":                                            *cfg.ServiceSettings.EnableLatex,
 		"enable_inline_latex":                                     *cfg.ServiceSettings.EnableInlineLatex,
-		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
 		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,

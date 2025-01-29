@@ -2,22 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {useIntl} from 'react-intl';
 
 import {ChannelHeaderDropdownItems} from 'components/channel_header_dropdown';
 import Menu from 'components/widgets/menu/menu';
 
-const ChannelHeaderDropdown = () => {
-    const intl = useIntl();
-
-    return (
+const ChannelHeaderDropdown = ({ariaLabel}: {
+    ariaLabel: string;
+}) =>
+    (
         <Menu
             id='channelHeaderDropdownMenu'
-            ariaLabel={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu'}).toLowerCase()}
+            ariaLabel={ariaLabel}
         >
             <ChannelHeaderDropdownItems isMobile={false}/>
         </Menu>
     );
-};
 
 export default memo(ChannelHeaderDropdown);

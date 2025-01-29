@@ -501,6 +501,7 @@ exports[`components/global/product_switcher_menu should show integrations should
   <li
     className="MenuGroup menu-divider"
     onClick={[Function]}
+    role="separator"
   />
   <div
     onClick={[Function]}

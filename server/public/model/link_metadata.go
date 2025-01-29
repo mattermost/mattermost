@@ -21,6 +21,7 @@ const (
 	LinkMetadataTypeNone      LinkMetadataType = "none"
 	LinkMetadataTypeOpengraph LinkMetadataType = "opengraph"
 	LinkMetadataMaxImages     int              = 5
+	LinkMetadataMaxURLLength  int              = 2048 // Maximum URL length in LinkMetadata table
 )
 
 type LinkMetadataType string
@@ -91,6 +92,10 @@ func (o *LinkMetadata) PreSave() {
 func (o *LinkMetadata) IsValid() *AppError {
 	if o.URL == "" {
 		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.URL) > LinkMetadataMaxURLLength {
+		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.url_length.app_error", map[string]any{"MaxLength": LinkMetadataMaxURLLength, "Length": len(o.URL)}, "", http.StatusBadRequest)
 	}
 
 	if o.Timestamp == 0 || !isRoundedToNearestHour(o.Timestamp) {

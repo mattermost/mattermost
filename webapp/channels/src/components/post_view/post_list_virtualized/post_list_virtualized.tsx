@@ -711,9 +711,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                 {({height, width}) => (
                                     <>
                                         <div>
-                                            <Pluggable
-                                                pluggableName='ChannelToast'
-                                            />
+                                            <Pluggable pluggableName='ChannelToast'/>
 
                                             {this.renderToasts(width)}
                                         </div>

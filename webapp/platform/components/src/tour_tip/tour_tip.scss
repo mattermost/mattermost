@@ -1,3 +1,5 @@
+$z-index-tour-tips-backdrop: 1250;
+
 .tour-tip {
     display: flex;
 
@@ -222,7 +224,6 @@
 
     &__overlay {
         position: fixed;
-        z-index: 999;
         top: 0;
         right: 0;
         bottom: 0;
@@ -357,7 +358,7 @@
 
     &__backdrop {
         position: absolute;
-        z-index: 100;
+        z-index: $z-index-tour-tips-backdrop;
         top: 0;
         left: 0;
         width: 100%;

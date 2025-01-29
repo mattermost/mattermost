@@ -970,6 +970,19 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
     };
 }
 
+export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync<Record<string, string>> {
+    return async (dispatch) => {
+        try {
+            const values = {[attributeID]: attributeValue.trim()};
+            const data = await Client4.updateCustomProfileAttributeValues(values);
+            return {data};
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
 export function patchUser(user: UserProfile): ActionFuncAsync<UserProfile> {
     return async (dispatch) => {
         let data: UserProfile;

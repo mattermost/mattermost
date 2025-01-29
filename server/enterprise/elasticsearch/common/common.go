@@ -68,6 +68,7 @@ type ESFile struct {
 type ESChannel struct {
 	Id            string            `json:"id"`
 	Type          model.ChannelType `json:"type"`
+	DeleteAt      int64             `json:"delete_at"`
 	UserIDs       []string          `json:"user_ids"`
 	TeamId        string            `json:"team_id"`
 	TeamMemberIDs []string          `json:"team_member_ids"`
@@ -206,6 +207,7 @@ func ESChannelFromChannel(channel *model.Channel, userIDs, teamMemberIDs []strin
 	return &ESChannel{
 		Id:            channel.Id,
 		Type:          channel.Type,
+		DeleteAt:      channel.DeleteAt,
 		UserIDs:       userIDs,
 		TeamId:        channel.TeamId,
 		TeamMemberIDs: teamMemberIDs,

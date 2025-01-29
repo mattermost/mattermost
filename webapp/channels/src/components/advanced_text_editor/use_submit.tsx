@@ -8,6 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
+import {FileTypes} from 'mattermost-redux/action_types';
 import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
@@ -174,6 +175,7 @@ const useSubmit = (
             let response;
             if (isInEditMode) {
                 response = await dispatch(editPost(submittingDraft));
+                handleFileChange(submittingDraft);
             } else {
                 response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
             }
@@ -235,6 +237,25 @@ const useSubmit = (
         isInEditMode,
     ]);
 
+    const handleFileChange = useCallback((submittingDraft: PostDraft) => {
+        dispatch({
+            type: FileTypes.RECEIVED_FILES_FOR_POST,
+            data: submittingDraft.fileInfos,
+            postId,
+        });
+    }, [dispatch, postId]);
+
+    const setUpdatedFileIds = useCallback((draft: PostDraft) => {
+        // new object creation is needed here to support sending a draft with files.
+        // In case of draft, the PostDraft object is fetched from the redux store, which is immutable.
+        // When user clicks 'Send Now' in drafts list, it will otherwise try to set a field on an immutable object.
+        // Hence, creating a new object here.
+        return {
+            ...draft,
+            file_ids: draft.fileInfos.map((fileInfo) => fileInfo.id),
+        };
+    }, []);
+
     const showNotifyAllModal = useCallback((mentions: string[], channelTimezoneCount: number, memberNotifyCount: number, onConfirm: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.NOTIFY_CONFIRM_MODAL,
@@ -248,7 +269,7 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const handleSubmit = useCallback(async (submittingDraft = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+    const handleSubmit = useCallback(async (submittingDraftParam = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
         if (!channel) {
             return;
         }
@@ -257,6 +278,7 @@ const useSubmit = (
             return;
         }
 
+        const submittingDraft = setUpdatedFileIds(submittingDraftParam);
         setShowPreview(false);
         isDraftSubmitting.current = true;
 

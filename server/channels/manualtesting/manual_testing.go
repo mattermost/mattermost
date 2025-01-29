@@ -171,7 +171,7 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(a app.AppIface, channelname string, teamid string, userid string) (string, bool) {
+func getChannelID(a *app.App, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
 	channels, err := a.Srv().Store().Channel().GetChannels(teamid, userid, &model.ChannelSearchOpts{
 		IncludeDeleted: false,

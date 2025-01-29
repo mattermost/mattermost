@@ -144,26 +144,18 @@ Array [
 exports[`messageHtmlToComponent link with enabled a tooltip plugin 1`] = `
 <p>
   lorem ipsum 
-  <a
-    className="theme markdown__link"
-    href="http://www.dolor.com"
-    rel="noreferrer"
-    target="_blank"
-  >
-    <LinkTooltip
-      attributes={
-        Object {
-          "class": "theme markdown__link",
-          "href": "http://www.dolor.com",
-          "rel": "noreferrer",
-          "target": "_blank",
-        }
+  <PluginLinkTooltip
+    nodeAttributes={
+      Object {
+        "className": "theme markdown__link",
+        "href": "http://www.dolor.com",
+        "rel": "noreferrer",
+        "target": "_blank",
       }
-      href="http://www.dolor.com"
-    >
-      www.dolor.com
-    </LinkTooltip>
-  </a>
+    }
+  >
+    www.dolor.com
+  </PluginLinkTooltip>
    sit amet
 </p>
 `;

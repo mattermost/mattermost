@@ -36,6 +36,7 @@ exports[`FilePreview should match snapshot 1`] = `
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "",
                 "create_at": 0,
                 "delete_at": 0,
@@ -82,6 +83,7 @@ exports[`FilePreview should match snapshot 1`] = `
     fileInfo={
       Object {
         "archived": false,
+        "channel_id": "channel_id",
         "clientId": "",
         "create_at": 0,
         "delete_at": 0,
@@ -140,6 +142,7 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "",
                 "create_at": 0,
                 "delete_at": 0,
@@ -186,6 +189,7 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
     fileInfo={
       Object {
         "archived": false,
+        "channel_id": "channel_id",
         "clientId": "",
         "create_at": 0,
         "delete_at": 0,
@@ -244,6 +248,7 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "",
                 "create_at": 0,
                 "delete_at": 0,

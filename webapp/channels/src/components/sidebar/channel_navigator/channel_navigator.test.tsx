@@ -4,10 +4,10 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import BrowserOrAddChannelMenu from 'components/sidebar/sidebar_header/sidebar_browse_or_add_channel_menu';
+
 import ChannelNavigator from './channel_navigator';
 import type {Props} from './channel_navigator';
-
-import AddChannelDropdown from '../add_channel_dropdown';
 
 let props: Props;
 
@@ -23,8 +23,8 @@ describe('Components/ChannelNavigator', () => {
         };
     });
 
-    it('should not show AddChannelDropdown', () => {
+    it('should not show BrowserOrAddChannelMenu', () => {
         const wrapper = shallow(<ChannelNavigator {...props}/>);
-        expect(wrapper.find(AddChannelDropdown).length).toBe(0);
+        expect(wrapper.find(BrowserOrAddChannelMenu).length).toBe(0);
     });
 });

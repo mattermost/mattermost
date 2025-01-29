@@ -3000,60 +3000,8 @@
     "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo a menos que ReadOnlyConfig estiver desativado no arquivo de configurações."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Formato de saída {{.ExportType}} desconhecido"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Não é possível copiar o anexo para um arquivo zip."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Não é possível adicionar o anexo à exportação CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Não é possível criar o arquivo temporário de exportação CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Não é possível adicionar cabeçalho à exportação CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Não é possível adicionar arquivo de metadados ao arquivo zip."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Não é possível converter metadados para json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Não é possível exportar uma publicação."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Não é possível criar o arquivo de exportação zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "O arquivo enviado foi removido da exportação do Global Relay porque era muito grande para ser enviado."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Não é possível abrir o arquivo temporário de exportação."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Não é possível reler o arquivo de exportação temporário do Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funcionalidade Conformidade desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Não é possível carregar os modelos de exportação. Por favor tente novamente."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3114,10 +3062,6 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "{{.Backend}} não está iniciado"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Não foi possível deletar o ElasticSearch index"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3234,58 +3178,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "erro ao obter os grupos para o usuário"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Não é possível adicionar o anexo à exportação do Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Não é possível fechar o arquivo zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Não é possível criar o arquivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Não é possível gerar dados do arquivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Não foi possível entregar o email para Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Não foi possível definir o Remetente do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Não foi possível definir a mensagem do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Não foi possível escrever a mensagem de email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Não foi possível ler a informação do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Não foi possível definir o Destinatário do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Não foi possível obter a informação do arquivo temporário de exportação."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Não foi possível obter um remetente de email do arquivo temporário."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Não foi possível abrir o arquivo temporário de exportação."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -5000,14 +4892,6 @@
     "translation": "Falha ao criar o modelo {{.Backend}} para Canais"
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Não é possível criar o arquivo de aviso."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Não é possível criar o arquivo zip"
-  },
-  {
     "id": "bleveengine.stop_user_index.error",
     "translation": "Falha ao fechar o índice de usuário."
   },
@@ -5924,10 +5808,6 @@
     "translation": "Não é possível excluir o token."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Falha ao obter usuários no canal durante o período de tempo especificado."
-  },
-  {
     "id": "app.command.listteamcommands.internal_error",
     "translation": "Não foi possível obter os comandos."
   },
@@ -6406,10 +6286,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " anexou um arquivo."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Não foi possível converter a exportação para XML."
   },
   {
     "id": "app.job.update.app_error",
@@ -7008,18 +6884,6 @@
     "translation": "O comando /{{.Command}} travou o plug-in {{.PluginId}}. Entre em contato com o administrador do sistema"
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Falha ao obter informações do arquivo para uma publicação."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Falha ao obter informações do arquivo para uma publicação."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Falha ao obter informações do arquivo para uma publicação."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Nenhum usuário LDAP encontrado, verifique seu filtro de usuário e certificados."
   },
@@ -7508,10 +7372,6 @@
     "translation": "Erro"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Não é possível conectar ao servidor smtp"
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Falha ao decodificar os resultados da pesquisa"
   },
@@ -7546,18 +7406,6 @@
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
     "translation": "Falha ao criar o modelo {{.Backend}} para arquivos"
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Não foi possível gravar o arquivo de retransmissão global."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Não foi possível gravar o arquivo csv."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Não foi possível gravar o arquivo de exportação."
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -9876,14 +9724,6 @@
     "translation": "O SAML não pôde carregar o Certificado Público do Provedor de Identidade com sucesso, entre em contato com o administrador do sistema."
   },
   {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Não foi possível fechar o arquivo zip"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Não foi possível buscar o início do arquivo de exportação."
-  },
-  {
     "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
     "translation": "A conexão oauth de saída não foi encontrada."
   },
@@ -10182,5 +10022,9 @@
   {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "O tipo de cache deve ser LRU ou Redis."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Falha ao restaurar os anexos do arquivo de publicação."
   }
 ]

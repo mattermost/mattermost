@@ -1,3 +1,13 @@
+.sidebarHeaderContainer {
+    display: flex;
+    height: 55px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+}
+
 .sidebarHeader {
     display: flex;
     margin: 0;

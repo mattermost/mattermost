@@ -42,7 +42,7 @@ const PersistentNotificationsIcon = styled(BellRingOutlineIcon)`
     fill: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
-const Header = styled.h4`
+const Header = styled.h2`
     align-items: center;
     display: flex;
     gap: 8px;
@@ -132,88 +132,103 @@ function PostPriorityPicker({
 
     return (
         <Picker className='PostPriorityPicker'>
-            <Header className='modal-title'>
+            <Header
+                className='modal-title'
+                id='messagePriority-heading'
+            >
                 {formatMessage({
                     id: 'post_priority.picker.header',
                     defaultMessage: 'Message priority',
                 })}
             </Header>
-            <div role='application'>
-                <Menu className='Menu'>
+            <Menu
+                className='Menu'
+                role='menu'
+            >
+                <MenuGroup>
+                    <MenuItem
+                        id='menu-item-priority-standard'
+                        onClick={makeOnSelectPriority()}
+                        isSelected={!priority}
+                        icon={<StandardIcon size={18}/>}
+                        text={formatMessage({
+                            id: 'post_priority.priority.standard',
+                            defaultMessage: 'Standard',
+                        })}
+                    />
+                    <MenuItem
+                        id='menu-item-priority-important'
+                        onClick={makeOnSelectPriority(PostPriority.IMPORTANT)}
+                        isSelected={priority === PostPriority.IMPORTANT}
+                        icon={<ImportantIcon size={18}/>}
+                        text={formatMessage({
+                            id: 'post_priority.priority.important',
+                            defaultMessage: 'Important',
+                        })}
+                    />
+                    <MenuItem
+                        id='menu-item-priority-urgent'
+                        onClick={makeOnSelectPriority(PostPriority.URGENT)}
+                        isSelected={priority === PostPriority.URGENT}
+                        icon={<UrgentIcon size={18}/>}
+                        text={formatMessage({
+                            id: 'post_priority.priority.urgent',
+                            defaultMessage: 'Urgent',
+                        })}
+                    />
+                </MenuGroup>
+                {(postAcknowledgementsEnabled || persistentNotificationsEnabled) && (
                     <MenuGroup>
-                        <MenuItem
-                            id='menu-item-priority-standard'
-                            onClick={makeOnSelectPriority()}
-                            isSelected={!priority}
-                            icon={<StandardIcon size={18}/>}
-                            text={formatMessage({
-                                id: 'post_priority.priority.standard',
-                                defaultMessage: 'Standard',
-                            })}
-                        />
-                        <MenuItem
-                            id='menu-item-priority-important'
-                            onClick={makeOnSelectPriority(PostPriority.IMPORTANT)}
-                            isSelected={priority === PostPriority.IMPORTANT}
-                            icon={<ImportantIcon size={18}/>}
-                            text={formatMessage({
-                                id: 'post_priority.priority.important',
-                                defaultMessage: 'Important',
-                            })}
-                        />
-                        <MenuItem
-                            id='menu-item-priority-urgent'
-                            onClick={makeOnSelectPriority(PostPriority.URGENT)}
-                            isSelected={priority === PostPriority.URGENT}
-                            icon={<UrgentIcon size={18}/>}
-                            text={formatMessage({
-                                id: 'post_priority.priority.urgent',
-                                defaultMessage: 'Urgent',
-                            })}
-                        />
+                        <li
+                            role='none'
+                            style={{all: 'unset'}}
+                        >
+                            <ul
+                                role='group'
+                                aria-label='Message and Notification Settings'
+                                style={{all: 'unset'}}
+                            >
+                                {postAcknowledgementsEnabled && (
+                                    <ToggleItem
+                                        disabled={false}
+                                        onClick={handleAck}
+                                        toggled={requestedAck}
+                                        icon={<AcknowledgementIcon size={18}/>}
+                                        text={formatMessage({
+                                            id: 'post_priority.requested_ack.text',
+                                            defaultMessage: 'Request acknowledgement',
+                                        })}
+                                        description={formatMessage({
+                                            id: 'post_priority.requested_ack.description',
+                                            defaultMessage: 'An acknowledgement button will appear with your message',
+                                        })}
+                                    />
+                                )}
+                                {priority === PostPriority.URGENT && persistentNotificationsEnabled && (
+                                    <ToggleItem
+                                        disabled={priority !== PostPriority.URGENT}
+                                        onClick={handlePersistentNotifications}
+                                        toggled={persistentNotifications}
+                                        icon={<PersistentNotificationsIcon size={18}/>}
+                                        text={formatMessage({
+                                            id: 'post_priority.persistent_notifications.text',
+                                            defaultMessage: 'Send persistent notifications',
+                                        })}
+                                        description={formatMessage(
+                                            {
+                                                id: 'post_priority.persistent_notifications.description',
+                                                defaultMessage: 'Recipients will be notified every {interval, plural, one {1 minute} other {{interval} minutes}} until they acknowledge or reply',
+                                            }, {
+                                                interval,
+                                            },
+                                        )}
+                                    />
+                                )}
+                            </ul>
+                        </li>
                     </MenuGroup>
-                    {(postAcknowledgementsEnabled || persistentNotificationsEnabled) && (
-                        <MenuGroup>
-                            {postAcknowledgementsEnabled && (
-                                <ToggleItem
-                                    disabled={false}
-                                    onClick={handleAck}
-                                    toggled={requestedAck}
-                                    icon={<AcknowledgementIcon size={18}/>}
-                                    text={formatMessage({
-                                        id: 'post_priority.requested_ack.text',
-                                        defaultMessage: 'Request acknowledgement',
-                                    })}
-                                    description={formatMessage({
-                                        id: 'post_priority.requested_ack.description',
-                                        defaultMessage: 'An acknowledgement button will appear with your message',
-                                    })}
-                                />
-                            )}
-                            {priority === PostPriority.URGENT && persistentNotificationsEnabled && (
-                                <ToggleItem
-                                    disabled={priority !== PostPriority.URGENT}
-                                    onClick={handlePersistentNotifications}
-                                    toggled={persistentNotifications}
-                                    icon={<PersistentNotificationsIcon size={18}/>}
-                                    text={formatMessage({
-                                        id: 'post_priority.persistent_notifications.text',
-                                        defaultMessage: 'Send persistent notifications',
-                                    })}
-                                    description={formatMessage(
-                                        {
-                                            id: 'post_priority.persistent_notifications.description',
-                                            defaultMessage: 'Recipients will be notified every {interval, plural, one {1 minute} other {{interval} minutes}} until they acknowledge or reply',
-                                        }, {
-                                            interval,
-                                        },
-                                    )}
-                                />
-                            )}
-                        </MenuGroup>
-                    )}
-                </Menu>
-            </div>
+                )}
+            </Menu>
             {postAcknowledgementsEnabled && (
                 <Footer>
                     <button

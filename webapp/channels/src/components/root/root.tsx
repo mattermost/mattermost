@@ -18,7 +18,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
-import {makeAsyncComponent} from 'components/async_load';
+import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
 import GlobalHeader from 'components/global_header/global_header';
 import {HFRoute} from 'components/header_footer_route/header_footer_route';
 import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
@@ -31,7 +31,7 @@ import SidebarMobileRightMenu from 'components/sidebar_mobile_right_menu';
 
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
-import A11yController from 'utils/a11y_controller';
+import 'utils/a11y_controller_instance';
 import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
@@ -68,7 +68,6 @@ const Authorize = makeAsyncComponent('Authorize', lazy(() => import('components/
 const CreateTeam = makeAsyncComponent('CreateTeam', lazy(() => import('components/create_team')));
 const Mfa = makeAsyncComponent('Mfa', lazy(() => import('components/mfa/mfa_controller')));
 const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', lazy(() => import('components/preparing_workspace')));
-const Pluggable = makeAsyncComponent('Pluggable', lazy(() => import('plugins/pluggable')));
 const LaunchingWorkspace = makeAsyncComponent('LaunchingWorkspace', lazy(() => import('components/preparing_workspace/launching_workspace')));
 const CompassThemeProvider = makeAsyncComponent('CompassThemeProvider', lazy(() => import('components/compass_theme_provider/compass_theme_provider')));
 const TeamController = makeAsyncComponent('TeamController', lazy(() => import('components/team_controller')));
@@ -81,6 +80,8 @@ const ModalController = makeAsyncComponent('ModalController', lazy(() => import(
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
 const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
 
+const Pluggable = makeAsyncPluggableComponent();
+
 const noop = () => {};
 
 export type Props = PropsFromRedux & RouteComponentProps;
@@ -92,8 +93,6 @@ interface State {
 export default class Root extends React.PureComponent<Props, State> {
     // The constructor adds a bunch of event listeners,
     // so we do need this.
-    private a11yController: A11yController;
-
     constructor(props: Props) {
         super(props);
 
@@ -107,8 +106,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.state = {
             shouldMountAppRoutes: false,
         };
-
-        this.a11yController = new A11yController();
     }
 
     setRudderConfig = () => {
@@ -562,7 +559,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                 {this.props.plugins?.map((plugin) => (
                                     <Route
                                         key={plugin.id}
-                                        path={'/plug/' + (plugin as any).route}
+                                        path={'/plug/' + plugin.route}
                                         render={() => (
                                             <Pluggable
                                                 pluggableName={'CustomRouteComponent'}

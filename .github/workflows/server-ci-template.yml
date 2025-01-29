@@ -207,31 +207,6 @@ jobs:
         run: make store-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
-  check-app-layers:
-    name: Check app layers
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
-      - name: Run setup-go-work
-        run: make setup-go-work
-      - name: Generate app layers
-        run: make app-layers
-      - name: Check generated code
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
   check-mmctl-docs:
     name: Check mmctl docs
     runs-on: ubuntu-22.04

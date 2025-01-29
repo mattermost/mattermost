@@ -7,11 +7,68 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestSanitizeFileName(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "normal characters",
+			input:    "normal-file_name",
+			expected: "normal-file_name",
+		},
+		{
+			name:     "special characters",
+			input:    "file*name@#$",
+			expected: "file_name___",
+		},
+		{
+			name:     "spaces",
+			input:    "my file name",
+			expected: "my_file_name",
+		},
+		{
+			name:     "leading/trailing dots and spaces",
+			input:    " .filename. ",
+			expected: "filename",
+		},
+		{
+			name:     "very long filename",
+			input:    strings.Repeat("a", 150) + ".txt",
+			expected: strings.Repeat("a", 100),
+		},
+		{
+			name:     "unicode characters",
+			input:    "résumé",
+			expected: "r_sum_",
+		},
+		{
+			name:     "german umlaute",
+			input:    "äëïöüß",
+			expected: "______",
+		},
+		{
+			name:     "empty string",
+			input:    "",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := SanitizeFileName(tt.input)
+			assert.Equal(t, tt.expected, result, tt.name)
+		})
+	}
+}
 
 func TestFindFile(t *testing.T) {
 	t.Run("files from various paths", func(t *testing.T) {

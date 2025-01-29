@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
+import GeneralConstants from 'mattermost-redux/constants/general';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {isEnterpriseLicense, isNonEnterpriseLicense} from 'utils/license_utils';
@@ -91,14 +92,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                         ],
                     },
                     Permissions.DELETE_PUBLIC_CHANNEL,
-                    {
-                        id: 'convert_public_channel_to_private',
-                        combined: true,
-                        permissions: [
-                            Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
-                            Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC,
-                        ],
-                    },
+                    Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
                 ],
             },
             {
@@ -205,7 +199,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
     }
 
     updateGroups = () => {
-        const {config, scope, license} = this.props;
+        const {config, scope, license, role} = this.props;
 
         const teamsGroup = this.groups[0];
         const publicChannelsGroup = this.groups[1];
@@ -263,6 +257,10 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         }
         if (!this.props.customGroupsEnabled) {
             customGroupsGroup?.permissions.pop();
+        }
+
+        if ([GeneralConstants.TEAM_ADMIN_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE].includes(role.name || '')) {
+            privateChannelsGroup.permissions.push(Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC);
         }
 
         if (license?.IsLicensed === 'true') {

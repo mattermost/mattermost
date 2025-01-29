@@ -22,11 +22,8 @@ describe('Category sorting', () => {
     });
 
     it('MM-T3916 Create Category character limit', () => {
-        // # Click on the sidebar menu dropdown
-        cy.uiGetLHSAddChannelButton().click();
-
-        // # Click on create category link
-        cy.findByText('Create new category').should('be.visible').click();
+        // # Click on the sidebar menu dropdown and select Create Category
+        cy.uiBrowseOrCreateChannel('Create new category');
 
         // # Add a name 26 characters in length e.g `abcdefghijklmnopqrstuvwxyz`
         cy.get('#editCategoryModal').should('be.visible').wait(TIMEOUTS.HALF_SEC).within(() => {

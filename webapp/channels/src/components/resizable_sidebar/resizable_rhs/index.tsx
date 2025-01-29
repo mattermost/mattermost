@@ -91,6 +91,7 @@ function ResizableRhs({
             className={className}
             role={role}
             ref={containerRef}
+            aria-labelledby='rhsPanelTitle'
         >
             {children}
             <ResizableDivider

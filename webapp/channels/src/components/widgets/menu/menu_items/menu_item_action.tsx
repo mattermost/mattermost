@@ -8,7 +8,6 @@ import menuItem from './menu_item';
 
 type Props = {
     onClick: (e: React.MouseEvent) => void;
-    ariaLabel?: string;
     text: React.ReactNode;
     extraText?: string;
     id?: string;
@@ -21,7 +20,6 @@ type Props = {
 }
 export const MenuItemActionImpl = ({
     onClick,
-    ariaLabel,
     text,
     extraText,
     id,
@@ -36,7 +34,6 @@ export const MenuItemActionImpl = ({
         <button
             data-testid={id}
             id={id}
-            aria-label={ariaLabel}
             className={classNames('style--none', buttonClass, {
                 'MenuItem__with-help': extraText,
                 'MenuItem__with-sibling': sibling,

@@ -86,7 +86,7 @@ describe('Interactive Dialog', () => {
                     cy.wrap($elForm).find('.suggestion-list__item').first().should('be.visible');
                     cy.wrap($elForm).find('.form-control').type('{uparrow}', {force: true});
                     cy.wrap($elForm).find('.form-control').type('{downarrow}'.repeat(10), {force: true});
-                    cy.wrap($elForm).find('.suggestion-list__item').first().should('not.be.visible');
+                    cy.wrap($elForm).find('.suggestion-list__item').should('not.exist');
                     cy.wrap($elForm).find('.form-control').type('{uparrow}'.repeat(10), {force: true});
                     cy.wrap($elForm).find('.suggestion-list__item').first().should('be.visible');
                 } else if (index === 1) {
@@ -94,7 +94,7 @@ describe('Interactive Dialog', () => {
                     cy.wrap($elForm).find('.suggestion-list__item').first().should('be.visible');
                     cy.wrap($elForm).find('.form-control').type('{uparrow}', {force: true});
                     cy.wrap($elForm).find('.form-control').type('{downarrow}'.repeat(10), {force: true});
-                    cy.wrap($elForm).find('.suggestion-list__item').first().should('not.be.visible');
+                    cy.wrap($elForm).find('.suggestion-list__item').should('not.exist');
                     cy.wrap($elForm).find('.form-control').type('{uparrow}'.repeat(10), {force: true});
                     cy.wrap($elForm).find('.suggestion-list__item').first().should('be.visible');
                 }

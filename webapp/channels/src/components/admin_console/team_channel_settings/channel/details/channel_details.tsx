@@ -32,11 +32,11 @@ import {ChannelModes} from './channel_modes';
 import {ChannelProfile} from './channel_profile';
 import type {ChannelModerationRoles} from './types';
 
+import SaveChangesPanel from '../../../save_changes_panel';
 import ConvertAndRemoveConfirmModal from '../../convert_and_remove_confirm_modal';
 import ConvertConfirmModal from '../../convert_confirm_modal';
 import {NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
 import RemoveConfirmModal from '../../remove_confirm_modal';
-import SaveChangesPanel from '../../save_changes_panel';
 
 export interface ChannelDetailsProps {
     channelID: string;

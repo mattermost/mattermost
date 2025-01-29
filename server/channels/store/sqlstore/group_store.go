@@ -464,11 +464,11 @@ func (s *SqlGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPa
 	groupMembers := []*model.User{}
 
 	userQuery := s.getQueryBuilder().
-		Select(`u.*`).
+		Select(`Users.*`).
 		From("GroupMembers").
-		Join("Users u ON u.Id = GroupMembers.UserId").
+		Join("Users ON Users.Id = GroupMembers.UserId").
 		Where(sq.Eq{"GroupMembers.DeleteAt": 0}).
-		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where(sq.Eq{"Users.DeleteAt": 0}).
 		Where(sq.Eq{"GroupId": groupID})
 
 	userQuery = applyViewRestrictionsFilter(userQuery, viewRestrictions, true)
@@ -478,28 +478,28 @@ func (s *SqlGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPa
 	}
 
 	orderQuery := s.getQueryBuilder().
-		Select("u.*").
-		From("(" + queryString + ") AS u")
+		Select("Users.*").
+		From("(" + queryString + ") AS Users")
 
 	if teammateNameDisplay == model.ShowNicknameFullName {
 		orderQuery = orderQuery.OrderBy(`
 		CASE
-			WHEN u.Nickname != '' THEN u.Nickname
-			WHEN u.FirstName !=  '' AND u.LastName != '' THEN CONCAT(u.FirstName, ' ', u.LastName)
-			WHEN u.FirstName != '' THEN u.FirstName
-			WHEN u.LastName != '' THEN u.LastName
-			ELSE u.Username
+			WHEN Users.Nickname != '' THEN Users.Nickname
+			WHEN Users.FirstName !=  '' AND Users.LastName != '' THEN CONCAT(Users.FirstName, ' ', Users.LastName)
+			WHEN Users.FirstName != '' THEN Users.FirstName
+			WHEN Users.LastName != '' THEN Users.LastName
+			ELSE Users.Username
 		END`)
 	} else if teammateNameDisplay == model.ShowFullName {
 		orderQuery = orderQuery.OrderBy(`
 		CASE
-			WHEN u.FirstName !=  '' AND u.LastName != '' THEN CONCAT(u.FirstName, ' ', u.LastName)
-			WHEN u.FirstName != '' THEN u.FirstName
-			WHEN u.LastName != '' THEN u.LastName
-			ELSE u.Username
+			WHEN Users.FirstName !=  '' AND Users.LastName != '' THEN CONCAT(Users.FirstName, ' ', Users.LastName)
+			WHEN Users.FirstName != '' THEN Users.FirstName
+			WHEN Users.LastName != '' THEN Users.LastName
+			ELSE Users.Username
 		END`)
 	} else {
-		orderQuery = orderQuery.OrderBy("u.Username")
+		orderQuery = orderQuery.OrderBy("Users.Username")
 	}
 
 	orderQuery = orderQuery.
@@ -531,14 +531,14 @@ func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage 
 	}
 
 	builder = s.getQueryBuilder().
-		Select("u.*").
-		From("Users u").
-		LeftJoin("GroupMembers ON (GroupMembers.UserId = u.Id AND GroupMembers.GroupId = ?)", groupID).
-		Where(sq.Eq{"u.DeleteAt": 0}).
+		Select("Users.*").
+		From("Users").
+		LeftJoin("GroupMembers ON (GroupMembers.UserId = Users.Id AND GroupMembers.GroupId = ?)", groupID).
+		Where(sq.Eq{"Users.DeleteAt": 0}).
 		Where("(GroupMembers.UserID IS NULL OR GroupMembers.DeleteAt != 0)").
 		Limit(uint64(perPage)).
 		Offset(uint64(page * perPage)).
-		OrderBy("u.Username ASC")
+		OrderBy("Users.Username ASC")
 
 	builder = applyViewRestrictionsFilter(builder, viewRestrictions, true)
 
@@ -555,11 +555,11 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
 
 func (s *SqlGroupStore) GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
 	query := s.getQueryBuilder().
-		Select("COUNT(DISTINCT u.Id)").
+		Select("COUNT(DISTINCT Users.Id)").
 		From("GroupMembers").
-		Join("Users u ON u.Id = GroupMembers.UserId").
+		Join("Users ON Users.Id = GroupMembers.UserId").
 		Where(sq.Eq{"GroupMembers.GroupId": groupID}).
-		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where(sq.Eq{"Users.DeleteAt": 0}).
 		Where(sq.Eq{"GroupMembers.DeleteAt": 0})
 
 	query = applyViewRestrictionsFilter(query, viewRestrictions, false)
@@ -1456,11 +1456,11 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 
 	if opts.IncludeMemberCount {
 		countQuery := s.getQueryBuilder().
-			Select("GroupMembers.GroupId, COUNT(DISTINCT u.Id) AS MemberCount").
+			Select("GroupMembers.GroupId, COUNT(DISTINCT Users.Id) AS MemberCount").
 			From("GroupMembers").
-			LeftJoin("Users u ON u.Id = GroupMembers.UserId").
+			LeftJoin("Users ON Users.Id = GroupMembers.UserId").
 			Where(sq.Eq{"GroupMembers.DeleteAt": 0}).
-			Where(sq.Eq{"u.DeleteAt": 0}).
+			Where(sq.Eq{"Users.DeleteAt": 0}).
 			GroupBy("GroupId")
 
 		countQuery = applyViewRestrictionsFilter(countQuery, viewRestrictions, false)

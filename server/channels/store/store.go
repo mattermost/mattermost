@@ -92,6 +92,9 @@ type Store interface {
 	DesktopTokens() DesktopTokensStore
 	ChannelBookmark() ChannelBookmarkStore
 	ScheduledPost() ScheduledPostStore
+	PropertyGroup() PropertyGroupStore
+	PropertyField() PropertyFieldStore
+	PropertyValue() PropertyValueStore
 }
 
 type RetentionPolicyStore interface {
@@ -318,7 +321,8 @@ type ChannelStore interface {
 type ChannelMemberHistoryStore interface {
 	LogJoinEvent(userID string, channelID string, joinTime int64) error
 	LogLeaveEvent(userID string, channelID string, leaveTime int64) error
-	GetUsersInChannelDuring(startTime int64, endTime int64, channelID string) ([]*model.ChannelMemberHistoryResult, error)
+	GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error)
+	GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error)
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
@@ -369,7 +373,6 @@ type PostStore interface {
 	PermanentDeleteByChannel(rctx request.CTX, channelID string) error
 	GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error)
-	// @openTracingParams userID, teamID, offset, limit
 	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, error)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, error)
 	GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
@@ -718,7 +721,7 @@ type FileInfoStore interface {
 	Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
 	GetFromMaster(id string) (*model.FileInfo, error)
-	GetByIds(ids []string) ([]*model.FileInfo, error)
+	GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postID string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userID string) ([]*model.FileInfo, error)
@@ -726,6 +729,8 @@ type FileInfoStore interface {
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
 	AttachToPost(c request.CTX, fileID string, postID string, channelID, creatorID string) error
 	DeleteForPost(c request.CTX, postID string) (string, error)
+	DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error
+	RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error
 	PermanentDeleteForPost(rctx request.CTX, postID string) error
 	PermanentDelete(c request.CTX, fileID string) error
 	PermanentDeleteBatch(ctx request.CTX, endTime int64, limit int64) (int64, error)
@@ -1066,6 +1071,30 @@ type ScheduledPostStore interface {
 	Get(scheduledPostId string) (*model.ScheduledPost, error)
 	UpdateOldScheduledPosts(beforeTime int64) error
 	PermanentDeleteByUser(userId string) error
+}
+
+type PropertyGroupStore interface {
+	Register(name string) (*model.PropertyGroup, error)
+	Get(name string) (*model.PropertyGroup, error)
+}
+
+type PropertyFieldStore interface {
+	Create(field *model.PropertyField) (*model.PropertyField, error)
+	Get(id string) (*model.PropertyField, error)
+	GetMany(ids []string) ([]*model.PropertyField, error)
+	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	Update(field []*model.PropertyField) ([]*model.PropertyField, error)
+	Delete(id string) error
+}
+
+type PropertyValueStore interface {
+	Create(value *model.PropertyValue) (*model.PropertyValue, error)
+	Get(id string) (*model.PropertyValue, error)
+	GetMany(ids []string) ([]*model.PropertyValue, error)
+	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	Update(field []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Delete(id string) error
+	DeleteForField(id string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

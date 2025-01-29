@@ -51,7 +51,6 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-// @openTracingParams teamID, skipSlackParsing
 func (a *App) CreateCommandPost(c request.CTX, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	if skipSlackParsing {
 		post.Message = response.Text
@@ -81,7 +80,6 @@ func (a *App) CreateCommandPost(c request.CTX, post *model.Post, teamID string, 
 	return post, nil
 }
 
-// @openTracingParams teamID
 // previous ListCommands now ListAutocompleteCommands
 func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
@@ -179,7 +177,6 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 	return commands, nil
 }
 
-// @openTracingParams args
 func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
 	message := ""

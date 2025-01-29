@@ -11,7 +11,7 @@ Cypress.Commands.add('uiCreateChannel', ({
     name = '',
     createBoard = '',
 }) => {
-    cy.uiBrowseOrCreateChannel('Create new channel').click();
+    cy.uiBrowseOrCreateChannel('Create new channel');
 
     cy.get('#new-channel-modal').should('be.visible');
     if (isPrivate) {

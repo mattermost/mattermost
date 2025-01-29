@@ -1693,6 +1693,28 @@ describe('Actions.Users', () => {
         expect(Object.values(myUserAccessTokens).length === 0).toBeTruthy();
     });
 
+    it('saveCustomProfileAttribute', async () => {
+        TestHelper.mockLogin();
+        store.dispatch({
+            type: UserTypes.LOGIN_SUCCESS,
+        });
+        await store.dispatch(Actions.loadMe());
+
+        const state = store.getState();
+        const currentUser = state.entities.users.profiles[state.entities.users.currentUserId];
+
+        nock(Client4.getCustomProfileAttributeValuesRoute()).
+            patch('').
+            query(true).
+            reply(200, {
+                123: 'NewValue',
+            });
+
+        const response = await store.dispatch(Actions.saveCustomProfileAttribute(currentUser.id, '123', '  NewValue  '));
+        const data = response.data!;
+        expect(data).toEqual({123: 'NewValue'});
+    });
+
     describe('checkForModifiedUsers', () => {
         test('should request users by IDs that have changed since the last websocket disconnect', async () => {
             const lastDisconnectAt = 1500;

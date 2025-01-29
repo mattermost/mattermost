@@ -13,7 +13,7 @@ import {
 } from 'tests/react_testing_utils';
 import {AboutLinks, LicenseSkus} from 'utils/constants';
 
-import SamlSVG from './features/images/saml_svg';
+import GroupsSVG from './features/images/groups_svg';
 
 describe('components/feature_discovery', () => {
     describe('FeatureDiscovery', () => {
@@ -35,7 +35,7 @@ describe('components/feature_discovery', () => {
                         defaultMessage: 'Bar',
                     }}
                     learnMoreURL='https://test.mattermost.com/secondary/'
-                    featureDiscoveryImage={<SamlSVG/>}
+                    featureDiscoveryImage={<GroupsSVG/>}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     stats={{TOTAL_USERS: 20}}
                     prevTrialLicense={{IsLicensed: 'false'}}
@@ -94,7 +94,7 @@ describe('components/feature_discovery', () => {
                             defaultMessage: 'Bar',
                         }}
                         learnMoreURL='https://test.mattermost.com/secondary/'
-                        featureDiscoveryImage={<SamlSVG/>}
+                        featureDiscoveryImage={<GroupsSVG/>}
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         stats={{TOTAL_USERS: 20}}
                         prevTrialLicense={{IsLicensed: 'false'}}
@@ -154,7 +154,7 @@ describe('components/feature_discovery', () => {
                         defaultMessage: 'Bar',
                     }}
                     learnMoreURL='https://test.mattermost.com/secondary/'
-                    featureDiscoveryImage={<SamlSVG/>}
+                    featureDiscoveryImage={<GroupsSVG/>}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     stats={{TOTAL_USERS: 20}}
                     prevTrialLicense={{IsLicensed: 'false'}}

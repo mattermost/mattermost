@@ -143,9 +143,17 @@ const SearchBox = forwardRef(
                 const escapedMatchedPretext = escapeRegex(matchedPretext);
                 const caretPosition = getCaretPosition();
                 const extraSpace = caretPosition === searchTerms.length ? ' ' : '';
+                const existing = searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$', 'i'), '');
+
+                // if existing ends with @ and value starts with one, remove it.
+                let val = value;
+                if (existing.endsWith('@') && value.startsWith('@')) {
+                    val = value.slice(1);
+                }
+
                 setSearchTerms(
                     searchTerms.slice(0, caretPosition).replace(new RegExp(escapedMatchedPretext + '$', 'i'), '') +
-                    value +
+                    val +
                     extraSpace +
                     searchTerms.slice(caretPosition),
                 );

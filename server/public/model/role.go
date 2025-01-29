@@ -6,6 +6,8 @@ package model
 import (
 	"fmt"
 	"strings"
+
+	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 )
 
 // SysconsoleAncillaryPermissions maps the non-sysconsole permissions required by each sysconsole view.
@@ -68,7 +70,6 @@ func init() {
 		},
 		PermissionSysconsoleReadUserManagementUsers.Id: {
 			PermissionReadOtherUsersTeams,
-			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleReadUserManagementTeams.Id: {
 			PermissionListPrivateTeams,
@@ -109,6 +110,7 @@ func init() {
 		},
 		PermissionSysconsoleReadReportingTeamStatistics.Id: {
 			PermissionViewTeam,
+			PermissionGetAnalytics,
 		},
 		PermissionSysconsoleWriteUserManagementUsers.Id: {
 			PermissionEditOtherUsers,
@@ -159,7 +161,7 @@ func init() {
 			PermissionReadComplianceExportJob,
 			PermissionDownloadComplianceExportResult,
 		},
-		PermissionSysconsoleReadComplianceCustomTermsOfService.Id: {
+		PermissionSysconsoleReadComplianceComplianceMonitoring.Id: {
 			PermissionReadAudits,
 		},
 		PermissionSysconsoleWriteExperimentalBleve.Id: {
@@ -436,6 +438,84 @@ func (r *Role) Auditable() map[string]interface{} {
 		"scheme_managed": r.SchemeManaged,
 		"built_in":       r.BuiltIn,
 	}
+}
+
+func (r *Role) Sanitize() {
+	r.DisplayName = FakeSetting
+	r.Description = FakeSetting
+}
+
+func (r *Role) MarshalYAML() (any, error) {
+	return struct {
+		Id            string   `yaml:"id"`
+		Name          string   `yaml:"name"`
+		DisplayName   string   `yaml:"display_name"`
+		Description   string   `yaml:"description"`
+		CreateAt      string   `yaml:"create_at"`
+		UpdateAt      string   `yaml:"update_at"`
+		DeleteAt      string   `yaml:"delete_at"`
+		Permissions   []string `yaml:"permissions"`
+		SchemeManaged bool     `yaml:"scheme_managed"`
+		BuiltIn       bool     `yaml:"built_in"`
+	}{
+		Id:            r.Id,
+		Name:          r.Name,
+		DisplayName:   r.DisplayName,
+		Description:   r.Description,
+		CreateAt:      timeutils.FormatMillis(r.CreateAt),
+		UpdateAt:      timeutils.FormatMillis(r.UpdateAt),
+		DeleteAt:      timeutils.FormatMillis(r.DeleteAt),
+		Permissions:   r.Permissions,
+		SchemeManaged: r.SchemeManaged,
+		BuiltIn:       r.BuiltIn,
+	}, nil
+}
+
+func (r *Role) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	out := struct {
+		Id            string   `yaml:"id"`
+		Name          string   `yaml:"name"`
+		DisplayName   string   `yaml:"display_name"`
+		Description   string   `yaml:"description"`
+		CreateAt      string   `yaml:"create_at"`
+		UpdateAt      string   `yaml:"update_at"`
+		DeleteAt      string   `yaml:"delete_at"`
+		Permissions   []string `yaml:"permissions"`
+		SchemeManaged bool     `yaml:"scheme_managed"`
+		BuiltIn       bool     `yaml:"built_in"`
+	}{}
+
+	err := unmarshal(&out)
+	if err != nil {
+		return err
+	}
+
+	createAt, err := timeutils.ParseFormatedMillis(out.CreateAt)
+	if err != nil {
+		return err
+	}
+	updateAt, err := timeutils.ParseFormatedMillis(out.UpdateAt)
+	if err != nil {
+		return err
+	}
+	deleteAt, err := timeutils.ParseFormatedMillis(out.DeleteAt)
+	if err != nil {
+		return err
+	}
+
+	*r = Role{
+		Id:            out.Id,
+		Name:          out.Name,
+		DisplayName:   out.DisplayName,
+		Description:   out.Description,
+		CreateAt:      createAt,
+		UpdateAt:      updateAt,
+		DeleteAt:      deleteAt,
+		Permissions:   out.Permissions,
+		SchemeManaged: out.SchemeManaged,
+		BuiltIn:       out.BuiltIn,
+	}
+	return nil
 }
 
 type RolePatch struct {

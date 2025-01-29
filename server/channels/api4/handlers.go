@@ -183,7 +183,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, opts ...APIHand
 		HandlerName:     web.GetHandlerName(h),
 		RequireSession:  true,
 		TrustRequester:  false,
-		RequireMfa:      false,
+		RequireMfa:      true,
 		IsStatic:        false,
 		IsLocal:         false,
 		DisableWhenBusy: true,

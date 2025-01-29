@@ -351,8 +351,9 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     closeButton={true}
                 >
                     <Modal.Title
-                        componentClass='h1'
+                        componentClass='h2'
                         id='accountSettingsModalLabel'
+                        className='modal-header__title'
                     >
                         {modalTitle}
                     </Modal.Title>

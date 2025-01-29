@@ -322,6 +322,22 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		assert.ErrorContains(t, err, "invalid data source")
 	})
 
+	t.Run("should fail on wrong select default value, and not fail with nil dereference", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Select element name",
+			Name:        "select_element_name",
+			Type:        "select",
+			DataSource:  "",
+			Default:     "default",
+			Options: []*PostActionOptions{
+				nil,
+			},
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "default value \"default\" doesn't exist in options")
+	})
+
 	t.Run("should fail on wrong radio default value", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
@@ -334,6 +350,20 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 					Text:  "Text 1",
 					Value: "value 1",
 				},
+			},
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "default value \"default\" doesn't exist in options")
+	})
+	t.Run("should fail on wrong radio default value, and not fail with nil dereference", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Radio element name",
+			Name:        "radio_element_name",
+			Type:        "radio",
+			Default:     "default",
+			Options: []*PostActionOptions{
+				nil,
 			},
 		})
 		err := request.IsValid()

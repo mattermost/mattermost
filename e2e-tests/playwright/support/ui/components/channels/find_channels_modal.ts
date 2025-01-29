@@ -11,7 +11,7 @@ export default class FindChannelsModal {
     constructor(container: Locator) {
         this.container = container;
 
-        this.input = container.getByRole('textbox', {name: 'quick switch input'});
+        this.input = container.getByRole('combobox', {name: 'quick switch input'});
         this.searchList = container.locator('.suggestion-list__item');
     }
 

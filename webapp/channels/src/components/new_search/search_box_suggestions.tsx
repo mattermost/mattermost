@@ -113,7 +113,7 @@ const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, provider
         );
     }
 
-    const pluginComponentInfo = searchPluginSuggestions.find(({pluginId}: any) => {
+    const pluginComponentInfo = searchPluginSuggestions.find(({pluginId}) => {
         if (searchType === pluginId) {
             return true;
         }
@@ -124,7 +124,7 @@ const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, provider
         return null;
     }
 
-    const Component: any = pluginComponentInfo.component;
+    const Component = pluginComponentInfo.component;
 
     return (
         <ErrorBoundary>

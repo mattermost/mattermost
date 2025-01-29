@@ -4,13 +4,10 @@
 package message_export
 
 import (
-	"archive/zip"
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"path"
 	"strconv"
 	"sync"
@@ -21,28 +18,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/v8/enterprise/message_export/shared"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
-const (
-	JobDataBatchStartTimestamp = "batch_start_timestamp" // message export uses keyset pagination sorted by (posts.updateat, posts.id). batch_start_timestamp is the posts.updateat value from the previous batch.
-	JobDataBatchStartId        = "batch_start_id"        // message export uses keyset pagination sorted by (posts.updateat, posts.id). batch_start_id is the posts.id value from the previous batch.
+const TimeBetweenBatchesMs = 100
 
-	JobDataStartTimestamp   = "start_timestamp"
-	JobDataStartId          = "start_id"
-	JobDataExportType       = "export_type"
-	JOB_DATA_BatchSize      = "batch_size"
-	JobDataMessagesExported = "messages_exported"
-	JobDataWarningCount     = "warning_count"
-	JobDataIsDownloadable   = "is_downloadable"
-	JobDirectories          = "job_directories"
-	TimeBetweenBatches      = 100
-
-	estimatedPostCount = 10_000_000
-)
-
-const exportPath = "export"
+// testEndOfBatchCb is only used for testing
+var testEndOfBatchCb func(worker *MessageExportWorker)
 
 type MessageExportWorker struct {
 	name string
@@ -96,106 +79,70 @@ func (dr *MessageExportJobInterfaceImpl) MakeWorker() model.Worker {
 	}
 }
 
-func (worker *MessageExportWorker) IsEnabled(cfg *model.Config) bool {
-	return worker.license() != nil && *worker.license().Features.MessageExport && *cfg.MessageExportSettings.EnableExport
+func (w *MessageExportWorker) IsEnabled(cfg *model.Config) bool {
+	return w.license() != nil && *w.license().Features.MessageExport && *cfg.MessageExportSettings.EnableExport
 }
 
-func (worker *MessageExportWorker) Run() {
-	worker.stateMut.Lock()
+func (w *MessageExportWorker) Run() {
+	w.stateMut.Lock()
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
-	if worker.stopped {
-		worker.stopped = false
-		worker.stopCh = make(chan struct{})
-		worker.context, worker.cancel = context.WithCancel(context.Background())
+	if w.stopped {
+		w.stopped = false
+		w.stopCh = make(chan struct{})
+		w.context, w.cancel = context.WithCancel(context.Background())
 	} else {
-		worker.stateMut.Unlock()
+		w.stateMut.Unlock()
 		return
 	}
 	// Run is called from a separate goroutine and doesn't return.
 	// So we cannot Unlock in a defer clause.
-	worker.stateMut.Unlock()
+	w.stateMut.Unlock()
 
-	worker.logger.Debug("Worker Started")
+	w.logger.Debug("Worker Started")
 
 	defer func() {
-		worker.logger.Debug("Worker finished")
-		worker.stoppedCh <- struct{}{}
+		w.logger.Debug("Worker finished")
+		w.stoppedCh <- struct{}{}
 	}()
 
 	for {
 		select {
-		case <-worker.stopCh:
-			worker.logger.Debug("Worker: Received stop signal")
+		case <-w.stopCh:
+			w.logger.Debug("Worker: Received stop signal")
 			return
-		case job := <-worker.jobs:
-			worker.DoJob(&job)
+		case job := <-w.jobs:
+			w.DoJob(&job)
 		}
 	}
 }
 
-func (worker *MessageExportWorker) Stop() {
-	worker.stateMut.Lock()
-	defer worker.stateMut.Unlock()
+func (w *MessageExportWorker) Stop() {
+	w.stateMut.Lock()
+	defer w.stateMut.Unlock()
 
 	// Set to close, and if already closed before, then return.
-	if worker.stopped {
+	if w.stopped {
 		return
 	}
-	worker.stopped = true
+	w.stopped = true
 
-	worker.logger.Debug("Worker: Stopping")
-	worker.cancel()
-	close(worker.stopCh)
-	<-worker.stoppedCh
+	w.logger.Debug("Worker: Stopping")
+	w.cancel()
+	close(w.stopCh)
+	<-w.stoppedCh
 }
 
-func (worker *MessageExportWorker) JobChannel() chan<- model.Job {
-	return worker.jobs
+func (w *MessageExportWorker) JobChannel() chan<- model.Job {
+	return w.jobs
 }
 
-// getExportBackend returns the file backend where the export will be created.
-func (worker *MessageExportWorker) getExportBackend(rctx request.CTX) (filestore.FileBackend, *model.AppError) {
-	config := worker.jobServer.Config()
-	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
-
-	if config.FileSettings.DedicatedExportStore != nil && *config.FileSettings.DedicatedExportStore {
-		rctx.Logger().Debug("Worker: using dedicated export filestore", mlog.String("driver_name", *config.FileSettings.ExportDriverName))
-		backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
-		if errFileBack != nil {
-			return nil, model.NewAppError("getFileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(errFileBack)
-		}
-
-		return backend, nil
-	}
-
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
-	if err != nil {
-		return nil, model.NewAppError("getFileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return backend, nil
-}
-
-// getFileAttachmentBackend returns the file backend where file attachments are
-// located for messages that will be exported. This may be the same backend
-// where the export will be created.
-func (worker *MessageExportWorker) getFileAttachmentBackend(rctx request.CTX) (filestore.FileBackend, *model.AppError) {
-	config := worker.jobServer.Config()
-	insecure := config.ServiceSettings.EnableInsecureOutgoingConnections
-
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&config.FileSettings, true, insecure != nil && *insecure))
-	if err != nil {
-		return nil, model.NewAppError("getFileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return backend, nil
-}
-
-func (worker *MessageExportWorker) DoJob(job *model.Job) {
-	logger := worker.logger.With(jobs.JobLoggerFields(job)...)
+func (w *MessageExportWorker) DoJob(job *model.Job) {
+	logger := w.logger.With(jobs.JobLoggerFields(job)...)
 	logger.Debug("Worker: Received a new candidate job.")
-	defer worker.jobServer.HandleJobPanic(logger, job)
+	defer w.jobServer.HandleJobPanic(logger, job)
 
-	claimed, appErr := worker.jobServer.ClaimJob(job)
+	claimed, appErr := w.jobServer.ClaimJob(job)
 	if appErr != nil {
 		logger.Info("Worker: Error occurred while trying to claim job", mlog.Err(appErr))
 		return
@@ -205,299 +152,171 @@ func (worker *MessageExportWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	var cancelContext request.CTX = request.EmptyContext(worker.logger)
+	var cancelContext request.CTX = request.EmptyContext(w.logger)
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
 	cancelWatcherChan := make(chan struct{}, 1)
 	cancelContext = cancelContext.WithContext(cancelCtx)
-	go worker.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
+	go w.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
 	defer cancelCancelWatcher()
 
 	// if job data is missing, we'll do our best to recover
-	worker.initJobData(logger, job)
-
-	// the initJobData call above populates the create_at timestamp of the first post that we should export
-	// incase of job resumption or new job
-	batchStartTime, err := strconv.ParseInt(job.Data[JobDataBatchStartTimestamp], 10, 64)
+	w.initJobData(logger, job, time.Now())
+	data, err := extractJobData(logger, job.Data)
 	if err != nil {
-		worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusBadRequest).Wrap((err)))
-		return
-	}
-	batchStartId := job.Data[JobDataBatchStartId]
-
-	jobStartTime, err := strconv.ParseInt(job.Data[JobDataStartTimestamp], 10, 64)
-	if err != nil {
-		worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusBadRequest).Wrap((err)))
-		return
-	}
-	jobStartId := job.Data[JobDataStartId]
-
-	batchSize, err := strconv.Atoi(job.Data[JOB_DATA_BatchSize])
-	if err != nil {
-		worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusBadRequest).Wrap((err)))
+		// Error in conversion. Not much we can do about that. But it shouldn't happen, unless someone edited the db.
+		w.setJobError(logger, job, model.NewAppError("Job.DoJob", "ent.message_export.job_data_conversion.app_error", nil, "", http.StatusBadRequest).Wrap(err))
 		return
 	}
 
-	totalPostsExported, err := strconv.ParseInt(job.Data[JobDataMessagesExported], 10, 64)
+	rctx := request.EmptyContext(logger).WithContext(w.context)
+	reportProgress := func(message string) {
+		logger.Debug(message)
+		// Don't fail because we couldn't update progress.
+		w.setJobProgressMessage(0, message, rctx.Logger(), job)
+	}
+
+	jobParams := shared.BackendParams{
+		Config:        w.jobServer.Config(),
+		Store:         shared.NewMessageExportStore(w.jobServer.Store),
+		HtmlTemplates: w.htmlTemplateWatcher,
+	}
+	jobParams.FileAttachmentBackend, err = shared.GetFileAttachmentBackend(rctx, w.jobServer.Config())
 	if err != nil {
-		worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusBadRequest).Wrap((err)))
+		w.setJobError(logger, job, model.NewAppError("GetFileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
+		return
+	}
+	jobParams.ExportBackend, err = shared.GetExportBackend(rctx, w.jobServer.Config())
+	if err != nil {
+		w.setJobError(logger, job, model.NewAppError("GetExportBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
 		return
 	}
 
-	var directories []string
-	err = json.Unmarshal([]byte(job.Data[JobDirectories]), &directories)
+	data, err = shared.GetInitialExportPeriodData(rctx, jobParams.Store, data, reportProgress)
 	if err != nil {
-		worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusBadRequest).Wrap((err)))
+		w.setJobError(logger, job, model.NewAppError("DoJob", "ent.message_export.calculate_channel_exports.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
 		return
 	}
+	job.Data[shared.JobDataTotalPostsExpected] = strconv.Itoa(data.TotalPostsExpected)
 
-	// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
-	// on with the job anyway. The only issue is that the progress % reporting will be inaccurate.
-	var totalPosts int64
-	if count, err := worker.jobServer.Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeSystemPosts: true, SincePostID: jobStartId, SinceUpdateAt: jobStartTime}); err != nil {
-		logger.Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.Err(err))
-		totalPosts = estimatedPostCount
-	} else {
-		totalPosts = count
-	}
-
-	var totalWarningCount int64
-	cursor := model.MessageExportCursor{LastPostUpdateAt: batchStartTime, LastPostId: batchStartId}
 	for {
 		select {
 		case <-cancelWatcherChan:
 			logger.Debug("Worker: Job has been canceled via CancellationWatcher")
-			worker.setJobCanceled(logger, job)
+			w.setJobCanceled(logger, job)
 			return
 
-		case <-worker.stopCh:
+		case <-w.stopCh:
 			logger.Debug("Worker: Job has been canceled via Worker Stop. Setting the job back to pending")
-			worker.SetJobPending(logger, job)
+			w.SetJobPending(logger, job)
 			return
 
-		case <-time.After(TimeBetweenBatches * time.Millisecond):
-			logger.Debug("Starting batch export", mlog.Int("last_post_update_at", cursor.LastPostUpdateAt))
-			rctx := request.EmptyContext(logger).WithContext(worker.context)
-			prevPostUpdateAt := cursor.LastPostUpdateAt
+		case <-time.After(TimeBetweenBatchesMs * time.Millisecond):
+			logger.Debug("Starting batch export", mlog.Int("last_post_update_at", data.Cursor.LastPostUpdateAt))
 
-			var postsExported []*model.MessageExport
-			var nErr error
-			postsExported, cursor, nErr = worker.jobServer.Store.Compliance().MessageExport(rctx, cursor, batchSize)
-			if nErr != nil {
+			_, data, err = RunBatch(rctx, data, jobParams)
+			if err != nil {
 				// We ignore error if the job was explicitly cancelled
-				// and let it
-				if worker.context.Err() == context.Canceled {
+				if errors.Is(w.context.Err(), context.Canceled) {
 					logger.Debug("Worker: Job has been canceled via worker's context. Setting the job back to pending")
-					worker.SetJobPending(logger, job)
+					w.SetJobPending(logger, job)
 				} else {
-					worker.setJobError(logger, job, model.NewAppError("DoJob", "ent.message_export.run_export.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr))
-				}
-				return
-			}
-			logger.Debug("Found posts to export", mlog.Int("number_of_posts", len(postsExported)))
-			totalPostsExported += int64(len(postsExported))
-			job.Data[JobDataMessagesExported] = strconv.FormatInt(totalPostsExported, 10)
-			job.Data[JobDataBatchStartTimestamp] = strconv.FormatInt(cursor.LastPostUpdateAt, 10)
-			job.Data[JobDataBatchStartId] = cursor.LastPostId
-
-			if len(postsExported) == 0 {
-				job.Data[JobDataWarningCount] = strconv.FormatInt(totalWarningCount, 10)
-				// we've exported everything up to the current time
-				logger.Debug("FormatExport complete")
-
-				// Create downloadable zip file of all batches.
-				if job.Data[JobDataExportType] != model.ComplianceExportTypeGlobalrelay {
-					exportBackend, err := worker.getExportBackend(rctx)
-					if err != nil {
-						worker.setJobError(logger, job, err)
-						return
-					}
-
-					zipErr := createZipFile(rctx, exportBackend, job.Id, directories)
-					if zipErr != nil {
-						logger.Error("Error creating zip file for export", mlog.Err(zipErr))
-						job.Data[JobDataIsDownloadable] = "false"
-					} else {
-						job.Data[JobDataIsDownloadable] = "true"
-					}
-				}
-				if totalWarningCount > 0 {
-					worker.setJobWarning(logger, job)
-				} else {
-					worker.setJobSuccess(logger, job)
+					w.setJobError(logger, job, model.NewAppError("DoJob", "ent.message_export.run_export.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
 				}
 				return
 			}
 
-			exportBackend, err := worker.getExportBackend(rctx)
-			if err != nil {
-				worker.setJobError(logger, job, err)
+			setJobDataEndOfBatch(job, data)
+
+			if data.Finished {
+				w.finishExport(rctx, logger, job, data.WarningCount)
 				return
 			}
 
-			fileAttachmentBackend, err := worker.getFileAttachmentBackend(rctx)
-			if err != nil {
-				worker.setJobError(logger, job, err)
+			// also saves job.Data
+			if err := w.setJobProgress(logger, job, getJobProgress(data.MessagesExported, data.TotalPostsExpected)); err != nil {
+				// TODO: MM-59093 handle job errors (robust, recoverable)
 				return
 			}
 
-			batchDirectory := getOutputDirectoryPath(prevPostUpdateAt, cursor.LastPostUpdateAt)
-			warningCount, err := runExportByType(
-				rctx,
-				job.Data[JobDataExportType],
-				postsExported,
-				batchDirectory,
-				worker.jobServer.Store,
-				exportBackend,
-				fileAttachmentBackend,
-				worker.htmlTemplateWatcher,
-				worker.jobServer.Config(),
-			)
-			if err != nil {
-				worker.setJobError(logger, job, err)
-				return
-			}
-
-			totalWarningCount += warningCount
-
-			directories = append(directories, batchDirectory)
-			directoriesBytes, e := json.Marshal(directories)
-			if e != nil {
-				worker.setJobError(logger, job, model.NewAppError("Job.DoJob", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap((e)))
-				return
-			}
-			job.Data[JobDirectories] = string(directoriesBytes)
-
-			// also saves the last post create time
-			if err := worker.jobServer.SetJobProgress(job, getJobProgress(totalPostsExported, totalPosts)); err != nil {
-				worker.setJobError(logger, job, err)
-				return
+			// testEndOfBatchCb is only used by tests.
+			if testEndOfBatchCb != nil {
+				testEndOfBatchCb(w)
 			}
 		}
 	}
 }
 
-func createZipFile(rctx request.CTX, fileBackend filestore.FileBackend, jobId string, directories []string) error {
-	zipFileName := jobId + ".zip"
+func (w *MessageExportWorker) finishExport(rctx request.CTX, logger *mlog.Logger, job *model.Job, totalWarningCount int) {
+	job.Data[shared.JobDataWarningCount] = strconv.Itoa(totalWarningCount)
+	// we've exported everything up to the current time
+	logger.Debug("FormatExport complete")
 
-	dest, err := os.CreateTemp("", zipFileName)
-	if err != nil {
-		return err
+	job.Data[shared.JobDataIsDownloadable] = "true"
+
+	if totalWarningCount > 0 {
+		w.setJobWarning(logger, job)
+	} else {
+		w.setJobSuccess(logger, job)
 	}
-	defer os.Remove(dest.Name())
-
-	// Create a new zip archive.
-	w := zip.NewWriter(dest)
-
-	// create a 32 KiB buffer for copying files
-	buf := make([]byte, 32*1024)
-
-	// Add directories to the archive.
-	for _, directory := range directories {
-		err = addFiles(w, fileBackend, directory, buf)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Make sure to check the error on Close.
-	err = w.Close()
-	if err != nil {
-		return fmt.Errorf("error closing zip file: %s %v", dest.Name(), err)
-	}
-
-	_, err = dest.Seek(0, 0)
-	if err != nil {
-		return fmt.Errorf("error seeking zip file: %s %v", dest.Name(), err)
-	}
-
-	zipPath := path.Join(exportPath, zipFileName)
-
-	// If the file backend allows it, we want to upload without a timeout
-	_, err = filestore.TryWriteFileContext(rctx.Context(), fileBackend, dest, zipPath)
-	return err
-}
-
-func addFiles(w *zip.Writer, fileBackend filestore.FileBackend, basePath string, buf []byte) error {
-	// Open the Directory
-	files, err := fileBackend.ListDirectoryRecursively(basePath)
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-		err = addFile(w, fileBackend, file, basePath, buf)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func addFile(w *zip.Writer, fileBackend filestore.FileBackend, file, basePath string, buf []byte) error {
-	// In some storage backends like Hitachi HCP, the first entry
-	// from a ListObjects API is always the dir entry itself.
-	if file == basePath {
-		return nil
-	}
-
-	size, err := fileBackend.FileSize(file)
-	if err != nil {
-		return fmt.Errorf("error reading file size for %s: %w", file, err)
-	}
-	if size == 0 {
-		// skip empty files
-		return nil
-	}
-
-	r, err := fileBackend.Reader(file)
-	if err != nil {
-		return fmt.Errorf("error opening file %s: %w", file, err)
-	}
-	defer r.Close()
-
-	// Add some files to the archive.
-	f, err := w.Create(file)
-	if err != nil {
-		return fmt.Errorf("error creating file %s in the archive: %w", file, err)
-	}
-	_, err = io.CopyBuffer(f, r, buf)
-	if err != nil {
-		return fmt.Errorf("error copying file %s into the archive: %w", file, err)
-	}
-
-	return nil
 }
 
 // initializes job data if it's missing, allows us to recover from failed or improperly configured jobs
-func (worker *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Job) {
+func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Job, now time.Time) {
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
-	if _, exists := job.Data[JobDataMessagesExported]; !exists {
-		job.Data[JobDataMessagesExported] = "0"
+	if _, exists := job.Data[shared.JobDataMessagesExported]; !exists {
+		logger.Info("Worker: JobDataMessagesExported does not exist, starting at 0")
+		job.Data[shared.JobDataMessagesExported] = "0"
 	}
-	if _, exists := job.Data[JobDirectories]; !exists {
-		// json null value
-		job.Data[JobDirectories] = "null"
+	if _, exists := job.Data[shared.JobDataExportType]; !exists {
+		exportFormat := *w.jobServer.Config().MessageExportSettings.ExportFormat
+		logger.Info("Worker: Defaulting to configured export format", mlog.String("export_format", exportFormat))
+		job.Data[shared.JobDataExportType] = exportFormat
 	}
-	if _, exists := job.Data[JobDataExportType]; !exists {
-		// for now, we'll default to Actiance. When we support multiple export types, we'll have to fetch it from config instead
-		logger.Info("Worker: Defaulting to configured export format")
-		job.Data[JobDataExportType] = *worker.jobServer.Config().MessageExportSettings.ExportFormat
+	if _, exists := job.Data[shared.JobDataBatchSize]; !exists {
+		batchSize := strconv.Itoa(*w.jobServer.Config().MessageExportSettings.BatchSize)
+		logger.Info("Worker: Defaulting to configured batch size", mlog.String("batch_size", batchSize))
+		job.Data[shared.JobDataBatchSize] = batchSize
 	}
-	if _, exists := job.Data[JOB_DATA_BatchSize]; !exists {
-		logger.Info("Worker: Defaulting to configured batch size")
-		job.Data[JOB_DATA_BatchSize] = strconv.Itoa(*worker.jobServer.Config().MessageExportSettings.BatchSize)
+	if _, exists := job.Data[shared.JobDataChannelBatchSize]; !exists {
+		channelBatchSize := strconv.Itoa(*w.jobServer.Config().MessageExportSettings.ChannelBatchSize)
+		logger.Info("Worker: Defaulting to configured channel batch size", mlog.String("channel_batch_size", channelBatchSize))
+		job.Data[shared.JobDataChannelBatchSize] = channelBatchSize
 	}
-	if _, exists := job.Data[JobDataBatchStartTimestamp]; !exists {
-		previousJob, err := worker.jobServer.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
+	if _, exists := job.Data[shared.JobDataChannelHistoryBatchSize]; !exists {
+		channelHistoryBatchSize := strconv.Itoa(*w.jobServer.Config().MessageExportSettings.ChannelHistoryBatchSize)
+		logger.Info("Worker: Defaulting to configured channel history batch size", mlog.String("channel_history_batch_size", channelHistoryBatchSize))
+		job.Data[shared.JobDataChannelHistoryBatchSize] = channelHistoryBatchSize
+	}
+	if _, exists := job.Data[shared.JobDataBatchNumber]; !exists {
+		logger.Info("Worker: JobDataBatchNumber does not exist, starting at 0")
+		job.Data[shared.JobDataBatchNumber] = "0"
+	}
+
+	// If this is a new job (JobEndTime doesn't exist), set it to now, because this is when the job has first started.
+	// The logic is that a job exports messages up to the moment the job was started. If the job was picked up after
+	// gracefully stopping, then run it until that original initial endTime.
+	// However, if the job was cancelled or errored out, that job will not be picked up again, so this will be a new job
+	// starting from the last successful batchStartTimestamp up until now. This is intentional (for now) because failed
+	// jobs do not get rescheduled properly yet, and when they are run again it means that new day's worth of messages
+	// need to be exported.
+	if _, exists := job.Data[shared.JobDataJobEndTime]; !exists {
+		millis := strconv.FormatInt(model.GetMillisForTime(now), 10)
+		logger.Info("Worker: JobDataJobEndTime not found in previous job, using now", mlog.String("job_data_job_end_time", millis))
+		job.Data[shared.JobDataJobEndTime] = millis
+	}
+
+	if _, exists := job.Data[shared.JobDataBatchStartTime]; !exists {
+		previousJob, err := w.jobServer.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusWarning, model.JobStatusSuccess}, model.JobTypeMessageExport)
 		if err != nil {
-			logger.Info("Worker: No previously successful job found, falling back to configured MessageExportSettings.ExportFromTimestamp")
-			job.Data[JobDataBatchStartTimestamp] = strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
-			job.Data[JobDataBatchStartId] = ""
-			job.Data[JobDataStartTimestamp] = job.Data[JobDataBatchStartTimestamp]
-			job.Data[JobDataStartId] = job.Data[JobDataBatchStartId]
+			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
+			logger.Info("Worker: No previously successful job found, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))
+			job.Data[shared.JobDataBatchStartTime] = exportFromTimestamp
+			job.Data[shared.JobDataJobStartTime] = exportFromTimestamp
+			job.Data[shared.JobDataBatchStartId] = ""
+			job.Data[shared.JobDataJobStartId] = job.Data[shared.JobDataBatchStartId]
+			job.Data[shared.JobDataExportDir] = getJobExportDir(logger, job.Data, exportFromTimestamp, job.Data[shared.JobDataJobEndTime])
 			return
 		}
 
@@ -508,72 +327,174 @@ func (worker *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *mod
 		if previousJob.Data == nil {
 			previousJob.Data = make(map[string]string)
 		}
-		if _, prevExists := previousJob.Data[JobDataBatchStartTimestamp]; !prevExists {
-			logger.Info("Worker: Previously successful job lacks job data, falling back to configured MessageExportSettings.ExportFromTimestamp")
-			job.Data[JobDataBatchStartTimestamp] = strconv.FormatInt(*worker.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
+		if _, prevExists := previousJob.Data[shared.JobDataBatchStartTime]; !prevExists {
+			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
+			logger.Info("Worker: Previously successful job lacks job data, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))
+			job.Data[shared.JobDataBatchStartTime] = exportFromTimestamp
+			job.Data[shared.JobDataJobStartTime] = exportFromTimestamp
 		} else {
-			job.Data[JobDataBatchStartTimestamp] = previousJob.Data[JobDataBatchStartTimestamp]
+			job.Data[shared.JobDataBatchStartTime] = previousJob.Data[shared.JobDataBatchStartTime]
 		}
-		if _, prevExists := previousJob.Data[JobDataBatchStartId]; !prevExists {
+		if _, prevExists := previousJob.Data[shared.JobDataBatchStartId]; !prevExists {
 			logger.Info("Worker: Previously successful job lacks post ID, falling back to empty string")
-			job.Data[JobDataBatchStartId] = ""
+			job.Data[shared.JobDataBatchStartId] = ""
 		} else {
-			job.Data[JobDataBatchStartId] = previousJob.Data[JobDataBatchStartId]
+			job.Data[shared.JobDataBatchStartId] = previousJob.Data[shared.JobDataBatchStartId]
 		}
-		job.Data[JobDataStartTimestamp] = job.Data[JobDataBatchStartTimestamp]
-		job.Data[JobDataStartId] = job.Data[JobDataBatchStartId]
+		job.Data[shared.JobDataJobStartId] = job.Data[shared.JobDataBatchStartId]
 	} else {
-		logger.Info("Worker: FormatExport start time explicitly set", mlog.String("new_start_time", job.Data[JobDataBatchStartTimestamp]))
+		logger.Info("Worker: JobDataBatchStartTime start time was already set",
+			mlog.String(shared.JobDataBatchStartTime, job.Data[shared.JobDataBatchStartTime]))
 	}
+
+	if _, exists := job.Data[shared.JobDataJobStartTime]; !exists {
+		// Just in case, if we don't have this (JobDataBatchStartTime was already set, but this wasn't) set it:
+		job.Data[shared.JobDataJobStartTime] = job.Data[shared.JobDataBatchStartTime]
+		logger.Info("Worker: JobDataJobStartTime start time was not set, using batch startTimestamp",
+			mlog.String(shared.JobDataJobStartTime, job.Data[shared.JobDataJobStartTime]))
+	}
+
+	job.Data[shared.JobDataExportDir] = getJobExportDir(logger, job.Data, job.Data[shared.JobDataJobStartTime], job.Data[shared.JobDataJobEndTime])
 }
 
-func getJobProgress(totalExportedPosts, totalPosts int64) int64 {
-	return totalExportedPosts * 100 / totalPosts
+func extractJobData(logger *mlog.Logger, strmap map[string]string) (shared.JobData, error) {
+	data, err := shared.StringMapToJobDataWithZeroValues(strmap)
+	if err != nil {
+		return data, err
+	}
+
+	// ExportPeriodStartTime is initialized to BatchStartTime because this is where we will start exporting. But unlike
+	// BatchStartTime, it won't change as we process the batches.
+	// If this is the first time this job has run, BatchStartTime will be the start of the entire job. If this job has
+	// been resumed, then BatchStartTime will be the start of the newest batch. This is expected--the channel activity
+	// and total posts will be calculated from ExportPeriodStartTime (anything earlier has already been exported in
+	// previous batches).
+	// Note: ExportPeriodStartTime is different from JobStartTime because JobStartTime won't change
+	//	     if the job processes some batches, is stopped, and picked up again.
+	data.ExportPeriodStartTime = data.BatchStartTime
+
+	logger.Info("Worker: initial job variables set",
+		mlog.String("export_type", data.ExportType),
+		mlog.String("export_dir", data.ExportDir),
+		mlog.Int("job_start_time", data.JobStartTime),
+		mlog.Int("batch_start_time", data.BatchStartTime),
+		mlog.Int("export_period_start_time", data.ExportPeriodStartTime),
+		mlog.Int("job_end_time", data.JobEndTime),
+		mlog.String("job_start_id", data.JobStartId),
+		mlog.Int("batch_size", data.BatchSize),
+		mlog.Int("channel_batch_size", data.ChannelBatchSize),
+		mlog.Int("channel_history_batch_size", data.ChannelHistoryBatchSize),
+		mlog.Int("batch_number", data.BatchNumber),
+		mlog.Int("total_posts_exported", data.MessagesExported))
+
+	return data, err
 }
 
-func (worker *MessageExportWorker) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
-	// setting progress causes the job data to be saved, which is necessary if we want the next job to pick up where this one left off
-	if err := worker.jobServer.SetJobProgress(job, 100); err != nil {
+func setJobDataEndOfBatch(job *model.Job, data shared.JobData) {
+	job.Data[shared.JobDataBatchStartTime] = strconv.FormatInt(data.BatchStartTime, 10)
+	job.Data[shared.JobDataBatchStartId] = data.Cursor.LastPostId
+	job.Data[shared.JobDataMessagesExported] = strconv.Itoa(data.MessagesExported)
+	job.Data[shared.JobDataBatchNumber] = strconv.Itoa(data.BatchNumber)
+}
+
+// getJobExportDir will use the existing JobDataExportDir if available. If it's not available, this is the first run
+// for the job, so we use the startTime and endTime passed in.
+func getJobExportDir(logger mlog.LoggerIFace, data model.StringMap, startTime string, endTime string) string {
+	exportDir, exists := data[shared.JobDataExportDir]
+	if !exists {
+		// If we don't have a jobDataExportDir, this is the first run for the job, so we use the batch startTime
+		exportDir = path.Join(model.ComplianceExportPath, fmt.Sprintf("%s-%s-%s", time.Now().Format(model.ComplianceExportDirectoryFormat), startTime, endTime))
+		logger.Info("Worker: JobDataExportDir does not exist, using current datetime", mlog.String("job_data_export_dir", exportDir))
+	}
+
+	return exportDir
+}
+
+func getJobProgress(totalExportedPosts, totalPostsExpected int) int {
+	return totalExportedPosts * 100 / totalPostsExpected
+}
+
+func (w *MessageExportWorker) setJobProgressMessage(progress int64, message string, logger mlog.LoggerIFace, job *model.Job) {
+	job.Status = model.JobStatusInProgress
+	job.Progress = progress
+	if job.Data == nil {
+		job.Data = make(map[string]string)
+	}
+	job.Data["progress_message"] = message
+
+	if _, err := w.jobServer.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err != nil {
 		logger.Error("Worker: Failed to update progress for job", mlog.Err(err))
-		worker.setJobError(logger, job, err)
 	}
-	if err := worker.jobServer.SetJobSuccess(job); err != nil {
+}
+
+func (w *MessageExportWorker) setJobProgress(logger mlog.LoggerIFace, job *model.Job, progress int) error {
+	if job.Data != nil {
+		job.Data["progress_message"] = ""
+	}
+
+	if err := w.jobServer.SetJobProgress(job, int64(progress)); err != nil {
+		logger.Error("Worker: Failed to update progress for job", mlog.Err(err))
+		w.setJobError(logger, job, err)
+		return err
+	}
+
+	return nil
+}
+
+func (w *MessageExportWorker) setJobSuccess(logger mlog.LoggerIFace, job *model.Job) {
+	// setting progress causes the job data to be saved, which is necessary if we want the next job to pick up where this one left off
+	if job.Data != nil {
+		job.Data["progress_message"] = ""
+	}
+	if err := w.jobServer.SetJobProgress(job, 100); err != nil {
+		logger.Error("Worker: Failed to update progress for job", mlog.Err(err))
+		w.setJobError(logger, job, err)
+	}
+	if err := w.jobServer.SetJobSuccess(job); err != nil {
 		logger.Error("Worker: Failed to set success for job", mlog.Err(err))
-		worker.setJobError(logger, job, err)
+		w.setJobError(logger, job, err)
 	}
 }
 
-func (worker *MessageExportWorker) setJobWarning(logger mlog.LoggerIFace, job *model.Job) {
+func (w *MessageExportWorker) setJobWarning(logger mlog.LoggerIFace, job *model.Job) {
 	// setting progress causes the job data to be saved, which is necessary if we want the next job to pick up where this one left off
-	if err := worker.jobServer.SetJobProgress(job, 100); err != nil {
+	if job.Data != nil {
+		job.Data["progress_message"] = ""
+	}
+	if err := w.jobServer.SetJobProgress(job, 100); err != nil {
 		logger.Error("Worker: Failed to update progress for job", mlog.Err(err))
-		worker.setJobError(logger, job, err)
+		w.setJobError(logger, job, err)
 	}
-	if err := worker.jobServer.SetJobWarning(job); err != nil {
+	if err := w.jobServer.SetJobWarning(job); err != nil {
 		logger.Error("Worker: Failed to set warning for job", mlog.Err(err))
-		worker.setJobError(logger, job, err)
+		w.setJobError(logger, job, err)
 	}
 }
 
-func (worker *MessageExportWorker) setJobError(logger mlog.LoggerIFace, job *model.Job, appError *model.AppError) {
+func (w *MessageExportWorker) setJobError(logger mlog.LoggerIFace, job *model.Job, appError *model.AppError) {
+	if job.Data != nil {
+		job.Data["progress_message"] = ""
+	}
 	logger.Error("Worker: Job error", mlog.Err(appError))
-	if err := worker.jobServer.SetJobError(job, appError); err != nil {
-		logger.Error("Worker: Failed to set job errorv", mlog.Err(err), mlog.NamedErr("set_error", appError))
+	if err := w.jobServer.SetJobError(job, appError); err != nil {
+		logger.Error("Worker: Failed to set job error", mlog.Err(err), mlog.NamedErr("set_error", appError))
 	}
 }
 
-func (worker *MessageExportWorker) setJobCanceled(logger mlog.LoggerIFace, job *model.Job) {
-	if err := worker.jobServer.SetJobCanceled(job); err != nil {
+func (w *MessageExportWorker) setJobCanceled(logger mlog.LoggerIFace, job *model.Job) {
+	if job.Data != nil {
+		job.Data["progress_message"] = ""
+	}
+	if err := w.jobServer.SetJobCanceled(job); err != nil {
 		logger.Error("Worker: Failed to mark job as canceled", mlog.Err(err))
 	}
 }
 
-func (worker *MessageExportWorker) SetJobPending(logger mlog.LoggerIFace, job *model.Job) {
-	if err := worker.jobServer.SetJobPending(job); err != nil {
+func (w *MessageExportWorker) SetJobPending(logger mlog.LoggerIFace, job *model.Job) {
+	if job.Data != nil {
+		job.Data["progress_message"] = ""
+	}
+	if err := w.jobServer.SetJobPending(job); err != nil {
 		logger.Error("Worker: Failed to mark job as pending", mlog.Err(err))
 	}
-}
-
-func getOutputDirectoryPath(exportStartTime int64, exportEndTime int64) string {
-	return path.Join(exportPath, strconv.FormatInt(exportStartTime, 10)+"-"+strconv.FormatInt(exportEndTime, 10))
 }
