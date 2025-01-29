@@ -120,7 +120,6 @@ const defaultServerConfig: AdminConfig = {
         EnableDeveloper: false,
         DeveloperFlags: '',
         EnableClientPerformanceDebugging: false,
-        EnableOpenTracing: false,
         EnableSecurityFixAlert: true,
         EnableInsecureOutgoingConnections: false,
         AllowedUntrustedInternalConnections: '',

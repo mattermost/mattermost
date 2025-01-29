@@ -76,7 +76,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 	"github.com/mattermost/mattermost/server/v8/platform/services/systembus"
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
-	"github.com/mattermost/mattermost/server/v8/platform/services/tracing"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -155,8 +154,6 @@ type Server struct {
 	Cloud                   einterfaces.CloudInterface
 	IPFiltering             einterfaces.IPFilteringInterface
 	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
-
-	tracer *tracing.Tracer
 
 	ch *Channels
 }
@@ -328,14 +325,6 @@ func NewServer(options ...Option) (*Server, error) {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
 			}
 		}
-	}
-
-	if *s.platform.Config().ServiceSettings.EnableOpenTracing {
-		tracer, err2 := tracing.New()
-		if err2 != nil {
-			return nil, err2
-		}
-		s.tracer = tracer
 	}
 
 	s.pushNotificationClient = s.httpService.MakeClient(true)
@@ -712,12 +701,6 @@ func (s *Server) Shutdown() {
 
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
-
-	if s.tracer != nil {
-		if err := s.tracer.Close(); err != nil {
-			s.Log().Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
-		}
-	}
 
 	err := s.telemetryService.Shutdown()
 	if err != nil {
