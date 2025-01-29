@@ -155,7 +155,6 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     handleHide = () => {
         this.props.actions.setModalSearchTerm('');
         this.setState({show: false});
-        this.props.onExited?.();
     };
 
     handleExit = () => {
