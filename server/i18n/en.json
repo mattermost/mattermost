@@ -10222,7 +10222,7 @@
   },
   {
     "id": "store.sql_omnisearch.disabled",
-    "translation": ""
+    "translation": "Searching with omnisearch been disabled on this server. Please contact your System Administrator."
   },
   {
     "id": "store.sql_post.search.disabled",
