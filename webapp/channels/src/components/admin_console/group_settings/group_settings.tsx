@@ -11,6 +11,7 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {DocLinks} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
+import Pluggable from 'plugins/pluggable';
 
 type Props = {
     isDisabled?: boolean;
@@ -66,6 +67,9 @@ const GroupSettings = ({isDisabled}: Props) => {
                             readOnly={isDisabled}
                         />
                     </AdminPanel>
+                    <Pluggable
+                        pluggableName="SystemConsoleGroupTable"
+                    />
                 </div>
             </div>
         </div>

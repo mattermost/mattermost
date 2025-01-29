@@ -6,12 +6,15 @@ package model
 import (
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 const (
 	GroupSourceLdap   GroupSource = "ldap"
 	GroupSourceCustom GroupSource = "custom"
-	GroupSourceSaml   GroupSource = "saml"
+
+	// plugin groups must prefix their source with this
+	GroupSourceCustomPrefix GroupSource = "custom_"
 
 	GroupNameMaxLength        = 64
 	GroupSourceMaxLength      = 64
@@ -21,17 +24,6 @@ const (
 )
 
 type GroupSource string
-
-var allGroupSources = []GroupSource{
-	GroupSourceLdap,
-	GroupSourceCustom,
-	GroupSourceSaml,
-}
-
-var groupSourcesRequiringRemoteID = []GroupSource{
-	GroupSourceLdap,
-	GroupSourceSaml,
-}
 
 type Group struct {
 	Id                          string      `json:"id"`
@@ -217,12 +209,12 @@ func (group *Group) IsValidForCreate() *AppError {
 	}
 
 	isValidSource := false
-	for _, groupSource := range allGroupSources {
-		if group.Source == groupSource {
-			isValidSource = true
-			break
-		}
+	if group.Source == GroupSourceLdap ||
+		group.Source == GroupSourceCustom ||
+		strings.HasPrefix(string(group.Source), string(GroupSourceCustomPrefix)) {
+		isValidSource = true
 	}
+
 	if !isValidSource {
 		return NewAppError("Group.IsValidForCreate", "model.group.source.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -235,12 +227,7 @@ func (group *Group) IsValidForCreate() *AppError {
 }
 
 func (group *Group) requiresRemoteId() bool {
-	for _, groupSource := range groupSourcesRequiringRemoteID {
-		if groupSource == group.Source {
-			return true
-		}
-	}
-	return false
+	return group.Source == GroupSourceLdap || strings.HasPrefix(string(group.Source), string(GroupSourceCustomPrefix))
 }
 
 func (group *Group) IsValidForUpdate() *AppError {
