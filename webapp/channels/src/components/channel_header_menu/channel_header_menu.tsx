@@ -97,7 +97,9 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
                 children: (
                     <>
                         {archivedIcon}
-                        {channelTitle as string}
+                        <strong id='channelHeaderTitle' className='heading'>
+                            {channelTitle as string}
+                        </strong>
                         {sharedIcon}
                         <ChevronDownIcon size={16}/>
                     </>
