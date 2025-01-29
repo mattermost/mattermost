@@ -113,7 +113,7 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
                 }),
             }}
             menu={{
-                id: 'channelHeaderMenu',
+                id: 'channelHeaderDropdownMenu',
             }}
             transformOrigin={{
                 horizontal: 'left',
