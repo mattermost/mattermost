@@ -12,7 +12,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 
 import * as Menu from 'components/menu';
-import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, VisitSystemConsoleTour} from 'components/onboarding_tasks';
+import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, useHandleOnBoardingTaskData, VisitSystemConsoleTour} from 'components/onboarding_tasks';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 
 import type {GlobalState} from 'types/store';
@@ -23,8 +23,16 @@ export default function ProductSwitcherSystemConsoleMenuItem() {
     const step = useSelector((state: GlobalState) => getInt(state, OnboardingTaskCategory, OnboardingTasksName.VISIT_SYSTEM_CONSOLE, 0));
     const showTour = step === TaskNameMapToSteps[OnboardingTasksName.VISIT_SYSTEM_CONSOLE].STARTED;
 
+    const handleOnBoardingTaskData = useHandleOnBoardingTaskData();
+
     function handleClick() {
         history.push('/admin_console');
+
+        if (showTour) {
+            const steps = TaskNameMapToSteps[OnboardingTasksName.VISIT_SYSTEM_CONSOLE];
+            handleOnBoardingTaskData(OnboardingTasksName.VISIT_SYSTEM_CONSOLE, steps.FINISHED, true, 'finish');
+            localStorage.setItem(OnboardingTaskCategory, 'true');
+        }
     }
 
     return (
