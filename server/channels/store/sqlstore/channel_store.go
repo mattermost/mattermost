@@ -2329,6 +2329,7 @@ func (s SqlChannelStore) GetFileCount(channelId string) (int64, error) {
 		    FileInfo
 		WHERE
 		    FileInfo.DeleteAt = 0
+			AND FileInfo.PostId != ''
             AND FileInfo.ChannelId = ?`,
 		channelId)
 	if err != nil {

@@ -45,7 +45,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
           onClick={[Function]}
         >
           <button
-            aria-label="Invite Members dialog"
+            aria-label="Invite Members"
             className="style--none intro-links color--link cursor--pointer"
             id="inviteMembersButton"
             onClick={[Function]}
@@ -55,6 +55,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
               className="SidebarChannelNavigator__inviteMembersLhsButton"
             >
               <i
+                aria-hidden="true"
                 className="icon-plus-box"
               />
               <FormattedMessage
