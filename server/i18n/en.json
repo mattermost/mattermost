@@ -2141,6 +2141,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Unable to get a zip file reader."
+  },
+  {
     "id": "api.filter_config_error",
     "translation": "Unable to filter the configuration."
   },
