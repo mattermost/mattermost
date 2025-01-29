@@ -778,7 +778,7 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 	return nil
 }
 
-func (es *ElasticsearchInterfaceImpl) SearchChannels(teamId, userID string, term string, isGuest bool) ([]string, *model.AppError) {
+func (es *ElasticsearchInterfaceImpl) SearchChannels(teamId, userID string, term string, isGuest, includeDeleted bool) ([]string, *model.AppError) {
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
@@ -839,6 +839,14 @@ func (es *ElasticsearchInterfaceImpl) SearchChannels(teamId, userID string, term
 							"name_suggestions": {Value: strings.ToLower(term)},
 						},
 					}},
+			},
+		})
+	}
+
+	if !includeDeleted {
+		query.Filter = append(query.Filter, types.Query{
+			Term: map[string]types.TermQuery{
+				"delete_at": {Value: 0},
 			},
 		})
 	}
@@ -1323,7 +1331,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 	_, err := es.client.Indices.Delete(indexesToDelete).Do(ctx)
 	if err != nil {
 		rctx.Logger().Error("Elastic Search PurgeIndexes Error", mlog.Err(err))
-		return model.NewAppError("Elasticsearch.PurgeIndexes", "ent.elasticsearch.purge_indexes.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Elasticsearch.PurgeIndexes", "ent.elasticsearch.purge_index.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil

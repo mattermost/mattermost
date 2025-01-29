@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -175,7 +174,7 @@ func TestUpdateChannel(t *testing.T) {
 	channel, _, _ = client.CreateChannel(context.Background(), channel)
 	private, _, _ = client.CreateChannel(context.Background(), private)
 
-	//Update a open channel
+	// Update a open channel
 	channel.DisplayName = "My new display name"
 	channel.Header = "My fancy header"
 	channel.Purpose = "Mattermost ftw!"
@@ -195,7 +194,7 @@ func TestUpdateChannel(t *testing.T) {
 
 	require.Equal(t, *channel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
 
-	//Update a private channel
+	// Update a private channel
 	private.DisplayName = "My new display name for private channel"
 	private.Header = "My fancy private header"
 	private.Purpose = "Mattermost ftw! in private mode"
@@ -207,7 +206,7 @@ func TestUpdateChannel(t *testing.T) {
 	require.Equal(t, private.Header, newPrivateChannel.Header, "Update failed for Header in private channel")
 	require.Equal(t, private.Purpose, newPrivateChannel.Purpose, "Update failed for Purpose in private channel")
 
-	//Test updating default channel's name and returns error
+	// Test updating default channel's name and returns error
 	defaultChannel, _ := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
 	defaultChannel.Name = "testing"
 	_, resp, err = client.UpdateChannel(context.Background(), defaultChannel)
@@ -226,19 +225,19 @@ func TestUpdateChannel(t *testing.T) {
 	_, _, err = client.UpdateChannel(context.Background(), private)
 	require.NoError(t, err)
 
-	//Non existing channel
+	// Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
 	_, resp, err = client.UpdateChannel(context.Background(), channel1)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	//Try to update with not logged user
+	// Try to update with not logged user
 	client.Logout(context.Background())
 	_, resp, err = client.UpdateChannel(context.Background(), channel)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	//Try to update using another user
+	// Try to update using another user
 	user := th.CreateUser()
 	client.Login(context.Background(), user.Email, user.Password)
 
@@ -376,7 +375,7 @@ func TestPatchChannel(t *testing.T) {
 
 	require.Equal(t, oldName, channel.Name, "should not have updated")
 
-	//Test updating default channel's name and returns error
+	// Test updating default channel's name and returns error
 	defaultChannel, _ := th.App.GetChannelByName(th.Context, model.DefaultChannelName, team.Id, false)
 	defaultChannelPatch := &model.ChannelPatch{
 		Name: new(string),
@@ -532,7 +531,8 @@ func TestChannelUnicodeNames(t *testing.T) {
 			Name:        "\u206cenglish\u206dchannel",
 			DisplayName: "The \u206cEnglish\u206d Channel",
 			Type:        model.ChannelTypeOpen,
-			TeamId:      team.Id}
+			TeamId:      team.Id,
+		}
 
 		rchannel, resp, err := client.CreateChannel(context.Background(), channel)
 		require.NoError(t, err)
@@ -3137,9 +3137,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	require.Nil(t, appError)
 
 	SystemAdminClient := th.SystemAdminClient
-	WebSocketClient, err := th.CreateWebSocketClient()
-	WebSocketClient.Listen()
-	require.NoError(t, err)
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	th.LoginBasic()
 
@@ -3148,7 +3146,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 		SchemeUser:  false,
 		SchemeGuest: false,
 	}
-	_, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s1)
+	_, err := SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s1)
 	require.NoError(t, err)
 
 	waiting := true
@@ -3185,7 +3183,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	assert.Equal(t, true, tm2.SchemeUser)
 	assert.Equal(t, false, tm2.SchemeAdmin)
 
-	//cannot set Guest to User for single channel
+	// cannot set Guest to User for single channel
 	resp, err := SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, guest.Id, s2)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -3568,10 +3566,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 	_, _, err := th.SystemAdminClient.AddTeamMember(context.Background(), team.Id, user3.Id)
 	require.NoError(t, err)
 
-	wsClient, err2 := th.CreateWebSocketClient()
-	require.NoError(t, err2)
-	defer wsClient.Close()
-	wsClient.Listen()
+	wsClient := th.CreateConnectedWebSocketClient(t)
 
 	publicChannel := th.CreatePublicChannel()
 
@@ -3767,16 +3762,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		_, err = th.SystemAdminClient.UpdateChannelNotifyProps(context.Background(), th.BasicChannel2.Id, th.SystemAdminUser.Id, props)
 		require.NoError(t, err)
 
-		wsClient, err2 := th.CreateWebSocketSystemAdminClient()
-		require.NoError(t, err2)
-		wsClient.Listen()
-		var closeWsClient sync.Once
-		defer closeWsClient.Do(func() {
-			wsClient.Close()
-		})
-
-		wsr := <-wsClient.EventChannel
-		require.Equal(t, model.WebsocketEventHello, wsr.EventType())
+		wsClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
 		// requirePost listens for websocket events and tries to find the post matching
 		// the expected post's channel and message.
@@ -3803,7 +3789,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		}
 
 		th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
-		_, err2 = client.RemoveUserFromChannel(context.Background(), th.BasicChannel.Id, th.BasicUser2.Id)
+		_, err2 := client.RemoveUserFromChannel(context.Background(), th.BasicChannel.Id, th.BasicUser2.Id)
 		require.NoError(t, err2)
 
 		requirePost(&model.Post{
@@ -3823,10 +3809,6 @@ func TestRemoveChannelMember(t *testing.T) {
 		requirePost(&model.Post{
 			Message:   fmt.Sprintf("@%s removed from the channel.", th.BasicUser.Username),
 			ChannelId: th.BasicChannel.Id,
-		})
-
-		closeWsClient.Do(func() {
-			wsClient.Close()
 		})
 	})
 
@@ -4365,7 +4347,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, timezone, 2, "should return 2 timezones")
 
-	//both users have same timezone
+	// both users have same timezone
 	user2.Timezone["automaticTimezone"] = "XOXO/BLABLA"
 	_, _, err = th.SystemAdminClient.UpdateUser(context.Background(), user2)
 	require.NoError(t, err)
@@ -4374,7 +4356,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, timezone, 1, "should return 1 timezone")
 
-	//no timezone set should return empty
+	// no timezone set should return empty
 	user2.Timezone["automaticTimezone"] = ""
 	_, _, err = th.SystemAdminClient.UpdateUser(context.Background(), user2)
 	require.NoError(t, err)

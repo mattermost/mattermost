@@ -58,13 +58,26 @@ describe('Verify Accessibility keyboard usability across different regions in th
         // # Change the focus to search results
         cy.get('#searchContainer').within(() => {
             cy.get('button.sidebar--right__expand').focus().tab({shift: true}).tab();
-            cy.focused().tab().tab().tab().tab();
+
+            // # focus the messages and files tabs
+            cy.focused().tab().tab();
         });
+
+        // # verify the tabs buttons files or messages are accesible via left and right keys
+        cy.get('body').type('{rightarrow}').wait(100);
+        cy.get('#filesTab').should('have.class', 'a11y--active a11y--focused');
+
+        cy.get('body').type('{leftarrow}').wait(100);
+        cy.get('#messagesTab').should('have.class', 'a11y--active a11y--focused');
+
+        // # move focus to search results items
+        cy.focused().tab();
+
         cy.get('body').type('{downarrow}{uparrow}');
 
         // # Use down arrow keys and verify if results are highlighted sequentially
         for (let index = 0; index < count; index++) {
-            cy.get('#search-items-container').children('.search-item__container').eq(index).then(($el) => {
+            cy.get('.files-or-messages-panel').children('.search-item__container').eq(index).then(($el) => {
                 // * Verify search result is highlighted
                 cy.get($el).find('.post').should('have.class', 'a11y--active a11y--focused');
                 cy.get('body').type('{downarrow}');
@@ -73,7 +86,7 @@ describe('Verify Accessibility keyboard usability across different regions in th
 
         // # Use up arrow keys and verify if results are highlighted sequentially
         for (let index = count; index > 0; index--) {
-            cy.get('#search-items-container').children('.search-item__container').eq(index).then(($el) => {
+            cy.get('.files-or-messages-panel').children('.search-item__container').eq(index).then(($el) => {
                 // * Verify search result is highlighted
                 cy.get($el).find('.post').should('have.class', 'a11y--active a11y--focused');
                 cy.get('body').type('{uparrow}');

@@ -10,6 +10,7 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Posts} from 'mattermost-redux/constants';
 import {getNewMessagesIndex, isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
 
 import NewRepliesBanner from 'components/new_replies_banner';
@@ -21,11 +22,12 @@ import DelayedAction from 'utils/delayed_action';
 import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 import type {FakePost} from 'types/store/rhs';
 
 import CreateComment from './create_comment';
 import Row from './thread_viewer_row';
+
 import './virtualized_thread_viewer.scss';
 
 type Props = {
@@ -40,7 +42,7 @@ type Props = {
     useRelativeTimestamp: boolean;
     isMobileView: boolean;
     isThreadView: boolean;
-    newMessagesSeparatorActions: PluginComponent[];
+    newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     inputPlaceholder?: string;
     measureRhsOpened: () => void;
 }
@@ -348,6 +350,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
         const isLastPost = itemId === this.props.lastPost.id;
         const isRootPost = itemId === this.props.selected.id;
+        const isDeletedPost = ('delete_at' in this.props.selected && this.props.selected.delete_at !== 0) ||
+            ('state' in this.props.selected && this.props.selected.state === Posts.POST_DELETED);
 
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
             a11yIndex++;
@@ -363,6 +367,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     currentUserId={this.props.currentUserId}
                     isRootPost={isRootPost}
                     isLastPost={isLastPost}
+                    isDeletedPost={isDeletedPost}
                     listId={itemId}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}

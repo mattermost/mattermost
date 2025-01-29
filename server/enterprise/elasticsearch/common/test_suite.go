@@ -770,20 +770,40 @@ func (c *CommonTestSuite) TestSearchChannels() {
 
 	c.NoError(c.RefreshIndexFn())
 
-	// Private channels should be returned for right user.
-	ids, appErr := c.ESImpl.SearchChannels("", c.TH.BasicUser.Id, "Channel", false)
+	for _, includeDeleted := range []bool{true, false} {
+		// Private channels should be returned for right user.
+		ids, appErr := c.ESImpl.SearchChannels("", c.TH.BasicUser.Id, "Channel", false, includeDeleted)
+		c.Nil(appErr)
+		c.Len(ids, 2)
+
+		// No private channels if user is guest
+		ids, appErr = c.ESImpl.SearchChannels("", c.TH.BasicUser.Id, "Channel", true, includeDeleted)
+		c.Nil(appErr)
+		c.Len(ids, 1)
+		c.Equal(channel.Id, ids[0])
+
+		// No Private channels should be returned for wrong user.
+		ids, appErr = c.ESImpl.SearchChannels("", "otheruser", "Channel", false, includeDeleted)
+		c.Nil(appErr)
+		c.Len(ids, 1)
+		c.Equal(channel.Id, ids[0])
+	}
+
+	// Adding a deleted channel
+	channelDel := createChannel(c.TH.BasicTeam.Id, "channelD", "Channel Open- Deleted", model.ChannelTypeOpen)
+	channelDel.DeleteAt = 123
+	c.Nil(c.ESImpl.IndexChannel(c.TH.Context, channelDel, []string{}, []string{c.TH.BasicUser.Id, "otheruser"}))
+	c.NoError(c.RefreshIndexFn())
+
+	ids, appErr := c.ESImpl.SearchChannels("", c.TH.BasicUser.Id, "Channel", false, false)
 	c.Nil(appErr)
 	c.Len(ids, 2)
 
-	// No private channels if user is guest
-	ids, appErr = c.ESImpl.SearchChannels("", c.TH.BasicUser.Id, "Channel", true)
+	ids, appErr = c.ESImpl.SearchChannels("", c.TH.BasicUser.Id, "Channel", false, true)
 	c.Nil(appErr)
-	c.Len(ids, 1)
-	c.Equal(channel.Id, ids[0])
+	c.Len(ids, 3)
 
-	// No Private channels should be returned for wrong user.
-	ids, appErr = c.ESImpl.SearchChannels("", "otheruser", "Channel", false)
+	ids, appErr = c.ESImpl.SearchChannels("", c.TH.BasicUser.Id, "Deleted", false, true)
 	c.Nil(appErr)
 	c.Len(ids, 1)
-	c.Equal(channel.Id, ids[0])
 }

@@ -1450,7 +1450,7 @@ func hasPermissionToReadGroupMembers(c *web.Context, groupID string) *model.AppE
 //
 //	err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
 //	err.Where = "Api4.getGroup"
-func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {
+func licensedAndConfiguredForGroupBySource(app *app.App, source model.GroupSource) *model.AppError {
 	lic := app.Srv().License()
 
 	if lic == nil {

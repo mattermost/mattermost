@@ -27,6 +27,8 @@ type SqlChannelStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
 
+	tableSelectQuery sq.SelectBuilder
+
 	// prepared query builders for use in multiple methods
 	channelMembersForTeamWithSchemeSelectQuery sq.SelectBuilder
 }
@@ -439,14 +441,19 @@ func (s SqlChannelStore) ClearCaches() {
 }
 
 func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
-	s := &SqlChannelStore{
+	s := SqlChannelStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
 
+	s.tableSelectQuery = s.getQueryBuilder().Select("Id", "CreateAt", "UpdateAt", "DeleteAt", "TeamId", "Type", "DisplayName",
+		"Name", "Header", "Purpose", "LastPostAt", "TotalMsgCount", "ExtraUpdateAt", "CreatorId", "SchemeId", "GroupConstrained",
+		"Shared", "TotalMsgCountRoot", "LastRootPostAt",
+	).From("Channels")
+
 	s.initializeQueries()
 
-	return s
+	return &s
 }
 
 func (s *SqlChannelStore) initializeQueries() {
@@ -702,8 +709,11 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 
 	if rowAffected == 0 {
 		dupChannel := model.Channel{}
-		if serr := s.GetMaster().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = ? AND Name = ?", channel.TeamId, channel.Name); serr != nil {
-			return nil, errors.Wrapf(serr, "error while retrieving existing channel %s", channel.Name) // do not return this as a *store.ErrConflict as it would be treated as a recoverable error
+		query := s.tableSelectQuery.Where(sq.Eq{"TeamId": channel.TeamId, "Name": channel.Name})
+
+		err := s.GetMaster().GetBuilder(&dupChannel, query)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error while retrieving existing channel %s", channel.Name) // do not return this as a *store.ErrConflict as it would be treated as a recoverable error
 		}
 		return &dupChannel, store.NewErrConflict("Channel", err, "id="+channel.Id)
 	}
@@ -832,7 +842,9 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 //nolint:unparam
 func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	ch := model.Channel{}
-	err := s.GetReplica().Get(&ch, `SELECT * FROM Channels WHERE Id=?`, id)
+	query := s.tableSelectQuery.Where(sq.Eq{"Id": id})
+
+	err := s.GetReplica().GetBuilder(&ch, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", id)
@@ -1378,7 +1390,9 @@ func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) (*model.
 
 func (s SqlChannelStore) GetTeamChannels(teamId string) (model.ChannelList, error) {
 	data := model.ChannelList{}
-	err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = ? And Type != ? ORDER BY DisplayName", teamId, model.ChannelTypeDirect)
+	query := s.tableSelectQuery.Where(sq.And{sq.Eq{"TeamId": teamId}, sq.NotEq{"Type": model.ChannelTypeDirect}}).OrderBy("DisplayName")
+
+	err := s.GetReplica().SelectBuilder(&data, query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with teamId=%s", teamId)
 	}
@@ -1475,12 +1489,14 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 
 func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Channel, error) {
 	channel := model.Channel{}
+	query := s.tableSelectQuery.Where(
+		sq.And{
+			sq.Or{sq.Eq{"TeamId": teamId}, sq.Eq{"TeamId": ""}},
+			sq.Eq{"Name": name},
+			sq.NotEq{"DeleteAt": 0},
+		})
 
-	if err := s.GetReplica().Get(&channel, `SELECT *
-			FROM Channels
-			WHERE (TeamId = ? OR TeamId = '')
-			AND Name = ?
-			AND DeleteAt != 0`, teamId, name); err != nil {
+	if err := s.GetReplica().GetBuilder(&channel, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("name=%s", name))
 		}
@@ -2313,6 +2329,7 @@ func (s SqlChannelStore) GetFileCount(channelId string) (int64, error) {
 		    FileInfo
 		WHERE
 		    FileInfo.DeleteAt = 0
+			AND FileInfo.PostId != ''
             AND FileInfo.ChannelId = ?`,
 		channelId)
 	if err != nil {
@@ -2813,9 +2830,9 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userIDs []strin
 
 func (s SqlChannelStore) GetAll(teamId string) ([]*model.Channel, error) {
 	data := []*model.Channel{}
-	err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = ? AND Type != ? ORDER BY Name", teamId, model.ChannelTypeDirect)
+	query := s.tableSelectQuery.Where(sq.And{sq.Eq{"TeamId": teamId}, sq.NotEq{"Type": model.ChannelTypeDirect}}).OrderBy("Name")
 
-	if err != nil {
+	if err := s.GetReplica().SelectBuilder(&data, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with teamId=%s", teamId)
 	}
 
@@ -3814,10 +3831,12 @@ func (s SqlChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[st
 
 func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, error) {
 	channels := model.ChannelList{}
-	err := s.GetReplica().Select(&channels, "SELECT * FROM Channels WHERE SchemeId = ? ORDER BY DisplayName LIMIT ? OFFSET ?", schemeId, limit, offset)
-	if err != nil {
+	query := s.tableSelectQuery.Where(sq.Eq{"SchemeId": schemeId}).OrderBy("DisplayName").Limit(uint64(limit)).Offset(uint64(offset))
+
+	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with schemeId=%s", schemeId)
 	}
+
 	return channels, nil
 }
 
