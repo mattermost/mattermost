@@ -1124,6 +1124,36 @@ func (a *App) getAddUploadFilePermissionMigration() (permissionsMap, error) {
 	}, nil
 }
 
+func (a *App) getFixReadAuditsPermissionMigration() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PermissionSysconsoleReadComplianceCustomTermsOfService.Id),
+		Remove: []string{model.PermissionReadAudits.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PermissionSysconsoleReadComplianceComplianceMonitoring.Id),
+		Add: []string{model.PermissionReadAudits.Id},
+	})
+	return transformations, nil
+}
+
+func (a *App) removeGetAnalyticsPermissionMigration() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	transformations = append(transformations, permissionTransformation{
+		On:     permissionExists(model.PermissionSysconsoleReadUserManagementUsers.Id),
+		Remove: []string{model.PermissionGetAnalytics.Id},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PermissionSysconsoleReadReportingTeamStatistics.Id),
+		Add: []string{model.PermissionGetAnalytics.Id},
+	})
+	return transformations, nil
+}
+
 // Only sysadmins, team admins, and users with channels and groups managements have access to "convert channel to public"
 func (a *App) getRestrictAcessToChannelConversionToPublic() (permissionsMap, error) {
 	return []permissionTransformation{
@@ -1191,6 +1221,8 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddManageJobAncillaryPermissions, Migration: a.getAddManageJobAncillaryPermissionsMigration},
 		{Key: model.MigrationKeyAddUploadFilePermission, Migration: a.getAddUploadFilePermissionMigration},
 		{Key: model.RestrictAccessToChannelConversionToPublic, Migration: a.getRestrictAcessToChannelConversionToPublic},
+		{Key: model.MigrationKeyFixReadAuditsPermission, Migration: a.getFixReadAuditsPermissionMigration},
+		{Key: model.MigrationRemoveGetAnalyticsPermission, Migration: a.removeGetAnalyticsPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

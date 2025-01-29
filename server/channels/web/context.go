@@ -19,7 +19,7 @@ import (
 )
 
 type Context struct {
-	App           app.AppIface
+	App           *app.App
 	AppContext    request.CTX
 	Logger        *mlog.Logger
 	Params        *Params
