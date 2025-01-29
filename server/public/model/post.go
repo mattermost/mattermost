@@ -207,6 +207,21 @@ type SearchParameter struct {
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
 }
 
+func (sp SearchParameter) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"terms":                    sp.Terms,
+		"is_or_search":             sp.IsOrSearch,
+		"time_zone_offset":         sp.TimeZoneOffset,
+		"page":                     sp.Page,
+		"per_page":                 sp.PerPage,
+		"include_deleted_channels": sp.IncludeDeletedChannels,
+	}
+}
+
+func (sp SearchParameter) LogClone() any {
+	return sp.Auditable()
+}
+
 type AnalyticsPostCountsOptions struct {
 	TeamId        string
 	BotsOnly      bool
