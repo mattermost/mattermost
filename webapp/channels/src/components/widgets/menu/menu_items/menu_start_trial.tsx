@@ -40,9 +40,9 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
     const license = useSelector(getLicense);
     const isCurrentLicensed = license?.IsLicensed;
 
-    if (isCurrentLicensed === 'true') {
-        return null;
-    }
+    // if (isCurrentLicensed === 'true') {
+    //     return null;
+    // }
 
     return (
         <li

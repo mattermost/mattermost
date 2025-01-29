@@ -10,7 +10,7 @@ import {isDesktopApp} from 'utils/user_agent';
 
 import HistoryButtons from './history_buttons';
 import ProductBranding from './product_branding';
-import ProductMenu from './product_menu';
+import ProductSwitcherMenu from './product_switcher_menu';
 
 import './left_controls.scss';
 
@@ -23,7 +23,7 @@ export default function LeftControls() {
 
     return (
         <div className='globalHeader-left-controls-container'>
-            <ProductMenu/>
+            <ProductSwitcherMenu/>
             <ProductBranding/>
             {isDesktopApp() && <HistoryButtons/>}
         </div>

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {useEffect, useRef} from 'react';
-import type {MutableRefObject} from 'react';
 import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -12,28 +11,6 @@ import {getCurrentUser, isFirstAdmin, isCurrentUserSystemAdmin} from 'mattermost
 import {isModalOpen} from 'selectors/views/modals';
 
 import type {GlobalState} from 'types/store';
-
-// REMOVE THIS
-/**
- * Hook that alerts clicks outside of the passed ref.
- */
-export function useClickOutsideRef(ref: MutableRefObject<HTMLElement | null>, handler: () => void): void {
-    useEffect(() => {
-        function onMouseDown(event: MouseEvent) {
-            const target = event.target as any;
-            if (ref.current && target instanceof Node && !ref.current.contains(target)) {
-                handler();
-            }
-        }
-
-        // Bind the event listener
-        document.addEventListener('mousedown', onMouseDown);
-        return () => {
-            // Unbind the event listener on clean up
-            document.removeEventListener('mousedown', onMouseDown);
-        };
-    }, [ref, handler]);
-}
 
 export const useFirstAdminUser = (): boolean => {
     return useSelector(isFirstAdmin);
