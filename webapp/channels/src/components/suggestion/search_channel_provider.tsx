@@ -43,7 +43,7 @@ export default class SearchChannelProvider extends Provider {
 
         this.autocompleteChannelsForSearch(
             prefix,
-            teamId
+            teamId,
             async (data: Channel[]) => {
                 if (this.shouldCancelDispatch(prefix)) {
                     return;
