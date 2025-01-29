@@ -2457,6 +2457,10 @@
     "translation": "The signup link does not appear to be valid."
   },
   {
+    "id": "api.omnisearch.search.invalid_response",
+    "translation": ""
+  },
+  {
     "id": "api.outgoing_webhook.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
@@ -10215,6 +10219,10 @@
   {
     "id": "store.sql_file_info.search.disabled",
     "translation": "Searching files has been disabled on this server. Please contact your System Administrator."
+  },
+  {
+    "id": "store.sql_omnisearch.disabled",
+    "translation": ""
   },
   {
     "id": "store.sql_post.search.disabled",
