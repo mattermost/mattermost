@@ -263,6 +263,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 timeout={250}
                 classNames='scale'
                 in={showHiddenControls}
+                unmountOnExit={true}
             >
                 <HiddenControlsContainer
                     ref={setFloating}
@@ -278,9 +279,6 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                                 className='control'
                                 onClick={makeFormattingHandler(mode)}
                                 disabled={disableControls}
-                                {...!showHiddenControls && {
-                                    tabIndex: -1,
-                                }}
                             />
                         );
                     })}
