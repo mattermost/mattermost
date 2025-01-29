@@ -67,6 +67,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
     const customProfileAttribute: UserPropertyField = {
         id: '1',
+        group_id: 'custom_profile_attributes',
         name: 'Test Attribute',
         type: 'text',
         create_at: 0,
@@ -246,7 +247,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     test('submitAttribute() should have called saveCustomProfileAttribute', async () => {
-        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: true});
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({1: 'Updated Value'});
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,

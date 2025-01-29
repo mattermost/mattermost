@@ -621,7 +621,16 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             expandedSection = (
                 <SettingItemMax
                     title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
-                    inputs={inputs}
+                    inputs={
+                        <fieldset>
+                            <legend className='hidden-label'>
+                                {this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
+                            </legend>
+                            <div>
+                                {inputs}
+                            </div>
+                        </fieldset>
+                    }
                     submit={this.handleSubmit}
                     saving={this.state.isSaving}
                     serverError={serverError}
