@@ -112,6 +112,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
+import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
@@ -339,6 +340,18 @@ export default class Client4 {
 
     getRemoteClusterRoute(remoteId: string) {
         return `${this.getRemoteClustersRoute()}/${remoteId}`;
+    }
+
+    getCustomProfileAttributeFieldsRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/fields`;
+    }
+
+    getCustomProfileAttributeFieldRoute(propertyFieldId: string) {
+        return `${this.getCustomProfileAttributeFieldsRoute()}/${propertyFieldId}`;
+    }
+
+    getCustomProfileAttributeValuesRoute() {
+        return `${this.getBaseRoute()}/custom_profile_attributes/values`;
     }
 
     getPostsRoute() {
@@ -602,7 +615,7 @@ export default class Client4 {
         );
     };
 
-    patchUser = (userPatch: Partial<UserProfile> & {id: string}) => {
+    patchUser = (userPatch: PartialExcept<UserProfile, 'id'>) => {
         return this.doFetch<UserProfile>(
             `${this.getUserRoute(userPatch.id)}/patch`,
             {method: 'put', body: JSON.stringify(userPatch)},
@@ -1227,7 +1240,7 @@ export default class Client4 {
         );
     };
 
-    patchTeam = (team: Partial<Team> & {id: string}) => {
+    patchTeam = (team: PartialExcept<Team, 'id'>) => {
         return this.doFetch<Team>(
             `${this.getTeamRoute(team.id)}/patch`,
             {method: 'put', body: JSON.stringify(team)},
@@ -1566,7 +1579,7 @@ export default class Client4 {
         );
     }
 
-    createChannel = (channel: Channel) => {
+    createChannel = (channel: PartialExcept<Channel, 'name' | 'display_name' | 'type' | 'team_id'>) => {
         return this.doFetch<ServerChannel>(
             `${this.getChannelsRoute()}`,
             {method: 'post', body: JSON.stringify(channel)},
@@ -2059,9 +2072,55 @@ export default class Client4 {
         );
     };
 
+    // System Properties Routes
+
+    getCustomProfileAttributeFields = async () => {
+        return this.doFetch<UserPropertyField[]>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'GET'},
+        );
+    };
+
+    createCustomProfileAttributeField = async (patch: UserPropertyFieldPatch) => {
+        return this.doFetch<UserPropertyField>(
+            `${this.getCustomProfileAttributeFieldsRoute()}`,
+            {method: 'POST', body: JSON.stringify(patch)},
+        );
+    };
+
+    patchCustomProfileAttributeField = async (fieldId: string, patch: UserPropertyFieldPatch) => {
+        return this.doFetch<UserPropertyField>(
+            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    deleteCustomProfileAttributeField = async (fieldId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getCustomProfileAttributeFieldRoute(fieldId)}`,
+            {method: 'DELETE'},
+        );
+    };
+
+    updateCustomProfileAttributeValues = (attributeValues: Record<string, string>) => {
+        return this.doFetch<Record<string, string>>(
+            `${this.getCustomProfileAttributeValuesRoute()}`,
+            {method: 'PATCH', body: JSON.stringify(attributeValues)},
+        );
+    };
+
+    getUserCustomProfileAttributesValues = async (userID: string) => {
+        const data = await this.doFetch<Record<string, string>>(
+            `${this.getUserRoute(userID)}/custom_profile_attributes`,
+            {method: 'GET'},
+        );
+        return data;
+    };
+
     // Post Routes
 
-    createPost = async (post: Post) => {
+    createPost = async (post: PartialExcept<Post, 'channel_id' | 'message'>) => {
         const result = await this.doFetch<Post>(
             `${this.getPostsRoute()}`,
             {method: 'post', body: JSON.stringify(post)},
@@ -2090,7 +2149,7 @@ export default class Client4 {
         );
     };
 
-    patchPost = (postPatch: Partial<Post> & {id: string}) => {
+    patchPost = (postPatch: PartialExcept<Post, 'id'>) => {
         return this.doFetch<Post>(
             `${this.getPostRoute(postPatch.id)}/patch`,
             {method: 'put', body: JSON.stringify(postPatch)},
@@ -2564,7 +2623,7 @@ export default class Client4 {
 
     // Integration Routes
 
-    createIncomingWebhook = (hook: IncomingWebhook) => {
+    createIncomingWebhook = (hook: PartialExcept<IncomingWebhook, 'channel_id'>) => {
         return this.doFetch<IncomingWebhook>(
             `${this.getIncomingHooksRoute()}`,
             {method: 'post', body: JSON.stringify(hook)},
@@ -2729,7 +2788,7 @@ export default class Client4 {
         );
     };
 
-    createOAuthApp = (app: OAuthApp) => {
+    createOAuthApp = (app: PartialExcept<OAuthApp, 'name' | 'description' | 'callback_urls' | 'homepage'>) => {
         return this.doFetch<OAuthApp>(
             `${this.getOAuthAppsRoute()}`,
             {method: 'post', body: JSON.stringify(app)},
@@ -2850,7 +2909,7 @@ export default class Client4 {
 
     // Emoji Routes
 
-    createCustomEmoji = (emoji: CustomEmoji, imageData: File) => {
+    createCustomEmoji = (emoji: PartialExcept<CustomEmoji, 'name' | 'creator_id'>, imageData: File) => {
         const formData = new FormData();
         formData.append('image', imageData);
         formData.append('emoji', JSON.stringify(emoji));
@@ -3453,7 +3512,7 @@ export default class Client4 {
         );
     };
 
-    createScheme = (scheme: Scheme) => {
+    createScheme = (scheme: PartialExcept<Scheme, 'display_name' | 'scope'>) => {
         return this.doFetch<Scheme>(
             `${this.getSchemesRoute()}`,
             {method: 'post', body: JSON.stringify(scheme)},
@@ -4236,7 +4295,7 @@ export default class Client4 {
     };
 
     // Schedule Post methods
-    createScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
+    createScheduledPost = (schedulePost: PartialExcept<ScheduledPost, 'channel_id' | 'message' | 'scheduled_at'>, connectionId: string) => {
         this.trackFeatureEvent(TrackScheduledPostsFeature, 'create_scheduled_post', {[TrackPropertyUser]: schedulePost.user_id, [TrackPropertyUserAgent]: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(

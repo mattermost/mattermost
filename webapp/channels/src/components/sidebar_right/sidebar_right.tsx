@@ -157,7 +157,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         if (this.props.isOpen && (contentChanged || (!wasOpen && isOpen))) {
             this.previousActiveElement = document.activeElement as HTMLElement;
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 if (this.sidebarRight.current) {
                     document.dispatchEvent(
                         new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
@@ -168,14 +168,14 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                         }),
                     );
                 }
-            });
+            }, 0);
         } else if (!this.props.isOpen && wasOpen) {
             // RHS just was closed, restore focus to the previous element had it
             // this will have to change for upcoming work specially for search and probalby plugins
             if (a11yController.originElement) {
                 a11yController.restoreOriginFocus();
             } else {
-                requestAnimationFrame(() => {
+                setTimeout(() => {
                     if (this.previousActiveElement) {
                         document.dispatchEvent(
                             new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
@@ -187,7 +187,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                         );
                         this.previousActiveElement = null;
                     }
-                });
+                }, 0);
             }
         }
     }
@@ -337,7 +337,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                 <ResizableRhs
                     className={containerClassName}
                     id='sidebar-right'
-                    role='complementary'
+                    role='region'
                     rightWidthHolderRef={this.sidebarRightWidthHolder}
                 >
                     <div

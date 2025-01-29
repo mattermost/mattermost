@@ -47,28 +47,36 @@ describe('Multi-user group header', () => {
         cy.apiLogin(testUser);
         cy.visit(`/${testTeam.name}/channels/${groupChannel.name}`);
 
-        // * no channel header is set
-        cy.get('button.header-placeholder').invoke('show').trigger('mouseover');
-        cy.contains('#channelHeaderDescription button span', 'Add a channel header').should('be.visible');
+        const header = 'peace and progress';
 
-        // # click add a channel heander
-        cy.findByRoleExtended('button', {name: 'Add a channel header'}).should('be.visible').click();
+        // * Verify that no channel header is set
+        cy.get('#channel-header').within(() => {
+            cy.findByText('Add a channel header').should('not.be.visible');
+        });
 
-        // # type a header
-        const header = 'this is a header!';
+        // # Force click on button which is hidden and shows on hover
+        cy.findByText('Add a channel header').click({force: true});
+
+        // * Verify the modal open to add header
         cy.get('#editChannelHeaderModalLabel').should('be.visible').wait(TIMEOUTS.ONE_SEC);
-        cy.get('textarea#edit_textbox').should('be.visible').type(`${header}{enter}`);
-        cy.get('#editChannelHeaderModalLabel').should('not.exist'); // wait for modal to disappear
+
+        // # Add the header in the modal
+        cy.findByPlaceholderText('Edit the Channel Header...').should('be.visible').type(`${header}{enter}`);
+
+        // # Wait for modal to disappear
+        cy.waitUntil(() => cy.get('#editChannelHeaderModalLabel').should('not.be.visible'));
 
         // * text appears in the top center panel
-        cy.contains('#channelHeaderDescription span.header-description__text p', header);
+        cy.get('#channel-header').within(() => {
+            cy.findByText(header).should('be.visible');
+        });
 
         checkSystemMessage('updated the channel header');
 
-        // * channel is marked as read for the current user
+        // * Channel is marked as read for the current user
         cy.get(`#sidebarItem_${groupChannel.name}`).should(beRead);
 
-        // * channel is marked as unread for other user
+        // * Channel is marked as unread for other user
         cy.apiLogout();
         cy.apiLogin(userList[0]);
         cy.visit(`/${testTeam.name}/channels/town-square`);
@@ -81,18 +89,22 @@ describe('Multi-user group header', () => {
         cy.apiLogin(testUser);
         cy.visit(`/${testTeam.name}/channels/${groupChannel.name}`);
 
-        // * verify header is set
-        cy.contains('#channelHeaderDescription button span', 'Add a channel header').should('not.exist');
+        // * Verify that channel header is set
+        cy.get('#channel-header').within(() => {
+            cy.findByText('Add a channel header').should('not.exist');
+        });
 
-        const header = 'this is a new header!';
+        const header = 'In pursuit of peace and progress';
         editHeader(header);
 
-        // * text appears at the top
-        cy.contains('#channelHeaderDescription span.header-description__text p', header);
+        // * Header text appears at the top
+        cy.get('#channel-header').within(() => {
+            cy.findByText(header).should('be.visible');
+        });
 
         checkSystemMessage('updated the channel header');
 
-        // * channel is marked as unread for other users
+        // * Channel is marked as unread for other users
         cy.apiLogout();
         cy.apiLogin(userList[0]);
         cy.visit(`/${testTeam.name}/channels/town-square`);
@@ -101,35 +113,43 @@ describe('Multi-user group header', () => {
     });
 
     it('MM-T473_2 Edit GM channel header', () => {
-        // # open existing GM
+        // # Open existing GM
         cy.apiLogin(testUser);
         cy.visit(`/${testTeam.name}/channels/${groupChannel.name}`);
 
-        // * verify header is set
-        cy.contains('#channelHeaderDescription button span', 'Add a channel header').should('not.exist');
+        // * Verify that channel header is set
+        cy.get('#channel-header').within(() => {
+            cy.findByText('Add a channel header').should('not.exist');
+        });
 
-        const header = `Header by @${testUser.username}`;
+        const header = `In pursuit of peace and progress by @${testUser.username}`;
         editHeader(header);
 
-        cy.get('#channelHeaderDescription').find('.header-description__text').
-            find('.mention-link').
-            should('be.visible').and('have.text', `@${testUser.username}`);
-        cy.get('#channelHeaderDescription').find('.header-description__text').
-            find('.mention--highlight').
-            should('not.exist');
+        // * Header text appears at the top
+        cy.get('#channel-header').within(() => {
+            // * Verify mention is present
+            cy.get('.mention-link').should('be.visible').and('have.text', `@${testUser.username}`);
+
+            // * Verify its not highlighted
+            cy.get('.mention--highlight').should('not.exist');
+        });
     });
 
-    const editHeader = (header) => {
+    function editHeader(header) {
         // # Click edit conversation header
         cy.uiOpenChannelMenu('Edit Conversation Header');
 
-        // # type new header
-        cy.get('#editChannelHeaderModalLabel').should('be.visible');
-        cy.get('textarea#edit_textbox').should('be.visible').clear().type(`${header}{enter}`);
-        cy.get('#editChannelHeaderModalLabel').should('not.exist'); // wait for modal to disappear
-    };
+        // * Verify the modal open to add header
+        cy.get('#editChannelHeaderModalLabel').should('be.visible').wait(TIMEOUTS.ONE_SEC);
 
-    const checkSystemMessage = (message) => {
+        // # Add the header in the modal
+        cy.get('textarea#edit_textbox').should('be.visible').clear().type(`${header}{enter}`);
+
+        // # Wait for modal to disappear
+        cy.waitUntil(() => cy.get('#editChannelHeaderModalLabel').should('not.be.visible'));
+    }
+
+    function checkSystemMessage(message) {
         // * system message is posted notifying of the change
         cy.getLastPostId().then((id) => {
             cy.get(`#postMessageText_${id}`).should('contain', message);
@@ -138,5 +158,5 @@ describe('Multi-user group header', () => {
                 cy.get(`#delete_post_${id}`);
             });
         });
-    };
+    }
 });

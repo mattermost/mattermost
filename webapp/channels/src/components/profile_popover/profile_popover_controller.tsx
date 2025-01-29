@@ -10,6 +10,7 @@ import {
     useDismiss,
     useInteractions,
     useRole,
+    shift,
     FloatingFocusManager,
     FloatingOverlay,
     FloatingPortal,
@@ -17,6 +18,7 @@ import {
 import classNames from 'classnames';
 import type {HtmlHTMLAttributes, ReactNode} from 'react';
 import React, {useCallback, useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -39,6 +41,11 @@ interface Props<TriggerComponentType> {
      * Source URL from the image to display in the popover
      */
     src: string;
+
+    /**
+     * Username of the profile.
+     */
+    username?: string;
 
     /**
      * This should be the trigger button for the popover, Do note that the root element of the trigger component should be passed in triggerComponentRoot
@@ -76,13 +83,24 @@ interface Props<TriggerComponentType> {
 }
 
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
+    const intl = useIntl();
+
+    const profileAriaLabel = intl.formatMessage({id: 'profile_popover.aria_label.without_username', defaultMessage: 'profile popover'});
+    const userProfileAriaLabel = intl.formatMessage({
+        id: 'profile_popover.aria_label.with_username',
+        defaultMessage: '{userName}\'s profile popover',
+    },
+    {
+        userName: props.username,
+    });
+
     const [isOpen, setOpen] = useState(false);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
         open: isOpen,
         onOpenChange: setOpen,
         whileElementsMounted: autoUpdate,
-        middleware: [autoPlacement()],
+        middleware: [autoPlacement(), shift()],
     });
 
     const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);
@@ -118,7 +136,6 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
             {isMounted && (
                 <FloatingPortal id={RootHtmlPortalId}>
                     <FloatingOverlay
-                        id='user-profile-popover-floating-overlay'
                         className='user-profile-popover-floating-overlay'
                         lockScroll={true}
                     >
@@ -127,6 +144,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 ref={refs.setFloating}
                                 style={{...floatingStyles, ...transitionStyles}}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
+                                aria-label={props.username ? userProfileAriaLabel : profileAriaLabel}
                                 {...getFloatingProps()}
                             >
                                 <ProfilePopover

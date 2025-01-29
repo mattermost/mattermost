@@ -81,7 +81,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.3 server
+// Based on v10.5 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -120,7 +120,6 @@ const defaultServerConfig: AdminConfig = {
         EnableDeveloper: false,
         DeveloperFlags: '',
         EnableClientPerformanceDebugging: false,
-        EnableOpenTracing: false,
         EnableSecurityFixAlert: true,
         EnableInsecureOutgoingConnections: false,
         AllowedUntrustedInternalConnections: '',
@@ -655,6 +654,8 @@ const defaultServerConfig: AdminConfig = {
         ExportFromTimestamp: 0,
         BatchSize: 10000,
         DownloadExportResults: false,
+        ChannelBatchSize: 100,
+        ChannelHistoryBatchSize: 10,
         GlobalRelaySettings: {
             CustomerType: 'A9',
             SMTPUsername: '',
@@ -747,6 +748,7 @@ const defaultServerConfig: AdminConfig = {
         NotificationMonitoring: true,
         ExperimentalAuditSettingsSystemConsoleUI: false,
         ExperimentalCrossTeamSearch: false,
+        CustomProfileAttributes: false,
     },
     ImportSettings: {
         Directory: './import',

@@ -4,9 +4,12 @@
 package app
 
 import (
+	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 
 	"github.com/pkg/errors"
 
@@ -77,6 +80,7 @@ type Channels struct {
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
 
+	interruptQuitChan chan struct{}
 	scheduledPostMut  sync.Mutex
 	scheduledPostTask *model.ScheduledTask
 	loginAttemptsMut  sync.Mutex
@@ -84,12 +88,13 @@ type Channels struct {
 
 func NewChannels(s *Server) (*Channels, error) {
 	ch := &Channels{
-		srv:             s,
-		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:   map[string]bool{},
-		filestore:       s.FileBackend(),
-		exportFilestore: s.ExportFileBackend(),
-		cfgSvc:          s.Platform(),
+		srv:               s,
+		imageProxy:        imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap:     map[string]bool{},
+		filestore:         s.FileBackend(),
+		exportFilestore:   s.ExportFileBackend(),
+		cfgSvc:            s.Platform(),
+		interruptQuitChan: make(chan struct{}),
 	}
 
 	// We are passing a partially filled Channels struct so that the enterprise
@@ -159,6 +164,20 @@ func (ch *Channels) Start() error {
 	ctx := request.EmptyContext(ch.srv.Log())
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 
+	interruptChan := make(chan os.Signal, 1)
+	signal.Notify(interruptChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		select {
+		case <-interruptChan:
+			if err := ch.Stop(); err != nil {
+				ch.srv.Log().Warn("Error stopping channels", mlog.Err(err))
+			}
+			os.Exit(1)
+		case <-ch.interruptQuitChan:
+			return
+		}
+	}()
+
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		// We compute the difference between configs
 		// to ensure we don't re-init plugins unnecessarily.
@@ -207,6 +226,8 @@ func (ch *Channels) Stop() error {
 		ch.dndTask.Cancel()
 	}
 	ch.dndTaskMut.Unlock()
+
+	close(ch.interruptQuitChan)
 
 	return nil
 }
