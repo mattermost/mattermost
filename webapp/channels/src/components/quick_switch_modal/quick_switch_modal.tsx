@@ -214,7 +214,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                 bodyPadding={false}
                 enforceFocus={false}
                 onExited={this.hideOnCancel}
-                ariaLabel={this.props.intl.formatMessage({id: 'quick_switch_modal.input', defaultMessage: 'Quick switch modal'})}
+                ariaLabel={this.props.intl.formatMessage({id: 'quick_switch_modal.switchChannels', defaultMessage: 'Find Channels'})}
                 modalHeaderText={modalHeaderText}
                 modalSubheaderText={modalSubheaderText}
                 compassDesign={true}
