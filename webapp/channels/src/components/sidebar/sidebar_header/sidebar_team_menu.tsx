@@ -12,10 +12,10 @@ import {
     AccountMultiplePlusOutlineIcon,
     SettingsOutlineIcon,
     AccountMultipleOutlineIcon,
-    MonitorIcon,
     ExitToAppIcon,
     MessagePlusOutlineIcon,
     PlusIcon,
+    MonitorAccountIcon,
 } from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
 
@@ -221,7 +221,7 @@ export default function SidebarTeamMenu(props: Props) {
         manageGroupsMenuItem = (
             <Menu.Item
                 leadingElement={(
-                    <MonitorIcon
+                    <MonitorAccountIcon
                         size={18}
                         aria-hidden='true'
                     />

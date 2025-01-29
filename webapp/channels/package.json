@@ -12,7 +12,6 @@
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
     "@mattermost/client": "*",
     "@mattermost/compass-components": "^0.2.12",
-    "@mattermost/compass-icons": "0.1.39",
     "@mattermost/desktop-api": "5.10.0-2",
     "@mattermost/types": "*",
     "@mui/base": "5.0.0-alpha.127",
