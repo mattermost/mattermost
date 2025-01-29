@@ -9041,10 +9041,14 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
 
 		client := th.CreateClient()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		})
+		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
 
 		user := th.CreateUser()
 
-		for i := 0; i < 10; i++ {
+		for i := 0; i < *maxAttempts; i++ {
 			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
 			require.Error(t, err)
 		}
@@ -9052,7 +9056,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		fetchedUser, resp, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Equal(t, int(10), fetchedUser.FailedAttempts)
+		require.Equal(t, *maxAttempts, fetchedUser.FailedAttempts)
 
 		resp, err = th.Client.ResetFailedAttempts(context.Background(), user.Id)
 		require.NoError(t, err)

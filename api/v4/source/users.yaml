@@ -3273,6 +3273,11 @@
       summary: Reset the failed password attempts for a user
       description: |
         Reset the FailedAttempts field for a user to 0. This will only work for ldap and email/password users.
+
+        ##### Permissions
+
+        Requires `sysconsole_write_user_management_users` permission.
+
       operationId: resetPasswordFailedAttempts
       responses:
         "200":
