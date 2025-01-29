@@ -2,7 +2,7 @@
 
 exports[`components/QuickSwitchModal should match snapshot 1`] = `
 <GenericModal
-  ariaLabel="Quick switch modal"
+  ariaLabel="Find Channels"
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={true}
   bodyPadding={false}
