@@ -34,7 +34,6 @@
         "EnableDeveloper": false,
         "DeveloperFlags": "",
         "EnableClientPerformanceDebugging": false,
-        "EnableOpenTracing": false,
         "EnableSecurityFixAlert": false,
         "EnableInsecureOutgoingConnections": false,
         "AllowedUntrustedInternalConnections": "localhost",
