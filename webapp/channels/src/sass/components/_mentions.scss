@@ -22,12 +22,12 @@ del .group-mention-link:focus {
 }
 
 .mention-link {
-    color:rgb(56, 111, 229)
-}
+    color: var(--link-color);
 
-.mention-link:hover,
-.mention-link:focus {
-    text-decoration: underline;
+    &:hover,
+    :focus {
+        text-decoration: underline;
+    }
 }
 
 .badge {
