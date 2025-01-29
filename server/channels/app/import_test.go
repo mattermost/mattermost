@@ -712,7 +712,7 @@ func TestDeleteImport(t *testing.T) {
 	})
 
 	t.Run("delete import file not found", func(t *testing.T) {
-		delErr := th.App.DeleteImport("import.zip")
+		delErr := th.App.DeleteImport("foo.zip")
 		require.NotNil(t, delErr)
 		require.Equal(t, "DeleteImport: app.import.delete_import.not_found.error", delErr.Error())
 		require.Equal(t, 404, delErr.StatusCode)
