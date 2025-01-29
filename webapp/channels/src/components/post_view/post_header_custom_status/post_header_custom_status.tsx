@@ -8,9 +8,9 @@ import {useSelector} from 'react-redux';
 import {makeGetCustomStatus, showPostHeaderUpdateStatusButton, isCustomStatusEnabled} from 'selectors/views/custom_status';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import {openMenu} from 'components/menu';
+import {ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON} from 'components/user_account_menu/user_account_menu';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
-
-import {clickOnMenuButton, MenuButtonIds} from 'utils/keyboard';
 
 import type {GlobalState} from 'types/store';
 
@@ -51,7 +51,7 @@ const PostHeaderCustomStatus = (props: ComponentProps) => {
 
     const updateStatus = (event: React.MouseEvent) => {
         event.preventDefault();
-        clickOnMenuButton(MenuButtonIds.userAccountMenu);
+        openMenu(ELEMENT_ID_FOR_USER_ACCOUNT_MENU_BUTTON);
     };
 
     return (

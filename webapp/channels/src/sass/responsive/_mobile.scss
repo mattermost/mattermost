@@ -368,7 +368,6 @@
 
         .post,
         .SidebarMenu,
-        .AddChannelDropdown,
         .GlobalThreads {
             .Menu {
                 position: fixed;
@@ -1555,8 +1554,7 @@
             }
         }
 
-        .SidebarMenu,
-        .AddChannelDropdown {
+        .SidebarMenu {
             display: block !important;
 
             .Menu {

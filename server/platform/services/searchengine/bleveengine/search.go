@@ -315,7 +315,7 @@ func (b *BleveEngine) IndexChannel(_ request.CTX, channel *model.Channel, userID
 	return nil
 }
 
-func (b *BleveEngine) SearchChannels(teamId, userID, term string, isGuest bool) ([]string, *model.AppError) {
+func (b *BleveEngine) SearchChannels(teamId, userID, term string, isGuest, _ bool) ([]string, *model.AppError) {
 	// This query essentially boils down to (if teamID is passed):
 	// match teamID == <>
 	// AND

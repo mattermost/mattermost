@@ -44,14 +44,6 @@
     "translation": "የአገልግሎት አቅራቢ ሜታዳታ በሚገነቡበት ጊዜ ስህተት ተከስቷል."
   },
   {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
     "id": "ent.elasticsearch.index_user.error",
     "translation": "ቻናሉን ማስተካከል አልተቻለም."
   },
@@ -73,18 +65,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
     "translation": "ቻናሉን ማስተካከል አልተቻለም."
   },
   {

@@ -1842,6 +1842,10 @@
     "translation": "remote_id must be blank for custom group"
   },
   {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Your license does not support Custom Profile Attributes."
+  },
+  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
   },
@@ -2135,6 +2139,10 @@
   {
     "id": "api.file.write_file.app_error",
     "translation": "Unable to write the file."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Unable to get a zip file reader."
   },
   {
     "id": "api.filter_config_error",
