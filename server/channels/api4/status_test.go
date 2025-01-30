@@ -15,6 +15,9 @@ import (
 )
 
 func TestGetUserStatus(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -78,7 +81,7 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("get other user status", func(t *testing.T) {
-		//Get user2 status logged as user1
+		// Get user2 status logged as user1
 		userStatus, _, err := client.GetUserStatus(context.Background(), th.BasicUser2.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
@@ -101,6 +104,9 @@ func TestGetUserStatus(t *testing.T) {
 }
 
 func TestGetUsersStatusesByIds(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -184,6 +190,9 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 }
 
 func TestUpdateUserStatus(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -248,6 +257,9 @@ func TestUpdateUserStatus(t *testing.T) {
 }
 
 func TestUpdateUserCustomStatus(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -350,6 +362,9 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 }
 
 func TestRemoveUserCustomStatus(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client

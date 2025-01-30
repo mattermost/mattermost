@@ -35,6 +35,7 @@ func setupMetricsMock() *mocks.MetricsInterface {
 
 	return metricsMock
 }
+
 func TestSubmitMetrics(t *testing.T) {
 	t.Run("unauthenticated user should not submit metrics", func(t *testing.T) {
 		th := Setup(t)

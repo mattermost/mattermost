@@ -69,6 +69,9 @@ func testAPIHandlerNoGzipMode(t *testing.T, name string, h http.Handler, token s
 }
 
 func TestAPIHandlersWithGzip(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

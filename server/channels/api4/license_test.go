@@ -22,6 +22,9 @@ import (
 )
 
 func TestGetOldClientLicense(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -193,6 +196,9 @@ func TestUploadLicenseFile(t *testing.T) {
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -372,6 +378,9 @@ func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
 }
 
 func TestRequestTrialLicense(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
