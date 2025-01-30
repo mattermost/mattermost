@@ -26,8 +26,16 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 		SqlStore: sqlStore,
 	}
 
+	manualColumnName := quoteColumnName(s.DriverName(), "Manual")
 	s.statusSelectQuery = s.getQueryBuilder().
-		Select("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus").
+		Select(
+			"COALESCE(UserId, '') AS UserId",
+			"COALESCE(Status, '') AS Status",
+			fmt.Sprintf("COALESCE(%s, FALSE) AS %s", manualColumnName, manualColumnName),
+			"COALESCE(LastActivityAt, 0) AS LastActivityAt",
+			"COALESCE(DNDEndTime, 0) AS DNDEndTime",
+			"COALESCE(PrevStatus, '') AS PrevStatus",
+		).
 		From("Status")
 
 	return &s
@@ -132,7 +140,6 @@ func (s SqlStatusStore) updateExpiredStatuses(t *sqlxTxWrapper) ([]*model.Status
 		Set("DNDEndTime", 0).
 		Set(quoteColumnName(s.DriverName(), "Manual"), false).
 		ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
@@ -184,7 +191,6 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 		Set(quoteColumnName(s.DriverName(), "Manual"), false).
 		Suffix("RETURNING *").
 		ToSql()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
 	}
