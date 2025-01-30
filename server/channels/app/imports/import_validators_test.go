@@ -552,7 +552,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 
 	// Test with not-all lowercase username
 	data.Username = model.NewPointer("Bob")
-	err = ValidateUserImportData(&data)
+	err = ValidateUserImportData(&data, basePath)
 	require.Nil(t, err, "Validation failed but should have been valid even the username has uppercase letters.")
 
 	// Test various invalid optional field values.
