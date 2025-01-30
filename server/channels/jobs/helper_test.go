@@ -30,6 +30,7 @@ type TestHelper struct {
 	BasicTeam  *model.Team
 	BasicUser  *model.User
 	BasicUser2 *model.User
+	Store      store.Store
 
 	SystemAdminUser   *model.User
 	LogBuffer         *mlog.Buffer
@@ -41,8 +42,9 @@ type TestHelper struct {
 	oldWatcherPollingInterval int
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
-	updateCfg func(cfg *model.Config), options []app.Option) *TestHelper {
+func setupTestHelper(dbStore store.Store, sqlSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool,
+	updateCfg func(cfg *model.Config), options []app.Option,
+) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "jobstest")
 	if err != nil {
 		panic(err)
@@ -50,7 +52,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	configStore := config.NewTestMemoryStore()
 	memoryConfig := configStore.Get()
-	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
+	memoryConfig.SqlSettings = *sqlSettings
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -100,6 +102,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		TestLogger:        testLogger,
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
+		Store:             dbStore,
 	}
 
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
@@ -125,25 +128,33 @@ func SetupWithUpdateCfg(tb testing.TB, updateCfg func(cfg *model.Config), option
 		tb.SkipNow()
 	}
 
-	oldWatcherPollingInterval := jobs.DefaultWatcherPollingInterval
-	jobs.DefaultWatcherPollingInterval = 100
+	var dbStore store.Store
+	var dbSettings *model.SqlSettings
+	if mainHelper.Options.RunParallel {
+		dbStore, _, dbSettings, _ = mainHelper.GetNewStores(tb)
+		tb.Cleanup(func() {
+			dbStore.Close()
+		})
+	} else {
+		dbStore := mainHelper.GetStore()
+		dbSettings = mainHelper.GetSQLSettings()
+		dbStore.DropAllTables()
+		dbStore.MarkSystemRanUnitTests()
+		mainHelper.PreloadMigrations()
+	}
 
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-
-	th := setupTestHelper(dbStore, false, true, updateCfg, options)
-	th.oldWatcherPollingInterval = oldWatcherPollingInterval
+	th := setupTestHelper(dbStore, dbSettings, false, true, updateCfg, options)
 	return th
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
+var (
+	initBasicOnce sync.Once
+	userCache     struct {
+		SystemAdminUser *model.User
+		BasicUser       *model.User
+		BasicUser2      *model.User
+	}
+)
 
 func (th *TestHelper) InitBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
@@ -167,7 +178,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	th.Store.User().InsertUsers(users)
 
 	th.BasicTeam = th.CreateTeam()
 	return th
@@ -241,10 +252,6 @@ func (th *TestHelper) TearDown() {
 	th.ShutdownApp()
 	if th.tempWorkspace != "" {
 		os.RemoveAll(th.tempWorkspace)
-	}
-
-	if th.oldWatcherPollingInterval != 0 {
-		jobs.DefaultWatcherPollingInterval = th.oldWatcherPollingInterval
 	}
 }
 
