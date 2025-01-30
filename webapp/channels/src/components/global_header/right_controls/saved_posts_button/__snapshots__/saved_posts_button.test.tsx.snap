@@ -2,8 +2,6 @@
 
 exports[`components/global/AtMentionsButton should match snapshot 1`] = `
 <WithTooltip
-  id="recentMentions"
-  placement="bottom"
   title={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Saved messages"

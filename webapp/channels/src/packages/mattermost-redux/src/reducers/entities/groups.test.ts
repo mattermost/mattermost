@@ -9,7 +9,7 @@ describe('reducers/entities/groups', () => {
         it('initial state', () => {
             const state = undefined;
             const action = {
-                type: '',
+                type: undefined,
             };
             const expectedState = {
                 syncables: {},

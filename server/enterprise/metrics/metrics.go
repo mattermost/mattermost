@@ -201,25 +201,34 @@ type MetricsInterfaceImpl struct {
 	NotificationNotSentCounters     *prometheus.CounterVec
 	NotificationUnsupportedCounters *prometheus.CounterVec
 
-	ClientTimeToFirstByte           *prometheus.HistogramVec
-	ClientTimeToLastByte            *prometheus.HistogramVec
-	ClientTimeToDOMInteractive      *prometheus.HistogramVec
-	ClientSplashScreenEnd           *prometheus.HistogramVec
+	ClientTimeToFirstByte           *HistogramVec
+	ClientTimeToLastByte            *HistogramVec
+	ClientTimeToDOMInteractive      *HistogramVec
+	ClientSplashScreenEnd           *HistogramVec
 	ClientFirstContentfulPaint      *prometheus.HistogramVec
 	ClientLargestContentfulPaint    *prometheus.HistogramVec
 	ClientInteractionToNextPaint    *prometheus.HistogramVec
 	ClientCumulativeLayoutShift     *prometheus.HistogramVec
 	ClientLongTasks                 *prometheus.CounterVec
-	ClientPageLoadDuration          *prometheus.HistogramVec
+	ClientPageLoadDuration          *HistogramVec
 	ClientChannelSwitchDuration     *prometheus.HistogramVec
 	ClientTeamSwitchDuration        *prometheus.HistogramVec
 	ClientRHSLoadDuration           *prometheus.HistogramVec
 	ClientGlobalThreadsLoadDuration *prometheus.HistogramVec
 
-	MobileClientLoadDuration          *prometheus.HistogramVec
-	MobileClientChannelSwitchDuration *prometheus.HistogramVec
-	MobileClientTeamSwitchDuration    *prometheus.HistogramVec
-	MobileClientSessionMetadataGauge  *prometheus.GaugeVec
+	MobileClientLoadDuration                           *prometheus.HistogramVec
+	MobileClientChannelSwitchDuration                  *prometheus.HistogramVec
+	MobileClientTeamSwitchDuration                     *prometheus.HistogramVec
+	MobileClientSessionMetadataGauge                   *prometheus.GaugeVec
+	MobileClientNetworkRequestsTotalCompressedSize     *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalRequests           *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalParallelRequests   *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalSequentialRequests *prometheus.HistogramVec
+	MobileClientNetworkRequestsLatency                 *prometheus.HistogramVec
+	MobileClientNetworkRequestsTotalSize               *prometheus.HistogramVec
+	MobileClientNetworkRequestsElapsedTime             *prometheus.HistogramVec
+	MobileClientNetworkRequestsAverageSpeed            *prometheus.HistogramVec
+	MobileClientNetworkRequestsEffectiveLatency        *prometheus.HistogramVec
 
 	DesktopClientCPUUsage    *prometheus.HistogramVec
 	DesktopClientMemoryUsage *prometheus.HistogramVec
@@ -1179,7 +1188,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.NotificationUnsupportedCounters)
 
-	m.ClientTimeToFirstByte = prometheus.NewHistogramVec(
+	m.ClientTimeToFirstByte = NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1187,10 +1196,11 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Duration from when a browser starts to request a page from a server until when it starts to receive data in response (seconds)",
 		},
 		[]string{"platform", "agent"},
+		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientTimeToFirstByte)
 
-	m.ClientTimeToLastByte = prometheus.NewHistogramVec(
+	m.ClientTimeToLastByte = NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1198,28 +1208,33 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Duration from when a browser starts to request a page from a server until when it receives the last byte of the resource or immediately before the transport connection is closed, whichever comes first. (seconds)",
 		},
 		[]string{"platform", "agent"},
+		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientTimeToLastByte)
 
-	m.ClientTimeToDOMInteractive = prometheus.NewHistogramVec(
+	m.ClientTimeToDOMInteractive = NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "dom_interactive",
 			Help:      "Duration from when a browser starts to request a page from a server until when it sets the document's readyState to interactive. (seconds)",
+			Buckets:   []float64{.1, .25, .5, 1, 2.5, 5, 7.5, 10, 12.5, 15},
 		},
 		[]string{"platform", "agent"},
+		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientTimeToDOMInteractive)
 
-	m.ClientSplashScreenEnd = prometheus.NewHistogramVec(
+	m.ClientSplashScreenEnd = NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
 			Name:      "splash_screen",
 			Help:      "Duration from when a browser starts to request a page from a server until when the splash screen ends. (seconds)",
+			Buckets:   []float64{.1, .25, .5, 1, 2.5, 5, 7.5, 10, 12.5, 15},
 		},
 		[]string{"platform", "agent", "page_type"},
+		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientSplashScreenEnd)
 
@@ -1284,7 +1299,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.ClientLongTasks)
 
-	m.ClientPageLoadDuration = prometheus.NewHistogramVec(
+	m.ClientPageLoadDuration = NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: MetricsNamespace,
 			Subsystem: MetricsSubsystemClientsWeb,
@@ -1293,6 +1308,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 40},
 		},
 		[]string{"platform", "agent"},
+		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientPageLoadDuration)
 
@@ -1350,7 +1366,116 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		},
 		[]string{"platform"},
 	)
+
+	m.MobileClientNetworkRequestsAverageSpeed = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_average_speed",
+			Help:      "Average speed of network requests in megabytes per second (MBps)",
+			Buckets:   []float64{1000, 10000, 50000, 100000, 500000, 1000000, 5000000},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsEffectiveLatency = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_effective_latency",
+			Help:      "Effective latency of network requests in seconds",
+			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsElapsedTime = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_elapsed_time",
+			Help:      "Total elapsed time of network requests in seconds",
+			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsLatency = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_latency",
+			Help:      "Latency of network requests in seconds",
+			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsTotalCompressedSize = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_total_compressed_size",
+			Help:      "Total compressed size of network requests in bytes",
+			Buckets:   []float64{0.1, 0.5, 1, 2, 5, 10, 20, 50},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsTotalParallelRequests = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_total_parallel_requests",
+			Help:      "Total number of parallel network requests made",
+			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsTotalRequests = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_total_requests",
+			Help:      "Total number of network requests made",
+			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsTotalSequentialRequests = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_total_sequential_requests",
+			Help:      "Total number of sequential network requests made",
+			Buckets:   []float64{1, 2, 5, 10, 20, 50, 100},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
+	m.MobileClientNetworkRequestsTotalSize = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemClientsMobileApp,
+			Name:      "mobile_network_requests_total_size",
+			Help:      "Total uncompressed size of network requests in bytes",
+			Buckets:   []float64{1000, 10000, 50000, 100000, 500000, 1000000, 5000000},
+		},
+		[]string{"platform", "agent", "network_request_group"},
+	)
+
 	m.Registry.MustRegister(m.MobileClientLoadDuration)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsAverageSpeed)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsEffectiveLatency)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsElapsedTime)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsLatency)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalCompressedSize)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalParallelRequests)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalRequests)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSequentialRequests)
+	m.Registry.MustRegister(m.MobileClientNetworkRequestsTotalSize)
 
 	m.MobileClientChannelSwitchDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -1870,20 +1995,20 @@ func (mi *MetricsInterfaceImpl) DecrementHTTPWebSockets(originClient string) {
 	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Dec()
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientTimeToFirstByte(platform, agent string, elapsed float64) {
-	mi.ClientTimeToFirstByte.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientTimeToFirstByte(platform, agent, userID string, elapsed float64) {
+	mi.ClientTimeToFirstByte.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientTimeToLastByte(platform, agent string, elapsed float64) {
-	mi.ClientTimeToLastByte.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientTimeToLastByte(platform, agent, userID string, elapsed float64) {
+	mi.ClientTimeToLastByte.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientTimeToDomInteractive(platform, agent string, elapsed float64) {
-	mi.ClientTimeToDOMInteractive.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientTimeToDomInteractive(platform, agent, userID string, elapsed float64) {
+	mi.ClientTimeToDOMInteractive.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientSplashScreenEnd(platform, agent, pageType string, elapsed float64) {
-	mi.ClientSplashScreenEnd.With(prometheus.Labels{"platform": platform, "agent": agent, "page_type": pageType}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientSplashScreenEnd(platform, agent, pageType, userID string, elapsed float64) {
+	mi.ClientSplashScreenEnd.With(prometheus.Labels{"platform": platform, "agent": agent, "page_type": pageType}, userID).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64) {
@@ -1906,8 +2031,11 @@ func (mi *MetricsInterfaceImpl) IncrementClientLongTasks(platform, agent string,
 	mi.ClientLongTasks.With(prometheus.Labels{"platform": platform, "agent": agent}).Add(inc)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent string, elapsed float64) {
-	mi.ClientPageLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent, userID string, elapsed float64) {
+	mi.ClientPageLoadDuration.With(prometheus.Labels{
+		"platform": platform,
+		"agent":    agent,
+	}, userID).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent, fresh string, elapsed float64) {
@@ -1946,7 +2074,43 @@ func (mi *MetricsInterfaceImpl) ObserveMobileClientTeamSwitchDuration(platform s
 	mi.MobileClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version string, platform string, value float64, notificationDisabled string) {
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalCompressedSize(platform, agent, networkRequestGroup string, size float64) {
+	mi.MobileClientNetworkRequestsTotalCompressedSize.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(size)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalRequests(platform, agent, networkRequestGroup string, count float64) {
+	mi.MobileClientNetworkRequestsTotalRequests.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(count)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalParallelRequests(platform, agent, networkRequestGroup string, count float64) {
+	mi.MobileClientNetworkRequestsTotalParallelRequests.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(count)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalSequentialRequests(platform, agent, networkRequestGroup string, count float64) {
+	mi.MobileClientNetworkRequestsTotalSequentialRequests.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(count)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsLatency(platform, agent, networkRequestGroup string, latency float64) {
+	mi.MobileClientNetworkRequestsLatency.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(latency)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsTotalSize(platform, agent, networkRequestGroup string, size float64) {
+	mi.MobileClientNetworkRequestsTotalSize.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(size)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsElapsedTime(platform, agent, networkRequestGroup string, elapsedTime float64) {
+	mi.MobileClientNetworkRequestsElapsedTime.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(elapsedTime)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsAverageSpeed(platform, agent, networkRequestGroup string, speed float64) {
+	mi.MobileClientNetworkRequestsAverageSpeed.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(speed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientNetworkRequestsEffectiveLatency(platform, agent, networkRequestGroup string, latency float64) {
+	mi.MobileClientNetworkRequestsEffectiveLatency.With(prometheus.Labels{"platform": platform, "agent": agent, "network_request_group": networkRequestGroup}).Observe(latency)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveMobileClientSessionMetadata(version, platform string, value float64, notificationDisabled string) {
 	mi.MobileClientSessionMetadataGauge.With(prometheus.Labels{"version": version, "platform": platform, "notifications_disabled": notificationDisabled}).Set(value)
 }
 

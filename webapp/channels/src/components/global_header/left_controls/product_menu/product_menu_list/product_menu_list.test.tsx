@@ -3,6 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import * as reactRedux from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -13,9 +14,14 @@ import {TestHelper} from 'utils/test_helper';
 import ProductMenuList from './product_menu_list';
 import type {Props as ProductMenuListProps} from './product_menu_list';
 
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useSelector: jest.fn(),
+}));
+
 describe('components/global/product_switcher_menu', () => {
-    // Necessary for components enhanced by HOCs due to issue with enzyme.
-    // See https://github.com/enzymejs/enzyme/issues/539
+    let useSelectorMock: jest.Mock;
+
     const getMenuWrapper = (props: ProductMenuListProps) => {
         const wrapper = shallow(<ProductMenuList {...props}/>);
         return wrapper.find(MenuGroup).shallow();
@@ -53,6 +59,11 @@ describe('components/global/product_switcher_menu', () => {
         },
     };
 
+    beforeEach(() => {
+        useSelectorMock = reactRedux.useSelector as jest.Mock;
+        useSelectorMock.mockReturnValue(true);
+    });
+
     test('should match snapshot with id', () => {
         const props = {...defaultProps, id: 'product-switcher-menu-test'};
         const wrapper = shallow(<ProductMenuList {...props}/>);
@@ -60,7 +71,10 @@ describe('components/global/product_switcher_menu', () => {
     });
 
     test('should not render if the user is not logged in', () => {
-        const props = {...defaultProps, currentUser: undefined as unknown as UserProfile};
+        const props = {
+            ...defaultProps,
+            currentUser: undefined as unknown as UserProfile,
+        };
         const wrapper = shallow(<ProductMenuList {...props}/>);
         expect(wrapper.type()).toEqual(null);
     });
@@ -124,53 +138,81 @@ describe('components/global/product_switcher_menu', () => {
         expect(wrapper.find('#userGroups').prop('disabled')).toBe(true);
     });
 
+    test('should hide RestrictedIndicator if user is not admin', () => {
+        useSelectorMock.mockReturnValueOnce(false);
+
+        const props = {
+            ...defaultProps,
+            isStarterFree: true,
+        };
+
+        const wrapper = shallow(<ProductMenuList {...props}/>);
+
+        expect(wrapper.find('RestrictedIndicator').exists()).toBe(false);
+    });
+
     describe('should show integrations', () => {
         it('when incoming webhooks enabled', () => {
-            const props = {...defaultProps, enableIncomingWebhooks: true};
+            const props = {
+                ...defaultProps,
+                enableIncomingWebhooks: true,
+            };
             const wrapper = shallow(<ProductMenuList {...props}/>);
-
             expect(wrapper.find('#integrations').prop('show')).toBe(true);
         });
 
         it('when outgoing webhooks enabled', () => {
-            const props = {...defaultProps, enableOutgoingWebhooks: true};
+            const props = {
+                ...defaultProps,
+                enableOutgoingWebhooks: true,
+            };
             const wrapper = shallow(<ProductMenuList {...props}/>);
-
             expect(wrapper.find('#integrations').prop('show')).toBe(true);
         });
 
         it('when slash commands enabled', () => {
-            const props = {...defaultProps, enableCommands: true};
+            const props = {
+                ...defaultProps,
+                enableCommands: true,
+            };
             const wrapper = getMenuWrapper(props);
-
             expect(wrapper.find('#integrations').prop('show')).toBe(true);
         });
 
         it('when oauth providers enabled', () => {
-            const props = {...defaultProps, enableOAuthServiceProvider: true};
+            const props = {
+                ...defaultProps,
+                enableOAuthServiceProvider: true,
+            };
             const wrapper = getMenuWrapper(props);
-
             expect(wrapper.find('#integrations').prop('show')).toBe(true);
         });
 
         it('when can manage system bots', () => {
-            const props = {...defaultProps, canManageSystemBots: true};
+            const props = {
+                ...defaultProps,
+                canManageSystemBots: true,
+            };
             const wrapper = getMenuWrapper(props);
-
             expect(wrapper.find('#integrations').prop('show')).toBe(true);
         });
 
         it('unless cannot manage integrations', () => {
-            const props = {...defaultProps, canManageIntegrations: false, enableCommands: true};
+            const props = {
+                ...defaultProps,
+                canManageIntegrations: false,
+                enableCommands: true,
+            };
             const wrapper = getMenuWrapper(props);
-
             expect(wrapper.find('#integrations').prop('show')).toBe(false);
         });
 
         it('should show integrations modal', () => {
-            const props = {...defaultProps, enableIncomingWebhooks: true};
+            const props = {
+                ...defaultProps,
+                enableIncomingWebhooks: true,
+            };
             const wrapper = getMenuWrapper(props);
-
             wrapper.find('#integrations').simulate('click');
             expect(wrapper).toMatchSnapshot();
         });

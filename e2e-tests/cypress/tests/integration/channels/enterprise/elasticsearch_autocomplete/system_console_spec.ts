@@ -29,7 +29,7 @@ describe('Elasticsearch system console', () => {
 
         // # Visit the Elasticsearch settings page
         cy.visit('/admin_console/environment/elasticsearch');
-        cy.get('[data-testid="enableIndexing"] > .col-sm-8 > :nth-child(2)').click();
+        cy.get('#enableIndexingtrue').click();
 
         // # Enable Auto complete
         cy.get('#enableAutocompletetrue').check().should('be.checked');

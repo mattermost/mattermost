@@ -22,7 +22,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -168,7 +167,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -314,7 +312,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -460,7 +457,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -574,7 +570,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -703,7 +698,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -849,7 +843,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -995,7 +988,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -1141,7 +1133,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }
@@ -1287,7 +1278,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   menuButtonTooltip={
     Object {
       "class": "hidden-xs",
-      "id": "SidebarChannelMenu-ButtonTooltip-channel_id",
       "text": "Channel options",
     }
   }

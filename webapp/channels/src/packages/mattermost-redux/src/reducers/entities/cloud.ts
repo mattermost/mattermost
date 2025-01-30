@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {Product, Subscription, CloudCustomer, Invoice, Limits} from '@mattermost/types/cloud';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {CloudTypes} from 'mattermost-redux/action_types';
 
-export function subscription(state: Subscription | null = null, action: AnyAction) {
+export function subscription(state: Subscription | null = null, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_SUBSCRIPTION: {
         return action.data;
@@ -18,7 +18,7 @@ export function subscription(state: Subscription | null = null, action: AnyActio
     }
 }
 
-function customer(state: CloudCustomer | null = null, action: AnyAction) {
+function customer(state: CloudCustomer | null = null, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_CUSTOMER: {
         return action.data;
@@ -28,7 +28,7 @@ function customer(state: CloudCustomer | null = null, action: AnyAction) {
     }
 }
 
-function products(state: Record<string, Product> | null = null, action: AnyAction) {
+function products(state: Record<string, Product> | null = null, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_PRODUCTS: {
         const productList: Product[] = action.data;
@@ -46,7 +46,7 @@ function products(state: Record<string, Product> | null = null, action: AnyActio
     }
 }
 
-function invoices(state: Record<string, Invoice> | null = null, action: AnyAction) {
+function invoices(state: Record<string, Invoice> | null = null, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_INVOICES: {
         const invoiceList: Invoice[] = action.data;
@@ -74,7 +74,7 @@ const emptyLimits = {
     limitsLoaded: false,
 };
 
-export function limits(state: LimitsReducer = emptyLimits, action: AnyAction) {
+export function limits(state: LimitsReducer = emptyLimits, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_LIMITS: {
         return {
@@ -99,7 +99,7 @@ export interface ErrorsReducer {
     trueUpReview?: true;
 }
 const emptyErrors = {};
-export function errors(state: ErrorsReducer = emptyErrors, action: AnyAction) {
+export function errors(state: ErrorsReducer = emptyErrors, action: MMReduxAction) {
     switch (action.type) {
     case CloudTypes.CLOUD_SUBSCRIPTION_FAILED: {
         return {...state, subscription: true};

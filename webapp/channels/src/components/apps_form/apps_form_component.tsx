@@ -370,7 +370,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 onHide={this.onHide}
                 onExited={this.props.onExited}
                 backdrop='static'
-                role='dialog'
+                role='none'
                 aria-labelledby='appsModalLabel'
             >
                 <form

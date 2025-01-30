@@ -49,6 +49,7 @@ import {
     receivedPost,
 } from 'mattermost-redux/actions/posts';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
+import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
@@ -239,6 +240,7 @@ export function reconnect() {
         }
 
         dispatch(fetchAllMyTeamsChannels());
+        dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
         loadProfilesForSidebar();
@@ -257,7 +259,7 @@ export function reconnect() {
         }
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
-        dispatch(TeamActions.getMyTeamUnreads(crtEnabled, true));
+        dispatch(TeamActions.getMyTeamUnreads(crtEnabled));
         if (crtEnabled) {
             const teams = getMyTeams(state);
             syncThreads(currentTeamId, currentUserId);
@@ -1313,6 +1315,7 @@ export function handleStatusChangedEvent(msg) {
 function handleHelloEvent(msg) {
     dispatch(setServerVersion(msg.data.server_version));
     dispatch(setConnectionId(msg.data.connection_id));
+    dispatch(setServerHostname(msg.data.server_hostname));
 }
 
 function handleReactionAddedEvent(msg) {
@@ -1330,6 +1333,13 @@ function setConnectionId(connectionId) {
     return {
         type: GeneralTypes.SET_CONNECTION_ID,
         payload: {connectionId},
+    };
+}
+
+function setServerHostname(serverHostname) {
+    return {
+        type: GeneralTypes.SET_SERVER_HOSTNAME,
+        payload: {serverHostname},
     };
 }
 
