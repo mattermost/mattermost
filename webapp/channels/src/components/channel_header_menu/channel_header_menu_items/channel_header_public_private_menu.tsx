@@ -127,7 +127,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                         permissions={[channelMembersPermission]}
                     >
 
-                        {!isGroupConstrained && !isLicensedForLDAPGroups && (
+                        {isGroupConstrained && isLicensedForLDAPGroups && (
                             <MenuItemGroupsMenuItems
                                 channel={channel}
                             />

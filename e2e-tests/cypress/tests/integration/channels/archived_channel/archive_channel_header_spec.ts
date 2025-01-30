@@ -71,7 +71,7 @@ describe('Archive channel header spec', () => {
         // * Notification preferences option should be visible;
         cy.get('#channelNotificationPreferences').should('be.visible');
 
-        // // # Close the channel dropdown menu
+        // # Close the channel dropdown menu
         cy.get('body').type('{esc}{esc}');
 
         // # Archive the channel
@@ -99,6 +99,6 @@ describe('Archive channel header spec', () => {
         cy.get('#channelNotificationPreferences').should('not.exist');
 
         // # Close the channel dropdown menu
-        cy.get('#channelHeaderTitle').click();
+        cy.get('body').type('{esc}{esc}');
     });
 });

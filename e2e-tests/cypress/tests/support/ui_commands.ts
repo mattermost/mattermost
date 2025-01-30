@@ -465,10 +465,12 @@ function updateChannelHeader(text: string) {
     cy.get('#channelHeaderTitle').
         should('be.visible').
         click();
-    cy.get('.Menu__content').
-        should('be.visible').
-        find('#channelEditHeader').
-        click();
+    cy.get('#channelHeaderDropdownMenu').
+        should('be.visible');
+
+    // * Channel Settings menu option should be visible
+    cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
+    cy.findByText('Edit Channel Header').click();
     cy.get('#edit_textbox').
         clear().
         type(text).

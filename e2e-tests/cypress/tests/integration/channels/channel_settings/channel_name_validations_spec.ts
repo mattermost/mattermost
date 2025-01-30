@@ -36,6 +36,9 @@ describe('Channel routing', () => {
 
         // # Click on channel menu and press rename channel
         cy.get('#channelHeaderTitle').click();
+
+        // * Channel Settings menu option should be visible
+        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
         cy.findByText('Rename Channel').click();
 
         // # Assert if the rename modal present
@@ -99,6 +102,9 @@ describe('Channel routing', () => {
         cy.findByText(`${testChannel.display_name}`).click();
         cy.get('#channelHeaderTitle').click();
 
+        // * Channel Settings menu option should be visible
+        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
+
         // # Select "Rename Channel"
         cy.findByText('Rename Channel').click();
 
@@ -114,6 +120,9 @@ describe('Channel routing', () => {
 
         // # In a test channel, click the "v" to the right of the channel name in the header
         cy.get('#channelHeaderTitle').click();
+
+        // * Channel Settings menu option should be visible
+        cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
 
         // # Select "Rename Channel"
         cy.findByText('Rename Channel').click();

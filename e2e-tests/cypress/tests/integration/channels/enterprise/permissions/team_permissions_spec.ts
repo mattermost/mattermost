@@ -118,7 +118,7 @@ describe('Team Permissions', () => {
         cy.uiOpenChannelMenu().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify dropdown opens
-        cy.get('#channelHeaderDropdownMenu .Menu__content.dropdown-menu').should('be.visible');
+        cy.get('#channelHeaderDropdownMenu').should('be.visible');
 
         // * Verify `Add Members` menu item is not present
         cy.get('#channelAddMembers').should('not.exist');
@@ -166,7 +166,7 @@ describe('Team Permissions', () => {
             cy.uiOpenChannelMenu().wait(TIMEOUTS.HALF_SEC);
 
             // * Verify dropdown opens
-            cy.get('#channelHeaderDropdownMenu .Menu__content.dropdown-menu').should('be.visible');
+            cy.get('#channelHeaderDropdownMenu').should('be.visible');
 
             // # Click on `Add Members`
             cy.get('#channelAddMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
@@ -182,7 +182,7 @@ describe('Team Permissions', () => {
             cy.uiOpenChannelMenu().wait(TIMEOUTS.HALF_SEC);
 
             // * Verify dropdown opens
-            cy.get('#channelHeaderDropdownMenu .Menu__content.dropdown-menu').should('be.visible');
+            cy.get('#channelHeaderDropdownMenu').should('be.visible');
 
             // # Click on `Manage Members`
             cy.get('#channelManageMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
@@ -210,7 +210,7 @@ describe('Team Permissions', () => {
             cy.uiOpenChannelMenu().wait(TIMEOUTS.HALF_SEC);
 
             // * Verify dropdown opens
-            cy.get('#channelHeaderDropdownMenu .Menu__content.dropdown-menu').should('be.visible');
+            cy.get('#channelHeaderDropdownMenu').should('be.visible');
 
             // * Verify `Edit Channel Header` menu item is visible
             cy.get('#channelEditHeader').should('be.visible');
