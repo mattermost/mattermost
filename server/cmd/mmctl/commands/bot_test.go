@@ -58,12 +58,6 @@ func (s *MmctlUnitTestSuite) TestBotCreateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), botArg, "").
 			Return(model.UserFromBot(&mockBot), &model.Response{}, nil).
 			Times(1)
@@ -118,12 +112,6 @@ func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), botArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
@@ -147,12 +135,6 @@ func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("username", "bot-username", "")
 		cmd.Flags().Lookup("username").Changed = true
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -182,12 +164,6 @@ func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 		cmd.Flags().Lookup("display-name").Changed = true
 		cmd.Flags().Lookup("description").Changed = true
 		mockUser := model.User{Id: model.NewId()}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -419,12 +395,6 @@ func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), botArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
@@ -445,12 +415,6 @@ func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 		printer.Clean()
 
 		botArg := "a-bot"
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -483,12 +447,6 @@ func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), botArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
@@ -517,12 +475,6 @@ func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), botArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
@@ -543,12 +495,6 @@ func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 		printer.Clean()
 
 		botArg := "a-bot"
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -578,12 +524,6 @@ func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 		cmd.Flags().Lookup("display-name").Changed = true
 		cmd.Flags().Lookup("description").Changed = true
 		mockUser := model.User{Id: model.NewId()}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -617,20 +557,8 @@ func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), botArg, "").
 			Return(&mockBotUser, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
@@ -669,12 +597,6 @@ func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
 		err := botAssignCmdF(s.client, &cobra.Command{}, []string{botArg, userArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -691,12 +613,6 @@ func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), botArg, "").
 			Return(&mockBotUser, &model.Response{}, nil).
 			Times(1)
@@ -710,12 +626,6 @@ func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 		s.client.
 			EXPECT().
 			GetUser(context.TODO(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -736,20 +646,8 @@ func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), botArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), botArg, "").
 			Return(&mockBotUser, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		s.client.

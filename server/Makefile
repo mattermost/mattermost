@@ -381,7 +381,7 @@ pluginapi: ## Generates api and hooks glue code for plugins
 
 mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks mmctl-mocks mocks-public cache-mocks
 
-layers: app-layers store-layers pluginapi
+layers: store-layers pluginapi
 
 generated: mocks layers
 
