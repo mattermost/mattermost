@@ -97,7 +97,7 @@ describe('Collapsed Reply Threads', () => {
         });
     });
 
-    it('MM-TXXXX should handle mention counts correctly when marking a thread as unread and unfollowing it', () => {
+    it('MM-T5671 should handle mention counts correctly when marking a thread as unread and unfollowing it', () => {
         // # Post a root post as current user
         cy.postMessageAs({
             sender: otherUser,
