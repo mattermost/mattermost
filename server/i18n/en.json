@@ -596,6 +596,10 @@
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
   },
   {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Can not run command in deleted channel."
+  },
+  {
     "id": "api.command.execute_command.failed.app_error",
     "translation": "Command with a trigger of '{{.Trigger}}' failed."
   },
