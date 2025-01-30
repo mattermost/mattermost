@@ -2487,6 +2487,13 @@ func TestGetChannelByName(t *testing.T) {
 		_, _, err = client.GetChannelByName(context.Background(), th.BasicChannel.Name, th.BasicTeam.Id, "")
 		require.NoError(t, err)
 	})
+
+	th.SystemAdminClient.RemoveUserFromChannel(context.Background(), th.BasicPrivateChannel.Id, th.TeamAdminUser.Id)
+	TeamAdminClient := th.CreateClient()
+	th.LoginTeamAdminWithClient(TeamAdminClient)
+	channel, _, err = TeamAdminClient.GetChannelByName(context.Background(), th.BasicPrivateChannel.Name, th.BasicTeam.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, th.BasicPrivateChannel.Name, channel.Name, "names did not match")
 }
 
 func TestGetChannelByNameForTeamName(t *testing.T) {
@@ -2498,7 +2505,14 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, th.BasicChannel.Name, channel.Name, "names did not match")
 
-	_, _, err = client.GetChannelByNameForTeamName(context.Background(), th.BasicChannel.Name, th.BasicTeam.Name, "")
+	th.SystemAdminClient.RemoveUserFromChannel(context.Background(), th.BasicPrivateChannel.Id, th.TeamAdminUser.Id)
+	TeamAdminClient := th.CreateClient()
+	th.LoginTeamAdminWithClient(TeamAdminClient)
+	channel, _, err = TeamAdminClient.GetChannelByNameForTeamName(context.Background(), th.BasicPrivateChannel.Name, th.BasicTeam.Name, "")
+	require.NoError(t, err)
+	require.Equal(t, th.BasicPrivateChannel.Name, channel.Name, "names did not match")
+
+	channel, _, err = client.GetChannelByNameForTeamName(context.Background(), th.BasicChannel.Name, th.BasicTeam.Name, "")
 	require.NoError(t, err)
 	require.Equal(t, th.BasicChannel.Name, channel.Name, "names did not match")
 
