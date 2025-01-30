@@ -239,6 +239,8 @@
     -webkit-overflow-scrolling: touch;
 
     &.no-results {
+        display: flex;
+        justify-content: center;
         padding-top: 0;
     }
 }
