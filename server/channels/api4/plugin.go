@@ -93,7 +93,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		force = true
 	}
 
-	installPlugin(c, w, file, force, r)
+	installPlugin(c, w, r, file, force)
 	auditRec.Success()
 }
 
@@ -123,7 +123,7 @@ func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force, r)
+	installPlugin(c, w, r, bytes.NewReader(pluginFileBytes), force)
 	auditRec.Success()
 }
 
@@ -409,7 +409,7 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 	}, nil
 }
 
-func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool, r *http.Request) {
+func installPlugin(c *Context, w http.ResponseWriter, r *http.Request, plugin io.ReadSeeker, force bool) {
 	manifest, appErr := c.App.InstallPlugin(plugin, force, r)
 	if appErr != nil {
 		c.Err = appErr

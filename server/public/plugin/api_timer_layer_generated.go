@@ -950,9 +950,9 @@ func (api *apiTimerLayer) DisablePlugin(id string) *model.AppError {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) RemovePlugin(id string, r *http.Request) *model.AppError {
+func (api *apiTimerLayer) RemovePlugin(id string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.RemovePlugin(id, r)
+	_returnsA := api.apiImpl.RemovePlugin(id)
 	api.recordTime(startTime, "RemovePlugin", _returnsA == nil)
 	return _returnsA
 }
@@ -964,9 +964,9 @@ func (api *apiTimerLayer) GetPluginStatus(id string) (*model.PluginStatus, *mode
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) InstallPlugin(file io.Reader, replace bool, r *http.Request) (*model.Manifest, *model.AppError) {
+func (api *apiTimerLayer) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.InstallPlugin(file, replace, r)
+	_returnsA, _returnsB := api.apiImpl.InstallPlugin(file, replace)
 	api.recordTime(startTime, "InstallPlugin", _returnsB == nil)
 	return _returnsA, _returnsB
 }

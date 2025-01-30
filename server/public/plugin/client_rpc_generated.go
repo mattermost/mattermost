@@ -9,7 +9,6 @@ package plugin
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -5040,15 +5039,14 @@ func (s *apiRPCServer) DisablePlugin(args *Z_DisablePluginArgs, returns *Z_Disab
 
 type Z_RemovePluginArgs struct {
 	A string
-	r *http.Request
 }
 
 type Z_RemovePluginReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) RemovePlugin(id string, r *http.Request) *model.AppError {
-	_args := &Z_RemovePluginArgs{id, r}
+func (g *apiRPCClient) RemovePlugin(id string) *model.AppError {
+	_args := &Z_RemovePluginArgs{id}
 	_returns := &Z_RemovePluginReturns{}
 	if err := g.client.Call("Plugin.RemovePlugin", _args, _returns); err != nil {
 		log.Printf("RPC call to RemovePlugin API failed: %s", err.Error())
@@ -5058,9 +5056,9 @@ func (g *apiRPCClient) RemovePlugin(id string, r *http.Request) *model.AppError 
 
 func (s *apiRPCServer) RemovePlugin(args *Z_RemovePluginArgs, returns *Z_RemovePluginReturns) error {
 	if hook, ok := s.impl.(interface {
-		RemovePlugin(id string, r *http.Request) *model.AppError
+		RemovePlugin(id string) *model.AppError
 	}); ok {
-		returns.A = hook.RemovePlugin(args.A, args.r)
+		returns.A = hook.RemovePlugin(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API RemovePlugin called but not implemented."))
 	}

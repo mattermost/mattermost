@@ -3296,9 +3296,9 @@ func (_m *API) HasPermissionToTeam(userID string, teamID string, permission *mod
 	return r0
 }
 
-// InstallPlugin provides a mock function with given fields: file, replace, r
-func (_m *API) InstallPlugin(file io.Reader, replace bool, r *http.Request) (*model.Manifest, *model.AppError) {
-	ret := _m.Called(file, replace, r)
+// InstallPlugin provides a mock function with given fields: file, replace
+func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	ret := _m.Called(file, replace)
 
 	if len(ret) == 0 {
 		panic("no return value specified for InstallPlugin")
@@ -3306,19 +3306,19 @@ func (_m *API) InstallPlugin(file io.Reader, replace bool, r *http.Request) (*mo
 
 	var r0 *model.Manifest
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(io.Reader, bool, *http.Request) (*model.Manifest, *model.AppError)); ok {
-		return rf(file, replace, r)
+	if rf, ok := ret.Get(0).(func(io.Reader, bool) (*model.Manifest, *model.AppError)); ok {
+		return rf(file, replace)
 	}
-	if rf, ok := ret.Get(0).(func(io.Reader, bool, *http.Request) *model.Manifest); ok {
-		r0 = rf(file, replace, r)
+	if rf, ok := ret.Get(0).(func(io.Reader, bool) *model.Manifest); ok {
+		r0 = rf(file, replace)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Manifest)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(io.Reader, bool, *http.Request) *model.AppError); ok {
-		r1 = rf(file, replace, r)
+	if rf, ok := ret.Get(1).(func(io.Reader, bool) *model.AppError); ok {
+		r1 = rf(file, replace)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -4019,17 +4019,17 @@ func (_m *API) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (s
 	return r0, r1
 }
 
-// RemovePlugin provides a mock function with given fields: id, r
-func (_m *API) RemovePlugin(id string, r *http.Request) *model.AppError {
-	ret := _m.Called(id, r)
+// RemovePlugin provides a mock function with given fields: id
+func (_m *API) RemovePlugin(id string) *model.AppError {
+	ret := _m.Called(id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemovePlugin")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, *http.Request) *model.AppError); ok {
-		r0 = rf(id, r)
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

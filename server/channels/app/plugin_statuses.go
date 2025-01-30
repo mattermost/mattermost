@@ -108,13 +108,7 @@ func (ch *Channels) notifyPluginStatusesChanged(c request.CTX) error {
 	ch.srv.platform.Publish(message)
 
 	ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		var context *plugin.Context
-		if c == nil {
-			context = nil
-		} else {
-			context = pluginContext(c)
-		}
-		if err := hooks.OnPluginStatusesChanged(context); err != nil {
+		if err := hooks.OnPluginStatusesChanged(pluginContext(c)); err != nil {
 			ch.srv.Log().Error("Plugin OnPluginStatusesChanged hook failed", mlog.Err(err))
 		}
 		return true

@@ -21,14 +21,16 @@ func RequestContextWithMaster(c request.CTX) request.CTX {
 }
 
 func pluginContext(c request.CTX) *plugin.Context {
-	context := &plugin.Context{
+	if c == nil {
+		return &plugin.Context{}
+	}
+	return &plugin.Context{
 		RequestId:      c.RequestId(),
 		SessionId:      c.Session().Id,
 		IPAddress:      c.IPAddress(),
 		AcceptLanguage: c.AcceptLanguage(),
 		UserAgent:      c.UserAgent(),
 	}
-	return context
 }
 
 func PluginCTX(r *http.Request, app AppIface) request.CTX {
