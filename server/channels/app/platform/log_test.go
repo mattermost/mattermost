@@ -19,6 +19,9 @@ import (
 )
 
 func TestGetMattermostLog(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Skip("MM-62438")
 
 	th := Setup(t)
@@ -66,6 +69,9 @@ func TestGetMattermostLog(t *testing.T) {
 }
 
 func TestGetNotificationLogFile(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -111,6 +117,9 @@ func TestGetNotificationLogFile(t *testing.T) {
 }
 
 func TestGetAdvancedLogs(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -171,8 +180,8 @@ func TestGetAdvancedLogs(t *testing.T) {
 		require.Len(t, fileDatas, 2)
 
 		// Check the order of the log files
-		var ldapIndex = 0
-		var stdIndex = 1
+		ldapIndex := 0
+		stdIndex := 1
 		if fileDatas[1].Filename == "ldap.log" {
 			ldapIndex = 1
 			stdIndex = 0

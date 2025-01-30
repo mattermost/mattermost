@@ -12,6 +12,9 @@ import (
 )
 
 func TestOnboardingSavesOrganizationName(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

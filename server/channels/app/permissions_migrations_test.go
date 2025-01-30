@@ -14,6 +14,9 @@ import (
 )
 
 func TestApplyPermissionsMap(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	tt := []struct {
 		Name           string
 		RoleMap        map[string]map[string]bool
@@ -206,6 +209,9 @@ func TestApplyPermissionsMap(t *testing.T) {
 }
 
 func TestApplyPermissionsMapToSchemeRole(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	schemeRoleName := model.NewId()
 	tt := []struct {
 		Name           string

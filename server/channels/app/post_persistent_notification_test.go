@@ -14,6 +14,9 @@ import (
 )
 
 func TestResolvePersistentNotification(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("should not delete when no posts exist", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
@@ -148,6 +151,9 @@ func TestResolvePersistentNotification(t *testing.T) {
 }
 
 func TestDeletePersistentNotification(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("should not delete when no posts exist", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
@@ -195,6 +201,9 @@ func TestDeletePersistentNotification(t *testing.T) {
 }
 
 func TestSendPersistentNotifications(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

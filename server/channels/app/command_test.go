@@ -10,6 +10,9 @@ import (
 )
 
 func TestPossibleAtMentions(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	fixture := []struct {
 		message  string
 		expected []string
@@ -55,6 +58,9 @@ func TestPossibleAtMentions(t *testing.T) {
 }
 
 func TestTrimUsernameSpecialChar(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	fixture := []struct {
 		word           string
 		expectedString string

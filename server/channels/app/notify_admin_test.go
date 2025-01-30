@@ -15,6 +15,9 @@ import (
 )
 
 func Test_SendNotifyAdminPosts(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -65,7 +68,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// message sending is async, wait time for it
 		var channel *model.Channel
 		var err error
-		var timeout = 5 * time.Second
+		timeout := 5 * time.Second
 		begin := time.Now()
 		for {
 			if time.Since(begin) > timeout {
@@ -112,7 +115,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// message sending is async, wait time for it
 		var channel *model.Channel
 		var err error
-		var timeout = 5 * time.Second
+		timeout := 5 * time.Second
 		begin := time.Now()
 		for {
 			if time.Since(begin) > timeout {
@@ -233,7 +236,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// message sending is async, wait time for it
 		var channel *model.Channel
 		var err error
-		var timeout = 5 * time.Second
+		timeout := 5 * time.Second
 		begin := time.Now()
 		for {
 			if time.Since(begin) > timeout {

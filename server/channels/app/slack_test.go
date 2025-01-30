@@ -10,6 +10,9 @@ import (
 )
 
 func TestProcessSlackText(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -33,6 +36,9 @@ func TestProcessSlackText(t *testing.T) {
 }
 
 func TestProcessSlackAnnouncement(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

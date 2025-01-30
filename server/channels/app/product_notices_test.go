@@ -19,6 +19,9 @@ import (
 )
 
 func TestNoticeValidation(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockRoleStore := mocks.RoleStore{}
@@ -599,6 +602,9 @@ func TestNoticeValidation(t *testing.T) {
 }
 
 func TestNoticeFetch(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

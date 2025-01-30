@@ -41,10 +41,19 @@ func Setup(tb testing.TB) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
+
+	var dbStore store.Store
+	if mainHelper.Options.RunParallel {
+		dbStore, _, _, _ = mainHelper.GetNewStores(tb)
+		tb.Cleanup(func() {
+			dbStore.Close()
+		})
+	} else {
+		dbStore = mainHelper.GetStore()
+		dbStore.DropAllTables()
+		dbStore.MarkSystemRanUnitTests()
+		mainHelper.PreloadMigrations()
+	}
 
 	return setupTestHelper(dbStore, tb)
 }

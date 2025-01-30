@@ -35,6 +35,9 @@ import (
 )
 
 func TestPreparePostListForClient(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	// Most of this logic is covered by TestPreparePostForClient, so this just tests handling of multiple posts
 
 	th := Setup(t)
@@ -66,6 +69,9 @@ func TestPreparePostListForClient(t *testing.T) {
 }
 
 func TestPreparePostForClient(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	var serverURL string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -860,6 +866,9 @@ func TestPreparePostForClient(t *testing.T) {
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	setup := func(t *testing.T) *TestHelper {
 		th := Setup(t).InitBasic()
 
@@ -979,6 +988,9 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 }
 
 func TestGetEmbedForPost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/index.html" {
 			w.Header().Set("Content-Type", "text/html")
@@ -1155,6 +1167,9 @@ func TestGetEmbedForPost(t *testing.T) {
 }
 
 func TestGetImagesForPost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("with an image link", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -1443,6 +1458,9 @@ func TestGetImagesForPost(t *testing.T) {
 }
 
 func TestGetEmojiNamesForString(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	testCases := []struct {
 		Description string
 		Input       string
@@ -1494,6 +1512,9 @@ func TestGetEmojiNamesForString(t *testing.T) {
 }
 
 func TestGetEmojiNamesForPost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	testCases := []struct {
 		Description string
 		Post        *model.Post
@@ -1589,6 +1610,9 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 }
 
 func TestGetCustomEmojisForPost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1668,6 +1692,9 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 }
 
 func TestGetFirstLinkAndImages(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1821,6 +1848,9 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 }
 
 func TestGetImagesInMessageAttachments(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2606,6 +2636,9 @@ func TestGetLinkMetadata(t *testing.T) {
 }
 
 func TestResolveMetadataURL(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	for _, test := range []struct {
 		Name       string
 		RequestURL string
@@ -2647,6 +2680,9 @@ func TestResolveMetadataURL(t *testing.T) {
 }
 
 func TestParseLinkMetadata(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2743,6 +2779,9 @@ func TestParseLinkMetadata(t *testing.T) {
 }
 
 func TestParseImages(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	for name, testCase := range map[string]struct {
 		FileName    string
 		Expected    *model.PostImage
@@ -2854,6 +2893,9 @@ func TestParseImages(t *testing.T) {
 }
 
 func TestLooksLikeAPermalink(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	const siteURLWithSubpath = "http://localhost:8065/foo"
 	const siteURLWithTrailingSlash = "http://test.com/"
 	const siteURL = "http://test.com"
@@ -2885,6 +2927,9 @@ func TestLooksLikeAPermalink(t *testing.T) {
 }
 
 func TestContainsPermalink(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -2924,6 +2969,9 @@ func TestContainsPermalink(t *testing.T) {
 }
 
 func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3048,6 +3096,9 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 }
 
 func TestSanitizePostMetaDataForAudit(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -3100,6 +3151,9 @@ func TestSanitizePostMetaDataForAudit(t *testing.T) {
 }
 
 func TestSanitizePostMetadataForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

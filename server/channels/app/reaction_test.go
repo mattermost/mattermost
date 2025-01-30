@@ -14,6 +14,9 @@ import (
 )
 
 func TestSaveReactionForPost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 
 	post := th.CreatePost(th.BasicChannel)
@@ -97,6 +100,9 @@ func TestSaveReactionForPost(t *testing.T) {
 }
 
 func TestSharedChannelSyncForReactionActions(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("adding a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
 		th := setupSharedChannels(t).InitBasic()
 

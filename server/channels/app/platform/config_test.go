@@ -18,6 +18,9 @@ import (
 )
 
 func TestConfigListener(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -53,6 +56,9 @@ func TestConfigListener(t *testing.T) {
 }
 
 func TestConfigSave(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	cm := &mocks.ClusterInterface{}
 	cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
 	th := SetupWithCluster(t, cm)
@@ -106,6 +112,9 @@ func TestConfigSave(t *testing.T) {
 }
 
 func TestIsFirstUserAccount(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 	storeMock := th.Service.Store.(*smocks.Store)
@@ -148,6 +157,9 @@ func TestIsFirstUserAccount(t *testing.T) {
 }
 
 func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 	storeMock := th.Service.Store.(*smocks.Store)

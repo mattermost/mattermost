@@ -40,6 +40,9 @@ func init() {
 }
 
 func TestUnitUpdateConfig(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -286,6 +289,9 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 }
 
 func TestDBHealthCheckWriteAndDelete(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

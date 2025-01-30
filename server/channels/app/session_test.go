@@ -19,6 +19,9 @@ import (
 )
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -98,6 +101,9 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 }
 
 func TestUpdateSessionOnPromoteDemote(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -151,10 +157,15 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	})
 }
 
-const hourMillis int64 = 60 * 60 * 1000
-const dayMillis int64 = 24 * hourMillis
+const (
+	hourMillis int64 = 60 * 60 * 1000
+	dayMillis  int64 = 24 * hourMillis
+)
 
 func TestApp_GetSessionLengthInMillis(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -222,7 +233,8 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 			UserId: model.NewId(),
 			Props: map[string]string{
 				model.UserAuthServiceIsSaml: "true",
-			}}
+			},
+		}
 		session, err := th.App.CreateSession(th.Context, session)
 		require.Nil(t, err)
 
@@ -243,6 +255,9 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 }
 
 func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -284,7 +299,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		require.False(t, session.IsExpired())
 	})
 
-	var tests = []struct {
+	tests := []struct {
 		enabled bool
 		name    string
 		session *model.Session
@@ -365,6 +380,9 @@ func TestGetCloudSession(t *testing.T) {
 }
 
 func TestGetRemoteClusterSession(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	token := model.NewId()
 	remoteID := model.NewId()
@@ -400,6 +418,9 @@ func TestGetRemoteClusterSession(t *testing.T) {
 }
 
 func TestSessionsLimit(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -447,6 +468,9 @@ func TestSessionsLimit(t *testing.T) {
 }
 
 func TestSetExtraSessionProps(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
