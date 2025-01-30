@@ -457,13 +457,13 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 	}{
 		{
 			driver: model.DatabaseDriverPostgres,
-			ver:    "100001",
+			ver:    "110001",
 			ok:     false,
 			err:    "",
 		},
 		{
 			driver: model.DatabaseDriverPostgres,
-			ver:    "110001",
+			ver:    "130001",
 			ok:     true,
 			err:    "",
 		},
@@ -522,7 +522,7 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 			store.settings = mySettings
 		}
 		ok, err := store.ensureMinimumDBVersion(tc.ver)
-		assert.Equal(t, tc.ok, ok)
+		assert.Equal(t, tc.ok, ok, "driver: %s, version: %s", tc.driver, tc.ver)
 		if tc.err != "" {
 			assert.Contains(t, err.Error(), tc.err)
 		}
