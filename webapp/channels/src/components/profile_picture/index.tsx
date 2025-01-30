@@ -45,6 +45,7 @@ function ProfilePicture(props: Props) {
                 triggerComponentClass={classNames('status-wrapper', props.wrapperClass)}
                 userId={props.userId}
                 src={profileSrc}
+                username={props.username}
                 channelId={props.channelId}
                 hideStatus={hideStatus}
                 overwriteIcon={props.overwriteIcon}

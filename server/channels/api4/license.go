@@ -117,7 +117,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		canStartTrialLicense, err := lm.CanStartTrial()
 		if err != nil {
-			c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusInternalServerError)
+			c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 

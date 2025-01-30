@@ -28,7 +28,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -175,7 +175,7 @@ exports[`component/create_user_groups_modal should match snapshot without back b
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

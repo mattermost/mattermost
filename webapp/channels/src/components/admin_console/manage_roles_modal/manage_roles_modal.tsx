@@ -234,6 +234,16 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                             />
                         </label>
                     </div>
+                    <p>
+                        <FormattedMessage
+                            id='admin.manage_roles.additionalRoles_warning'
+                            defaultMessage='<strong>Note:</strong><span>The permissions granted above apply to the account as a whole, regardless of whether it is authenticated using a session cookie or a personal access token. For example, selecting post:all will allow the account to post to channels it is not a member of, even without using a personal access token.</span>'
+                            values={{
+                                strong: (text) => <strong>{text}</strong>,
+                                span: (text) => <span className='pt-2 pb-2 light'>{text}</span>,
+                            }}
+                        />
+                    </p>
                 </div>
             );
         }
@@ -356,7 +366,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 onHide={this.onHide}
                 onExited={this.props.onExited}
                 dialogClassName='a11y__modal manage-teams'
-                role='dialog'
+                role='none'
                 aria-labelledby='manageRolesModalLabel'
             >
                 <Modal.Header closeButton={true}>
