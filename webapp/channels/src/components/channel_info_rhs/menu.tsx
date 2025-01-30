@@ -11,10 +11,33 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
 
-const MenuItemContainer = styled.div`
-    padding: 8px 16px;
-    flex: 1;
+const MenuContainer = styled.nav`
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 0;
+
+    font-size: 14px;
+    line-height: 20px;
+    color: rgb(var(--center-channel-color-rgb));
+`;
+
+const MenuItemButton = styled.button`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    padding: 8px 16px;
+
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
 `;
 
 const Icon = styled.div`
@@ -40,56 +63,38 @@ const Badge = styled.div`
 `;
 
 interface MenuItemProps {
-    className?: string;
     icon: JSX.Element;
     text: string;
     opensSubpanel?: boolean;
-    badge?: string|number|JSX.Element;
+    badge?: string | number | JSX.Element;
     onClick: () => void;
 }
 
-const menuItem = ({icon, text, className, opensSubpanel, badge, onClick}: MenuItemProps) => {
+function MenuItem(props: MenuItemProps) {
+    const {icon, text, opensSubpanel, badge, onClick} = props;
     const hasRightSide = (badge !== undefined) || opensSubpanel;
 
     return (
-        <div className={className}>
-            <MenuItemContainer onClick={onClick}>
-                <Icon>{icon}</Icon>
-                <MenuItemText>
-                    {text}
-                </MenuItemText>
-
-                {hasRightSide && (
-                    <RightSide>
-                        {badge !== undefined && (
-                            <Badge>{badge}</Badge>
-                        )}
-                        {opensSubpanel && (
-                            <Icon><i className='icon icon-chevron-right'/></Icon>
-                        )}
-                    </RightSide>
-                )}
-            </MenuItemContainer>
-        </div>
+        <MenuItemButton
+            onClick={onClick}
+            aria-label={text}
+            type='button'
+        >
+            <Icon>{icon}</Icon>
+            <MenuItemText>{text}</MenuItemText>
+            {hasRightSide && (
+                <RightSide>
+                    {badge !== undefined && (
+                        <Badge>{badge}</Badge>
+                    )}
+                    {opensSubpanel && (
+                        <Icon><i className='icon icon-chevron-right'/></Icon>
+                    )}
+                </RightSide>
+            )}
+        </MenuItemButton>
     );
-};
-
-const MenuItem = styled(menuItem)`
-    display: flex;
-    width: 100%;
-    height: 40px;
-    flex-direction: row;
-    align-items: center;
-    cursor: pointer;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-
-        ${Icon} {
-            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
-        }
-    }
-`;
+}
 
 interface MenuProps {
     channel: Channel;
@@ -107,8 +112,16 @@ interface MenuProps {
     };
 }
 
-const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps) => {
+export default function Menu(props: MenuProps) {
     const {formatMessage} = useIntl();
+    const {
+        channel,
+        channelStats,
+        isArchived,
+        className,
+        actions,
+    } = props;
+
     const [loadingStats, setLoadingStats] = useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
@@ -125,21 +138,31 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
     }, [channel.id]);
 
     return (
-        <div
+        <MenuContainer
             className={className}
             data-testid='channel_info_rhs-menu'
+            aria-label={formatMessage({
+                id: 'channel_info_rhs.menu.title',
+                defaultMessage: 'Channel Info Actions',
+            })}
         >
             {showNotificationPreferences && (
                 <MenuItem
                     icon={<i className='icon icon-bell-outline'/>}
-                    text={formatMessage({id: 'channel_info_rhs.menu.notification_preferences', defaultMessage: 'Notification Preferences'})}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.notification_preferences',
+                        defaultMessage: 'Notification Preferences',
+                    })}
                     onClick={actions.openNotificationSettings}
                 />
             )}
             {showMembers && (
                 <MenuItem
                     icon={<i className='icon icon-account-outline'/>}
-                    text={formatMessage({id: 'channel_info_rhs.menu.members', defaultMessage: 'Members'})}
+                    text={formatMessage({
+                        id: 'channel_info_rhs.menu.members',
+                        defaultMessage: 'Members',
+                    })}
                     opensSubpanel={true}
                     badge={channelStats.member_count}
                     onClick={() => actions.showChannelMembers(channel.id)}
@@ -147,31 +170,24 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
             )}
             <MenuItem
                 icon={<i className='icon icon-pin-outline'/>}
-                text={formatMessage({id: 'channel_info_rhs.menu.pinned', defaultMessage: 'Pinned messages'})}
+                text={formatMessage({
+                    id: 'channel_info_rhs.menu.pinned',
+                    defaultMessage: 'Pinned messages',
+                })}
                 opensSubpanel={true}
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}
             />
             <MenuItem
                 icon={<i className='icon icon-file-text-outline'/>}
-                text={formatMessage({id: 'channel_info_rhs.menu.files', defaultMessage: 'Files'})}
+                text={formatMessage({
+                    id: 'channel_info_rhs.menu.files',
+                    defaultMessage: 'Files',
+                })}
                 opensSubpanel={true}
                 badge={loadingStats ? <LoadingSpinner/> : fileCount}
                 onClick={() => actions.showChannelFiles(channel.id)}
             />
-        </div>
+        </MenuContainer>
     );
-};
-
-const StyledMenu = styled(Menu)`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px 0;
-
-    font-size: 14px;
-    line-height: 20px;
-    color: rgb(var(--center-channel-color-rgb));
-`;
-
-export default StyledMenu;
+}
