@@ -185,7 +185,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
 		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
 		t.Cleanup(func() {
-			appErr := th.App.ch.RemovePlugin(pluginID)
+			appErr := th.App.ch.RemovePlugin(pluginID, nil)
 			require.Nil(t, appErr)
 		})
 
@@ -201,7 +201,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}, "props": {"support_packet": "some text"}}`
 		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
 		t.Cleanup(func() {
-			appErr := th.App.ch.RemovePlugin(pluginID)
+			appErr := th.App.ch.RemovePlugin(pluginID, nil)
 			require.Nil(t, appErr)
 		})
 
@@ -218,7 +218,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}, "props": {"support_packet": "some text"}}`
 		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
 		t.Cleanup(func() {
-			appErr := th.App.ch.RemovePlugin(pluginID)
+			appErr := th.App.ch.RemovePlugin(pluginID, nil)
 			require.Nil(t, appErr)
 		})
 
@@ -234,7 +234,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": [{"key": "foo", "type": "text"}, {"key": "bar", "type": "text", "secret": true}]}}`
 		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
 		t.Cleanup(func() {
-			appErr := th.App.ch.RemovePlugin(pluginID)
+			appErr := th.App.ch.RemovePlugin(pluginID, nil)
 			require.Nil(t, appErr)
 		})
 
@@ -299,7 +299,7 @@ func TestGetPluginsFile(t *testing.T) {
 
 		bundle1, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 		require.NoError(t, err)
-		manifest1, appErr := th.App.InstallPlugin(bytes.NewReader(bundle1), false)
+		manifest1, appErr := th.App.InstallPlugin(bytes.NewReader(bundle1), false, nil)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin", manifest1.Id)
 		appErr = th.App.EnablePlugin(manifest1.Id)
@@ -307,7 +307,7 @@ func TestGetPluginsFile(t *testing.T) {
 
 		bundle2, err := os.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
 		require.NoError(t, err)
-		manifest2, appErr := th.App.InstallPlugin(bytes.NewReader(bundle2), false)
+		manifest2, appErr := th.App.InstallPlugin(bytes.NewReader(bundle2), false, nil)
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin2", manifest2.Id)
 

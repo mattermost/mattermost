@@ -31,8 +31,8 @@ func (p *PluginService) List() ([]*model.Manifest, error) {
 // Previous version will be replaced on replace true.
 //
 // Minimum server version: 5.18
-func (p *PluginService) Install(file io.Reader, replace bool, r *http.Request) (*model.Manifest, error) {
-	manifest, appErr := p.api.InstallPlugin(file, replace, r)
+func (p *PluginService) Install(file io.Reader, replace bool) (*model.Manifest, error) {
+	manifest, appErr := p.api.InstallPlugin(file, replace)
 
 	return manifest, normalizeAppErr(appErr)
 }
@@ -40,7 +40,7 @@ func (p *PluginService) Install(file io.Reader, replace bool, r *http.Request) (
 // InstallPluginFromURL installs the plugin from the provided url.
 //
 // Minimum server version: 5.18
-func (p *PluginService) InstallPluginFromURL(downloadURL string, replace bool, r *http.Request) (*model.Manifest, error) {
+func (p *PluginService) InstallPluginFromURL(downloadURL string, replace bool) (*model.Manifest, error) {
 	err := ensureServerVersion(p.api, "5.18.0")
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (p *PluginService) InstallPluginFromURL(downloadURL string, replace bool, r
 		return nil, errors.Errorf("received %d status code while downloading plugin from server", response.StatusCode)
 	}
 
-	manifest, err := p.Install(response.Body, replace, r)
+	manifest, err := p.Install(response.Body, replace)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to install plugin on server")
 	}
@@ -91,8 +91,8 @@ func (p *PluginService) Disable(id string) error {
 // Remove will disable and delete a plugin.
 //
 // Minimum server version: 5.6
-func (p *PluginService) Remove(id string, r *http.Request) error {
-	appErr := p.api.RemovePlugin(id, r)
+func (p *PluginService) Remove(id string) error {
+	appErr := p.api.RemovePlugin(id)
 
 	return normalizeAppErr(appErr)
 }

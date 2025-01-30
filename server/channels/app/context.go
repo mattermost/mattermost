@@ -33,7 +33,7 @@ func pluginContext(c request.CTX) *plugin.Context {
 	}
 }
 
-func PluginCTX(r *http.Request, app AppIface) request.CTX {
+func PluginCTX(r *http.Request, app *App) request.CTX {
 	var c request.CTX
 	if r == nil || app == nil {
 		c = nil

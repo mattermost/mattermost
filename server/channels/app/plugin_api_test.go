@@ -1007,11 +1007,7 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 	tarData, err := os.ReadFile(filepath.Join(server.GetPackagePath(), "tests", "testplugin.tar.gz"))
 	require.NoError(t, err)
 
-	newRequest, err := http.NewRequest("POST", "/api/v4/plugins", nil)
-	require.NoError(t, err)
-	require.NotNil(t, newRequest)
-
-	_, appErr := api.InstallPlugin(bytes.NewReader(tarData), true, newRequest)
+	_, appErr := api.InstallPlugin(bytes.NewReader(tarData), true)
 	assert.NotNil(t, appErr, "should not allow upload if upload disabled")
 	assert.Equal(t, appErr.Error(), "installPlugin: Plugins and/or plugin uploads have been disabled.")
 
@@ -1020,11 +1016,7 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 		*cfg.PluginSettings.EnableUploads = true
 	})
 
-	newRequest, err = http.NewRequest("POST", "/api/v4/plugins", nil)
-	require.NoError(t, err)
-	require.NotNil(t, newRequest)
-
-	manifest, appErr := api.InstallPlugin(bytes.NewReader(tarData), true, newRequest)
+	manifest, appErr := api.InstallPlugin(bytes.NewReader(tarData), true)
 	defer os.RemoveAll("plugins/testplugin")
 	require.Nil(t, appErr)
 	assert.Equal(t, "testplugin", manifest.Id)
