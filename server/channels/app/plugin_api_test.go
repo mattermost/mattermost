@@ -1127,7 +1127,7 @@ func TestInstallPlugin(t *testing.T) {
 				return err
 			}
 			defer resp.Body.Close()
-			_, aerr := p.API.InstallPlugin(resp.Body, true, nil)
+			_, aerr := p.API.InstallPlugin(resp.Body, true)
 			if aerr != nil {
 				return errors.Wrap(aerr, "cannot install plugin")
 			}
