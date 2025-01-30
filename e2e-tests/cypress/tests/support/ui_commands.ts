@@ -480,6 +480,24 @@ function updateChannelHeader(text: string) {
 
 Cypress.Commands.add('updateChannelHeader', updateChannelHeader);
 
+function updateDMGMChannelHeader(text: string) {
+    cy.get('#channelHeaderTitle').
+        should('be.visible').
+        click();
+    cy.get('#channelHeaderDropdownMenu').
+        should('be.visible');
+
+    // * Channel Settings menu option should be visible
+    cy.findByText('Edit Conversation Header').click();
+    cy.get('#edit_textbox').
+        clear().
+        type(text).
+        type('{enter}').
+        wait(TIMEOUTS.HALF_SEC);
+}
+
+Cypress.Commands.add('updateDMGMChannelHeader', updateDMGMChannelHeader);
+
 function checkRunLDAPSync(): ChainableT<any> {
     return cy.apiGetLDAPSync().then((response) => {
         const jobs = response.body;
@@ -788,6 +806,12 @@ declare global {
              * @param {String} text - Text to set the header to
              */
             updateChannelHeader(text: string): ChainableT<void>;
+
+            /**
+             * Update DM or GM channel header
+             * @param {String} text - Text to set the header to
+             */
+            updateDMGMChannelHeader(text: string): ChainableT<void>;
 
             /**
              * Navigate to system console-PluginManagement from profile settings

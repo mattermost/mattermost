@@ -65,8 +65,22 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
     const isGroup = (channel.type === Constants.GM_CHANNEL);
 
     let channelTitle: ReactNode = channel.display_name;
+    let ariaLabel = intl.formatMessage({
+        id: 'channel_header.otherchannel',
+        defaultMessage: '{displayName} Channel Menu',
+    }, {
+        displayName: channel.display_name,
+    });
     if (isDirect) {
         channelTitle = <ChannelHeaderTitleDirect dmUser={dmUser}/>;
+        if (user.id === dmUser?.id) {
+            ariaLabel = intl.formatMessage({
+                id: 'channel_header.directchannel',
+                defaultMessage: '{displayName} (you) Channel Menu',
+            }, {
+                displayName: channel.display_name,
+            });
+        }
     } else if (isGroup) {
         channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>;
     }
@@ -107,10 +121,7 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
                         <ChevronDownIcon size={16}/>
                     </>
                 ),
-                'aria-label': intl.formatMessage({
-                    id: 'channel_header.menuAriaLabel',
-                    defaultMessage: 'Channel Menu',
-                }),
+                'aria-label': ariaLabel.toLowerCase(),
             }}
             menu={{
                 id: 'channelHeaderDropdownMenu',

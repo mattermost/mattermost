@@ -211,6 +211,7 @@ describe('Team Permissions', () => {
 
             // * Verify dropdown opens
             cy.get('#channelHeaderDropdownMenu').should('be.visible');
+            cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
 
             // * Verify `Edit Channel Header` menu item is visible
             cy.get('#channelEditHeader').should('be.visible');

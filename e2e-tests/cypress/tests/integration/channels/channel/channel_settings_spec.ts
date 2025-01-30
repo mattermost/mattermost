@@ -39,6 +39,7 @@ describe('Channel Settings', () => {
 
             // # Go to channel dropdown > Rename channel
             cy.get('#channelHeaderTitle').click();
+            cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
             cy.findByText('Rename Channel').click();
 
             // # Try to enter existing URL and save
