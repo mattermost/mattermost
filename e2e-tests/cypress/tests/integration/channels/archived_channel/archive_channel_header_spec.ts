@@ -48,6 +48,8 @@ describe('Archive channel header spec', () => {
         // * The dropdown menu of the channel header should be visible;
         cy.get('#channelLeaveChannel').should('be.visible');
 
+        cy.findByRole('menuitem', {name: 'Channel Settings'}).trigger('mouseover');
+
         // * Rename menu option should be visible;
         cy.get('#channelRename').should('be.visible');
 
@@ -69,8 +71,8 @@ describe('Archive channel header spec', () => {
         // * Notification preferences option should be visible;
         cy.get('#channelNotificationPreferences').should('be.visible');
 
-        // # Close the channel dropdown menu
-        cy.get('#channelHeaderTitle').click();
+        // // # Close the channel dropdown menu
+        cy.get('body').type('{esc}{esc}');
 
         // # Archive the channel
         cy.uiArchiveChannel();
