@@ -1,12 +1,11 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package app
 
 import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
@@ -113,7 +112,17 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
-	return a.ch.srv.ReadFile(path)
+	data, appErr := a.ch.srv.ReadFile(path)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	decryptedData, err := decryptAES256(data)
+	if err != nil {
+		return nil, model.NewAppError("ReadFile", "api.file.decrypt_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return decryptedData, nil
 }
 
 func fileReader(backend filestore.FileBackend, path string) (filestore.ReadCloseSeeker, *model.AppError) {
@@ -227,7 +236,17 @@ func (a *App) WriteFileContext(ctx context.Context, fr io.Reader, path string) (
 }
 
 func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
-	return a.Srv().writeFile(fr, path)
+	data, err := io.ReadAll(fr)
+	if err != nil {
+		return 0, model.NewAppError("WriteFile", "api.file.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	encryptedData, err := encryptAES256(data)
+	if err != nil {
+		return 0, model.NewAppError("WriteFile", "api.file.encrypt_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return a.Srv().writeFile(bytes.NewReader(encryptedData), path)
 }
 
 func writeFile(backend filestore.FileBackend, fr io.Reader, path string) (int64, *model.AppError) {
@@ -1679,4 +1698,41 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
 		)
 		return
 	}
+}
+
+func encryptAES256(data []byte) ([]byte, error) {
+	block, err := aes.NewCipher([]byte("a very very very very secret key")) // 32 bytes
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	ciphertext := gcm.Seal(nonce, nonce, data, nil)
+	return ciphertext, nil
+}
+
+func decryptAES256(data []byte) ([]byte, error) {
+	block, err := aes.NewCipher([]byte("a very very very very secret key")) // 32 bytes
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonceSize := gcm.NonceSize()
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return plaintext, nil
 }

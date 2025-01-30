@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {combineReducers} from 'redux';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
@@ -10,13 +7,16 @@ import type {Post} from '@mattermost/types/posts';
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {FileTypes, PostTypes, UserTypes, ChannelBookmarkTypes} from 'mattermost-redux/action_types';
 
+import CryptoJS from 'crypto-js/aes';
+
 export function files(state: Record<string, FileInfo> = {}, action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_UPLOAD_FILES:
     case FileTypes.RECEIVED_FILES_FOR_POST: {
         const filesById = action.data.reduce((filesMap: any, file: any) => {
+            const decryptedData = decryptAES256(file.data);
             return {...filesMap,
-                [file.id]: file,
+                [file.id]: {...file, data: decryptedData},
             };
         }, {} as any);
         return {...state,
@@ -155,9 +155,11 @@ function storeFilesForPost(state: Record<string, FileInfo>, post: Post) {
             return nextState;
         }
 
+        const decryptedData = decryptAES256(file.data);
+
         return {
             ...nextState,
-            [file.id]: file,
+            [file.id]: {...file, data: decryptedData},
         };
     }, state);
 }
@@ -235,3 +237,8 @@ export default combineReducers({
     fileIdsByPostId,
     filePublicLink,
 });
+
+function decryptAES256(data: string): string {
+    const bytes = CryptoJS.AES.decrypt(data, 'secret key 123');
+    return bytes.toString(CryptoJS.enc.Utf8);
+}
