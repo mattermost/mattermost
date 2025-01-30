@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @mark_as_unread
 
-import {notShowCursor, markAsUnreadShouldBeAbsent} from './helpers';
+import {markAsUnreadShouldBeAbsent} from './helpers';
 
 describe('Channels', () => {
     let testUser;
