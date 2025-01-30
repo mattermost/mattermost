@@ -155,6 +155,12 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
     }, [hideSearchBar, currentChannelName]);
 
     useEffect((): void => {
+        if (isMobileView && props.isSideBarRight) {
+            handleFocus();
+        }
+    }, [isMobileView, props.isSideBarRight]);
+
+    useEffect((): void => {
         if (!isMobileView) {
             setVisibleSearchHintOptions(determineVisibleSearchHintOptions(searchTerms, searchType));
         }
