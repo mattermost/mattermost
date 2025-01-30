@@ -318,3 +318,54 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		s.EqualError(err, "a trigger word must not contain spaces")
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("Show non existent cmd", func(c client.Client) {
+		printer.Clean()
+
+		err := showCommandCmdF(c, &cobra.Command{}, []string{"nonexistent-command-id"})
+		s.Require().NotNil(err)
+		s.Require().Equal("unable to find command 'nonexistent-command-id'", err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Show commands with cmd id", func(c client.Client) {
+		// create new command
+		printer.Clean()
+		newCmd := &model.Command{
+			CreatorId: s.th.BasicUser.Id,
+			TeamId:    s.th.BasicTeam.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   model.NewRandomString(6),
+		}
+
+		command, _, _ := c.CreateCommand(context.Background(), newCmd)
+		err := showCommandCmdF(c, &cobra.Command{}, []string{command.Id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Show commands with team:trigger", func(c client.Client) {
+		// create new command
+		printer.Clean()
+		trigger := model.NewRandomString(6)
+		newCmd := &model.Command{
+			CreatorId: s.th.BasicUser.Id,
+			TeamId:    s.th.BasicTeam.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   trigger,
+		}
+
+		_, _, _ = c.CreateCommand(context.Background(), newCmd)
+		err := showCommandCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + trigger})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+}
