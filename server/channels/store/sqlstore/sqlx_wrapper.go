@@ -258,9 +258,6 @@ func (w *sqlxDBWrapper) SelectBuilderCtx(ctx context.Context, dest any, builder 
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, w.queryTimeout)
-	defer cancel()
-
 	return w.SelectCtx(ctx, dest, query, args...)
 }
 
