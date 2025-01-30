@@ -55,12 +55,7 @@ func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 			st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus))
 	}
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "status_tosql")
-	}
-
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to upsert Status")
 	}
 
@@ -82,25 +77,11 @@ func (s SqlStatusStore) Get(userId string) (*model.Status, error) {
 
 func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	query := s.statusSelectQuery.Where(sq.Eq{"UserId": userIds})
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "status_tosql")
-	}
-	rows, err := s.GetReplica().DB.Query(queryString, args...)
+
+	statuses := []*model.Status{}
+	err := s.GetReplica().SelectBuilder(&statuses, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Statuses")
-	}
-	statuses := []*model.Status{}
-	defer rows.Close()
-	for rows.Next() {
-		var status model.Status
-		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt, &status.DNDEndTime, &status.PrevStatus); err != nil {
-			return nil, errors.Wrap(err, "unable to scan from rows")
-		}
-		statuses = append(statuses, &status)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "failed while iterating over rows")
 	}
 
 	return statuses, nil
