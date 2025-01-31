@@ -48,6 +48,8 @@ export type Props = {
     footerDivider?: boolean;
     appendedContent?: React.ReactNode;
     headerButton?: React.ReactNode;
+    showCloseButton?: boolean;
+    showHeader?: boolean;
 };
 
 type State = {
@@ -63,6 +65,8 @@ export class GenericModal extends React.PureComponent<Props, State> {
         enforceFocus: true,
         keyboardEscape: true,
         bodyPadding: true,
+        showCloseButton: true,
+        showHeader: true,
     };
 
     constructor(props: Props) {
@@ -214,7 +218,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                     tabIndex={this.props.tabIndex || 0}
                     className='GenericModal__wrapper-enter-key-press-catcher'
                 >
-                    <Modal.Header closeButton={true}>
+                    {this.props.showHeader && <Modal.Header closeButton={this.props.showCloseButton}>
                         <div
                             className='GenericModal__header__text_container'
                         >
@@ -236,7 +240,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                                 </div>
                             }
                         </div>
-                    </Modal.Header>
+                    </Modal.Header>}
                     <Modal.Body className={classNames({divider: this.props.bodyDivider, 'overflow-visible': this.props.bodyOverflowVisible})}>
                         {this.props.compassDesign ? (
                             this.props.errorText && (

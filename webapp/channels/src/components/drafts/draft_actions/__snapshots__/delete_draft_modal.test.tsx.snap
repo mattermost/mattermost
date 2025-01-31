@@ -29,6 +29,7 @@ exports[`components/drafts/draft_actions/delete_draft_modal should have called o
   modalHeaderText="Delete draft"
   onExited={[MockFunction]}
   show={true}
+  showCloseButton={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to delete this draft to <strong>{displayName}</strong>?"
@@ -72,6 +73,7 @@ exports[`components/drafts/draft_actions/delete_draft_modal should have called o
     }
   }
   show={true}
+  showCloseButton={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to delete this draft to <strong>{displayName}</strong>?"

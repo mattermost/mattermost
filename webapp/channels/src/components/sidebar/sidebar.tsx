@@ -158,6 +158,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         this.props.actions.openModal({
             modalId: ModalIdentifiers.INVITATION,
             dialogType: InvitationModal,
+            dialogProps: {focusOriginElement: 'browseOrAddChannelMenuButton'},
         });
         trackEvent('ui', 'ui_channels_dropdown_invite_people');
     };

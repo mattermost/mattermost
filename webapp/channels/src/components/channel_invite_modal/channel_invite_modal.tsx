@@ -471,6 +471,7 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
                         channelToInvite: this.props.channel,
                         initialValue: this.state.term,
                         inviteAsGuest: props.inviteAsGuest,
+                        focusOriginElement: 'customNoOptionsMessageLink',
                     }}
                     onClick={closeMembersInviteModal}
                 >
@@ -480,7 +481,10 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
         };
 
         const customNoOptionsMessage = (
-            <div className='custom-no-options-message'>
+            <div
+                className='custom-no-options-message'
+                id='customNoOptionsMessageLink'
+            >
                 <FormattedMessage
                     id='channel_invite.no_options_message'
                     defaultMessage='No matches found - <InvitationModalLink>Invite them to the team</InvitationModalLink>'

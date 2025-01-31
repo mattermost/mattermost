@@ -174,6 +174,7 @@ export class MainMenu extends React.PureComponent<Props> {
                     })}
                     icon={this.props.mobile && <i className='fa fa-user-plus'/>}
                     onClick={() => trackEvent('ui', 'click_sidebar_team_dropdown_invite_people')}
+                    dialogProps={{focusOriginElement: 'sidebarDropdownMenuButton'}}
                 />
             );
         }
