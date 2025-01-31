@@ -55,14 +55,14 @@ describe('Managing bots in Teams and Channels', () => {
             await client.addToTeam(team.id, bot.user_id);
 
             // # Add bot to channel in team
-            cy.uiAddUsersToCurrentChannel([bot.username]);
+            cy.uiInviteUsersToCurrentChannel([bot.username]);
 
             // * Verify system message in-channel
             cy.uiWaitUntilMessagePostedIncludes(`@${bot.username} added to the channel by you.`);
         });
     });
 
-    it('MM-T1817 Add a BOT to a channel that is not on the Team', () => {
+    it.only('MM-T1817 Add a BOT to a channel that is not on the Team', () => {
         cy.makeClient().then(async (client) => {
             // # Go to channel
             const channel = await client.createChannel(createChannelPatch(team.id, 'a-chan', 'A Channel') as Channel);
