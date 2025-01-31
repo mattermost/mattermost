@@ -1462,6 +1462,20 @@ export function handleGroupAddedMemberEvent(msg) {
                 }
             }
         }
+        const receivedProfile = getUser(state, groupInfo.user_id);
+        dispatch(batchActions([
+            {
+                type: GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP,
+                data: groupInfo,
+                id: groupInfo.group_id,
+            },
+            {
+                type: UserTypes.RECEIVED_PROFILES_FOR_GROUP,
+                data: [receivedProfile].filter(Boolean),
+                id: groupInfo.group_id,
+            },
+        ]),
+        );
     };
 }
 
@@ -1480,6 +1494,19 @@ function handleGroupDeletedMemberEvent(msg) {
                 },
             );
         }
+        dispatch(batchActions([
+            {
+                type: UserTypes.RECEIVED_PROFILES_LIST_TO_REMOVE_FROM_GROUP,
+                data: [data],
+                id: data.group_id,
+            },
+            {
+                type: GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP,
+                data,
+                id: data.group_id,
+            },
+        ]),
+        );
     };
 }
 
