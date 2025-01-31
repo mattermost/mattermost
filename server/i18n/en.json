@@ -604,6 +604,10 @@
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
   },
   {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Can not run command in deleted channel."
+  },
+  {
     "id": "api.command.execute_command.failed.app_error",
     "translation": "Command with a trigger of '{{.Trigger}}' failed."
   },
@@ -2135,6 +2139,10 @@
   {
     "id": "api.file.write_file.app_error",
     "translation": "Unable to write the file."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Unable to get a zip file reader."
   },
   {
     "id": "api.filter_config_error",

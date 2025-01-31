@@ -61,7 +61,7 @@ func TestGetCPAField(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, createdField.ID, fetchedField.ID)
 		require.Equal(t, "Test Field", fetchedField.Name)
-		require.Equal(t, map[string]any{"visibility": "hidden"}, fetchedField.Attrs)
+		require.Equal(t, model.StringInterface{"visibility": "hidden"}, fetchedField.Attrs)
 	})
 }
 
@@ -152,7 +152,7 @@ func TestCreateCPAField(t *testing.T) {
 		require.Nil(t, err)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, cpaGroupID, createdField.GroupID)
-		require.Equal(t, map[string]any{"visibility": "hidden"}, createdField.Attrs)
+		require.Equal(t, model.StringInterface{"visibility": "hidden"}, createdField.Attrs)
 
 		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField(createdField.ID)
 		require.NoError(t, gErr)

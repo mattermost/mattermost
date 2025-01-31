@@ -31,7 +31,7 @@ export type Props = WrappedComponentProps & {
     channelId?: string;
     postId: string;
     teamId: string;
-    getDotMenuRef: () => HTMLDivElement | null;
+    getDotMenuRef: () => HTMLUListElement | null;
     location?: keyof typeof Locations;
     showEmojiPicker: boolean;
     toggleEmojiPicker: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
