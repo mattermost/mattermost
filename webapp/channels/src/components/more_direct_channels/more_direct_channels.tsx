@@ -166,7 +166,9 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         if (this.exitToChannel) {
             getHistory().push(this.exitToChannel);
         } else {
-            focusElement(this.props.focusOriginElement, true);
+            setTimeout(() => {
+                focusElement(this.props.focusOriginElement, true);
+            }, 0);
         }
     };
 
@@ -290,6 +292,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 show={this.state.show}
                 modalHeaderText={modalHeaderText}
                 onExited={this.handleExit}
+                onHide={this.handleExit}
                 compassDesign={true}
                 bodyPadding={false}
                 onEntered={this.loadModalData}

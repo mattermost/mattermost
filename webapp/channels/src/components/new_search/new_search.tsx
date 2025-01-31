@@ -172,7 +172,6 @@ const NewSearch = (): JSX.Element => {
         setFocused(false);
         setCurrentChannel('');
 
-        // Instead of manually dispatching an event, call the helper:
         focusElement(searchButtonRef, true, true);
     }, [searchButtonRef, setFocused, setCurrentChannel]);
 
