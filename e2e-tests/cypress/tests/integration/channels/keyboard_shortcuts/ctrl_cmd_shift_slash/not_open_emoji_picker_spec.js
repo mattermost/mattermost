@@ -115,8 +115,13 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
         verifyEmojiPickerNotOpen();
 
         ['Edit Channel Header', 'Rename Channel'].forEach((modal) => {
-            // # Open the modal and do keyboard shortcut
-            cy.uiOpenChannelMenu(modal);
+            // # Click on the channel name in the channel header to open the channel menu options
+            cy.get('#channelHeaderTitle').click();
+
+            // # Select the "Edit Channel Header" option from the dropdown
+            cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
+            cy.findByText(modal).click();
+
             doReactToLastMessageShortcut();
 
             // * Verify emoji picker is not open
