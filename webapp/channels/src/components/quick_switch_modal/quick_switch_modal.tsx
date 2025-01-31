@@ -17,6 +17,7 @@ import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/su
 import SuggestionList from 'components/suggestion/suggestion_list';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 
+import {focusElement} from 'utils/a11y_utils';
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
@@ -45,6 +46,7 @@ export type Props = WrappedComponentProps & {
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
         closeRightHandSide: () => void;
     };
+    focusOriginElement: string;
 };
 
 type State = {
@@ -111,12 +113,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
 
     private hideOnCancel = () => {
         this.props.onExited?.();
-        setTimeout(() => {
-            const modalButton = document.querySelector('.SidebarChannelNavigator_jumpToButton') as HTMLElement;
-            if (modalButton) {
-                modalButton.focus();
-            }
-        });
+        focusElement(this.props.focusOriginElement, true);
     };
 
     private onChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -214,6 +211,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                 bodyPadding={false}
                 enforceFocus={false}
                 onExited={this.hideOnCancel}
+                onHide={this.hideOnCancel}
                 ariaLabel={this.props.intl.formatMessage({id: 'quick_switch_modal.switchChannels', defaultMessage: 'Find Channels'})}
                 modalHeaderText={modalHeaderText}
                 modalSubheaderText={modalSubheaderText}

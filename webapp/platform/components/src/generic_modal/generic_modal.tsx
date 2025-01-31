@@ -12,6 +12,7 @@ export type Props = {
     className?: string;
     onExited: () => void;
     onEntered?: () => void;
+    onHide?: () => void;
     modalHeaderText?: React.ReactNode;
     modalSubheaderText?: React.ReactNode;
     show?: boolean;
@@ -54,9 +55,6 @@ type State = {
     show: boolean;
     isFocalTrapActive: boolean;
 }
-
-const CUSTOM_FOCUS_EVENT = 'a11yfocus';
-
 export class GenericModal extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
         show: true,
@@ -85,30 +83,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
     onHide = () => {
         this.setState({show: false});
-
-        // send focus event to element that triggered the opening of the modal
-        const {focusOriginElementOnClose} = this.props;
-
-        // get the element that will get the focus with the id
-        if (!focusOriginElementOnClose) {
-            return;
-        }
-
-        const originElement = document.getElementById(focusOriginElementOnClose);
-        if (!originElement) {
-            return;
-        }
-
-        setTimeout(() => {
-            document.dispatchEvent(
-                new CustomEvent(CUSTOM_FOCUS_EVENT, {
-                    detail: {
-                        target: originElement,
-                        keyboardOnly: true,
-                    },
-                }),
-            );
-        }, 100);
+        this.props.onHide?.();
     };
 
     handleCancel = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
