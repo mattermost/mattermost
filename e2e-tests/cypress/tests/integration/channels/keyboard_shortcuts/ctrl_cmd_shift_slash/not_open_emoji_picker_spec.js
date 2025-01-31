@@ -140,6 +140,9 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
         // # Verify emoji picker is not open
         cy.get('#emojiPicker').should('not.exist');
 
+        // close channel Menu
+        pressEscapeKey();
+
         // * Open the main menu dropdown and do keyboard shortcut
         cy.uiOpenTeamMenu();
         doReactToLastMessageShortcut();

@@ -55,7 +55,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                 channel={channel}
                 isMuted={isMuted}
             />
-            { !isArchived && (
+            {!isArchived && (
                 <MenuItemNotification
                     user={user}
                     channel={channel}
