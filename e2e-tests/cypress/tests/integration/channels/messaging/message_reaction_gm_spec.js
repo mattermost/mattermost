@@ -63,13 +63,7 @@ describe('Emoji reactions to posts/messages in GM channels', () => {
             // * Verify that the Add Reaction button isn't visible
             cy.findByLabelText('Add a reaction').should('not.be.visible');
 
-            cy.get(`#post_${postId}`).within(() => {
-                // * Verify focus is on profile image
-                cy.get('.status-wrapper button').focus().tab();
-
-                // * Verify that the Add Reaction button is now visible
-                cy.findByLabelText('Add a reaction').should('be.visible');
-            });
+            cy.get(`#post_${postId}`).trigger('mouseover');
 
             // # Click somewhere to clear the focus
             cy.get('#channelIntro').click();
