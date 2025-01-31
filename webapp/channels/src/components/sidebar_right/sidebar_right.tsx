@@ -23,8 +23,8 @@ import Search from 'components/search/index';
 
 import RhsPlugin from 'plugins/rhs_plugin';
 import a11yController from 'utils/a11y_controller_instance';
-import type {A11yFocusEventDetail} from 'utils/constants';
-import Constants, {A11yCustomEventTypes} from 'utils/constants';
+import {focusElement} from 'utils/a11y_utils';
+import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {isMac} from 'utils/user_agent';
 
@@ -157,34 +157,21 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
 
         if (this.props.isOpen && (contentChanged || (!wasOpen && isOpen))) {
             this.previousActiveElement = document.activeElement as HTMLElement;
+
+            // Focus the sidebar after a tick
             setTimeout(() => {
                 if (this.sidebarRight.current) {
-                    document.dispatchEvent(
-                        new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                            detail: {
-                                target: this.sidebarRight.current,
-                                keyboardOnly: false,
-                            },
-                        }),
-                    );
+                    focusElement(this.sidebarRight, false);
                 }
             }, 0);
         } else if (!this.props.isOpen && wasOpen) {
             // RHS just was closed, restore focus to the previous element had it
-            // this will have to change for upcoming work specially for search and probalby plugins
             if (a11yController.originElement) {
                 a11yController.restoreOriginFocus();
             } else {
                 setTimeout(() => {
                     if (this.previousActiveElement) {
-                        document.dispatchEvent(
-                            new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                                detail: {
-                                    target: this.previousActiveElement,
-                                    keyboardOnly: false,
-                                },
-                            }),
-                        );
+                        focusElement(this.previousActiveElement, false);
                         this.previousActiveElement = null;
                     }
                 }, 0);
