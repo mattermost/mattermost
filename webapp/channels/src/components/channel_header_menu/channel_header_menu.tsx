@@ -114,6 +114,8 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
                         <strong
                             id='channelHeaderTitle'
                             className='heading'
+                            role='heading'
+                            aria-level={2}
                         >
                             {channelTitle as string}
                         </strong>
