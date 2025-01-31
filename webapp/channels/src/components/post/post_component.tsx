@@ -526,7 +526,6 @@ function PostComponent(props: Props) {
                 ref={postRef}
                 id={getTestId()}
                 data-testid={postAriaLabelDivTestId}
-                tabIndex={0}
                 post={post}
                 className={getClassName()}
                 onClick={handlePostClick}
