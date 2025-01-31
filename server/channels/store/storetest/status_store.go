@@ -55,12 +55,19 @@ func testStatusStore(t *testing.T, _ request.CTX, ss store.Store) {
 }
 
 func testActiveUserCount(t *testing.T, rctx request.CTX, ss store.Store) {
-	status := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	require.NoError(t, ss.Status().SaveOrUpdate(status))
+	status1 := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	require.NoError(t, ss.Status().SaveOrUpdate(status1))
 
-	count, err := ss.Status().GetTotalActiveUsersCount()
+	count1, err := ss.Status().GetTotalActiveUsersCount()
 	require.NoError(t, err)
-	require.True(t, count > 0, "expected count > 0, got %d", count)
+	assert.Greater(t, count1, int64(0))
+
+	status2 := &model.Status{UserId: model.NewId(), Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	require.NoError(t, ss.Status().SaveOrUpdate(status2))
+
+	count2, err := ss.Status().GetTotalActiveUsersCount()
+	require.NoError(t, err)
+	assert.Equal(t, count1+1, count2)
 }
 
 type ByUserId []*model.Status
@@ -73,8 +80,13 @@ func testUpdateExpiredDNDStatuses(t *testing.T, rctx request.CTX, ss store.Store
 	userID := NewTestID()
 
 	status := &model.Status{
-		UserId: userID, Status: model.StatusDnd, Manual: true,
-		DNDEndTime: time.Now().Add(5 * time.Second).Unix(), PrevStatus: model.StatusOnline,
+		UserId:         userID,
+		Status:         model.StatusDnd,
+		Manual:         true,
+		LastActivityAt: time.Now().Unix(),
+		ActiveChannel:  "channel-id",
+		DNDEndTime:     time.Now().Add(5 * time.Second).Unix(),
+		PrevStatus:     model.StatusOnline,
 	}
 	require.NoError(t, ss.Status().SaveOrUpdate(status))
 
@@ -93,11 +105,13 @@ func testUpdateExpiredDNDStatuses(t *testing.T, rctx request.CTX, ss store.Store
 	require.Len(t, statuses, 1)
 
 	updatedStatus := *statuses[0]
-	require.Equal(t, updatedStatus.UserId, userID)
-	require.Equal(t, updatedStatus.Status, model.StatusOnline)
-	require.Equal(t, updatedStatus.DNDEndTime, int64(0))
-	require.Equal(t, updatedStatus.PrevStatus, model.StatusDnd)
-	require.Equal(t, updatedStatus.Manual, false)
+	assert.Equal(t, updatedStatus.UserId, userID)
+	assert.Equal(t, updatedStatus.Status, model.StatusOnline)
+	assert.Equal(t, updatedStatus.Manual, false)
+	assert.Equal(t, updatedStatus.LastActivityAt, updatedStatus.LastActivityAt)
+	assert.Empty(t, updatedStatus.ActiveChannel)
+	assert.Equal(t, updatedStatus.DNDEndTime, int64(0))
+	assert.Equal(t, updatedStatus.PrevStatus, model.StatusDnd)
 }
 
 func insertNullStatus(t *testing.T, ss store.Store, s SqlStore) string {

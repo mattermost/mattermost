@@ -99,15 +99,11 @@ func (s SqlStatusStore) updateExpiredStatuses(t *sqlxTxWrapper) ([]*model.Status
 		},
 	)
 
-	selectQueryString, selectParams, err := selectQuery.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "status_tosql")
-	}
-	err = t.Select(&statuses, selectQueryString, selectParams...)
+	err := t.SelectBuilder(&statuses, selectQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "updateExpiredStatusesT: failed to get expired dnd statuses")
 	}
-	updateQuery, args, err := s.getQueryBuilder().
+	updateQuery := s.getQueryBuilder().
 		Update("Status").
 		Where(
 			sq.And{
@@ -119,13 +115,9 @@ func (s SqlStatusStore) updateExpiredStatuses(t *sqlxTxWrapper) ([]*model.Status
 		Set("Status", sq.Expr("PrevStatus")).
 		Set("PrevStatus", model.StatusDnd).
 		Set("DNDEndTime", 0).
-		Set(quoteColumnName(s.DriverName(), "Manual"), false).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "status_tosql")
-	}
+		Set(quoteColumnName(s.DriverName(), "Manual"), false)
 
-	if _, err := t.Exec(updateQuery, args...); err != nil {
+	if _, err := t.ExecBuilder(updateQuery); err != nil {
 		return nil, errors.Wrapf(err, "updateExpiredStatusesT: failed to update statuses")
 	}
 
@@ -157,7 +149,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 		return statuses, nil
 	}
 
-	queryString, args, err := s.getQueryBuilder().
+	queryString := s.getQueryBuilder().
 		Update("Status").
 		Where(
 			sq.And{
@@ -170,28 +162,12 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error
 		Set("PrevStatus", model.StatusDnd).
 		Set("DNDEndTime", 0).
 		Set(quoteColumnName(s.DriverName(), "Manual"), false).
-		Suffix("RETURNING *").
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "status_tosql")
-	}
+		Suffix("RETURNING *")
 
-	rows, err := s.GetMaster().Query(queryString, args...)
+	statuses := []*model.Status{}
+	err = s.GetMaster().SelectBuilder(&statuses, queryString)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Statuses")
-	}
-	defer rows.Close()
-	statuses := []*model.Status{}
-	for rows.Next() {
-		var status model.Status
-		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt,
-			&status.DNDEndTime, &status.PrevStatus); err != nil {
-			return nil, errors.Wrap(err, "unable to scan from rows")
-		}
-		statuses = append(statuses, &status)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "failed while iterating over rows")
 	}
 
 	return statuses, nil
@@ -211,13 +187,8 @@ func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, error) {
 		From("Status").
 		Where(sq.Gt{"LastActivityAt": time})
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "status_tosql")
-	}
-
 	var count int64
-	err = s.GetReplica().Get(&count, queryString, args...)
+	err := s.GetReplica().GetBuilder(&count, query)
 	if err != nil {
 		return count, errors.Wrap(err, "failed to count active users")
 	}
