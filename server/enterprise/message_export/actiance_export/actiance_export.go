@@ -342,7 +342,12 @@ func writeExport(rctx request.CTX, export *RootNode, uploadedFiles []*model.File
 
 		_, nErr = exportBackend.WriteFile(attachmentSrc, destPath)
 		if nErr != nil {
-			return warningCount, model.NewAppError("ActianceExport.AtianceExport", "ent.actiance.export.write_file.appError", nil, "", 0).Wrap(nErr)
+			// s3 only errors _here_ if the object key wasn't found. So to handle that: if there is a read
+			// error (even for local), let's add a warning instead of failing the export.
+			// Failing the export would fail the entire export run, and every future run would also fail on
+			// this non-existent file -- not good.
+			missingFiles = append(missingFiles, "Warning:"+common_export.MissingFileMessage+" - "+fileInfo.Path)
+			rctx.Logger().Warn("Warning:"+common_export.MissingFileMessage, mlog.String("filename", fileInfo.Path))
 		}
 	}
 	warningCount = int64(len(missingFiles))

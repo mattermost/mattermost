@@ -604,6 +604,10 @@
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
   },
   {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Can not run command in deleted channel."
+  },
+  {
     "id": "api.command.execute_command.failed.app_error",
     "translation": "Command with a trigger of '{{.Trigger}}' failed."
   },
@@ -8071,10 +8075,6 @@
   {
     "id": "ent.message_export.csv_export.get_attachment_error",
     "translation": "Failed to get file info for a post."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
