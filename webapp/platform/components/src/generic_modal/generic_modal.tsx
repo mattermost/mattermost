@@ -48,7 +48,6 @@ export type Props = {
     footerDivider?: boolean;
     appendedContent?: React.ReactNode;
     headerButton?: React.ReactNode;
-    focusOriginElementOnClose?: string; // the DOM id of the element that triggered the focus of the modal
 };
 
 type State = {

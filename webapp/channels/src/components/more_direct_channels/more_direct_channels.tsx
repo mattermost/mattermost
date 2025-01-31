@@ -13,6 +13,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type MultiSelect from 'components/multiselect/multiselect';
 
+import {focusElement} from 'utils/a11y_utils';
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 
@@ -59,6 +60,7 @@ export type Props = {
         searchGroupChannels: (term: string) => Promise<ActionResult<Channel[]>>;
         setModalSearchTerm: (term: string) => void;
     };
+    focusOriginElement: string;
 }
 
 type State = {
@@ -158,11 +160,14 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
     };
 
     handleExit = () => {
+        this.props.onExited?.();
+        this.props.onModalDismissed?.();
+
         if (this.exitToChannel) {
             getHistory().push(this.exitToChannel);
+        } else {
+            focusElement(this.props.focusOriginElement, true);
         }
-        this.props.onModalDismissed?.();
-        this.props.onExited?.();
     };
 
     handleSubmit = (values = this.state.values) => {
@@ -287,7 +292,6 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 onExited={this.handleExit}
                 compassDesign={true}
                 bodyPadding={false}
-                focusOriginElementOnClose='newDirectMessageButton'
                 onEntered={this.loadModalData}
             >
                 <div role='application'>

@@ -41,17 +41,19 @@ export function focusElement(
 
     // Dispatch focus event if a valid DOM element is found.
     if (target) {
-        document.dispatchEvent(
-            new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
-                detail: {
-                    target,
-                    keyboardOnly,
-                },
-            }),
-        );
+        setTimeout(() => {
+            document.dispatchEvent(
+                new CustomEvent<A11yFocusEventDetail>(A11yCustomEventTypes.FOCUS, {
+                    detail: {
+                        target,
+                        keyboardOnly,
+                    },
+                }),
+            );
 
-        if (resetOriginElement) {
-            a11y.resetOriginElement();
-        }
+            if (resetOriginElement) {
+                a11y.resetOriginElement();
+            }
+        }, 0);
     }
 }
