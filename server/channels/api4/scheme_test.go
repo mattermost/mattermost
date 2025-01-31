@@ -15,9 +15,9 @@ import (
 )
 
 func TestCreateScheme(t *testing.T) {
-    if mainHelper.Options.RunParallel {
-        t.Parallel()
-    }
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -196,9 +196,9 @@ func TestCreateScheme(t *testing.T) {
 }
 
 func TestGetScheme(t *testing.T) {
-    if mainHelper.Options.RunParallel {
-        t.Parallel()
-    }
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -266,9 +266,9 @@ func TestGetScheme(t *testing.T) {
 }
 
 func TestGetSchemes(t *testing.T) {
-    if mainHelper.Options.RunParallel {
-        t.Parallel()
-    }
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -337,9 +337,9 @@ func TestGetSchemes(t *testing.T) {
 }
 
 func TestGetTeamsForScheme(t *testing.T) {
-    if mainHelper.Options.RunParallel {
-        t.Parallel()
-    }
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -437,9 +437,9 @@ func TestGetTeamsForScheme(t *testing.T) {
 }
 
 func TestGetChannelsForScheme(t *testing.T) {
-    if mainHelper.Options.RunParallel {
-        t.Parallel()
-    }
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -539,9 +539,9 @@ func TestGetChannelsForScheme(t *testing.T) {
 }
 
 func TestPatchScheme(t *testing.T) {
-    if mainHelper.Options.RunParallel {
-        t.Parallel()
-    }
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -670,9 +670,9 @@ func TestPatchScheme(t *testing.T) {
 }
 
 func TestDeleteScheme(t *testing.T) {
-    if mainHelper.Options.RunParallel {
-        t.Parallel()
-    }
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -892,9 +892,9 @@ func TestDeleteScheme(t *testing.T) {
 }
 
 func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
-    if mainHelper.Options.RunParallel {
-        t.Parallel()
-    }
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
