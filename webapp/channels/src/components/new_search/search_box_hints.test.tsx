@@ -39,6 +39,8 @@ describe('components/new_search/SearchBoxHints', () => {
     const baseProps = {
         searchType: 'messages',
         searchTerms: '',
+        searchTeam: 'teamId',
+        showFilterHaveBeenReset: false,
         setSearchTerms: jest.fn(),
         focus: jest.fn(),
         selectedOption: -1,
