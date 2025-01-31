@@ -147,14 +147,23 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 	return nil
 }
 
-func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, userID, loginID, password, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	// MM-37585: Use locks to avoid concurrently checking AND updating the failed login attempts.
 	a.ch.ldapLoginAttemptsMut.Lock()
 	defer a.ch.ldapLoginAttemptsMut.Unlock()
 
-	user, appErr := a.GetUserForLogin(rctx, userID, loginID)
-	if appErr != nil {
-		return nil, appErr
+	// We need to get the latest value of the user from the database after we acquire the lock. UserID is empty for first time LDAP users.
+	if user.Id != "" {
+		var err *model.AppError
+		user, err = a.GetUser(user.Id)
+		if err != nil {
+			if err.Id != MissingAccountError {
+				err.StatusCode = http.StatusInternalServerError
+				return nil, err
+			}
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
+		}
 	}
 
 	ldapID := user.AuthData
@@ -173,19 +182,19 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, userID, logi
 
 	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapID, password)
 	if err != nil {
-		// Log a info to make it easier to admin to spot that a user tried to log in with a legitimate user name.
-		if err.Id == "ent.ldap.do_login.invalid_password.app_error" {
-			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapID))
-		}
-
 		var getUserByAuthErr *model.AppError
 		ldapUser, getUserByAuthErr = a.GetUserByAuth(ldapID, model.UserAuthServiceLdap)
 		if getUserByAuthErr != nil {
 			return nil, getUserByAuthErr
 		}
 
-		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
-			return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+		// Log a info to make it easier to admin to spot that a user tried to log in with a legitimate user name.
+		if err.Id == "ent.ldap.do_login.invalid_password.app_error" {
+			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapID))
+
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
+				return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+			}
 		}
 
 		err.StatusCode = http.StatusUnauthorized
@@ -297,7 +306,7 @@ func checkUserNotBot(user *model.User) *model.AppError {
 	return nil
 }
 
-func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfaToken, loginID string) (*model.User, *model.AppError) {
+func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	license := a.Srv().License()
 	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
@@ -307,7 +316,7 @@ func (a *App) authenticateUser(rctx request.CTX, user *model.User, password, mfa
 			return user, err
 		}
 
-		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(rctx, user.Id, loginID, password, mfaToken)
+		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(rctx, user, password, mfaToken)
 		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
