@@ -18,6 +18,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
   }
   onEntered={[Function]}
   onExited={[Function]}
+  onHide={[Function]}
   show={true}
 >
   <div
@@ -263,6 +264,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
   }
   onEntered={[Function]}
   onExited={[Function]}
+  onHide={[Function]}
   show={true}
 >
   <div
