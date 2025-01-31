@@ -182,10 +182,15 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 
 	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapID, password)
 	if err != nil {
-		var getUserByAuthErr *model.AppError
-		ldapUser, getUserByAuthErr = a.GetUserByAuth(ldapID, model.UserAuthServiceLdap)
-		if getUserByAuthErr != nil {
-			return nil, getUserByAuthErr
+		// If this is a new ldap user we need to get the user from the database because DoLogin will have created the user
+		if user.Id == "" {
+			var getUserByAuthErr *model.AppError
+			ldapUser, getUserByAuthErr = a.GetUserByAuth(ldapID, model.UserAuthServiceLdap)
+			if getUserByAuthErr != nil {
+				return nil, getUserByAuthErr
+			}
+		} else {
+			ldapUser = user
 		}
 
 		// Log a info to make it easier to admin to spot that a user tried to log in with a legitimate user name.
