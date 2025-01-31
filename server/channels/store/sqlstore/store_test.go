@@ -76,12 +76,7 @@ func newStoreType(name, driver string) *storeType {
 }
 
 func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
-	t.Cleanup(func() {
-		fmt.Println("StoreTest cleanup")
-	})
-
 	defer func() {
-		fmt.Println("StoreTest done")
 		if err := recover(); err != nil {
 			tearDownStores()
 			panic(err)
@@ -99,8 +94,6 @@ func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
-			defer fmt.Println("StoreTest child done")
-
 			if testing.Short() {
 				t.SkipNow()
 			}
