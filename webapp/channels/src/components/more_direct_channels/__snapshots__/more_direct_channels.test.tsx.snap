@@ -8,7 +8,6 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
   className="a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal"
   compassDesign={true}
   enforceFocus={true}
-  focusOriginElementOnClose="newDirectMessageButton"
   id="moreDmModal"
   keyboardEscape={true}
   modalHeaderText={
@@ -254,7 +253,6 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
   className="a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal"
   compassDesign={true}
   enforceFocus={true}
-  focusOriginElementOnClose="newDirectMessageButton"
   id="moreDmModal"
   keyboardEscape={true}
   modalHeaderText={

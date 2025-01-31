@@ -9,7 +9,6 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
   className="a11y__modal channel-switcher"
   compassDesign={true}
   enforceFocus={false}
-  focusOriginElementOnClose="SidebarChannelNavigatorButton"
   id="quickSwitchModal"
   keyboardEscape={true}
   modalHeaderText={
@@ -43,6 +42,7 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
     </div>
   }
   onExited={[Function]}
+  onHide={[Function]}
   show={true}
 >
   <div
