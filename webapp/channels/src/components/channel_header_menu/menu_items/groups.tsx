@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {AccountMultipleOutlineIcon, AccountMultiplePlusOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {openModal} from 'actions/views/modals';
@@ -25,6 +26,7 @@ const Groups = ({channel}: Props): JSX.Element => {
         <>
             <Menu.Item
                 id='channelAddGroups'
+                leadingElement={<AccountMultiplePlusOutlineIcon size='18px'/>}
                 onClick={() => {
                     dispatch(
                         openModal({
@@ -42,6 +44,7 @@ const Groups = ({channel}: Props): JSX.Element => {
             />
             <Menu.Item
                 id='channelManageGroups'
+                leadingElement={<AccountMultipleOutlineIcon size='18px'/>}
                 onClick={() => {
                     dispatch(
                         openModal({
