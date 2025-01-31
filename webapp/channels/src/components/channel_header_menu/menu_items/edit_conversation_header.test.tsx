@@ -35,7 +35,7 @@ describe('components/ChannelHeaderMenu/MenuItems/EditConversationHeader', () => 
             </WithTestMenuContext>, {},
         );
 
-        const menuItem = screen.getByText('Edit Conversation Header');
+        const menuItem = screen.getByText('Edit Header');
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item

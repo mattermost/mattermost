@@ -488,7 +488,7 @@ function updateDMGMChannelHeader(text: string) {
         should('be.visible');
 
     // * Channel Settings menu option should be visible
-    cy.findByText('Edit Conversation Header').click();
+    cy.findByText('Edit Header').click();
     cy.get('#edit_textbox').
         clear().
         type(text).

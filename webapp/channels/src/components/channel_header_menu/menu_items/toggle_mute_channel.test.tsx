@@ -87,7 +87,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
             </WithTestMenuContext>, {},
         );
 
-        const menuItem = screen.getByText('Mute Conversation');
+        const menuItem = screen.getByText('Mute');
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
@@ -111,7 +111,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
             </WithTestMenuContext>, {},
         );
 
-        const menuItem = screen.getByText('Unmute Conversation');
+        const menuItem = screen.getByText('Unmute');
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
