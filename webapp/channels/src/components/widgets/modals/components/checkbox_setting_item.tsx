@@ -37,22 +37,26 @@ export default function CheckboxSettingItem({
     descriptionAboveContent = false,
 }: Props) {
     const content = (
-        <fieldset
+        <div
             key={inputFieldData.name}
             className='mm-modal-generic-section-item__fieldset-checkbox-ctr'
         >
-            <label className='mm-modal-generic-section-item__fieldset-checkbox'>
-                <input
-                    className='mm-modal-generic-section-item__input-checkbox'
-                    data-testid={inputFieldData.dataTestId}
-                    type='checkbox'
-                    name={inputFieldData.name}
-                    checked={inputFieldValue}
-                    onChange={(e) => handleChange(e.target.checked)}
-                />
+            <input
+                className='mm-modal-generic-section-item__input-checkbox'
+                data-testid={inputFieldData.dataTestId}
+                type='checkbox'
+                name={inputFieldData.name}
+                id={inputFieldData.name.replaceAll(' ', '-')}
+                checked={inputFieldValue}
+                onChange={(e) => handleChange(e.target.checked)}
+            />
+            <label
+                htmlFor={inputFieldData.name.replaceAll(' ', '-')}
+                className='mm-modal-generic-section-item__fieldset-checkbox'
+            >
                 {inputFieldTitle}
             </label>
-        </fieldset>
+        </div>
     );
 
     return (

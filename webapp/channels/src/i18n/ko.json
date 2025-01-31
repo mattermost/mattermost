@@ -2827,8 +2827,6 @@
   "sidebar.types.unreads": "읽지 않음",
   "sidebar.unreads": "읽지 않은 글 더보기",
   "sidebar_left.add_channel_dropdown.browseChannels": "채널 보기",
-  "sidebar_left.add_channel_dropdown.browseOrCreateChannels": "채널을 탐색하거나 생성",
-  "sidebar_left.add_channel_dropdown.createCategory": "새로운 카테고리 생성",
   "sidebar_left.add_channel_dropdown.createNewChannel": "새로운 채널 생성",
   "sidebar_left.channel_filter.showAllChannels": "모든 채널 보기",
   "sidebar_left.channel_navigator.channelSwitcherLabel": "빠른 채널 전환기능",

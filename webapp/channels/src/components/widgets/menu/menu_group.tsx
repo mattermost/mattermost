@@ -23,6 +23,7 @@ const MenuGroup = (props: Props) => {
         <li
             className='MenuGroup menu-divider'
             onClick={handleDividerClick}
+            role='separator'
         />
     );
 
