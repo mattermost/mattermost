@@ -8,7 +8,7 @@ import React, {useMemo} from 'react';
 import type {AriaAttributes, MouseEvent, ReactNode} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {IndicatorContainerProps, ValueType} from 'react-select';
+import type {IndicatorsContainerProps, OnChangeValue} from 'react-select';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -102,7 +102,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
 
     const selectedPageSize = pageSizeOptions.find((option) => option.value === props.table.getState().pagination.pageSize) || pageSizeOptions[0];
 
-    function handlePageSizeChange(selectedOption: ValueType<PageSizeOption>) {
+    function handlePageSizeChange(selectedOption: OnChangeValue<PageSizeOption, false>) {
         const {value} = selectedOption as PageSizeOption;
         props.table.setPageSize(Number(value));
     }
@@ -321,7 +321,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
     );
 }
 
-function IndicatorsContainer(props: IndicatorContainerProps<PageSizeOption>) {
+function IndicatorsContainer(props: IndicatorsContainerProps<PageSizeOption>) {
     return (
         <components.IndicatorsContainer {...props}>
             <i className='icon icon-chevron-down'/>

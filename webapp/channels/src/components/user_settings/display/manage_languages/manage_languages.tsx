@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import ReactSelect from 'react-select';
-import type {ValueType} from 'react-select';
+import type {StylesConfig, OnChangeValue} from 'react-select';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -101,7 +101,7 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
         }
     };
 
-    setLanguage = (selectedOption: ValueType<SelectedOption>) => {
+    setLanguage = (selectedOption: OnChangeValue<SelectedOption, boolean>) => {
         if (selectedOption && 'value' in selectedOption) {
             this.setState({
                 locale: selectedOption.value,
@@ -184,11 +184,12 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
         });
 
         const reactStyles = {
-            menuPortal: (provided: React.CSSProperties) => ({
+            menuPortal: (provided) => ({
                 ...provided,
                 zIndex: 9999,
             }),
-        };
+        } satisfies StylesConfig<SelectedOption, boolean>;
+
         const interfaceLanguageLabelAria = intl.formatMessage({id: 'user.settings.languages.dropdown.arialabel', defaultMessage: 'Dropdown selector to change the interface language'});
 
         const input = (
@@ -217,7 +218,7 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                         menuPortalTarget={document.body}
                         styles={reactStyles}
                         options={options}
-                        clearable={false}
+                        isClearable={false}
                         onChange={this.setLanguage}
                         onKeyDown={this.handleKeyDown}
                         value={this.state.selectedOption}

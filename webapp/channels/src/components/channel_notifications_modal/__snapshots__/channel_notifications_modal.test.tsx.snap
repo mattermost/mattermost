@@ -711,38 +711,55 @@ Object {
                         class="mm-modal-generic-section-item__fieldset-react-select"
                       >
                         <div
-                          class="react-select singleSelect react-select-top css-2b097c-container"
+                          class="react-select singleSelect react-select-top css-b62m3t-container"
                           id="desktopNotificationSoundsSelect"
                         >
+                          <span
+                            class="css-1f43avz-a11yText-A11yText"
+                            id="react-select-8-live-region"
+                          />
+                          <span
+                            aria-atomic="false"
+                            aria-live="polite"
+                            aria-relevant="additions text"
+                            class="css-1f43avz-a11yText-A11yText"
+                            role="log"
+                          />
                           <div
-                            class="react-select__control css-yk16xz-control"
+                            class="react-select__control css-13cymwt-control"
                           >
                             <div
-                              class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                              class="react-select__value-container react-select__value-container--has-value css-hlgwow"
                             >
                               <div
-                                class="react-select__single-value css-1uccc91-singleValue"
+                                class="react-select__single-value css-1dimb5e-singleValue"
                               >
                                 Bing
                               </div>
                               <input
-                                class="css-62g3xt-dummyInput"
+                                aria-activedescendant=""
+                                aria-autocomplete="list"
+                                aria-expanded="false"
+                                aria-haspopup="true"
+                                aria-readonly="true"
+                                class="css-1s80ejz-dummyInput-DummyInput"
                                 id="desktopNotificationSoundsSelectInputId"
-                                readonly=""
+                                inputmode="none"
+                                role="combobox"
                                 tabindex="0"
                                 value=""
                               />
                             </div>
                             <div
-                              class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                              class="react-select__indicators css-1wy0on6"
                             >
                               <div
                                 aria-hidden="true"
-                                class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                                class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
                               >
                                 <svg
                                   aria-hidden="true"
-                                  class="css-6q0nyr-Svg"
+                                  class="css-tj5bde-Svg"
                                   focusable="false"
                                   height="20"
                                   viewBox="0 0 20 20"
@@ -1604,38 +1621,55 @@ Object {
                         class="mm-modal-generic-section-item__fieldset-react-select"
                       >
                         <div
-                          class="react-select singleSelect react-select-top css-2b097c-container"
+                          class="react-select singleSelect react-select-top css-b62m3t-container"
                           id="desktopNotificationSoundsSelect"
                         >
+                          <span
+                            class="css-1f43avz-a11yText-A11yText"
+                            id="react-select-3-live-region"
+                          />
+                          <span
+                            aria-atomic="false"
+                            aria-live="polite"
+                            aria-relevant="additions text"
+                            class="css-1f43avz-a11yText-A11yText"
+                            role="log"
+                          />
                           <div
-                            class="react-select__control css-yk16xz-control"
+                            class="react-select__control css-13cymwt-control"
                           >
                             <div
-                              class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                              class="react-select__value-container react-select__value-container--has-value css-hlgwow"
                             >
                               <div
-                                class="react-select__single-value css-1uccc91-singleValue"
+                                class="react-select__single-value css-1dimb5e-singleValue"
                               >
                                 Bing
                               </div>
                               <input
-                                class="css-62g3xt-dummyInput"
+                                aria-activedescendant=""
+                                aria-autocomplete="list"
+                                aria-expanded="false"
+                                aria-haspopup="true"
+                                aria-readonly="true"
+                                class="css-1s80ejz-dummyInput-DummyInput"
                                 id="desktopNotificationSoundsSelectInputId"
-                                readonly=""
+                                inputmode="none"
+                                role="combobox"
                                 tabindex="0"
                                 value=""
                               />
                             </div>
                             <div
-                              class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                              class="react-select__indicators css-1wy0on6"
                             >
                               <div
                                 aria-hidden="true"
-                                class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                                class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
                               >
                                 <svg
                                   aria-hidden="true"
-                                  class="css-6q0nyr-Svg"
+                                  class="css-tj5bde-Svg"
                                   focusable="false"
                                   height="20"
                                   viewBox="0 0 20 20"
@@ -2121,38 +2155,55 @@ Object {
                         class="mm-modal-generic-section-item__fieldset-react-select"
                       >
                         <div
-                          class="react-select singleSelect react-select-top css-2b097c-container"
+                          class="react-select singleSelect react-select-top css-b62m3t-container"
                           id="desktopNotificationSoundsSelect"
                         >
+                          <span
+                            class="css-1f43avz-a11yText-A11yText"
+                            id="react-select-7-live-region"
+                          />
+                          <span
+                            aria-atomic="false"
+                            aria-live="polite"
+                            aria-relevant="additions text"
+                            class="css-1f43avz-a11yText-A11yText"
+                            role="log"
+                          />
                           <div
-                            class="react-select__control css-yk16xz-control"
+                            class="react-select__control css-13cymwt-control"
                           >
                             <div
-                              class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                              class="react-select__value-container react-select__value-container--has-value css-hlgwow"
                             >
                               <div
-                                class="react-select__single-value css-1uccc91-singleValue"
+                                class="react-select__single-value css-1dimb5e-singleValue"
                               >
                                 Bing
                               </div>
                               <input
-                                class="css-62g3xt-dummyInput"
+                                aria-activedescendant=""
+                                aria-autocomplete="list"
+                                aria-expanded="false"
+                                aria-haspopup="true"
+                                aria-readonly="true"
+                                class="css-1s80ejz-dummyInput-DummyInput"
                                 id="desktopNotificationSoundsSelectInputId"
-                                readonly=""
+                                inputmode="none"
+                                role="combobox"
                                 tabindex="0"
                                 value=""
                               />
                             </div>
                             <div
-                              class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                              class="react-select__indicators css-1wy0on6"
                             >
                               <div
                                 aria-hidden="true"
-                                class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                                class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
                               >
                                 <svg
                                   aria-hidden="true"
-                                  class="css-6q0nyr-Svg"
+                                  class="css-tj5bde-Svg"
                                   focusable="false"
                                   height="20"
                                   viewBox="0 0 20 20"
@@ -2638,38 +2689,55 @@ Object {
                         class="mm-modal-generic-section-item__fieldset-react-select"
                       >
                         <div
-                          class="react-select singleSelect react-select-top css-2b097c-container"
+                          class="react-select singleSelect react-select-top css-b62m3t-container"
                           id="desktopNotificationSoundsSelect"
                         >
+                          <span
+                            class="css-1f43avz-a11yText-A11yText"
+                            id="react-select-9-live-region"
+                          />
+                          <span
+                            aria-atomic="false"
+                            aria-live="polite"
+                            aria-relevant="additions text"
+                            class="css-1f43avz-a11yText-A11yText"
+                            role="log"
+                          />
                           <div
-                            class="react-select__control css-yk16xz-control"
+                            class="react-select__control css-13cymwt-control"
                           >
                             <div
-                              class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
+                              class="react-select__value-container react-select__value-container--has-value css-hlgwow"
                             >
                               <div
-                                class="react-select__single-value css-1uccc91-singleValue"
+                                class="react-select__single-value css-1dimb5e-singleValue"
                               >
                                 Bing
                               </div>
                               <input
-                                class="css-62g3xt-dummyInput"
+                                aria-activedescendant=""
+                                aria-autocomplete="list"
+                                aria-expanded="false"
+                                aria-haspopup="true"
+                                aria-readonly="true"
+                                class="css-1s80ejz-dummyInput-DummyInput"
                                 id="desktopNotificationSoundsSelectInputId"
-                                readonly=""
+                                inputmode="none"
+                                role="combobox"
                                 tabindex="0"
                                 value=""
                               />
                             </div>
                             <div
-                              class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
+                              class="react-select__indicators css-1wy0on6"
                             >
                               <div
                                 aria-hidden="true"
-                                class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
+                                class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
                               >
                                 <svg
                                   aria-hidden="true"
-                                  class="css-6q0nyr-Svg"
+                                  class="css-tj5bde-Svg"
                                   focusable="false"
                                   height="20"
                                   viewBox="0 0 20 20"
