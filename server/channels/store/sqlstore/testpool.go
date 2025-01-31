@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
-// TestPool is used to facilitare the efficient (and safe) use of test stores in parallel tests (e.g. in api4, app, sqlstore).
+// TestPool is used to facilitate the efficient (and safe) use of test stores in parallel tests (e.g. in api4, app, sqlstore).
 type TestPool struct {
 	entries map[string]*TestPoolEntry
 	mut     sync.Mutex

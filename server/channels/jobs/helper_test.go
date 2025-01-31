@@ -38,8 +38,7 @@ type TestHelper struct {
 	IncludeCacheLayer bool
 	ConfigStore       *config.Store
 
-	tempWorkspace             string
-	oldWatcherPollingInterval int
+	tempWorkspace string
 }
 
 func setupTestHelper(dbStore store.Store, sqlSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool,
@@ -136,7 +135,7 @@ func SetupWithUpdateCfg(tb testing.TB, updateCfg func(cfg *model.Config), option
 			dbStore.Close()
 		})
 	} else {
-		dbStore := mainHelper.GetStore()
+		dbStore = mainHelper.GetStore()
 		dbSettings = mainHelper.GetSQLSettings()
 		dbStore.DropAllTables()
 		dbStore.MarkSystemRanUnitTests()
