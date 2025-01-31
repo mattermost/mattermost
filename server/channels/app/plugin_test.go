@@ -1401,6 +1401,9 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 }
 
 func TestGetPluginStateOverride(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1418,10 +1421,12 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("with enabled flag set to true", func(t *testing.T) {
-			os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "true")
-			defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
-
-			th2 := Setup(t)
+			if mainHelper.Options.RunParallel {
+				t.Parallel()
+			}
+			th2 := SetupConfig(t, func(cfg *model.Config) {
+				cfg.FeatureFlags.AppsEnabled = true
+			})
 			defer th2.TearDown()
 
 			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
@@ -1430,10 +1435,12 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("with enabled flag set to false", func(t *testing.T) {
-			os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "false")
-			defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
-
-			th2 := Setup(t)
+			if mainHelper.Options.RunParallel {
+				t.Parallel()
+			}
+			th2 := SetupConfig(t, func(cfg *model.Config) {
+				cfg.FeatureFlags.AppsEnabled = false
+			})
 			defer th2.TearDown()
 
 			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")

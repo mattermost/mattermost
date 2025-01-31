@@ -28,9 +28,6 @@ import (
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -174,6 +171,12 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 
 	t.Run("duplicate create post after cache expires is not idempotent", func(t *testing.T) {
+		originalCacheTTL := pendingPostIDsCacheTTL
+		pendingPostIDsCacheTTL = time.Second
+		t.Cleanup(func() {
+			pendingPostIDsCacheTTL = originalCacheTTL
+		})
+
 		pendingPostId := model.NewId()
 		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 			UserId:        th.BasicUser.Id,
@@ -184,7 +187,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
-		time.Sleep(PendingPostIDsCacheTTL)
+		time.Sleep(pendingPostIDsCacheTTL)
 
 		duplicatePost, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 			UserId:        th.BasicUser.Id,

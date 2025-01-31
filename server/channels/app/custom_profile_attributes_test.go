@@ -6,7 +6,6 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -15,8 +14,9 @@ import (
 )
 
 func TestGetCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -66,8 +66,9 @@ func TestGetCPAField(t *testing.T) {
 }
 
 func TestListCPAFields(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -113,8 +114,9 @@ func TestListCPAFields(t *testing.T) {
 }
 
 func TestCreateCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 
 	cpaGroupID, cErr := th.App.cpaGroupID()
@@ -213,8 +215,9 @@ func TestCreateCPAField(t *testing.T) {
 }
 
 func TestPatchCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -273,8 +276,9 @@ func TestPatchCPAField(t *testing.T) {
 }
 
 func TestDeleteCPAField(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -353,8 +357,9 @@ func TestDeleteCPAField(t *testing.T) {
 }
 
 func TestGetCPAValue(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -403,8 +408,9 @@ func TestGetCPAValue(t *testing.T) {
 }
 
 func TestPatchCPAValue(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

@@ -100,8 +100,15 @@ func (p *TestPool) Close() {
 	p.mut.Lock()
 	defer p.mut.Unlock()
 
+	var wg sync.WaitGroup
+	wg.Add(len(p.entries))
 	for _, entry := range p.entries {
-		entry.Store.Close()
-		storetest.CleanupSqlSettings(entry.Settings)
+		entry := entry
+		go func() {
+			defer wg.Done()
+			entry.Store.Close()
+			storetest.CleanupSqlSettings(entry.Settings)
+		}()
 	}
+	wg.Wait()
 }

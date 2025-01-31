@@ -71,6 +71,9 @@ func TestHookMessageWillBePosted(t *testing.T) {
 		t.Parallel()
 	}
 	t.Run("rejected", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -111,6 +114,9 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("rejected, returned post ignored", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -152,6 +158,9 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("allowed", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -195,6 +204,9 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("updated", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -239,6 +251,9 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("multiple updated", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -499,6 +514,9 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		t.Parallel()
 	}
 	t.Run("rejected", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -543,6 +561,9 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("rejected, returned file ignored", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -593,6 +614,9 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("allowed", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -649,6 +673,9 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("updated", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1547,6 +1574,10 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if mainHelper.Options.RunParallel {
+				t.Parallel()
+			}
+
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
 
@@ -1641,6 +1672,10 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 }
 
 func TestHookMessagesWillBeConsumed(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
+
 	setupPlugin := func(t *testing.T, th *TestHelper) {
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -1673,10 +1708,13 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 	}
 
 	t.Run("feature flag disabled", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 
-		th := Setup(t).InitBasic()
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ConsumePostHook = false
+		}).InitBasic()
 		t.Cleanup(th.TearDown)
 
 		setupPlugin(t, th)
@@ -1696,10 +1734,14 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 	})
 
 	t.Run("feature flag enabled", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 
-		th := Setup(t).InitBasic()
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.ConsumePostHook = true
+		}).InitBasic()
+
 		t.Cleanup(th.TearDown)
 
 		setupPlugin(t, th)
@@ -1724,6 +1766,9 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 		t.Parallel()
 	}
 	t.Run("should be called when preferences are changed by non-plugin code", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1792,6 +1837,9 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 	})
 
 	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1917,6 +1965,9 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
 
 	t.Run("should call hook when a regular channel is created", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1947,6 +1998,9 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	})
 
 	t.Run("should call hook when a DM is created", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1972,6 +2026,9 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	})
 
 	t.Run("should call hook when a GM is created", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2046,6 +2103,9 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
 
 	t.Run("should call hook when a user joins an existing channel", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2091,6 +2151,9 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	})
 
 	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2136,6 +2199,9 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	})
 
 	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2170,6 +2236,9 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	})
 
 	t.Run("should not call hook when a DM is created", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2200,6 +2269,9 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	})
 
 	t.Run("should not call hook when a GM is created", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 

@@ -17,10 +17,9 @@ import (
 )
 
 func TestUpsertDraft(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
-	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -86,10 +85,9 @@ func TestUpsertDraft(t *testing.T) {
 }
 
 func TestGetDrafts(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
-	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -158,10 +156,9 @@ func TestGetDrafts(t *testing.T) {
 }
 
 func TestDeleteDraft(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
-	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
-	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -201,7 +198,7 @@ func TestDeleteDraft(t *testing.T) {
 	_, _, err = client.UpsertDraft(context.Background(), draft2)
 	require.NoError(t, err)
 
-	//get drafts
+	// get drafts
 	draftResp, _, err := client.GetDrafts(context.Background(), user.Id, team.Id)
 	require.NoError(t, err)
 
@@ -217,7 +214,7 @@ func TestDeleteDraft(t *testing.T) {
 	_, _, err = client.DeleteDraft(context.Background(), user.Id, channel1.Id, draft1.RootId)
 	require.NoError(t, err)
 
-	//get drafts
+	// get drafts
 	draftResp, _, err = client.GetDrafts(context.Background(), user.Id, team.Id)
 	require.NoError(t, err)
 

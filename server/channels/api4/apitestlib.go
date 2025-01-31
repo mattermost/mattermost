@@ -198,6 +198,14 @@ func setupTestHelper(dbStore store.Store, sqlSettings *model.SqlSettings, search
 
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
+
+	// Support updating feature flags without resorting to os.Setenv which
+	// isn't concurrently safe.
+	if updateConfig != nil {
+		configStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(updateConfig)
+	}
+
 	if err := th.Server.Start(); err != nil {
 		panic(err)
 	}
