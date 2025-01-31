@@ -3084,3 +3084,55 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		assert.NotNil(t, appErr)
 	})
 }
+func TestGetChannelFileCount(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+
+	// Create a post with files
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   "This is a test post",
+		UserId:    th.BasicUser.Id,
+	}
+	post, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	fileInfo1 := &model.FileInfo{
+		Name:      "file1.txt",
+		MimeType:  "text/plain",
+		ChannelId: channel.Id,
+		CreatorId: th.BasicUser.Id,
+		PostId:    post.Id,
+		Path:      "/path/to/file1.txt",
+	}
+	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo1)
+	require.NoError(t, err)
+
+	fileInfo2 := &model.FileInfo{
+		Name:      "file2.txt",
+		MimeType:  "text/plain",
+		ChannelId: channel.Id,
+		CreatorId: th.BasicUser.Id,
+		PostId:    post.Id,
+		Path:      "/path/to/file2.txt",
+	}
+	_, err = th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo2)
+	require.NoError(t, err)
+
+	// Create a file without a post
+	fileInfo3 := &model.FileInfo{
+		Name:      "file3.txt",
+		MimeType:  "text/plain",
+		ChannelId: channel.Id,
+		CreatorId: th.BasicUser.Id,
+		Path:      "/path/to/file3.txt",
+	}
+	_, err = th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo3)
+	require.NoError(t, err)
+
+	count, appErr := th.App.GetChannelFileCount(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, int64(2), count)
+}

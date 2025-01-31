@@ -323,7 +323,6 @@ export type ServiceSettings = {
     EnableDeveloper: boolean;
     DeveloperFlags: string;
     EnableClientPerformanceDebugging: boolean;
-    EnableOpenTracing: boolean;
     EnableSecurityFixAlert: boolean;
     EnableInsecureOutgoingConnections: boolean;
     AllowedUntrustedInternalConnections: string;
@@ -879,6 +878,8 @@ export type MessageExportSettings = {
     DailyRunTime: string;
     ExportFromTimestamp: number;
     BatchSize: number;
+    ChannelBatchSize: number;
+    ChannelHistoryBatchSize: number;
     GlobalRelaySettings: {
         CustomerType: string;
         SMTPUsername: string;

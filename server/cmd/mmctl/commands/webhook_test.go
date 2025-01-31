@@ -271,7 +271,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -315,7 +315,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -460,7 +460,7 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
@@ -506,7 +506,7 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailID, "").
+			GetUserByUsername(context.TODO(), emailID, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 

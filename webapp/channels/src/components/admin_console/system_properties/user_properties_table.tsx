@@ -19,7 +19,7 @@ import {DangerText, FieldDeleteButton, FieldInput, LinkButton} from './controls'
 import type {SectionHook} from './section_utils';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import type {UserPropertyFields} from './user_properties_utils';
-import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameUnique} from './user_properties_utils';
+import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
 
 import {AdminConsoleListTable} from '../list_table';
 
@@ -34,6 +34,7 @@ type FieldActions = {
 
 export const useUserPropertiesTable = (): SectionHook => {
     const [userPropertyFields, readIO, pendingIO, itemOps] = useUserPropertyFields();
+    const nonDeletedCount = Object.values(userPropertyFields.data).filter((f) => f.delete_at === 0).length;
 
     const save = async () => {
         const newData = await pendingIO.commit();
@@ -53,7 +54,7 @@ export const useUserPropertiesTable = (): SectionHook => {
                 updateField={itemOps.update}
                 deleteField={itemOps.delete}
             />
-            {userPropertyFields.order.length < Constants.MAX_CUSTOM_ATTRIBUTES && (
+            {nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES && (
                 <LinkButton onClick={itemOps.create}>
                     <PlusIcon size={16}/>
                     <FormattedMessage
@@ -78,6 +79,7 @@ export const useUserPropertiesTable = (): SectionHook => {
 };
 
 export function UserPropertiesTable({data: collection, updateField, deleteField}: Props & FieldActions) {
+    const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
     const col = createColumnHelper<UserPropertyField>();
     const columns = useMemo<Array<ColumnDef<UserPropertyField, any>>>(() => {
@@ -115,6 +117,14 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                                 defaultMessage='Property names must be unique.'
                             />
                         );
+                    } else if (warningId === ValidationWarningNameTaken) {
+                        warning = (
+                            <FormattedMessage
+                                tagName={DangerText}
+                                id='admin.system_properties.user_properties.table.validation.name_taken'
+                                defaultMessage='Property name already taken.'
+                            />
+                        );
                     }
 
                     return (
@@ -122,8 +132,10 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                             <EditableValue
                                 strong={true}
                                 value={getValue()}
+                                label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Property Name'})}
                                 deleted={toDelete}
                                 borderless={!warning}
+                                testid='property-field-input'
                                 autoFocus={isCreatePending(row.original)}
                                 setValue={(value: string) => {
                                     updateField({...row.original, name: value.trim()});
@@ -331,6 +343,8 @@ const ActionsRoot = styled.div`
 
 type EditableValueProps = {
     value: string;
+    label?: string;
+    testid?: string;
     setValue: (value: string) => void;
     autoFocus?: boolean;
     disabled?: boolean;
@@ -351,7 +365,8 @@ const EditableValue = (props: EditableValueProps) => {
         <>
             <FieldInput
                 type='text'
-                data-testid='property-field-input'
+                aria-label={props.label}
+                data-testid={props.testid}
                 disabled={props.disabled ?? props.deleted}
                 $deleted={props.deleted}
                 $strong={props.strong}
