@@ -157,7 +157,7 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.P
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"Category": category})
 
-	if err := s.GetReplica().GetBuilder(&preferences, query); err != nil {
+	if err := s.GetReplica().SelectBuilder(&preferences, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Preferences with userId=%s, category=%s", userId, category)
 	}
 	return preferences, nil
@@ -168,7 +168,7 @@ func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, error) {
 	query := s.preferenceSelectQuery.
 		Where(sq.Eq{"UserId": userId})
 
-	if err := s.GetReplica().GetBuilder(&preferences, query); err != nil {
+	if err := s.GetReplica().SelectBuilder(&preferences, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Preferences with userId=%s", userId)
 	}
 	return preferences, nil
