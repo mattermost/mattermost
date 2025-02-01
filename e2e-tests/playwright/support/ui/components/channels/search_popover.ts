@@ -26,8 +26,13 @@ export default class SearchPopover {
         this.clearButton = container.locator('.input-clear-x');
     }
 
+    // clearIfPossible clears the search input if the clear button is visible. Returns true if the clear button was clicked.
     async clearIfPossible() {
-        (await this.clearButton.isVisible()) && (await this.clearButton.click());
+        if (await this.clearButton.isVisible()) {
+            await this.clearButton.click();
+            return true;
+        }
+        return false;
     }
 
     async toBeVisible() {
