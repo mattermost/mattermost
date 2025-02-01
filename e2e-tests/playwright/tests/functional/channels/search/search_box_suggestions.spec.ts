@@ -22,7 +22,7 @@ test('Search box suggestion must be case insensitive', async ({pw}) => {
 
     // Should work as expected when using lowercase
     // # Type in lowercase "off" to search for the "Off-Topic" channel
-    const {searchInput} = await channelsPage.searchPopover;
+    const {searchInput} = channelsPage.searchPopover;
     await searchInput.pressSequentially(`In:${searchWord}`);
 
     // * The suggestion should be visible
@@ -37,9 +37,11 @@ test('Search box suggestion must be case insensitive', async ({pw}) => {
     await expect(channelsPage.globalHeader.searchBox.getByText(searchOutput, {exact: true})).toBeVisible();
 
     // Should work as expected when using uppercase
-    // # Close then open the search UI
-    await channelsPage.globalHeader.closeSearch();
+    // # Open the search bar
     await channelsPage.globalHeader.openSearch();
+
+    // # Clear its content
+    await channelsPage.searchPopover.clearIfPossible();
 
     // # Type in uppercase "OFF" to search for the "Off-Topic" channel
     await searchInput.pressSequentially(`In:${searchWord.toUpperCase()}`);
