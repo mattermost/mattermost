@@ -23,12 +23,13 @@ export default function PostBoxIndicator({channelId, teammateDisplayName, locati
         isScheduledPostEnabled,
         currentUserTimesStamp,
         teammateTimezone,
+        isBot,
     } = useTimePostBoxIndicator(channelId);
 
     return (
         <div className='postBoxIndicator'>
             {
-                showRemoteUserHour &&
+                showRemoteUserHour && !isBot &&
                 <RemoteUserHour
                     displayName={teammateDisplayName}
                     timestamp={currentUserTimesStamp}
