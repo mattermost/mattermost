@@ -29,7 +29,8 @@ export default class ChannelsSidebarRight {
         this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
         this.rhsPostBody = container.locator('.post-message__text');
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('comment-create'), true);
-        this.closeButton = container.locator('#rhsCloseButton');
+        this.closeButton = container.locator('.sidebar--right__close');
+
         this.editTextbox = container.locator('#edit_textbox');
         this.postEdit = new components.ChannelsPostEdit(container.locator('.post-edit__container'));
         this.currentVersionEditedPosttext = (postID: any) => container.locator(`#rhsPostMessageText_${postID} p`);
