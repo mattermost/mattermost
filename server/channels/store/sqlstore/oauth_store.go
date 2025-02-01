@@ -72,7 +72,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to build SQL query for OAuthApp with id=%s", app.Id)
 	}
-	if err := as.GetReplica().Get(&app, query, args...); err != nil {
+	if err := as.GetReplica().Get(&oldApp, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get OAuthApp with id=%s", app.Id)
 	}
 	if oldApp.Id == "" {
@@ -152,8 +152,12 @@ func (as SqlOAuthStore) GetApps(offset, limit int) ([]*model.OAuthApp, error) {
 func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*model.OAuthApp, error) {
 	apps := []*model.OAuthApp{}
 
-	query, args, err := as.oAuthAppSelectQuery.
-		InnerJoin("Preferences AS p ON p.Name=o.Id AND p.UserId=?", userId).
+	query, args, err := as.getQueryBuilder().
+		Select("o.Id", "o.CreatorId", "o.CreateAt", "o.UpdateAt", "o.ClientSecret",
+			"o.Name", "o.Description", "o.IconURL", "o.CallbackUrls",
+			"o.Homepage", "o.IsTrusted", "o.MattermostAppID").
+		From("OAuthApps AS o").
+		InnerJoin("Preferences AS p ON p.Name = o.Id AND p.UserId = ?", userId).
 		Limit(uint64(limit)).
 		Offset(uint64(offset)).
 		ToSql()
@@ -241,8 +245,12 @@ func (as SqlOAuthStore) GetPreviousAccessData(userID, clientID string) (*model.A
 		OrderBy("ExpiresAt DESC").Limit(1)
 
 	if err := as.GetReplica().GetBuilder(&accessData, query); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, errors.Wrapf(err, "failed to find OAuthAccessData with userId=%s and clientId=%s", userID, clientID)
 	}
+
 	return &accessData, nil
 }
 
