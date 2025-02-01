@@ -75,11 +75,11 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 	if len(serverNames) > 0 {
 		for _, nodeName := range serverNames {
 			if nodeName == "default" {
-				appErr = AddLocalLogs(rctx, logData, s, page, perPage, nodeName, logFilter)
+				appErr = addLocalLogs(rctx, logData, s, page, perPage, nodeName, logFilter)
 			}
 		}
 	} else {
-		appErr = AddLocalLogs(rctx, logData, s, page, perPage, serverName, logFilter)
+		appErr = addLocalLogs(rctx, logData, s, page, perPage, serverName, logFilter)
 	}
 	if appErr != nil {
 		return nil, appErr
@@ -105,7 +105,7 @@ func (s *Server) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model
 	return logData, nil
 }
 
-func AddLocalLogs(rctx request.CTX, logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
+func addLocalLogs(rctx request.CTX, logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
 	currentServerLogs, err := s.GetLogsSkipSend(rctx, page, perPage, logFilter)
 	if err != nil {
 		return err

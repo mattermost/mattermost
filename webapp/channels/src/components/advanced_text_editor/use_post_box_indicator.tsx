@@ -100,6 +100,7 @@ function useTimePostBoxIndicator(channelId: string) {
 
     const currentUserId = useSelector(getCurrentUserId);
     const isSelfDM = isDM && teammateId === currentUserId;
+    const isBot = Boolean(isDM && teammate?.is_bot);
 
     return {
         showRemoteUserHour,
@@ -112,7 +113,7 @@ function useTimePostBoxIndicator(channelId: string) {
         teammateId,
         teammateDisplayName,
         isSelfDM,
-        isBot: isDM && teammate.is_bot,
+        isBot,
     };
 }
 

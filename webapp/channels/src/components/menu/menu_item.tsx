@@ -83,11 +83,32 @@ export interface Props extends MuiMenuItemProps {
 
     role?: AriaRole;
 
+    forceCloseOnSelect?: boolean;
+
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
     children?: ReactNode;
 }
+
+/**
+ * The props for the first menu item to be passed in.
+ * @example
+ * <Menu.Container>
+ *     <WrapperOfMenuFirstItem/> <-- Container passes the props to the first item
+ *     <Menu.Item/>
+ * </Menu.Container>
+ */
+export type FirstMenuItemProps = Omit<
+Props,
+| 'onClick'
+| 'leadingElement'
+| 'labels'
+| 'trailingElements'
+| 'isDestructive'
+| 'isLabelsRowLayout'
+| 'children'
+>;
 
 /**
  * To be used as a child of Menu component.
@@ -117,6 +138,7 @@ export function MenuItem(props: Props) {
         children,
         onClick,
         role = 'menuitem',
+        forceCloseOnSelect = false,
         ...otherProps
     } = props;
 
@@ -128,8 +150,9 @@ export function MenuItem(props: Props) {
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
             // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
+            // unless forceCloseOnSelect is set to true.
             // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
-            if (isRoleCheckboxOrRadio(role)) {
+            if (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect) {
                 event.stopPropagation();
             } else {
                 // close submenu first if it is open
@@ -161,7 +184,11 @@ export function MenuItem(props: Props) {
     }
 
     // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
-    const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
+    // we count after converting to array as it removes falsy values from labels.props.children
+    const hasSecondaryLabel = labels &&
+        labels.props &&
+        labels.props.children &&
+        Children.count(Children.toArray(labels.props.children)) === 2;
 
     return (
         <MenuItemStyled
@@ -283,7 +310,6 @@ export const MenuItemStyled = styled(MuiMenuItem, {
                     justifyContent: 'flex-end',
                     color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--error-text)',
                     gap: '4px',
-                    marginInlineStart: '24px',
                     fontSize: '12px',
                     lineHeight: '16px',
                     alignItems: 'center',

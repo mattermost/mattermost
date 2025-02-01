@@ -198,7 +198,12 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
                     <span>{formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}</span>
                 </h4>
             </div>
-            <div className='modal-info-tab-content user-settings' >
+            <div
+                className='modal-info-tab-content user-settings'
+                id='infoSettings'
+                aria-labelledby='infoButton'
+                role='tabpanel'
+            >
                 <div className='name-description-container' >
                     <TeamNameSection
                         name={name}

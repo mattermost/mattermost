@@ -55,6 +55,10 @@ func (s *StoreService) GetReplicaDB() (*sql.DB, error) {
 		return s.replicaDB, nil
 	}
 
+	if err := s.initializeMaster(); err != nil {
+		return nil, err
+	}
+
 	return s.masterDB, nil
 }
 

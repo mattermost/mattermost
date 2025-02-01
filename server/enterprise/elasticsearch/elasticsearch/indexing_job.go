@@ -35,7 +35,7 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 		return nil
 	}
 
-	return common.NewIndexerWorker(workerName,
+	return common.NewIndexerWorker(workerName, model.ElasticsearchSettingsESBackend,
 		esi.Server.Jobs,
 		logger,
 		esi.Server.Platform().FileBackend(), esi.Server.License,

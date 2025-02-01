@@ -516,7 +516,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                 onHide={[Function]}
                 renderBackdrop={[Function]}
                 restoreFocus={true}
-                role="dialog"
+                role="none"
                 show={false}
               >
                 <Modal

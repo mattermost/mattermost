@@ -41,7 +41,7 @@ export const getAllGroupsByName: (state: GlobalState) => Record<string, Group> =
         const groupsByName: Record<string, Group> = {};
 
         for (const id in groups) {
-            if (groups.hasOwnProperty(id)) {
+            if (Object.hasOwn(groups, id)) {
                 const group = groups[id];
                 groupsByName[group.name] = group;
             }
@@ -140,7 +140,7 @@ export const getAssociatedGroupsByName: (state: GlobalState, teamID: string, cha
         const groupsByName: Record<string, Group> = {};
 
         for (const id in groups) {
-            if (groups.hasOwnProperty(id)) {
+            if (Object.hasOwn(groups, id)) {
                 const group = groups[id];
                 groupsByName[group.name] = group;
             }
@@ -271,7 +271,7 @@ export const getAllGroupsForReferenceByName: (state: GlobalState) => Record<stri
         const groupsByName: Record<string, Group> = {};
 
         for (const id in groups) {
-            if (groups.hasOwnProperty(id)) {
+            if (Object.hasOwn(groups, id)) {
                 const group = groups[id];
                 groupsByName[group.name] = group;
             }

@@ -31,19 +31,20 @@ const SuggestionsBody = styled.div`
 
 type Props = {
     searchType: string;
+    searchTeam: string;
     searchTerms: string;
     selectedOption: number;
     setSelectedOption: (idx: number) => void;
     suggestionsHeader: React.ReactNode;
     providerResults: ProviderResult<unknown> | null;
-    onSearch: (searchType: string, searchTerms: string) => void;
+    onSearch: (searchType: string, searchTeam: string, searchTerms: string) => void;
     onSuggestionSelected: (value: string, matchedPretext: string) => void;
 }
 
-const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, providerResults, selectedOption, setSelectedOption, onSearch, onSuggestionSelected}: Props) => {
+const SearchSuggestions = ({searchType, searchTeam, searchTerms, suggestionsHeader, providerResults, selectedOption, setSelectedOption, onSearch, onSuggestionSelected}: Props) => {
     const runSearch = useCallback((searchTerms: string) => {
-        onSearch(searchType, searchTerms);
-    }, [onSearch, searchType]);
+        onSearch(searchType, searchTeam, searchTerms);
+    }, [onSearch, searchTeam, searchType]);
 
     const searchPluginSuggestions = useSelector(getSearchPluginSuggestions);
 
@@ -113,7 +114,7 @@ const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, provider
         );
     }
 
-    const pluginComponentInfo = searchPluginSuggestions.find(({pluginId}: any) => {
+    const pluginComponentInfo = searchPluginSuggestions.find(({pluginId}) => {
         if (searchType === pluginId) {
             return true;
         }
@@ -124,7 +125,7 @@ const SearchSuggestions = ({searchType, searchTerms, suggestionsHeader, provider
         return null;
     }
 
-    const Component: any = pluginComponentInfo.component;
+    const Component = pluginComponentInfo.component;
 
     return (
         <ErrorBoundary>

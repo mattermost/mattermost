@@ -1350,8 +1350,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
                     <WithTooltip
-                        id='error-tooltip'
-                        placement='top'
                         title={this.state?.serverError ?? ''}
                     >
                         <div

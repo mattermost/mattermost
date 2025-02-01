@@ -768,58 +768,6 @@
     "translation": "Ei voitu migroida AD/LDAP käyttäjiä määritetyllä kentällä. Duplikaattisyöte havaittu. Poista kaikki duplikaatit ja yritä uudestaan."
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Ei voitu avata väliaikaista vientitiedostoa"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Ei voitu hakea sähköpostia väliaikaistiedostosta"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Ei voitu hakea tietoa väliaikaisesta vientitiedostosta"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Ei voitu asettaa sähköpostin Vastaanottaja-osoitetta."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Ei voitu lukea sähköpostitietoa."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Ei voitu kirjoittaa sähköpostin viestiä."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Ei voitu asettaa sähköpostin viestiä."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Ei voitu asettaa sähköpostin Lähettäjä-osoitetta."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Ei voitu lähettää sähköpostia Global Relaylle."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Ei voitu generoida eml tiedostodataa."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Ei voitu luoda eml tiedostoa."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Ei voitu sulkea zip-tiedostoa."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Ei voitu liittää liitettä Global Relay vientiin."
-  },
-  {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "virhe haettaessa ryhmiä käyttäjälle"
   },
@@ -1528,10 +1476,6 @@
     "translation": "Virheellinen alkuperäinen ID"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Virheellinen viesti"
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Virheellinen ID"
   },
@@ -2208,10 +2152,6 @@
     "translation": "Ei voida päivittää webhookia tiimien välillä"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Ei voitu dekoodata sisääntulevan webhookin moniosaista sisältöä."
-  },
-  {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Joko trigger_words tai channel_id on asetettava"
   },
@@ -2824,10 +2764,6 @@
     "translation": "Elasticsearch-indeksin haku epäonnistui"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Elasticsearch-indeksin poisto epäonnistui"
-  },
-  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch ei ole käynnistetty"
   },
@@ -2904,68 +2840,8 @@
     "translation": "Compliance-vienti epäonnistui työlle '{{.JobName}}' sijainnissa '{{.FilePath}}'"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Ei voitu ladata vientimalleja. Yritä uudestaan."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance-toiminnallisuus on kytketty pois nykyisessä lisenssissä. Kysy järjestelmänvalvojalta Enterprise-lisenssiin vaihtamisesta."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Ei voitu uudelleenlukea väliaikaista Global Relay vientitiedostoa."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Ei voitu avata väliaikaista vientitiedostoa."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Ladattu kuva poistettiin Global Relay viennistä koska se oli liian suuri lähetettäväksi."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Ei voitu luoda viennin zip-tiedostoa."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Ei voitu luoda eml tiedostoa."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Ei voitu viedä viestiä."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Ei voitu luoda eml tiedostoa."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Ei voitu muuttaa metadataa JSON-muotoon."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Ei voitu lisätä metadatatiedostoa zip-tiedostoon."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Ei voitu lisätä otsikkoa CSV-vientiin."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Ei voitu luoda väliaikaista CSV-vientitiedostoa."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Ei voitu lisätä liitettä CSV-vientiin."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Ei voitu kopioida liitettä zip-tiedostoon."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Tuntematon vientimuoto {{.ExportType}}"
   },
   {
     "id": "ent.cluster.save_config.error",
