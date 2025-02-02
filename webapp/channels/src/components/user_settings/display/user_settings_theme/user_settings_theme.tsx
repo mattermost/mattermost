@@ -169,6 +169,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         } else {
             premade = (
                 <div key='premadeThemeChooser'>
+                    <br/>
                     <PremadeThemeChooser
                         theme={this.state.theme}
                         updateTheme={this.updateTheme}
@@ -229,8 +230,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                     </div>,
                 );
 
-                inputs.push(premade);
-                inputs.push(custom);
+                inputs.push(premade, custom);
 
                 inputs.push(
                     <div key='otherThemes'>
