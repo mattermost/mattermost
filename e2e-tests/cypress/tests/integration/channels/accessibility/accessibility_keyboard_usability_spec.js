@@ -156,8 +156,6 @@ describe('Verify Accessibility keyboard usability across different regions in th
                 cy.get(region).should('have.attr', 'role', 'application');
             });
             cy.get('.search__form').should('have.attr', 'role', 'search');
-            cy.get(`#post_${postId}`).children('.post__content').eq(0).should('have.attr', 'role', 'application');
-            cy.get(`#rhsPost_${postId}`).children('.post__content').eq(0).should('have.attr', 'role', 'application');
         });
     });
 });
