@@ -25,7 +25,7 @@ del .group-mention-link:focus {
     color: var(--link-color);
 
     &:hover,
-    :focus {
+    &:focus {
         text-decoration: underline;
     }
 }
