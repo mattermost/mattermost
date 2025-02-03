@@ -28,26 +28,23 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
           <div
             class="AdminUserCard__header"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              class="status-wrapper admin-user-card"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
             >
-              <button
-                class="RoundButton-dvlhqG gnYSKj style--none"
+              <span
+                class="profile-icon "
               >
-                <span
-                  class="profile-icon "
-                >
-                  <img
-                    alt="user profile image"
-                    class="Avatar Avatar-xxl"
-                    loading="lazy"
-                    src="/api/v4/users/user_id/image"
-                  />
-                </span>
-              </button>
-            </span>
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/user_id/image"
+                />
+              </span>
+            </button>
             <div
               class="AdminUserCard__user-info"
             >
@@ -240,26 +237,23 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
           <div
             class="AdminUserCard__header"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              class="status-wrapper admin-user-card"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
             >
-              <button
-                class="RoundButton-dvlhqG gnYSKj style--none"
+              <span
+                class="profile-icon "
               >
-                <span
-                  class="profile-icon "
-                >
-                  <img
-                    alt="user profile image"
-                    class="Avatar Avatar-xxl"
-                    loading="lazy"
-                    src="/api/v4/users/user_id/image"
-                  />
-                </span>
-              </button>
-            </span>
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/user_id/image"
+                />
+              </span>
+            </button>
             <div
               class="AdminUserCard__user-info"
             >
@@ -452,26 +446,23 @@ exports[`SystemUserDetail should not show manage user settings button when user 
           <div
             class="AdminUserCard__header"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              class="status-wrapper admin-user-card"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
             >
-              <button
-                class="RoundButton-dvlhqG gnYSKj style--none"
+              <span
+                class="profile-icon "
               >
-                <span
-                  class="profile-icon "
-                >
-                  <img
-                    alt="user profile image"
-                    class="Avatar Avatar-xxl"
-                    loading="lazy"
-                    src="/api/v4/users/user_id/image"
-                  />
-                </span>
-              </button>
-            </span>
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/user_id/image"
+                />
+              </span>
+            </button>
             <div
               class="AdminUserCard__user-info"
             >
@@ -664,26 +655,23 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
           <div
             class="AdminUserCard__header"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              class="status-wrapper admin-user-card"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
             >
-              <button
-                class="RoundButton-dvlhqG gnYSKj style--none"
+              <span
+                class="profile-icon "
               >
-                <span
-                  class="profile-icon "
-                >
-                  <img
-                    alt="user profile image"
-                    class="Avatar Avatar-xxl"
-                    loading="lazy"
-                    src="/api/v4/users/user_id/image"
-                  />
-                </span>
-              </button>
-            </span>
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/user_id/image"
+                />
+              </span>
+            </button>
             <div
               class="AdminUserCard__user-info"
             >
@@ -881,26 +869,23 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
           <div
             class="AdminUserCard__header"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              class="status-wrapper admin-user-card"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
             >
-              <button
-                class="RoundButton-dvlhqG gnYSKj style--none"
+              <span
+                class="profile-icon "
               >
-                <span
-                  class="profile-icon "
-                >
-                  <img
-                    alt="user profile image"
-                    class="Avatar Avatar-xxl"
-                    loading="lazy"
-                    src="/api/v4/users/user_id/image"
-                  />
-                </span>
-              </button>
-            </span>
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/user_id/image"
+                />
+              </span>
+            </button>
             <div
               class="AdminUserCard__user-info"
             >
@@ -1093,26 +1078,23 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
           <div
             class="AdminUserCard__header"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              class="status-wrapper admin-user-card"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
             >
-              <button
-                class="RoundButton-dvlhqG gnYSKj style--none"
+              <span
+                class="profile-icon "
               >
-                <span
-                  class="profile-icon "
-                >
-                  <img
-                    alt="user profile image"
-                    class="Avatar Avatar-xxl"
-                    loading="lazy"
-                    src="/api/v4/users/user_id/image"
-                  />
-                </span>
-              </button>
-            </span>
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/user_id/image"
+                />
+              </span>
+            </button>
             <div
               class="AdminUserCard__user-info"
             >

@@ -5,17 +5,9 @@ import {createRandomTeam} from '@e2e-support/server';
 import {expect, test} from '@e2e-support/test_fixture';
 
 test('team selector must show all my teams', async ({pw}) => {
-    const {adminClient, adminConfig, user, team} = await pw.initSetup();
+    pw.skipIfFeatureFlagNotSet('ExperimentalCrossTeamSearch', true);
 
-    // # Enable Cross Team Search Feature Flag
-    const newConfig = {
-        ...adminConfig,
-        FeatureFlags: {
-            ...adminConfig.FeatureFlags,
-            ExperimentalCrossTeamSearch: true,
-        },
-    };
-    await adminClient.updateConfig(newConfig);
+    const {adminClient, user, team} = await pw.initSetup();
 
     // # create 2 more teams and add the user to them
     const teams = [team];
