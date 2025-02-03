@@ -33,7 +33,7 @@ jobs:
       - update-initial-status
     steps:
       - name: cd/configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        uses: aws-actions/configure-aws-credentials@4fc4975a852c8cd99761e2de1f4ba73402e44dd9 # v4.0.3
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID }}
