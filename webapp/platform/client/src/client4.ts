@@ -615,7 +615,7 @@ export default class Client4 {
         );
     };
 
-    patchUser = (userPatch: Partial<UserProfile> & {id: string}) => {
+    patchUser = (userPatch: PartialExcept<UserProfile, 'id'>) => {
         return this.doFetch<UserProfile>(
             `${this.getUserRoute(userPatch.id)}/patch`,
             {method: 'put', body: JSON.stringify(userPatch)},
@@ -1240,7 +1240,7 @@ export default class Client4 {
         );
     };
 
-    patchTeam = (team: Partial<Team> & {id: string}) => {
+    patchTeam = (team: PartialExcept<Team, 'id'>) => {
         return this.doFetch<Team>(
             `${this.getTeamRoute(team.id)}/patch`,
             {method: 'put', body: JSON.stringify(team)},
@@ -1579,7 +1579,7 @@ export default class Client4 {
         );
     }
 
-    createChannel = (channel: Channel) => {
+    createChannel = (channel: PartialExcept<Channel, 'name' | 'display_name' | 'type' | 'team_id'>) => {
         return this.doFetch<ServerChannel>(
             `${this.getChannelsRoute()}`,
             {method: 'post', body: JSON.stringify(channel)},
@@ -2120,7 +2120,7 @@ export default class Client4 {
 
     // Post Routes
 
-    createPost = async (post: Post) => {
+    createPost = async (post: PartialExcept<Post, 'channel_id' | 'message'>) => {
         const result = await this.doFetch<Post>(
             `${this.getPostsRoute()}`,
             {method: 'post', body: JSON.stringify(post)},
@@ -2149,7 +2149,7 @@ export default class Client4 {
         );
     };
 
-    patchPost = (postPatch: Partial<Post> & {id: string}) => {
+    patchPost = (postPatch: PartialExcept<Post, 'id'>) => {
         return this.doFetch<Post>(
             `${this.getPostRoute(postPatch.id)}/patch`,
             {method: 'put', body: JSON.stringify(postPatch)},
@@ -2623,7 +2623,7 @@ export default class Client4 {
 
     // Integration Routes
 
-    createIncomingWebhook = (hook: IncomingWebhook) => {
+    createIncomingWebhook = (hook: PartialExcept<IncomingWebhook, 'channel_id'>) => {
         return this.doFetch<IncomingWebhook>(
             `${this.getIncomingHooksRoute()}`,
             {method: 'post', body: JSON.stringify(hook)},
@@ -2788,7 +2788,7 @@ export default class Client4 {
         );
     };
 
-    createOAuthApp = (app: OAuthApp) => {
+    createOAuthApp = (app: PartialExcept<OAuthApp, 'name' | 'description' | 'callback_urls' | 'homepage'>) => {
         return this.doFetch<OAuthApp>(
             `${this.getOAuthAppsRoute()}`,
             {method: 'post', body: JSON.stringify(app)},
@@ -2909,7 +2909,7 @@ export default class Client4 {
 
     // Emoji Routes
 
-    createCustomEmoji = (emoji: CustomEmoji, imageData: File) => {
+    createCustomEmoji = (emoji: PartialExcept<CustomEmoji, 'name' | 'creator_id'>, imageData: File) => {
         const formData = new FormData();
         formData.append('image', imageData);
         formData.append('emoji', JSON.stringify(emoji));
@@ -3512,7 +3512,7 @@ export default class Client4 {
         );
     };
 
-    createScheme = (scheme: Scheme) => {
+    createScheme = (scheme: PartialExcept<Scheme, 'display_name' | 'scope'>) => {
         return this.doFetch<Scheme>(
             `${this.getSchemesRoute()}`,
             {method: 'post', body: JSON.stringify(scheme)},
@@ -4295,7 +4295,7 @@ export default class Client4 {
     };
 
     // Schedule Post methods
-    createScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
+    createScheduledPost = (schedulePost: PartialExcept<ScheduledPost, 'channel_id' | 'message' | 'scheduled_at'>, connectionId: string) => {
         this.trackFeatureEvent(TrackScheduledPostsFeature, 'create_scheduled_post', {[TrackPropertyUser]: schedulePost.user_id, [TrackPropertyUserAgent]: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(

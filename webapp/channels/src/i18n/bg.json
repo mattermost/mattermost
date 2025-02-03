@@ -4119,8 +4119,6 @@
   "sidebar.types.unreads": "НЕПРОЧЕТЕНИ",
   "sidebar.unreads": "Още непрочетени",
   "sidebar_left.add_channel_dropdown.browseChannels": "Преглеждайте канали",
-  "sidebar_left.add_channel_dropdown.browseOrCreateChannels": "Преглеждайте или създавайте канали",
-  "sidebar_left.add_channel_dropdown.createCategory": "Създайте нова категория",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Създайте нов канал",
   "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Добавяне на падащо меню на канала",
   "sidebar_left.channel_filter.filterByUnread": "Филтриране по непрочетени",

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect, Locator} from '@playwright/test';
+import path from 'node:path';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
@@ -23,7 +24,7 @@ export default class ChannelsPostCreate {
             this.input = container.getByTestId('reply_textbox');
         }
 
-        this.attachmentButton = container.getByLabel('attachment');
+        this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
@@ -95,8 +96,18 @@ export default class ChannelsPostCreate {
     /**
      * Composes and sends a message
      */
-    async postMessage(message: string) {
+    async postMessage(message: string, files?: string[]) {
         await this.writeMessage(message);
+
+        if (files) {
+            const filePaths = files.map((file) => path.join(path.resolve(__dirname), '../../../asset', file));
+            this.container.page().once('filechooser', async (fileChooser) => {
+                await fileChooser.setFiles(filePaths);
+            });
+
+            await this.attachmentButton.click();
+        }
+
         await this.sendMessage();
     }
 
