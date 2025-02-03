@@ -3227,6 +3227,7 @@
   "channel_header.recentMentions": "Recent mentions",
   "channel_header.rename": "Rename Channel",
   "channel_header.search": "Search",
+  "channel_header.setConversationHeader": "Edit Header",
   "channel_header.setHeader": "Edit Channel Header",
   "channel_header.setPurpose": "Edit Channel Purpose",
   "channel_header.unarchive": "Unarchive Channel",

@@ -36,7 +36,7 @@ const EditConversationHeader = ({channel}: Props): JSX.Element => {
             }}
             labels={
                 <FormattedMessage
-                    id='channel_header.setHeader'
+                    id='channel_header.setConversationHeader'
                     defaultMessage='Edit Header'
                 />
             }

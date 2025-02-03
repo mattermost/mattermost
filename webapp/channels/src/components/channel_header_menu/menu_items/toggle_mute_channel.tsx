@@ -42,14 +42,14 @@ export default function ToggleMuteChannel({
         if (isMuted) {
             text = (
                 <FormattedMessage
-                    id='channel_header.unmute'
+                    id='channel_header.unmuteConversation'
                     defaultMessage='Unmute'
                 />
             );
         } else {
             text = (
                 <FormattedMessage
-                    id='channel_header.mute'
+                    id='channel_header.muteConversation'
                     defaultMessage='Mute'
                 />
             );

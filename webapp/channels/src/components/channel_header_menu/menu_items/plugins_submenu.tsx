@@ -18,6 +18,9 @@ type Props = {
 
 const PluginsSubmenu = (props: Props) => {
     const {formatMessage} = useIntl();
+    if (!props.pluginItems || props.pluginItems.length) {
+        return <></>;
+    }
     return (
         <Menu.SubMenu
             id={'moreActions'}
