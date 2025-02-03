@@ -94,26 +94,14 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                 </>
             )}
 
-            {(!isArchived && !isGroupConstrained && !isDefault) && (
-                <ChannelPermissionGate
-                    channelId={channel.id}
-                    teamId={channel.team_id}
-                    permissions={[channelMembersPermission]}
-                >
-                    <MenuItemAddMembers
-                        channel={channel}
-                    />
-                </ChannelPermissionGate>
-            )}
-
             {(isArchived || isDefault) && (
                 <MenuItemOpenMembersRHS
                     id='channelViewMembers'
                     channel={channel}
                     text={
                         <FormattedMessage
-                            id='channel_header.viewMembers'
-                            defaultMessage='View Members'
+                            id='channel_header.members'
+                            defaultMessage='Members'
                         />
                     }
                 />
@@ -126,7 +114,6 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                         teamId={channel.team_id}
                         permissions={[channelMembersPermission]}
                     >
-
                         {isGroupConstrained && isLicensedForLDAPGroups && (
                             <MenuItemGroupsMenuItems
                                 channel={channel}
@@ -137,11 +124,10 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                             channel={channel}
                             text={
                                 <FormattedMessage
-                                    id='channel_header.manageMembers'
-                                    defaultMessage='Manage Members'
+                                    id='channel_header.members'
+                                    defaultMessage='Members'
                                 />
                             }
-                            editMembers={!isArchived}
                         />
                     </ChannelPermissionGate>
 
@@ -156,8 +142,8 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                             channel={channel}
                             text={
                                 <FormattedMessage
-                                    id='channel_header.viewMembers'
-                                    defaultMessage='View Members'
+                                    id='channel_header.members'
+                                    defaultMessage='Members'
                                 />
                             }
                         />

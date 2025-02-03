@@ -3,6 +3,7 @@
 
 import type {ReactNode} from 'react';
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -14,11 +15,11 @@ import ChannelMoveToSubMenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
-import MenuItemAddGroupMembers from '../menu_items/add_group_members';
 import CloseMessage from '../menu_items/close_message';
 import MenuItemConvertToPrivate from '../menu_items/convert_gm_to_private';
 import EditConversationHeader from '../menu_items/edit_conversation_header';
 import MenuItemNotification from '../menu_items/notification';
+import MenuItemOpenMembersRHS from '../menu_items/open_members_rhs';
 import MenuItemPluginItems from '../menu_items/plugins_submenu';
 import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel';
 import MenuItemToggleInfo from '../menu_items/toggle_info';
@@ -80,7 +81,16 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     teamId={channel.team_id}
                     permissions={[Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS]}
                 >
-                    <MenuItemAddGroupMembers/>
+                    <MenuItemOpenMembersRHS
+                        id='channelViewMembers'
+                        channel={channel}
+                        text={
+                            <FormattedMessage
+                                id='channel_header.members'
+                                defaultMessage='Members'
+                            />
+                        }
+                    />
                     <Menu.Separator/>
                 </ChannelPermissionGate>
             )}
