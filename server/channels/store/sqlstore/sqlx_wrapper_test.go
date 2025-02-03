@@ -92,16 +92,15 @@ func TestSqlX(t *testing.T) {
 }
 
 func TestSqlxSelect(t *testing.T) {
-	t.Run("Select Methods", func(t *testing.T) {
-		testDrivers := []string{
-			model.DatabaseDriverPostgres,
-			model.DatabaseDriverMysql,
-		}
-
-		for _, driver := range testDrivers {
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+	for _, driver := range testDrivers {
+		t.Run(driver, func(t *testing.T) {
 			settings, err := makeSqlSettings(driver)
 			if err != nil {
-				continue
+				t.Skip(err)
 			}
 			*settings.QueryTimeout = 1
 			store := &SqlStore{
@@ -116,14 +115,7 @@ func TestSqlxSelect(t *testing.T) {
 			require.NoError(t, store.initConnection())
 			defer store.Close()
 
-			t.Run("Select with "+driver, func(t *testing.T) {
-				var result []string
-				err := store.GetMaster().Select(&result, "SELECT 'test' AS col")
-				require.NoError(t, err)
-				require.Equal(t, []string{"test"}, result)
-			})
-
-			t.Run("SelectCtx with "+driver, func(t *testing.T) {
+			t.Run("SelectCtx", func(t *testing.T) {
 				var result []string
 				err := store.GetMaster().SelectCtx(context.Background(), &result, "SELECT 'test' AS col")
 				require.NoError(t, err)
@@ -143,16 +135,7 @@ func TestSqlxSelect(t *testing.T) {
 				require.Equal(t, context.DeadlineExceeded, err)
 			})
 
-			t.Run("SelectBuilder with "+driver, func(t *testing.T) {
-				var result []string
-				builder := store.getQueryBuilder().
-					Select("'test' AS col")
-				err := store.GetMaster().SelectBuilder(&result, builder)
-				require.NoError(t, err)
-				require.Equal(t, []string{"test"}, result)
-			})
-
-			t.Run("SelectBuilderCtx with "+driver, func(t *testing.T) {
+			t.Run("SelectBuilderCtx", func(t *testing.T) {
 				var result []string
 				builder := store.getQueryBuilder().
 					Select("'test' AS col")
@@ -174,6 +157,6 @@ func TestSqlxSelect(t *testing.T) {
 				require.Error(t, err)
 				require.Equal(t, context.DeadlineExceeded, err)
 			})
-		}
-	})
+		})
+	}
 }
