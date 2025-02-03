@@ -119,7 +119,7 @@ func insertNullStatus(t *testing.T, ss store.Store, s SqlStore) string {
 	db := ss.GetInternalMasterDB()
 
 	// Insert status with explicit NULL values
-	builder := sq.StatementBuilder.PlaceholderFormat(getQueryPlaceholder(s.DriverName())).
+	builder := sq.StatementBuilder.PlaceholderFormat(s.GetQueryPlaceholder()).
 		Insert("Status").
 		Columns("UserId", "Status", quoteColumnName(s.DriverName(), "Manual"), "LastActivityAt", "DNDEndTime", "PrevStatus").
 		Values(userId, nil, nil, nil, nil, nil)

@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	sq "github.com/mattermost/squirrel"
 )
 
 // This function has a copy of it in app/helper_test
@@ -34,11 +33,4 @@ func quoteColumnName(driver string, columnName string) string {
 	}
 
 	return columnName
-}
-
-func getQueryPlaceholder(driver string) sq.PlaceholderFormat {
-	if driver == model.DatabaseDriverPostgres {
-		return sq.Dollar
-	}
-	return sq.Question
 }
