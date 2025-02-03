@@ -3,4 +3,19 @@
 
 .UserSettingsModal {
     margin-top: 5vh !important;
+
+    &__headerWrapper{
+        display: flex;
+        justify-content: space-between;
+
+        .adminModeBadge {
+            margin: 0 !important;
+            line-height: 18px;
+            padding: 0 !important;
+
+            span {
+                margin: 0 auto;
+            }
+        }
+    }
 }
