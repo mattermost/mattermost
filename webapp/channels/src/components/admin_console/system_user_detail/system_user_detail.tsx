@@ -318,6 +318,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 adminMode: true,
                 isContentProductSettings: true,
                 userID: this.state.user.id,
+                focusOriginElement: 'system_user_details',
             },
         });
     };

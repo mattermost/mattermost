@@ -132,7 +132,6 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     handleExit = () => {
-        //determine when should set the focus back
         focusElement(this.props.focusOriginElement, true);
         this.props.onExited?.();
     };

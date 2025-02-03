@@ -122,6 +122,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     dialogType: UserSettingsModal,
                     dialogProps: {
                         isContentProductSettings: true,
+                        focusOriginElement: 'sidebar.tsx',
                     },
                 });
             }

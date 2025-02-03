@@ -134,6 +134,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     adminMode: true,
                     isContentProductSettings: true,
                     userID: user.id,
+                    focusOriginElement: 'system_user_list',
                 },
             }));
         }
