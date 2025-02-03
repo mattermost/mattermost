@@ -7,13 +7,13 @@ toolchain go1.21.8
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.2.1
+	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/aws/aws-sdk-go v1.50.27
 	github.com/blang/semver/v4 v4.0.0
 	github.com/blevesearch/bleve/v2 v2.3.10
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
-	github.com/disintegration/imaging v1.6.2
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/elastic/go-elasticsearch/v8 v8.4.0-alpha.1.0.20230719162115-b74bbf87c923
 	github.com/fatih/color v1.16.0
@@ -74,7 +74,7 @@ require (
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.7.4
 	golang.org/x/crypto v0.33.0
-	golang.org/x/image v0.15.0
+	golang.org/x/image v0.18.0
 	golang.org/x/net v0.35.0
 	golang.org/x/sync v0.11.0
 	golang.org/x/term v0.29.0
