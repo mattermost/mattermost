@@ -20,6 +20,7 @@
     "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
+    "katex": "0.16.21",
     "react-intl": "6.6.2",
     "typescript": "5.6.3"
   },
