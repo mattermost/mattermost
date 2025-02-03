@@ -136,8 +136,17 @@ describe('Multi-user group header', () => {
     });
 
     function editHeader(header) {
-        // # Click edit conversation header
-        cy.uiOpenChannelMenu('Edit Conversation Header');
+        cy.get('#channelHeaderDescription .header-description__text').trigger('mouseenter');
+
+        // # Click edit header
+        // cy.uiOpenChannelMenu('Edit Header');
+
+        // # Click on the channel name in the channel header to open the channel menu options
+        cy.get('#channelHeaderTitle').click();
+
+        // # Select the "Edit Channel Header" option from the dropdown
+        cy.findByText('Settings').should('be.visible').trigger('mouseover');
+        cy.findByText('Edit Header').click();
 
         // * Verify the modal open to add header
         cy.get('#editChannelHeaderModalLabel').should('be.visible').wait(TIMEOUTS.ONE_SEC);
