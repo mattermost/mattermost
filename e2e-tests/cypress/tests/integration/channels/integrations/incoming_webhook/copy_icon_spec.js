@@ -51,21 +51,12 @@ describe('Incoming webhook', () => {
         cy.findByText('Setup Successful').should('be.visible');
 
         // * You should see a "copy" icon to the right of the URL in the "Setup Successful" screen
-        copyIconIsVisible('.backstage-form__confirmation');
+        cy.findByTestId('copyText').should('be.visible');
 
         // # Click "Done" in the "Setup Successful" screen
         cy.findByText('Done').should('be.visible').click();
 
         // # You should see a "copy" icon to the right of the webhook's URL
-        copyIconIsVisible('.item-details__url');
+        cy.findByTestId('copyText').should('be.visible');
     });
 });
-
-function copyIconIsVisible(element) {
-    cy.get(element).within(() => {
-        cy.get('.fa.fa-copy').
-            should('be.visible').
-            trigger('mouseover').
-            should('have.attr', 'aria-describedby', 'copy');
-    });
-}

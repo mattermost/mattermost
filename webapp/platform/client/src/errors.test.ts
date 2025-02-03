@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import Client4 from './client4';
-
 import {cleanUrlForLogging} from './errors';
 
 describe('cleanUrlForLogging', () => {

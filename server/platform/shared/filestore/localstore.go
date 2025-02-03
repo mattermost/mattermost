@@ -4,6 +4,7 @@
 package filestore
 
 import (
+	"archive/zip"
 	"bytes"
 	"io"
 	"os"
@@ -16,7 +17,8 @@ import (
 )
 
 const (
-	TestFilePath = "/testfile"
+	TestFilePath      = "/testfile"
+	MaxRecursionDepth = 50
 )
 
 type LocalFileBackend struct {
@@ -211,7 +213,7 @@ func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 		}
 		if dirEntry.IsDir() {
 			if maxDepth <= 0 {
-				mlog.Warn("Max Depth reached", mlog.String("path", entryPath))
+				mlog.Warn("Max depth reached, skipping any further directories", mlog.Int("depth", maxDepth), mlog.String("path", entryPath))
 				results = append(results, entryPath)
 				continue // we'll ignore it if max depth is reached.
 			}
@@ -228,11 +230,26 @@ func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 }
 
 func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
-	return appendRecursively(b.directory, path, 0)
+	results := []string{}
+	dirEntries, err := os.ReadDir(filepath.Join(b.directory, path))
+	if err != nil {
+		if os.IsNotExist(err) {
+			// ideally os.ErrNotExist should've been returned but to keep the
+			// consistency, leaving it as is before.
+			return results, nil
+		}
+		// same here, ideally we shouldn't return the empty slice
+		return results, errors.Wrapf(err, "unable to list the directory %s", path)
+	}
+	for _, dirEntry := range dirEntries {
+		results = append(results, filepath.Join(path, dirEntry.Name()))
+	}
+
+	return results, nil
 }
 
 func (b *LocalFileBackend) ListDirectoryRecursively(path string) ([]string, error) {
-	return appendRecursively(b.directory, path, 10)
+	return appendRecursively(b.directory, path, MaxRecursionDepth)
 }
 
 func (b *LocalFileBackend) RemoveDirectory(path string) error {
@@ -240,4 +257,91 @@ func (b *LocalFileBackend) RemoveDirectory(path string) error {
 		return errors.Wrapf(err, "unable to remove the directory %s", path)
 	}
 	return nil
+}
+
+// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
+func (b *LocalFileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+	deflateMethod := zip.Store
+	if deflate {
+		deflateMethod = zip.Deflate
+	}
+
+	fullPath := filepath.Join(b.directory, path)
+	baseInfo, err := os.Stat(fullPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to stat path %s", path)
+	}
+
+	pr, pw := io.Pipe()
+
+	go func() {
+		defer pw.Close()
+
+		zipWriter := zip.NewWriter(pw)
+		defer zipWriter.Close()
+
+		err = filepath.Walk(fullPath, func(filePath string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			// Handle single file case
+			baseDir := fullPath
+			if !baseInfo.IsDir() {
+				baseDir = filepath.Dir(baseDir)
+			}
+
+			// Get the relative path from the base directory
+			relPath, err := filepath.Rel(baseDir, filePath)
+			if err != nil {
+				return errors.Wrapf(err, "unable to get relative path for %s", filePath)
+			}
+
+			// Skip the root directory itself
+			if relPath == "." {
+				return nil
+			}
+
+			// Create zip header
+			header, err := zip.FileInfoHeader(info)
+			if err != nil {
+				return errors.Wrapf(err, "unable to create zip header for %s", relPath)
+			}
+
+			// Ensure consistent forward slashes in paths
+			header.Name = filepath.ToSlash(relPath)
+
+			// Skip directories - we don't need to create entries for them
+			if info.IsDir() {
+				return nil
+			}
+
+			// Create file entry
+			header.Method = deflateMethod
+			header.SetMode(0644) // rw-r--r-- permissions
+			writer, err := zipWriter.CreateHeader(header)
+			if err != nil {
+				return errors.Wrapf(err, "unable to create zip entry for %s", relPath)
+			}
+
+			file, err := os.Open(filePath)
+			if err != nil {
+				return errors.Wrapf(err, "unable to open file %s", filePath)
+			}
+			defer file.Close()
+
+			if _, err := io.Copy(writer, file); err != nil {
+				return errors.Wrapf(err, "unable to copy file content for %s", relPath)
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			pw.CloseWithError(errors.Wrap(err, "error walking directory"))
+		}
+	}()
+
+	return pr, nil
 }

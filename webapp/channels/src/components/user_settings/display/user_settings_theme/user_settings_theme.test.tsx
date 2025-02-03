@@ -4,13 +4,8 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {IntlProvider} from 'react-intl';
-import {Provider} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
-
-import {render, fireEvent, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
 
 import UserSettingsTheme from './user_settings_theme';
 
@@ -20,29 +15,13 @@ jest.mock('utils/utils', () => ({
     a11yFocus: jest.fn(),
 }));
 
-describe('components/user_settings/display/user_settings_theme/user_settings_theme.jsx', () => {
-    const initialState = {
-        entities: {
-            general: {
-                config: {},
-                license: {
-                    Cloud: 'false',
-                },
-            },
-            users: {
-                currentUserId: 'currentUserId',
-            },
-        },
-    };
-    const store = mockStore(initialState);
-
+describe('components/user_settings/display/user_settings_theme/user_settings_theme', () => {
     const requiredProps: ComponentProps<typeof UserSettingsTheme> = {
         theme: Preferences.THEMES.denim,
         currentTeamId: 'teamId',
         selected: false,
         updateSection: jest.fn(),
         setRequireConfirm: jest.fn(),
-        setEnforceFocus: jest.fn(),
         actions: {
             saveTheme: jest.fn().mockResolvedValue({data: true}),
             deleteTeamSpecificThemes: jest.fn().mockResolvedValue({data: true}),
@@ -96,26 +75,5 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         await wrapper.instance().submitTheme();
 
         expect(props.actions.deleteTeamSpecificThemes).toHaveBeenCalled();
-    });
-
-    it('should call openModal when slack import theme button is clicked', async () => {
-        const props = {
-            ...requiredProps,
-            allowCustomThemes: true,
-            selected: true,
-        };
-
-        render(
-            <IntlProvider locale={'en'}>
-                <Provider store={store}>
-                    <UserSettingsTheme {...props}/>
-                </Provider>
-            </IntlProvider>,
-        );
-
-        // Click the Slack Import button
-        fireEvent.click(screen.getByText('Import theme colors from Slack'));
-
-        expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 });

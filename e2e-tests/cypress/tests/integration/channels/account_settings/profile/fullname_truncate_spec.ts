@@ -60,10 +60,11 @@ describe('Profile > Profile Settings> Full Name', () => {
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).should('be.visible');
             cy.get(`#post_${postId} img`).click();
-            cy.get('#user-profile-popover').should('be.visible');
+            cy.get('div.user-profile-popover').should('be.visible');
+            cy.get('button.closeButtonRelativePosition').click();
 
             // * Popover user name should show truncated to 'This Is a Long Name That Should Tr...'
-            cy.findByTestId(`popover-fullname-${firstUser.username}`).should('have.css', 'text-overflow', 'ellipsis');
+            cy.findByTestId(`popover-fullname-${firstUser.username}`).should('have.css', 'text-overflow', 'clip');
         });
     });
 

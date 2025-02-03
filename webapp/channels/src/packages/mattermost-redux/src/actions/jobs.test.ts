@@ -42,7 +42,7 @@ describe('Actions.Jobs', () => {
                 data: {},
             });
 
-        await Actions.createJob(job)(store.dispatch, store.getState);
+        await store.dispatch(Actions.createJob(job));
 
         const state = store.getState();
         const jobs = state.entities.jobs.jobs;
@@ -60,7 +60,7 @@ describe('Actions.Jobs', () => {
                 data: {},
             });
 
-        await Actions.getJob('six4h67ja7ntdkek6g13dp3wka')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getJob('six4h67ja7ntdkek6g13dp3wka'));
 
         const state = store.getState();
         const jobs = state.entities.jobs.jobs;
@@ -72,7 +72,7 @@ describe('Actions.Jobs', () => {
             post('/jobs/six4h67ja7ntdkek6g13dp3wka/cancel').
             reply(200, OK_RESPONSE);
 
-        await Actions.cancelJob('six4h67ja7ntdkek6g13dp3wka')(store.dispatch, store.getState);
+        await store.dispatch(Actions.cancelJob('six4h67ja7ntdkek6g13dp3wka'));
 
         const state = store.getState();
         const jobs = state.entities.jobs.jobs;
@@ -91,7 +91,7 @@ describe('Actions.Jobs', () => {
                 data: {},
             }]);
 
-        await Actions.getJobs()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getJobs());
 
         const state = store.getState();
         const jobs = state.entities.jobs.jobs;
@@ -110,7 +110,7 @@ describe('Actions.Jobs', () => {
                 data: {},
             }]);
 
-        await Actions.getJobsByType('data_retention')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getJobsByType('data_retention'));
 
         const state = store.getState();
 

@@ -25,8 +25,10 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
                         last_name: 'user',
                     } as UserProfile,
                 ]}
-                errorMessageId='errorMessageId'
-                errorMessageDefault='errorMessageDefault'
+                errorMessage={{
+                    id: 'errorMessageId',
+                    defaultMessage: 'errorMessageDefault',
+                }}
                 onInputChange={jest.fn()}
                 inputValue=''
                 emailInvitationsEnabled={false}

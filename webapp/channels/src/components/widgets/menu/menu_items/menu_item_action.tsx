@@ -8,7 +8,6 @@ import menuItem from './menu_item';
 
 type Props = {
     onClick: (e: React.MouseEvent) => void;
-    ariaLabel?: string;
     text: React.ReactNode;
     extraText?: string;
     id?: string;
@@ -17,10 +16,10 @@ type Props = {
     isDangerous?: boolean;
     disabled?: boolean;
     sibling?: React.ReactNode;
+    iconClassName?: string;
 }
 export const MenuItemActionImpl = ({
     onClick,
-    ariaLabel,
     text,
     extraText,
     id,
@@ -29,12 +28,12 @@ export const MenuItemActionImpl = ({
     isDangerous,
     disabled,
     sibling,
+    iconClassName,
 }: Props) => (
     <>
         <button
             data-testid={id}
             id={id}
-            aria-label={ariaLabel}
             className={classNames('style--none', buttonClass, {
                 'MenuItem__with-help': extraText,
                 'MenuItem__with-sibling': sibling,
@@ -44,6 +43,7 @@ export const MenuItemActionImpl = ({
             onClick={onClick}
             disabled={disabled}
         >
+            {iconClassName && <i className={`icon ${iconClassName}`}/>}
             {text && <span className='MenuItem__primary-text'>{text}{rightDecorator}</span>}
             {extraText && <span className='MenuItem__help-text'>{extraText}</span>}
         </button>

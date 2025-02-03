@@ -109,6 +109,9 @@ export const getDefaultConfig = () => {
         ElasticsearchSettings: {
             ConnectionURL: cypressEnv.elasticsearchConnectionURL,
         },
+        EmailSettings: {
+            PushNotificationServer: cypressEnv.pushNotificationServer,
+        },
         LdapSettings: {
             LdapServer: cypressEnv.ldapServer,
             LdapPort: cypressEnv.ldapPort,
@@ -143,7 +146,7 @@ const expectConfigToBeUpdatable = (currentConfig, newConfig) => {
 
         if (setting) {
             Object.keys(newSubSetting).forEach((newSubKey) => {
-                const isAvailable = setting.hasOwnProperty(newSubKey);
+                const isAvailable = Object.hasOwn(setting, newSubKey);
                 const name = `${newMainKey}.${newSubKey}`;
                 expect(isAvailable, isAvailable ? `${name} setting can be updated.` : errorMessage(name)).to.equal(true);
             });

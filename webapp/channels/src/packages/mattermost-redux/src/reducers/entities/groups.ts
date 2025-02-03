@@ -5,10 +5,10 @@ import {combineReducers} from 'redux';
 
 import type {GroupChannel, GroupSyncablesState, GroupTeam, Group} from '@mattermost/types/groups';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {GroupTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-function syncables(state: Record<string, GroupSyncablesState> = {}, action: GenericAction) {
+function syncables(state: Record<string, GroupSyncablesState> = {}, action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_GROUP_TEAMS: {
         return {
@@ -141,7 +141,7 @@ function syncables(state: Record<string, GroupSyncablesState> = {}, action: Gene
     }
 }
 
-function myGroups(state: string[] = [], action: GenericAction) {
+function myGroups(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.ADD_MY_GROUP: {
         const groupId = action.id;
@@ -185,7 +185,7 @@ function myGroups(state: string[] = [], action: GenericAction) {
     }
 }
 
-function stats(state: any = {}, action: GenericAction) {
+function stats(state: any = {}, action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_GROUP_STATS: {
         const stat = action.data;
@@ -199,7 +199,7 @@ function stats(state: any = {}, action: GenericAction) {
     }
 }
 
-function groups(state: Record<string, Group> = {}, action: GenericAction) {
+function groups(state: Record<string, Group> = {}, action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.CREATE_GROUP_SUCCESS:
     case GroupTypes.PATCHED_GROUP:

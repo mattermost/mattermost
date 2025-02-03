@@ -137,31 +137,18 @@ exports[`components/drafts/panel/panel_header should show sync icon when draft i
       <div
         className="PanelHeader__sync-icon"
       >
-        <OverlayTrigger
-          defaultOverlayShown={false}
-          delayShow={400}
-          overlay={
-            <Tooltip
-              id="drafts-sync-tooltip"
-            >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Updated from another device"
-                id="drafts.info.sync"
-              />
-            </Tooltip>
-          }
-          placement="top"
-          trigger={
-            Array [
-              "hover",
-              "focus",
-            ]
+        <WithTooltip
+          title={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Updated from another device"
+              id="drafts.info.sync"
+            />
           }
         >
           <SyncIcon
             size={18}
           />
-        </OverlayTrigger>
+        </WithTooltip>
       </div>
       <div
         className="PanelHeader__timestamp"

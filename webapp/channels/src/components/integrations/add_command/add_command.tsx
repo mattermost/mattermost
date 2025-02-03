@@ -25,7 +25,7 @@ export type Props = {
         /**
         * The function to call to add new command
         */
-        addCommand: (command: Command) => Promise<ActionResult>;
+        addCommand: (command: Command) => Promise<ActionResult<Command>>;
     };
 };
 

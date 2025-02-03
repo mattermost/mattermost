@@ -14,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
+func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -42,21 +42,27 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 	}
 
 	if appErr := a.ResolvePersistentNotification(c, post, userID); appErr != nil {
+		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonResolvePersistentNotificationError, model.NotificationNoPlatform)
+		a.NotificationsLog().Error("Error resolving persistent notification",
+			mlog.String("sender_id", userID),
+			mlog.String("post_id", post.RootId),
+			mlog.String("status", model.NotificationStatusError),
+			mlog.String("reason", model.NotificationReasonResolvePersistentNotificationError),
+			mlog.Err(appErr),
+		)
 		return nil, appErr
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.invalidateCacheForChannelPosts(channel.Id)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	a.Srv().Go(func() {
-		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
-	})
+	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
 
 	return acknowledgement, nil
 }
 
-func (a *App) DeleteAcknowledgementForPost(c *request.Context, postID, userID string) *model.AppError {
-	post, err := a.GetSinglePost(postID, false)
+func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return err
 	}
@@ -92,11 +98,9 @@ func (a *App) DeleteAcknowledgementForPost(c *request.Context, postID, userID st
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.invalidateCacheForChannelPosts(channel.Id)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	a.Srv().Go(func() {
-		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementRemoved, oldAck, post)
-	})
+	a.sendAcknowledgementEvent(c, model.WebsocketEventAcknowledgementRemoved, oldAck, post)
 
 	return nil
 }
@@ -126,13 +130,13 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 	return acknowledgementsMap, nil
 }
 
-func (a *App) sendAcknowledgementEvent(event string, acknowledgement *model.PostAcknowledgement, post *model.Post) {
+func (a *App) sendAcknowledgementEvent(rctx request.CTX, event model.WebsocketEventType, acknowledgement *model.PostAcknowledgement, post *model.Post) {
 	// send out that a acknowledgement has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 
 	acknowledgementJSON, err := json.Marshal(acknowledgement)
 	if err != nil {
-		a.Log().Warn("Failed to encode acknowledgement to JSON", mlog.Err(err))
+		rctx.Logger().Warn("Failed to encode acknowledgement to JSON", mlog.Err(err))
 	}
 	message.Add("acknowledgement", string(acknowledgementJSON))
 	a.Publish(message)

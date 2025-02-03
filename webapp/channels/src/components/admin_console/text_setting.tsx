@@ -2,20 +2,33 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import TextSetting from 'components/widgets/settings/text_setting';
 import type {Props as WidgetTextSettingProps} from 'components/widgets/settings/text_setting';
 
 import SetByEnv from './set_by_env';
 
-interface Props extends WidgetTextSettingProps {
+interface Props extends Omit<WidgetTextSettingProps, 'placeholder'> {
     setByEnv: boolean;
     disabled?: boolean;
+    placeholder?: string | MessageDescriptor;
 }
 
 const AdminTextSetting: React.FunctionComponent<Props> = (props: Props): JSX.Element => {
-    const {setByEnv, disabled, footer, ...sharedProps} = props;
+    const {setByEnv, disabled, footer, placeholder, ...sharedProps} = props;
     const isTextDisabled = disabled || setByEnv;
+    const intl = useIntl();
+
+    let placeholderToUse;
+    if (placeholder) {
+        if (typeof placeholder === 'string') {
+            placeholderToUse = placeholder;
+        } else {
+            placeholderToUse = intl.formatMessage(placeholder);
+        }
+    }
 
     return (
         <TextSetting
@@ -24,6 +37,7 @@ const AdminTextSetting: React.FunctionComponent<Props> = (props: Props): JSX.Ele
             inputClassName='col-sm-8'
             disabled={isTextDisabled}
             footer={setByEnv ? <SetByEnv/> : footer}
+            placeholder={placeholderToUse}
         />
     );
 };

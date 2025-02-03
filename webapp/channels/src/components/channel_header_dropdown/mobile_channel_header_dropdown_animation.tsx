@@ -10,26 +10,27 @@ const ANIMATION_DURATION = 350;
 type Props = {
     children?: ReactNode;
     show: boolean;
-}
+};
 
-export default class MobileChannelHeaderDropdownAnimation extends React.PureComponent<Props> {
-    render() {
-        return (
-            <CSSTransition
-                in={this.props.show}
-                classNames='mobile-channel-header-dropdown'
-                enter={true}
-                exit={true}
-                mountOnEnter={true}
-                unmountOnExit={true}
-                timeout={{
-                    enter: ANIMATION_DURATION,
-                    exit: ANIMATION_DURATION,
-                }}
-            >
-                {this.props.children}
-            </CSSTransition>
-        );
-    }
-}
+const timeout = {
+    enter: ANIMATION_DURATION,
+    exit: ANIMATION_DURATION,
+};
 
+const MobileChannelHeaderDropdownAnimation = ({show, children}: Props) => {
+    return (
+        <CSSTransition
+            in={show}
+            classNames='mobile-channel-header-dropdown'
+            enter={true}
+            exit={true}
+            mountOnEnter={true}
+            unmountOnExit={true}
+            timeout={timeout}
+        >
+            {children}
+        </CSSTransition>
+    );
+};
+
+export default React.memo(MobileChannelHeaderDropdownAnimation);

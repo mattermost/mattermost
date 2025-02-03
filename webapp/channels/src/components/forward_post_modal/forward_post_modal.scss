@@ -84,7 +84,7 @@
                 }
 
                 &--description {
-                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
                 }
 
                 .emoticon {
@@ -95,7 +95,7 @@
             &__team-name {
                 overflow: hidden;
                 width: 100%;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.75);
                 grid-column: 3 / 4;
                 text-align: right;
                 text-overflow: ellipsis;
@@ -138,8 +138,17 @@
             box-shadow: none;
 
             &#forward_post_textbox_placeholder {
-                opacity: 0.64 !important;
+                opacity: 0.73 !important;
             }
+        }
+
+        .post-error {
+            position: relative;
+            top: 3px;
+            margin-bottom: 0;
+            font-size: 0.85em;
+            font-weight: normal;
+            opacity: 0.55;
         }
     }
 }

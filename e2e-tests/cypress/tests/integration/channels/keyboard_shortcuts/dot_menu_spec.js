@@ -68,8 +68,8 @@ describe('Keyboard Shortcuts', () => {
             cy.uiPostDropdownMenuShortcut(postId, 'Edit', 'E');
 
             // # add test to the message
-            cy.get('body').type(postEditMessage);
-            cy.get('body').type('{enter}');
+            cy.get('#edit_textbox').type(postEditMessage);
+            cy.get('#edit_textbox').type('{enter}');
 
             // * Verify edited message
             cy.uiWaitUntilMessagePostedIncludes(postMessage + postEditMessage);
@@ -98,7 +98,7 @@ describe('Keyboard Shortcuts', () => {
             cy.findByText('Saved').should('not.exist');
 
             // # Save Post
-            cy.uiPostDropdownMenuShortcut(postId, 'Save', 'S', 'RHS_ROOT');
+            cy.uiPostDropdownMenuShortcut(postId, 'Save Message', 'S', 'RHS_ROOT');
 
             // * Verify post is Saved
             cy.get(`#post_${postId}`).find('.post-pre-header').should('be.visible').and('have.text', 'Saved');

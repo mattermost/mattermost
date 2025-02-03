@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/CheckboxSetting should match snapshot 1`] = `
+<div>
+  <div>
+    <label
+      class="checkbox-inline"
+    >
+      <input
+        data-testid="string.id"
+        id="string.id"
+        name="string.id"
+        type="checkbox"
+      />
+      some label
+    </label>
+  </div>
+</div>
+`;

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useRef, useCallback, useState} from 'react';
+import {defineMessages} from 'react-intl';
 
 type CopyOptions = {
     successCopyTimeout?: number;
@@ -17,20 +18,22 @@ type CopyResponse = {
 
 const DEFAULT_COPY_TIMEOUT = 4000;
 
-export default function useCopyText(options: CopyOptions): CopyResponse {
+export default function useCopyText({
+    text,
+    successCopyTimeout: successCopyTimeoutReceived,
+    trackCallback,
+}: CopyOptions): CopyResponse {
     const [copiedRecently, setCopiedRecently] = useState(false);
     const [copyError, setCopyError] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     let successCopyTimeout = DEFAULT_COPY_TIMEOUT;
-    if (options.successCopyTimeout || options.successCopyTimeout === 0) {
-        successCopyTimeout = options.successCopyTimeout;
+    if (successCopyTimeoutReceived || successCopyTimeoutReceived === 0) {
+        successCopyTimeout = successCopyTimeoutReceived;
     }
 
     const onClick = useCallback(() => {
-        if (options.trackCallback) {
-            options.trackCallback();
-        }
+        trackCallback?.();
 
         if (timerRef.current) {
             clearTimeout(timerRef.current);
@@ -38,7 +41,7 @@ export default function useCopyText(options: CopyOptions): CopyResponse {
         }
         const clipboard = navigator.clipboard;
         if (clipboard) {
-            clipboard.writeText(options.text).
+            clipboard.writeText(text).
                 then(() => {
                     setCopiedRecently(true);
                     setCopyError(false);
@@ -49,7 +52,7 @@ export default function useCopyText(options: CopyOptions): CopyResponse {
                 });
         } else {
             const textField = document.createElement('textarea');
-            textField.innerText = options.text;
+            textField.innerText = text;
             textField.style.position = 'fixed';
             textField.style.opacity = '0';
 
@@ -71,7 +74,7 @@ export default function useCopyText(options: CopyOptions): CopyResponse {
             setCopiedRecently(false);
             setCopyError(false);
         }, successCopyTimeout);
-    }, [options.text, successCopyTimeout]);
+    }, [successCopyTimeout, text, trackCallback]);
 
     return {
         copiedRecently,
@@ -80,3 +83,7 @@ export default function useCopyText(options: CopyOptions): CopyResponse {
     };
 }
 
+export const messages = defineMessages({
+    copy: {id: 'copy_text.copy', defaultMessage: 'Copy'},
+    copied: {id: 'copy_text.copied', defaultMessage: 'Copied'},
+});

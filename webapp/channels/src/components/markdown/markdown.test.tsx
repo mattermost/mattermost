@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {TeamType} from '@mattermost/types/teams';
 
-import Markdown from 'components/markdown/markdown';
+import Markdown from 'components/markdown';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import EmojiMap from 'utils/emoji_map';
 import {TestHelper} from 'utils/test_helper';
 
@@ -42,10 +42,8 @@ describe('components/Markdown', () => {
     };
 
     test('should render properly', () => {
-        const wrapper = shallow(
-            <Markdown {...baseProps}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<Markdown {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should not render markdown when formatting is disabled', () => {
@@ -54,9 +52,7 @@ describe('components/Markdown', () => {
             enableFormatting: false,
         };
 
-        const wrapper = shallow(
-            <Markdown {...props}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<Markdown {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 });

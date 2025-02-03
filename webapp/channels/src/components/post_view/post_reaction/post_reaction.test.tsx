@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import type {Emoji} from '@mattermost/types/emojis';
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {TestHelper} from 'utils/test_helper';
 
-import PostReaction from 'components/post_view/post_reaction/post_reaction';
+import PostReaction, {type PostReaction as PostReactionComponent} from './post_reaction';
 
 describe('components/post_view/PostReaction', () => {
     const baseProps = {
@@ -18,22 +18,22 @@ describe('components/post_view/PostReaction', () => {
         showEmojiPicker: false,
         toggleEmojiPicker: jest.fn(),
         actions: {
-            addReaction: jest.fn(),
+            toggleReaction: jest.fn(),
         },
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<PostReaction {...baseProps}/>);
+        const wrapper = shallowWithIntl(<PostReaction {...baseProps}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should call addReaction and toggleEmojiPicker on handleAddEmoji', () => {
-        const wrapper = shallow(<PostReaction {...baseProps}/>);
-        const instance = wrapper.instance() as PostReaction;
+    test('should call toggleReaction and toggleEmojiPicker on handleToggleEmoji', () => {
+        const wrapper = shallowWithIntl(<PostReaction {...baseProps}/>);
+        const instance = wrapper.instance() as PostReactionComponent;
 
-        instance.handleAddEmoji({name: 'smile'} as Emoji);
-        expect(baseProps.actions.addReaction).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.addReaction).toHaveBeenCalledWith('post_id_1', 'smile');
+        instance.handleToggleEmoji(TestHelper.getCustomEmojiMock({name: 'smile'}));
+        expect(baseProps.actions.toggleReaction).toHaveBeenCalledTimes(1);
+        expect(baseProps.actions.toggleReaction).toHaveBeenCalledWith('post_id_1', 'smile');
         expect(baseProps.toggleEmojiPicker).toHaveBeenCalledTimes(1);
     });
 });

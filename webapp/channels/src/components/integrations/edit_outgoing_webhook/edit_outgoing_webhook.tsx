@@ -4,9 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import AbstractOutgoingWebhook from 'components/integrations/abstract_outgoing_webhook';
@@ -18,7 +19,7 @@ const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};
 const FOOTER = {id: 'update_outgoing_webhook.update', defaultMessage: 'Update'};
 const LOADING = {id: 'update_outgoing_webhook.updating', defaultMessage: 'Updating...'};
 
-interface Props {
+export interface Props {
 
     /**
      * The current team
@@ -39,12 +40,12 @@ interface Props {
         /**
          * The function to call to update an outgoing webhook
          */
-        updateOutgoingHook: (hook: OutgoingWebhook) => Promise<{ data: OutgoingWebhook; error: ServerError }>;
+        updateOutgoingHook: (hook: OutgoingWebhook) => Promise<ActionResult<OutgoingWebhook>>;
 
         /**
          * The function to call to get an outgoing webhook
          */
-        getOutgoingHook: (hookId: string) => Promise<{ data: OutgoingWebhook; error: ServerError }>;
+        getOutgoingHook: (hookId: string) => Promise<ActionResult<OutgoingWebhook>>;
     };
 
     /**
@@ -121,7 +122,7 @@ export default class EditOutgoingWebhook extends React.PureComponent<Props, Stat
     submitHook = async (): Promise<void> => {
         this.setState({serverError: ''});
 
-        const {data, error}: {data: OutgoingWebhook; error: ServerError} = await this.props.actions.updateOutgoingHook(this.newHook!);
+        const {data, error} = await this.props.actions.updateOutgoingHook(this.newHook!);
 
         if (data) {
             getHistory().push(`/${this.props.team.name}/integrations/outgoing_webhooks`);
@@ -162,6 +163,7 @@ export default class EditOutgoingWebhook extends React.PureComponent<Props, Stat
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
+                modalClass='integrations-backstage-modal'
                 show={this.state.showConfirmModal}
                 onConfirm={this.submitHook}
                 onCancel={this.confirmModalDismissed}

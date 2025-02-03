@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -20,8 +19,8 @@ import (
 const maxSAMLResponseSize = 2 * 1024 * 1024 // 2MB
 
 func (w *Web) InitSaml() {
-	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods("GET")
-	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods("POST")
+	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods(http.MethodPost)
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -32,7 +31,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
@@ -47,7 +46,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["team_id"] = teamId
 		relayProps["action"] = action
 		if action == model.OAuthActionEmailToSSO {
-			relayProps["email"] = r.URL.Query().Get("email")
+			relayProps["email_token"] = r.URL.Query().Get("email_token")
 		}
 	}
 
@@ -128,8 +127,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
-
-		c.Logger.Error("Failed to complete SAML login", mlog.Err(err))
 	}
 
 	if len(encodedXML) > maxSAMLResponseSize {
@@ -145,7 +142,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
+	if err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); err != nil {
 		handleError(err)
 		return
 	}
@@ -178,18 +175,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
-	if err != nil {
-		handleError(err)
-		return
-	}
-
-	auditRec.Success()
-	c.LogAuditWithUserId(user.Id, "success")
-
-	c.App.AttachSessionCookies(c.AppContext, w, r)
-
 	desktopToken := relayProps["desktop_token"]
+
+	// If it's a desktop login we generate a token and redirect to another endpoint to handle session creation
 	if desktopToken != "" {
 		serverToken, serverTokenErr := c.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
 		if serverTokenErr != nil {
@@ -212,6 +200,18 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 		return
 	}
+
+	// If it's not a desktop login we create a session for this SAML User that will be used in their browser or mobile app
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	if err != nil {
+		handleError(err)
+		return
+	}
+	c.AppContext = c.AppContext.WithSession(session)
+
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
+	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	if hasRedirectURL {
 		if isMobile {

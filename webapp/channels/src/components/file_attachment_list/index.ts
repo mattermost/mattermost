@@ -6,11 +6,14 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
-import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
+import {
+    makeGetFilesForEditHistory,
+    makeGetFilesForPost,
+} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
@@ -25,14 +28,25 @@ export type OwnProps = {
     compactDisplay?: boolean;
     isInPermalink?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
+    isEditHistory?: boolean;
+    disableDownload?: boolean;
+    disableActions?: boolean;
 }
 
 function makeMapStateToProps() {
     const selectFilesForPost = makeGetFilesForPost();
+    const getFilesForEditHistory = makeGetFilesForEditHistory();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const postId = ownProps.post ? ownProps.post.id : '';
-        const fileInfos = selectFilesForPost(state, postId);
+
+        var fileInfos: FileInfo[];
+
+        if (ownProps.isEditHistory) {
+            fileInfos = getFilesForEditHistory(state, ownProps.post);
+        } else {
+            fileInfos = selectFilesForPost(state, postId);
+        }
 
         let fileCount = 0;
         if (ownProps.post.metadata && ownProps.post.metadata.files) {
@@ -53,7 +67,7 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,

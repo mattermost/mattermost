@@ -3,17 +3,15 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 import {appsEnabled, makeAppBindingsSelector} from 'mattermost-redux/selectors/entities/apps';
 import {getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleBindingClick, openAppsModal, postEphemeralCallResponseForChannel} from 'actions/apps';
 
-import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForChannel} from 'types/apps';
 import type {GlobalState} from 'types/store';
 
 import MobileChannelHeaderPlug from './mobile_channel_header_plug';
@@ -31,15 +29,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    handleBindingClick: HandleBindingClick;
-    postEphemeralCallResponseForChannel: PostEphemeralCallResponseForChannel;
-    openAppsModal: OpenAppsModal;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<any>, Actions>({
+        actions: bindActionCreators({
             handleBindingClick,
             postEphemeralCallResponseForChannel,
             openAppsModal,

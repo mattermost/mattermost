@@ -140,12 +140,12 @@ describe('Upload Files', () => {
 
             // * Download button should exist
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-                expect(downloadLink.attr('download')).to.equal(file.filename);
+                cy.wrap(downloadLink).parent().should('have.attr', 'download', file.filename).then((link) => {
+                    const fileAttachmentURL = link.attr('href');
 
-                const fileAttachmentURL = downloadLink.attr('href');
-
-                // * Verify that download link has correct name
-                downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, file.filename, 'attachment');
+                    // * Verify that download link has correct name
+                    downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, file.filename, 'attachment');
+                });
             });
 
             // # Close the modal
@@ -174,12 +174,12 @@ describe('Upload Files', () => {
 
             // * Download button should exist
             cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-                expect(downloadLink.attr('download')).to.equal(filename);
+                cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
+                    const fileAttachmentURL = link.attr('href');
 
-                const fileAttachmentURL = downloadLink.attr('href');
-
-                // * Verify that download link has correct name
-                downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+                    // * Verify that download link has correct name
+                    downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+                });
             });
 
             // # Close the modal
@@ -243,11 +243,8 @@ describe('Upload Files', () => {
         // # Set the viewport to mobile
         cy.viewport('iphone-6');
 
-        // # Scan inside of the message input region
-        cy.findByLabelText('Login Successful message input complimentary region').should('be.visible').within(() => {
-            // * Check if the attachment button is present
-            cy.findByLabelText('Attachment Icon').should('be.visible').and('have.css', 'cursor', 'pointer');
-        });
+        // * Check if the attachment button is present
+        cy.findByLabelText('Attachment Icon').should('be.visible').and('have.css', 'cursor', 'pointer');
 
         const imageFilename = 'jpg-image-file.jpg';
         const imageType = 'JPG';
@@ -408,12 +405,12 @@ describe('Upload Files', () => {
 
         // * Download button should exist
         cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-            expect(downloadLink.attr('download')).to.equal(filename);
+            cy.wrap(downloadLink).parent().should('have.attr', 'download', filename).then((link) => {
+                const fileAttachmentURL = link.attr('href');
 
-            const fileAttachmentURL = downloadLink.attr('href');
-
-            // * Verify that download link has correct name
-            downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+                // * Verify that download link has correct name
+                downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, filename, 'attachment');
+            });
         });
 
         // # Close modal

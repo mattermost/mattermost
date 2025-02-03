@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AdminTextSetting from './text_setting';
 
 describe('components/admin_console/TextSetting', () => {
     test('render component with required props', () => {
-        renderWithIntl(
+        renderWithContext(
             <AdminTextSetting
                 id='some.id'
                 label='some label'

@@ -15,6 +15,11 @@ import {AboutLinks} from 'utils/constants';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
 
+type SocketStatus = {
+    connected: boolean;
+    serverHostname: string | undefined;
+}
+
 type Props = {
 
     /**
@@ -31,6 +36,8 @@ type Props = {
      * Global license object
      */
     license: ClientLicense;
+
+    socketStatus: SocketStatus;
 };
 
 type State = {
@@ -170,23 +177,58 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
             </ExternalLink>
         );
 
-        // Only show build number if it's a number (so only builds from Jenkins)
-        let buildnumber: JSX.Element | null = (
+        const buildnumber: JSX.Element | null = (
             <div data-testid='aboutModalBuildNumber'>
                 <FormattedMessage
                     id='about.buildnumber'
                     defaultMessage='Build Number:'
                 />
-                <span id='buildnumberString'>{'\u00a0' + config.BuildNumber}</span>
+                <span id='buildnumberString'>{'\u00a0' + (config.BuildNumber === 'dev' ? 'n/a' : config.BuildNumber)}</span>
             </div>
         );
-        if (isNaN(Number(config.BuildNumber))) {
-            buildnumber = null;
-        }
 
-        let mmversion: string | undefined = config.BuildNumber;
-        if (!isNaN(Number(config.BuildNumber))) {
-            mmversion = 'ci';
+        const mmversion: string | undefined = config.BuildNumber === 'dev' ? config.BuildNumber : config.Version;
+
+        let serverHostname;
+        if (!this.props.socketStatus.connected) {
+            serverHostname = (
+                <div>
+                    <FormattedMessage
+                        id='about.serverHostname'
+                        defaultMessage='Hostname:'
+                    />
+                    <Nbsp/>
+                    <FormattedMessage
+                        id='about.serverDisconnected'
+                        defaultMessage='disconnected'
+                    />
+                </div>
+            );
+        } else if (this.props.socketStatus.serverHostname) {
+            serverHostname = (
+                <div>
+                    <FormattedMessage
+                        id='about.serverHostname'
+                        defaultMessage='Hostname:'
+                    />
+                    <Nbsp/>
+                    {this.props.socketStatus.serverHostname}
+                </div>
+            );
+        } else {
+            serverHostname = (
+                <div>
+                    <FormattedMessage
+                        id='about.serverHostname'
+                        defaultMessage='Hostname:'
+                    />
+                    <Nbsp/>
+                    <FormattedMessage
+                        id='about.serverUnknown'
+                        defaultMessage='server did not provide hostname'
+                    />
+                </div>
+            );
         }
 
         return (
@@ -195,7 +237,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.doHide}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='aboutModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -253,6 +295,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
                                     />
                                     {'\u00a0' + config.SQLDriverName}
                                 </div>
+                                {serverHostname}
                             </div>
                             {licensee}
                         </div>

@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"reflect"
@@ -121,6 +120,15 @@ var ConfigSubpathCmd = &cobra.Command{
 	RunE: configSubpathCmdF,
 }
 
+var ConfigExportCmd = &cobra.Command{
+	Use:     "export",
+	Short:   "Export the server configuration",
+	Long:    "Export the server configuration in case you want to import somewhere else.",
+	Example: "config export --remove-masked --remove-defaults",
+	Args:    cobra.NoArgs,
+	RunE:    withClient(configExportCmdF),
+}
+
 func init() {
 	ConfigResetCmd.Flags().Bool("confirm", false, "confirm you really want to reset all configuration settings to its default value")
 
@@ -128,6 +136,9 @@ func init() {
 	_ = ConfigSubpathCmd.MarkFlagRequired("assets-dir")
 	ConfigSubpathCmd.Flags().StringP("path", "p", "", "path to update the assets with")
 	_ = ConfigSubpathCmd.MarkFlagRequired("path")
+
+	ConfigExportCmd.Flags().Bool("remove-masked", true, "remove masked values from the exported configuration")
+	ConfigExportCmd.Flags().Bool("remove-defaults", false, "remove default values from the exported configuration")
 
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
@@ -139,11 +150,12 @@ func init() {
 		ConfigReloadCmd,
 		ConfigMigrateCmd,
 		ConfigSubpathCmd,
+		ConfigExportCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
 
-func getValue(path []string, obj interface{}) (interface{}, bool) {
+func getValue(path []string, obj any) (any, bool) {
 	r := reflect.ValueOf(obj)
 	var val reflect.Value
 	if r.Kind() == reflect.Map {
@@ -188,18 +200,21 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 	return nil, false
 }
 
-func setValueWithConversion(val reflect.Value, newValue interface{}) error {
+func setValueWithConversion(val reflect.Value, newValue any) error {
 	switch val.Kind() {
 	case reflect.Struct:
 		val.Set(reflect.ValueOf(newValue))
 		return nil
 	case reflect.Slice:
-		if val.Type().Elem().Kind() != reflect.String {
-			return errors.New("unsupported type of slice")
-		}
 		v := reflect.ValueOf(newValue)
 		if v.Kind() != reflect.Slice {
-			return errors.New("target value is of type Array and provided value is not")
+			// Special case when setting a string to a byte slice
+			if val.Type().Elem().Kind() == reflect.Uint8 && v.Kind() == reflect.String {
+				s := newValue.(string)
+				v = reflect.ValueOf([]byte(s))
+			} else {
+				return errors.Errorf("target value is of type %v and provided value is %v", val.Kind(), v.Kind())
+			}
 		}
 		val.Set(v)
 		return nil
@@ -207,7 +222,7 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		bits := val.Type().Bits()
 		v, err := strconv.ParseInt(newValue.(string), 10, bits)
 		if err != nil {
-			return fmt.Errorf("target value is of type %v and provided value is not", val.Kind())
+			return fmt.Errorf("target value is of type %v and provided value is not, err: %v", val.Kind(), err)
 		}
 		val.SetInt(v)
 		return nil
@@ -215,7 +230,7 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		bits := val.Type().Bits()
 		v, err := strconv.ParseFloat(newValue.(string), bits)
 		if err != nil {
-			return fmt.Errorf("target value is of type %v and provided value is not", val.Kind())
+			return fmt.Errorf("target value is of type %v and provided value is not, err: %v", val.Kind(), err)
 		}
 		val.SetFloat(v)
 		return nil
@@ -225,16 +240,16 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 	case reflect.Bool:
 		v, err := strconv.ParseBool(newValue.(string))
 		if err != nil {
-			return errors.New("target value is of type Bool and provided value is not")
+			return fmt.Errorf("target value is of type %v and provided value is not, err: %v", val.Kind(), err)
 		}
 		val.SetBool(v)
 		return nil
 	default:
-		return errors.New("target value type is not supported")
+		return errors.Errorf("value type %v is not supported", val.Kind())
 	}
 }
 
-func setValue(path []string, obj reflect.Value, newValue interface{}) error {
+func setValue(path []string, obj reflect.Value, newValue any) error {
 	var val reflect.Value
 	switch obj.Kind() {
 	case reflect.Struct:
@@ -305,7 +320,7 @@ func setConfigValue(path []string, config *model.Config, newValue []string) erro
 	return setValue(path, reflect.ValueOf(config).Elem(), newValue[0])
 }
 
-func resetConfigValue(path []string, config *model.Config, newValue interface{}) error {
+func resetConfigValue(path []string, config *model.Config, newValue any) error {
 	nv := reflect.ValueOf(newValue)
 	if nv.Kind() == reflect.Ptr {
 		switch nv.Elem().Kind() {
@@ -368,7 +383,7 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 }
 
 func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
-	configBytes, err := ioutil.ReadFile(args[0])
+	configBytes, err := os.ReadFile(args[0])
 	if err != nil {
 		return err
 	}
@@ -378,9 +393,20 @@ func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return err
 	}
 
+	// get original plugin map
+	var pluginConfig map[string]map[string]any
+	if config.PluginSettings.Plugins != nil {
+		pluginConfig = (config.Clone()).PluginSettings.Plugins
+	}
+
+	// apply path onto the existing config
 	if jErr := json.Unmarshal(configBytes, config); jErr != nil {
 		return jErr
 	}
+
+	// merge config plugin map on top of the original, and assign the
+	// result to the config key
+	config.PluginSettings.Plugins = MergePluginConfigs(pluginConfig, config.PluginSettings.Plugins)
 
 	newConfig, _, err := c.PatchConfig(context.TODO(), config)
 	if err != nil {
@@ -402,7 +428,7 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	file, err := ioutil.TempFile(os.TempDir(), "mmctl-*.json")
+	file, err := os.CreateTemp(os.TempDir(), "mmctl-*.json")
 	if err != nil {
 		return err
 	}
@@ -428,7 +454,7 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		return cmdErr
 	}
 
-	newConfigBytes, err := ioutil.ReadFile(file.Name())
+	newConfigBytes, err := os.ReadFile(file.Name())
 	if err != nil {
 		return err
 	}
@@ -567,4 +593,23 @@ func cloudRestrictedR(t reflect.Type, path []string) bool {
 	}
 
 	return false
+}
+
+func configExportCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	removeDefaults, _ := cmd.Flags().GetBool("remove-defaults")
+	removeMasked, _ := cmd.Flags().GetBool("remove-masked")
+	config, _, err := c.GetConfigWithOptions(context.TODO(), model.GetConfigOptions{
+		RemoveDefaults: removeDefaults,
+		RemoveMasked:   removeMasked,
+	})
+	if err != nil {
+		return err
+	}
+
+	printer.SetSingle(true)
+	printer.SetFormat(printer.FormatJSON)
+
+	printer.Print(config)
+
+	return nil
 }

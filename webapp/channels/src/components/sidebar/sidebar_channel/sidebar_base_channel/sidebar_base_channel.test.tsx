@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen, waitFor} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel';
+
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     const baseProps = {
@@ -91,25 +94,64 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('expect callback to be called when leave public channel ', () => {
-        const callback = jest.fn();
-        const wrapper = shallow<SidebarBaseChannel>(<SidebarBaseChannel {...baseProps}/>);
-        wrapper.instance().handleLeavePublicChannel(callback);
-        expect(callback).toBeCalled();
+    test('expect leaveChannel to be called when leave public channel ', async () => {
+        const mockfn = jest.fn();
+
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'O' as ChannelType,
+                shared: true,
+                name: 'l',
+            },
+            actions: {
+                leaveChannel: mockfn,
+                openModal: jest.fn(),
+            },
+        };
+
+        renderWithContext(<SidebarBaseChannel {...props}/>);
+
+        const optionsBtn = screen.getByRole('button');
+        expect(optionsBtn.classList).toContain('SidebarMenu_menuButton');
+
+        await userEvent.click(optionsBtn); // open options
+        const leaveOption: HTMLElement = screen.getByText('Leave Channel').parentElement!;
+
+        await userEvent.click(leaveOption);
+        await waitFor(() => {
+            expect(mockfn).toHaveBeenCalledTimes(1);
+        });
     });
 
-    test('expect callback to be called when leave private channel ', () => {
-        const callback = jest.fn();
+    test('expect openModal to be called when leave private channel ', async () => {
+        const mockfn = jest.fn();
+
         const props = {
             ...baseProps,
             channel: {
                 ...baseProps.channel,
                 type: 'P' as ChannelType,
+                name: 'l',
+            },
+            actions: {
+                leaveChannel: jest.fn(),
+                openModal: mockfn,
             },
         };
 
-        const wrapper = shallow<SidebarBaseChannel>(<SidebarBaseChannel {...props}/>);
-        wrapper.instance().handleLeavePrivateChannel(callback);
-        expect(callback).toBeCalled();
+        renderWithContext(<SidebarBaseChannel {...props}/>);
+
+        const optionsBtn = screen.getByRole('button');
+        expect(optionsBtn.classList).toContain('SidebarMenu_menuButton');
+
+        await userEvent.click(optionsBtn); // open options
+        const leaveOption: HTMLElement = screen.getByText('Leave Channel').parentElement!;
+
+        await userEvent.click(leaveOption);
+        await waitFor(() => {
+            expect(mockfn).toHaveBeenCalledTimes(1);
+        });
     });
 });

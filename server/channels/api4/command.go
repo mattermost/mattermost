@@ -15,18 +15,18 @@ import (
 )
 
 func (api *API) InitCommand() {
-	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(createCommand)).Methods("POST")
-	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(listCommands)).Methods("GET")
-	api.BaseRoutes.Commands.Handle("/execute", api.APISessionRequired(executeCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(createCommand)).Methods(http.MethodPost)
+	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(listCommands)).Methods(http.MethodGet)
+	api.BaseRoutes.Commands.Handle("/execute", api.APISessionRequired(executeCommand)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Command.Handle("", api.APISessionRequired(getCommand)).Methods("GET")
-	api.BaseRoutes.Command.Handle("", api.APISessionRequired(updateCommand)).Methods("PUT")
-	api.BaseRoutes.Command.Handle("/move", api.APISessionRequired(moveCommand)).Methods("PUT")
-	api.BaseRoutes.Command.Handle("", api.APISessionRequired(deleteCommand)).Methods("DELETE")
+	api.BaseRoutes.Command.Handle("", api.APISessionRequired(getCommand)).Methods(http.MethodGet)
+	api.BaseRoutes.Command.Handle("", api.APISessionRequired(updateCommand)).Methods(http.MethodPut)
+	api.BaseRoutes.Command.Handle("/move", api.APISessionRequired(moveCommand)).Methods(http.MethodPut)
+	api.BaseRoutes.Command.Handle("", api.APISessionRequired(deleteCommand)).Methods(http.MethodDelete)
 
-	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.APISessionRequired(listAutocompleteCommands)).Methods("GET")
-	api.BaseRoutes.Team.Handle("/commands/autocomplete_suggestions", api.APISessionRequired(listCommandAutocompleteSuggestions)).Methods("GET")
-	api.BaseRoutes.Command.Handle("/regen_token", api.APISessionRequired(regenCommandToken)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.APISessionRequired(listAutocompleteCommands)).Methods(http.MethodGet)
+	api.BaseRoutes.Team.Handle("/commands/autocomplete_suggestions", api.APISessionRequired(listCommandAutocompleteSuggestions)).Methods(http.MethodGet)
+	api.BaseRoutes.Command.Handle("/regen_token", api.APISessionRequired(regenCommandToken)).Methods(http.MethodPut)
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -332,6 +332,11 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, err := c.App.GetChannel(c.AppContext, commandArgs.ChannelId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("createPost", "api.command.execute_command.deleted.error", nil, "", http.StatusBadRequest)
 		return
 	}
 

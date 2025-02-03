@@ -5,16 +5,18 @@ package commands
 
 import (
 	"context"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
-
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
 func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
@@ -24,7 +26,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.Background()).
+			GetServerBusy(context.TODO()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
@@ -43,7 +45,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.Background()).
+			GetServerBusy(context.TODO()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
@@ -58,7 +60,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetServerBusy(context.Background()).
+			GetServerBusy(context.TODO()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -79,7 +81,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			SetServerBusy(context.Background(), minutes*60).
+			SetServerBusy(context.TODO(), minutes*60).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -117,7 +119,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.Background()).
+			ClearServerBusy(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -132,7 +134,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.Background()).
+			ClearServerBusy(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -150,7 +152,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		expectedVersion := "1.23.4.dev"
 		s.client.
 			EXPECT().
-			GetPing(context.Background()).
+			GetPing(context.TODO()).
 			Return("", &model.Response{ServerVersion: expectedVersion}, nil).
 			Times(1)
 
@@ -166,7 +168,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 
 		s.client.
 			EXPECT().
-			GetPing(context.Background()).
+			GetPing(context.TODO()).
 			Return("", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -184,7 +186,10 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		expectedStatus := map[string]string{"status": "OK"}
 		s.client.
 			EXPECT().
-			GetPingWithFullServerStatus(context.Background()).
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
@@ -200,7 +205,10 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetPingWithFullServerStatus(context.Background()).
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -208,5 +216,85 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
+	printer.SetFormat(printer.FormatPlain)
+	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
+
+	s.Run("Download Support Packet with default filename", func() {
+		printer.Clean()
+
+		reader := io.NopCloser(strings.NewReader("some bytes"))
+		s.client.
+			EXPECT().
+			GenerateSupportPacket(context.TODO()).
+			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
+			Times(1)
+
+		defer func() {
+			err := os.Remove("mm_support_packet.zip")
+			s.NoError(err)
+		}()
+
+		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
+		s.Require().Equal(printer.GetLines()[1], "Downloaded Support Packet to mm_support_packet.zip")
+
+		b, err := os.ReadFile("mm_support_packet.zip")
+		s.NoError(err)
+		s.Equal(b, []byte("some bytes"))
+	})
+
+	s.Run("Download Support Packet with custom filename", func() {
+		printer.Clean()
+
+		reader := io.NopCloser(strings.NewReader("some bytes"))
+		s.client.
+			EXPECT().
+			GenerateSupportPacket(context.TODO()).
+			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
+			Times(1)
+
+		systemSupportPacketCmd := &cobra.Command{}
+		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		s.Require().NoError(err)
+
+		defer func() {
+			err = os.Remove("foo.zip")
+			s.Require().NoError(err)
+		}()
+
+		err = systemSupportPacketCmdF(s.client, systemSupportPacketCmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
+		s.Require().Equal(printer.GetLines()[1], "Downloaded Support Packet to foo.zip")
+
+		b, err := os.ReadFile("foo.zip")
+		s.Require().NoError(err)
+		s.Equal(string(b), "some bytes")
+	})
+
+	s.Run("Request to the server fails", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GenerateSupportPacket(context.TODO()).
+			Return(nil, "", &model.Response{}, errors.New("mock error")).
+			Times(1)
+
+		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
 	})
 }

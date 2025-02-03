@@ -66,7 +66,6 @@
   "activity_log_modal.desktop": "Aplicació nativa d'escriptori",
   "activity_log_modal.iphoneNativeApp": "Aplicació nativa d'iPhone",
   "activity_log_modal.iphoneNativeClassicApp": "Aplicació clàssica nadiua de l'iPhone",
-  "add_channels_to_scheme.title": "Afegeix canals a la llista de **selecció de canals**",
   "add_command.autocomplete": "Auto completar",
   "add_command.autocompleteDescription": "Descripció de la compleció automàtica",
   "add_command.autocompleteDescription.help": "(Opcional) Breu descripció de l'ordre de la barra per a la llista de compleció automàtica.",

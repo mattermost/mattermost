@@ -280,6 +280,78 @@ func TestGetEmojiList(t *testing.T) {
 	require.Greater(t, len(listEmoji), 0, "should return more than 0")
 }
 
+func TestGetEmojisByNames(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Set up some custom emojis
+	adminClient := th.SystemAdminClient
+
+	imageBytes := utils.CreateTestJpeg(t, 10, 10)
+
+	emoji1 := &model.Emoji{
+		CreatorId: th.SystemAdminUser.Id,
+		Name:      model.NewId(),
+	}
+	emoji1, _, err := adminClient.CreateEmoji(context.Background(), emoji1, imageBytes, "emoji.jpg")
+	require.NoError(t, err)
+
+	emoji2 := &model.Emoji{
+		CreatorId: th.SystemAdminUser.Id,
+		Name:      model.NewId(),
+	}
+	emoji2, _, err = adminClient.CreateEmoji(context.Background(), emoji2, imageBytes, "emoji.jpg")
+	require.NoError(t, err)
+
+	client := th.Client
+
+	t.Run("should return a single emoji", func(t *testing.T) {
+		emojis, _, err := client.GetEmojisByNames(context.Background(), []string{emoji1.Name})
+
+		require.NoError(t, err)
+		require.Len(t, emojis, 1)
+		assert.Equal(t, emoji1.Id, emojis[0].Id)
+	})
+
+	t.Run("should return multiple emojis", func(t *testing.T) {
+		emojis, _, err := client.GetEmojisByNames(context.Background(), []string{emoji1.Name, emoji2.Name})
+
+		var emojiIds []string
+		for _, emoji := range emojis {
+			emojiIds = append(emojiIds, emoji.Id)
+		}
+
+		require.NoError(t, err)
+		require.Len(t, emojis, 2)
+		assert.Contains(t, emojiIds, emoji1.Id)
+		assert.Contains(t, emojiIds, emoji2.Id)
+	})
+
+	t.Run("should ignore non-existent emojis", func(t *testing.T) {
+		emojis, _, err := client.GetEmojisByNames(context.Background(), []string{emoji1.Name, emoji2.Name, model.NewId()})
+		var emojiIds []string
+		for _, emoji := range emojis {
+			emojiIds = append(emojiIds, emoji.Id)
+		}
+
+		require.NoError(t, err)
+		require.Len(t, emojis, 2)
+		assert.Contains(t, emojiIds, emoji1.Id)
+		assert.Contains(t, emojiIds, emoji2.Id)
+	})
+
+	t.Run("should return an error when too many emojis are requested", func(t *testing.T) {
+		names := make([]string, GetEmojisByNamesMax+1)
+		for i := 0; i < len(names); i++ {
+			names[i] = model.NewId()
+		}
+
+		_, _, err := client.GetEmojisByNames(context.Background(), names)
+
+		require.Error(t, err)
+	})
+}
+
 func TestDeleteEmoji(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -357,7 +429,8 @@ func TestDeleteEmoji(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	th.LoginBasic2()
 
 	resp, err = client.DeleteEmoji(context.Background(), newEmoji.Id)
@@ -367,7 +440,8 @@ func TestDeleteEmoji(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	th.LoginBasic()
 
 	//Try to delete other user's custom emoji without DELETE_OTHERS_EMOJIS permissions
@@ -379,14 +453,16 @@ func TestDeleteEmoji(t *testing.T) {
 	newEmoji, _, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.NoError(t, err)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	th.LoginBasic2()
 
 	resp, err = client.DeleteEmoji(context.Background(), newEmoji.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	th.LoginBasic()
 
 	//Try to delete other user's custom emoji with permissions
@@ -401,13 +477,15 @@ func TestDeleteEmoji(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.SystemUserRoleId)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	th.LoginBasic2()
 
 	_, err = client.DeleteEmoji(context.Background(), newEmoji.Id)
 	require.NoError(t, err)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	th.LoginBasic()
 
 	//Try to delete my custom emoji with permissions at team level
@@ -436,7 +514,8 @@ func TestDeleteEmoji(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
 	th.AddPermissionToRole(model.PermissionDeleteOthersEmojis.Id, model.TeamUserRoleId)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	th.LoginBasic2()
 
 	_, err = client.DeleteEmoji(context.Background(), newEmoji.Id)
@@ -494,7 +573,8 @@ func TestGetEmojiByName(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.GetEmojiByName(context.Background(), newEmoji.Name)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -670,7 +750,8 @@ func TestSearchEmoji(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.SearchEmoji(context.Background(), search)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
@@ -703,7 +784,7 @@ func TestAutocompleteEmoji(t *testing.T) {
 	}
 
 	remojis, resp, err := client.AutocompleteEmoji(context.Background(), searchTerm1, "")
-	require.NoError(t, err)
+	require.NoErrorf(t, err, "AutocompleteEmoji failed with search term: %s", searchTerm1)
 	CheckOKStatus(t, resp)
 
 	found1 := false
@@ -725,7 +806,8 @@ func TestAutocompleteEmoji(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	client.Logout(context.Background())
+	_, err = client.Logout(context.Background())
+	require.NoError(t, err)
 	_, resp, err = client.AutocompleteEmoji(context.Background(), searchTerm1, "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)

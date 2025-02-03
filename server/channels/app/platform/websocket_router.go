@@ -36,7 +36,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
-	if r.Action == model.WebsocketAuthenticationChallenge {
+	if r.Action == string(model.WebsocketAuthenticationChallenge) {
 		if conn.GetSessionToken() != "" {
 			return
 		}
@@ -49,6 +49,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 
 		session, err := conn.Suite.GetSession(token)
 		if err != nil {
+			conn.Platform.Log().Warn("Error while getting session token", mlog.Err(err))
 			conn.WebSocket.Close()
 			return
 		}
@@ -56,7 +57,12 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
 
-		conn.Platform.HubRegister(conn)
+		nErr := conn.Platform.HubRegister(conn)
+		if nErr != nil {
+			conn.Platform.Log().Error("Error while registering to hub", mlog.String("user_id", conn.UserId), mlog.Err(nErr))
+			conn.WebSocket.Close()
+			return
+		}
 
 		conn.Platform.Go(func() {
 			conn.Platform.SetStatusOnline(session.UserId, false)
@@ -70,6 +76,33 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		}
 		hub.SendMessage(conn, resp)
 
+		return
+	}
+
+	if r.Action == string(model.WebsocketPresenceIndicator) {
+		if chID, ok := r.Data["channel_id"].(string); ok {
+			// Set active channel
+			conn.SetActiveChannelID(chID)
+		}
+		if teamID, ok := r.Data["team_id"].(string); ok {
+			// Set active team
+			conn.SetActiveTeamID(teamID)
+		}
+		if thChannelID, ok := r.Data["thread_channel_id"].(string); ok {
+			// Set the channelID of the active thread.
+			if isThreadView, ok := r.Data["is_thread_view"].(bool); ok && isThreadView {
+				conn.SetActiveThreadViewThreadChannelID(thChannelID)
+			} else {
+				conn.SetActiveRHSThreadChannelID(thChannelID)
+			}
+		}
+
+		resp := model.NewWebSocketResponse(model.StatusOk, r.Seq, nil)
+		hub := conn.Platform.GetHubForUserId(conn.UserId)
+		if hub == nil {
+			return
+		}
+		hub.SendMessage(conn, resp)
 		return
 	}
 
@@ -96,7 +129,7 @@ func returnWebSocketError(ps *PlatformService, conn *WebConn, r *model.WebSocket
 	}
 	logF(
 		"websocket routing error.",
-		mlog.Int64("seq", r.Seq),
+		mlog.Int("seq", r.Seq),
 		mlog.String("user_id", conn.UserId),
 		mlog.String("system_message", err.SystemMessage(i18n.T)),
 		mlog.Err(err),
@@ -107,7 +140,7 @@ func returnWebSocketError(ps *PlatformService, conn *WebConn, r *model.WebSocket
 		return
 	}
 
-	err.DetailedError = ""
+	err.WipeDetailed()
 	errorResp := model.NewWebSocketError(r.Seq, err)
 	hub.SendMessage(conn, errorResp)
 }

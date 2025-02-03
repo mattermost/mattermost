@@ -22,10 +22,13 @@ exports[`admin_console/team_channel_settings/channel/ChannelSettings should matc
       className="admin-console__content"
     >
       <AdminPanel
-        className=""
         id="channels"
-        subtitleDefault="Manage channel settings."
-        subtitleId="admin.channel_settings.description"
+        subtitle={
+          Object {
+            "defaultMessage": "Manage channel settings.",
+            "id": "admin.channel_settings.description",
+          }
+        }
         subtitleValues={
           Object {
             "endCount": 1,
@@ -33,8 +36,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelSettings should matc
             "total": 0,
           }
         }
-        titleDefault="Channels"
-        titleId="admin.channel_settings.title"
+        title={
+          Object {
+            "defaultMessage": "Channels",
+            "id": "admin.channel_settings.title",
+          }
+        }
       >
         <Connect(ChannelList) />
       </AdminPanel>

@@ -106,7 +106,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="trigger"
             maxLength={128}
@@ -144,7 +144,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
               id="add_command.trigger.helpReserved"
               values={
                 Object {
-                  "link": <ExternalLink
+                  "link": <ForwardRef
                     href="https://mattermost.com/pl/custom-slash-commands"
                     location="abstract_command"
                   >
@@ -152,7 +152,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
                       defaultMessage="See built-in slash commands"
                       id="add_command.trigger.helpReservedLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -174,10 +174,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
-            className="form-control"
-            id="url"
-            maxLength={1024}
+          <OAuthConnectionAudienceInput
             onChange={[Function]}
             placeholder={
               Object {
@@ -185,7 +182,6 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
                 "id": "add_command.url.placeholder",
               }
             }
-            type="text"
             value="https://google.com/command"
           />
           <div
@@ -194,6 +190,19 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             <MemoizedFormattedMessage
               defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
               id="add_command.url.help"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
+              id="add_command.outgoing_oauth_connections.help_text"
+              values={
+                Object {
+                  "link": [Function],
+                }
+              }
             />
           </div>
         </div>
@@ -255,7 +264,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="username"
             maxLength={64}
@@ -294,7 +303,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="iconUrl"
             maxLength={1024}
@@ -364,7 +373,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
@@ -403,7 +412,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="description"
             maxLength={128}
@@ -430,8 +439,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -449,19 +457,24 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             id="add_command.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
             defaultMessage="Footer"
             id="Footer"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
         <div>
           renderExtra
         </div>
@@ -576,7 +589,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="trigger"
             maxLength={128}
@@ -614,7 +627,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
               id="add_command.trigger.helpReserved"
               values={
                 Object {
-                  "link": <ExternalLink
+                  "link": <ForwardRef
                     href="https://mattermost.com/pl/custom-slash-commands"
                     location="abstract_command"
                   >
@@ -622,7 +635,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
                       defaultMessage="See built-in slash commands"
                       id="add_command.trigger.helpReservedLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -644,10 +657,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
-            className="form-control"
-            id="url"
-            maxLength={1024}
+          <OAuthConnectionAudienceInput
             onChange={[Function]}
             placeholder={
               Object {
@@ -655,7 +665,6 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
                 "id": "add_command.url.placeholder",
               }
             }
-            type="text"
             value="https://google.com/command"
           />
           <div
@@ -664,6 +673,19 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
             <MemoizedFormattedMessage
               defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
               id="add_command.url.help"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
+              id="add_command.outgoing_oauth_connections.help_text"
+              values={
+                Object {
+                  "link": [Function],
+                }
+              }
             />
           </div>
         </div>
@@ -725,7 +747,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="username"
             maxLength={64}
@@ -764,7 +786,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="iconUrl"
             maxLength={1024}
@@ -834,7 +856,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
@@ -873,7 +895,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="description"
             maxLength={128}
@@ -900,8 +922,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "",
@@ -919,7 +940,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
             id="add_command.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
@@ -930,7 +951,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
           <span>
             Footer as string
           </span>
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
         <div>
           renderExtra
         </div>
@@ -1046,7 +1067,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="trigger"
             maxLength={128}
@@ -1084,7 +1105,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
               id="add_command.trigger.helpReserved"
               values={
                 Object {
-                  "link": <ExternalLink
+                  "link": <ForwardRef
                     href="https://mattermost.com/pl/custom-slash-commands"
                     location="abstract_command"
                   >
@@ -1092,7 +1113,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
                       defaultMessage="See built-in slash commands"
                       id="add_command.trigger.helpReservedLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -1114,10 +1135,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
-            className="form-control"
-            id="url"
-            maxLength={1024}
+          <OAuthConnectionAudienceInput
             onChange={[Function]}
             placeholder={
               Object {
@@ -1125,7 +1143,6 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
                 "id": "add_command.url.placeholder",
               }
             }
-            type="text"
             value="https://google.com/command"
           />
           <div
@@ -1134,6 +1151,19 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             <MemoizedFormattedMessage
               defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
               id="add_command.url.help"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
+              id="add_command.outgoing_oauth_connections.help_text"
+              values={
+                Object {
+                  "link": [Function],
+                }
+              }
             />
           </div>
         </div>
@@ -1195,7 +1225,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="username"
             maxLength={64}
@@ -1234,7 +1264,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="iconUrl"
             maxLength={1024}
@@ -1304,7 +1334,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
@@ -1343,7 +1373,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <LocalizedPlaceholderInput
             className="form-control"
             id="description"
             maxLength={128}
@@ -1370,8 +1400,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
       <div
         className="backstage-form__footer"
       >
-        <FormError
-          error={null}
+        <Memo(FormError)
           errors={
             Array [
               "server error",
@@ -1392,19 +1421,24 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             id="add_command.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
           spinning={false}
-          spinningText="Loading"
+          spinningText={
+            Object {
+              "defaultMessage": "Loading",
+              "id": "Loading",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
             defaultMessage="Footer"
             id="Footer"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
         <div>
           renderExtra
         </div>

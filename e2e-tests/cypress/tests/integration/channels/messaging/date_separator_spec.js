@@ -56,7 +56,7 @@ describe('Messaging', () => {
         cy.reload();
 
         // * Verify that the date separators are rendered in English
-        verifyDateSeparator(0, /^January (04|05), 2019/);
+        verifyDateSeparator(0, /^January (05|06), 2019/);
 
         //! cannot test for MMMM DD format as it is current-year dependent, need fixed-time comparison
 
@@ -79,6 +79,6 @@ describe('Messaging', () => {
         cy.reload();
 
         // * Verify that it renders in "es" locale
-        verifyDateSeparator(0, /^(04|05) de enero de 2019/);
+        verifyDateSeparator(0, /^(05|06) de enero de 2019/);
     });
 });

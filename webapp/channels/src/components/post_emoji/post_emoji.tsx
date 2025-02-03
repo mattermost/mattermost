@@ -3,33 +3,38 @@
 
 import React from 'react';
 
-interface PostEmojiProps {
+import WithTooltip from 'components/with_tooltip';
+
+export interface Props {
+    children: React.ReactNode;
     name: string;
     imageUrl: string;
 }
-declare module 'react' {
-    interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-        alt?: string;
+
+const PostEmoji = ({children, name, imageUrl}: Props) => {
+    const emojiText = `:${name}:`;
+    const backgroundImageUrl = `url(${imageUrl})`;
+
+    if (!imageUrl) {
+        return <>{children}</>;
     }
-}
 
-export default class PostEmoji extends React.PureComponent<PostEmojiProps> {
-    public render() {
-        const emojiText = ':' + this.props.name + ':';
-
-        if (!this.props.imageUrl) {
-            return emojiText;
-        }
-
-        return (
+    return (
+        <WithTooltip
+            title={emojiText}
+            emoji={name}
+            isEmojiLarge={true}
+        >
             <span
-                alt={emojiText}
                 className='emoticon'
-                title={emojiText}
-                style={{backgroundImage: 'url(' + this.props.imageUrl + ')'}}
+                data-testid={`postEmoji.${emojiText}`}
+                style={{backgroundImage: backgroundImageUrl}}
+                aria-label={emojiText}
             >
-                {emojiText}
+                {children}
             </span>
-        );
-    }
-}
+        </WithTooltip>
+    );
+};
+
+export default React.memo(PostEmoji);

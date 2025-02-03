@@ -49,6 +49,7 @@ SEE ALSO
 * `mmctl user invite <mmctl_user_invite.rst>`_ 	 - Send user an email invite to a team.
 * `mmctl user list <mmctl_user_list.rst>`_ 	 - List users
 * `mmctl user migrate-auth <mmctl_user_migrate-auth.rst>`_ 	 - Mass migrate user accounts authentication type
+* `mmctl user preference <mmctl_user_preference.rst>`_ 	 - Manage user preferences
 * `mmctl user promote <mmctl_user_promote.rst>`_ 	 - Promote guests to users
 * `mmctl user reset-password <mmctl_user_reset-password.rst>`_ 	 - Send users an email to reset their password
 * `mmctl user resetmfa <mmctl_user_resetmfa.rst>`_ 	 - Turn off MFA

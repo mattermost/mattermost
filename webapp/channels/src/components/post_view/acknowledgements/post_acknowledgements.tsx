@@ -13,7 +13,7 @@ import {
     useId,
     useInteractions,
     useRole,
-} from '@floating-ui/react-dom-interactions';
+} from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {memo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -67,7 +67,7 @@ function PostAcknowledgements({
     }
     const buttonDisabled = (Boolean(acknowledgedAt) && moreThan5minAgo(acknowledgedAt)) || isCurrentAuthor;
 
-    const {x, y, reference, floating, strategy, context} = useFloating({
+    const {x, y, strategy, context, refs: {setReference, setFloating}} = useFloating({
         open,
         onOpenChange: setOpen,
         placement: 'top-start',
@@ -92,9 +92,9 @@ function PostAcknowledgements({
                 open: 300,
                 close: 0,
             },
+            restMs: 100,
             handleClose: safePolygon({
                 blockPointerEvents: false,
-                restMs: 100,
             }),
         }),
         useRole(context),
@@ -131,7 +131,7 @@ function PostAcknowledgements({
     const button = (
         <>
             <button
-                ref={reference}
+                ref={setReference}
                 onClick={handleClick}
                 className={classNames({
                     AcknowledgementButton: true,
@@ -161,7 +161,7 @@ function PostAcknowledgements({
                     modal={false}
                 >
                     <div
-                        ref={floating}
+                        ref={setFloating}
                         style={{
                             position: strategy,
                             top: y ?? 0,

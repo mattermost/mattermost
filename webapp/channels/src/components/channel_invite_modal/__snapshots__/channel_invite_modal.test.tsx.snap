@@ -28,7 +28,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -36,7 +36,23 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     closeButton={true}
     closeLabel="Close"
     id="channelInviteModalLabel"
-  />
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="deletePostModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add people to {channel}"
+        id="channel_invite.addNewMembers"
+        values={
+          Object {
+            "channel": "testing",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
   <ModalBody
     bsClass="modal-body"
     className="overflow--visible"
@@ -44,27 +60,30 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     role="application"
   >
     <div
-      className="channel-invite__header"
-    >
-      <h1>
-        <MemoizedFormattedMessage
-          defaultMessage="Add people to {channel}"
-          id="channel_invite.addNewMembers"
-          values={
-            Object {
-              "channel": "testing",
-            }
-          }
-        />
-      </h1>
-    </div>
-    <div
       className="channel-invite__content"
     >
       <MultiSelect
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
+        backButtonText={
+          Object {
+            "defaultMessage": "Cancel",
+            "id": "multiselect.cancel",
+          }
+        }
+        buttonSubmitLoadingText={
+          Object {
+            "defaultMessage": "Adding...",
+            "id": "multiselect.adding",
+          }
+        }
+        buttonSubmitText={
+          Object {
+            "defaultMessage": "Add",
+            "id": "multiselect.add",
+          }
+        }
         customNoOptionsMessage={null}
         focusOnLoad={true}
         handleAdd={[Function]}
@@ -73,11 +92,55 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         handleInput={[Function]}
         handlePageChange={[Function]}
         handleSubmit={[Function]}
+        intl={
+          Object {
+            "$t": [Function],
+            "defaultFormats": Object {},
+            "defaultLocale": "en",
+            "defaultRichTextElements": undefined,
+            "fallbackOnEmptyString": true,
+            "formatDate": [Function],
+            "formatDateTimeRange": [Function],
+            "formatDateToParts": [Function],
+            "formatDisplayName": [Function],
+            "formatList": [Function],
+            "formatListToParts": [Function],
+            "formatMessage": [Function],
+            "formatNumber": [Function],
+            "formatNumberToParts": [Function],
+            "formatPlural": [Function],
+            "formatRelativeTime": [Function],
+            "formatTime": [Function],
+            "formatTimeToParts": [Function],
+            "formats": Object {},
+            "formatters": Object {
+              "getDateTimeFormat": [Function],
+              "getDisplayNames": [Function],
+              "getListFormat": [Function],
+              "getMessageFormat": [Function],
+              "getNumberFormat": [Function],
+              "getPluralRules": [Function],
+              "getRelativeTimeFormat": [Function],
+            },
+            "locale": "en",
+            "messages": Object {},
+            "onError": [Function],
+            "onWarn": [Function],
+            "textComponent": "span",
+            "timeZone": "Etc/UTC",
+          }
+        }
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
         options={Array []}
         perPage={50}
+        placeholderText={
+          Object {
+            "defaultMessage": "Search for people or groups",
+            "id": "multiselect.placeholder.peopleOrGroups",
+          }
+        }
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -127,7 +190,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -135,7 +198,23 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     closeButton={true}
     closeLabel="Close"
     id="channelInviteModalLabel"
-  />
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="deletePostModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add people to {channel}"
+        id="channel_invite.addNewMembers"
+        values={
+          Object {
+            "channel": "testing",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
   <ModalBody
     bsClass="modal-body"
     className="overflow--visible"
@@ -143,27 +222,30 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     role="application"
   >
     <div
-      className="channel-invite__header"
-    >
-      <h1>
-        <MemoizedFormattedMessage
-          defaultMessage="Add people to {channel}"
-          id="channel_invite.addNewMembers"
-          values={
-            Object {
-              "channel": "testing",
-            }
-          }
-        />
-      </h1>
-    </div>
-    <div
       className="channel-invite__content"
     >
       <MultiSelect
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
+        backButtonText={
+          Object {
+            "defaultMessage": "Cancel",
+            "id": "multiselect.cancel",
+          }
+        }
+        buttonSubmitLoadingText={
+          Object {
+            "defaultMessage": "Adding...",
+            "id": "multiselect.adding",
+          }
+        }
+        buttonSubmitText={
+          Object {
+            "defaultMessage": "Add",
+            "id": "multiselect.add",
+          }
+        }
         customNoOptionsMessage={null}
         focusOnLoad={true}
         handleAdd={[Function]}
@@ -172,11 +254,55 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
         handleInput={[Function]}
         handlePageChange={[Function]}
         handleSubmit={[Function]}
+        intl={
+          Object {
+            "$t": [Function],
+            "defaultFormats": Object {},
+            "defaultLocale": "en",
+            "defaultRichTextElements": undefined,
+            "fallbackOnEmptyString": true,
+            "formatDate": [Function],
+            "formatDateTimeRange": [Function],
+            "formatDateToParts": [Function],
+            "formatDisplayName": [Function],
+            "formatList": [Function],
+            "formatListToParts": [Function],
+            "formatMessage": [Function],
+            "formatNumber": [Function],
+            "formatNumberToParts": [Function],
+            "formatPlural": [Function],
+            "formatRelativeTime": [Function],
+            "formatTime": [Function],
+            "formatTimeToParts": [Function],
+            "formats": Object {},
+            "formatters": Object {
+              "getDateTimeFormat": [Function],
+              "getDisplayNames": [Function],
+              "getListFormat": [Function],
+              "getMessageFormat": [Function],
+              "getNumberFormat": [Function],
+              "getPluralRules": [Function],
+              "getRelativeTimeFormat": [Function],
+            },
+            "locale": "en",
+            "messages": Object {},
+            "onError": [Function],
+            "onWarn": [Function],
+            "textComponent": "span",
+            "timeZone": "Etc/UTC",
+          }
+        }
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
         options={Array []}
         perPage={50}
+        placeholderText={
+          Object {
+            "defaultMessage": "Search for people or groups",
+            "id": "multiselect.placeholder.peopleOrGroups",
+          }
+        }
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}
@@ -248,7 +374,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -256,7 +382,23 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
     closeButton={true}
     closeLabel="Close"
     id="channelInviteModalLabel"
-  />
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+      id="deletePostModalLabel"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add people to {channel}"
+        id="channel_invite.addNewMembers"
+        values={
+          Object {
+            "channel": "testing",
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
   <ModalBody
     bsClass="modal-body"
     className="overflow--visible"
@@ -264,27 +406,30 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
     role="application"
   >
     <div
-      className="channel-invite__header"
-    >
-      <h1>
-        <MemoizedFormattedMessage
-          defaultMessage="Add people to {channel}"
-          id="channel_invite.addNewMembers"
-          values={
-            Object {
-              "channel": "testing",
-            }
-          }
-        />
-      </h1>
-    </div>
-    <div
       className="channel-invite__content"
     >
       <MultiSelect
         ariaLabelRenderer={[Function]}
         backButtonClass="btn-tertiary tertiary-button"
         backButtonClick={[Function]}
+        backButtonText={
+          Object {
+            "defaultMessage": "Cancel",
+            "id": "multiselect.cancel",
+          }
+        }
+        buttonSubmitLoadingText={
+          Object {
+            "defaultMessage": "Adding...",
+            "id": "multiselect.adding",
+          }
+        }
+        buttonSubmitText={
+          Object {
+            "defaultMessage": "Add",
+            "id": "multiselect.add",
+          }
+        }
         customNoOptionsMessage={null}
         focusOnLoad={true}
         handleAdd={[Function]}
@@ -293,11 +438,55 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
         handleInput={[Function]}
         handlePageChange={[Function]}
         handleSubmit={[Function]}
+        intl={
+          Object {
+            "$t": [Function],
+            "defaultFormats": Object {},
+            "defaultLocale": "en",
+            "defaultRichTextElements": undefined,
+            "fallbackOnEmptyString": true,
+            "formatDate": [Function],
+            "formatDateTimeRange": [Function],
+            "formatDateToParts": [Function],
+            "formatDisplayName": [Function],
+            "formatList": [Function],
+            "formatListToParts": [Function],
+            "formatMessage": [Function],
+            "formatNumber": [Function],
+            "formatNumberToParts": [Function],
+            "formatPlural": [Function],
+            "formatRelativeTime": [Function],
+            "formatTime": [Function],
+            "formatTimeToParts": [Function],
+            "formats": Object {},
+            "formatters": Object {
+              "getDateTimeFormat": [Function],
+              "getDisplayNames": [Function],
+              "getListFormat": [Function],
+              "getMessageFormat": [Function],
+              "getNumberFormat": [Function],
+              "getPluralRules": [Function],
+              "getRelativeTimeFormat": [Function],
+            },
+            "locale": "en",
+            "messages": Object {},
+            "onError": [Function],
+            "onWarn": [Function],
+            "textComponent": "span",
+            "timeZone": "Etc/UTC",
+          }
+        }
         key="addUsersToChannelKey"
         loading={true}
         optionRenderer={[Function]}
         options={Array []}
         perPage={50}
+        placeholderText={
+          Object {
+            "defaultMessage": "Search for people or groups",
+            "id": "multiselect.placeholder.peopleOrGroups",
+          }
+        }
         saveButtonPosition="bottom"
         saving={false}
         savingEnabled={true}

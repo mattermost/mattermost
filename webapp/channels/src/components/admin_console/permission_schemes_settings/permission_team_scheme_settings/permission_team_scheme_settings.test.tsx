@@ -4,8 +4,17 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import PermissionTeamSchemeSettings from 'components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings';
+import Permissions from 'mattermost-redux/constants/permissions';
 
+import PermissionTeamSchemeSettings from './permission_team_scheme_settings';
+
+function getAnyInstance(wrapper: any) {
+    return wrapper.instance() as any;
+}
+
+function getAnyState(wrapper: any) {
+    return wrapper.state() as any;
+}
 describe('components/admin_console/permission_schemes_settings/permission_team_scheme_settings/permission_team_scheme_settings', () => {
     const defaultProps = {
         config: {
@@ -90,6 +99,9 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         },
         teams: [
         ],
+        intl: {
+            formatMessage: jest.fn(),
+        },
         actions: {
             loadRolesIfNeeded: jest.fn().mockReturnValue(Promise.resolve()),
             loadRole: jest.fn(),
@@ -107,11 +119,11 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
     } as any;
 
     test('should match snapshot on new with default roles without permissions', (done) => {
-        const wrapper = shallow<PermissionTeamSchemeSettings>(
+        const wrapper = shallow(
             <PermissionTeamSchemeSettings {...defaultProps}/>,
         );
         defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(wrapper.instance().getStateRoles()).toMatchSnapshot();
+            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
             done();
         });
     });
@@ -155,7 +167,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
 
         expect(wrapper).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(wrapper.state()).toMatchSnapshot();
+            expect(getAnyState(wrapper)).toMatchSnapshot();
             done();
         });
     });
@@ -178,7 +190,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         }));
         const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
-        const wrapper = shallow<PermissionTeamSchemeSettings>(
+        const wrapper = shallow(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
@@ -186,7 +198,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         );
 
         expect(wrapper).toMatchSnapshot();
-        await wrapper.instance().handleSubmit();
+        await getAnyInstance(wrapper).handleSubmit();
         expect(editRole).toHaveBeenCalledTimes(9);
     });
 
@@ -194,15 +206,15 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         const editRole = jest.fn().mockImplementation(() => Promise.resolve({}));
         const createScheme = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error'}}));
         const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
-        const wrapper = shallow<PermissionTeamSchemeSettings>(
+        const wrapper = shallow(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
             />,
         );
 
-        await wrapper.instance().handleSubmit();
-        expect(wrapper.state().serverError).toBe('test error');
+        await getAnyInstance(wrapper).handleSubmit();
+        expect(getAnyState(wrapper).serverError).toBe('test error');
     });
 
     test('should show error if editRole fails', async () => {
@@ -223,45 +235,45 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         }));
         const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
-        const wrapper = shallow<PermissionTeamSchemeSettings>(
+        const wrapper = shallow(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
             />,
         );
 
-        await wrapper.instance().handleSubmit();
-        expect(wrapper.state().serverError).toBe('test error');
+        await getAnyInstance(wrapper).handleSubmit();
+        expect(getAnyState(wrapper).serverError).toBe('test error');
     });
 
     test('should open and close correctly roles blocks', () => {
-        const wrapper = shallow<PermissionTeamSchemeSettings>(
+        const wrapper = shallow(
             <PermissionTeamSchemeSettings {...defaultProps}/>,
         );
-        const instance = wrapper.instance();
-        expect(wrapper.state().openRoles.guests).toBe(true);
+        const instance = getAnyInstance(wrapper);
+        expect(getAnyState(wrapper).openRoles.guests).toBe(true);
         instance.toggleRole('guests');
-        expect(wrapper.state().openRoles.guests).toBe(false);
+        expect(getAnyState(wrapper).openRoles.guests).toBe(false);
         instance.toggleRole('guests');
-        expect(wrapper.state().openRoles.guests).toBe(true);
+        expect(getAnyState(wrapper).openRoles.guests).toBe(true);
 
-        expect(wrapper.state().openRoles.all_users).toBe(true);
+        expect(getAnyState(wrapper).openRoles.all_users).toBe(true);
         instance.toggleRole('all_users');
-        expect(wrapper.state().openRoles.all_users).toBe(false);
+        expect(getAnyState(wrapper).openRoles.all_users).toBe(false);
         instance.toggleRole('all_users');
-        expect(wrapper.state().openRoles.all_users).toBe(true);
+        expect(getAnyState(wrapper).openRoles.all_users).toBe(true);
 
-        expect(wrapper.state().openRoles.channel_admin).toBe(true);
+        expect(getAnyState(wrapper).openRoles.channel_admin).toBe(true);
         instance.toggleRole('channel_admin');
-        expect(wrapper.state().openRoles.channel_admin).toBe(false);
+        expect(getAnyState(wrapper).openRoles.channel_admin).toBe(false);
         instance.toggleRole('channel_admin');
-        expect(wrapper.state().openRoles.channel_admin).toBe(true);
+        expect(getAnyState(wrapper).openRoles.channel_admin).toBe(true);
 
-        expect(wrapper.state().openRoles.team_admin).toBe(true);
+        expect(getAnyState(wrapper).openRoles.team_admin).toBe(true);
         instance.toggleRole('team_admin');
-        expect(wrapper.state().openRoles.team_admin).toBe(false);
+        expect(getAnyState(wrapper).openRoles.team_admin).toBe(false);
         instance.toggleRole('team_admin');
-        expect(wrapper.state().openRoles.team_admin).toBe(true);
+        expect(getAnyState(wrapper).openRoles.team_admin).toBe(true);
     });
 
     test('should match snapshot on edit without permissions', (done) => {
@@ -286,12 +298,12 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        const wrapper = shallow<PermissionTeamSchemeSettings>(
+        const wrapper = shallow(
             <PermissionTeamSchemeSettings {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(wrapper.instance().getStateRoles()).toMatchSnapshot();
+            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
             done();
         });
     });
@@ -341,12 +353,12 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        const wrapper = shallow<PermissionTeamSchemeSettings>(
+        const wrapper = shallow(
             <PermissionTeamSchemeSettings {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(wrapper.instance().getStateRoles()).toMatchSnapshot();
+            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
             done();
         });
     });
@@ -376,12 +388,12 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        const wrapper = shallow<PermissionTeamSchemeSettings>(
+        const wrapper = shallow(
             <PermissionTeamSchemeSettings {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(wrapper.instance().getStateRoles()).toMatchSnapshot();
+            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
             done();
         });
     });
@@ -411,13 +423,34 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        const wrapper = shallow<PermissionTeamSchemeSettings>(
+        const wrapper = shallow(
             <PermissionTeamSchemeSettings {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(wrapper.instance().getStateRoles()).toMatchSnapshot();
+            expect(getAnyInstance(wrapper).getStateRoles()).toMatchSnapshot();
             done();
         });
+    });
+
+    test('should set moderated permissions on team/channel admins', () => {
+        const wrapper = shallow(
+            <PermissionTeamSchemeSettings {...defaultProps}/>,
+        );
+        const instance = getAnyInstance(wrapper);
+
+        // A moderated permission should set team/channel admins
+        instance.togglePermission('all_users', [Permissions.CREATE_POST]);
+        expect(getAnyState(wrapper).roles.all_users.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
+        expect(getAnyState(wrapper).roles.channel_admin.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
+        expect(getAnyState(wrapper).roles.team_admin.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
+        expect(getAnyState(wrapper).roles.playbook_admin.permissions.indexOf(Permissions.CREATE_POST)).toEqual(-1);
+
+        // Changing a non-moderated permission should NOT set team/channel admins
+        instance.togglePermission('all_users', [Permissions.EDIT_OTHERS_POSTS]);
+        expect(getAnyState(wrapper).roles.all_users.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toBeGreaterThan(-1);
+        expect(getAnyState(wrapper).roles.channel_admin.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toEqual(-1);
+        expect(getAnyState(wrapper).roles.team_admin.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toEqual(-1);
+        expect(getAnyState(wrapper).roles.playbook_admin.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toEqual(-1);
     });
 });

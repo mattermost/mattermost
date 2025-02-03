@@ -14,7 +14,6 @@ import {getPost, isPostPriorityEnabled} from 'mattermost-redux/selectors/entitie
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {isEmbedVisible} from 'selectors/posts';
@@ -50,7 +49,7 @@ function makeMapStateToProps() {
         }
 
         if (ownProps.metadata.channel_type === General.DM_CHANNEL) {
-            channelDisplayName = getChannel(state, {id: ownProps.metadata.channel_id}).display_name;
+            channelDisplayName = getChannel(state, ownProps.metadata.channel_id)?.display_name || '';
         }
 
         return {
@@ -67,7 +66,7 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({toggleEmbedVisibility}, dispatch),
     };

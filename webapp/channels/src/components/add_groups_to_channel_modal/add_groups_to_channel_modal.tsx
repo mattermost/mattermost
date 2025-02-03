@@ -3,21 +3,20 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group, SyncablePatch} from '@mattermost/types/groups';
 import {SyncableType} from '@mattermost/types/groups';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 
 import groupsAvatar from 'images/groups-avatar.png';
 import Constants from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 const GROUPS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 10;
@@ -27,10 +26,10 @@ type GroupValue = (Group & Value);
 export type Props = {
     currentChannelName: string;
     currentChannelId: string;
+    intl: IntlShape;
     teamID: string;
     searchTerm: string;
     groups: Group[];
-
     excludeGroups?: Group[];
     includeGroups?: Group[];
     onExited: () => void;
@@ -38,12 +37,12 @@ export type Props = {
     onAddCallback?: (groupIDs: string[]) => void;
 
     actions: {
-        getGroupsNotAssociatedToChannel: (channelID: string, q?: string, page?: number | null, perPage?: number | null, filterParentTeamPermitted?: boolean) => Promise<ActionFunc>;
-        setModalSearchTerm: (term: string) => { type: string; data: string};
-        linkGroupSyncable: (groupID: string, syncableID: string, syncableType: string, patch: Partial<SyncablePatch>) => Promise<{error?: ServerError; data?: null}>;
-        getAllGroupsAssociatedToChannel: (channelID: string, filterAllowReference: boolean, includeMemberCount: boolean) => ActionFunc;
-        getTeam: (teamId: string) => ActionFunc;
-        getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => ActionFunc;
+        getGroupsNotAssociatedToChannel: (channelID: string, q?: string, page?: number, perPage?: number, filterParentTeamPermitted?: boolean) => Promise<ActionResult>;
+        setModalSearchTerm: (term: string) => void;
+        linkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
+        getAllGroupsAssociatedToChannel: (channelID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;
+        getTeam: (teamId: string) => Promise<ActionResult>;
+        getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;
     };
 }
 
@@ -56,7 +55,7 @@ type State = {
     loadingGroups: boolean;
 }
 
-export default class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
+export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
     private selectedItemRef: React.RefObject<HTMLDivElement>;
 
@@ -100,7 +99,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
             this.searchTimeoutId = window.setTimeout(
                 async () => {
                     this.setGroupsLoadingState(true);
-                    await this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, searchTerm, null, null, true);
+                    await this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, searchTerm, undefined, undefined, true);
                     this.setGroupsLoadingState(false);
                 },
                 Constants.SEARCH_TIMEOUT_MILLISECONDS,
@@ -217,9 +216,12 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                     </div>
                 </div>
                 <div className='more-modal__actions'>
-                    <div className='more-modal__actions--round'>
-                        <AddIcon/>
-                    </div>
+                    <button
+                        className='more-modal__actions--round'
+                        aria-label='Add groups to channel'
+                    >
+                        <i className='icon icon-plus'/>
+                    </button>
                 </div>
             </div>
         );
@@ -242,8 +244,8 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
             </div>
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
-        const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
+        const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
+        const buttonSubmitLoadingText = defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
 
         let addError = null;
         if (this.state.addError) {
@@ -271,7 +273,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                 onExited={this.props.onExited}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>
+                    <Modal.Title componentClass='h1'>
                         <FormattedMessage
                             id='add_groups_to_channel.title'
                             defaultMessage='Add New Groups to {channelName} Channel'
@@ -289,6 +291,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                         key='addGroupsToChannelKey'
                         options={groupsToShowValues}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         selectedItemRef={this.selectedItemRef}
                         values={this.state.values}
                         valueRenderer={this.renderValue}
@@ -304,10 +307,12 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                         buttonSubmitLoadingText={buttonSubmitLoadingText}
                         saving={this.state.saving}
                         loading={this.state.loadingGroups}
-                        placeholderText={localizeMessage('multiselect.addGroupsPlaceholder', 'Search and add groups')}
+                        placeholderText={defineMessage({id: 'multiselect.addGroupsPlaceholder', defaultMessage: 'Search and add groups'})}
                     />
                 </Modal.Body>
             </Modal>
         );
     }
 }
+
+export default injectIntl(AddGroupsToChannelModal);

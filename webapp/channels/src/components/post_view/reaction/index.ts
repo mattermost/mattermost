@@ -16,7 +16,6 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {canAddReactions, canRemoveReactions} from 'mattermost-redux/selectors/entities/reactions';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
 
 import {addReaction} from 'actions/post_actions';
@@ -69,7 +68,7 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             addReaction,

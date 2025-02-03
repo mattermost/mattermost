@@ -35,7 +35,7 @@ func (*PurposeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comm
 	}
 }
 
-func (*PurposeProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*PurposeProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(c, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{

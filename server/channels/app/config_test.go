@@ -70,37 +70,37 @@ func TestEnsureInstallationDate(t *testing.T) {
 			Name:                     "New installation: no users, no installation date",
 			PrevInstallationDate:     nil,
 			UsersCreationDates:       nil,
-			ExpectedInstallationDate: model.NewInt64(utils.MillisFromTime(time.Now())),
+			ExpectedInstallationDate: model.NewPointer(utils.MillisFromTime(time.Now())),
 		},
 		{
 			Name:                     "Old installation: users, no installation date",
 			PrevInstallationDate:     nil,
 			UsersCreationDates:       []int64{10000000000, 30000000000, 20000000000},
-			ExpectedInstallationDate: model.NewInt64(10000000000),
+			ExpectedInstallationDate: model.NewPointer(int64(10000000000)),
 		},
 		{
 			Name:                     "New installation, second run: no users, installation date",
-			PrevInstallationDate:     model.NewInt64(80000000000),
+			PrevInstallationDate:     model.NewPointer(int64(80000000000)),
 			UsersCreationDates:       []int64{10000000000, 30000000000, 20000000000},
-			ExpectedInstallationDate: model.NewInt64(80000000000),
+			ExpectedInstallationDate: model.NewPointer(int64(80000000000)),
 		},
 		{
 			Name:                     "Old installation already updated: users, installation date",
-			PrevInstallationDate:     model.NewInt64(90000000000),
+			PrevInstallationDate:     model.NewPointer(int64(90000000000)),
 			UsersCreationDates:       []int64{10000000000, 30000000000, 20000000000},
-			ExpectedInstallationDate: model.NewInt64(90000000000),
+			ExpectedInstallationDate: model.NewPointer(int64(90000000000)),
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			sqlStore := th.GetSqlStore()
-			sqlStore.GetMasterX().Exec("DELETE FROM Users")
+			sqlStore.GetMaster().Exec("DELETE FROM Users")
 
 			for _, createAt := range tc.UsersCreationDates {
 				user := th.CreateUser()
 				user.CreateAt = createAt
-				sqlStore.GetMasterX().Exec("UPDATE Users SET CreateAt = ? WHERE Id = ?", createAt, user.Id)
+				sqlStore.GetMaster().Exec("UPDATE Users SET CreateAt = ? WHERE Id = ?", createAt, user.Id)
 			}
 
 			if tc.PrevInstallationDate == nil {
@@ -125,7 +125,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)
 			}
 
-			sqlStore.GetMasterX().Exec("DELETE FROM Users")
+			sqlStore.GetMaster().Exec("DELETE FROM Users")
 		})
 	}
 }

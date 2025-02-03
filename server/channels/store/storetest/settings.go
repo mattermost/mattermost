@@ -22,10 +22,10 @@ import (
 )
 
 const (
-	defaultMysqlDSN        = "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s&multiStatements=true&maxAllowedPacket=4194304"
+	defaultMysqlDSN        = "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4&readTimeout=30s&writeTimeout=30s&multiStatements=true&maxAllowedPacket=4194304"
 	defaultPostgresqlDSN   = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 	defaultMysqlRootPWD    = "mostest"
-	defaultMysqlReplicaDSN = "root:mostest@tcp(localhost:3307)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s"
+	defaultMysqlReplicaDSN = "root:mostest@tcp(localhost:3307)/mattermost_test?charset=utf8mb4\u0026readTimeout=30s"
 )
 
 func getEnv(name, defaultValue string) string {
@@ -172,8 +172,8 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		ConnMaxLifetimeMilliseconds:       new(int),
 		ConnMaxIdleTimeMilliseconds:       new(int),
 		MaxOpenConns:                      new(int),
-		Trace:                             model.NewBool(false),
-		AtRestEncryptKey:                  model.NewString(model.NewRandomString(32)),
+		Trace:                             model.NewPointer(false),
+		AtRestEncryptKey:                  model.NewPointer(model.NewRandomString(32)),
 		QueryTimeout:                      new(int),
 		MigrationsStatementTimeoutSeconds: new(int),
 	}
@@ -261,7 +261,7 @@ func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	}
 
 	log("Created temporary " + driver + " database " + dbName)
-	settings.ReplicaMonitorIntervalSeconds = model.NewInt(5)
+	settings.ReplicaMonitorIntervalSeconds = model.NewPointer(5)
 
 	return settings
 }

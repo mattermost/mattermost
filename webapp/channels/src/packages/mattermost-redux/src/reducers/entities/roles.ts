@@ -5,10 +5,10 @@ import {combineReducers} from 'redux';
 
 import type {Role} from '@mattermost/types/roles';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {RoleTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-function pending(state: Set<string> = new Set(), action: GenericAction) {
+function pending(state: Set<string> = new Set(), action: MMReduxAction) {
     switch (action.type) {
     case RoleTypes.SET_PENDING_ROLES:
         return action.data;
@@ -19,7 +19,7 @@ function pending(state: Set<string> = new Set(), action: GenericAction) {
     }
 }
 
-function roles(state: Record<string, Role> = {}, action: GenericAction) {
+function roles(state: Record<string, Role> = {}, action: MMReduxAction) {
     switch (action.type) {
     case RoleTypes.RECEIVED_ROLES: {
         if (action.data) {

@@ -5,7 +5,6 @@ package commands
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -26,7 +25,7 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 
 		s.client.
 			EXPECT().
-			RemoveLicenseFile(context.Background()).
+			RemoveLicenseFile(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
@@ -43,7 +42,7 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 
 		s.client.
 			EXPECT().
-			RemoveLicenseFile(context.Background()).
+			RemoveLicenseFile(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
@@ -57,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 
 func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 	// create temporary file
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "testLicense-")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "testLicense-")
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +72,7 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			UploadLicenseFile(context.Background(), mockLicenseFile).
+			UploadLicenseFile(context.TODO(), mockLicenseFile).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -87,7 +86,7 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 		errMsg := "open " + path + ": no such file or directory"
 		s.client.
 			EXPECT().
-			UploadLicenseFile(context.Background(), mockLicenseFile).
+			UploadLicenseFile(context.TODO(), mockLicenseFile).
 			Times(0)
 
 		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{path})
@@ -111,7 +110,7 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseStringCmdF() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			UploadLicenseFile(context.Background(), mockLicenseFile).
+			UploadLicenseFile(context.TODO(), mockLicenseFile).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 

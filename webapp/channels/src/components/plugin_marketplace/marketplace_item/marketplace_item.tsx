@@ -7,12 +7,9 @@ import React from 'react';
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
 import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 import Tag from 'components/widgets/tag/tag';
-
-import {Constants} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 // Label renders a tag showing a name and a description in a tooltip.
 // If a URL is provided, clicking on the tag will open the URL in a new tab.
@@ -28,17 +25,11 @@ export const Label = ({name, description, url}: MarketplaceLabel): JSX.Element =
     let label;
     if (description) {
         label = (
-            <OverlayTrigger
-                delayShow={Constants.OVERLAY_TIME_DELAY}
-                placement='top'
-                overlay={
-                    <Tooltip id={'plugin-marketplace_label_' + name.toLowerCase() + '-tooltip'}>
-                        {description}
-                    </Tooltip>
-                }
+            <WithTooltip
+                title={description}
             >
                 {tag}
-            </OverlayTrigger>
+            </WithTooltip>
         );
     } else {
         label = tag;
@@ -142,23 +133,12 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
         );
 
         if (this.state.showTooltip) {
-            const displayNameToolTip = (
-                <Tooltip
-                    id='marketplace-item-description__tooltip'
-                    className='more-modal__description-tooltip'
-                >
-                    {descriptionText}
-                </Tooltip>
-            );
-
             description = (
-                <OverlayTrigger
-                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                    placement='top'
-                    overlay={displayNameToolTip}
+                <WithTooltip
+                    title={descriptionText || ''}
                 >
                     {description}
-                </OverlayTrigger>
+                </WithTooltip>
             );
         }
 

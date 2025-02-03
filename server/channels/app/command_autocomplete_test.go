@@ -658,14 +658,14 @@ func (p *testCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model.Co
 	}
 }
 
-func (p *testCommandProvider) DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (p *testCommandProvider) DoCommand(a *App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		Text:         "I do nothing!",
 		ResponseType: model.CommandResponseTypeEphemeral,
 	}
 }
 
-func (p *testCommandProvider) GetAutoCompleteListItems(a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+func (p *testCommandProvider) GetAutoCompleteListItems(c request.CTX, a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	if arg.Name == "dynaArg" {
 		return []model.AutocompleteListItem{
 			{Item: "item1", Hint: "this is hint 1", HelpText: "This is help text 1."},
@@ -675,3 +675,6 @@ func (p *testCommandProvider) GetAutoCompleteListItems(a *App, commandArgs *mode
 	}
 	return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
 }
+
+// ensure testCommandProvider implements AutocompleteDynamicArgProvider
+var _ AutocompleteDynamicArgProvider = (*testCommandProvider)(nil)

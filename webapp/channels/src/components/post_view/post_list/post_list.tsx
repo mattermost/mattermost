@@ -3,14 +3,17 @@
 
 import React from 'react';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import type {updateNewMessagesAtInChannel} from 'actions/global_actions';
-import {clearMarks, mark, measure, trackEvent} from 'actions/telemetry_actions.jsx';
+import {clearMarks, countRequestsBetween, mark, shouldTrackPerformance, trackEvent} from 'actions/telemetry_actions.jsx';
 import type {LoadPostsParameters, LoadPostsReturnValue, CanLoadMorePosts} from 'actions/views/channel';
 
 import LoadingScreen from 'components/loading_screen';
 import VirtPostList from 'components/post_view/post_list_virtualized/post_list_virtualized';
 
 import {PostRequestTypes} from 'utils/constants';
+import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getOldestPostId, getLatestPostId} from 'utils/post_utils';
 
 const MAX_NUMBER_OF_AUTO_RETRIES = 3;
@@ -19,31 +22,57 @@ export const MAX_EXTRA_PAGES_LOADED = 10;
 // Measures the time between channel or team switch started and the post list component rendering posts.
 // Set "fresh" to true when the posts have not been loaded before.
 function markAndMeasureChannelSwitchEnd(fresh = false) {
-    mark('PostList#component');
+    mark(Mark.PostListLoaded);
 
-    const {duration: dur1, requestCount: requestCount1} = measure('SidebarChannelLink#click', 'PostList#component');
-    const {duration: dur2, requestCount: requestCount2} = measure('TeamLink#click', 'PostList#component');
+    // Send new performance metrics to server
+    const channelSwitch = measureAndReport({
+        name: Measure.ChannelSwitch,
+        startMark: Mark.ChannelLinkClicked,
+        endMark: Mark.PostListLoaded,
+        labels: {
+            fresh: fresh.toString(),
+        },
+        canFail: true,
+    });
+    const teamSwitch = measureAndReport({
+        name: Measure.TeamSwitch,
+        startMark: Mark.TeamLinkClicked,
+        endMark: Mark.PostListLoaded,
+        labels: {
+            fresh: fresh.toString(),
+        },
+        canFail: true,
+    });
 
+    // Send old performance metrics to Rudder
+    if (shouldTrackPerformance()) {
+        if (channelSwitch) {
+            const requestCount1 = countRequestsBetween(Mark.ChannelLinkClicked, Mark.PostListLoaded);
+
+            trackEvent('performance', Measure.ChannelSwitch, {
+                duration: Math.round(channelSwitch.duration),
+                fresh,
+                requestCount: requestCount1,
+            });
+        }
+
+        if (teamSwitch) {
+            const requestCount2 = countRequestsBetween(Mark.TeamLinkClicked, Mark.PostListLoaded);
+
+            trackEvent('performance', Measure.TeamSwitch, {
+                duration: Math.round(teamSwitch.duration),
+                fresh,
+                requestCount: requestCount2,
+            });
+        }
+    }
+
+    // Clear all the metrics so that we can differentiate between a channel and team switch next time this is called
     clearMarks([
-        'SidebarChannelLink#click',
-        'TeamLink#click',
-        'PostList#component',
+        Mark.ChannelLinkClicked,
+        Mark.TeamLinkClicked,
+        Mark.PostListLoaded,
     ]);
-
-    if (dur1 !== -1) {
-        trackEvent('performance', 'channel_switch', {
-            duration: Math.round(dur1),
-            fresh,
-            requestCount: requestCount1,
-        });
-    }
-    if (dur2 !== -1) {
-        trackEvent('performance', 'team_switch', {
-            duration: Math.round(dur2),
-            fresh,
-            requestCount: requestCount2,
-        });
-    }
 }
 
 export interface Props {
@@ -113,12 +142,12 @@ export interface Props {
         /*
          * Used for getting permalink view posts
          */
-        loadPostsAround: (channelId: string, focusedPostId: string) => Promise<void>;
+        loadPostsAround: (channelId: string, focusedPostId: string) => Promise<ActionResult>;
 
         /*
          * Used for geting unreads posts
          */
-        loadUnreads: (channelId: string) => Promise<void>;
+        loadUnreads: (channelId: string) => Promise<ActionResult>;
 
         /*
          * Used for getting posts using BEFORE_ID and AFTER_ID
@@ -128,13 +157,13 @@ export interface Props {
         /*
          * Used to loading posts since a timestamp to sync the posts
          */
-        syncPostsInChannel: (channelId: string, since: number, prefetch: boolean) => Promise<void>;
+        syncPostsInChannel: (channelId: string, since: number, prefetch: boolean) => Promise<ActionResult>;
 
         /*
          * Used to loading posts if it not first visit, permalink or there exists any postListIds
          * This happens when previous channel visit has a chunk which is not the latest set of posts
          */
-        loadLatestPosts: (channelId: string) => Promise<void>;
+        loadLatestPosts: (channelId: string) => Promise<ActionResult>;
 
         markChannelAsRead: (channelId: string) => void;
         updateNewMessagesAtInChannel: typeof updateNewMessagesAtInChannel;

@@ -33,11 +33,14 @@ exports[`ListItem should match snapshot when rendering GroupChannel 1`] = `
   <div
     className="more-modal__actions"
   >
-    <div
+    <button
+      aria-label="Add option "
       className="more-modal__actions--round"
     >
-      <AddIcon />
-    </div>
+      <i
+        className="icon icon-plus"
+      />
+    </button>
   </div>
 </div>
 `;
@@ -60,11 +63,14 @@ exports[`ListItem should match snapshot when rendering user 1`] = `
   <div
     className="more-modal__actions"
   >
-    <div
+    <button
+      aria-label="Add option "
       className="more-modal__actions--round"
     >
-      <AddIcon />
-    </div>
+      <i
+        className="icon icon-plus"
+      />
+    </button>
   </div>
 </div>
 `;

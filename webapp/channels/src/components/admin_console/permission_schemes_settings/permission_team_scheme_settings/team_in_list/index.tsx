@@ -9,7 +9,6 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getTeamStats as loadTeamStats} from 'mattermost-redux/actions/teams';
 import {getTeamStats} from 'mattermost-redux/selectors/entities/teams';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import TeamInList from './team_in_list';
 
@@ -19,7 +18,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             loadTeamStats,

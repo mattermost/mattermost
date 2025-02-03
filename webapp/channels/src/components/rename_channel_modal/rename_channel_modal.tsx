@@ -11,8 +11,9 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
@@ -54,7 +55,7 @@ type Props = {
     /**
      * Object with info about current team
      */
-    team: Team;
+    team?: Team;
 
     /**
      * String with the current team URL
@@ -69,7 +70,7 @@ type Props = {
         /*
         * Action creator to patch current channel
         */
-        patchChannel: (channelId: string, patch: Channel) => Promise<{ data: Channel; error: Error }>;
+        patchChannel: (channelId: string, patch: Channel) => Promise<ActionResult>;
     };
 }
 
@@ -188,7 +189,9 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
     onSaveSuccess = () => {
         this.handleHide();
         this.unsetError();
-        getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
+        if (this.props.team) {
+            getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
+        }
     };
 
     handleCancel = (e?: MouseEvent) => {
@@ -238,7 +241,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
 
         let serverError = null;
         if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
+            serverError = <div className='form-group has-error'><div className='as-bs-label control-label'>{this.state.serverError}</div></div>;
         }
 
         const {formatMessage} = this.props.intl;
@@ -252,9 +255,6 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
 
         const fullUrl = this.props.currentTeamUrl + '/channels';
         const shortUrl = `${getShortenedURL(fullUrl, 35)}/`;
-        const urlTooltip = (
-            <Tooltip id='urlTooltip'>{fullUrl}</Tooltip>
-        );
 
         return (
             <Modal
@@ -263,7 +263,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                 onHide={this.handleCancel}
                 onEntering={this.handleEntering}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='renameChannelModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -280,7 +280,10 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                 <form role='form'>
                     <Modal.Body>
                         <div className='form-group'>
-                            <label className='control-label'>
+                            <label
+                                className='control-label'
+                                htmlFor='display_name'
+                            >
                                 <FormattedMessage
                                     id='rename_channel.displayName'
                                     defaultMessage='Display Name'
@@ -303,16 +306,19 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                             {displayNameError}
                         </div>
                         <div className='form-group'>
-                            <label className='control-label'>{urlInputLabel}</label>
+                            <label
+                                className='control-label'
+                                htmlFor='channel_name'
+                            >
+                                {urlInputLabel}
+                            </label>
 
                             <div className={urlInputClass}>
-                                <OverlayTrigger
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                                    placement='top'
-                                    overlay={urlTooltip}
+                                <WithTooltip
+                                    title={fullUrl}
                                 >
                                     <span className='input-group-addon'>{shortUrl}</span>
-                                </OverlayTrigger>
+                                </WithTooltip>
                                 <input
                                     onChange={this.onNameChange}
                                     type='text'

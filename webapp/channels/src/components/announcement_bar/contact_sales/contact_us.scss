@@ -1,13 +1,13 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .contact-us {
     display: block;
     padding: 12px 20px;
     border: 1px solid var(--sys-button-bg);
+    border-radius: 4px;
     margin-top: 15px;
     margin-left: 10px;
     background-color: var(--sys-center-channel-bg);
-    border-radius: 4px;
     color: var(--sys-button-bg);
 
     span {

@@ -2,12 +2,19 @@
 
 exports[`admin_console/system_role_permissions should match snapshot 1`] = `
 <AdminPanel
-  className=""
   id="SystemRolePermissions"
-  subtitleDefault="Level of access to the system console."
-  subtitleId="admin.permissions.system_role_permissions.description"
-  titleDefault="Privileges"
-  titleId="admin.permissions.system_role_permissions.title"
+  subtitle={
+    Object {
+      "defaultMessage": "Level of access to the system console.",
+      "id": "admin.permissions.system_role_permissions.description",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Privileges",
+      "id": "admin.permissions.system_role_permissions.title",
+    }
+  }
 >
   <div
     className="SystemRolePermissions"
@@ -101,6 +108,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             },
             Object {
               "disabled": true,
+              "hasDescription": true,
               "name": "user_management_system_roles",
             },
           ],
@@ -395,12 +403,19 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
 
 exports[`admin_console/system_role_permissions should match snapshot with isLicensedForCloud = true 1`] = `
 <AdminPanel
-  className=""
   id="SystemRolePermissions"
-  subtitleDefault="Level of access to the system console."
-  subtitleId="admin.permissions.system_role_permissions.description"
-  titleDefault="Privileges"
-  titleId="admin.permissions.system_role_permissions.title"
+  subtitle={
+    Object {
+      "defaultMessage": "Level of access to the system console.",
+      "id": "admin.permissions.system_role_permissions.description",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Privileges",
+      "id": "admin.permissions.system_role_permissions.title",
+    }
+  }
 >
   <div
     className="SystemRolePermissions"
@@ -469,6 +484,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             },
             Object {
               "disabled": true,
+              "hasDescription": true,
               "name": "user_management_system_roles",
             },
           ],

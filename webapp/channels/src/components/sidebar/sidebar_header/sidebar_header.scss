@@ -1,0 +1,36 @@
+.sidebarHeaderContainer {
+    display: flex;
+    height: 55px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+}
+
+.sidebarHeader {
+    display: flex;
+    margin: 0;
+    color: var(--sidebar-text);
+    cursor: pointer;
+    font-family: Metropolis, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+
+    .title {
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .icon-chevron-down {
+        margin-right: -1px;
+        margin-left: -3px;
+    }
+
+    #SidebarContainer & {
+        font-family: Metropolis, sans-serif;
+    }
+}

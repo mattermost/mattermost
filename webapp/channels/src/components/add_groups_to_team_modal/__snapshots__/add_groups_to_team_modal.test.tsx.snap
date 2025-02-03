@@ -57,14 +57,62 @@ exports[`components/AddGroupsToTeamModal should match snapshot 1`] = `
   >
     <MultiSelect
       ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText="Adding..."
-      buttonSubmitText="Add"
+      buttonSubmitLoadingText={
+        Object {
+          "defaultMessage": "Adding...",
+          "id": "multiselect.adding",
+        }
+      }
+      buttonSubmitText={
+        Object {
+          "defaultMessage": "Add",
+          "id": "multiselect.add",
+        }
+      }
       focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
       handleInput={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+        }
+      }
       key="addGroupsToTeamKey"
       loading={true}
       maxValues={10}
@@ -86,7 +134,12 @@ exports[`components/AddGroupsToTeamModal should match snapshot 1`] = `
       optionRenderer={[Function]}
       options={Array []}
       perPage={50}
-      placeholderText="Search and add groups"
+      placeholderText={
+        Object {
+          "defaultMessage": "Search and add groups",
+          "id": "multiselect.addGroupsPlaceholder",
+        }
+      }
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -113,7 +166,7 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src={null}
+    src=""
     width="32"
   />
   <div
@@ -143,11 +196,14 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
   <div
     className="more-modal__actions"
   >
-    <div
+    <button
+      aria-label="Add groups to team"
       className="more-modal__actions--round"
     >
-      <AddIcon />
-    </div>
+      <i
+        className="icon icon-plus"
+      />
+    </button>
   </div>
 </div>
 `;
@@ -162,7 +218,7 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src={null}
+    src=""
     width="32"
   />
   <div
@@ -192,11 +248,14 @@ exports[`components/AddGroupsToTeamModal should match when renderOption is calle
   <div
     className="more-modal__actions"
   >
-    <div
+    <button
+      aria-label="Add groups to team"
       className="more-modal__actions--round"
     >
-      <AddIcon />
-    </div>
+      <i
+        className="icon icon-plus"
+      />
+    </button>
   </div>
 </div>
 `;

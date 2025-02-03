@@ -8,14 +8,13 @@ exports[`messageHtmlToComponent At mention 1`] = `
     <span
       data-mention="joram"
     >
-      <Memo(Connect(AtMention))
+      <Memo(Connect(Component))
         disableGroupHighlight={false}
         disableHighlight={false}
-        hasMention={true}
         mentionName="joram"
       >
         @joram
-      </Memo(Connect(AtMention))>
+      </Memo(Connect(Component))>
     </span>
   </span>
 </p>
@@ -26,14 +25,13 @@ exports[`messageHtmlToComponent At mention 2`] = `
   <span
     data-mention="joram"
   >
-    <Memo(Connect(AtMention))
+    <Memo(Connect(Component))
       disableGroupHighlight={false}
       disableHighlight={true}
-      hasMention={true}
       mentionName="joram"
     >
       @joram
-    </Memo(Connect(AtMention))>
+    </Memo(Connect(Component))>
   </span>
 </p>
 `;
@@ -43,14 +41,13 @@ exports[`messageHtmlToComponent At mention with group highlight disabled 1`] = `
   <span
     data-mention="developers"
   >
-    <Memo(Connect(AtMention))
+    <Memo(Connect(Component))
       disableGroupHighlight={false}
       disableHighlight={false}
-      hasMention={true}
       mentionName="developers"
     >
       @developers
-    </Memo(Connect(AtMention))>
+    </Memo(Connect(Component))>
   </span>
 </p>
 `;
@@ -60,14 +57,13 @@ exports[`messageHtmlToComponent At mention with group highlight disabled 2`] = `
   <span
     data-mention="developers"
   >
-    <Memo(Connect(AtMention))
+    <Memo(Connect(Component))
       disableGroupHighlight={true}
       disableHighlight={false}
-      hasMention={true}
       mentionName="developers"
     >
       @developers
-    </Memo(Connect(AtMention))>
+    </Memo(Connect(Component))>
   </span>
 </p>
 `;
@@ -133,10 +129,10 @@ Array [
   </p>,
   "
 ",
-  <Memo(Connect(LatexBlock))
+  <Memo(Connect(Component))
     content="x^2 + y^2 = z^2"
   />,
-  <Memo(Connect(LatexBlock))
+  <Memo(Connect(Component))
     content="F_m - 2 = F_0 F_1 \\\\dots F_{m-1}"
   />,
   <p>
@@ -148,26 +144,18 @@ Array [
 exports[`messageHtmlToComponent link with enabled a tooltip plugin 1`] = `
 <p>
   lorem ipsum 
-  <a
-    className="theme markdown__link"
-    href="http://www.dolor.com"
-    rel="noreferrer"
-    target="_blank"
-  >
-    <LinkTooltip
-      attributes={
-        Object {
-          "class": "theme markdown__link",
-          "href": "http://www.dolor.com",
-          "rel": "noreferrer",
-          "target": "_blank",
-        }
+  <PluginLinkTooltip
+    nodeAttributes={
+      Object {
+        "className": "theme markdown__link",
+        "href": "http://www.dolor.com",
+        "rel": "noreferrer",
+        "target": "_blank",
       }
-      href="http://www.dolor.com"
-    >
-      www.dolor.com
-    </LinkTooltip>
-  </a>
+    }
+  >
+    www.dolor.com
+  </PluginLinkTooltip>
    sit amet
 </p>
 `;

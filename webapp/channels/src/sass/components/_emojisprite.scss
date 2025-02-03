@@ -1,6 +1,3 @@
-
-@charset "UTF-8";
-
 .emojisprite-preview {
     width: 66px;
     max-width: none;
@@ -8,32 +5,46 @@
     background-repeat: no-repeat;
     cursor: pointer;
     -moz-transform: scale(0.5);
+    transform: scale(0.5);
     transform-origin: 0 0;
-    // Using zoom for now as it results in less blurry emojis on Chrome - MM-34178
-    zoom: 0.5;
+
+    @supports (zoom: 0.5) {
+        -moz-transform: none;
+        transform: none;
+        zoom: 0.5;
+    }
 }
 
 .emojisprite {
     width: 66px;
     max-width: none;
     height: 66px;
-    background-repeat: no-repeat;
     border-radius: 18px;
+    background-repeat: no-repeat;
     cursor: pointer;
     -moz-transform: scale(0.35);
-    zoom: 0.35;
+    transform: scale(0.35);
 }
 
 .emojisprite-loading {
     width: 66px;
     max-width: none;
     height: 66px;
+    border-radius: 18px;
     background-image: none !important;
     background-repeat: no-repeat;
-    border-radius: 18px;
     cursor: pointer;
     -moz-transform: scale(0.35);
-    zoom: 0.35;
+    transform: scale(0.35);
+}
+
+@supports (zoom: 0.35) {
+    .emojisprite,
+    .emojisprite-loading {
+        -moz-transform: none;
+        transform: none;
+        zoom: 0.35;
+    }
 }
 
 .emoji-category-recent { background-image: url('images/emoji-sheets/apple-sheet.png'); }

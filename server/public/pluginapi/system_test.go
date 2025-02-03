@@ -1,12 +1,14 @@
 package pluginapi_test
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
@@ -15,25 +17,13 @@ import (
 
 func TestGetManifest(t *testing.T) {
 	t.Run("valid manifest", func(t *testing.T) {
-		content := []byte(`
-		{
-			"id": "some.id",
-			"name": "Some Name"
-		}
-		`)
 		expectedManifest := &model.Manifest{
-			Id:   "some.id",
-			Name: "Some Name",
+			Id:      "some.id",
+			Name:    "Some Name",
+			Version: "1.0.0",
 		}
 
-		dir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
-		defer os.RemoveAll(dir)
-
-		tmpfn := filepath.Join(dir, "plugin.json")
-		//nolint:gosec //only used in tests
-		err = os.WriteFile(tmpfn, content, 0o666)
-		require.NoError(t, err)
+		dir := generateManifest(t)
 
 		api := &plugintest.API{}
 		api.On("GetBundlePath").Return(dir, nil)
@@ -101,4 +91,70 @@ func TestRequestTrialLicense(t *testing.T) {
 
 		require.NoError(t, err)
 	})
+}
+
+func TestGenerateCustomerPacketMetadata(t *testing.T) {
+	licenseID := model.NewId()
+	customerID := model.NewId()
+	telemetryID := model.NewId()
+	t.Run("happy path", func(t *testing.T) {
+		api := plugintest.NewAPI(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		dir := generateManifest(t)
+		api.On("GetBundlePath").Return(dir, nil)
+		api.On("GetLicense").Return(&model.License{
+			Id: licenseID,
+			Customer: &model.Customer{
+				Id: customerID,
+			},
+		})
+		api.On("GetTelemetryId").Return(telemetryID)
+
+		path := os.TempDir()
+		filePath, err := client.System.GeneratePacketMetadata(path, nil)
+		require.NoError(t, err)
+
+		f, err := os.Open(filePath)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, f.Close())
+		})
+
+		var md model.PacketMetadata
+		err = yaml.NewDecoder(f).Decode(&md)
+		require.NoError(t, err)
+
+		require.Equal(t, model.CurrentMetadataVersion, md.Version)
+		require.Equal(t, model.PluginPacketType, md.Type)
+		require.NotZero(t, md.GeneratedAt)
+		require.Equal(t, model.CurrentVersion, md.ServerVersion)
+		require.Equal(t, telemetryID, md.ServerID)
+		require.Equal(t, licenseID, md.LicenseID)
+		require.Equal(t, customerID, md.CustomerID)
+		require.Equal(t, "some.id", md.Extras["plugin_id"])
+		require.Equal(t, "1.0.0", md.Extras["plugin_version"])
+	})
+}
+
+func generateManifest(t *testing.T) string {
+	manifest := &model.Manifest{
+		Id:      "some.id",
+		Name:    "Some Name",
+		Version: "1.0.0",
+	}
+
+	dir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.RemoveAll(dir))
+	})
+
+	tmpfn := filepath.Join(dir, "plugin.json")
+	f, err := os.Create(tmpfn)
+	require.NoError(t, err)
+	err = json.NewEncoder(f).Encode(manifest)
+	require.NoError(t, err)
+
+	return dir
 }

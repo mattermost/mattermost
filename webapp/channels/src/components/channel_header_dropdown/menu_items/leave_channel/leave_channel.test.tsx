@@ -26,7 +26,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.LeaveChannel', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow<LeaveChannel>(<LeaveChannel {...baseProps}/>);
+        const wrapper = shallow(<LeaveChannel {...baseProps}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -35,7 +35,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.LeaveChannel', () => {
             ...baseProps,
             isDefault: true,
         };
-        const wrapper = shallow<LeaveChannel>(<LeaveChannel {...props}/>);
+        const wrapper = shallow(<LeaveChannel {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -59,7 +59,7 @@ describe('components/ChannelHeaderDropdown/MenuItem.LeaveChannel', () => {
             channel: {...baseProps.channel},
             actions: {...baseProps.actions},
         };
-        const wrapper = shallow<LeaveChannel>(<LeaveChannel {...props}/>);
+        const wrapper = shallow(<LeaveChannel {...props}/>);
 
         wrapper.find(Menu.ItemAction).simulate('click', {
             preventDefault: jest.fn(),

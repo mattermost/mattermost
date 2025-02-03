@@ -15,8 +15,6 @@ import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
-import {localizeMessage} from 'utils/utils';
-
 interface State {
     displayName: string;
     description: string;
@@ -383,7 +381,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage(this.props.loading.id as string, this.props.loading.defaultMessage as string)}
+                                spinningText={this.props.loading}
                                 onClick={(e) => this.handleSubmit(e)}
                                 id='saveWebhook'
                             >

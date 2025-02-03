@@ -3,17 +3,15 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/preferences';
-import type {Action} from 'mattermost-redux/types/actions';
 
 import {openModal, closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
 
 import ChannelNavigator from './channel_navigator';
@@ -25,14 +23,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    openModal: <P>(modalData: ModalData<P>) => void;
-    closeModal: (modalId: string) => void;
-}
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             openModal,
             closeModal,
         }, dispatch),

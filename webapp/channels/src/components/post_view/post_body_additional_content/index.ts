@@ -6,13 +6,11 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {isEmbedVisible} from 'selectors/posts';
 
 import type {GlobalState} from 'types/store';
-import type {PostWillRenderEmbedPluginComponent} from 'types/store/plugins';
 
 import PostBodyAdditionalContent from './post_body_additional_content';
 import type {
@@ -22,12 +20,12 @@ import type {
 function mapStateToProps(state: GlobalState, ownProps: Omit<Props, 'appsEnabled' | 'actions'>) {
     return {
         isEmbedVisible: isEmbedVisible(state, ownProps.post.id),
-        pluginPostWillRenderEmbedComponents: state.plugins.components.PostWillRenderEmbedComponent as unknown as PostWillRenderEmbedPluginComponent[],
+        pluginPostWillRenderEmbedComponents: state.plugins.components.PostWillRenderEmbedComponent,
         appsEnabled: appsEnabled(state),
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({toggleEmbedVisibility}, dispatch),
     };

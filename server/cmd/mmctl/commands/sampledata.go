@@ -8,10 +8,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"time"
 
@@ -158,8 +158,8 @@ func processProfileImagesDir(profileImagesPath, tmpDir, bulk string) ([]string, 
 	if !profileImagesStat.IsDir() {
 		return nil, fmt.Errorf("profile-images parameters must be a directory")
 	}
-	var profileImagesFiles []os.FileInfo
-	profileImagesFiles, err = ioutil.ReadDir(profileImagesPath)
+
+	profileImagesFiles, err := os.ReadDir(profileImagesPath)
 	if err != nil {
 		return nil, fmt.Errorf("invalid profile-images parameter: %w", err)
 	}
@@ -223,7 +223,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	var err error
 	switch bulk {
 	case "":
-		tmpDir, err = ioutil.TempDir("", "mmctl-sampledata-")
+		tmpDir, err = os.MkdirTemp("", "mmctl-sampledata-")
 		if err != nil {
 			return fmt.Errorf("unable to create temporary directory")
 		}
@@ -361,7 +361,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !pUtils.Contains(users, user) {
+			if !slices.Contains(users, user) {
 				users = append(users, user)
 			}
 		}
@@ -376,7 +376,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !pUtils.Contains(users, user) {
+			if !slices.Contains(users, user) {
 				users = append(users, user)
 			}
 		}

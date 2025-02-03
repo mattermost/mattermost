@@ -1,0 +1,124 @@
+.sectionNoticeContainer {
+    position: relative;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 4px;
+
+    p {
+        margin: 0;
+    }
+
+    &.info, &.hint {
+        border-color: rgba(var(--sidebar-text-active-border-rgb), 0.16);
+        background: rgba(var(--sidebar-text-active-border-rgb), 0.08);
+
+        p {
+            color: var(--center-channel-color);
+        }
+    }
+
+    &.success {
+        border-color: rgba(var(--online-indicator-rgb), 0.16);
+        background: rgba(var(--online-indicator-rgb), 0.08);
+
+        p {
+            color: var(--center-channel-color);
+        }
+    }
+
+    &.danger {
+        border-color: rgba(var(--dnd-indicator-rgb), 0.16);
+        background: rgba(var(--dnd-indicator-rgb), 0.08);
+
+        p {
+            color: var(--center-channel-color);
+        }
+    }
+
+    &.welcome {
+        border-color: rgba(var(--center-channel-color-rgb), 0.08);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+
+        p {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+    }
+
+    &.warning {
+        border-color: rgba(var(--away-indicator-rgb), 0.16);
+        background: rgba(var(--away-indicator-rgb), 0.08);
+
+        p {
+            color: var(--center-channel-color);
+        }
+    }
+}
+
+.sectionNoticeActions {
+    display: flex;
+    flex-flow: wrap;
+}
+
+.sectionNoticeClose {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.sectionNoticeContent {
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    padding: 16px;
+    gap: 12px;
+}
+
+.sectionNoticeIcon {
+    font-size: 24px;
+
+    &.info, &.hint {
+        color: var(--sidebar-text-active-border);
+    }
+
+    &.success {
+        color: var(--online-indicator);
+    }
+
+    &.danger {
+        color: var(--dnd-indicator);
+    }
+
+    &.warning {
+        color: var(--away-indicator);
+    }
+}
+
+.sectionNoticeTitle {
+    margin: 0;
+    color: var(--center-channel-color);
+    font-family: 'Open Sans';
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 24px;
+
+    &.welcome {
+        font-family: 'Metropolis';
+        font-size: 20px;
+        line-height: 28px;
+    }
+
+    &.noText {
+        margin-bottom: 0;
+    }
+}
+
+.sectionNoticeBody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sectionNoticeButton {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}

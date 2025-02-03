@@ -3,16 +3,17 @@
 
 import React from 'react';
 import type {ChangeEvent, ChangeEventHandler} from 'react';
-import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
-import type {ServerError} from '@mattermost/types/errors';
 
 import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
 import {Emoji} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import EmojiListItem from 'components/emoji/emoji_list_item';
 import LoadingScreen from 'components/loading_screen';
+import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import SaveButton from 'components/save_button';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
@@ -21,7 +22,7 @@ import SearchIcon from 'components/widgets/icons/fa_search_icon';
 const EMOJI_PER_PAGE = 50;
 const EMOJI_SEARCH_DELAY_MILLISECONDS = 200;
 
-interface Props {
+export interface Props {
 
     /**
      * Custom emojis on the system.
@@ -32,18 +33,17 @@ interface Props {
      * Function to scroll list to top.
      */
     scrollToTop: () => void;
-    intl: IntlShape;
     actions: {
 
         /**
          * Get pages of custom emojis.
          */
-        getCustomEmojis: (page?: number, perPage?: number, sort?: string, loadUsers?: boolean) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
+        getCustomEmojis: (page?: number, perPage?: number, sort?: string, loadUsers?: boolean) => Promise<ActionResult<CustomEmoji[]>>;
 
         /**
          * Search custom emojis.
          */
-        searchCustomEmojis: (term: string, options: any, loadUsers: boolean) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
+        searchCustomEmojis: (term: string, options: any, loadUsers: boolean) => Promise<ActionResult<CustomEmoji[]>>;
     };
 
 }
@@ -56,7 +56,7 @@ interface State {
     missingPages: boolean;
 }
 
-class EmojiList extends React.PureComponent<Props, State> {
+export default class EmojiList extends React.PureComponent<Props, State> {
     private searchTimeout: NodeJS.Timeout | null;
 
     constructor(props: Props) {
@@ -73,7 +73,7 @@ class EmojiList extends React.PureComponent<Props, State> {
 
     async componentDidMount(): Promise<void> {
         this.props.actions.getCustomEmojis(0, EMOJI_PER_PAGE + 1, Emoji.SORT_BY_NAME, true).
-            then(({data}: { data: CustomEmoji[] }) => {
+            then(({data}: ActionResult<CustomEmoji[]>) => {
                 this.setState({loading: false});
                 if (data && data.length < EMOJI_PER_PAGE) {
                     this.setState({missingPages: false});
@@ -89,7 +89,7 @@ class EmojiList extends React.PureComponent<Props, State> {
         const next = this.state.page + 1;
         this.setState({nextLoading: true});
         this.props.actions.getCustomEmojis(next, EMOJI_PER_PAGE, Emoji.SORT_BY_NAME, true).
-            then(({data}: { data: CustomEmoji[] }) => {
+            then(({data}: ActionResult<CustomEmoji[]>) => {
                 this.setState({page: next, nextLoading: false});
                 if (data && data.length < EMOJI_PER_PAGE) {
                     this.setState({missingPages: false});
@@ -129,7 +129,7 @@ class EmojiList extends React.PureComponent<Props, State> {
 
             this.setState({loading: true});
 
-            const {data}: { data: CustomEmoji[] } = await this.props.actions.searchCustomEmojis(
+            const {data} = await this.props.actions.searchCustomEmojis(
                 term,
                 {},
                 true,
@@ -267,10 +267,10 @@ class EmojiList extends React.PureComponent<Props, State> {
                 <div className='backstage-filters'>
                     <div className='backstage-filter__search'>
                         <SearchIcon/>
-                        <input
+                        <LocalizedPlaceholderInput
                             type='search'
                             className='form-control'
-                            placeholder={this.props.intl.formatMessage({id: 'emoji_list.search', defaultMessage: 'Search Custom Emoji'})}
+                            placeholder={defineMessage({id: 'emoji_list.search', defaultMessage: 'Search Custom Emoji'})}
                             onChange={this.onSearchChange}
                             style={style.search}
                         />
@@ -335,5 +335,3 @@ class EmojiList extends React.PureComponent<Props, State> {
 const style = {
     search: {flexGrow: 0, flexShrink: 0},
 };
-
-export default injectIntl(EmojiList);

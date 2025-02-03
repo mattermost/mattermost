@@ -29,7 +29,7 @@ type S3PathMigrationWorker struct {
 	store       store.Store
 	fileBackend *filestore.S3FileBackend
 
-	stop    chan bool
+	stop    chan struct{}
 	stopped chan bool
 	jobs    chan model.Job
 }
@@ -45,7 +45,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, fileBackend filest
 		logger:      jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		store:       store,
 		fileBackend: s3Backend,
-		stop:        make(chan bool, 1),
+		stop:        make(chan struct{}),
 		stopped:     make(chan bool, 1),
 		jobs:        make(chan model.Job),
 	}
@@ -56,7 +56,7 @@ func (worker *S3PathMigrationWorker) Run() {
 	worker.logger.Debug("Worker started")
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
-	worker.stop = make(chan bool, 1)
+	worker.stop = make(chan struct{}, 1)
 
 	defer func() {
 		worker.logger.Debug("Worker finished")

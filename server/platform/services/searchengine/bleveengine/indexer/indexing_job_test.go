@@ -43,8 +43,8 @@ func TestBleveIndexer(t *testing.T) {
 
 		cfg := &model.Config{
 			BleveSettings: model.BleveSettings{
-				EnableIndexing: model.NewBool(true),
-				IndexDir:       model.NewString(tempDir),
+				EnableIndexing: model.NewPointer(true),
+				IndexDir:       model.NewPointer(tempDir),
 			},
 		}
 

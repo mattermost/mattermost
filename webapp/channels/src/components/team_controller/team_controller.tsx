@@ -13,18 +13,21 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {reconnect} from 'actions/websocket_actions.jsx';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import {makeAsyncComponent} from 'components/async_load';
+import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
 import ChannelController from 'components/channel_layout/channel_controller';
 import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdentifySync';
+import InitialLoadingScreen from 'components/initial_loading_screen';
 
 import Constants from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isIosSafari} from 'utils/user_agent';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
 const BackstageController = makeAsyncComponent('BackstageController', lazy(() => import('components/backstage')));
-const Pluggable = makeAsyncComponent('Pluggable', lazy(() => import('plugins/pluggable')));
+const Pluggable = makeAsyncPluggableComponent();
 
 const WAKEUP_CHECK_INTERVAL = 30000; // 30 seconds
 const WAKEUP_THRESHOLD = 60000; // 60 seconds
@@ -52,16 +55,23 @@ function TeamController(props: Props) {
     useTelemetryIdentitySync();
 
     useEffect(() => {
-        async function fetchInitialChannels() {
-            await props.fetchAllMyTeamsChannelsAndChannelMembersREST();
+        InitialLoadingScreen.stop('team_controller');
+        DesktopApp.reactAppInitialized();
+        async function fetchAllChannels() {
+            await props.fetchAllMyTeamsChannels();
 
             setInitialChannelsLoaded(true);
         }
 
-        fetchInitialChannels();
+        props.fetchAllMyChannelMembers();
+        fetchAllChannels();
     }, []);
 
     useEffect(() => {
+        if (props.disableWakeUpReconnectHandler) {
+            return () => {};
+        }
+
         const wakeUpIntervalId = setInterval(() => {
             const currentTime = Date.now();
             if ((currentTime - lastTime.current) > WAKEUP_THRESHOLD) {
@@ -74,18 +84,13 @@ function TeamController(props: Props) {
         return () => {
             clearInterval(wakeUpIntervalId);
         };
-    }, []);
+    }, [props.disableWakeUpReconnectHandler]);
 
     // Effect runs on mount, add event listeners on windows object
     useEffect(() => {
         function handleFocus() {
-            if (props.selectedThreadId) {
-                window.isActive = true;
-            }
-            if (props.currentChannelId) {
-                window.isActive = true;
-                props.markChannelAsReadOnFocus(props.currentChannelId);
-            }
+            window.isActive = true;
+            props.markAsReadOnFocus();
 
             // Temporary flag to disable refetching of channel members on browser focus
             if (!props.disableRefetchingOnBrowserFocus) {
@@ -99,6 +104,7 @@ function TeamController(props: Props) {
         function handleBlur() {
             window.isActive = false;
             blurTime.current = Date.now();
+            props.unsetActiveChannelOnServer();
         }
 
         function handleKeydown(event: KeyboardEvent) {
@@ -124,7 +130,7 @@ function TeamController(props: Props) {
             window.removeEventListener('blur', handleBlur);
             window.removeEventListener('keydown', handleKeydown);
         };
-    }, [props.selectedThreadId, props.currentChannelId, props.currentTeamId]);
+    }, [props.currentTeamId]);
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {
@@ -149,26 +155,26 @@ function TeamController(props: Props) {
     }, []);
 
     async function initTeamOrRedirect(team: Team) {
-        try {
-            await props.initializeTeam(team);
-            setTeam(team);
-        } catch (error) {
+        const {data: joinedTeam, error} = await props.initializeTeam(team) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        if (error) {
             history.push('/error?type=team_not_found');
+            return;
+        }
+        if (joinedTeam) {
+            setTeam(joinedTeam);
         }
     }
 
     async function joinTeamOrRedirect(teamNameParam: string, joinedOnFirstLoad: boolean) {
         setTeam(null);
 
-        try {
-            const {data: joinedTeam} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
-            if (joinedTeam) {
-                setTeam(joinedTeam);
-            } else {
-                throw new Error('Unable to join team');
-            }
-        } catch (error) {
+        const {data: joinedTeam, error} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        if (error) {
             history.push('/error?type=team_not_found');
+            return;
+        }
+        if (joinedTeam) {
+            setTeam(joinedTeam);
         }
     }
 
@@ -205,20 +211,22 @@ function TeamController(props: Props) {
         return null;
     }
 
+    const teamLoaded = team?.name.toLowerCase() === teamNameParam?.toLowerCase();
+
     return (
         <Switch>
             <Route
-                path={'/:team/integrations'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/integrations`}
                 component={BackstageController}
             />
             <Route
-                path={'/:team/emoji'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/emoji`}
                 component={BackstageController}
             />
             {props.plugins?.map((plugin) => (
                 <Route
                     key={plugin.id}
-                    path={'/:team/' + (plugin as any).route}
+                    path={`/:team(${TEAM_NAME_PATH_PATTERN})/` + (plugin as any).route}
                     render={() => (
                         <Pluggable
                             pluggableName={'NeedsTeamComponent'}
@@ -228,7 +236,7 @@ function TeamController(props: Props) {
                     )}
                 />
             ))}
-            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded}/>
+            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}/>
         </Switch>
     );
 }

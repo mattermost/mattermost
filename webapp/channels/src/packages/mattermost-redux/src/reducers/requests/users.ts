@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {UsersRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {RequestStatusType} from '@mattermost/types/requests';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import {RequestStatus} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {handleRequest, initialRequestState} from './helpers';
 
-function login(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function login(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     switch (action.type) {
     case UserTypes.LOGIN_REQUEST:
         return {...state, status: RequestStatus.STARTED};
@@ -30,7 +30,7 @@ function login(state: RequestStatusType = initialRequestState(), action: Generic
     }
 }
 
-function logout(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function logout(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     switch (action.type) {
     case UserTypes.LOGOUT_REQUEST:
         return {...state, status: RequestStatus.STARTED};
@@ -49,7 +49,7 @@ function logout(state: RequestStatusType = initialRequestState(), action: Generi
     }
 }
 
-function autocompleteUsers(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function autocompleteUsers(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     return handleRequest(
         UserTypes.AUTOCOMPLETE_USERS_REQUEST,
         UserTypes.AUTOCOMPLETE_USERS_SUCCESS,
@@ -59,7 +59,7 @@ function autocompleteUsers(state: RequestStatusType = initialRequestState(), act
     );
 }
 
-function updateMe(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function updateMe(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     return handleRequest(
         UserTypes.UPDATE_ME_REQUEST,
         UserTypes.UPDATE_ME_SUCCESS,
@@ -69,9 +69,9 @@ function updateMe(state: RequestStatusType = initialRequestState(), action: Gene
     );
 }
 
-export default (combineReducers({
+export default combineReducers({
     login,
     logout,
     autocompleteUsers,
     updateMe,
-}) as (b: UsersRequestsStatuses, a: GenericAction) => UsersRequestsStatuses);
+});

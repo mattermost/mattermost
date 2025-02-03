@@ -59,6 +59,8 @@
               type: array
               items:
                 $ref: '#/components/schemas/Preference'
+              minItems: 1
+              maxItems: 100
       responses:
         "200":
           description: User preferences saved successful
@@ -102,6 +104,8 @@
               type: array
               items:
                 $ref: '#/components/schemas/Preference'
+              minItems: 1
+              maxItems: 100
       responses:
         "200":
           description: User preferences saved successful

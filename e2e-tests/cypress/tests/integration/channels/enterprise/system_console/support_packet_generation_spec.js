@@ -13,6 +13,12 @@
 describe('Support Packet Generation', () => {
     before(() => {
         cy.apiRequireLicense();
+
+        cy.apiUpdateConfig({
+            LogSettings: {
+                FileLevel: 'ERROR',
+            },
+        });
     });
 
     it('MM-T3849 - Commercial Support Dialog UI - E10/E20 License', () => {
@@ -21,7 +27,7 @@ describe('Support Packet Generation', () => {
 
         goToSupportPacketGenerationModal();
 
-        cy.get('.AlertBanner__body').should('have.text', 'Before downloading the support packet, set Output Logs to File to true and set File Log Level to DEBUG here.');
+        cy.get('div.AlertBanner__body span').should('have.text', 'Before downloading the Support Packet, set Output Logs to File to true and set File Log Level to DEBUG here.');
     });
 
     it('MM-T3818 - Commercial Support Dialog UI - Links', () => {
@@ -31,7 +37,7 @@ describe('Support Packet Generation', () => {
         goToSupportPacketGenerationModal();
 
         // * Verify that the "submit a support ticket." link exist and points to Customer Support Request page
-        cy.findByRole('link', {name: 'submit a support ticket.'}).should('have.attr', 'href').and('include', 'https://support.mattermost.com/hc/en-us/requests/new');
+        cy.findByText('submit a support ticket').should('have.attr', 'href').and('include', 'https://support.mattermost.com/hc/en-us/requests/new');
 
         // * Verify that the "here" link exist and points to Logging admin page
         cy.findByRole('link', {name: 'here'}).should('have.attr', 'href').and('include', '/admin_console/environment/logging');
@@ -41,8 +47,8 @@ describe('Support Packet Generation', () => {
 const goToSupportPacketGenerationModal = () => {
     // # Open system menu and click Customer Support
     cy.findByRole('button', {name: 'Menu Icon'}).should('exist').click();
-    cy.findByRole('button', {name: 'Commercial Support dialog'}).click();
+    cy.findByRole('button', {name: 'Commercial Support'}).click();
 
-    // * Ensure the download support packet button exist and that text regarding setting the proper settings exist
-    cy.findByRole('link', {name: 'Download Support Packet'}).should('exist');
+    // * Ensure the download Support Packet button exist and that text regarding setting the proper settings exist
+    cy.get('a.DownloadSupportPacket').should('exist');
 };

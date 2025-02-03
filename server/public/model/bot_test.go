@@ -368,10 +368,6 @@ func TestBotEtag(t *testing.T) {
 	})
 }
 
-func sToP(s string) *string {
-	return &s
-}
-
 func TestBotPatch(t *testing.T) {
 	userId1 := NewId()
 	creatorId1 := NewId()
@@ -422,9 +418,9 @@ func TestBotPatch(t *testing.T) {
 				DeleteAt:       4,
 			},
 			&BotPatch{
-				Username:    sToP("new_username"),
+				Username:    NewPointer("new_username"),
 				DisplayName: nil,
-				Description: sToP("new description"),
+				Description: NewPointer("new description"),
 			},
 			&Bot{
 				UserId:         userId1,
@@ -452,9 +448,9 @@ func TestBotPatch(t *testing.T) {
 				DeleteAt:       4,
 			},
 			&BotPatch{
-				Username:    sToP("new_username"),
-				DisplayName: sToP("new display name"),
-				Description: sToP("new description"),
+				Username:    NewPointer("new_username"),
+				DisplayName: NewPointer("new display name"),
+				Description: NewPointer("new description"),
 			},
 			&Bot{
 				UserId:         userId1,
@@ -496,7 +492,7 @@ func TestBotWouldPatch(t *testing.T) {
 
 	t.Run("patch", func(t *testing.T) {
 		patch := &BotPatch{
-			DisplayName: NewString("BotName"),
+			DisplayName: NewPointer("BotName"),
 		}
 		ok := b.WouldPatch(patch)
 		require.True(t, ok)
@@ -504,7 +500,7 @@ func TestBotWouldPatch(t *testing.T) {
 
 	t.Run("no patch", func(t *testing.T) {
 		patch := &BotPatch{
-			DisplayName: NewString("BotName"),
+			DisplayName: NewPointer("BotName"),
 		}
 		b.Patch(patch)
 		ok := b.WouldPatch(patch)
@@ -676,7 +672,7 @@ func TestIsBotChannel(t *testing.T) {
 		{
 			Name: "a direct channel with another user",
 			Channel: &Channel{
-				Name: "user1__user2",
+				Name: GetDMNameFromIds("user1", "user2"),
 				Type: ChannelTypeDirect,
 			},
 			Expected: false,
@@ -684,7 +680,7 @@ func TestIsBotChannel(t *testing.T) {
 		{
 			Name: "a direct channel with the name containing the bot's ID first",
 			Channel: &Channel{
-				Name: "botUserID__user2",
+				Name: GetDMNameFromIds("botUserID", "user2"),
 				Type: ChannelTypeDirect,
 			},
 			Expected: true,
@@ -692,7 +688,7 @@ func TestIsBotChannel(t *testing.T) {
 		{
 			Name: "a direct channel with the name containing the bot's ID second",
 			Channel: &Channel{
-				Name: "user1__botUserID",
+				Name: GetDMNameFromIds("user1", "botUserID"),
 				Type: ChannelTypeDirect,
 			},
 			Expected: true,

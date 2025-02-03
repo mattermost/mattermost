@@ -75,7 +75,7 @@ func BenchmarkUploadFile(b *testing.B) {
 		{fmt.Sprintf("zero-%dMb", mb(len(zero10M))), ".zero", zero10M},
 	}
 
-	file_benchmarks := []struct {
+	fileBenchmarks := []struct {
 		title string
 		f     func(b *testing.B, n int, data []byte, ext string)
 	}{
@@ -83,11 +83,11 @@ func BenchmarkUploadFile(b *testing.B) {
 			title: "raw-ish DoUploadFile",
 			f: func(b *testing.B, n int, data []byte, ext string) {
 				info1, err := th.App.DoUploadFile(th.Context, time.Now(), teamID, channelID,
-					userID, fmt.Sprintf("BenchmarkDoUploadFile-%d%s", n, ext), data)
+					userID, fmt.Sprintf("BenchmarkDoUploadFile-%d%s", n, ext), data, true)
 				if err != nil {
 					b.Fatal(err)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
 				th.App.RemoveFile(info1.Path)
 			},
 		},
@@ -105,7 +105,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
@@ -123,7 +123,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
@@ -140,7 +140,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
@@ -157,14 +157,14 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
 	}
 
 	for _, file := range files {
-		for _, fb := range file_benchmarks {
+		for _, fb := range fileBenchmarks {
 			b.Run(file.title+"-"+fb.title, func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					fb.f(b, i, file.data, file.ext)

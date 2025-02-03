@@ -4,11 +4,12 @@
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
-function hasBeenDismissed(state: Record<string, boolean> = {}, action: GenericAction) {
+import type {MMAction} from 'types/store';
+
+function hasBeenDismissed(state: Record<string, boolean> = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.DISMISS_NOTICE:
         return {...state, [action.data]: true};

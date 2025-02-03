@@ -13,7 +13,7 @@ import (
 	_ "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
 
 	// Enterprise Imports
-	_ "github.com/mattermost/mattermost/server/v8/channels/imports"
+	_ "github.com/mattermost/mattermost/server/v8/enterprise"
 )
 
 func main() {

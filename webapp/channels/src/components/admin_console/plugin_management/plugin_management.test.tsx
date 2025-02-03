@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import PluginState from 'mattermost-redux/constants/plugins';
 
 import PluginManagement from 'components/admin_console/plugin_management/plugin_management';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
@@ -91,7 +92,6 @@ describe('components/PluginManagement', () => {
             },
         },
         appsFeatureFlagEnabled: false,
-        streamlinedMarketplaceFlagEnabled: false,
         actions: {
             uploadPlugin: jest.fn(),
             installPluginFromUrl: jest.fn(),
@@ -105,7 +105,7 @@ describe('components/PluginManagement', () => {
 
     test('should match snapshot', () => {
         const props = {...defaultProps};
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -120,7 +120,7 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -134,7 +134,7 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -149,7 +149,7 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -164,7 +164,7 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -179,7 +179,7 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -194,7 +194,7 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -209,14 +209,14 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, text entered into the URL install text box', () => {
         const props = defaultProps;
 
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         wrapper.setState({pluginDownloadUrl: 'https://pluginsite.com/plugin.tar.gz'});
         expect(wrapper).toMatchSnapshot();
     });
@@ -235,7 +235,6 @@ describe('components/PluginManagement', () => {
             pluginStatuses: {},
             plugins: {},
             appsFeatureFlagEnabled: false,
-            streamlinedMarketplaceFlagEnabled: false,
             actions: {
                 uploadPlugin: jest.fn(),
                 installPluginFromUrl: jest.fn(),
@@ -246,13 +245,13 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         wrapper.setState({loading: false});
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, with installed plugins', () => {
-        const wrapper = shallow(<PluginManagement {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...defaultProps}/>);
         wrapper.setState({loading: false});
         expect(wrapper).toMatchSnapshot();
     });
@@ -326,7 +325,6 @@ describe('components/PluginManagement', () => {
                 },
             },
             appsFeatureFlagEnabled: false,
-            streamlinedMarketplaceFlagEnabled: false,
             actions: {
                 uploadPlugin: jest.fn(),
                 installPluginFromUrl: jest.fn(),
@@ -337,7 +335,7 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         wrapper.setState({loading: false});
         expect(wrapper).toMatchSnapshot();
     });
@@ -384,7 +382,6 @@ describe('components/PluginManagement', () => {
                 },
             },
             appsFeatureFlagEnabled: false,
-            streamlinedMarketplaceFlagEnabled: false,
             actions: {
                 uploadPlugin: jest.fn(),
                 installPluginFromUrl: jest.fn(),
@@ -395,7 +392,7 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         wrapper.setState({loading: false});
         expect(wrapper).toMatchSnapshot();
     });
@@ -453,7 +450,7 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         wrapper.setState({loading: false});
         expect(wrapper).toMatchSnapshot();
     });
@@ -502,7 +499,6 @@ describe('components/PluginManagement', () => {
                 },
             },
             appsFeatureFlagEnabled: false,
-            streamlinedMarketplaceFlagEnabled: false,
             actions: {
                 uploadPlugin: jest.fn(),
                 installPluginFromUrl: jest.fn(),
@@ -513,7 +509,7 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallow(<PluginManagement {...props}/>);
+        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
         wrapper.setState({loading: false});
         expect(wrapper).toMatchSnapshot();
     });

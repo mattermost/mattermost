@@ -15,15 +15,20 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render 1`] = `
         disabled={false}
         onClick={[Function]}
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
             id="marketplace_modal.list.install"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     }
     description="test plugin"
@@ -141,15 +146,20 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with emp
         disabled={false}
         onClick={[Function]}
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
             id="marketplace_modal.list.install"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     }
     description="test plugin"
@@ -206,15 +216,20 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
         disabled={false}
         onClick={[Function]}
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
             id="marketplace_modal.list.install"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     }
     description="test plugin"
@@ -269,15 +284,20 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
         disabled={false}
         onClick={[Function]}
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
             id="marketplace_modal.list.install"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     }
     homepageUrl="http://example.com"
@@ -332,15 +352,20 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
         disabled={false}
         onClick={[Function]}
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
             id="marketplace_modal.list.install"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     }
     description="test plugin"
@@ -394,15 +419,20 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with one
         disabled={false}
         onClick={[Function]}
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
             id="marketplace_modal.list.install"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     }
     description="test plugin"
@@ -467,15 +497,20 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with plu
         disabled={false}
         onClick={[Function]}
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
             id="marketplace_modal.list.install"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     }
     description="test plugin"
@@ -544,15 +579,20 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with ser
         disabled={false}
         onClick={[Function]}
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Try Again"
             id="marketplace_modal.list.try_again"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     }
     description="test plugin"
@@ -609,15 +649,20 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
         disabled={false}
         onClick={[Function]}
       >
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Installing..."
+          text={
+            Object {
+              "defaultMessage": "Installing...",
+              "id": "marketplace_modal.installing",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Install"
             id="marketplace_modal.list.install"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       </button>
     }
     description="test plugin"
@@ -823,13 +868,13 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
         />
       </p>,
       <p>
-        <FormattedMarkdownMessage
-          defaultMessage="You currently have {installedVersion} installed. View the [release notes](!{releaseNotesUrl}) to learn about the changes included in this update."
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="You currently have {installedVersion} installed. View the <a>release notes</a> to learn about the changes included in this update."
           id="marketplace_modal.list.update_confirmation.message.current_with_release_notes"
           values={
             Object {
+              "a": [Function],
               "installedVersion": "0.0.1",
-              "releaseNotesUrl": "http://example.com/release",
             }
           }
         />
@@ -837,12 +882,12 @@ exports[`components/MarketplaceItemPlugin UpdateConfirmationModal should add ext
       <p
         className="alert alert-warning"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="This update may contain breaking changes. Consult the [release notes](!{releaseNotesUrl}) before upgrading."
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="This update may contain breaking changes. Consult the <a>release notes</a> before upgrading."
           id="marketplace_modal.list.update_confirmation.message.warning_major_version_with_release_notes"
           values={
             Object {
-              "releaseNotesUrl": "http://example.com/release",
+              "a": [Function],
             }
           }
         />
@@ -1006,7 +1051,7 @@ exports[`components/MarketplaceItemPlugin UpdateDetails should render with relea
         releaseNotesUrl="http://example.com/release"
         version="0.0.2"
       >
-        <ExternalLink
+        <ForwardRef
           href="http://example.com/release"
           location="marketplace_item_plugin"
         >
@@ -1019,7 +1064,7 @@ exports[`components/MarketplaceItemPlugin UpdateDetails should render with relea
           >
             0.0.2
           </a>
-        </ExternalLink>
+        </ForwardRef>
       </UpdateVersion>
        - 
       <b>

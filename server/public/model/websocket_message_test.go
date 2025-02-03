@@ -34,14 +34,14 @@ func TestWebSocketEvent(t *testing.T) {
 }
 
 func TestWebSocketEventImmutable(t *testing.T) {
-	m := NewWebSocketEvent("some_event", NewId(), NewId(), NewId(), nil, "")
+	m := NewWebSocketEvent(WebsocketEventPostEdited, NewId(), NewId(), NewId(), nil, "")
 
-	newM := m.SetEvent("new_event")
+	newM := m.SetEvent(WebsocketEventPostDeleted)
 	if newM == m {
 		require.Fail(t, "pointers should not be the same")
 	}
 	require.NotEqual(t, m.EventType(), newM.EventType())
-	require.Equal(t, newM.EventType(), "new_event")
+	require.Equal(t, newM.EventType(), WebsocketEventPostDeleted)
 
 	newM = m.SetSequence(45)
 	if newM == m {
@@ -81,11 +81,11 @@ func TestWebSocketEventFromJSON(t *testing.T) {
 	ev, err := WebSocketEventFromJSON(bytes.NewReader([]byte("junk")))
 	require.Error(t, err)
 	require.Nil(t, ev, "should not have parsed")
-	data := []byte(`{"event": "test", "data": {"key": "val"}, "seq": 45, "broadcast": {"user_id": "userid"}}`)
+	data := []byte(`{"event": "typing", "data": {"key": "val"}, "seq": 45, "broadcast": {"user_id": "userid"}}`)
 	ev, err = WebSocketEventFromJSON(bytes.NewReader(data))
 	require.NoError(t, err)
 	require.NotNil(t, ev, "should have parsed")
-	require.Equal(t, ev.EventType(), "test")
+	require.Equal(t, ev.EventType(), WebsocketEventTyping)
 	require.Equal(t, ev.GetSequence(), int64(45))
 	require.Equal(t, ev.data, map[string]any{"key": "val"})
 	require.Equal(t, ev.GetBroadcast(), &WebsocketBroadcast{UserId: "userid"})
@@ -247,8 +247,11 @@ func BenchmarkEncodeJSON(b *testing.B) {
 
 	ev := message.PrecomputeJSON()
 
+	var seq int64
 	enc := json.NewEncoder(io.Discard)
 	for i := 0; i < b.N; i++ {
-		err = ev.Encode(enc)
+		ev = ev.SetSequence(seq)
+		err = ev.Encode(enc, io.Discard)
+		seq++
 	}
 }

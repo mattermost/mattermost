@@ -103,6 +103,18 @@ describe('Upload Files - Image', () => {
 
         testImage(properties);
     });
+
+    it('MM-T2264_7 - WEBP', () => {
+        const properties = {
+            filePath: 'mm_file_testing/Images/WEBP.webp',
+            fileName: 'WEBP.webp',
+            originalWidth: 640,
+            originalHeight: 426,
+            mimeType: 'image/webp',
+        };
+
+        testImage(properties);
+    });
 });
 
 function testImage(properties) {
@@ -133,12 +145,12 @@ function testImage(properties) {
 
     // * Download button should exist
     cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-        expect(downloadLink.attr('download')).to.equal(fileName);
+        cy.wrap(downloadLink).parent().should('have.attr', 'download', fileName).then((link) => {
+            const fileAttachmentURL = link.attr('href');
 
-        const fileAttachmentURL = downloadLink.attr('href');
-
-        // * Verify that download link has correct name
-        downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, fileName, 'attachment');
+            // * Verify that download link has correct name
+            downloadAttachmentAndVerifyItsProperties(fileAttachmentURL, fileName, 'attachment');
+        });
     });
 
     // # Close modal

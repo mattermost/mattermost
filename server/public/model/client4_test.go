@@ -1,17 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package model
+package model_test
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,21 +26,21 @@ func TestClient4TrimTrailingSlash(t *testing.T) {
 
 	for _, s := range slashes {
 		testURL := baseURL + strings.Repeat("/", s)
-		client := NewAPIv4Client(testURL)
+		client := model.NewAPIv4Client(testURL)
 		assert.Equal(t, baseURL, client.URL)
-		assert.Equal(t, baseURL+APIURLSuffix, client.APIURL)
+		assert.Equal(t, baseURL+model.APIURLSuffix, client.APIURL)
 	}
 }
 
 // https://github.com/mattermost/mattermost/server/v8/channels/issues/8205
 func TestClient4CreatePost(t *testing.T) {
-	post := &Post{
+	post := &model.Post{
 		Props: map[string]any{
-			"attachments": []*SlackAttachment{
+			"attachments": []*model.SlackAttachment{
 				{
-					Actions: []*PostAction{
+					Actions: []*model.PostAction{
 						{
-							Integration: &PostActionIntegration{
+							Integration: &model.PostActionIntegration{
 								Context: map[string]any{
 									"foo": "bar",
 								},
@@ -51,15 +55,15 @@ func TestClient4CreatePost(t *testing.T) {
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var post Post
+		var post model.Post
 		err := json.NewDecoder(r.Body).Decode(&post)
 		assert.NoError(t, err)
 		attachments := post.Attachments()
-		assert.Equal(t, []*SlackAttachment{
+		assert.Equal(t, []*model.SlackAttachment{
 			{
-				Actions: []*PostAction{
+				Actions: []*model.PostAction{
 					{
-						Integration: &PostActionIntegration{
+						Integration: &model.PostActionIntegration{
 							Context: map[string]any{
 								"foo": "bar",
 							},
@@ -74,32 +78,32 @@ func TestClient4CreatePost(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 
-	client := NewAPIv4Client(server.URL)
+	client := model.NewAPIv4Client(server.URL)
 	_, resp, err := client.CreatePost(context.Background(), post)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
 func TestClient4SetToken(t *testing.T) {
-	expected := NewId()
+	expected := model.NewId()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get(HeaderAuth)
+		authHeader := r.Header.Get(model.HeaderAuth)
 
-		token := strings.Split(authHeader, HeaderBearer)
+		token := strings.Split(authHeader, model.HeaderBearer)
 
 		if len(token) < 2 {
-			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, HeaderBearer, expected)
+			t.Errorf("wrong authorization header format, got %s, expected: %s %s", authHeader, model.HeaderBearer, expected)
 		}
 
 		assert.Equal(t, expected, strings.TrimSpace(token[1]))
 
-		var user User
+		var user model.User
 		err := json.NewEncoder(w).Encode(&user)
 		assert.NoError(t, err)
 	}))
 
-	client := NewAPIv4Client(server.URL)
+	client := model.NewAPIv4Client(server.URL)
 	client.SetToken(expected)
 
 	_, resp, err := client.GetMe(context.Background(), "")
@@ -113,7 +117,7 @@ func TestClient4RequestCancellation(t *testing.T) {
 			t.Fatal("request should not hit the server")
 		}))
 
-		client := NewAPIv4Client(server.URL)
+		client := model.NewAPIv4Client(server.URL)
 
 		ctx, cancel := context.WithCancel(context.Background())
 
@@ -131,7 +135,7 @@ func TestClient4RequestCancellation(t *testing.T) {
 			t.Fatal("request should not hit the server")
 		}))
 
-		client := NewAPIv4Client(server.URL)
+		client := model.NewAPIv4Client(server.URL)
 
 		ctx, cancel := context.WithCancel(context.Background())
 
@@ -148,4 +152,29 @@ func TestClient4RequestCancellation(t *testing.T) {
 
 		<-done
 	})
+}
+
+func ExampleClient4_GetUsers() {
+	client := model.NewAPIv4Client("http://localhost:8065")
+	client.SetToken(os.Getenv("MM_TOKEN"))
+
+	const perPage = 100
+	var page int
+	for {
+		users, _, err := client.GetUsers(context.TODO(), page, perPage, "")
+		if err != nil {
+			log.Printf("error fetching users: %v", err)
+			return
+		}
+
+		for _, u := range users {
+			fmt.Printf("%s\n", u.Username)
+		}
+
+		if len(users) < perPage {
+			break
+		}
+
+		page++
+	}
 }

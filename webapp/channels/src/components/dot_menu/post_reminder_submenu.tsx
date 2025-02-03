@@ -63,8 +63,8 @@ function PostReminderSubmenu(props: Props) {
                 // add 2 hours in current time
                 endTime = currentDate.add(2, 'hours');
             } else if (id === PostReminders.TOMORROW) {
-                // add one day in current date
-                endTime = currentDate.add(1, 'day');
+                // set to next day 9 in the morning
+                endTime = currentDate.add(1, 'day').set({hour: 9, minute: 0});
             }
 
             dispatch(addPostReminder(props.userId, props.post.id, toUTCUnix(endTime.toDate())));
@@ -112,7 +112,7 @@ function PostReminderSubmenu(props: Props) {
 
         let trailingElements = null;
         if (postReminder === PostReminders.TOMORROW) {
-            const tomorrow = getCurrentMomentForTimezone(props.timezone).add(1, 'day').toDate();
+            const tomorrow = getCurrentMomentForTimezone(props.timezone).add(1, 'day').set({hour: 9, minute: 0}).toDate();
 
             trailingElements = (
                 <span className={`postReminder-${postReminder}_timestamp`}>

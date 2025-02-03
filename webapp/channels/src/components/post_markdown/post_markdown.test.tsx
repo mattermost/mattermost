@@ -1,20 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ComponentProps} from 'react';
 import React from 'react';
 
 import type {Post, PostType} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostMarkdown from './post_markdown';
 
 describe('components/PostMarkdown', () => {
-    const baseProps = {
-        imageProps: {},
+    const baseProps: ComponentProps<typeof PostMarkdown> = {
+        imageProps: {} as Record<string, unknown>,
+        pluginHooks: [],
         message: 'message',
         post: TestHelper.getPostMock(),
         mentionKeys: [{key: 'a'}, {key: 'b'}, {key: 'c'}],
@@ -22,6 +24,14 @@ describe('components/PostMarkdown', () => {
         channel: TestHelper.getChannelMock(),
         currentTeam: TestHelper.getTeamMock(),
         hideGuestTags: false,
+        isMilitaryTime: false,
+        timezone: '',
+        highlightKeys: [],
+        hasPluginTooltips: false,
+        isUserCanManageMembers: false,
+        isEnterpriseOrCloudOrSKUStarterFree: true,
+        isEnterpriseReady: false,
+        dispatch: jest.fn(),
     };
 
     const state = {entities: {
@@ -56,13 +66,13 @@ describe('components/PostMarkdown', () => {
         const props = {...baseProps};
 
         Reflect.deleteProperty(props, 'post');
-        renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
+        renderWithContext(<PostMarkdown {...props}/>, state);
 
         expect(screen.getByText('message')).toBeInTheDocument();
     });
 
     test('should render properly with an empty post', () => {
-        renderWithIntlAndStore(
+        renderWithContext(
             <PostMarkdown
                 {...baseProps}
                 post={{} as any}
@@ -86,7 +96,7 @@ describe('components/PostMarkdown', () => {
                 },
             }),
         };
-        renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
+        renderWithContext(<PostMarkdown {...props}/>, state);
 
         const link = screen.getByRole('link');
 
@@ -115,7 +125,7 @@ describe('components/PostMarkdown', () => {
                 },
             }),
         };
-        renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
+        renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.getByText('No highlight')).toBeInTheDocument();
 
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
@@ -132,7 +142,7 @@ describe('components/PostMarkdown', () => {
                 },
             }),
         };
-        renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
+        renderWithContext(<PostMarkdown {...props}/>, state);
 
         const groupMention = screen.getByText('@group');
 
@@ -152,7 +162,7 @@ describe('components/PostMarkdown', () => {
                 id: 'post_id',
             }),
         };
-        renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
+        renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.getByText('message')).toBeInTheDocument();
     });
 
@@ -176,7 +186,7 @@ describe('components/PostMarkdown', () => {
             }),
         };
 
-        renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
+        renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.getByText('@user')).toBeInTheDocument();
         expect(screen.getByText('updated the channel header')).toBeInTheDocument();
         expect(screen.getByText('From:')).toBeInTheDocument();
@@ -200,7 +210,7 @@ describe('components/PostMarkdown', () => {
     });
 
     test('plugin hooks can build upon other hook message updates', () => {
-        const props = {
+        const props: ComponentProps<typeof PostMarkdown> = {
             ...baseProps,
             message: 'world',
             post: TestHelper.getPostMock({
@@ -215,18 +225,22 @@ describe('components/PostMarkdown', () => {
             }),
             pluginHooks: [
                 {
+                    id: 'some id',
+                    pluginId: 'some plugin',
                     hook: (post: Post, updatedMessage: string) => {
                         return 'hello ' + updatedMessage;
                     },
                 },
                 {
+                    id: 'different id',
+                    pluginId: 'different plugin',
                     hook: (post: Post, updatedMessage: string) => {
                         return updatedMessage + '!';
                     },
                 },
             ],
         };
-        renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
+        renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
 
         // hook message
@@ -234,7 +248,7 @@ describe('components/PostMarkdown', () => {
     });
 
     test('plugin hooks can overwrite other hooks messages', () => {
-        const props = {
+        const props: ComponentProps<typeof PostMarkdown> = {
             ...baseProps,
             message: 'world',
             post: TestHelper.getPostMock({
@@ -249,18 +263,22 @@ describe('components/PostMarkdown', () => {
             }),
             pluginHooks: [
                 {
+                    id: 'some id',
+                    pluginId: 'some plugin',
                     hook: (post: Post) => {
                         return 'hello ' + post.message;
                     },
                 },
                 {
+                    id: 'different id',
+                    pluginId: 'different plugin',
                     hook: (post: Post) => {
                         return post.message + '!';
                     },
                 },
             ],
         };
-        renderWithIntlAndStore(<PostMarkdown {...props}/>, state);
+        renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
         expect(screen.queryByText('world!', {exact: true})).toBeInTheDocument();
     });

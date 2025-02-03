@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useCallback} from 'react';
+import type {MouseEvent} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
 import Menu from 'components/widgets/menu/menu';
-
-import {localizeMessage} from 'utils/utils';
 
 type Action = {
     favoriteChannel: (channelId: string) => void;
@@ -15,47 +15,45 @@ type Action = {
 };
 
 type Props = {
-    show: boolean;
+    show?: boolean;
     channel: Channel;
     isFavorite: boolean;
     actions: Action;
 };
 
-export default class ToggleFavoriteChannel extends React.PureComponent<Props> {
-    static defaultProps = {
-        show: true,
-    };
+const ToggleFavoriteChannel = ({
+    show = true,
+    isFavorite,
+    actions: {
+        favoriteChannel,
+        unfavoriteChannel,
+    },
+    channel,
+}: Props) => {
+    const intl = useIntl();
 
-    toggleFavoriteChannel = (channelId: string) => {
-        const {
-            isFavorite,
-            actions: {
-                favoriteChannel,
-                unfavoriteChannel,
-            },
-        } = this.props;
-
+    const toggleFavoriteChannel = useCallback((channelId: string) => {
         return isFavorite ? unfavoriteChannel(channelId) : favoriteChannel(channelId);
-    };
+    }, [isFavorite, favoriteChannel, unfavoriteChannel]);
 
-    handleClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
+    const handleClick = useCallback((e: MouseEvent<HTMLButtonElement>): void => {
         e.preventDefault();
-        this.toggleFavoriteChannel(this.props.channel.id);
-    };
+        toggleFavoriteChannel(channel.id);
+    }, [channel.id, toggleFavoriteChannel]);
 
-    render() {
-        let text;
-        if (this.props.isFavorite) {
-            text = localizeMessage('channelHeader.removeFromFavorites', 'Remove from Favorites');
-        } else {
-            text = localizeMessage('channelHeader.addToFavorites', 'Add to Favorites');
-        }
-        return (
-            <Menu.ItemAction
-                show={this.props.show}
-                onClick={this.handleClick}
-                text={text}
-            />
-        );
+    let text;
+    if (isFavorite) {
+        text = intl.formatMessage({id: 'channelHeader.removeFromFavorites', defaultMessage: 'Remove from Favorites'});
+    } else {
+        text = intl.formatMessage({id: 'channelHeader.addToFavorites', defaultMessage: 'Add to Favorites'});
     }
-}
+    return (
+        <Menu.ItemAction
+            show={show}
+            onClick={handleClick}
+            text={text}
+        />
+    );
+};
+
+export default memo(ToggleFavoriteChannel);

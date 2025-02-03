@@ -27,7 +27,9 @@ Options
 
 ::
 
-  -h, --help   help for process
+      --bypass-upload     If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.
+      --extract-content   If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance. (default true)
+  -h, --help              help for process
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

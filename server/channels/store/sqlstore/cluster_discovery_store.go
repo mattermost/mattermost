@@ -25,7 +25,7 @@ func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery)
 		return err
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`
+	if _, err := s.GetMaster().NamedExec(`
 		INSERT INTO 
 			ClusterDiscovery
 			(Id, Type, ClusterName, Hostname, GossipPort, Port, CreateAt, LastPingAt)
@@ -49,7 +49,7 @@ func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscover
 		return false, errors.Wrap(err, "cluster_discovery_tosql")
 	}
 
-	res, err := s.GetMasterX().Exec(queryString, args...)
+	res, err := s.GetMaster().Exec(queryString, args...)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to delete ClusterDiscovery")
 	}
@@ -76,7 +76,7 @@ func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscover
 	}
 
 	var count int
-	if err := s.GetMasterX().Get(&count, queryString, args...); err != nil {
+	if err := s.GetMaster().Get(&count, queryString, args...); err != nil {
 		return false, errors.Wrap(err, "failed to count ClusterDiscovery")
 	}
 
@@ -97,7 +97,7 @@ func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName strin
 	}
 
 	list := []*model.ClusterDiscovery{}
-	if err := s.GetMasterX().Select(&list, queryString, args...); err != nil {
+	if err := s.GetMaster().Select(&list, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find ClusterDiscovery")
 	}
 	return list, nil
@@ -116,7 +116,7 @@ func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterD
 		return errors.Wrap(err, "cluster_discovery_tosql")
 	}
 
-	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
 		return errors.Wrap(err, "failed to update ClusterDiscovery")
 	}
 	return nil
@@ -132,7 +132,7 @@ func (s sqlClusterDiscoveryStore) Cleanup() error {
 		return errors.Wrap(err, "cluster_discovery_tosql")
 	}
 
-	if _, err := s.GetMasterX().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
 		return errors.Wrap(err, "failed to delete ClusterDiscoveries")
 	}
 	return nil

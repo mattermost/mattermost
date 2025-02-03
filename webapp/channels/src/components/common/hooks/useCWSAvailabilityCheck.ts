@@ -7,18 +7,35 @@ import {useSelector} from 'react-redux';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-export default function useCWSAvailabilityCheck() {
-    const [canReachCWS, setCanReachCWS] = useState<boolean | undefined>(undefined);
+export enum CSWAvailabilityCheckTypes {
+    Available = 'available',
+    Unavailable = 'unavailable',
+    Pending = 'pending',
+    NotApplicable = 'notApplicable',
+}
+
+export default function useCWSAvailabilityCheck(): CSWAvailabilityCheckTypes {
+    const [cswAvailability, setCSWAvailability] = useState<CSWAvailabilityCheckTypes>(CSWAvailabilityCheckTypes.Pending);
+
     const config = useSelector(getConfig);
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
+
     useEffect(() => {
-        if (!isEnterpriseReady) {
-            return;
+        async function cwsAvailabilityCheck() {
+            try {
+                await Client4.cwsAvailabilityCheck();
+                setCSWAvailability(CSWAvailabilityCheckTypes.Available);
+            } catch (error) {
+                setCSWAvailability(CSWAvailabilityCheckTypes.Unavailable);
+            }
         }
-        Client4.cwsAvailabilityCheck().then(() => {
-            setCanReachCWS(true);
-        }).catch(() => setCanReachCWS(false));
+
+        if (isEnterpriseReady) {
+            cwsAvailabilityCheck();
+        } else {
+            setCSWAvailability(CSWAvailabilityCheckTypes.NotApplicable);
+        }
     }, [isEnterpriseReady]);
 
-    return canReachCWS;
+    return cswAvailability;
 }

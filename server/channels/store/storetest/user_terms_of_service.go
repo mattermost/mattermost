@@ -11,16 +11,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestUserTermsOfServiceStore(t *testing.T, ss store.Store) {
-	t.Run("TestSaveUserTermsOfService", func(t *testing.T) { testSaveUserTermsOfService(t, ss) })
-	t.Run("TestGetByUserTermsOfService", func(t *testing.T) { testGetByUserTermsOfService(t, ss) })
-	t.Run("TestDeleteUserTermsOfService", func(t *testing.T) { testDeleteUserTermsOfService(t, ss) })
+func TestUserTermsOfServiceStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("TestSaveUserTermsOfService", func(t *testing.T) { testSaveUserTermsOfService(t, rctx, ss) })
+	t.Run("TestGetByUserTermsOfService", func(t *testing.T) { testGetByUserTermsOfService(t, rctx, ss) })
+	t.Run("TestDeleteUserTermsOfService", func(t *testing.T) { testDeleteUserTermsOfService(t, rctx, ss) })
 }
 
-func testSaveUserTermsOfService(t *testing.T, ss store.Store) {
+func testSaveUserTermsOfService(t *testing.T, rctx request.CTX, ss store.Store) {
 	userTermsOfService := &model.UserTermsOfService{
 		UserId:           model.NewId(),
 		TermsOfServiceId: model.NewId(),
@@ -45,7 +46,7 @@ func testSaveUserTermsOfService(t *testing.T, ss store.Store) {
 	assert.NotEmpty(t, savedUserTermsOfService.CreateAt)
 }
 
-func testGetByUserTermsOfService(t *testing.T, ss store.Store) {
+func testGetByUserTermsOfService(t *testing.T, rctx request.CTX, ss store.Store) {
 	userTermsOfService := &model.UserTermsOfService{
 		UserId:           model.NewId(),
 		TermsOfServiceId: model.NewId(),
@@ -61,7 +62,7 @@ func testGetByUserTermsOfService(t *testing.T, ss store.Store) {
 	assert.NotEmpty(t, fetchedUserTermsOfService.CreateAt)
 }
 
-func testDeleteUserTermsOfService(t *testing.T, ss store.Store) {
+func testDeleteUserTermsOfService(t *testing.T, rctx request.CTX, ss store.Store) {
 	userTermsOfService := &model.UserTermsOfService{
 		UserId:           model.NewId(),
 		TermsOfServiceId: model.NewId(),

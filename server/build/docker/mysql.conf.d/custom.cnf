@@ -1,6 +1,7 @@
 [mysqld]
 bind-address = 0.0.0.0
 
+default-authentication-plugin=mysql_native_password
 log-output = NONE
 slow-query-log = 0
 innodb_flush_log_at_trx_commit = 2

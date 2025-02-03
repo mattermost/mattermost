@@ -5,10 +5,10 @@ import {combineReducers} from 'redux';
 
 import type {Bot} from '@mattermost/types/bots';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {BotTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-function accounts(state: Record<string, Bot> = {}, action: GenericAction) {
+function accounts(state: Record<string, Bot> = {}, action: MMReduxAction) {
     switch (action.type) {
     case BotTypes.RECEIVED_BOT_ACCOUNTS: {
         const newBots = action.data;

@@ -3,14 +3,13 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
 import {linkLdapGroup, unlinkLdapGroup, getLdapGroups as fetchLdapGroups} from 'mattermost-redux/actions/admin';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getLdapGroups, getLdapGroupsCount} from 'mattermost-redux/selectors/entities/admin';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import GroupsList from './groups_list';
 
@@ -33,7 +32,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, any>({
+        actions: bindActionCreators({
             getLdapGroups: fetchLdapGroups,
             link: linkLdapGroup,
             unlink: unlinkLdapGroup,

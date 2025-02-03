@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/post_view/PostReaction should match snapshot 1`] = `
-<Connect(ChannelPermissionGate)
+<Memo(ChannelPermissionGate)
   channelId="current_channel_id"
   permissions={
     Array [
@@ -17,40 +17,25 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
     target={[MockFunction]}
     topOffset={-7}
   />
-  <OverlayTrigger
-    className="hidden-xs"
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        className="hidden-xs"
-        id="reaction-icon-tooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Add Reaction"
-          id="post_info.tooltip.add_reactions"
-        />
-      </Tooltip>
-    }
-    placement="top"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+  <WithTooltip
+    title={
+      Object {
+        "defaultMessage": "Add Reaction",
+        "id": "post_info.tooltip.add_reactions",
+      }
     }
   >
     <button
-      aria-label="add reaction"
+      aria-label="Add Reaction"
       className="post-menu__item post-menu__item--reactions"
       data-testid="post-reaction-emoji-icon"
       id="CENTER_reaction_post_id_1"
       onClick={[MockFunction]}
     >
-      <EmojiIcon
+      <Memo(EmojiIcon)
         className="icon icon--small"
       />
     </button>
-  </OverlayTrigger>
-</Connect(ChannelPermissionGate)>
+  </WithTooltip>
+</Memo(ChannelPermissionGate)>
 `;

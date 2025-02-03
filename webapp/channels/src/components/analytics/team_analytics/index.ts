@@ -3,12 +3,11 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getProfilesInTeam} from 'mattermost-redux/actions/users';
 import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import type {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setGlobalItem} from 'actions/storage';
 import {getCurrentLocale} from 'selectors/i18n';
@@ -22,7 +21,7 @@ const LAST_ANALYTICS_TEAM = 'last_analytics_team';
 
 function mapStateToProps(state: GlobalState) {
     const teams = getTeamsList(state);
-    const teamId = makeGetGlobalItem(LAST_ANALYTICS_TEAM, null)(state);
+    const teamId = makeGetGlobalItem(LAST_ANALYTICS_TEAM, '')(state);
     const initialTeam = state.entities.teams.teams[teamId] || (teams.length > 0 ? teams[0] : null);
 
     return {
@@ -33,15 +32,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean, excludePolicyConstrained?: boolean) => void;
-    getProfilesInTeam: (teamId: string, page: number, perPage?: number, sort?: string, options?: undefined) => Promise<ActionResult>;
-    setGlobalItem: (name: string, value: string) => void;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             getTeams,
             getProfilesInTeam,
             setGlobalItem,

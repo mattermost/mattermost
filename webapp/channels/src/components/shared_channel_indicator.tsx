@@ -4,48 +4,33 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {ChannelType} from '@mattermost/types/channels';
-
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-
-import {Constants} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     className?: string;
-    channelType: ChannelType;
     withTooltip?: boolean;
 };
 
 const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
-    let sharedIcon;
-    if (props.channelType === Constants.PRIVATE_CHANNEL) {
-        sharedIcon = (<i className={`${props.className || ''} icon-circle-multiple-outline-lock`}/>);
-    } else {
-        sharedIcon = (<i className={`${props.className || ''} icon-circle-multiple-outline`}/>);
-    }
+    const sharedIcon = (<i className={`${props.className || ''} icon-circle-multiple-outline`}/>);
 
     if (!props.withTooltip) {
         return sharedIcon;
     }
 
-    const sharedTooltip = (
-        <Tooltip id='sharedTooltip'>
-            <FormattedMessage
-                id='shared_channel_indicator.tooltip'
-                defaultMessage='Shared with trusted organizations'
-            />
-        </Tooltip>
+    const sharedTooltipText = (
+        <FormattedMessage
+            id='shared_channel_indicator.tooltip'
+            defaultMessage='Shared with trusted organizations'
+        />
     );
 
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='bottom'
-            overlay={sharedTooltip}
+        <WithTooltip
+            title={sharedTooltipText}
         >
             {sharedIcon}
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

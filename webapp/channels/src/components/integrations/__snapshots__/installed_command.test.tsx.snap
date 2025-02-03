@@ -10,18 +10,18 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
     <div
       className="item-details__row d-flex flex-column flex-md-row justify-content-between"
     >
-      <div>
-        <strong
-          className="item-details__name"
-        >
+      <div
+        className="item-details__name"
+      >
+        <strong>
           display_name
         </strong>
-        <span
-          className="item-details__trigger"
-        >
-          - /trigger auto_complete_hint
-        </span>
       </div>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger auto_complete_hint
+      </span>
       <div
         className="item-actions"
       >
@@ -80,6 +80,12 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>
@@ -116,18 +122,18 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
     <div
       className="item-details__row d-flex flex-column flex-md-row justify-content-between"
     >
-      <div>
-        <strong
-          className="item-details__name"
-        >
+      <div
+        className="item-details__name"
+      >
+        <strong>
           display_name
         </strong>
-        <span
-          className="item-details__trigger"
-        >
-          - /trigger auto_complete_hint
-        </span>
       </div>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger auto_complete_hint
+      </span>
       <div
         className="item-actions"
       >
@@ -186,6 +192,12 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>
@@ -224,18 +236,18 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
     <div
       className="item-details__row d-flex flex-column flex-md-row justify-content-between"
     >
-      <div>
-        <strong
-          className="item-details__name"
-        >
+      <div
+        className="item-details__name"
+      >
+        <strong>
           display_name
         </strong>
-        <span
-          className="item-details__trigger"
-        >
-          - /trigger auto_complete_hint
-        </span>
       </div>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger auto_complete_hint
+      </span>
     </div>
     <div
       className="item-details__row"
@@ -262,6 +274,12 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>
@@ -298,18 +316,18 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
     <div
       className="item-details__row d-flex flex-column flex-md-row justify-content-between"
     >
-      <div>
-        <strong
-          className="item-details__name"
-        >
+      <div
+        className="item-details__name"
+      >
+        <strong>
           command_display_name
         </strong>
-        <span
-          className="item-details__trigger"
-        >
-          - /trigger
-        </span>
       </div>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger
+      </span>
     </div>
     <div
       className="item-details__row"
@@ -336,6 +354,12 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="testToken"
         />
       </span>

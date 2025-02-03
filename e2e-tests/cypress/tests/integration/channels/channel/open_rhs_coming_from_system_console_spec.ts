@@ -72,32 +72,32 @@ describe('Channel RHS', () => {
         verifyRHSisOpenAndHasTitle('Recent Mentions');
     });
 
-    it('MM-T5312 - should be able to open saved posts, visit the system console and come back without issues', () => {
-        // # Click on the saved posts button
+    it('MM-T5312 - should be able to open saved messages, visit the system console and come back without issues', () => {
+        // # Click on the saved messages button
         cy.uiGetSavedPostButton().click();
 
-        // * Verify that the saved posts is opened in RHS
-        verifyRHSisOpenAndHasTitle('Saved Posts');
+        // * Verify that the saved messages is opened in RHS
+        verifyRHSisOpenAndHasTitle('Saved messages');
 
         // # visit the system console and leave it
         openSystemConsoleAndLeave();
 
-        // * Verify that the saved posts is still opened in RHS
-        verifyRHSisOpenAndHasTitle('Saved Posts');
+        // * Verify that the saved messages is still opened in RHS
+        verifyRHSisOpenAndHasTitle('Saved messages');
     });
 
-    it('MM-T5313 - should be able to open pinned posts, visit the system console and come back without issues', () => {
-        // # Click on the pinned posts button
+    it('MM-T5313 - should be able to open Pinned messages, visit the system console and come back without issues', () => {
+        // # Click on the Pinned messages button
         cy.uiGetChannelPinButton().click();
 
-        // * Verify that the pinned posts is opened in RHS
-        verifyRHSisOpenAndHasTitle('Pinned Posts');
+        // * Verify that the Pinned messages is opened in RHS
+        verifyRHSisOpenAndHasTitle('Pinned messages');
 
         // # visit the system console and leave it
         openSystemConsoleAndLeave();
 
-        // * Verify that the pinned posts is still opened in RHS
-        verifyRHSisOpenAndHasTitle('Pinned Posts');
+        // * Verify that the Pinned messages is still opened in RHS
+        verifyRHSisOpenAndHasTitle('Pinned messages');
     });
 
     it('MM-T5314 - should be able to open channel members, visit the system console and come back without issues', () => {
@@ -133,7 +133,8 @@ describe('Channel RHS', () => {
         cy.postMessage(MESSAGES.SMALL);
 
         // # Enter the search terms and hit enter to start the search
-        cy.get('#searchBox').clear().type(MESSAGES.TINY).type('{enter}');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().first().clear().type(MESSAGES.TINY).type('{enter}');
 
         // * Verify that the search results is opened in RHS
         verifyRHSisOpenAndHasTitle('Search Results');

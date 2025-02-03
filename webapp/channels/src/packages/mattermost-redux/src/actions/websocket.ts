@@ -5,12 +5,12 @@ import {batchActions} from 'redux-batched-actions';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {getKnownUsers} from './users';
 
-export function removeNotVisibleUsers(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function removeNotVisibleUsers(): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         let knownUsers: Set<string>;
         try {

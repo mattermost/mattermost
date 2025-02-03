@@ -18,8 +18,8 @@ import AnnouncementBar from 'components/announcement_bar';
 import BackButton from 'components/common/back_button';
 import InfiniteScroll from 'components/common/infinite_scroll';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
+import LearnAboutTeamsLink from 'components/main_menu/learn_about_teams_link';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
@@ -28,6 +28,7 @@ import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
+import './select_team.scss';
 
 export const TEAMS_PER_PAGE = 30;
 const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
@@ -51,7 +52,6 @@ type Props = {
     canJoinPublicTeams: boolean;
     canJoinPrivateTeams: boolean;
     history?: any;
-    siteURL?: string;
     actions: Actions;
     totalTeamsCount: number;
     isCloud: boolean;
@@ -115,7 +115,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
     };
 
     handleTeamClick = async (team: Team) => {
-        const {siteURL, currentUserRoles} = this.props;
+        const {currentUserRoles} = this.props;
         this.setState({loadingTeamId: team.id});
 
         const {data, error} = await this.props.actions.addUserToTeam(team.id, this.props.currentUserId);
@@ -127,15 +127,21 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             if (error.server_error_id === TEAM_MEMBERSHIP_DENIAL_ERROR_ID) {
                 if (currentUserRoles !== undefined && currentUserRoles.includes(Constants.PERMISSIONS_SYSTEM_ADMIN)) {
                     errorMsg = (
-                        <FormattedMarkdownMessage
-                            id='join_team_group_constrained_denied_admin'
-                            defaultMessage={`You need to be a member of a linked group to join this team. You can add a group to this team [here](${siteURL}/admin_console/user_management/groups).`}
-                            values={{siteURL}}
+                        <FormattedMessage
+                            id='join_team_group_constrained_denied_adminText'
+                            defaultMessage={'You need to be a member of a linked group to join this team. You can add a group to this team <a>here</a>.'}
+                            values={{
+                                a: (chunks: string) => (
+                                    <Link to='/admin_console/user_management/groups'>
+                                        {chunks}
+                                    </Link>
+                                ),
+                            }}
                         />
                     );
                 } else {
                     errorMsg = (
-                        <FormattedMarkdownMessage
+                        <FormattedMessage
                             id='join_team_group_constrained_denied'
                             defaultMessage='You need to be a member of a linked group to join this team.'
                         />
@@ -195,7 +201,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             openContent = (
                 <div className='signup__content'>
                     <div className={'form-group has-error'}>
-                        <label className='control-label'>{this.state.error}</label>
+                        <div className='control-label'>{this.state.error}</div>
                     </div>
                 </div>
             );
@@ -203,12 +209,12 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             openContent = (
                 <div className='signup__content'>
                     <div className={'form-group has-error'}>
-                        <label className='control-label'>
+                        <div className='control-label'>
                             <FormattedMessage
                                 id='signup_team.guest_without_channels'
                                 defaultMessage='Your guest account has no channels assigned. Please contact an administrator.'
                             />
-                        </label>
+                        </div>
                     </div>
                 </div>
             );
@@ -276,12 +282,15 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                     id='teamsYouCanJoinContent'
                     className='signup__content'
                 >
-                    <h4>
-                        <FormattedMessage
-                            id='signup_team.join_open'
-                            defaultMessage='Teams you can join: '
-                        />
-                    </h4>
+                    <div className='SelectTeam__sub-header'>
+                        <h4>
+                            <FormattedMessage
+                                id='signup_team.join_open'
+                                defaultMessage='Teams you can join: '
+                            />
+                        </h4>
+                        <LearnAboutTeamsLink/>
+                    </div>
                     <InfiniteScroll
                         callBack={this.fetchMoreTeams}
                         styleClass='signup-team-all'

@@ -33,6 +33,31 @@ func AddWriterTarget(logger *Logger, w io.Writer, useJSON bool, levels ...Level)
 	return logger.log.Logr().AddTarget(target, "_testWriter", filter, formatter, 1000)
 }
 
+// CreateConsole createa a logger that outputs to [os.Stdout].
+// It's useful in places where no log configuration is accessible.
+func CreateConsoleLogger() *Logger {
+	logger, err := NewLogger()
+	if err != nil {
+		panic("failed create logger " + err.Error())
+	}
+
+	filter := logr.StdFilter{
+		Lvl:        LvlTrace,
+		Stacktrace: LvlPanic,
+	}
+	formatter := &formatters.Plain{
+		EnableCaller: true,
+		EnableColor:  true,
+	}
+
+	target := targets.NewWriterTarget(os.Stdout)
+	if err := logger.log.Logr().AddTarget(target, "_testcon", filter, formatter, 1000); err != nil {
+		panic("failed to add target " + err.Error())
+	}
+
+	return logger
+}
+
 // CreateConsoleTestLogger creates a logger for unit tests. Log records are output to `os.Stdout`.
 // All log messages with level trace or lower are logged.
 // The returned logger get Shutdown() when the tests completes. The caller should not shut it down.

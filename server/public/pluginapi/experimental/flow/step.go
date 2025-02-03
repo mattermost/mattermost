@@ -189,7 +189,7 @@ func (f *Flow) processAttachment(attachment *model.SlackAttachment) *model.Slack
 			if u.Host != "" && (u.Scheme == "http" || u.Scheme == "https") {
 				a.ImageURL = attachment.ImageURL
 			} else {
-				a.ImageURL = f.pluginURL + "/" + strings.TrimPrefix(attachment.ImageURL, "/")
+				a.ImageURL = fmt.Sprintf("%s/plugins/%s/%s", f.siteURL, f.pluginID, strings.TrimPrefix(attachment.ImageURL, "/"))
 			}
 		}
 	}

@@ -12,15 +12,20 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Deleting..."
+          text={
+            Object {
+              "defaultMessage": "Deleting...",
+              "id": "admin.permissions.permissionsSchemeSummary.deleting",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Yes, Delete"
             id="admin.permissions.permissionsSchemeSummary.deleteConfirmButton"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       }
       message={
         <div>
@@ -130,15 +135,20 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Deleting..."
+          text={
+            Object {
+              "defaultMessage": "Deleting...",
+              "id": "admin.permissions.permissionsSchemeSummary.deleting",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Yes, Delete"
             id="admin.permissions.permissionsSchemeSummary.deleteConfirmButton"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       }
       message={
         <div>
@@ -262,33 +272,8 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     >
       Team 8
     </span>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
-      overlay={
-        <Tooltip
-          className="team-scheme-extra-teams-overlay"
-          id="id-extra-teams-overlay"
-        >
-          <span
-            className="team"
-          >
-            Team 9
-          </span>
-          <span
-            className="team"
-          >
-            Team 10
-          </span>
-        </Tooltip>
-      }
-      placement="bottom"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
+    <WithTooltip
+      title="Team 9, Team 10"
     >
       <span
         className="team"
@@ -304,7 +289,7 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
           }
         />
       </span>
-    </OverlayTrigger>
+    </WithTooltip>
   </div>
 </div>
 `;
@@ -321,15 +306,20 @@ exports[`components/admin_console/permission_schemes_settings/permissions_scheme
     <ConfirmModal
       confirmButtonClass="btn btn-primary"
       confirmButtonText={
-        <LoadingWrapper
+        <Memo(LoadingWrapper)
           loading={false}
-          text="Deleting..."
+          text={
+            Object {
+              "defaultMessage": "Deleting...",
+              "id": "admin.permissions.permissionsSchemeSummary.deleting",
+            }
+          }
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Yes, Delete"
             id="admin.permissions.permissionsSchemeSummary.deleteConfirmButton"
           />
-        </LoadingWrapper>
+        </Memo(LoadingWrapper)>
       }
       message={
         <div>

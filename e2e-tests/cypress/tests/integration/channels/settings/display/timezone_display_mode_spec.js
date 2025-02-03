@@ -40,13 +40,6 @@ describe('Profile > Display > Timezone', () => {
     let userId;
 
     before(() => {
-        // # Enable Timezone
-        cy.apiUpdateConfig({
-            DisplaySettings: {
-                ExperimentalTimezone: true,
-            },
-        });
-
         // # Create and visit off-topic
         cy.apiInitSetup({loginAfter: true}).then(({user, offTopicUrl}) => {
             userId = user.id;

@@ -6,6 +6,8 @@ package utils
 import (
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 func CommonBaseSearchPaths() []string {
@@ -15,11 +17,6 @@ func CommonBaseSearchPaths() []string {
 		"../..",
 		"../../..",
 		"../../../..",
-	}
-
-	// this enables the server to be used in tests from a different repository
-	if mmPath := os.Getenv("MM_SERVER_PATH"); mmPath != "" {
-		paths = append(paths, mmPath)
 	}
 
 	return paths
@@ -115,4 +112,26 @@ func FindDirRelBinary(dir string) (string, bool) {
 		return "./", false
 	}
 	return found, true
+}
+
+// Valid characters are: alphanumeric, dash, underscore
+var safeFileNameRegex = regexp.MustCompile(`[^\w\-\_]`)
+
+// SanitizeFileName takes a string and returns a safe file name without an extension.
+func SanitizeFileName(input string) string {
+	// Trim leading or trailing dots or spaces
+	safeName := strings.Trim(input, ". ")
+	// Replace dots with nothing
+	safeName = strings.ReplaceAll(safeName, ".", "")
+
+	// Replace all invalid characters with an underscore
+	safeName = safeFileNameRegex.ReplaceAllString(safeName, "_")
+
+	// Limit length
+	const maxLength = 100
+	if len(safeName) > maxLength {
+		safeName = safeName[:maxLength]
+	}
+
+	return safeName
 }

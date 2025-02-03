@@ -37,7 +37,19 @@ describe('components/widgets/links/UpgradeLink', () => {
     });
 
     test('should trigger telemetry call when button clicked', (done) => {
-        const store = mockStore({});
+        const mockWindowOpen = jest.fn();
+        global.window.open = mockWindowOpen;
+        const store = mockStore({
+            entities: {
+                general: {},
+                cloud: {
+                    customer: {},
+                },
+                users: {
+                    profiles: {},
+                },
+            },
+        });
         const wrapper = mountWithIntl(
             <Provider store={store}><UpgradeLink telemetryInfo='testing'/></Provider>,
         );
@@ -49,5 +61,6 @@ describe('components/widgets/links/UpgradeLink', () => {
             done();
         });
         expect(wrapper).toMatchSnapshot();
+        expect(mockWindowOpen).toHaveBeenCalled();
     });
 });

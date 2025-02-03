@@ -3,9 +3,13 @@
 
 import marked from 'marked';
 
+import * as TextFormatting from 'utils/text_formatting';
+
 export default class RemoveMarkdown extends marked.Renderer {
     public code(text: string) {
-        return text.replace(/\n/g, ' ');
+        // We need to escape the input here because our version of marked does this in the renderer. Every other node
+        // type has its input escaped before it reaches the renderer.
+        return TextFormatting.escapeHtml(text).replace(/\n/g, ' ');
     }
 
     public blockquote(text: string) {

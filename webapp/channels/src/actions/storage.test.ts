@@ -10,26 +10,6 @@ describe('Actions.Storage', () => {
         store = await configureStore();
     });
 
-    it('setItem', async () => {
-        store.dispatch(Actions.setItem('test', 'value'));
-
-        expect(store.getState().storage.storage.unknown_test.value).toBe('value');
-        expect(typeof store.getState().storage.storage.unknown_test.timestamp).not.toBe('undefined');
-    });
-
-    it('removeItem', async () => {
-        store.dispatch(Actions.setItem('test1', 'value1'));
-        store.dispatch(Actions.setItem('test2', 'value2'));
-
-        expect(store.getState().storage.storage.unknown_test1.value).toBe('value1');
-        expect(store.getState().storage.storage.unknown_test2.value).toBe('value2');
-
-        store.dispatch(Actions.removeItem('test1'));
-
-        expect(typeof store.getState().storage.storage.unknown_test1).toBe('undefined');
-        expect(store.getState().storage.storage.unknown_test2.value).toBe('value2');
-    });
-
     it('setGlobalItem', async () => {
         store.dispatch(Actions.setGlobalItem('test', 'value'));
 

@@ -8,6 +8,7 @@ import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type AutocompleteSelector from 'components/autocomplete_selector';
 import Markdown from 'components/markdown';
@@ -33,7 +34,7 @@ export interface Props {
     listComponent?: React.ComponentProps<typeof AutocompleteSelector>['listComponent'];
     performLookup: (name: string, userInput: string) => Promise<AppSelectOption[]>;
     actions: {
-        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => (dispatch: any, getState: any) => Promise<void>;
+        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
         autocompleteUsers: (search: string) => Promise<UserAutocomplete>;
     };
 }
@@ -72,26 +73,26 @@ export default class AppsFormField extends React.PureComponent<Props> {
         const displayName = (field.modal_label || field.label) as string;
         let displayNameContent: React.ReactNode = (field.modal_label || field.label) as string;
         displayNameContent = (
-            <React.Fragment>
+            <>
                 {displayName}
                 {!field.is_required && (
                     <span className='light'>
                         {' (optional)'}
                     </span>
                 )}
-            </React.Fragment>
+            </>
         );
 
         const helpText = field.description;
         let helpTextContent: React.ReactNode = <Markdown message={helpText}/>;
         if (errorText) {
             helpTextContent = (
-                <React.Fragment>
+                <>
                     <Markdown message={helpText}/>
                     <div className='error-text mt-3'>
                         {errorText}
                     </div>
-                </React.Fragment>
+                </>
             );
         }
 

@@ -28,7 +28,7 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <form
@@ -75,13 +75,12 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
         <div
           className="apps-form-modal-body-common apps-form-modal-body-loaded"
         >
-          <LoadingSpinner
+          <Memo(LoadingSpinner)
             style={
               Object {
                 "fontSize": "24px",
               }
             }
-            text={null}
           />
         </div>
       </Fade>
@@ -203,20 +202,25 @@ exports[`AppsFormComponent should set match snapshot 1`] = `
             id="interactive_dialog.cancel"
           />
         </button>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           autoFocus={false}
           className="btn btn-primary save-button"
           id="appsModalSubmit"
           key="submit"
           spinning={false}
-          spinningText="Submitting..."
+          spinningText={
+            Object {
+              "defaultMessage": "Submitting...",
+              "id": "interactive_dialog.submitting",
+            }
+          }
           type="submit"
         >
           <MemoizedFormattedMessage
             defaultMessage="Submit"
             id="interactive_dialog.submit"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </ModalFooter>
   </form>

@@ -12,12 +12,12 @@ import (
 const LinkCacheSize = 10000
 const LinkCacheDuration = 1 * time.Hour
 
-var linkCache = cache.NewLRU(cache.LRUOptions{
+var linkCache = cache.NewLRU(&cache.CacheOptions{
 	Size: LinkCacheSize,
 })
 
-func PurgeLinkCache() {
-	linkCache.Purge()
+func PurgeLinkCache() error {
+	return linkCache.Purge()
 }
 
 func LinkCache() cache.Cache {

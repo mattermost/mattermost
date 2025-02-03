@@ -14,7 +14,6 @@ describe('Messaging', () => {
     before(() => {
         // # Login as test user and visit off-topic
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
-            cy.apiSaveShowMarkdownPreviewPreference();
             cy.visit(offTopicUrl);
             cy.postMessage('hello');
         });

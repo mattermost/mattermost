@@ -88,6 +88,14 @@ func desanitize(actual, target *model.Config) {
 	if *target.ServiceSettings.SplitKey == model.FakeSetting {
 		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
 	}
+
+	for id, settings := range target.PluginSettings.Plugins {
+		for k, v := range settings {
+			if v == model.FakeSetting {
+				settings[k] = actual.PluginSettings.Plugins[id][k]
+			}
+		}
+	}
 }
 
 // fixConfig patches invalid or missing data in the configuration.
@@ -104,14 +112,11 @@ func fixConfig(cfg *model.Config) {
 		}
 	}
 
-	FixInvalidLocales(cfg)
+	fixInvalidLocales(cfg)
 }
 
-// FixInvalidLocales checks and corrects the given config for invalid locale-related settings.
-//
-// Ideally, this function would be completely internal, but it's currently exposed to allow the cli
-// to test the config change before allowing the save.
-func FixInvalidLocales(cfg *model.Config) bool {
+// fixInvalidLocales checks and corrects the given config for invalid locale-related settings.
+func fixInvalidLocales(cfg *model.Config) bool {
 	var changed bool
 
 	locales := i18n.GetSupportedLocales()

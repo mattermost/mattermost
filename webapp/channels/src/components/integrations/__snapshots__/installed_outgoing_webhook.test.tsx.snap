@@ -133,6 +133,12 @@ exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 
           }
         />
         <Memo(CopyText)
+          label={
+            Object {
+              "defaultMessage": "Copy Token",
+              "id": "integrations.copy_token",
+            }
+          }
           value="xoxz1z7c3tgi9xhrfudn638q9r"
         />
       </span>

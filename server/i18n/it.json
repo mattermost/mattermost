@@ -2296,10 +2296,6 @@
     "translation": "Almeno una tra trigger_words o channel_id deve essere configurata."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Impossibile decodificare la richiesta multipart del webhook in ingresso."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Impossibile aggiornare webook tra gruppi."
   },
@@ -3000,60 +2996,8 @@
     "translation": "La console di Sistema è configurata in sola lettura quando l'Alta Disponibilità è attiva a meno che il parametro ReadOnlyConfig non sia disattivato nel file di configurazione."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Formato di uscita sconosciuto {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Impossibile copiare l'allegato nel file zip."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Impossibile aggiungere l'allegato all'esportazione CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Impossibile create il file CSV temporaneo per l'esportazione."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Impossibile aggiungere l'intestazione all'esportazione CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Impossibile aggiungere il file dei metadati al file zip."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Impossibile convertire i metadati in json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Impossibile esportare una pubblicazione."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Impossibile creare il file zip esportato."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Il file caricato è stato rimosso dall'esportazione Global Relay perché troppo grande per essere inviato."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Impossibile aprire il file di esportazione temporaneo."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Impossibile rileggere il file di esportazione temporaneo Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funzionalità non conforme alla licenza disponibile. Per favore contatta il tuo amministratore di sistema informandolo di aggiornare la licenza enterprise."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Impossibile caricare i template di esportazione. Riprovare."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3097,7 +3041,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "La ricerca Elasticsearch è disabilitata su questo server"
+    "translation": "La ricerca {{.Backend}} è disabilitata su questo server"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3105,19 +3049,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Il lavoro di indicizzazione di Elasticsearch non è riuscito a calcolare l'ora di inizio e di fine"
+    "translation": "Il lavoro di indicizzazione di {{.Backend}} non è riuscito a calcolare l'ora di inizio e di fine"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Il lavoro di indicizzazione di Elasticsearch non è riuscito a calcolare l'ora d'inizio"
+    "translation": "Il lavoro di indicizzazione di {{.Backend}} non è riuscito a calcolare l'ora d'inizio"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch non è in esecuzione"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Impossibile cancellare l'indice ElasticSearch"
+    "translation": "{{.Backend}} non è in esecuzione"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3136,20 +3076,12 @@
     "translation": "Impossibile decodificare i risultati della ricerca"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Impossibile creare il processore massivo Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Impossibile avviare il processore massivo Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch è già fermo."
+    "translation": "{{.Backend}} è già fermo."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch non è attivo."
+    "translation": "{{.Backend}} non è attivo."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3244,58 +3176,6 @@
     "translation": "errore recuperando i gruppi dell'utente"
   },
   {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Impossibile aggiungere l'allegato all'esportazione Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Impossibile chiudere il file zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Impossibile creare il file eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Impossibile generare i dati del file eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Impossibile consegnare l'email a Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Impossibile impostare l'indirizzo From dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Impossibile impostare il testo dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Impossibile scrivere il testo dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Impossibile leggere le informazioni dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Impossibile impostare l'indirizzo To dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Impossibile recuperare le informazioni sul file di esportazione temporaneo."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Impossibile recuperare l'email dal file temporaneo."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Impossibile aprire il file di esportazione temporaneo."
-  },
-  {
     "id": "ent.migration.migratetoldap.duplicate_field",
     "translation": "Impossibile migrare gli utenti AD/LDAP con il campo specificato: rilevato un duplicato. Rimuovere tutti i duplicati e riprovare."
   },
@@ -3324,16 +3204,8 @@
     "translation": "Si è verificato un errore di inizializzazione della richiesta all'Identity Provider. Contattare l'amministratore di sistema."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Si è verificato un errore di codifica della richiesta all'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Il login SAML non ha avuto successo perché la crittografia non è abilitata. Contattare l'amministratore di sistema."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Il file del Certificato pubblico dell'Identity Provider non è stato trovato. Contattare l'amministratore di sistema."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3344,20 +3216,12 @@
     "translation": "Il login SAML non ha avuto successo perché la risposta dell'Identity Provider non è crittografata. Contattare l'amministratore di sistema."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Il login SAML non ha avuto successo perché si è verificato un errore nella decodifica della risposta dall'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "E' stata ricevuta una risposta vuota dall'Identity Provider."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Si è verificato un errore durante la lettura della risposta dell'Identity Provider. Contattare l'amministratore di sistema."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Si è verificato un errore durante la validazione della risposta dell'Identity Provider. Contattare l'amministratore di sistema."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -3741,11 +3605,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "L'impostazione Elastich Search IndexingEnabled deve essere abilitata quando l'impostazione Elastic Search SearchEnabled è abilitata"
+    "translation": "L'impostazione EnableIndexing deve essere abilitata quando l'impostazione Elastic Search EnableSearching è abilitata"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "La coda di indicizzazione in tempo reale di Elasticsearch deve contenere almeno 1 elemento."
+    "translation": "La coda di indicizzazione in tempo reale deve contenere almeno 1 elemento."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
@@ -3753,7 +3617,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Il timeout per le richieste di Elasticsearch deve essere almeno di 1 secondo."
+    "translation": "Il timeout per le ricerche deve essere almeno di 1 secondo."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4336,10 +4200,6 @@
     "translation": "ID non valido."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Messaggio invalido."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Id originale non valido."
   },
@@ -4466,10 +4326,6 @@
   {
     "id": "model.user.is_valid.email.app_error",
     "translation": "Inserire un indirizzo email valido."
-  },
-  {
-    "id": "model.user.is_valid.pwd.app_error",
-    "translation": "La tua password deve contenere almeno {{.Min}} caratteri."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
@@ -4952,10 +4808,6 @@
     "translation": "Tempo scaduto per la risposta del cluster"
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Impossibile creare il file di avviso."
-  },
-  {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
     "translation": "Errore durante la creazione del template Elasticsearch per gli utenti"
   },
@@ -5001,7 +4853,7 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Errore interpretando la versione del server Elasticsearch."
+    "translation": "Errore interpretando la versione del server {{.Backend}}."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5352,10 +5204,6 @@
     "translation": "La ricerca non è stata completata."
   },
   {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Impossibile creare il file zip"
-  },
-  {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Errore durante la creazione del template Elasticsearch per i canali"
   },
@@ -5369,11 +5217,7 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Impossibile trovato la versione del server Elasticsearch."
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "errore durante la cancellazione delle appartenenze a squadre o canali"
+    "translation": "Impossibile trovare la versione del server {{.Backend}}."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
@@ -5634,10 +5478,6 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Aggiornamento membro squadra invalido: Un utente deve essere ospite o utente ma non entrambi."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Rinnova licenza"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
@@ -6128,10 +5968,6 @@
     "translation": "Impossibile eliminare il token"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Impossibile trovare gli utenti del canale durante il momento specificato"
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "Impossibile attivare il token di accesso."
   },
@@ -6160,112 +5996,12 @@
     "translation": "Impossibile eliminare il token di accesso personale."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "E' richiesto un server SMTP"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Se ci sono ulteriori richieste, contattare support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL Sito: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Totale Utenti Attivi: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Id Diagnostica: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contatto: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Aggiorna Mattermost a edizione enterprise"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost consiglia caldamente che le installazioni con più di 500 utenti si aggiornino a Mattermost Enterprise Edition, che offre funzionalità avanzate come la gestione utenti, il server clustering e il monitore delle performance.\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Il tuo Mattermost adesso ha 200 utenti. Man mano che la tua base di utenti cresce, gestire ulteriori account può richiedere molto tempo. Ti consigliamo di aggiornare il tuo sistema a Mattermost Enterprise Edition e integrarlo nell'Active Directory/LDAP della tua organizzazione, che consentirà a chiunque con un account di accedere a Mattermost. Gli utenti potranno accedere senza dover creare nuovi nomi utente e nuove password e gli amministratori risparmieranno tempo nel gestire gli account.\n\n[Scopri di più su come integrare AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Integra AD/LDAP"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Scrivici"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Grazie per aver contattato Mattermost. Ti daremo riscontro presto."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Il messaggio non può essere inviato."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Per favore inviaci un email."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Richiesta di contatto con Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL sito: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Utenti attivi totale: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Se ci sono ulteriori richieste, per favore contattare support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Id diagnostica: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contatto: {{.Contact}}"
-  },
-  {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Impossibile aggiornare la barra laterale per coincidere con le preferenze aggiornate"
   },
   {
     "id": "api.preference.delete_preferences.update_sidebar.app_error",
     "translation": "Impossibile aggiornare la barra laterale per coincidere con le preferenze cancellate"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Impossibile trovare la metrica di avviso."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Errore durante l'invio dell'email di conferma all'amministratore"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Richiesta di contatto con Mattermost"
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -6448,14 +6184,6 @@
     "translation": "Impossibile convertire bot in utente."
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Errore durante il salvataggio del valore di {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Consigliere di Mattermost"
-  },
-  {
     "id": "app.post.update.app_error",
     "translation": "Impossibile aggiornare la pubblicazione."
   },
@@ -6524,10 +6252,6 @@
     "translation": "Impossibile trovare la variabile di sistema."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "Si è verificato un errore durante la ricerca delle proprietà di sistema."
-  },
-  {
     "id": "app.email.setup_rate_limiter.app_error",
     "translation": "Si è verificato un errore nel limitatore di rate."
   },
@@ -6572,16 +6296,8 @@
     "translation": "Raggiunto timeout nel lavoro di sincronizzazione AD/LDAP."
   },
   {
-    "id": "ent.cluster.404.app_error",
-    "translation": "Cluster API non trovate."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " ha allegato un file."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Impossibile convertire l'esportazione in XML."
   },
   {
     "id": "app.job.update.app_error",
@@ -6630,30 +6346,6 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Aggiorna Mattermost a edizione enterprise"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Il tuo Mattermost adesso ha 200 utenti. Man mano che la tua base di utenti cresce, gestire ulteriori account può richiedere molto tempo. Ti consigliamo di aggiornare il tuo sistema a Mattermost Enterprise Edition e integrarlo nell'Active Directory/LDAP della tua organizzazione, che consentirà a chiunque con un account di accedere a Mattermost. Gli utenti potranno accedere senza dover creare nuovi nomi utente e nuove password e gli amministratori risparmieranno tempo nel gestire gli account.\n\n[Scopri di più su come integrare AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Forza Autenticazione Multifattore"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -7104,10 +6796,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": " "
-  },
-  {
     "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
     "translation": " "
   },
@@ -7136,15 +6824,7 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": " "
-  },
-  {
     "id": "app.export.marshal.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_renew_now",
     "translation": " "
   },
   {
@@ -7189,10 +6869,6 @@
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
-    "translation": " "
-  },
-  {
-    "id": "app.license.generate_renewal_token.no_license",
     "translation": " "
   },
   {
@@ -7292,10 +6968,6 @@
     "translation": " "
   },
   {
-    "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": " "
-  },
-  {
     "id": "app.import.generate_password.app_error",
     "translation": " "
   },
@@ -7340,35 +7012,7 @@
     "translation": " "
   },
   {
-    "id": "api.templates.copyright",
-    "translation": " "
-  },
-  {
     "id": "api.system.update_notices.validating_failed",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
     "translation": " "
   },
   {
@@ -7469,7 +7113,7 @@
   },
   {
     "id": "api.cloud.request_error",
-    "translation": " "
+    "translation": "Errore nell'elaborazione della richiesta a CWS."
   },
   {
     "id": "app.user.demote_user_to_guest.user_update.app_error",
@@ -7497,10 +7141,6 @@
   },
   {
     "id": "app.notification.body.dm.title",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
     "translation": " "
   },
   {
@@ -7532,15 +7172,7 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": " "
-  },
-  {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": " "
-  },
-  {
-    "id": "app.user.send_emails.app_error",
     "translation": " "
   },
   {
@@ -7601,14 +7233,10 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": " "
+    "translation": "Il testo immesso supera il limite di caratteri. Lo scopo del canale è limitato a {{.MaxLength}} caratteri."
   },
   {
     "id": "api.command_custom_status.success",
-    "translation": " "
-  },
-  {
-    "id": "api.command_remote.incorrect_password.error",
     "translation": " "
   },
   {
@@ -7700,23 +7328,7 @@
     "translation": " "
   },
   {
-    "id": "api.license.request_renewal_link.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.no_license",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.button",
     "translation": " "
   },
   {
@@ -7780,27 +7392,11 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info3",
-    "translation": " "
-  },
-  {
     "id": "api.config.patch_config.diff.app_error",
     "translation": " "
   },
   {
     "id": "api.license.request-trial.can-start-trial.error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.subject",
     "translation": " "
   },
   {
@@ -7852,10 +7448,6 @@
     "translation": " "
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": " "
   },
@@ -7869,10 +7461,6 @@
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": " "
-  },
-  {
-    "id": "app.license.generate_renewal_token.app_error",
     "translation": " "
   },
   {
@@ -7900,10 +7488,6 @@
     "translation": " "
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": " "
-  },
-  {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": " "
   },
@@ -7913,14 +7497,6 @@
   },
   {
     "id": "app.user.get_thread_count_for_user.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
     "translation": " "
   },
   {
@@ -7948,10 +7524,6 @@
     "translation": " "
   },
   {
-    "id": "api.license.request_renewal_link.cannot_renew_on_cws",
-    "translation": " "
-  },
-  {
     "id": "app.notification.body.thread_channel.subTitle",
     "translation": " "
   },
@@ -7965,10 +7537,6 @@
   },
   {
     "id": "api.custom_groups.must_be_referenceable",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle_two",
     "translation": " "
   },
   {
@@ -8021,10 +7589,6 @@
   },
   {
     "id": "bleveengine.purge_file_index.error",
-    "translation": " "
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
     "translation": " "
   },
   {
@@ -8096,15 +7660,7 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": " "
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
     "translation": " "
   },
   {
@@ -8157,22 +7713,6 @@
   },
   {
     "id": "app.team.join_user_to_team.save_member.conflict.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": " "
   },
   {
@@ -8280,10 +7820,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": " "
-  },
-  {
     "id": "api.templates.cloud_welcome_email.subtitle",
     "translation": " "
   },
@@ -8293,10 +7829,6 @@
   },
   {
     "id": "model.session.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
     "translation": " "
   },
   {
@@ -8320,27 +7852,15 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_known_users.get_users.app_error",
     "translation": " "
   },
   {
     "id": "api.command_custom_status.app_error",
-    "translation": " "
+    "translation": "Errore impostando lo stato."
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
-    "translation": " "
-  },
-  {
-    "id": "app.import.attachment.read_file_data.error",
     "translation": " "
   },
   {
@@ -8397,7 +7917,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": " "
+    "translation": "La ricerca {{.Backend}} di file è disabilitata su questo server"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8405,10 +7925,6 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
     "translation": " "
   },
   {
@@ -8468,10 +7984,6 @@
     "translation": " "
   },
   {
-    "id": "api.templates.payment_failed.subject",
-    "translation": " "
-  },
-  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": " "
   },
@@ -8489,10 +8001,6 @@
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
     "translation": " "
   },
   {
@@ -8525,14 +8033,10 @@
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": " "
+    "translation": "Il testo immesso supera il limite di caratteri. L'intestazione del canale è limitata a {{.MaxLength}} caratteri."
   },
   {
     "id": "api.templates.welcome_body.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
     "translation": " "
   },
   {
@@ -8616,10 +8120,6 @@
     "translation": " "
   },
   {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": " "
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": " "
   },
@@ -8628,19 +8128,11 @@
     "translation": " "
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subject",
-    "translation": " "
-  },
-  {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": " "
   },
   {
     "id": "api.templates.cloud_welcome_email.info",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
     "translation": " "
   },
   {
@@ -8653,10 +8145,6 @@
   },
   {
     "id": "app.user.permanent_delete.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.license.generate_renewal_token.bad_license",
     "translation": " "
   },
   {
@@ -8729,10 +8217,6 @@
   },
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
     "translation": " "
   },
   {
@@ -8848,19 +8332,7 @@
     "translation": " "
   },
   {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": " "
-  },
-  {
     "id": "bleveengine.create_file_index.error",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": " "
-  },
-  {
-    "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": " "
   },
   {
@@ -8920,10 +8392,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": " "
-  },
-  {
     "id": "ent.data_retention.run_failed.error",
     "translation": " "
   },
@@ -8949,18 +8417,6 @@
   },
   {
     "id": "api.templates.verify_body.serverURL",
-    "translation": " "
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": " "
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": " "
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
     "translation": " "
   },
   {
@@ -9016,22 +8472,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": " "
-  },
-  {
     "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
     "translation": " "
   },
@@ -9048,26 +8488,6 @@
     "translation": " "
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": " "
-  },
-  {
     "id": "api.remote_cluster.update_not_unique.app_error",
     "translation": " "
   },
@@ -9081,18 +8501,6 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.title",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.payment_failed_no_card.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
     "translation": " "
   },
   {
@@ -9149,10 +8557,34 @@
   },
   {
     "id": "api.command_custom_status.clear.app_error",
-    "translation": " "
+    "translation": "Errore nella cancellazione dello stato."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": " "
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Parametri di input non validi."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Non posso creare un canale diretto con un utente remoto"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "La tua licenza non supporta i segnalibri dei canali."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Non è permessa la creazione di un segnalibro all'utente."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Creazione di un segnalibro canale fallita."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Non è possibile rimuovere una conferma in un canale archiviato."
   }
 ]

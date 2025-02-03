@@ -7,6 +7,7 @@ import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} fr
 import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -59,7 +60,7 @@ export type Props = {
     currentUserId: string;
     currentTeamId: string;
     preview?: boolean;
-    autocompleteGroups: Array<{ id: string }> | null;
+    autocompleteGroups: Group[] | null;
     delayChannelAutocomplete: boolean;
     actions: {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
@@ -71,6 +72,7 @@ export type Props = {
     openWhenEmpty?: boolean;
     priorityProfiles?: UserProfile[];
     hasLabels?: boolean;
+    isInEditMode?: boolean;
 };
 
 const VISIBLE = {visibility: 'visible'};
@@ -263,7 +265,7 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     render() {
-        let textboxClassName = 'form-control custom-textarea';
+        let textboxClassName = 'form-control custom-textarea textbox-edit-area';
         if (this.props.emojiEnabled) {
             textboxClassName += ' custom-textarea--emoji-picker';
         }
@@ -274,39 +276,30 @@ export default class Textbox extends React.PureComponent<Props> {
             textboxClassName += ' textarea--has-labels';
         }
 
-        if (this.props.preview) {
-            return (
-                <div
-                    ref={this.wrapper}
-                    className='textarea-wrapper'
-                >
-                    <div
-                        tabIndex={this.props.tabIndex || 0}
-                        ref={this.preview}
-                        className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
-                        onKeyPress={this.props.onKeyPress}
-                        onKeyDown={this.handleKeyDown}
-                        onBlur={this.handleBlur}
-                    >
-                        <PostMarkdown
-                            message={this.props.value}
-                            mentionKeys={[]}
-                            channelId={this.props.channelId}
-                            imageProps={{hideUtilities: true}}
-                        />
-                    </div>
-                </div>
-            );
-        }
-
         return (
             <div
                 ref={this.wrapper}
-                className='textarea-wrapper'
+                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview})}
             >
+                <div
+                    tabIndex={this.props.tabIndex || 0}
+                    ref={this.preview}
+                    className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
+                    onKeyPress={this.props.onKeyPress}
+                    onKeyDown={this.handleKeyDown}
+                    onBlur={this.handleBlur}
+                >
+                    <PostMarkdown
+                        message={this.props.value}
+                        channelId={this.props.channelId}
+                        imageProps={{hideUtilities: true}}
+                    />
+                </div>
                 <SuggestionBox
-                    id={this.props.id}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     ref={this.message}
+                    id={this.props.id}
                     className={textboxClassName}
                     spellCheck='true'
                     placeholder={this.props.createMessage}
@@ -326,7 +319,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     listComponent={this.props.suggestionList}
                     listPosition={this.props.suggestionListPosition}
                     providers={this.suggestionProviders}
-                    channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={ALL}
                     disabled={this.props.disabled}

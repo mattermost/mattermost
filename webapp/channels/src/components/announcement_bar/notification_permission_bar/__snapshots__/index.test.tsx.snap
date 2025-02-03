@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationPermissionBar should render the NotificationPermissionNeverGrantedBar when permission is never granted yet 1`] = `
+<div>
+  <div
+    class="_StyledDiv-BRlth ksRYxX announcement-bar"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <i
+        class="icon icon-alert-circle-outline"
+      />
+      <span>
+        We need your permission to show notifications in the browser.
+      </span>
+      <button>
+        Manage notification preferences
+      </button>
+    </div>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
+`;
+
+exports[`NotificationPermissionBar should render the NotificationUnsupportedBar if notifications are not supported 1`] = `
+<div>
+  <div
+    class="_StyledDiv-BRlth ksRYxX announcement-bar"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <i
+        class="icon icon-alert-circle-outline"
+      />
+      <span>
+        Your browser does not support browser notifications.
+      </span>
+      <button>
+        Update your browser
+      </button>
+    </div>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
+`;

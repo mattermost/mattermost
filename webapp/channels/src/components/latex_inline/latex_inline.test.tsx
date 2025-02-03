@@ -1,21 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 
 import LatexInline from 'components/latex_inline/latex_inline';
 
-describe('components/LatexBlock', () => {
+import {withIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
+
+describe('components/LatexInline', () => {
     const defaultProps = {
         content: 'e^{i\\pi} + 1 = 0',
         enableInlineLatex: true,
     };
 
     test('should match snapshot', async () => {
-        const wrapper = shallow(<LatexInline {...defaultProps}/>);
-        await import('katex'); //manually import katex
-        expect(wrapper).toMatchSnapshot();
+        let container;
+
+        await act(async () => {
+            const result = renderWithContext(withIntl(<LatexInline {...defaultProps}/>));
+            container = result.container;
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('latex is disabled', async () => {
@@ -24,9 +31,13 @@ describe('components/LatexBlock', () => {
             enableInlineLatex: false,
         };
 
-        const wrapper = shallow(<LatexInline {...props}/>);
-        await import('katex'); //manually import katex
-        expect(wrapper).toMatchSnapshot();
+        let container;
+
+        await act(async () => {
+            const result = renderWithContext(withIntl(<LatexInline {...props}/>));
+            container = result.container;
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('error in katex', async () => {
@@ -35,8 +46,12 @@ describe('components/LatexBlock', () => {
             enableInlineLatex: true,
         };
 
-        const wrapper = shallow(<LatexInline {...props}/>);
-        await import('katex'); //manually import katex
-        expect(wrapper).toMatchSnapshot();
+        let container;
+
+        await act(async () => {
+            const result = renderWithContext(withIntl(<LatexInline {...props}/>));
+            container = result.container;
+        });
+        expect(container).toMatchSnapshot();
     });
 });

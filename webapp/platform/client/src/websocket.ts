@@ -68,6 +68,8 @@ export default class WebSocketClient {
     private closeListeners = new Set<CloseListener>();
 
     private connectionId: string | null;
+    private serverHostname: string | null;
+    private postedAck: boolean;
 
     constructor() {
         this.conn = null;
@@ -77,12 +79,14 @@ export default class WebSocketClient {
         this.connectFailCount = 0;
         this.responseCallbacks = {};
         this.connectionId = '';
+        this.serverHostname = '';
+        this.postedAck = false;
     }
 
     // on connect, only send auth cookie and blank state.
     // on hello, get the connectionID and store it.
     // on reconnect, send cookie, connectionID, sequence number.
-    initialize(connectionUrl = this.connectionUrl, token?: string) {
+    initialize(connectionUrl = this.connectionUrl, token?: string, postedAck?: boolean) {
         if (this.conn) {
             return;
         }
@@ -96,10 +100,14 @@ export default class WebSocketClient {
             console.log('websocket connecting to ' + connectionUrl); //eslint-disable-line no-console
         }
 
+        if (typeof postedAck != 'undefined') {
+            this.postedAck = postedAck;
+        }
+
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
         // We cannot also send it as part of the auth_challenge, because the session cookie is already sent with the request.
-        this.conn = new WebSocket(`${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}`);
+        this.conn = new WebSocket(`${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}${this.postedAck ? '&posted_ack=true' : ''}`);
         this.connectionUrl = connectionUrl;
 
         this.conn.onopen = () => {
@@ -148,7 +156,7 @@ export default class WebSocketClient {
 
             setTimeout(
                 () => {
-                    this.initialize(connectionUrl, token);
+                    this.initialize(connectionUrl, token, postedAck);
                 },
                 retryTime,
             );
@@ -189,21 +197,24 @@ export default class WebSocketClient {
                         console.log('long timeout, or server restart, or sequence number is not found.'); //eslint-disable-line no-console
 
                         this.missedEventCallback?.();
-			
-			for (const listener of this.missedMessageListeners) {
+
+                        for (const listener of this.missedMessageListeners) {
                             try {
                                 listener();
                             } catch (e) {
                                 console.log(`missed message listener "${listener.name}" failed: ${e}`); // eslint-disable-line no-console
                             }
                         }
-                        
-			this.serverSequence = 0;
+
+                        this.serverSequence = 0;
                     }
 
                     // If it's a fresh connection, we have to set the connectionId regardless.
                     // And if it's an existing connection, setting it again is harmless, and keeps the code simple.
                     this.connectionId = msg.data.connection_id;
+
+                    // Also update the server hostname
+                    this.serverHostname = msg.data.server_hostname;
                 }
 
                 // Now we check for sequence number, and if it does not match,
@@ -355,7 +366,7 @@ export default class WebSocketClient {
         }
     }
 
-    sendMessage(action: string, data: any, responseCallback?: () => void) {
+    sendMessage(action: string, data: any, responseCallback?: (msg: any) => void) {
         const msg = {
             action,
             seq: this.responseSequence++,
@@ -382,12 +393,46 @@ export default class WebSocketClient {
         this.sendMessage('user_typing', data, callback);
     }
 
+    updateActiveChannel(channelId: string, callback?: (msg: any) => void) {
+        const data = {
+            channel_id: channelId,
+        };
+        this.sendMessage('presence', data, callback);
+    }
+
+    updateActiveTeam(teamId: string, callback?: (msg: any) => void) {
+        const data = {
+            team_id: teamId,
+        };
+        this.sendMessage('presence', data, callback);
+    }
+
+    updateActiveThread(isThreadView: boolean, channelId: string, callback?: (msg: any) => void) {
+        const data = {
+            thread_channel_id: channelId,
+            is_thread_view: isThreadView,
+        };
+        this.sendMessage('presence', data, callback);
+    }
+
     userUpdateActiveStatus(userIsActive: boolean, manual: boolean, callback?: () => void) {
         const data = {
             user_is_active: userIsActive,
             manual,
         };
         this.sendMessage('user_update_active_status', data, callback);
+    }
+
+    acknowledgePostedNotification(postId: string, status: string, reason?: string, postedData?: string) {
+        const data = {
+            post_id: postId,
+            user_agent: window.navigator.userAgent,
+            status,
+            reason,
+            data: postedData,
+        };
+
+        this.sendMessage('posted_notify_ack', data);
     }
 
     getStatuses(callback?: () => void) {

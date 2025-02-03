@@ -55,18 +55,18 @@ describe('Guest Account - Verify Manage Guest Users', () => {
         cy.reload();
 
         // # Search for Guest User by username
-        cy.get('#searchUsers', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible').type(guestUser.username);
+        cy.get('#input_searchTerm', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible').type(guestUser.username).wait(TIMEOUTS.TWO_SEC);
     });
 
     it('MM-18048 Deactivate Guest User and Verify', () => {
         // # Click on the Deactivate option
-        cy.wait(TIMEOUTS.HALF_SEC).findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
+        cy.get('#actionMenuButton-systemUsersTable-0').click();
         cy.wait(TIMEOUTS.HALF_SEC).findByText('Deactivate').click();
 
         // * Verify the confirmation message displayed
         cy.get('#confirmModal').should('be.visible').within(() => {
             cy.get('#confirmModalLabel').should('be.visible').and('have.text', `Deactivate ${guestUser.username}`);
-            cy.get('.modal-body').should('be.visible').and('have.text', `This action deactivates ${guestUser.username}. They will be logged out and not have access to any teams or channels on this system. Are you sure you want to deactivate ${guestUser.username}?`);
+            cy.get('.modal-body').should('be.visible').and('have.text', `This action deactivates ${guestUser.username}. They will be logged out and not have access to any teams or channels on this system.\nAre you sure you want to deactivate ${guestUser.username}?`);
         });
 
         // * Verify the behavior when Cancel button in the confirmation message is clicked
@@ -75,21 +75,21 @@ describe('Guest Account - Verify Manage Guest Users', () => {
         verifyGuest();
 
         // * Verify the behavior when Deactivate button in the confirmation message is clicked
-        cy.wait(TIMEOUTS.HALF_SEC).findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
+        cy.get('#actionMenuButton-systemUsersTable-0').click();
         cy.wait(TIMEOUTS.HALF_SEC).findByText('Deactivate').click();
         cy.get('#confirmModalButton').click();
         cy.get('#confirmModal').should('not.exist');
-        verifyGuest('Inactive ');
+        verifyGuest('Deactivated');
 
         // # Reload and verify if behavior is same
         cy.reload();
-        cy.get('#searchUsers').should('be.visible').type(guestUser.username);
-        verifyGuest('Inactive ');
+        cy.get('#input_searchTerm').should('be.visible').type(guestUser.username);
+        verifyGuest('Deactivated');
     });
 
     it('MM-18048 Activate Guest User and Verify', () => {
         // # Click on the Activate option
-        cy.wait(TIMEOUTS.HALF_SEC).findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
+        cy.get('#actionMenuButton-systemUsersTable-0').click();
         cy.wait(TIMEOUTS.HALF_SEC).findByText('Activate').click();
 
         // * Verify if User's status is activated again
@@ -97,7 +97,7 @@ describe('Guest Account - Verify Manage Guest Users', () => {
 
         // # Reload and verify if behavior is same
         cy.reload();
-        cy.get('#searchUsers').should('be.visible').type(guestUser.username);
+        cy.get('#input_searchTerm').should('be.visible').type(guestUser.username);
         verifyGuest();
     });
 });

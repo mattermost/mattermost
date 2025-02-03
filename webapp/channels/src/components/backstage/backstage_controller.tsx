@@ -26,6 +26,9 @@ import EditOutgoingWebhook from 'components/integrations/edit_outgoing_webhook';
 import InstalledIncomingWebhooks from 'components/integrations/installed_incoming_webhooks';
 import InstalledOauthApps from 'components/integrations/installed_oauth_apps';
 import InstalledOutgoingWebhooks from 'components/integrations/installed_outgoing_webhooks';
+import AddOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/add_outgoing_oauth_connection';
+import EditOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/edit_outgoing_oauth_connection';
+import InstalledOutgoingOAuthConnections from 'components/integrations/outgoing_oauth_connections/installed_outgoing_oauth_connections';
 
 import Pluggable from 'plugins/pluggable';
 
@@ -63,7 +66,7 @@ type Props = {
     /**
      * Current team.
      */
-    team: Team;
+    team?: Team;
 
     /**
      * Object from react-router
@@ -76,6 +79,7 @@ type Props = {
     enableOutgoingWebhooks: boolean;
     enableCommands: boolean;
     enableOAuthServiceProvider: boolean;
+    enableOutgoingOAuthConnections: boolean;
     canCreateOrDeleteCustomEmoji: boolean;
     canManageIntegrations: boolean;
 }
@@ -110,12 +114,12 @@ const BackstageController = (props: Props) => {
                 <Pluggable pluggableName='Root'/>
                 <BackstageSidebar
                     team={props.team}
-                    user={props.user}
                     enableCustomEmoji={props.enableCustomEmoji}
                     enableIncomingWebhooks={props.enableIncomingWebhooks}
                     enableOutgoingWebhooks={props.enableOutgoingWebhooks}
                     enableCommands={props.enableCommands}
                     enableOAuthServiceProvider={props.enableOAuthServiceProvider}
+                    enableOutgoingOAuthConnections={props.enableOutgoingOAuthConnections}
                     canCreateOrDeleteCustomEmoji={props.canCreateOrDeleteCustomEmoji}
                     canManageIntegrations={props.canManageIntegrations}
                 />
@@ -181,6 +185,24 @@ const BackstageController = (props: Props) => {
                     />
                     <BackstageRoute
                         extraProps={extraProps}
+                        exact={true}
+                        path={`${props.match.url}/outgoing-oauth2-connections`}
+                        component={InstalledOutgoingOAuthConnections}
+                    />
+                    <BackstageRoute
+                        extraProps={extraProps}
+                        exact={true}
+                        path={`${props.match.url}/outgoing-oauth2-connections/add`}
+                        component={AddOutgoingOAuthConnection}
+                    />
+                    <BackstageRoute
+                        extraProps={extraProps}
+                        exact={true}
+                        path={`${props.match.url}/outgoing-oauth2-connections/edit`}
+                        component={EditOutgoingOAuthConnection}
+                    />
+                    <BackstageRoute
+                        extraProps={extraProps}
                         path={`${props.match.url}/confirm`}
                         component={ConfirmIntegration}
                     />
@@ -223,7 +245,7 @@ const BackstageGlobalStyle = createGlobalStyle`
     #root {
         > #global-header,
         > .team-sidebar,
-        > .sidebar--right,
+        > .main-wrapper .sidebar--right,
         > .app-bar {
             display: none;
         }

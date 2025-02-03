@@ -28,7 +28,7 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -36,32 +36,30 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
     closeButton={true}
     closeLabel="Close"
   >
-    <button
-      aria-label="Back"
-      className="modal-header-back-button btn btn-icon"
-      onClick={[Function]}
-      type="button"
+    <div
+      className="d-flex align-items-center"
     >
-      <LocalizedIcon
-        ariaLabel={
-          Object {
-            "defaultMessage": "Back",
-            "id": "user_groups_modal.goBackLabel",
-          }
-        }
-        className="icon icon-arrow-left"
-      />
-    </button>
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="createGroupsModalTitleWithBack"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Create Group"
-        id="user_groups_modal.createTitle"
-      />
-    </ModalTitle>
+      <button
+        aria-label="Back"
+        className="modal-header-back-button btn btn-icon"
+        onClick={[Function]}
+        type="button"
+      >
+        <i
+          className="icon icon-arrow-left"
+        />
+      </button>
+      <ModalTitle
+        bsClass="modal-title"
+        componentClass="h1"
+        id="createGroupsModalTitleWithBack"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Create Group"
+          id="user_groups_modal.createTitle"
+        />
+      </ModalTitle>
+    </div>
   </ModalHeader>
   <ModalBody
     bsClass="modal-body"
@@ -84,7 +82,12 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
           data-testid="nameInput"
           maxLength={64}
           onChange={[Function]}
-          placeholder="Name"
+          placeholder={
+            Object {
+              "defaultMessage": "Name",
+              "id": "user_groups_modal.name",
+            }
+          }
           type="text"
           value=""
         />
@@ -102,7 +105,12 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
           data-testid="mentionInput"
           maxLength={64}
           onChange={[Function]}
-          placeholder="Mention"
+          placeholder={
+            Object {
+              "defaultMessage": "Mention",
+              "id": "user_groups_modal.mention",
+            }
+          }
           type="text"
           value=""
         />
@@ -116,11 +124,16 @@ exports[`component/create_user_groups_modal should match snapshot with back butt
       <div
         className="group-add-user"
       >
-        <Connect(AddUserToGroupMultiSelect)
+        <Connect(injectIntl(AddUserToGroupMultiSelect))
           addUserCallback={[Function]}
           backButtonClass="multiselect-back"
           backButtonClick={[Function]}
-          backButtonText="Cancel"
+          backButtonText={
+            Object {
+              "defaultMessage": "Cancel",
+              "id": "multiselect.cancelButton",
+            }
+          }
           deleteUserCallback={[Function]}
           focusOnLoad={false}
           multilSelectKey="addUsersToGroupKey"
@@ -162,7 +175,7 @@ exports[`component/create_user_groups_modal should match snapshot without back b
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -202,7 +215,12 @@ exports[`component/create_user_groups_modal should match snapshot without back b
           data-testid="nameInput"
           maxLength={64}
           onChange={[Function]}
-          placeholder="Name"
+          placeholder={
+            Object {
+              "defaultMessage": "Name",
+              "id": "user_groups_modal.name",
+            }
+          }
           type="text"
           value=""
         />
@@ -220,7 +238,12 @@ exports[`component/create_user_groups_modal should match snapshot without back b
           data-testid="mentionInput"
           maxLength={64}
           onChange={[Function]}
-          placeholder="Mention"
+          placeholder={
+            Object {
+              "defaultMessage": "Mention",
+              "id": "user_groups_modal.mention",
+            }
+          }
           type="text"
           value=""
         />
@@ -234,11 +257,16 @@ exports[`component/create_user_groups_modal should match snapshot without back b
       <div
         className="group-add-user"
       >
-        <Connect(AddUserToGroupMultiSelect)
+        <Connect(injectIntl(AddUserToGroupMultiSelect))
           addUserCallback={[Function]}
           backButtonClass="multiselect-back"
           backButtonClick={[Function]}
-          backButtonText="Cancel"
+          backButtonText={
+            Object {
+              "defaultMessage": "Cancel",
+              "id": "multiselect.cancelButton",
+            }
+          }
           deleteUserCallback={[Function]}
           focusOnLoad={false}
           multilSelectKey="addUsersToGroupKey"

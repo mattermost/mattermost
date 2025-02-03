@@ -32,7 +32,7 @@ const ItemButton = styled.button`
     align-items: center !important;
 `;
 
-const Wrapper = styled.div`
+const Wrapper = styled.li`
     cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
 
     &:hover {
@@ -53,7 +53,7 @@ const Text = styled.div`
 const Description = styled.div`
     padding: 0 44px 6px;
     font-size: 12px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const ToggleWrapper = styled.div`
@@ -64,7 +64,7 @@ const ToggleWrapper = styled.div`
 
 const StyledCheckIcon = styled(CheckIcon)`
     display: flex;
-    margin-left: auto;
+    margin-left: 24px;
     fill: var(--button-bg);
 `;
 
@@ -79,6 +79,7 @@ const Menu = styled.ul`
         margin: 0;
         color: var(--center-channel-color-rgb);
         list-style: none;
+        max-width:320px;
     }
 `;
 
@@ -93,6 +94,7 @@ function Item({
             aria-label={ariaLabel}
             className='style--none'
             onClick={onClick}
+            aria-pressed={isSelected}
         >
             {text && <span className='MenuItem__primary-text'>{text}</span>}
             {isSelected && (
@@ -115,7 +117,8 @@ function ToggleItem({
         <Wrapper
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
-            role='button'
+            role='menuitemcheckbox'
+            aria-pressed={toggled}
         >
             <ToggleMain>
                 {icon}

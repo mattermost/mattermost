@@ -3,25 +3,32 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
-import {defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
+import React, {PureComponent} from 'react';
+import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
+import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
+import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -104,29 +111,16 @@ export type Props = {
     collapseModal: () => void;
     isMobileView: boolean;
     maxFileSize: number;
+    customProfileAttributeFields: IDMappedObjects<UserPropertyField>;
     actions: {
-        logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
+        logError: ({message, type}: {message: any; type: string}, options?: LogErrorOptions) => void;
         clearErrors: () => void;
-        updateMe: (user: UserProfile) => Promise<{
-            data: boolean;
-            error?: {
-                server_error_id: string;
-                message: string;
-            };
-        }>;
-        sendVerificationEmail: (email: string) => Promise<{
-            data: boolean;
-            error?: {
-                err: string;
-            };
-        }>;
+        updateMe: (user: UserProfile) => Promise<ActionResult>;
+        sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
-        uploadProfileImage: (id: string, file: File) => Promise<{
-            data: boolean;
-            error?: {
-                message: string;
-            };
-        }>;
+        uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
+        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult<Record<string, string>>>;
+        getCustomProfileAttributeFields: () => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -138,6 +132,7 @@ export type Props = {
     ldapPositionAttributeSet?: boolean;
     samlPositionAttributeSet?: boolean;
     ldapPictureAttributeSet?: boolean;
+    enableCustomProfileAttributes: boolean;
 }
 
 type State = {
@@ -158,15 +153,27 @@ type State = {
     clientError?: string | null;
     serverError?: string | {server_error_id: string; message: string};
     emailError?: string;
+    customAttributeValues: Record<string, string>;
 }
 
-export class UserSettingsGeneralTab extends React.Component<Props, State> {
+export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     public submitActive = false;
 
     constructor(props: Props) {
         super(props);
-
         this.state = this.setupInitialState(props);
+    }
+
+    componentDidMount() {
+        if (this.props.enableCustomProfileAttributes) {
+            const fetchValues = async () => {
+                const response = await Client4.getUserCustomProfileAttributesValues(this.props.user.id);
+                this.setState({customAttributeValues: response});
+            };
+
+            this.props.actions.getCustomProfileAttributeFields();
+            fetchValues();
+        }
     }
 
     handleEmailResend = (email: string) => {
@@ -185,7 +192,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             <span className='resend-verification-wrapper'>
                 <LoadingWrapper
                     loading={this.state.showSpinner}
-                    text={Utils.localizeMessage('user.settings.general.sending', 'Sending')}
+                    text={defineMessage({id: 'user.settings.general.sending', defaultMessage: 'Sending'})}
                 >
                     <a
                         onClick={() => {
@@ -319,7 +326,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         this.props.actions.logError({
                             message: AnnouncementBarMessages.EMAIL_VERIFICATION_REQUIRED,
                             type: AnnouncementBarTypes.SUCCESS,
-                        }, true);
+                        }, {errorBarMode: LogErrorBarMode.Always});
                     }
                 } else if (err) {
                     let serverError;
@@ -407,6 +414,29 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         this.submitUser(user, false);
     };
 
+    submitAttribute = async (settings: string[]) => {
+        const attributeID = settings[0];
+        const attributeValue = this.state.customAttributeValues?.[attributeID];
+        if (attributeValue == null) {
+            return;
+        }
+
+        trackEvent('settings', 'user_settings_update', {field: 'customAttributeValues-' + attributeID});
+
+        this.setState({sectionIsSaving: true});
+
+        this.props.actions.saveCustomProfileAttribute(this.props.user.id, attributeID, attributeValue).
+            then(({data, error: err}) => {
+                if (data) {
+                    this.updateSection('');
+                    this.setState({customAttributeValues: {...this.state.customAttributeValues, ...data}});
+                } else if (err) {
+                    const serverError = err;
+                    this.setState({serverError, emailError: '', clientError: '', sectionIsSaving: false});
+                }
+            });
+    };
+
     updateUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({username: e.target.value});
     };
@@ -450,6 +480,13 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         }
     };
 
+    updateAttribute = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const attributeValues = Object.assign({}, this.state.customAttributeValues);
+        const id = e.target.id.substring(e.target.id.indexOf('_') + 1);
+        attributeValues[id] = e.target.value;
+        this.setState({customAttributeValues: attributeValues});
+    };
+
     updateSection = (section: string) => {
         this.setState(Object.assign({}, this.setupInitialState(this.props), {clientError: '', serverError: '', emailError: '', sectionIsSaving: false}));
         this.submitActive = false;
@@ -458,7 +495,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
 
     setupInitialState(props: Props) {
         const user = props.user;
-
+        let cav = {};
+        if (this.state !== undefined) {
+            cav = this.state.customAttributeValues;
+        }
         return {
             username: user.username,
             firstName: user.first_name,
@@ -474,6 +514,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             sectionIsSaving: false,
             showSpinner: false,
             serverError: '',
+            customAttributeValues: cav,
         };
     }
 
@@ -508,14 +549,14 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 inputs.push(
                     <div key='currentEmailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <span className='as-bs-label col-sm-5 control-label'>
                                 <FormattedMessage
                                     id='user.settings.general.currentEmail'
                                     defaultMessage='Current Email'
                                 />
-                            </label>
+                            </span>
                             <div className='col-sm-7'>
-                                <label className='control-label word-break--all text-left'>{this.state.originalEmail}</label>
+                                <span className='as-bs-label control-label word-break--all text-left'>{this.state.originalEmail}</span>
                             </div>
                         </div>
                     </div>,
@@ -524,7 +565,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 inputs.push(
                     <div key='emailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label
+                                className='col-sm-5 control-label'
+                                htmlFor='primaryEmail'
+                            >
                                 <FormattedMessage
                                     id='user.settings.general.newEmail'
                                     defaultMessage='New Email'
@@ -549,7 +593,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 inputs.push(
                     <div key='confirmEmailSetting'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label
+                                className='col-sm-5 control-label'
+                                htmlFor='confirmEmail'
+                            >
                                 <FormattedMessage
                                     id='user.settings.general.confirmEmail'
                                     defaultMessage='Confirm Email'
@@ -573,7 +620,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                 inputs.push(
                     <div key='currentPassword'>
                         <div className='form-group'>
-                            <label className='col-sm-5 control-label'>
+                            <label
+                                className='col-sm-5 control-label'
+                                htmlFor='currentPassword'
+                            >
                                 <FormattedMessage
                                     id='user.settings.general.currentPassword'
                                     defaultMessage='Current Password'
@@ -640,7 +690,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         <div className='setting-list__hint pb-3'>
                             <FormattedMessage
                                 id='user.settings.general.emailOffice365CantUpdate'
-                                defaultMessage='Login occurs through Office 365. Email cannot be updated. Email address used for notifications is {email}.'
+                                defaultMessage='Login occurs through Entra ID. Email cannot be updated. Email address used for notifications is {email}.'
                                 values={{
                                     email: this.state.originalEmail,
                                 }}
@@ -749,7 +799,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
             describe = (
                 <FormattedMessage
                     id='user.settings.general.loginOffice365'
-                    defaultMessage='Login done through Office 365 ({email})'
+                    defaultMessage='Login done through Entra ID ({email})'
                     values={{
                         email: this.state.originalEmail,
                     }}
@@ -827,7 +877,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         key='firstNameSetting'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='firstName'
+                        >
                             <FormattedMessage
                                 id='user.settings.general.firstName'
                                 defaultMessage='First Name'
@@ -854,7 +907,10 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         key='lastNameSetting'
                         className='form-group'
                     >
-                        <label className='col-sm-5 control-label'>
+                        <label
+                            className='col-sm-5 control-label'
+                            htmlFor='lastName'
+                        >
                             <FormattedMessage
                                 id='user.settings.general.lastName'
                                 defaultMessage='Last Name'
@@ -1275,6 +1331,112 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         );
     };
 
+    createCustomAttributeSection = () => {
+        if (this.props.customProfileAttributeFields == null) {
+            return <></>;
+        }
+
+        const attributeSections = Object.values(this.props.customProfileAttributeFields).map((attribute) => {
+            const attributeValue = this.state.customAttributeValues?.[attribute.id] ?? '';
+            const sectionName = 'customAttribute_' + attribute.id;
+            const active = this.props.activeSection === sectionName;
+            let max = null;
+
+            if (active) {
+                const inputs = [];
+
+                let attributeLabel: JSX.Element | string = (
+                    attribute.name
+                );
+                if (this.props.isMobileView) {
+                    attributeLabel = '';
+                }
+
+                inputs.push(
+                    <div
+                        key={sectionName}
+                        className='form-group'
+                    >
+                        <label className='col-sm-5 control-label'>{attributeLabel}</label>
+                        <div className='col-sm-7'>
+                            <input
+                                id={sectionName}
+                                autoFocus={true}
+                                className='form-control'
+                                type='text'
+                                onChange={this.updateAttribute}
+                                value={attributeValue}
+                                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                                autoCapitalize='off'
+                                onFocus={Utils.moveCursorToEnd}
+                                aria-label={attribute.name}
+                            />
+                        </div>
+                    </div>,
+                );
+
+                const extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.general.attributeExtra'
+                            defaultMessage='This will be shown in your profile popover.'
+                        />
+                    </span>
+                );
+
+                max = (
+                    <SettingItemMax
+                        key={'settingItemMax_' + attribute.id}
+                        title={attribute.name}
+                        inputs={inputs}
+                        submit={this.submitAttribute.bind(this, [attribute.id])}
+                        saving={this.state.sectionIsSaving}
+                        serverError={this.state.serverError}
+                        clientError={this.state.clientError}
+                        updateSection={this.updateSection}
+                        extraInfo={extraInfo}
+                    />
+                );
+            }
+            let describe: JSX.Element|string = '';
+            if (attributeValue) {
+                describe = attributeValue;
+            } else {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.general.emptyAttribute'
+                        defaultMessage="Click 'Edit' to add your custom attribute"
+                    />
+                );
+                if (this.props.isMobileView) {
+                    describe = (
+                        <FormattedMessage
+                            id='user.settings.general.mobile.emptyAttribute'
+                            defaultMessage='Click to add your custom attribute'
+                        />
+                    );
+                }
+            }
+
+            return (
+                <div key={sectionName}>
+                    <SettingItem
+                        key={'settingItem_' + attribute.id}
+                        active={active}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        title={attribute.name}
+                        describe={describe}
+                        section={sectionName}
+                        updateSection={this.updateSection}
+                        max={max}
+                    />
+                    <div className='divider-dark'/>
+                </div>
+            );
+        });
+        return <>{attributeSections}</>;
+    };
+
     createPictureSection = () => {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
@@ -1369,52 +1531,40 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
     };
 
     render() {
-        const {formatMessage} = this.props.intl;
-
         const nameSection = this.createNameSection();
         const nicknameSection = this.createNicknameSection();
         const usernameSection = this.createUsernameSection();
         const positionSection = this.createPositionSection();
         const emailSection = this.createEmailSection();
+        const customProperiesSection = this.createCustomAttributeSection();
         const pictureSection = this.createPictureSection();
 
         return (
-            <div id='generalSettings'>
-                <div className='modal-header'>
-                    <button
-                        id='closeUserSettings'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label={formatMessage(holders.close)}
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4 className='modal-title'>
-                        <div className='modal-back'>
-                            <LocalizedIcon
-                                className='fa fa-angle-left'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
-                                onClick={this.props.collapseModal}
-                            />
-                        </div>
+            <div
+                id='profileSettings'
+                aria-labelledby='profileButton'
+                role='tabpanel'
+            >
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.modal.profile'
                             defaultMessage='Profile'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3
+                    <SettingDesktopHeader
                         id='generalSettingsTitle'
-                        className='tab-header'
-                    >
-                        <FormattedMessage
-                            id='user.settings.modal.profile'
-                            defaultMessage='Profile'
-                        />
-                    </h3>
+                        text={
+                            <FormattedMessage
+                                id='user.settings.modal.profile'
+                                defaultMessage='Profile'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {nameSection}
                     <div className='divider-light'/>
@@ -1426,6 +1576,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     <div className='divider-light'/>
                     {emailSection}
                     <div className='divider-light'/>
+                    {customProperiesSection}
                     {pictureSection}
                     <div className='divider-dark'/>
                 </div>

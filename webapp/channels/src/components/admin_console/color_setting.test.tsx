@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import ColorSetting from './color_setting';
 
@@ -11,7 +11,7 @@ describe('components/ColorSetting', () => {
     test('should match snapshot, all', () => {
         function emptyFunction() {} //eslint-disable-line no-empty-function
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <ColorSetting
                 id='id'
                 label='label'
@@ -30,7 +30,7 @@ describe('components/ColorSetting', () => {
     test('should match snapshot, no help text', () => {
         function emptyFunction() {} //eslint-disable-line no-empty-function
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <ColorSetting
                 id='id'
                 label='label'
@@ -47,7 +47,7 @@ describe('components/ColorSetting', () => {
     test('should match snapshot, disabled', () => {
         function emptyFunction() {} //eslint-disable-line no-empty-function
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <ColorSetting
                 id='id'
                 label='label'
@@ -65,7 +65,7 @@ describe('components/ColorSetting', () => {
     test('should match snapshot, clicked on color setting', () => {
         function emptyFunction() {} //eslint-disable-line no-empty-function
 
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <ColorSetting
                 id='id'
                 label='label'

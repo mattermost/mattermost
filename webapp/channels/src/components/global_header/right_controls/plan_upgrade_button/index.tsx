@@ -13,10 +13,9 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants, {CloudProducts} from 'utils/constants';
+import {CloudProducts} from 'utils/constants';
 
 const UpgradeButton = styled.button`
 background: var(--denim-button-bg);
@@ -83,18 +82,9 @@ const PlanUpgradeButton = (): JSX.Element | null => {
         return null;
     }
 
-    const tooltip = (
-        <Tooltip id='upgrade_button_tooltip'>
-            {formatMessage({id: 'pricing_modal.btn.tooltip', defaultMessage: 'Only visible to system admins'})}
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            trigger={['hover']}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='bottom'
-            overlay={tooltip}
+        <WithTooltip
+            title={formatMessage({id: 'pricing_modal.btn.tooltip', defaultMessage: 'Only visible to system admins'})}
         >
             <UpgradeButton
                 id='UpgradeButton'
@@ -103,7 +93,7 @@ const PlanUpgradeButton = (): JSX.Element | null => {
             >
                 {formatMessage({id: 'pricing_modal.btn.viewPlans', defaultMessage: 'View plans'})}
             </UpgradeButton>
-        </OverlayTrigger>);
+        </WithTooltip>);
 };
 
 export default PlanUpgradeButton;

@@ -267,6 +267,36 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/cloud/installation:
+    get:
+      tags:
+        - cloud
+      summary: GET endpoint for Installation information
+      description: >
+        An endpoint for fetching the installation information.
+
+        ##### Permissions
+
+        Must have `sysconsole_read_site_ip_filters` permission and be licensed for Cloud.
+
+        __Minimum server version__: 9.1
+        __Note:__ This is intended for internal use and is subject to change.
+      operationId: GetEndpointForInstallationInformation
+      responses:
+        "200":
+          description: Installation returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Installation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/cloud/subscription/invoices:
     get:
       tags:

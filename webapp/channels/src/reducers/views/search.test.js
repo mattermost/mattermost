@@ -11,7 +11,6 @@ describe('Reducers.Search', () => {
         popoverSearch: '',
         channelMembersRhsSearch: '',
         modalFilters: {},
-        systemUsersSearch: {},
         userGridSearch: {},
         teamListSearch: '',
         channelListSearch: {},
@@ -21,7 +20,6 @@ describe('Reducers.Search', () => {
         const nextState = searchReducer(
             {
                 modalSearch: '',
-                systemUsersSearch: {},
             },
             {},
         );

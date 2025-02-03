@@ -8,13 +8,12 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {General} from 'mattermost-redux/constants';
 
-import FileUpload from 'components/file_upload/file_upload';
-import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {clearFileInput} from 'utils/utils';
 
 import type {FilesWillUploadHook} from 'types/store/plugins';
+
+import FileUpload, {type FileUpload as FileUploadClass} from './file_upload';
 
 const generatedIdRegex = /[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/;
 
@@ -67,12 +66,14 @@ describe('components/FileUpload', () => {
         onUploadError: jest.fn(),
         onUploadStart: jest.fn(),
         onUploadProgress: jest.fn(),
-        postType: 'post',
+        postType: 'post' as const,
         maxFileSize: MaxFileSize,
         canUploadFiles: true,
         rootId: 'root_id',
         pluginFileUploadMethods: [],
         pluginFilesWillUploadHooks: [],
+        centerChannelPostBeingEdited: false,
+        rhsPostBeingEdited: false,
         actions: {
             uploadFile,
         },
@@ -232,7 +233,11 @@ describe('components/FileUpload', () => {
         const event = new Event('paste');
         event.preventDefault = jest.fn();
         const getAsString = jest.fn();
-        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}], types: ['text/plain'], getData: () => {}};
+        (event as any).clipboardData = {items: [{getAsString, kind: 'string', type: 'text/plain'}],
+            types: ['text/plain'],
+            getData: () => {
+                return '';
+            }};
 
         const wrapper = shallowWithIntl(
             <FileUpload

@@ -14,7 +14,6 @@ import {Client4} from 'mattermost-redux/client';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {setGlobalItem} from 'actions/storage';
 import {makeGetDrafts} from 'selectors/drafts';
@@ -23,7 +22,7 @@ import {getGlobalItem} from 'selectors/storage';
 
 import {ActionTypes, StoragePrefixes} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 type Draft = {
@@ -36,11 +35,11 @@ type Draft = {
  * Gets drafts stored on the server and reconciles them with any locally stored drafts.
  * @param teamId Only drafts for the given teamId will be fetched.
  */
-export function getDrafts(teamId: string) {
+export function getDrafts(teamId: string): ActionFuncAsync<boolean> {
     const getLocalDrafts = makeGetDrafts(false);
 
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+    return async (dispatch, getState) => {
+        const state = getState();
 
         let serverDrafts: Draft[] = [];
         try {
@@ -70,15 +69,14 @@ export function getDrafts(teamId: string) {
     };
 }
 
-export function removeDraft(key: string, channelId: string, rootId = '') {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function removeDraft(key: string, channelId: string, rootId = ''): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
 
-        dispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: []}));
+        dispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: [], metadata: {}}));
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
-            const connectionId = getConnectionId(getState() as GlobalState);
-
+            const connectionId = getConnectionId(getState());
             try {
                 await Client4.deleteDraft(channelId, rootId, connectionId);
             } catch (error) {
@@ -92,13 +90,13 @@ export function removeDraft(key: string, channelId: string, rootId = '') {
     };
 }
 
-export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        const state = getState();
         let updatedValue: PostDraft|null = null;
         if (value) {
             const timestamp = new Date().getTime();
-            const data = getGlobalItem(state, key, {});
+            const data = getGlobalItem<Partial<PostDraft>>(state, key, {});
             updatedValue = {
                 ...value,
                 createAt: data.createAt || timestamp,
@@ -139,8 +137,8 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
     return Client4.upsertDraft(newDraft, connectionId);
 }
 
-export function setDraftsTourTipPreference(initializationState: Record<string, boolean>): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function setDraftsTourTipPreference(initializationState: Record<string, boolean>): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const preference: PreferenceType = {
@@ -154,8 +152,8 @@ export function setDraftsTourTipPreference(initializationState: Record<string, b
     };
 }
 
-export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean) {
-    return (dispatch: DispatchFunc) => {
+export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean): ActionFunc {
+    return (dispatch) => {
         dispatch(setGlobalItem(key, value));
         dispatch(setGlobalDraftSource(key, isRemote));
         return {data: true};

@@ -332,4 +332,12 @@ describe('components/MarkdownImage', () => {
 
         expect(childrenWrapper).toMatchSnapshot();
     });
+
+    test('should render a alt text if the link is unsafe', () => {
+        const props = {...baseProps, isUnsafeLinksPost: true};
+        const wrapper = shallow(
+            <MarkdownImage {...props}/>,
+        );
+        expect(wrapper.text()).toBe(props.alt);
+    });
 });

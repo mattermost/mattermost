@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import cloneDeep from 'lodash/cloneDeep';
 import nock from 'nock';
 
 import * as Actions from 'mattermost-redux/actions/roles';
@@ -29,7 +30,7 @@ describe('Actions.Roles', () => {
         nock(Client4.getRolesRoute()).
             post('/names').
             reply(200, [TestHelper.basicRoles.system_admin]);
-        await Actions.getRolesByNames(['system_admin'])(store.dispatch, store.getState);
+        await store.dispatch(Actions.getRolesByNames(['system_admin']));
 
         const state = store.getState();
         const request = state.requests.roles.getRolesByNames;
@@ -47,7 +48,7 @@ describe('Actions.Roles', () => {
         nock(Client4.getRolesRoute()).
             get('/name/system_admin').
             reply(200, TestHelper.basicRoles.system_admin);
-        await Actions.getRoleByName('system_admin')(store.dispatch, store.getState);
+        await store.dispatch(Actions.getRoleByName('system_admin'));
 
         const state = store.getState();
         const request = state.requests.roles.getRolesByNames;
@@ -66,7 +67,7 @@ describe('Actions.Roles', () => {
             get('/' + TestHelper.basicRoles.system_admin.id).
             reply(200, TestHelper.basicRoles.system_admin);
 
-        await Actions.getRole(TestHelper.basicRoles.system_admin.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getRole(TestHelper.basicRoles.system_admin.id));
 
         const state = store.getState();
         const request = state.requests.roles.getRole;
@@ -87,7 +88,7 @@ describe('Actions.Roles', () => {
         const mock2 = nock(Client4.getRolesRoute()).
             post('/names', JSON.stringify(['test2'])).
             reply(200, []);
-        const fakeState = {
+        let fakeState = {
             entities: {
                 general: {
                     serverVersion: '4.3',
@@ -99,19 +100,24 @@ describe('Actions.Roles', () => {
                 },
             },
         };
-        await Actions.loadRolesIfNeeded(['test'])(store.dispatch, () => fakeState);
+        store = configureStore(fakeState);
+        await store.dispatch(Actions.loadRolesIfNeeded(['test']));
         expect(mock1.isDone()).toBe(false);
         expect(mock2.isDone()).toBe(false);
 
+        fakeState = cloneDeep(fakeState);
         fakeState.entities.roles.pending = new Set();
         fakeState.entities.general.serverVersion = null;
-        await Actions.loadRolesIfNeeded(['test', 'test2'])(store.dispatch, () => fakeState);
+        store = configureStore(fakeState);
+        await store.dispatch(Actions.loadRolesIfNeeded(['test', 'test2']));
         expect(mock1.isDone()).toBe(false);
         expect(mock2.isDone()).toBe(false);
 
+        fakeState = cloneDeep(fakeState);
         fakeState.entities.roles.pending = new Set();
         fakeState.entities.general.serverVersion = '4.9';
-        await Actions.loadRolesIfNeeded(['test', 'test2', ''])(store.dispatch, () => fakeState);
+        store = configureStore(fakeState);
+        await store.dispatch(Actions.loadRolesIfNeeded(['test', 'test2', '']));
         expect(mock1.isDone()).toBe(false);
         expect(mock2.isDone()).toBe(true);
     });
@@ -122,7 +128,7 @@ describe('Actions.Roles', () => {
             put('/' + roleId + '/patch', JSON.stringify({id: roleId, test: 'test'})).
             reply(200, {});
 
-        await Actions.editRole({id: roleId, test: 'test'})(store.dispatch, store.state);
+        await store.dispatch(Actions.editRole({id: roleId, test: 'test'}));
         expect(mock.isDone()).toBe(true);
     });
 });

@@ -15,7 +15,7 @@ exports[`components/integrations/EditOAuthApp should have match renderExtra 1`] 
       id="update_oauth_app.question"
     />
   }
-  modalClass=""
+  modalClass="integrations-backstage-modal"
   onCancel={[Function]}
   onConfirm={[Function]}
   show={false}
@@ -82,7 +82,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
           id="update_oauth_app.question"
         />
       }
-      modalClass=""
+      modalClass="integrations-backstage-modal"
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}
@@ -158,7 +158,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
           id="update_oauth_app.question"
         />
       }
-      modalClass=""
+      modalClass="integrations-backstage-modal"
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}
@@ -234,7 +234,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot, loading 1`]
           id="update_oauth_app.question"
         />
       }
-      modalClass=""
+      modalClass="integrations-backstage-modal"
       onCancel={[Function]}
       onConfirm={[Function]}
       show={false}

@@ -3,6 +3,8 @@
 
 package model
 
+import "net/http"
+
 // Thread tracks the metadata associated with a root post and its reply posts.
 //
 // Note that Thread metadata does not exist until the first reply to a root post.
@@ -86,6 +88,8 @@ type GetUserThreadsOpts struct {
 
 	// IncludeIsUrgent will return IsUrgent field as well to assert is the thread is urgent or not
 	IncludeIsUrgent bool
+
+	ExcludeDirect bool
 }
 
 func (o *Thread) Etag() string {
@@ -125,4 +129,22 @@ type ThreadMembership struct {
 	// is the thread analogue to the ChannelMembership's MentionCount, and is used to highlight
 	// threads with the mention count.
 	UnreadMentions int64 `json:"unread_mentions"`
+}
+
+func (o *ThreadMembership) IsValid() *AppError {
+	if !IsValidId(o.PostId) {
+		return NewAppError("ThreadMembership.IsValid", "model.thread.is_valid.post_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !IsValidId(o.UserId) {
+		return NewAppError("ThreadMembership.IsValid", "model.thread.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+type ThreadMembershipForExport struct {
+	Username       string `json:"user_name"`
+	LastViewed     int64  `json:"last_viewed"`
+	UnreadMentions int64  `json:"unread_mentions"`
 }

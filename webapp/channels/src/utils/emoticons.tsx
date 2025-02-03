@@ -27,9 +27,9 @@ export const emoticonPatterns: { [key: string]: RegExp } = {
 
 export const EMOJI_PATTERN = /(:([a-zA-Z0-9_+-]+):)/g;
 
-export function matchEmoticons(text: string): RegExpMatchArray | null {
+export function matchEmoticons(text: string): string[] | null {
     const markdownCleanedText = formatWithRenderer(text, new PlainRenderer());
-    let emojis = markdownCleanedText.match(EMOJI_PATTERN);
+    let emojis: string[] | null = markdownCleanedText.match(EMOJI_PATTERN);
 
     for (const name of Object.keys(emoticonPatterns)) {
         const pattern = emoticonPatterns[name];
@@ -90,5 +90,5 @@ export function handleEmoticons(
 }
 
 export function renderEmoji(name: string, matchText: string): string {
-    return `<span data-emoticon="${name.toLowerCase()}">${matchText.toLowerCase()}</span>`;
+    return `<span data-emoticon="${name.toLowerCase()}">${matchText}</span>`;
 }

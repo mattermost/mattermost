@@ -1,8 +1,16 @@
-@import 'sass/utils/mixins';
-@import 'sass/utils/functions';
+@use 'utils/mixins';
+@use 'utils/functions';
+
+.reaction-emoji--large img {
+    width: 48px;
+    max-width: none;
+    height: 48px;
+    max-height: none;
+    margin: 4px 0;
+}
 
 .Reaction {
-    @include button-style--none;
+    @include mixins.button-style--none;
 
     display: inline-flex;
     min-width: 28px;
@@ -10,12 +18,12 @@
     align-items: center;
     padding: 0 5px;
     border: 1px solid transparent;
+    border-radius: 4px;
     margin: 0 4px 4px 0;
     background: rgba(var(--center-channel-color-rgb), 0.08);
-    border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     cursor: pointer;
-    fill: rgba(var(--center-channel-color-rgb), 0.56);
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 11px;
     font-weight: 600;
     transition:
@@ -26,21 +34,21 @@
     &:hover {
         border: solid 1px rgba(#3d3c40, 0.16);
         background-color: transparent;
-        color: rgba(#3d3c40, 0.72);
+        color: rgba(#3d3c40, 0.75);
     }
 
     &:not(.Reaction--reacted) {
         &:hover {
             border-color: rgba(var(--center-channel-color-rgb), 0.16);
-            background-color: v(center-channel-bg);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-            fill: rgba(var(--center-channel-color-rgb), 0.72);
+            background-color: functions.v(center-channel-bg);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         &:active {
             background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
-            fill: v(button-bg);
+            color: functions.v(button-bg);
+            fill: functions.v(button-bg);
         }
     }
 
@@ -82,19 +90,19 @@
 
     &.Reaction--reacted,
     &.Reaction--reacting {
-        border-color: v(button-bg);
+        border-color: functions.v(button-bg);
         background-color: rgba(var(--button-bg-rgb), 0.08);
-        color: v(button-bg);
+        color: functions.v(button-bg);
 
         &:hover {
-            border-color: v(button-bg);
-            background: v(center-channel-bg);
+            border-color: functions.v(button-bg);
+            background: functions.v(center-channel-bg);
         }
 
         &:active {
             background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
-            fill: v(button-bg);
+            color: functions.v(button-bg);
+            fill: functions.v(button-bg);
         }
     }
 

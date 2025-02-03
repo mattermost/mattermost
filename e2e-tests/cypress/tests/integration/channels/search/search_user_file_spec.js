@@ -9,6 +9,8 @@
 
 // Group: @channels @search @smoke @filesearch
 
+import * as TIMEOUTS from '../../../fixtures/timeouts';
+
 /**
  * create new DM channel
  * @param {String} text - DM channel name
@@ -19,7 +21,7 @@ function createNewDMChannel(channelname) {
     cy.get('#selectItems input').typeWithForce(channelname);
 
     cy.contains('.more-modal__description', channelname).click({force: true});
-    cy.get('#saveItems').click();
+    cy.get('#saveItems').click().wait(TIMEOUTS.ONE_SEC);
 }
 
 describe('Search in DMs', () => {
@@ -57,17 +59,19 @@ describe('Search in DMs', () => {
         cy.get('.post-image__thumbnail').should('be.visible');
         cy.uiGetPostTextBox().clear().type('{enter}');
 
+        cy.uiGetSearchContainer().should('be.visible').click();
+
         // # Type `in:` in searchbox
-        cy.get('#searchBox').type('in:');
+        cy.uiGetSearchBox().type('in:');
 
         // # Select user from suggestion list
         cy.contains('.suggestion-list__item', `@${otherUser.username}`).scrollIntoView().click();
 
         // # Validate searchbox contains the username
-        cy.get('#searchBox').should('have.value', 'in:@' + otherUser.username + ' ');
+        cy.uiGetSearchBox().should('have.value', 'in:@' + otherUser.username + ' ');
 
         // # Press Enter in searchbox
-        cy.get('#searchBox').type('word-file.doc').type('{enter}');
+        cy.uiGetSearchBox().type('word-file').type('{enter}');
 
         // # Click the files tab
         cy.get('.files-tab').should('be.visible').click();

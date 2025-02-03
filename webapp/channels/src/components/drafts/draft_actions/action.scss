@@ -6,8 +6,8 @@
         align-items: center;
         justify-content: center;
         border: none;
-        background: transparent;
         border-radius: 4px;
+        background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.4);
         fill: rgba(var(--center-channel-color-rgb), 0.4);
 
@@ -31,12 +31,12 @@
     }
 
     .icon {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        fill: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        fill: rgba(var(--center-channel-color-rgb), 0.64);
 
         &:hover {
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-            fill: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+            fill: rgba(var(--center-channel-color-rgb), 0.8);
         }
     }
 

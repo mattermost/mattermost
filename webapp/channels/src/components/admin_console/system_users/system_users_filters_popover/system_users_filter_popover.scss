@@ -1,0 +1,36 @@
+.systemUsersFilterContainer {
+    flex-grow: 1;
+}
+
+.systemUsersFilterPopoverContainer {
+    & > #header {
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+        margin: unset;
+        color: var(--sys-center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 14px;
+    }
+
+    & > .body {
+        width: 280px;
+        padding: 20px 24px 0 20px;
+
+        & > * {
+            margin-bottom: 24px;
+        }
+
+        .DropdownInput.Input_container {
+            margin-top: unset;
+        }
+    }
+
+    .footer {
+        display: flex;
+        height: unset;
+        justify-content: flex-end;
+        margin-block-end: 20px;
+        margin-inline-end: 24px;
+    }
+}

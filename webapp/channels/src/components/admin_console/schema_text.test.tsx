@@ -35,8 +35,7 @@ describe('SchemaText', () => {
         const props = {
             ...baseProps,
             isTranslated: true,
-            text: 'help.text',
-            textDefault: 'This is {object}',
+            text: {id: 'help.text', defaultMessage: 'This is {object}'},
             textValues: {
                 object: 'help text',
             },
@@ -52,8 +51,7 @@ describe('SchemaText', () => {
             ...baseProps,
             isMarkdown: true,
             isTranslated: true,
-            text: 'help.text.markdown',
-            textDefault: 'This is [{object}](https://example.com)',
+            text: {id: 'help.text.markdown', defaultMessage: 'This is [{object}](https://example.com)'},
             textValues: {
                 object: 'a help link',
             },

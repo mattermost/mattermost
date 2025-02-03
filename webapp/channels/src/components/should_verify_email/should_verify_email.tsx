@@ -8,7 +8,6 @@ import {useDispatch} from 'react-redux';
 import {useLocation, useHistory} from 'react-router-dom';
 
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -28,7 +27,7 @@ const enum ResendStatus {
 
 const ShouldVerifyEmail = () => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const history = useHistory();
     const {search} = useLocation();
 

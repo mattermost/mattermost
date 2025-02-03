@@ -2,18 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import LocalizedIcon from 'components/localized_icon';
 import UpdateUserGroupModal from 'components/update_user_group_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -83,6 +82,8 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
         });
     }, [group.id, actions.archiveGroup, backButtonCallback, onExited]);
 
+    const {formatMessage} = useIntl();
+
     return (
         <div className='details-action'>
             <MenuWrapper
@@ -91,39 +92,39 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                 id={`detailsCustomWrapper-${group.id}`}
             >
                 <button className='btn btn-icon'>
-                    <LocalizedIcon
+                    <i
                         className='icon icon-dots-vertical'
-                        ariaLabel={{id: t('user_groups_modal.goBackLabel'), defaultMessage: 'Back'}}
+                        aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     />
                 </button>
                 <Menu
                     openLeft={false}
                     openUp={false}
-                    ariaLabel={Utils.localizeMessage('admin.user_item.menuAriaLabel', 'User Actions Menu')}
+                    ariaLabel={Utils.localizeMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
                 >
                     <Menu.ItemAction
                         show={props.permissionToEditGroup}
                         onClick={goToEditGroupModal}
-                        text={Utils.localizeMessage('user_groups_modal.editDetails', 'Edit Details')}
+                        text={Utils.localizeMessage({id: 'user_groups_modal.editDetails', defaultMessage: 'Edit Details'})}
                         disabled={false}
                     />
                     <Menu.ItemAction
                         show={props.permissionToJoinGroup && !isGroupMember}
                         onClick={joinGroup}
-                        text={Utils.localizeMessage('user_groups_modal.joinGroup', 'Join Group')}
+                        text={Utils.localizeMessage({id: 'user_groups_modal.joinGroup', defaultMessage: 'Join Group'})}
                         disabled={false}
                     />
                     <Menu.ItemAction
                         show={props.permissionToLeaveGroup && isGroupMember}
                         onClick={leaveGroup}
-                        text={Utils.localizeMessage('user_groups_modal.leaveGroup', 'Leave Group')}
+                        text={Utils.localizeMessage({id: 'user_groups_modal.leaveGroup', defaultMessage: 'Leave Group'})}
                         disabled={false}
                         isDangerous={true}
                     />
                     <Menu.ItemAction
                         show={props.permissionToArchiveGroup}
                         onClick={archiveGroup}
-                        text={Utils.localizeMessage('user_groups_modal.archiveGroup', 'Archive Group')}
+                        text={Utils.localizeMessage({id: 'user_groups_modal.archiveGroup', defaultMessage: 'Archive Group'})}
                         disabled={false}
                         isDangerous={true}
                     />

@@ -56,14 +56,14 @@ describe('components/integrations/AbstractCommand', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallow(
             <AbstractCommand {...baseProps}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot when header/footer/loading is a string', () => {
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallow(
             <AbstractCommand
                 {...baseProps}
                 header='Header as string'
@@ -77,7 +77,7 @@ describe('components/integrations/AbstractCommand', () => {
     test('should match snapshot, displays client error', () => {
         const newSeverError = 'server error';
         const props = {...baseProps, serverError: newSeverError};
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallow(
             <AbstractCommand {...props}/>,
         );
 
@@ -89,7 +89,7 @@ describe('components/integrations/AbstractCommand', () => {
     });
 
     test('should call action function', () => {
-        const wrapper = shallow<AbstractCommand>(
+        const wrapper = shallow(
             <AbstractCommand {...baseProps}/>,
         );
 
@@ -103,6 +103,7 @@ describe('components/integrations/AbstractCommand', () => {
         const wrapper = shallow<AbstractCommand>(
             <AbstractCommand {...baseProps}/>,
         );
+        const instance = wrapper.instance();
 
         const expectedOutput = {
             autocomplete: true,
@@ -119,63 +120,65 @@ describe('components/integrations/AbstractCommand', () => {
             username: 'username',
         };
 
-        expect(wrapper.instance().getStateFromCommand(command)).toEqual(expectedOutput);
+        expect(instance.getStateFromCommand(command)).toEqual(expectedOutput);
     });
 
     test('should match state when method is called', () => {
         const wrapper = shallow<AbstractCommand>(
             <AbstractCommand {...baseProps}/>,
         );
+        const instance = wrapper.instance();
+
         const displayName = 'new display_name';
         const displayNameEvent = {preventDefault: jest.fn(), target: {value: displayName}} as any;
-        wrapper.instance().updateDisplayName(displayNameEvent);
+        instance.updateDisplayName(displayNameEvent);
         expect(wrapper.state('displayName')).toEqual(displayName);
 
         const description = 'new description';
         const descriptionEvent = {preventDefault: jest.fn(), target: {value: description}} as any;
-        wrapper.instance().updateDescription(descriptionEvent);
+        instance.updateDescription(descriptionEvent);
         expect(wrapper.state('description')).toEqual(description);
 
         const trigger = 'new trigger';
         const triggerEvent = {preventDefault: jest.fn(), target: {value: trigger}} as any;
-        wrapper.instance().updateTrigger(triggerEvent);
+        instance.updateTrigger(triggerEvent);
         expect(wrapper.state('trigger')).toEqual(trigger);
 
         const url = 'new url';
         const urlEvent = {preventDefault: jest.fn(), target: {value: url}} as any;
-        wrapper.instance().updateUrl(urlEvent);
+        instance.updateUrl(urlEvent);
         expect(wrapper.state('url')).toEqual(url);
 
         const method = 'P';
         const methodEvent = {preventDefault: jest.fn(), target: {value: method}} as any;
-        wrapper.instance().updateMethod(methodEvent);
+        instance.updateMethod(methodEvent);
         expect(wrapper.state('method')).toEqual(method);
 
         const username = 'new username';
         const usernameEvent = {preventDefault: jest.fn(), target: {value: username}} as any;
-        wrapper.instance().updateUsername(usernameEvent);
+        instance.updateUsername(usernameEvent);
         expect(wrapper.state('username')).toEqual(username);
 
         const iconUrl = 'new iconUrl';
         const iconUrlEvent = {preventDefault: jest.fn(), target: {value: iconUrl}} as any;
-        wrapper.instance().updateIconUrl(iconUrlEvent);
+        instance.updateIconUrl(iconUrlEvent);
         expect(wrapper.state('iconUrl')).toEqual(iconUrl);
 
         const trueUpdateAutocompleteEvent = {target: {checked: true}} as any;
         const falseeUpdateAutocompleteEvent = {target: {checked: false}} as any;
-        wrapper.instance().updateAutocomplete(trueUpdateAutocompleteEvent);
+        instance.updateAutocomplete(trueUpdateAutocompleteEvent);
         expect(wrapper.state('autocomplete')).toEqual(true);
-        wrapper.instance().updateAutocomplete(falseeUpdateAutocompleteEvent);
+        instance.updateAutocomplete(falseeUpdateAutocompleteEvent);
         expect(wrapper.state('autocomplete')).toEqual(false);
 
         const autocompleteHint = 'new autocompleteHint';
         const autocompleteHintEvent = {preventDefault: jest.fn(), target: {value: autocompleteHint}} as any;
-        wrapper.instance().updateAutocompleteHint(autocompleteHintEvent);
+        instance.updateAutocompleteHint(autocompleteHintEvent);
         expect(wrapper.state('autocompleteHint')).toEqual(autocompleteHint);
 
         const autocompleteDescription = 'new autocompleteDescription';
         const autocompleteDescriptionEvent = {preventDefault: jest.fn(), target: {value: autocompleteDescription}} as any;
-        wrapper.instance().updateAutocompleteDescription(autocompleteDescriptionEvent);
+        instance.updateAutocompleteDescription(autocompleteDescriptionEvent);
         expect(wrapper.state('autocompleteDescription')).toEqual(autocompleteDescription);
     });
 
@@ -191,10 +194,11 @@ describe('components/integrations/AbstractCommand', () => {
         const wrapper = shallow<AbstractCommand>(
             <AbstractCommand {...props}/>,
         );
+        const instance = wrapper.instance();
         expect(newAction).toHaveBeenCalledTimes(0);
 
         const evt = {preventDefault: jest.fn()} as unknown as FormEvent<Element>;
-        const handleSubmit = wrapper.instance().handleSubmit;
+        const handleSubmit = instance.handleSubmit;
         handleSubmit(evt);
         expect(wrapper.state('saving')).toEqual(true);
         expect(wrapper.state('clientError')).toEqual('');

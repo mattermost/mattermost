@@ -56,6 +56,12 @@ type IncomingWebhookRequest struct {
 	Attachments []*SlackAttachment `json:"attachments"`
 	Type        string             `json:"type"`
 	IconEmoji   string             `json:"icon_emoji"`
+	Priority    *PostPriority      `json:"priority"`
+}
+
+type IncomingWebhooksWithCount struct {
+	Webhooks   []*IncomingWebhook `json:"incoming_webhooks"`
+	TotalCount int64              `json:"total_count"`
 }
 
 func (o *IncomingWebhook) IsValid() *AppError {

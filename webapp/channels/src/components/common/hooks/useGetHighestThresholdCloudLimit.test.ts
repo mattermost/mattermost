@@ -8,6 +8,7 @@ import useGetHighestThresholdCloudLimit from './useGetHighestThresholdCloudLimit
 import type {LimitSummary} from './useGetHighestThresholdCloudLimit';
 
 jest.mock('react', () => ({
+    ...jest.requireActual('react'),
     useMemo: (fn: () => LimitSummary) => fn(),
 }));
 

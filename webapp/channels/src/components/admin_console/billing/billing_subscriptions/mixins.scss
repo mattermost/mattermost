@@ -1,9 +1,9 @@
 @mixin cloud-card() {
     padding: 32px 54px 18px 32px;
     border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+    border-radius: 4px;
     margin-top: 20px;
     background-color: var(--sys-center-channel-bg);
-    border-radius: 4px;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
 }
 

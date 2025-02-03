@@ -49,6 +49,7 @@ var supportedLocales = []string{
 	"pt-BR",
 	"ro",
 	"sv",
+	"vi",
 	"tr",
 	"bg",
 	"ru",
@@ -77,6 +78,28 @@ func TranslationsPreInit(translationsDir string) error {
 	return initTranslationsWithDir(translationsDir)
 }
 
+// TranslationsPreInitFromFileBytes loads translations from a buffer -- useful if
+// we need to initialize i18n from an embedded i18n file (e.g., from a CLI tool)
+func TranslationsPreInitFromFileBytes(filename string, buf []byte) error {
+	if T != nil {
+		return nil
+	}
+
+	// Set T even if we fail to load the translations. Lots of shutdown handling code will
+	// segfault trying to handle the error, and the untranslated IDs are strictly better.
+	T = tfuncWithFallback(defaultLocale)
+	TDefault = tfuncWithFallback(defaultLocale)
+
+	locale := strings.Split(filename, ".")[0]
+	if !isSupportedLocale(locale) {
+		return fmt.Errorf("locale not supported: %s", locale)
+	}
+
+	locales[locale] = filename
+
+	return i18n.ParseTranslationFileBytes(filename, buf)
+}
+
 // InitTranslations set the defaults configured in the server and initialize
 // the T function using the server default as fallback language
 func InitTranslations(serverLocale, clientLocale string) error {
@@ -84,7 +107,7 @@ func InitTranslations(serverLocale, clientLocale string) error {
 	defaultClientLocale = clientLocale
 
 	var err error
-	T, err = getTranslationsBySystemLocale()
+	T, err = GetTranslationsBySystemLocale()
 	return err
 }
 
@@ -150,7 +173,7 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 	}, nil
 }
 
-func getTranslationsBySystemLocale() (TranslateFunc, error) {
+func GetTranslationsBySystemLocale() (TranslateFunc, error) {
 	locale := defaultServerLocale
 	if _, ok := locales[locale]; !ok {
 		mlog.Warn("Failed to load system translations for selected locale, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))

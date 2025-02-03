@@ -7,7 +7,6 @@ import type {Dispatch} from 'redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -21,13 +20,13 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         currentUser,
-        teamDescription: currentTeam.description,
-        teamDisplayName: currentTeam.display_name,
-        teamId: currentTeam.id,
+        teamDescription: currentTeam?.description,
+        teamDisplayName: currentTeam?.display_name,
+        teamId: currentTeam?.id,
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,

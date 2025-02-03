@@ -6,12 +6,10 @@ import {withRouter} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {onChannelByIdentifierEnter} from './actions';
 import ChannelIdentifierRouter from './channel_identifier_router';
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             onChannelByIdentifierEnter,

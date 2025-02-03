@@ -21,9 +21,9 @@ export function getUserCurrentTimezone(userTimezone?: UserTimezone): string {
     }
 
     if (useAutomatic) {
-        return automaticTimezone;
+        return automaticTimezone || 'UTC';
     }
-    return manualTimezone;
+    return manualTimezone || 'UTC';
 }
 
 export function getTimezoneRegion(timezone: string): string {

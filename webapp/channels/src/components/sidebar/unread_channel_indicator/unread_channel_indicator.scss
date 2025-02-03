@@ -1,6 +1,4 @@
-@charset "UTF-8";
-
-@import 'sass/utils/variables';
+@use 'utils/variables';
 
 .nav-pills__unread-indicator {
     position: absolute;
@@ -11,9 +9,9 @@
     align-items: center;
     justify-content: center;
     padding: 8px;
+    border-radius: 4px;
     margin-left: 50%;
     background: var(--mention-bg);
-    border-radius: 4px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
     color: var(--mention-color);
     cursor: pointer;
@@ -34,7 +32,7 @@
 
     body.enable-animations & {
         transition-delay: 0s;
-        transition-duration: $transition-quick;
+        transition-duration: variables.$transition-quick;
         transition-property: opacity, visibility;
         transition-timing-function: ease-out, step-start;
     }
@@ -63,7 +61,7 @@
 
         body.enable-animations & {
             transition-delay: 0s;
-            transition-duration: $transition-quick;
+            transition-duration: variables.$transition-quick;
             transition-property: opacity, visibility;
             transition-timing-function: ease-out, step-start;
         }

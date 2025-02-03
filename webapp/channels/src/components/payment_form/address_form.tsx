@@ -7,11 +7,9 @@ import type {MessageDescriptor} from 'react-intl';
 
 import type {Address} from '@mattermost/types/cloud';
 
-import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
 
-import {COUNTRIES} from 'utils/countries';
-
+import CountrySelector from './country_selector';
 import StateSelector from './state_selector';
 
 import './payment_form.scss';
@@ -37,7 +35,7 @@ const AddressForm = (props: AddressFormProps) => {
     const handleInputChange = (key: keyof Address) => (
         event:
         | React.ChangeEvent<HTMLInputElement>
-        | React.ChangeEvent<HTMLSelectElement>,
+        | React.ChangeEvent<HTMLTextAreaElement>,
     ) => {
         const target = event.target;
         const value = target.value;
@@ -64,24 +62,9 @@ const AddressForm = (props: AddressFormProps) => {
                 />
             </div>
             <div className='third-dropdown-sibling-wrapper'>
-                <DropdownInput
+                <CountrySelector
                     onChange={handleCountryChange}
-                    value={
-                        props.address.country ? {value: props.address.country, label: props.address.country} : undefined
-                    }
-                    options={COUNTRIES.map((country) => ({
-                        value: country.name,
-                        label: country.name,
-                    }))}
-                    legend={formatMessage({
-                        id: 'payment_form.country',
-                        defaultMessage: 'Country',
-                    })}
-                    placeholder={formatMessage({
-                        id: 'payment_form.country',
-                        defaultMessage: 'Country',
-                    })}
-                    name={'billing_dropdown'}
+                    value={props.address.country}
                 />
             </div>
             <div className='form-row'>

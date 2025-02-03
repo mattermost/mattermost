@@ -306,3 +306,42 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/emoji/names:
+    post:
+      tags:
+        - emoji
+      summary: Get custom emojis by name
+      description: >
+        Get a list of custom emoji based on a provided list of emoji names. A maximum of
+        200 results are returned.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 9.2
+      operationId: GetEmojisByNames
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: List of emoji names
+        required: true
+      responses:
+        "200":
+          description: Emoji list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

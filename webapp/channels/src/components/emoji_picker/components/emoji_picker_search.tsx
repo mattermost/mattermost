@@ -13,6 +13,8 @@ import {useIntl} from 'react-intl';
 import {EMOJI_PER_ROW} from 'components/emoji_picker/constants';
 import {NavigationDirection} from 'components/emoji_picker/types';
 
+import Constants from 'utils/constants';
+
 interface Props {
     value: string;
     cursorCategoryIndex: number;
@@ -24,6 +26,8 @@ interface Props {
     resetCursorPosition: () => void;
 }
 
+const KeyCodes = Constants.KeyCodes;
+
 const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCategoryIndex, cursorEmojiIndex, onChange, resetCursorPosition, onKeyDown, focus, onEnter}: Props, ref) => {
     const {formatMessage} = useIntl();
 
@@ -31,7 +35,7 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
         event.preventDefault();
 
         // remove trailing and leading colons
-        const value = event.target.value.toLowerCase().replace(/^:|:$/g, '');
+        const value = event.target.value.replace(/^:|:$/g, '');
         onChange(value);
 
         resetCursorPosition();
@@ -39,7 +43,7 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
 
     const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
         switch (event.key) {
-        case 'ArrowRight':
+        case KeyCodes.RIGHT[0]:
             // If the cursor is at the end of the textbox and an emoji is currently selected, move it to the next emoji
             if ((event.currentTarget?.selectionStart ?? 0) + 1 > value.length || (cursorCategoryIndex !== -1 || cursorEmojiIndex !== -1)) {
                 event.stopPropagation();
@@ -48,7 +52,7 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
                 onKeyDown(NavigationDirection.NextEmoji);
             }
             break;
-        case 'ArrowLeft':
+        case KeyCodes.LEFT[0]:
             if (cursorCategoryIndex > 0 || cursorEmojiIndex > 0) {
                 event.stopPropagation();
                 event.preventDefault();
@@ -65,7 +69,7 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
                 focus();
             }
             break;
-        case 'ArrowUp':
+        case KeyCodes.UP[0]:
             event.stopPropagation();
             event.preventDefault();
 
@@ -88,7 +92,7 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
                 onKeyDown(NavigationDirection.PreviousEmojiRow);
             }
             break;
-        case 'ArrowDown':
+        case KeyCodes.DOWN[0]:
             event.stopPropagation();
             event.preventDefault();
 
@@ -104,7 +108,14 @@ const EmojiPickerSearch = forwardRef<HTMLInputElement, Props>(({value, cursorCat
                 onKeyDown(NavigationDirection.NextEmojiRow);
             }
             break;
-        case 'Enter': {
+        case KeyCodes.SPACE[0]: {
+            event.stopPropagation();
+            event.preventDefault();
+
+            onEnter();
+            break;
+        }
+        case KeyCodes.ENTER[0]: {
             event.stopPropagation();
             event.preventDefault();
 

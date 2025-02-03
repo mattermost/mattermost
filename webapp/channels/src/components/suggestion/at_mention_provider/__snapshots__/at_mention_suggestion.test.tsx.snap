@@ -34,7 +34,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
     onMouseMove={[MockFunction]}
     term="@user"
   >
-    <div
+    <li
       className="suggestion-list__item"
       data-testid="mentionSuggestion_user2"
       onClick={[Function]}
@@ -48,7 +48,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
         <span
           className="profile-icon"
         >
-          <Memo(Avatar)
+          <Avatar
             size="sm"
             url="/api/v4/users/userid2/image?_=0"
             username="user2"
@@ -59,14 +59,10 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
               loading="lazy"
               onError={[Function]}
               src="/api/v4/users/userid2/image?_=0"
-              tabIndex={0}
             />
-          </Memo(Avatar)>
+          </Avatar>
         </span>
-        <StatusIcon
-          button={false}
-          className=""
-        />
+        <Memo(StatusIcon) />
       </span>
       <span
         className="suggestion-list__ellipsis"
@@ -76,7 +72,9 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
         >
           @user2
         </span>
-        a b (c)
+        <span>
+          a b (c)
+        </span>
         <Component
           emojiSize={15}
           emojiStyle={
@@ -90,7 +88,7 @@ exports[`at mention suggestion Should display nick name of non signed in user 1`
           <div />
         </Component>
       </span>
-    </div>
+    </li>
   </SuggestionContainer>
 </AtMentionSuggestion>
 `;
@@ -131,7 +129,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
     onMouseMove={[MockFunction]}
     term="@user"
   >
-    <div
+    <li
       className="suggestion-list__item"
       data-testid="mentionSuggestion_user"
       onClick={[Function]}
@@ -145,7 +143,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
         <span
           className="profile-icon"
         >
-          <Memo(Avatar)
+          <Avatar
             size="sm"
             url="/api/v4/users/userid1/image?_=0"
             username="user"
@@ -156,14 +154,10 @@ exports[`at mention suggestion Should not display nick name of the signed in use
               loading="lazy"
               onError={[Function]}
               src="/api/v4/users/userid1/image?_=0"
-              tabIndex={0}
             />
-          </Memo(Avatar)>
+          </Avatar>
         </span>
-        <StatusIcon
-          button={false}
-          className=""
-        />
+        <Memo(StatusIcon) />
       </span>
       <span
         className="suggestion-list__ellipsis"
@@ -173,7 +167,9 @@ exports[`at mention suggestion Should not display nick name of the signed in use
         >
           @user
         </span>
-        a b
+        <span>
+          a b
+        </span>
         <FormattedMessage
           defaultMessage="(you)"
           id="suggestion.user.isCurrent"
@@ -195,7 +191,7 @@ exports[`at mention suggestion Should not display nick name of the signed in use
           <div />
         </Component>
       </span>
-    </div>
+    </li>
   </SuggestionContainer>
 </AtMentionSuggestion>
 `;

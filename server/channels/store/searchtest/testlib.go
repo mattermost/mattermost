@@ -4,16 +4,15 @@
 package searchtest
 
 import (
+	"slices"
 	"testing"
-
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
 	EngineAll           = "all"
-	EngineMySql         = "mysql"
+	EngineMySQL         = "mysql"
 	EnginePostgres      = "postgres"
 	EngineElasticSearch = "elasticsearch"
 	EngineBleve         = "bleve"
@@ -36,12 +35,12 @@ type searchTest struct {
 func filterTestsByTag(tests []searchTest, tags ...string) []searchTest {
 	filteredTests := []searchTest{}
 	for _, test := range tests {
-		if pUtils.Contains(test.Tags, EngineAll) {
+		if slices.Contains(test.Tags, EngineAll) {
 			filteredTests = append(filteredTests, test)
 			continue
 		}
 		for _, tag := range tags {
-			if pUtils.Contains(test.Tags, tag) {
+			if slices.Contains(test.Tags, tag) {
 				filteredTests = append(filteredTests, test)
 				break
 			}

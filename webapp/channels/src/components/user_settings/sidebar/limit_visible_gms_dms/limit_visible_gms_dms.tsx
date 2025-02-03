@@ -7,26 +7,30 @@ import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {ValueType} from 'react-select';
 
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
-
-import {localizeMessage} from 'utils/utils';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
 type Limit = {
     value: number;
     label: string;
 };
 
-type Props = {
+export type OwnProps = {
+    adminMode?: boolean;
+    userId: string;
+    userPreferences?: PreferencesType;
+}
+
+type Props = OwnProps & {
     active: boolean;
     areAllSectionsInactive: boolean;
-    currentUserId: string;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{data: boolean}>;
+    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     dmGmLimit: number;
     updateSection: (section: string) => void;
 }
@@ -38,7 +42,6 @@ type State = {
 }
 
 const limits: Limit[] = [
-    {value: 10000, label: localizeMessage('user.settings.sidebar.limitVisibleGMsDMs.allDirectMessages', 'All Direct Messages')},
     {value: 10, label: '10'},
     {value: 15, label: '15'},
     {value: 20, label: '20'},
@@ -98,10 +101,14 @@ export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State
     };
 
     handleSubmit = async () => {
+        if (!this.props.userId) {
+            return;
+        }
+
         this.setState({isSaving: true});
 
-        await this.props.savePreferences(this.props.currentUserId, [{
-            user_id: this.props.currentUserId,
+        await this.props.savePreferences(this.props.userId, [{
+            user_id: this.props.userId,
             category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
             name: Preferences.LIMIT_VISIBLE_DMS_GMS,
             value: this.state.limit.value.toString(),

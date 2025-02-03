@@ -6,14 +6,14 @@ import type {ThreadsState, UserThread} from '@mattermost/types/threads';
 import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {countsReducer, countsIncludingDirectReducer} from './counts';
 import {threadsInTeamReducer, unreadThreadsInTeamReducer} from './threadsInTeam';
 import type {ExtraData} from './types';
 
-export const threadsReducer = (state: ThreadsState['threads'] = {}, action: GenericAction, extra: ExtraData) => {
+export const threadsReducer = (state: ThreadsState['threads'] = {}, action: MMReduxAction, extra: ExtraData) => {
     switch (action.type) {
     case ThreadTypes.RECEIVED_UNREAD_THREADS:
     case ThreadTypes.RECEIVED_THREADS: {
@@ -26,6 +26,7 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: Gene
             }, {}),
         };
     }
+    case PostTypes.POST_DELETED:
     case PostTypes.POST_REMOVED: {
         const post = action.data;
 
@@ -164,7 +165,7 @@ const initialState = {
 
 // custom combineReducers function
 // enables passing data between reducers
-function reducer(state: ThreadsState = initialState, action: GenericAction): ThreadsState {
+function reducer(state: ThreadsState = initialState, action: MMReduxAction): ThreadsState {
     const extra: ExtraData = {
         threads: state.threads,
     };

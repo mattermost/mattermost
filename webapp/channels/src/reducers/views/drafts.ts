@@ -3,11 +3,11 @@
 
 import {combineReducers} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {ActionTypes} from 'utils/constants';
 
-function remotes(state: Record<string, boolean> = {}, action: GenericAction) {
+import type {MMAction} from 'types/store';
+
+function remotes(state: Record<string, boolean> = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_DRAFT_SOURCE:
         return {

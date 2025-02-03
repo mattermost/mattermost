@@ -32,6 +32,8 @@
  *      Exclude spec files with matching directory or filename pattern. Uses `find` command under the hood. It can be of multiple values separated by comma.
  *      E.g. "--exclude-file='channel'" will exclude files recursively under `channel` directory/s.
  *      E.g. "--exclude-file='*channel*'" will exclude files and files under directory/s recursively that matches the name with `*channel*`.
+ *   --stress-test-count=[number of repeated executions]
+ *      The amount of times to run each spec file for. If greater than 1, report how the percentage of successes over total runs for each spec.
 
  *
  * Environment:
@@ -83,8 +85,11 @@ async function runTests() {
     const browser = BROWSER || 'chrome';
     const headless = typeof HEADLESS === 'undefined' ? true : HEADLESS === 'true';
     const platform = os.platform();
+    const stressTestCount = argv.stressTestCount > 1 ? argv.stressTestCount : 1;
+    const testPasses = {};
 
-    const {sortedFiles} = getSortedTestFiles(platform, browser, headless);
+    const sortedFilesObject = getSortedTestFiles(platform, browser, headless);
+    const sortedFiles = sortedFilesObject.sortedFiles.flatMap((el) => Array(stressTestCount).fill(el));
     const numberOfTestFiles = sortedFiles.length;
 
     if (!numberOfTestFiles) {
@@ -102,6 +107,13 @@ async function runTests() {
         printMessage(sortedFiles, i, j + 1, count);
 
         const testFile = sortedFiles[i];
+        var testFileAttempt = 1;
+        if (testFile in testPasses === false) {
+            testPasses[testFile] = {attempt: 1};
+        } else {
+            testPasses[testFile].attempt += 1;
+            testFileAttempt = testPasses[testFile].attempt;
+        }
 
         const result = await cypress.run({
             browser,
@@ -109,7 +121,9 @@ async function runTests() {
             spec: testFile,
             config: {
                 screenshotsFolder: `${MOCHAWESOME_REPORT_DIR}/screenshots`,
+                videosFolder: `${MOCHAWESOME_REPORT_DIR}/videos`,
                 trashAssetsBeforeRuns: false,
+                retries: stressTestCount > 1 ? 0 : 2,
             },
             env: {
                 firstTest: j === 0,
@@ -134,10 +148,21 @@ async function runTests() {
                         headless,
                         branch: BRANCH,
                         buildId: BUILD_ID,
+                        testFileAttempt,
                     },
                 },
             },
         });
+
+        for (var testCase of result.runs[0].tests) {
+            var testCaseTitle = testCase.title.join(' - ');
+            if (testCaseTitle in testPasses[testFile] === false) {
+                testPasses[testFile][testCaseTitle] = 0;
+            }
+            if (testCase.state === 'passed') {
+                testPasses[testFile][testCaseTitle] += 1;
+            }
+        }
 
         // Write test environment details once only
         if (i === 0) {
@@ -154,6 +179,7 @@ async function runTests() {
             writeJsonToFile(environment, 'environment.json', RESULTS_DIR);
         }
     }
+    writeJsonToFile(testPasses, 'testPasses.json', RESULTS_DIR);
 }
 
 function printMessage(testFiles, overallIndex, currentItem, lastItem) {

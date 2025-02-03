@@ -23,17 +23,20 @@ import {DeveloperLinks} from 'utils/constants';
 import {isSuccess} from 'types/actions';
 
 export type Props = {
-    show: boolean;
     user?: UserProfile;
     userAccessTokensEnabled: boolean;
 
     // defining custom function type instead of using React.MouseEventHandler
     // to make the event optional
-    onModalDismissed: (e?: React.MouseEvent<HTMLButtonElement>) => void;
-    actions: { updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>};
+    onSuccess: (roles: string) => void;
+    onExited: () => void;
+    actions: {
+        updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
+    };
 }
 
 type State = {
+    show: boolean;
     user?: UserProfile;
     error: any | null;
     hasPostAllRole: boolean;
@@ -46,6 +49,7 @@ function getStateFromProps(props: Props): State {
     const roles = props.user && props.user.roles ? props.user.roles : '';
 
     return {
+        show: true,
         user: props.user,
         error: null,
         hasPostAllRole: UserUtils.hasPostAllRole(roles),
@@ -120,6 +124,10 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         }
     };
 
+    onHide = () => {
+        this.setState({show: false});
+    };
+
     handleSave = async () => {
         this.setState({error: null});
 
@@ -140,7 +148,8 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         this.trackRoleChanges(roles, this.props.user!.roles);
 
         if (isSuccess(result)) {
-            this.props.onModalDismissed();
+            this.props.onSuccess(roles);
+            this.onHide();
         } else {
             this.handleError(
                 <FormattedMessage
@@ -225,6 +234,16 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                             />
                         </label>
                     </div>
+                    <p>
+                        <FormattedMessage
+                            id='admin.manage_roles.additionalRoles_warning'
+                            defaultMessage='<strong>Note:</strong><span>The permissions granted above apply to the account as a whole, regardless of whether it is authenticated using a session cookie or a personal access token. For example, selecting post:all will allow the account to post to channels it is not a member of, even without using a personal access token.</span>'
+                            values={{
+                                strong: (text) => <strong>{text}</strong>,
+                                span: (text) => <span className='pt-2 pb-2 light'>{text}</span>,
+                            }}
+                        />
+                    </p>
                 </div>
             );
         }
@@ -343,10 +362,11 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
     render() {
         return (
             <Modal
-                show={this.props.show}
-                onHide={this.props.onModalDismissed}
+                show={this.state.show}
+                onHide={this.onHide}
+                onExited={this.props.onExited}
                 dialogClassName='a11y__modal manage-teams'
-                role='dialog'
+                role='none'
                 aria-labelledby='manageRolesModalLabel'
             >
                 <Modal.Header closeButton={true}>
@@ -368,7 +388,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                     <button
                         type='button'
                         className='btn btn-tertiary'
-                        onClick={this.props.onModalDismissed}
+                        onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='admin.manage_roles.cancel'

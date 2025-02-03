@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
+import {defineMessage, injectIntl} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -13,7 +15,6 @@ import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import MultiSelectOption from './multiselect_option/multiselect_option';
 
@@ -26,6 +27,8 @@ export type Props = {
     multilSelectKey: string;
     userStatuses: RelationOneToOne<UserProfile, string>;
     focusOnLoad?: boolean;
+
+    intl: IntlShape;
 
     // Used if we are adding new members to an existing group
     groupId?: string;
@@ -46,11 +49,11 @@ export type Props = {
 
     savingEnabled: boolean;
     saving: boolean;
-    buttonSubmitText?: string;
-    buttonSubmitLoadingText?: string;
+    buttonSubmitText?: string | MessageDescriptor;
+    buttonSubmitLoadingText?: string | MessageDescriptor;
     backButtonClick?: () => void;
     backButtonClass?: string;
-    backButtonText?: string;
+    backButtonText?: string | MessageDescriptor;
 
     actions: {
         getProfiles: (page?: number, perPage?: number) => Promise<ActionResult>;
@@ -66,7 +69,7 @@ type State = {
     loadingUsers: boolean;
 }
 
-export default class AddUserToGroupMultiSelect extends React.PureComponent<Props, State> {
+export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State> {
     private searchTimeoutId = 0;
     selectedItemRef;
 
@@ -192,8 +195,8 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
     };
 
     public render = (): JSX.Element => {
-        const buttonSubmitText = this.props.buttonSubmitText || localizeMessage('multiselect.createGroup', 'Create Group');
-        const buttonSubmitLoadingText = this.props.buttonSubmitLoadingText || localizeMessage('multiselect.creating', 'Creating...');
+        const buttonSubmitText = this.props.buttonSubmitText || defineMessage({id: 'multiselect.createGroup', defaultMessage: 'Create Group'});
+        const buttonSubmitLoadingText = this.props.buttonSubmitLoadingText || defineMessage({id: 'multiselect.creating', defaultMessage: 'Creating...'});
 
         let users = filterProfilesStartingWithTerm(this.props.profiles, this.state.term).filter((user) => {
             return user.delete_at === 0 &&
@@ -210,7 +213,7 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
 
         if (this.state.values.length >= MAX_SELECTABLE_VALUES) {
             maxValues = MAX_SELECTABLE_VALUES;
-            numRemainingText = localizeMessage('multiselect.maxGroupMembers', 'No more than 256 members can be added to a group at once.');
+            numRemainingText = defineMessage({id: 'multiselect.maxGroupMembers', defaultMessage: 'No more than 256 members can be added to a group at once.'});
         }
 
         return (
@@ -218,6 +221,7 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
                 key={this.props.multilSelectKey}
                 options={users}
                 optionRenderer={this.renderOption}
+                intl={this.props.intl}
                 selectedItemRef={this.selectedItemRef}
                 values={this.state.values}
                 ariaLabelRenderer={this.renderAriaLabel}
@@ -232,7 +236,7 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
                 buttonSubmitLoadingText={buttonSubmitLoadingText}
                 saving={this.props.saving}
                 loading={this.state.loadingUsers}
-                placeholderText={localizeMessage('multiselect.placeholder', 'Search for people')}
+                placeholderText={defineMessage({id: 'multiselect.placeholder', defaultMessage: 'Search for people'})}
                 valueWithImage={true}
                 focusOnLoad={this.props.focusOnLoad}
                 savingEnabled={this.props.savingEnabled}
@@ -245,3 +249,5 @@ export default class AddUserToGroupMultiSelect extends React.PureComponent<Props
         );
     };
 }
+
+export default injectIntl(AddUserToGroupMultiSelect);

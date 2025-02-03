@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 import type {Team} from '@mattermost/types/teams';
@@ -11,18 +11,12 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfilesNotInTeam, searchProfiles} from 'mattermost-redux/actions/users';
 import {getProfilesNotInTeam as selectProfilesNotInTeam} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import AddUsersToTeamModal from './add_users_to_team_modal';
 
 type Props = {
     team: Team;
     filterExcludeGuests?: boolean;
-};
-
-type Actions = {
-    getProfilesNotInTeam: (teamId: string, groupConstrained: boolean, page: number, perPage?: number, options?: {[key: string]: any}) => Promise<{ data: UserProfile[] }>;
-    searchProfiles: (term: string, options?: any) => Promise<{ data: UserProfile[] }>;
 };
 
 function mapStateToProps(state: GlobalState, props: Props) {
@@ -40,9 +34,9 @@ function mapStateToProps(state: GlobalState, props: Props) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getProfilesNotInTeam,
             searchProfiles,
         }, dispatch),

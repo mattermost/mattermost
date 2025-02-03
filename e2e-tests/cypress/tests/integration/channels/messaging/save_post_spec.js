@@ -33,7 +33,7 @@ describe('Save Post', () => {
 
         cy.get('@postId1').then((postId) => {
             // # Save message by clicking the menu item in the dotmenu
-            cy.uiClickPostDropdownMenu(postId, 'Save');
+            cy.uiClickPostDropdownMenu(postId, 'Save Message');
 
             // * Assert the post pre-header is displayed and works as expected
             verifySavedPost(postId, message);

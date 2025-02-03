@@ -3,13 +3,12 @@
 
 import {combineReducers} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {ActionTypes} from 'utils/constants';
 
+import type {MMAction} from 'types/store';
 import type {Translations} from 'types/store/i18n';
 
-function translations(state: Translations = {}, action: GenericAction) {
+function translations(state: Translations = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_TRANSLATIONS:
         return {

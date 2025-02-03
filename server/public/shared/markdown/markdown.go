@@ -55,6 +55,15 @@ func isAlphanumericByte(c byte) bool {
 	return isAlphanumeric(rune(c))
 }
 
+// isWord returns true if c matches the \w regexp character class
+func isWord(c rune) bool {
+	return isAlphanumeric(c) || c == '_'
+}
+
+func isWordByte(c byte) bool {
+	return isWord(rune(c))
+}
+
 func nextNonWhitespace(markdown string, position int) int {
 	for offset, c := range []byte(markdown[position:]) {
 		if !isWhitespaceByte(c) {

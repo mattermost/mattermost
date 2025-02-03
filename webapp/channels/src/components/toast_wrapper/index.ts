@@ -36,7 +36,7 @@ export function makeGetRootPosts() {
             return Object.values(allPosts).filter((post) => {
                 return (
                     post.root_id === '' &&
-                    post.channel_id === channel.id &&
+                    post.channel_id === channel?.id &&
                     post.state !== Posts.POST_DELETED
                 );
             }).reduce((map: Record<string, boolean>, obj) => {

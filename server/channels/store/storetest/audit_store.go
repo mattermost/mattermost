@@ -11,14 +11,15 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestAuditStore(t *testing.T, ss store.Store) {
-	t.Run("", func(t *testing.T) { testAuditStore(t, ss) })
+func TestAuditStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("", func(t *testing.T) { testAuditStore(t, rctx, ss) })
 }
 
-func testAuditStore(t *testing.T, ss store.Store) {
+func testAuditStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	audit := &model.Audit{UserId: model.NewId(), IpAddress: "ipaddress", Action: "Action"}
 	require.NoError(t, ss.Audit().Save(audit))
 	time.Sleep(100 * time.Millisecond)

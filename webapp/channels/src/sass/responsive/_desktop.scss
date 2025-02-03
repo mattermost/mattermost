@@ -1,4 +1,4 @@
-@charset "utf-8";
+@use "utils/functions";
 
 @media screen and (min-width: 1680px) {
     .sidebar--right,
@@ -75,7 +75,7 @@
     .inner-wrap {
         &.move--left {
             .file-overlay {
-                font-size: em(18px);
+                font-size: functions.em(18px);
 
                 .overlay__circle {
                     width: 300px;

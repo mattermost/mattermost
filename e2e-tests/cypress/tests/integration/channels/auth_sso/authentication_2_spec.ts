@@ -20,7 +20,7 @@ describe('Authentication', () => {
         cy.apiAdminLogin();
     });
 
-    it('MM-T1771 - Minimum password length error field shows below 5 and above 64', () => {
+    it('MM-T1771 - Minimum password length error field shows below 5 and above 72', () => {
         cy.visit('/admin_console/authentication/password');
 
         cy.findByPlaceholderText('E.g.: "5"', {timeout: TIMEOUTS.ONE_MIN}).clear().type('88');
@@ -28,7 +28,7 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 64.', {timeout: TIMEOUTS.ONE_MIN}).
+        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
 
@@ -37,7 +37,7 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 64.', {timeout: TIMEOUTS.ONE_MIN}).
+        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
     });
@@ -49,7 +49,7 @@ describe('Authentication', () => {
 
         cy.uiSave();
 
-        cy.findByText('Must be 7-64 characters long.').should('be.visible');
+        cy.findByText('Must be 7-72 characters long.').should('be.visible');
 
         cy.apiLogout();
 
@@ -65,7 +65,7 @@ describe('Authentication', () => {
         cy.findByText('Create Account').click();
 
         // * Assert the error is what is expected;
-        cy.findByText('Must be 7-64 characters long.').should('be.visible');
+        cy.findByText('Must be 7-72 characters long.').should('be.visible');
 
         cy.get('#input_password-input').clear().type('greaterthan7');
 
@@ -118,7 +118,7 @@ describe('Authentication', () => {
             cy.findByText('Create Account').click();
 
             // * Assert the error is what is expected;
-            cy.findByText('Must be 5-64 characters long and include both lowercase and uppercase letters, numbers, and special characters.').should('be.visible');
+            cy.findByText('Must be 5-72 characters long and include both lowercase and uppercase letters, numbers, and special characters.').should('be.visible');
         });
     });
 

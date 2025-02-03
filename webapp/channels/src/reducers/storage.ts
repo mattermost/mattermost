@@ -8,17 +8,14 @@ import type {MigrationManifest, PersistedState} from 'redux-persist';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
 
-type StorageEntry = {
-    timestamp: Date;
-    data: any;
-}
+import type {MMAction} from 'types/store';
+import type {StorageItem} from 'types/store/storage';
 
-function storage(state: Record<string, any> = {}, action: GenericAction) {
+function storage(state: Record<string, any> = {}, action: MMAction) {
     switch (action.type) {
     case REHYDRATE: {
         if (!action.payload || action.key !== 'storage') {
@@ -29,32 +26,13 @@ function storage(state: Record<string, any> = {}, action: GenericAction) {
         const nextState = {...state};
 
         for (const [key, value] of Object.entries(action.payload)) {
-            const nextValue = {...value as StorageEntry};
+            const nextValue = {...value as StorageItem};
             if (nextValue.timestamp && typeof nextValue.timestamp === 'string') {
                 nextValue.timestamp = new Date(nextValue.timestamp);
             }
             nextState[key] = nextValue;
         }
 
-        return nextState;
-    }
-    case StorageTypes.SET_ITEM: {
-        if (!state[action.data.prefix + action.data.name] ||
-            !state[action.data.prefix + action.data.name].timestamp ||
-            state[action.data.prefix + action.data.name].timestamp < action.data.timestamp
-        ) {
-            const nextState = {...state};
-            nextState[action.data.prefix + action.data.name] = {
-                timestamp: action.data.timestamp,
-                value: action.data.value,
-            };
-            return nextState;
-        }
-        return state;
-    }
-    case StorageTypes.REMOVE_ITEM: {
-        const nextState = {...state};
-        Reflect.deleteProperty(nextState, action.data.prefix + action.data.name);
         return nextState;
     }
     case StorageTypes.SET_GLOBAL_ITEM: {
@@ -153,7 +131,7 @@ function migrateDrafts(state: any) {
     return drafts;
 }
 
-function initialized(state = false, action: GenericAction) {
+function initialized(state = false, action: MMAction) {
     switch (action.type) {
     case General.STORE_REHYDRATION_COMPLETE:
         return state || action.complete;

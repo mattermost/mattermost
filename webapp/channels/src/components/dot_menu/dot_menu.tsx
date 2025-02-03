@@ -15,6 +15,7 @@ import {
     EmoticonPlusOutlineIcon,
     LinkVariantIcon,
     MarkAsUnreadIcon,
+    MessageArrowRightOutlineIcon,
     MessageCheckOutlineIcon,
     MessageMinusOutlineIcon,
     PencilOutlineIcon,
@@ -31,6 +32,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import DeletePostModal from 'components/delete_post_modal';
 import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
+import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
 import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
@@ -61,7 +63,7 @@ type Props = {
     intl: IntlShape;
     post: Post;
     teamId: string;
-    location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
+    location?: keyof typeof Constants.Locations;
     isFlagged?: boolean;
     handleCommentClick?: React.EventHandler<any>;
     handleDropdownOpened: (open: boolean) => void;
@@ -76,6 +78,7 @@ type Props = {
     isMobileView: boolean;
     timezone?: string;
     isMilitaryTime: boolean;
+    canMove: boolean;
 
     actions: {
 
@@ -92,7 +95,7 @@ type Props = {
         /**
          * Function to set the editing post
          */
-        setEditingPost: (postId?: string, refocusId?: string, title?: string, isRHS?: boolean) => void;
+        setEditingPost: (postId?: string, refocusId?: string, isRHS?: boolean) => void;
 
         /**
          * Function to pin the post
@@ -112,12 +115,13 @@ type Props = {
         /**
          * Function to set the unread mark at given post
          */
-        markPostAsUnread: (post: Post, location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | string) => void;
+        markPostAsUnread: (post: Post, location?: string) => void;
 
         /**
          * Function to set the thread as followed/unfollowed
          */
         setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
@@ -217,7 +221,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     copyText = (e: ChangeEvent) => {
-        Utils.copyToClipboard(this.props.post.message);
+        Utils.copyToClipboard(this.props.post.message_source || this.props.post.message);
         trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_TEXT);
     };
 
@@ -251,6 +255,24 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         trackDotMenuEvent(e, TELEMETRY_LABELS.DELETE);
     };
 
+    handleMoveThreadMenuItemActivated = (e: ChangeEvent): void => {
+        e.preventDefault();
+        if (!this.props.canMove) {
+            return;
+        }
+
+        trackDotMenuEvent(e, TELEMETRY_LABELS.MOVE_THREAD);
+        const moveThreadModalData = {
+            modalId: ModalIdentifiers.MOVE_THREAD_MODAL,
+            dialogType: MoveThreadModal,
+            dialogProps: {
+                post: this.props.post,
+            },
+        };
+
+        this.props.actions.openModal(moveThreadModalData);
+    };
+
     handleForwardMenuItemActivated = (e: ChangeEvent): void => {
         if (!this.canPostBeForwarded) {
             // adding this early return since only hiding the Item from the menu is not enough,
@@ -275,7 +297,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.actions.setEditingPost(
             this.props.post.id,
             this.props.location === Locations.CENTER ? 'post_textbox' : 'reply_textbox',
-            this.props.post.root_id ? Utils.localizeMessage('rhs_comment.comment', 'Comment') : Utils.localizeMessage('create_post.post', 'Post'),
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
         );
         trackDotMenuEvent(e, TELEMETRY_LABELS.EDIT);
@@ -359,6 +380,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.DELETE):
             forceCloseMenu();
             this.handleDeleteMenuItemActivated(event);
+            break;
+
+        // move thread
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.W):
+            forceCloseMenu();
+            this.handleMoveThreadMenuItemActivated(event);
             break;
 
             // pin / unpin
@@ -465,7 +492,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             <Menu.Container
                 menuButton={{
                     id: `${this.props.location}_button_${this.props.post.id}`,
-                    dateTestId: `PostDotMenu-Button-${this.props.post.id}`,
+                    dataTestId: `PostDotMenu-Button-${this.props.post.id}`,
                     class: classNames('post-menu__item', {
                         'post-menu__item--active': this.props.isMenuOpen,
                     }),
@@ -480,7 +507,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     onToggle: this.handleMenuToggle,
                 }}
                 menuButtonTooltip={{
-                    id: `PostDotMenu-ButtonTooltip-${this.props.post.id}`,
                     text: formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}),
                     class: 'hidden-xs',
                 }}
@@ -593,6 +619,19 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={this.props.post.is_pinned ? <PinIcon size={18}/> : <PinOutlineIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='P'/>}
                         onClick={this.handlePinMenuItemActivated}
+                    />
+                }
+                {Boolean(!isSystemMessage && this.props.canMove) &&
+                    <Menu.Item
+                        id={`move_thread_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id={'post_info.move_thread'}
+                                defaultMessage={'Move Thread'}
+                            />}
+                        leadingElement={<MessageArrowRightOutlineIcon size={18}/>}
+                        trailingElements={<ShortcutKey shortcutKey='W'/>}
+                        onClick={this.handleMoveThreadMenuItemActivated}
                     />
                 }
                 {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && <Menu.Separator/>}

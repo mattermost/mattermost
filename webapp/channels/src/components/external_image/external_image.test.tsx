@@ -23,7 +23,7 @@ describe('ExternalImage', () => {
     };
 
     test('should render an image', () => {
-        const wrapper = shallow<ExternalImage>(<ExternalImage {...baseProps}/>);
+        const wrapper = shallow(<ExternalImage {...baseProps}/>);
 
         expect(baseProps.children).toHaveBeenCalledWith(baseProps.src);
         expect(wrapper.find('img').exists()).toBe(true);
@@ -35,7 +35,7 @@ describe('ExternalImage', () => {
             imageMetadata: undefined,
         };
 
-        const wrapper = shallow<ExternalImage>(<ExternalImage {...props}/>);
+        const wrapper = shallow(<ExternalImage {...props}/>);
 
         expect(baseProps.children).toHaveBeenCalledWith(baseProps.src);
         expect(wrapper.find('img').exists()).toBe(true);
@@ -53,7 +53,7 @@ describe('ExternalImage', () => {
             src: 'https://example.com/logo.svg',
         };
 
-        const wrapper = shallow<ExternalImage>(<ExternalImage {...props}/>);
+        const wrapper = shallow(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith(props.src);
         expect(wrapper.find('img').exists()).toBe(true);
@@ -72,7 +72,7 @@ describe('ExternalImage', () => {
             src: 'https://example.com/logo.svg',
         };
 
-        const wrapper = shallow<ExternalImage>(<ExternalImage {...props}/>);
+        const wrapper = shallow(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith('');
         expect(wrapper.find('img').exists()).toBe(true);
@@ -84,85 +84,9 @@ describe('ExternalImage', () => {
             hasImageProxy: true,
         };
 
-        const wrapper = shallow<ExternalImage>(<ExternalImage {...props}/>);
+        const wrapper = shallow(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith(Client4.getBaseRoute() + '/image?url=' + encodeURIComponent(props.src));
         expect(wrapper.find('img').exists()).toBe(true);
     });
-
-    describe('isSVGImage', () => {
-        for (const testCase of [
-            {
-                name: 'no metadata, no extension',
-                src: 'https://example.com/image.png',
-                imageMetadata: undefined,
-                expected: false,
-            },
-            {
-                name: 'no metadata, svg extension',
-                src: 'https://example.com/image.svg',
-                imageMetadata: undefined,
-                expected: true,
-            },
-            {
-                name: 'no metadata, svg extension with query parameter',
-                src: 'https://example.com/image.svg?a=1',
-                imageMetadata: undefined,
-                expected: true,
-            },
-            {
-                name: 'no metadata, svg extension with hash',
-                src: 'https://example.com/image.svg#abc',
-                imageMetadata: undefined,
-                expected: true,
-            },
-            {
-                name: 'no metadata, proxied image',
-                src: 'https://mattermost.example.com/api/v4/image?url=' + encodeURIComponent('https://example.com/image.png'),
-                imageMetadata: undefined,
-                expected: false,
-            },
-            {
-                name: 'no metadata, proxied svg image',
-                src: 'https://mattermost.example.com/api/v4/image?url=' + encodeURIComponent('https://example.com/image.svg'),
-                imageMetadata: undefined,
-                expected: true,
-            },
-            {
-                name: 'with metadata, not an SVG',
-                src: 'https://example.com/image.png',
-                imageMetadata: {
-                    format: 'png',
-                    frameCount: 40,
-                    width: 100,
-                    height: 200,
-                },
-                expected: false,
-            },
-            {
-                name: 'with metadata, SVG',
-                src: 'https://example.com/image.svg',
-                imageMetadata: {
-                    format: 'svg',
-                    frameCount: 30,
-                    width: 10,
-                    height: 20,
-                },
-                expected: true,
-            },
-        ]) {
-            test(testCase.name, () => {
-                const props = {
-                    ...baseProps,
-                    src: testCase.src,
-                    imageMetadata: testCase.imageMetadata,
-                };
-
-                const wrapper = shallow<ExternalImage>(<ExternalImage {...props}/>);
-
-                expect(wrapper.instance().isSVGImage()).toBe(testCase.expected);
-            });
-        }
-    });
 });
-

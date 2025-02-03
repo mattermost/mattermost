@@ -59,7 +59,7 @@ describe('Guest Accounts', () => {
         });
 
         // * Guest users are shown as "Inactive".
-        checkUserListStatus(guestUser, 'Inactive');
+        checkUserListStatus(guestUser, 'Deactivated');
 
         // # Navigate to Guest Access page.
         cy.visit('/admin_console/authentication/guest_access');
@@ -70,22 +70,16 @@ describe('Guest Accounts', () => {
         // # Click "Save".
         cy.get('#saveSetting').scrollIntoView().click();
 
-        // * Guest users are shown as "Inactive".
-        checkUserListStatus(guestUser, 'Inactive');
+        // * Guest users are shown as "Deactivated".
+        checkUserListStatus(guestUser, 'Deactivated');
     });
-
-    function getInnerText(el) {
-        return el[0].innerText.replace(/\n/g, '').replace(/\s/g, ' ');
-    }
 
     function checkUserListStatus(user, status) {
         // # Go to System Console ➜ Users.
         cy.visit('/admin_console/user_management/users');
 
-        cy.get('#searchUsers').should('be.visible').type(user.username);
-        cy.get('#selectUserStatus').select(status);
-        cy.get('.more-modal__details > .more-modal__name').should('be.visible').then((el) => {
-            expect(getInnerText(el)).contains(`@${user.username}`);
-        });
+        cy.get('#input_searchTerm').should('be.visible').type(user.username);
+        cy.get('#actionMenuButton-systemUsersTable-0').should('have.text', status);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('have.text', user.email);
     }
 });

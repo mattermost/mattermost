@@ -25,7 +25,6 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
     menuButtonTooltip={
       Object {
         "class": "hidden-xs",
-        "id": "SidebarCategorySortingMenu-ButtonTooltip-category_id",
         "text": "Category options",
       }
     }
@@ -65,6 +64,11 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           />
         }
         onClick={[Function]}
+        trailingElements={
+          <CheckIcon
+            size={16}
+          />
+        }
       />
       <MenuItem
         id="sortByMostRecent-category_id"
@@ -75,6 +79,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           />
         }
         onClick={[Function]}
+        trailingElements={null}
       />
     </SubMenu>
     <SubMenu
@@ -103,17 +108,6 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
       }
     >
       <MenuItem
-        id="showAllDms-category_id"
-        labels={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="All direct messages"
-            id="sidebar.allDirectMessages"
-          />
-        }
-        onClick={[Function]}
-      />
-      <MenuItemSeparator />
-      <MenuItem
         id="showDmCount-category_id-10"
         key="showDmCount-category_id-10"
         labels={
@@ -122,6 +116,11 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           </span>
         }
         onClick={[Function]}
+        trailingElements={
+          <CheckIcon
+            size={16}
+          />
+        }
       />
       <MenuItem
         id="showDmCount-category_id-15"
@@ -132,6 +131,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           </span>
         }
         onClick={[Function]}
+        trailingElements={null}
       />
       <MenuItem
         id="showDmCount-category_id-20"
@@ -142,6 +142,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           </span>
         }
         onClick={[Function]}
+        trailingElements={null}
       />
       <MenuItem
         id="showDmCount-category_id-40"
@@ -152,6 +153,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_sorting_menu shoul
           </span>
         }
         onClick={[Function]}
+        trailingElements={null}
       />
     </SubMenu>
     <MenuItemSeparator />

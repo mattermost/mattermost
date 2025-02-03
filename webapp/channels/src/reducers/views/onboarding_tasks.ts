@@ -3,11 +3,11 @@
 
 import {combineReducers} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {ActionTypes} from 'utils/constants';
 
-export function isShowOnboardingTaskCompletion(state = false, action: GenericAction) {
+import type {MMAction} from 'types/store';
+
+export function isShowOnboardingTaskCompletion(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SHOW_ONBOARDING_TASK_COMPLETION:
         return action.open;
@@ -16,7 +16,7 @@ export function isShowOnboardingTaskCompletion(state = false, action: GenericAct
     }
 }
 
-export function isShowOnboardingCompleteProfileTour(state = false, action: GenericAction) {
+export function isShowOnboardingCompleteProfileTour(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SHOW_ONBOARDING_COMPLETE_PROFILE_TOUR:
         return action.open;
@@ -25,7 +25,7 @@ export function isShowOnboardingCompleteProfileTour(state = false, action: Gener
     }
 }
 
-export function isShowOnboardingVisitConsoleTour(state = false, action: GenericAction) {
+export function isShowOnboardingVisitConsoleTour(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SHOW_ONBOARDING_VISIT_CONSOLE_TOUR:
         return action.open;

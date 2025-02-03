@@ -1,3 +1,5 @@
+@use "utils/variables";
+
 .SidebarHeaderDropdownButton {
     position: relative;
     display: flex;
@@ -8,7 +10,7 @@
         width: 100%;
         flex-grow: 1;
         padding: 3px 15px 0 8px;
-        color: $white;
+        color: variables.$white;
 
         .team__name {
             overflow: hidden;
@@ -30,8 +32,8 @@
         bottom: 2px;
         width: 8px;
         height: 8px;
-        background: #f74343;
         border-radius: 50%;
+        background: #f74343;
     }
 
     .unread-badge-addon {
@@ -40,12 +42,12 @@
         right: 4px;
         width: 12px;
         height: 12px;
-        background-color: var(--sidebar-header-bg);
         border-radius: 32px;
+        background-color: var(--sidebar-header-bg);
     }
 
     .menu-icon {
-        fill: $white;
+        fill: variables.$white;
         opacity: 0.8;
     }
 

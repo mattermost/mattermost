@@ -41,10 +41,11 @@ describe('Leave an archived channel', () => {
             cy.get('#channelInfoModalLabel span.icon__archive').should('not.exist');
 
             // # Search for a post in an archived channel
-            cy.get('#searchBox').click().clear().type(`${testArchivedMessage}{enter}`);
+            cy.uiGetSearchContainer().click();
+            cy.uiGetSearchBox().first().clear().type(`${testArchivedMessage}{enter}`);
 
             // # Open the archived channel by selecting Jump from search results and then selecting the link to move to the most recent posts in the channel
-            cy.get('#searchContainer').should('be.visible');
+            cy.uiGetSearchContainer().should('be.visible');
 
             cy.get('a.search-item__jump').first().click();
 
@@ -111,10 +112,11 @@ describe('Leave an archived channel', () => {
         const messageList = Array.from({length: 40}, (_, i) => `${i}. any - ${getRandomId()}`);
         createArchivedChannel({prefix: 'archived-search-for'}, messageList).then(({name}) => {
             // # Locate the post in a search
-            cy.get('#searchBox').click().clear().type(`${messageList[1]}{enter}`);
+            cy.uiGetSearchContainer().click();
+            cy.uiGetSearchBox().first().clear().type(`${messageList[1]}{enter}`);
 
             // # Click jump to open an archive post in permalink view
-            cy.get('#searchContainer').should('be.visible');
+            cy.uiGetSearchContainer().should('be.visible');
             cy.get('a.search-item__jump').first().click();
 
             // * Archived channel is opened in permalink view

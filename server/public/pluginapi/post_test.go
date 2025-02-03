@@ -634,7 +634,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
 		channel := model.Channel{
-			Name: "user1__" + expectedBotID,
+			Name: model.GetDMNameFromIds("user1", expectedBotID),
 			Type: model.ChannelTypeDirect,
 		}
 		api.On("GetChannel", channelID).Return(&channel, nil)

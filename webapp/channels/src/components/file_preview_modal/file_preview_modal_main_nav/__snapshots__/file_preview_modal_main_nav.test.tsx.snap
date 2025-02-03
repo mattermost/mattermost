@@ -4,26 +4,13 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
 <div
   className="file_preview_modal_main_nav"
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={400}
+  <WithTooltip
     key="previewArrowLeft"
-    overlay={
-      <Tooltip
-        id="close-icon-tooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Close"
-          id="generic.close"
-        />
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Close"
+        id="generic.close"
+      />
     }
   >
     <button
@@ -35,7 +22,7 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
         className="icon icon-chevron-left"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
   <span
     className="modal-bar-file-count"
   >
@@ -50,26 +37,13 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
       }
     />
   </span>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={400}
+  <WithTooltip
     key="publicLink"
-    overlay={
-      <Tooltip
-        id="close-icon-tooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Next"
-          id="generic.next"
-        />
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Next"
+        id="generic.next"
+      />
     }
   >
     <button
@@ -81,6 +55,6 @@ exports[`components/file_preview_modal/file_preview_modal_main_nav/FilePreviewMo
         className="icon icon-chevron-right"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
 </div>
 `;

@@ -5,13 +5,11 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {toggle as toggleLhs} from 'actions/views/lhs';
 
 import CollapseLhsButton from './collapse_lhs_button';
 
-const mapDispatchToProps = (dispatch: Dispatch<GenericAction>) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
         toggleLhs,
     }, dispatch),

@@ -59,6 +59,13 @@ func SetFileStore(filestore filestore.FileBackend) Option {
 	}
 }
 
+func ForceEnableRedis() Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.ForceEnableRedis())
+		return nil
+	}
+}
+
 func RunEssentialJobs(s *Server) error {
 	s.runEssentialJobs = true
 
@@ -98,17 +105,6 @@ func SetLogger(logger *mlog.Logger) Option {
 func SkipPostInitialization() Option {
 	return func(s *Server) error {
 		s.skipPostInit = true
-
-		return nil
-	}
-}
-
-// SkipProductsInitialization is intended for testing only, in cases
-// where we're mocking components like the store and products cannot
-// be initialized correctly
-func SkipProductsInitialization() Option {
-	return func(s *Server) error {
-		s.skipProductsInit = true
 
 		return nil
 	}

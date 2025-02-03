@@ -3,7 +3,6 @@
 
 import {TeamTypes, AdminTypes} from 'mattermost-redux/action_types';
 import teamsReducer from 'mattermost-redux/reducers/entities/teams';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 type ReducerState = ReturnType<typeof teamsReducer>;
@@ -12,7 +11,7 @@ describe('Reducers.teams.myMembers', () => {
     it('initial state', async () => {
         let state = {} as ReducerState;
 
-        state = teamsReducer(state, {} as GenericAction);
+        state = teamsReducer(state, {type: undefined});
         expect(state.myMembers).toEqual({});
     });
 
@@ -32,7 +31,7 @@ describe('Reducers.teams.myMembers', () => {
         expect(state.myMembers).toEqual(testAction.result);
 
         testAction.data = myMember3;
-        state = teamsReducer(state, {} as GenericAction);
+        state = teamsReducer(state, {type: undefined});
         expect(state.myMembers).toEqual(testAction.result);
     });
 
@@ -50,7 +49,7 @@ describe('Reducers.teams.myMembers', () => {
         state = teamsReducer(state, testAction);
         expect(state.myMembers).toEqual(testAction.result);
 
-        state = teamsReducer(state, {} as GenericAction);
+        state = teamsReducer(state, {type: undefined});
         expect(state.myMembers).toEqual(testAction.result);
     });
 

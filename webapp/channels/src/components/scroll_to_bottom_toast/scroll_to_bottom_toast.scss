@@ -1,0 +1,62 @@
+.scroll-to-bottom-toast {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px;
+    padding-left: 12px;
+    border-radius: 4px;
+
+    background-color: var(--button-bg);
+    box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.12);
+    color: var(--button-color-rgb);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    gap: 8px;
+
+    &:hover {
+        background-color: rgba(var(--button-bg-rgb), 0.88);
+    }
+
+    svg {
+        fill: rgb(var(--button-color-rgb));
+        vertical-align: middle;
+    }
+
+    body.enable-animations & {
+        transition-duration: 0s;
+        transition-property: opacity, visibility;
+        transition-timing-function: ease-in-out;
+    }
+
+    .scroll-to-bottom-toast__message {
+        display: inline-block;
+        line-height: 20px;
+        vertical-align: middle;
+
+        > svg {
+            margin-right: 8px;
+        }
+    }
+
+    .scroll-to-bottom-toast__dismiss {
+        display: inline-block;
+        padding: 4px;
+        border-radius: 4px;
+
+        &:hover {
+            background-color: var(--button-bg);
+        }
+
+        svg {
+            padding-top: 1px; // To align vertically
+            fill: rgba(var(--button-bg-rgb), 0.64);
+            vertical-align: middle;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            line-height: normal;
+        }
+    }
+}

@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from './errors';
-import {UserProfile} from './users';
-import {RelationOneToOne} from './utilities';
+import type {ServerError} from './errors';
+import type {UserProfile} from './users';
+import type {RelationOneToOne} from './utilities';
 
 export type TeamMembership = TeamUnread & {
     user_id: string;
@@ -39,6 +39,7 @@ export type Team = {
     scheme_id: string;
     group_constrained: boolean;
     policy_id?: string | null;
+    last_team_icon_update?: number;
 };
 
 export type TeamsState = {
@@ -97,14 +98,22 @@ export type TeamStats = {
     active_member_count: number;
 };
 
-export type TeamSearchOpts = {
-    page?: number;
-    per_page?: number;
+export type TeamSearchOpts = PagedTeamSearchOpts | NotPagedTeamSearchOpts;
+export type PagedTeamSearchOpts = {
+    page: number;
+    per_page: number;
+} & NotPagedTeamSearchOpts;
+export type NotPagedTeamSearchOpts = {
     allow_open_invite?: boolean;
     group_constrained?: boolean;
-}
+};
 
 export type TeamInviteWithError = {
     email: string;
-    error: ServerError;
+
+    // Unlike ServerError, error uses field names directly from model.AppError on the server
+    error: {
+        id: string;
+        message: string;
+    };
 };

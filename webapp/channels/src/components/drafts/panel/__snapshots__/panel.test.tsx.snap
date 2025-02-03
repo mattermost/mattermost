@@ -4,8 +4,8 @@ exports[`components/drafts/panel/ should match snapshot 1`] = `
 <article
   className="Panel"
   onClick={[Function]}
-  onMouseEnter={[Function]}
   onMouseLeave={[Function]}
+  onMouseOver={[Function]}
   role="button"
 />
 `;

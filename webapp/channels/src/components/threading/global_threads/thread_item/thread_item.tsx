@@ -19,6 +19,7 @@ import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {Posts} from 'mattermost-redux/constants';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -28,9 +29,9 @@ import PriorityBadge from 'components/post_priority/post_priority_badge';
 import Button from 'components/threading/common/button';
 import Timestamp from 'components/timestamp';
 import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
-import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
+import WithTooltip from 'components/with_tooltip';
 
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -89,7 +90,7 @@ function ThreadItem({
     const tipStep = useSelector((state: GlobalState) => getInt(state, Preferences.CRT_TUTORIAL_STEP, currentUserId));
     const showListTutorialTip = tipStep === CrtTutorialSteps.LIST_POPOVER;
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
-    const postAuthor = post.props?.override_username || displayName;
+    const postAuthor = ensureString(post.props?.override_username) || displayName;
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -182,7 +183,7 @@ function ThreadItem({
             id={isFirstThreadInList ? 'tutorial-threads-mobile-list' : ''}
             onClick={selectHandler}
         >
-            <h1>
+            <header>
                 {Boolean(newMentions || newReplies) && (
                     <div className='indicator'>
                         {newMentions ? (
@@ -217,7 +218,7 @@ function ThreadItem({
                     className='alt-hidden'
                     value={lastReplyAt}
                 />
-            </h1>
+            </header>
             <div className='menu-anchor alt-visible'>
                 <ThreadMenu
                     threadId={threadId}
@@ -225,9 +226,8 @@ function ThreadItem({
                     hasUnreads={Boolean(newReplies)}
                     unreadTimestamp={unreadTimestamp}
                 >
-                    <SimpleTooltip
-                        id='threadActionMenu'
-                        content={(
+                    <WithTooltip
+                        title={(
                             <FormattedMessage
                                 id='threading.threadItem.menu'
                                 defaultMessage='Actions'
@@ -240,7 +240,7 @@ function ThreadItem({
                         >
                             <DotsVerticalIcon size={18}/>
                         </Button>
-                    </SimpleTooltip>
+                    </WithTooltip>
                 </ThreadMenu>
             </div>
             <div

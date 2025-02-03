@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {TeamTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import lhsReducer from 'reducers/views/lhs';
 
@@ -22,7 +21,7 @@ describe('Reducers.LHS', () => {
                 currentStaticPageId: '',
                 size: 'medium',
             },
-            {} as GenericAction,
+            {type: undefined},
         );
 
         expect(nextState).toEqual(initialState);

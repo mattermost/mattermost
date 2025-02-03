@@ -55,7 +55,7 @@ func TestMigrate(t *testing.T) {
 
 		cfg := source.Get()
 		originalCfg := cfg.Clone()
-		cfg.ServiceSettings.SiteURL = model.NewString("http://example.com")
+		cfg.ServiceSettings.SiteURL = model.NewPointer("http://example.com")
 		cfg.SamlSettings.IdpCertificateFile = &files[0]
 		cfg.SamlSettings.PublicCertificateFile = &files[1]
 		cfg.SamlSettings.PrivateKeyFile = &files[2]

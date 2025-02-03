@@ -4,37 +4,18 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
 <div
   className="DraftAction"
 >
-  <OverlayTrigger
-    className="hidden-xs"
-    defaultOverlayShown={false}
-    delayShow={400}
-    overlay={
-      <Tooltip
-        bsClass="tooltip"
-        className="hidden-xs"
-        id="tooltip_"
-        placement="right"
-      >
-        
-      </Tooltip>
-    }
-    placement="top"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
-    }
+  <WithTooltip
+    title=""
   >
     <button
       className="DraftAction__button"
-      id="draft_{icon}_"
+      id="draft__"
       onClick={[MockFunction]}
     >
       <i
-        className="icon "
+        className="icon"
       />
     </button>
-  </OverlayTrigger>
+  </WithTooltip>
 </div>
 `;

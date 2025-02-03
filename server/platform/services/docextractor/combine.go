@@ -10,7 +10,12 @@ import (
 )
 
 type combineExtractor struct {
+	logger        mlog.LoggerIFace
 	SubExtractors []Extractor
+}
+
+func (ce *combineExtractor) Name() string {
+	return "combineExtractor"
 }
 
 func (ce *combineExtractor) Add(extractor Extractor) {
@@ -32,7 +37,7 @@ func (ce *combineExtractor) Extract(filename string, r io.ReadSeeker) (string, e
 			r.Seek(0, io.SeekStart)
 			text, err := extractor.Extract(filename, r)
 			if err != nil {
-				mlog.Warn("unable to extract file content", mlog.Err(err))
+				ce.logger.Warn("Unable to extract file content", mlog.String("file_name", filename), mlog.String("extractor", extractor.Name()), mlog.Err(err))
 				continue
 			}
 			return text, nil

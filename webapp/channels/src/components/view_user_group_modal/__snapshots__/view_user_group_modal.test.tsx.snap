@@ -27,7 +27,7 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <Connect(Component)
@@ -63,7 +63,12 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="Search group members"
+        placeholder={
+          Object {
+            "defaultMessage": "Search group members",
+            "id": "search_bar.searchGroupMembers",
+          }
+        }
         type="text"
         value=""
       />

@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {partition} from 'lodash';
+import partition from 'lodash/partition';
 import React from 'react';
-import type {ReactNode} from 'react';
 import {useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -20,7 +19,7 @@ import {useCurrentProduct, useCurrentProductId, inScope} from 'utils/products';
 
 import AppBarBinding, {isAppBinding} from './app_bar_binding';
 import AppBarMarketplace from './app_bar_marketplace';
-import AppBarPluginComponent, {isAppBarPluginComponent} from './app_bar_plugin_component';
+import AppBarPluginComponent, {isAppBarComponent} from './app_bar_plugin_component';
 
 import './app_bar.scss';
 
@@ -49,7 +48,7 @@ export default function AppBar() {
         return coreProductsPluginIds.includes(pluginId);
     });
 
-    const items: ReactNode[] = [
+    const items = [
         ...coreProductComponents,
         getDivider(coreProductComponents.length, (pluginComponents.length + channelHeaderComponents.length + appBarBindings.length)),
         ...pluginComponents,
@@ -60,8 +59,9 @@ export default function AppBar() {
             return x;
         }
 
-        if (isAppBarPluginComponent(x)) {
-            if (!inScope(x.supportedProductIds ?? null, currentProductId, currentProduct?.pluginId)) {
+        if (isAppBarComponent(x)) {
+            const supportedProductIds = 'supportedProductIds' in x ? x.supportedProductIds : undefined;
+            if (!inScope(supportedProductIds ?? null, currentProductId, currentProduct?.pluginId)) {
                 return null;
             }
             return (

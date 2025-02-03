@@ -43,6 +43,8 @@
     }
 
     > button {
+        transition: all 100ms ease-in-out;
+
         &:not(:first-child) {
             margin-left: var(--offset);
         }
@@ -50,7 +52,8 @@
         &:hover,
         &:focus {
             z-index: 1;
-            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.08));
+            box-shadow: var(--elevation-2);
+            transform: scale(1.2);
         }
     }
 

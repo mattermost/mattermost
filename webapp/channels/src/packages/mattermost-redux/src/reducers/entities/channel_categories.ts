@@ -8,11 +8,11 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelCategoryTypes, TeamTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import {removeItem} from 'mattermost-redux/utils/array_utils';
 
-export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: GenericAction) {
+export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: MMReduxAction) {
     switch (action.type) {
     case ChannelCategoryTypes.RECEIVED_CATEGORIES: {
         const categories: ChannelCategory[] = action.data;
@@ -132,7 +132,7 @@ export function byId(state: IDMappedObjects<ChannelCategory> = {}, action: Gener
     }
 }
 
-export function orderByTeam(state: RelationOneToOne<Team, Array<ChannelCategory['id']>> = {}, action: GenericAction) {
+export function orderByTeam(state: RelationOneToOne<Team, Array<ChannelCategory['id']>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case ChannelCategoryTypes.RECEIVED_CATEGORY_ORDER: {
         const teamId: string = action.data.teamId;

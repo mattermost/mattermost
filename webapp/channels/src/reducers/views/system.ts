@@ -4,11 +4,12 @@
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
-function websocketConnectionErrorCount(state = 0, action: GenericAction) {
+import type {MMAction} from 'types/store';
+
+function websocketConnectionErrorCount(state = 0, action: MMAction) {
     switch (action.type) {
     case ActionTypes.INCREMENT_WS_ERROR_COUNT: {
         return state + 1;

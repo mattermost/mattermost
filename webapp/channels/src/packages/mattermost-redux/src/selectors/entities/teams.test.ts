@@ -107,13 +107,6 @@ describe('Selectors.Teams', () => {
         expect(joinableTeams[1]).toBe(openTeams[1]);
     });
 
-    it('getListableTeams', () => {
-        const openTeams = [team3, team4];
-        const listableTeams = Selectors.getListableTeams(testState);
-        expect(listableTeams[0]).toBe(openTeams[0]);
-        expect(listableTeams[1]).toBe(openTeams[1]);
-    });
-
     it('getListedJoinableTeams', () => {
         const openTeams = [team4, team3];
         const joinableTeams = Selectors.getSortedListableTeams(testState, 'en');
@@ -225,82 +218,6 @@ describe('Selectors.Teams', () => {
         expect(joinableTeams[1]).toBe(privateTeams[0]);
         expect(joinableTeams[2]).toBe(privateTeams[1]);
         expect(joinableTeams[3]).toBe(openTeams[1]);
-    });
-
-    it('getListableTeamsUsingPermissions', () => {
-        const privateTeams = [team1, team2];
-        const openTeams = [team3, team4];
-        let modifiedState = {
-            entities: {
-                ...testState.entities,
-                teams: {
-                    ...testState.entities.teams,
-                    myMembers: {},
-                },
-                roles: {
-                    roles: {
-                        system_user: {
-                            ...testState.entities.roles.roles.system_user,
-                            permissions: ['list_private_teams'],
-                        },
-                    },
-                },
-                general: {
-                    serverVersion: '5.10.0',
-                },
-            },
-        } as GlobalState;
-        let listableTeams = Selectors.getListableTeams(modifiedState);
-        expect(listableTeams[0]).toBe(privateTeams[0]);
-        expect(listableTeams[1]).toBe(privateTeams[1]);
-
-        modifiedState = {
-            entities: {
-                ...testState.entities,
-                teams: {
-                    ...testState.entities.teams,
-                    myMembers: {},
-                },
-                roles: {
-                    roles: {
-                        system_user: {
-                            permissions: ['list_public_teams'],
-                        },
-                    },
-                },
-                general: {
-                    serverVersion: '5.10.0',
-                },
-            },
-        } as GlobalState;
-        listableTeams = Selectors.getListableTeams(modifiedState);
-        expect(listableTeams[0]).toBe(openTeams[0]);
-        expect(listableTeams[1]).toBe(openTeams[1]);
-
-        modifiedState = {
-            entities: {
-                ...testState.entities,
-                teams: {
-                    ...testState.entities.teams,
-                    myMembers: {},
-                },
-                roles: {
-                    roles: {
-                        system_user: {
-                            permissions: ['list_public_teams', 'list_private_teams'],
-                        },
-                    },
-                },
-                general: {
-                    serverVersion: '5.10.0',
-                },
-            },
-        } as GlobalState;
-        listableTeams = Selectors.getListableTeams(modifiedState);
-        expect(listableTeams[0]).toBe(privateTeams[0]);
-        expect(listableTeams[1]).toBe(privateTeams[1]);
-        expect(listableTeams[2]).toBe(openTeams[0]);
-        expect(listableTeams[3]).toBe(openTeams[1]);
     });
 
     it('getSortedListableTeamsUsingPermissions', () => {

@@ -3,14 +3,10 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import type {Button} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
-import {Provider} from 'react-redux';
 
 import TeamUrl from 'components/create_team/components/team_url/team_url';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 jest.mock('images/logo.png', () => 'logo.png');
@@ -30,31 +26,20 @@ describe('/components/create_team/components/display_name', () => {
         history: {push: jest.fn()},
     };
 
-    const chatLengthError = (
-        <FormattedMessage
-            id='create_team.team_url.charLength'
-            defaultMessage='Name must be {min} or more characters up to a maximum of {max}'
-            values={{
-                min: Constants.MIN_TEAMNAME_LENGTH,
-                max: Constants.MAX_TEAMNAME_LENGTH,
-            }}
-        />
-    );
-
     test('should match snapshot', () => {
         const wrapper = shallow(<TeamUrl {...defaultProps}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should return to display_name.jsx page', () => {
-        const wrapper = mountWithIntl(<TeamUrl {...defaultProps}/>);
+    test('should return to display_name.jsx page', async () => {
+        renderWithContext(<TeamUrl {...defaultProps}/>);
 
-        wrapper.find('a').simulate('click', {
-            preventDefault: () => jest.fn(),
+        screen.getByText('Back to previous step').click();
+
+        expect(defaultProps.updateParent).toHaveBeenCalledWith({
+            ...defaultProps.state,
+            wizard: 'display_name',
         });
-
-        expect(wrapper.prop('state').wizard).toBe('display_name');
-        expect(wrapper.prop('updateParent')).toHaveBeenCalled();
     });
 
     test('should successfully submit', async () => {
@@ -65,81 +50,80 @@ describe('/components/create_team/components/display_name', () => {
         const actions = {...defaultProps.actions, checkIfTeamExists};
         const props = {...defaultProps, actions};
 
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <TeamUrl {...props}/>,
         );
 
-        await (wrapper.instance() as unknown as TeamUrl).submitNext({preventDefault: jest.fn()} as unknown as React.MouseEvent<Button, MouseEvent>);
+        screen.getByText('Finish').click();
+
+        await waitFor(() => {
+            expect(screen.getByText('This URL is taken or unavailable. Please try another.')).toBeInTheDocument();
+        });
+
         expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(1);
         expect(actions.createTeam).not.toHaveBeenCalled();
 
-        await (wrapper.instance() as unknown as TeamUrl).submitNext({preventDefault: jest.fn()} as unknown as React.MouseEvent<Button, MouseEvent>);
-        expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(2);
-        expect(actions.createTeam).toHaveBeenCalledTimes(1);
-        expect(actions.createTeam).toBeCalledWith({display_name: 'test-team', name: 'test-team', type: 'O'});
-        expect(props.history.push).toHaveBeenCalledTimes(1);
-        expect(props.history.push).toBeCalledWith('/test-team/channels/town-square');
+        screen.getByText('Finish').click();
+
+        await waitFor(() => {
+            expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(2);
+            expect(actions.createTeam).toHaveBeenCalledTimes(1);
+            expect(actions.createTeam).toBeCalledWith({display_name: 'test-team', name: 'test-team', type: 'O'});
+            expect(props.history.push).toHaveBeenCalledTimes(1);
+            expect(props.history.push).toBeCalledWith('/test-team/channels/town-square');
+        });
     });
 
     test('should display isRequired error', () => {
-        const wrapper = mountWithIntl(<TeamUrl {...defaultProps}/>);
-        (wrapper.find('.form-control').instance() as unknown as HTMLInputElement).value = '';
-        wrapper.find('.form-control').simulate('change');
-        wrapper.find('button').simulate('click', {preventDefault: () => jest.fn()});
-
-        expect(wrapper.state('nameError')).toEqual(
-            <FormattedMessage
-                id='create_team.team_url.required'
-                defaultMessage='This field is required'
-            />,
+        renderWithContext(
+            <TeamUrl {...defaultProps}/>,
         );
+
+        userEvent.clear(screen.getByRole('textbox'));
+        screen.getByText('Finish').click();
+
+        expect(screen.getByText('This field is required')).toBeInTheDocument();
     });
 
     test('should display charLength error', () => {
-        const wrapper = mountWithIntl(<TeamUrl {...defaultProps}/>);
-        (wrapper.find('.form-control').instance() as unknown as HTMLInputElement).value = 'a';
-        wrapper.find('.form-control').simulate('change');
-        wrapper.find('button').simulate('click', {preventDefault: () => jest.fn()});
-        expect(wrapper.state('nameError')).toEqual(chatLengthError);
+        const lengthError = `Name must be ${Constants.MIN_TEAMNAME_LENGTH} or more characters up to a maximum of ${Constants.MAX_TEAMNAME_LENGTH}`;
 
-        (wrapper.find('.form-control').instance() as unknown as HTMLInputElement).value = 'a'.repeat(Constants.MAX_TEAMNAME_LENGTH + 1);
-        wrapper.find('.form-control').simulate('change');
-        wrapper.find('button').simulate('click', {preventDefault: () => jest.fn()});
-        expect(wrapper.state('nameError')).toEqual(chatLengthError);
+        renderWithContext(
+            <TeamUrl {...defaultProps}/>,
+        );
+
+        expect(screen.queryByText(lengthError)).not.toBeInTheDocument();
+
+        userEvent.type(screen.getByRole('textbox'), 'a');
+        screen.getByText('Finish').click();
+
+        expect(screen.getByText(lengthError)).toBeInTheDocument();
+
+        userEvent.type(screen.getByRole('textbox'), 'a'.repeat(Constants.MAX_TEAMNAME_LENGTH + 1));
+        screen.getByText('Finish').click();
+
+        expect(screen.getByText(lengthError)).toBeInTheDocument();
     });
 
     test('should display teamUrl regex error', () => {
-        const wrapper = mountWithIntl(<TeamUrl {...defaultProps}/>);
-        (wrapper.find('.form-control').instance() as unknown as HTMLInputElement).value = '!!wrongName1';
-        wrapper.find('.form-control').simulate('change');
-        wrapper.find('button').simulate('click', {preventDefault: () => jest.fn()});
-        expect(wrapper.state('nameError')).toEqual(
-            <FormattedMessage
-                id='create_team.team_url.regex'
-                defaultMessage="Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash."
-            />,
+        renderWithContext(
+            <TeamUrl {...defaultProps}/>,
         );
+
+        userEvent.type(screen.getByRole('textbox'), '!!wrongName1');
+        screen.getByText('Finish').click();
+
+        expect(screen.getByText("Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash.")).toBeInTheDocument();
     });
 
     test('should display teamUrl taken error', () => {
-        const store = mockStore({
-            entities: {
-                general: {
-                    config: {},
-                    license: {
-                        Cloud: 'false',
-                    },
-                },
-                users: {
-                    currentUserId: 'currentUserId',
-                },
-            },
-        });
+        renderWithContext(
+            <TeamUrl {...defaultProps}/>,
+        );
 
-        const wrapper = mountWithIntl(<Provider store={store}><TeamUrl {...defaultProps}/></Provider>);
-        (wrapper.find('.form-control').instance() as unknown as HTMLInputElement).value = 'channel';
-        wrapper.find('.form-control').simulate('change');
-        wrapper.find('button').simulate('click', {preventDefault: () => jest.fn()});
-        expect((wrapper as any).find(TeamUrl).state('nameError').props.id).toEqual('create_team.team_url.taken');
+        userEvent.type(screen.getByRole('textbox'), 'channel');
+        screen.getByText('Finish').click();
+
+        expect(screen.getByText('Please try another.', {exact: false})).toBeInTheDocument();
     });
 });

@@ -1,0 +1,8 @@
+.access-history-modal {
+    .table {
+        thead > tr > th,
+        tbody > tr > td {
+            border-color: rgba(var(--center-channel-color-rgb), 0.12);
+        }
+    }
+}

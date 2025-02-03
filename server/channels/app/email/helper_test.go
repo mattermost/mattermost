@@ -4,7 +4,6 @@
 package email
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,12 +11,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -32,7 +33,8 @@ type TestHelper struct {
 	BasicUser2   *model.User
 
 	SystemAdminUser *model.User
-	LogBuffer       *bytes.Buffer
+
+	Context request.CTX
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -86,7 +88,8 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	*config.PasswordSettings.Uppercase = false
 	*config.PasswordSettings.Symbol = false
 	*config.PasswordSettings.Number = false
-	configStore.Set(config)
+	_, _, err = configStore.Set(config)
+	require.NoError(tb, err)
 
 	licenseFn := func() *model.License { return model.NewTestLicense() }
 
@@ -132,8 +135,8 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 		service:     service,
 		configStore: configStore,
 		store:       s,
-		LogBuffer:   &bytes.Buffer{},
 		workspace:   tempWorkspace,
+		Context:     request.TestContext(tb),
 	}
 }
 
@@ -188,7 +191,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 	}
 
 	var err error
-	if channel, err = th.store.Channel().Save(channel, *th.configStore.Get().TeamSettings.MaxChannelsPerTeam); err != nil {
+	if channel, err = th.store.Channel().Save(th.Context, channel, *th.configStore.Get().TeamSettings.MaxChannelsPerTeam); err != nil {
 		panic(err)
 	}
 
@@ -205,7 +208,7 @@ func (th *TestHelper) addUserToChannel(channel *model.Channel, user *model.User)
 	}
 
 	var err error
-	newMember, err = th.store.Channel().SaveMember(newMember)
+	newMember, err = th.store.Channel().SaveMember(th.Context, newMember)
 	if err != nil {
 		panic(err)
 	}
@@ -222,7 +225,7 @@ func (th *TestHelper) addUserToTeam(team *model.Team, user *model.User) *model.T
 	}
 
 	var err error
-	tm, err = th.store.Team().SaveMember(tm, *th.service.config().TeamSettings.MaxUsersPerTeam)
+	tm, err = th.store.Team().SaveMember(th.Context, tm, *th.service.config().TeamSettings.MaxUsersPerTeam)
 	if err != nil {
 		panic(err)
 	}
@@ -251,11 +254,11 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err error
 	if guest {
-		if user, err = th.service.userService.CreateUser(user, users.UserCreateOptions{Guest: true}); err != nil {
+		if user, err = th.service.userService.CreateUser(th.Context, user, users.UserCreateOptions{Guest: true}); err != nil {
 			panic(err)
 		}
 	} else {
-		if user, err = th.service.userService.CreateUser(user, users.UserCreateOptions{}); err != nil {
+		if user, err = th.service.userService.CreateUser(th.Context, user, users.UserCreateOptions{}); err != nil {
 			panic(err)
 		}
 	}

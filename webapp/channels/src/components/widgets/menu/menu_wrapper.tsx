@@ -10,10 +10,15 @@ import MenuWrapperAnimation from './menu_wrapper_animation';
 import './menu_wrapper.scss';
 
 declare module 'react' {
-    interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+
+    // This isn't a valid HTML attribute, but we use it in enough places now that it'll require some work to remove it
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    interface HTMLAttributes<T> {
         disabled?: boolean;
     }
 }
+
 type Props = {
     children?: React.ReactNode;
     className: string;

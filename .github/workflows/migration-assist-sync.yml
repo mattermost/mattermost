@@ -1,0 +1,38 @@
+name: Migration-assist Sync
+on:
+  push:
+    branches:
+      - master
+    paths:
+     - "server/channels/db/**"
+
+jobs:
+  check:
+    name: Check if migration-assist have been synced
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Checkout migration-assist project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: mattermost/migration-assist
+          ref: main
+          path: migration-assist
+      - name: Compare migration-assist with mattermost
+        run: |
+          diff --brief --recursive channels/db/migrations/postgres /home/runner/work/mattermost/mattermost/migration-assist/queries/migrations/postgres 
+      - name: Report migrations are not in sync via webhook
+        if: ${{ failure() }}
+        uses: mattermost/action-mattermost-notify@b7d118e440bf2749cd18a4a8c88e7092e696257a # v2.0.0
+        with:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_COMMUNITY_MIGRATIONS_INCOMING_WEBHOOK_FROM_GH_ACTIONS }}
+          TEXT: |-
+            #### ⚠️ Migration-assist embedded migrations are not in sync ⚠️
+            * Job: [github.com/mattermost/mattermost:${{ inputs.name }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            * Whenever a new migration has been added to the schema migrations, we should also update the embedded migrations in the `migration-assist` repository to keep them in sync. Please include newer migrations and cut a release for `migration-assist` to include them in the next release.
+            * cc @ibrahim.acikgoz
+

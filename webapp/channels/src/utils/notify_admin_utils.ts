@@ -26,6 +26,8 @@ export function mapFeatureIdToTranslation(id: string, formatMessage: Function): 
         return formatMessage({id: 'webapp.mattermost.feature.all_enterprise', defaultMessage: 'All Enterprise features'});
     case MattermostFeatures.UPGRADE_DOWNGRADED_WORKSPACE:
         return formatMessage({id: 'webapp.mattermost.feature.upgrade_downgraded_workspace', defaultMessage: 'Revert the workspace to a paid plan'});
+    case MattermostFeatures.HIGHLIGHT_WITHOUT_NOTIFICATION:
+        return formatMessage({id: 'webapp.mattermost.feature.highlight_without_notification', defaultMessage: 'Keywords Highlight Without Notification'});
     default:
         return '';
     }

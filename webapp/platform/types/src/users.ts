@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Audit} from './audits';
-import {Channel} from './channels';
-import {Group} from './groups';
-import {Session} from './sessions';
-import {Team} from './teams';
-import {IDMappedObjects, RelationOneToMany, RelationOneToManyUnique, RelationOneToOne} from './utilities';
+import type {Audit} from './audits';
+import type {Channel} from './channels';
+import type {Group} from './groups';
+import type {Session} from './sessions';
+import type {Team} from './teams';
+import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from './utilities';
 
 export type UserNotifyProps = {
     desktop: 'default' | 'all' | 'mention' | 'none';
-    desktop_sound: 'true' | 'false';
+    desktop_sound: 'default' | 'true' | 'false';
     calls_desktop_sound: 'true' | 'false';
     email: 'true' | 'false';
     mark_unread: 'all' | 'mention';
@@ -20,13 +20,16 @@ export type UserNotifyProps = {
     first_name: 'true' | 'false';
     channel: 'true' | 'false';
     mention_keys: string;
-    desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
+    highlight_keys: string;
+    desktop_notification_sound?: 'default' | 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
     calls_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful';
     desktop_threads?: 'default' | 'all' | 'mention' | 'none';
     email_threads?: 'default' | 'all' | 'mention' | 'none';
     push_threads?: 'default' | 'all' | 'mention' | 'none';
     auto_responder_active?: 'true' | 'false';
     auto_responder_message?: string;
+    calls_mobile_sound?: 'true' | 'false' | '';
+    calls_mobile_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful' | '';
 };
 
 export type UserProfile = {
@@ -69,18 +72,19 @@ export type UsersState = {
     mySessions: Session[];
     myAudits: Audit[];
     profiles: IDMappedObjects<UserProfile>;
-    profilesInTeam: RelationOneToMany<Team, UserProfile>;
-    profilesNotInTeam: RelationOneToMany<Team, UserProfile>;
+    profilesInTeam: RelationOneToManyUnique<Team, UserProfile>;
+    profilesNotInTeam: RelationOneToManyUnique<Team, UserProfile>;
     profilesWithoutTeam: Set<string>;
     profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesNotInChannel: RelationOneToManyUnique<Channel, UserProfile>;
-    profilesInGroup: RelationOneToMany<Group, UserProfile>;
-    profilesNotInGroup: RelationOneToMany<Group, UserProfile>;
+    profilesInGroup: RelationOneToManyUnique<Group, UserProfile>;
+    profilesNotInGroup: RelationOneToManyUnique<Group, UserProfile>;
     statuses: RelationOneToOne<UserProfile, string>;
-    stats: RelationOneToOne<UserProfile, UsersStats>;
-    filteredStats?: UsersStats;
+    stats: Partial<UsersStats>;
+    filteredStats: Partial<UsersStats>;
     myUserAccessTokens: Record<string, UserAccessToken>;
     lastActivity: RelationOneToOne<UserProfile, number>;
+    dndEndTimes: RelationOneToOne<UserProfile, number>;
 };
 
 export type UserTimezone = {

@@ -60,9 +60,8 @@ exports[`PostBodyAdditionalContent with a message attachment should render corre
   <span>
     some children
   </span>
-  <MessageAttachmentList
+  <Memo(MessageAttachmentList)
     attachments={Array []}
-    imagesMetadata={Object {}}
     postId="post_id_1"
   />
 </div>
@@ -112,10 +111,12 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "messageListeners": Set {},
         "missedEventCallback": null,
         "missedMessageListeners": Set {},
+        "postedAck": false,
         "reconnectCallback": null,
         "reconnectListeners": Set {},
         "responseCallbacks": Object {},
         "responseSequence": 1,
+        "serverHostname": "",
         "serverSequence": 0,
       }
     }
@@ -158,10 +159,12 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "messageListeners": Set {},
         "missedEventCallback": null,
         "missedMessageListeners": Set {},
+        "postedAck": false,
         "reconnectCallback": null,
         "reconnectListeners": Set {},
         "responseCallbacks": Object {},
         "responseSequence": 1,
+        "serverHostname": "",
         "serverSequence": 0,
       }
     }

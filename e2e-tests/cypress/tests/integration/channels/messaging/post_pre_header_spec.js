@@ -104,7 +104,7 @@ describe('Post PreHeader', () => {
             cy.get('#searchContainer').should('be.visible').within(() => {
                 cy.get('.sidebar--right__title').
                     should('be.visible').
-                    and('contain', 'Pinned Posts').
+                    and('contain', 'Pinned messages').
                     and('contain', 'Off-Topic');
 
                 // * Check that the post pre-header is not shown for the pinned message in RHS
@@ -186,7 +186,8 @@ describe('Post PreHeader', () => {
             });
 
             // # Search for the channel.
-            cy.get('#searchBox').type('test both pinned and saved {enter}');
+            cy.uiGetSearchContainer().click();
+            cy.uiGetSearchBox().first().type('test both pinned and saved {enter}');
 
             // * Check that the post pre-header has both pinned and saved links in RHS search results
             cy.get('#searchContainer').should('be.visible').within(() => {

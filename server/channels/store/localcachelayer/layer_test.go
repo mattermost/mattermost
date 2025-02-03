@@ -9,9 +9,15 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -31,7 +37,7 @@ func newStoreType(name, driver string) *storeType {
 	}
 }
 
-func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
+func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -40,16 +46,18 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}()
 	for _, st := range storeTypes {
 		st := st
+		rctx := request.TestContext(t)
+
 		t.Run(st.Name, func(t *testing.T) {
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store)
+			f(t, rctx, st.Store)
 		})
 	}
 }
 
-func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storetest.SqlStore)) {
+func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.Store, storetest.SqlStore)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -58,16 +66,18 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storete
 	}()
 	for _, st := range storeTypes {
 		st := st
+		rctx := request.TestContext(t)
+
 		t.Run(st.Name, func(t *testing.T) {
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store, sqlstore.NewStoreTestWrapper(st.SqlStore))
+			f(t, rctx, st.Store, sqlstore.NewStoreTestWrapper(st.SqlStore))
 		})
 	}
 }
 
-func initStores() {
+func initStores(logger mlog.LoggerIFace) {
 	if testing.Short() {
 		return
 	}
@@ -98,11 +108,11 @@ func initStores() {
 		eg.Go(func() error {
 			var err error
 
-			st.SqlStore, err = sqlstore.New(*st.SqlSettings, nil)
+			st.SqlStore, err = sqlstore.New(*st.SqlSettings, logger, nil)
 			if err != nil {
 				return err
 			}
-			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
+			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, cache.NewProvider(), logger)
 			if err != nil {
 				return err
 			}
@@ -140,4 +150,35 @@ func tearDownStores() {
 		}
 		wg.Wait()
 	})
+}
+
+func TestClearCacheCluster(t *testing.T) {
+	cluster := &testlib.FakeClusterInterface{}
+	lc := &LocalCacheStore{
+		cluster: cluster,
+	}
+
+	c := cache.NewLRU(&cache.CacheOptions{
+		Size:                   10,
+		Name:                   "test",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForRoles,
+	})
+
+	lc.doClearCacheCluster(c)
+	assert.Len(t, cluster.GetMessages(), 1)
+	expectedMsg := &model.ClusterMessage{
+		Event:    model.ClusterEventInvalidateCacheForRoles,
+		SendType: model.ClusterSendBestEffort,
+		Data:     clearCacheMessageData,
+	}
+	require.Equal(t, expectedMsg, cluster.GetMessages()[0])
+
+	c = cache.NewLRU(&cache.CacheOptions{
+		Size:                   10,
+		Name:                   "test",
+		InvalidateClusterEvent: model.ClusterEventNone,
+	})
+
+	lc.doClearCacheCluster(c)
+	assert.Len(t, cluster.GetMessages(), 1)
 }

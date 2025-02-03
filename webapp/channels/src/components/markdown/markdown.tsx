@@ -4,72 +4,26 @@
 import React from 'react';
 
 import type {PostImage, PostType} from '@mattermost/types/posts';
-import type {Team} from '@mattermost/types/teams';
+
+import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
 
 import PostEditedIndicator from 'components/post_view/post_edited_indicator';
 
 import type EmojiMap from 'utils/emoji_map';
 import messageHtmlToComponent from 'utils/message_html_to_component';
+import type {ChannelNamesMap, MentionKey, TextFormattingOptions} from 'utils/text_formatting';
 import {formatText} from 'utils/text_formatting';
-import type {ChannelNamesMap, TextFormattingOptions, MentionKey} from 'utils/text_formatting';
 
-type Props = {
+import type {PropsFromRedux} from './index';
 
-    /*
-     * An object mapping channel names to channels for the current team
-     */
-    channelNamesMap?: ChannelNamesMap;
+export type Props = PropsFromRedux & OwnProps;
 
-    /*
-     * An array of URL schemes that should be turned into links. Anything that looks
-     * like a link will be turned into a link if this is not provided.
-     */
-    autolinkedUrlSchemes?: string[];
+export type OwnProps = {
 
-    /*
-     * Whether or not to do Markdown rendering
-     */
-    enableFormatting?: boolean;
-
-    /*
-     * An array of paths on the server that are managed by another server
-     */
-    managedResourcePaths?: string[];
-
-    /*
-     * An array of words that can be used to mention a user
-     */
-    mentionKeys?: MentionKey[];
-
-    /*
-     * The text to be rendered
-     */
-    message: string;
-
-    /*
+    /**
      * Any additional text formatting options to be used
      */
-    options: Partial<TextFormattingOptions>;
-
-    /*
-     * The root Site URL for the page
-     */
-    siteURL?: string;
-
-    /*
-     * The current team
-     */
-    team?: Team;
-
-    /**
-     * If an image proxy is enabled.
-     */
-    hasImageProxy?: boolean;
-
-    /**
-     * Minimum number of characters in a hashtag.
-     */
-    minimumHashtagLength?: number;
+    options?: Partial<TextFormattingOptions>;
 
     /**
      * Whether or not to proxy image URLs
@@ -77,19 +31,9 @@ type Props = {
     proxyImages?: boolean;
 
     /**
-     * Any extra props that should be passed into the image component
-     */
-    imageProps?: object;
-
-    /**
      * prop for passed down to image component for dimensions
      */
     imagesMetadata?: Record<string, PostImage>;
-
-    /**
-     * Whether or not to place the LinkTooltip component inside links
-     */
-    hasPluginTooltips?: boolean;
 
     /**
      * Post id prop passed down to markdown image
@@ -101,13 +45,35 @@ type Props = {
      */
     editedAt?: number;
 
+    /*
+     * The text to be rendered
+     */
+    message?: string;
+    channelNamesMap?: ChannelNamesMap;
+
+    /*
+     * An array of words that can be used to mention a user
+     */
+    mentionKeys?: MentionKey[];
+    highlightKeys?: HighlightWithoutNotificationKey[];
+
+    /**
+     * Any extra props that should be passed into the image component
+     */
+    imageProps?: object;
+
+    /**
+     * Whether or not to place the LinkTooltip component inside links
+     */
+    hasPluginTooltips?: boolean;
+
     channelId?: string;
 
     /**
      * Post id prop passed down to markdown image
      */
     postType?: PostType;
-    emojiMap: EmojiMap;
+    emojiMap?: EmojiMap;
 
     /**
      * Some components processed by messageHtmlToComponent e.g. AtSumOfMembersMention require to have a list of userIds
@@ -120,59 +86,75 @@ type Props = {
     messageMetadata?: Record<string, string>;
 }
 
-export default class Markdown extends React.PureComponent<Props> {
-    static defaultProps: Partial<Props> = {
-        options: {},
-        proxyImages: true,
-        imagesMetadata: {},
-        postId: '', // Needed to avoid proptypes console errors for cases like channel header, which doesn't have a proper value
-        editedAt: 0,
-    };
-
-    render() {
-        const {postId, editedAt, message, enableFormatting} = this.props;
-        if (message === '' || !enableFormatting) {
-            return (
-                <span>
-                    {message}
-                    <PostEditedIndicator
-                        postId={postId}
-                        editedAt={editedAt}
-                    />
-                </span>
-            );
-        }
-
-        const options = Object.assign({
-            autolinkedUrlSchemes: this.props.autolinkedUrlSchemes,
-            siteURL: this.props.siteURL,
-            mentionKeys: this.props.mentionKeys,
-            atMentions: true,
-            channelNamesMap: this.props.channelNamesMap,
-            proxyImages: this.props.hasImageProxy && this.props.proxyImages,
-            team: this.props.team,
-            minimumHashtagLength: this.props.minimumHashtagLength,
-            managedResourcePaths: this.props.managedResourcePaths,
-            editedAt,
-            postId,
-        }, this.props.options);
-
-        const htmlFormattedText = formatText(message, options, this.props.emojiMap);
-
-        return messageHtmlToComponent(htmlFormattedText, {
-            imageProps: this.props.imageProps,
-            imagesMetadata: this.props.imagesMetadata,
-            hasPluginTooltips: this.props.hasPluginTooltips,
-            postId: this.props.postId,
-            userIds: this.props.userIds,
-            messageMetadata: this.props.messageMetadata,
-            channelId: this.props.channelId,
-            postType: this.props.postType,
-            mentionHighlight: this.props.options.mentionHighlight,
-            disableGroupHighlight: this.props.options.disableGroupHighlight,
-            editedAt,
-            atSumOfMembersMentions: this.props.options.atSumOfMembersMentions,
-            atPlanMentions: this.props.options.atPlanMentions,
-        });
+function Markdown({
+    options = {},
+    proxyImages = true,
+    imagesMetadata = {},
+    postId = '', // Needed to avoid proptypes console errors for cases like channel header, which doesn't have a proper value
+    editedAt = 0,
+    message = '',
+    channelNamesMap,
+    mentionKeys,
+    highlightKeys,
+    imageProps,
+    channelId,
+    hasPluginTooltips,
+    postType,
+    emojiMap,
+    userIds,
+    messageMetadata,
+    enableFormatting,
+    autolinkedUrlSchemes,
+    siteURL,
+    hasImageProxy,
+    team,
+    minimumHashtagLength,
+    managedResourcePaths,
+}: Props) {
+    if (message === '' || !enableFormatting) {
+        return (
+            <span>
+                {message}
+                <PostEditedIndicator
+                    postId={postId}
+                    editedAt={editedAt}
+                />
+            </span>
+        );
     }
+
+    const inputOptions = Object.assign({
+        autolinkedUrlSchemes,
+        siteURL,
+        mentionKeys,
+        highlightKeys,
+        atMentions: true,
+        channelNamesMap,
+        proxyImages: hasImageProxy && proxyImages,
+        team,
+        minimumHashtagLength,
+        managedResourcePaths,
+        editedAt,
+        postId,
+    }, options);
+
+    const htmlFormattedText = formatText(message, inputOptions, emojiMap);
+
+    return messageHtmlToComponent(htmlFormattedText, {
+        imageProps,
+        imagesMetadata,
+        hasPluginTooltips,
+        postId,
+        userIds,
+        messageMetadata,
+        channelId,
+        postType,
+        mentionHighlight: options?.mentionHighlight,
+        disableGroupHighlight: options?.disableGroupHighlight,
+        editedAt,
+        atSumOfMembersMentions: options?.atSumOfMembersMentions,
+        atPlanMentions: options?.atPlanMentions,
+    });
 }
+
+export default Markdown;

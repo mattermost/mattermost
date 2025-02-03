@@ -239,9 +239,7 @@ function setReplyNotificationsSetting(idToToggle) {
         and('contain', 'Notifications');
 
     // Open up 'Reply Notifications' sub-section
-    cy.get('#commentsTitle').
-        scrollIntoView().
-        click();
+    cy.findByText('Reply notifications').should('be.visible').scrollIntoView().click();
 
     cy.get(idToToggle).check().should('be.checked');
 

@@ -106,9 +106,10 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // * Verify Guest Badge in Guest User's Profile Popover
-        cy.get('#user-profile-popover').should('be.visible').within(($el) => {
+        cy.get('div.user-profile-popover').should('be.visible').within(($el) => {
             cy.wrap($el).find('.GuestTag').should('be.visible').and('have.text', 'GUEST');
         });
+        cy.get('button.closeButtonRelativePosition').click();
 
         // # Close the profile popover
         cy.get('#channel-header').click();
@@ -132,7 +133,7 @@ describe('Verify Guest User Identification in different screens', () => {
         cy.uiOpenFindChannels();
 
         // # Type the guest user name on Channel switcher input
-        cy.findByRole('textbox', {name: 'quick switch input'}).type(guestUser.username).wait(TIMEOUTS.HALF_SEC);
+        cy.findByRole('combobox', {name: 'quick switch input'}).type(guestUser.username).wait(TIMEOUTS.HALF_SEC);
 
         // * Verify if Guest badge is displayed for the guest user in the Switch Channel Dialog
         cy.get('#suggestionList').should('be.visible');
@@ -173,7 +174,7 @@ describe('Verify Guest User Identification in different screens', () => {
         // * Verify Guest Badge in DM header
         cy.get('#channelHeaderTitle').should('be.visible').find('.Tag').should('be.visible').and('have.text', 'GUEST');
         cy.get('#channelHeaderDescription').within(($el) => {
-            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'This channel has guests');
+            cy.wrap($el).find('.has-guest-header').should('be.visible').and('have.text', 'Channel has guests');
         });
 
         // # Open a GM with Guest User and Sysadmin
@@ -211,10 +212,10 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('Verify Guest Badge not displayed in Search Autocomplete', () => {
         // # Search for the Guest User
-        cy.get('#searchBox').type('from:');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().type('from:');
 
         // * Verify Guest Badge is not displayed at Search auto-complete
-        cy.get('#search-autocomplete__popover').should('be.visible');
         cy.contains('.suggestion-list__item', guestUser.username).scrollIntoView().should('be.visible').within(($el) => {
             cy.wrap($el).find('.Tag').should('not.exist');
         });

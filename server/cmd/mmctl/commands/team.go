@@ -18,8 +18,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const APILimitMaximum = 200
-
 var TeamCmd = &cobra.Command{
 	Use:   "team",
 	Short: "Management of teams",
@@ -180,6 +178,7 @@ func deleteTeam(c client.Client, team *model.Team) (*model.Response, error) {
 }
 
 func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var result *multierror.Error
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		if err := getConfirmation("Are you sure you want to archive the specified teams?", true); err != nil {
@@ -191,22 +190,24 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
+			result = multierror.Append(result, errors.New("Unable to find team '"+args[i]+"'"))
 			continue
 		}
 		if _, err := c.SoftDeleteTeam(context.TODO(), team.Id); err != nil {
 			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + err.Error())
+			result = multierror.Append(result, errors.New("Unable to archive team '"+team.Name+"' error: "+err.Error()))
 		} else {
 			printer.PrintT("Archived team '{{.Name}}'", team)
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	page := 0
 	for {
-		teams, _, err := c.GetAllTeams(context.TODO(), "", page, APILimitMaximum)
+		teams, _, err := c.GetAllTeams(context.TODO(), "", page, DefaultPageSize)
 		if err != nil {
 			return err
 		}
@@ -219,7 +220,7 @@ func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		if len(teams) < APILimitMaximum {
+		if len(teams) < DefaultPageSize {
 			break
 		}
 
@@ -336,6 +337,8 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("must specify one of --private or --public")
 	}
 
+	var errs *multierror.Error
+
 	// I = invite only (private)
 	// O = open (public)
 	privacy := model.TeamInvite
@@ -346,17 +349,24 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
-			printer.PrintError("Unable to find team '" + args[i] + "'")
+			errs = multierror.Append(errs, errors.New("Unable to find team '"+args[i]+"'"))
 			continue
 		}
-		if updatedTeam, _, err := c.UpdateTeamPrivacy(context.TODO(), team.Id, privacy); err != nil {
-			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + err.Error())
-		} else {
-			printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
+
+		updatedTeam, _, err := c.UpdateTeamPrivacy(context.TODO(), team.Id, privacy)
+		if err != nil {
+			errs = multierror.Append(errs, errors.New("Unable to modify team '"+team.Name+"' error: "+err.Error()))
+			continue
 		}
+
+		printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
 	}
 
-	return nil
+	for _, err := range errs.WrappedErrors() {
+		printer.PrintError(err.Error())
+	}
+
+	return errs.ErrorOrNil()
 }
 
 func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {

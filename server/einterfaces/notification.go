@@ -9,6 +9,6 @@ import (
 )
 
 type NotificationInterface interface {
-	GetNotificationMessage(c *request.Context, ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError)
+	GetNotificationMessage(c request.CTX, ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError)
 	CheckLicense() *model.AppError
 }

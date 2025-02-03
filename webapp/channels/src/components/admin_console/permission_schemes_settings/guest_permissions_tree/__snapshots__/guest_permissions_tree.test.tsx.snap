@@ -70,6 +70,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "id": "guest_create_post",
             "permissions": Array [
               "create_post",
+              "upload_file",
             ],
           },
           Object {
@@ -194,6 +195,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "id": "guest_create_post",
             "permissions": Array [
               "create_post",
+              "upload_file",
             ],
           },
           Object {
@@ -311,6 +313,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "id": "guest_create_post",
             "permissions": Array [
               "create_post",
+              "upload_file",
             ],
           },
           Object {
@@ -435,6 +438,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "id": "guest_create_post",
             "permissions": Array [
               "create_post",
+              "upload_file",
             ],
           },
           Object {
@@ -559,6 +563,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "id": "guest_create_post",
             "permissions": Array [
               "create_post",
+              "upload_file",
             ],
           },
           Object {
@@ -699,6 +704,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
             "id": "guest_create_post",
             "permissions": Array [
               "create_post",
+              "upload_file",
             ],
           },
           Object {

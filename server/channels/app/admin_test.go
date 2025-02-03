@@ -32,19 +32,21 @@ func TestGetLatestVersion(t *testing.T) {
 	require.NoError(t, jsonErr)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(validJSON)
+		_, err := w.Write(validJSON)
+		require.NoError(t, err)
 	}))
 	defer ts.Close()
 
 	t.Run("get latest mm version happy path", func(t *testing.T) {
-		_, err := th.App.GetLatestVersion(ts.URL)
+		_, err := th.App.GetLatestVersion(th.Context, ts.URL)
 		require.Nil(t, err)
 	})
 
 	t.Run("get latest mm version from cache", func(t *testing.T) {
-		th.App.ClearLatestVersionCache()
-		originalResult, err := th.App.GetLatestVersion(ts.URL)
-		require.Nil(t, err)
+		err := th.App.clearLatestVersionCache()
+		require.NoError(t, err)
+		originalResult, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		require.Nil(t, appErr)
 
 		// Call same function but mock the GET request to return a different result.
 		// We are hoping the function will use the cache instead of making the GET request
@@ -62,29 +64,33 @@ func TestGetLatestVersion(t *testing.T) {
 		require.NoError(t, jsonErr)
 
 		updatedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Write(updatedJSON)
+			_, err := w.Write(updatedJSON)
+			require.NoError(t, err)
 		}))
 		defer ts.Close()
 
-		cachedResult, err := th.App.GetLatestVersion(updatedServer.URL)
-		require.Nil(t, err)
+		cachedResult, appErr := th.App.GetLatestVersion(th.Context, updatedServer.URL)
+		require.Nil(t, appErr)
 
 		require.Equal(t, originalResult.TagName, cachedResult.TagName, "did not get cached result")
 	})
 
 	t.Run("get latest mm version error from external", func(t *testing.T) {
-		th.App.ClearLatestVersionCache()
+		err := th.App.clearLatestVersionCache()
+		require.NoError(t, err)
+
 		errorServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`
+			_, err := w.Write([]byte(`
 				{
 					"message": "internal server error"
 				}
 			`))
+			require.NoError(t, err)
 		}))
 		defer ts.Close()
 
-		_, appErr := th.App.GetLatestVersion(errorServer.URL)
+		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
 		require.NotNil(t, appErr)
 	})
 }

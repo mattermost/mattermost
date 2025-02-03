@@ -8,8 +8,8 @@
         height: 32px;
         padding: 0 10px;
         border: 0;
-        background: var(--sys-center-channel-bg);
         border-radius: 4px;
+        background: var(--sys-center-channel-bg);
         color: var(--sys-button-bg);
         font-size: 12px;
 
@@ -36,10 +36,10 @@
         box-sizing: border-box;
         padding: 16px;
         border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+        border-radius: 4px;
         margin-top: 4px;
         margin-bottom: 24px;
         background: var(--sys-center-channel-bg);
-        border-radius: 4px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
         &.Filter__show {
@@ -90,7 +90,7 @@
 
         &.FilterList__full {
             display: block;
-            width: 320px;
+            width: 100%;
         }
 
         .FilterList_name {
@@ -100,6 +100,55 @@
             font-weight: 600;
         }
 
+        .filterListSelect {
+            &__control {
+                min-height: 32px;
+                border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+                border-radius: 4px;
+                background: var(--sys-center-channel-bg);
+                color: rgba(var(--sys-center-channel-color-rgb), 0.75);
+                font-size: 12px;
+
+                &:hover {
+                    border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.48);
+                }
+            }
+
+            &__option {
+                background: var(--sys-center-channel-bg);
+                color: rgba(var(--sys-center-channel-color-rgb), 0.8);
+                cursor: pointer;
+                font-size: 12px;
+
+                &:hover {
+                    background: rgba(var(--sys-center-channel-color-rgb), 0.08);
+                }
+            }
+
+            &__indicator {
+                padding: 9px;
+                color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+                cursor: pointer;
+
+                > svg {
+                    width: 14px;
+                    height: 14px;
+                }
+            }
+
+            &__indicator-separator {
+                background-color: rgba(var(--sys-center-channel-color-rgb), 0.16);
+            }
+
+            &__multi-value__remove {
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.16);
+                    color: inherit;
+                    cursor: pointer;
+                }
+            }
+        }
+
         .FilterList_checkbox {
             color: rgba(var(--sys-center-channel-color-rgb), 0.8);
 
@@ -107,7 +156,7 @@
                 position: relative;
                 top: -4px;
                 margin: 0 8px 0 2px;
-                opacity: 0.64;
+                opacity: 0.73;
                 vertical-align: bottom;
 
                 &:checked {

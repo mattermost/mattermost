@@ -2,18 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime, defineMessage} from 'react-intl';
 
 import type {Compliance} from '@mattermost/types/compliance';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
-import LocalizedInput from 'components/localized_input/localized_input';
+import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
-
-import {t} from 'utils/i18n';
 
 type Props = {
 
@@ -45,12 +44,12 @@ type Props = {
         /*
             * Function to get compliance reports
             */
-        getComplianceReports: () => Promise<{data: Compliance[]}>;
+        getComplianceReports: () => Promise<ActionResult<Compliance[]>>;
 
         /*
             * Function to save compliance reports
             */
-        createComplianceReport: (job: Partial<Compliance>) => Promise<{data: Compliance; error?: Error}>;
+        createComplianceReport: (job: Partial<Compliance>) => Promise<ActionResult<Compliance>>;
     };
 }
 
@@ -339,84 +338,84 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                 </h4>
                 <div className='row'>
                     <div className='col-sm-6 col-md-4 form-group'>
-                        <label>
+                        <label htmlFor='desc'>
                             <FormattedMessage
                                 id='admin.compliance_reports.desc'
                                 defaultMessage='Job Name:'
                             />
                         </label>
-                        <LocalizedInput
+                        <LocalizedPlaceholderInput
                             type='text'
                             className='form-control'
                             id='desc'
                             ref={this.descInput}
-                            placeholder={{id: t('admin.compliance_reports.desc_placeholder'), defaultMessage: 'E.g. "Audit 445 for HR"'}}
+                            placeholder={defineMessage({id: 'admin.compliance_reports.desc_placeholder', defaultMessage: 'E.g. "Audit 445 for HR"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>
                     <div className='col-sm-3 col-md-2 form-group'>
-                        <label>
+                        <label htmlFor='from'>
                             <FormattedMessage
                                 id='admin.compliance_reports.from'
                                 defaultMessage='From:'
                             />
                         </label>
-                        <LocalizedInput
+                        <LocalizedPlaceholderInput
                             type='text'
                             className='form-control'
                             id='from'
                             ref={this.fromInput}
-                            placeholder={{id: t('admin.compliance_reports.from_placeholder'), defaultMessage: 'E.g. "2016-03-11"'}}
+                            placeholder={defineMessage({id: 'admin.compliance_reports.from_placeholder', defaultMessage: 'E.g. "2016-03-11"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>
                     <div className='col-sm-3 col-md-2 form-group'>
-                        <label>
+                        <label htmlFor='to'>
                             <FormattedMessage
                                 id='admin.compliance_reports.to'
                                 defaultMessage='To:'
                             />
                         </label>
-                        <LocalizedInput
+                        <LocalizedPlaceholderInput
                             type='text'
                             className='form-control'
                             id='to'
                             ref={this.toInput}
-                            placeholder={{id: t('admin.compliance_reports.to_placeholder'), defaultMessage: 'E.g. "2016-03-15"'}}
+                            placeholder={defineMessage({id: 'admin.compliance_reports.to_placeholder', defaultMessage: 'E.g. "2016-03-15"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>
                 </div>
                 <div className='row'>
                     <div className='col-sm-6 col-md-4 form-group'>
-                        <label>
+                        <label htmlFor='emails'>
                             <FormattedMessage
                                 id='admin.compliance_reports.emails'
                                 defaultMessage='Emails:'
                             />
                         </label>
-                        <LocalizedInput
+                        <LocalizedPlaceholderInput
                             type='text'
                             className='form-control'
                             id='emails'
                             ref={this.emailsInput}
-                            placeholder={{id: t('admin.compliance_reports.emails_placeholder'), defaultMessage: 'E.g. "bill@example.com, bob@example.com"'}}
+                            placeholder={defineMessage({id: 'admin.compliance_reports.emails_placeholder', defaultMessage: 'E.g. "bill@example.com, bob@example.com"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>
                     <div className='col-sm-6 col-md-4 form-group'>
-                        <label>
+                        <label htmlFor='keywords'>
                             <FormattedMessage
                                 id='admin.compliance_reports.keywords'
                                 defaultMessage='Keywords:'
                             />
                         </label>
-                        <LocalizedInput
+                        <LocalizedPlaceholderInput
                             type='text'
                             className='form-control'
                             id='keywords'
                             ref={this.keywordsInput}
-                            placeholder={{id: t('admin.compliance_reports.keywords_placeholder'), defaultMessage: 'E.g. "shorting stock"'}}
+                            placeholder={defineMessage({id: 'admin.compliance_reports.keywords_placeholder', defaultMessage: 'E.g. "shorting stock"'})}
                             disabled={this.props.readOnly}
                         />
                     </div>

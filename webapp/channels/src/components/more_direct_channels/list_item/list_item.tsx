@@ -3,9 +3,9 @@
 
 import classNames from 'classnames';
 import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import Timestamp from 'components/timestamp';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 
 import UserDetails from './user_details';
 
@@ -44,6 +44,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
         add,
         select,
     } = props;
+    const intl = useIntl();
 
     const {last_post_at: lastPostAt} = option;
 
@@ -76,9 +77,15 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
             }
 
             <div className='more-modal__actions'>
-                <div className='more-modal__actions--round'>
-                    <AddIcon/>
-                </div>
+                <button
+                    className='more-modal__actions--round'
+                    aria-label={intl.formatMessage({
+                        id: 'more_direct_channels.new_convo_add.label',
+                        defaultMessage: 'Add option {label}',
+                    }, {label: option.label})}
+                >
+                    <i className='icon icon-plus'/>
+                </button>
             </div>
         </div>
     );
@@ -92,7 +99,7 @@ function GMDetails(props: {option: GroupChannel}) {
 
     return (
         <>
-            <div className='more-modal__gm-icon bg-text-200'>
+            <div className='more-modal__gm-icon'>
                 {option.profiles.length}
             </div>
             <div className='more-modal__details'>

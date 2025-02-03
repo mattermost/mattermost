@@ -7,7 +7,7 @@ import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 
 import AboutBuildModal from 'components/about_build_modal/about_build_modal';
 
-import {renderWithFullContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {AboutLinks} from 'utils/constants';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
@@ -25,11 +25,19 @@ describe('components/AboutBuildModal', () => {
 
     let config: Partial<ClientConfig> = {};
     let license: ClientLicense = {};
+    let socketStatus = {
+        connected: false,
+        serverHostname: '',
+    };
 
     afterEach(() => {
         global.Date = RealDate;
         config = {};
         license = {};
+        socketStatus = {
+            connected: false,
+            serverHostname: '',
+        };
     });
 
     beforeEach(() => {
@@ -39,7 +47,7 @@ describe('components/AboutBuildModal', () => {
             BuildEnterpriseReady: 'true',
             Version: '3.6.0',
             SchemaVersion: '77',
-            BuildNumber: '3.6.2',
+            BuildNumber: '123456',
             SQLDriverName: 'Postgres',
             BuildHash: 'abcdef1234567890',
             BuildHashEnterprise: '0123456789abcdef',
@@ -51,16 +59,22 @@ describe('components/AboutBuildModal', () => {
             IsLicensed: 'true',
             Company: 'Mattermost Inc',
         };
+        socketStatus = {
+            connected: true,
+            serverHostname: 'mock.localhost',
+        };
     });
 
     test('should match snapshot for enterprise edition', () => {
-        renderAboutBuildModal({config, license});
-        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.2');
+        renderAboutBuildModal({config, license, socketStatus});
+        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.0');
         expect(screen.getByTestId('aboutModalDBVersionString')).toHaveTextContent('Database Schema Version: 77');
+        expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: 123456');
         expect(screen.getByText('Mattermost Enterprise Edition')).toBeInTheDocument();
         expect(screen.getByText('Modern communication from behind your firewall.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com'})).toHaveAttribute('href', 'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=');
         expect(screen.getByText('EE Build Hash: 0123456789abcdef', {exact: false})).toBeInTheDocument();
+        expect(screen.queryByText('Hostname: mock.localhost', {exact: false})).toBeInTheDocument();
 
         expect(screen.getByRole('link', {name: 'server'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt');
         expect(screen.getByRole('link', {name: 'desktop'})).toHaveAttribute('href', 'https://github.com/mattermost/desktop/blob/master/NOTICE.txt');
@@ -74,13 +88,15 @@ describe('components/AboutBuildModal', () => {
             BuildHashEnterprise: '',
         };
 
-        renderAboutBuildModal({config: teamConfig, license: {}});
-        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.2');
+        renderAboutBuildModal({config: teamConfig, license: {}, socketStatus: {connected: false}});
+        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.0');
         expect(screen.getByTestId('aboutModalDBVersionString')).toHaveTextContent('Database Schema Version: 77');
+        expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: 123456');
         expect(screen.getByText('Mattermost Team Edition')).toBeInTheDocument();
         expect(screen.getByText('All your team communication in one place, instantly searchable and accessible anywhere.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=');
         expect(screen.queryByText('EE Build Hash: 0123456789abcdef')).not.toBeInTheDocument();
+        expect(screen.queryByText('Hostname: disconnected', {exact: false})).toBeInTheDocument();
 
         expect(screen.getByRole('link', {name: 'server'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt');
         expect(screen.getByRole('link', {name: 'desktop'})).toHaveAttribute('href', 'https://github.com/mattermost/desktop/blob/master/NOTICE.txt');
@@ -92,7 +108,7 @@ describe('components/AboutBuildModal', () => {
             license.Cloud = 'true';
         }
 
-        renderWithFullContext(
+        renderWithContext(
             <AboutBuildModalCloud
                 config={config}
                 license={license}
@@ -104,14 +120,14 @@ describe('components/AboutBuildModal', () => {
 
         expect(screen.getByText('Mattermost Cloud')).toBeInTheDocument();
         expect(screen.getByText('High trust messaging for the enterprise')).toBeInTheDocument();
-
+        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.0');
         expect(screen.getByText('0123456789abcdef', {exact: false})).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'server'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt');
         expect(screen.getByRole('link', {name: 'desktop'})).toHaveAttribute('href', 'https://github.com/mattermost/desktop/blob/master/NOTICE.txt');
         expect(screen.getByRole('link', {name: 'mobile'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
     });
 
-    test('should show dev if this is a dev build', () => {
+    test('should show n/a if this is a dev build', () => {
         const sameBuildConfig = {
             ...config,
             BuildEnterpriseReady: 'false',
@@ -121,39 +137,16 @@ describe('components/AboutBuildModal', () => {
             BuildNumber: 'dev',
         };
 
-        renderAboutBuildModal({config: sameBuildConfig, license: {}});
+        renderAboutBuildModal({config: sameBuildConfig, license: {}, socketStatus: {connected: true}});
 
         expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: dev');
         expect(screen.getByTestId('aboutModalDBVersionString')).toHaveTextContent('Database Schema Version: 77');
+        expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: n/a');
         expect(screen.getByText('Mattermost Team Edition')).toBeInTheDocument();
         expect(screen.getByText('All your team communication in one place, instantly searchable and accessible anywhere.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=');
         expect(screen.queryByText('EE Build Hash: 0123456789abcdef')).not.toBeInTheDocument();
-
-        expect(screen.getByRole('link', {name: 'server'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt');
-        expect(screen.getByRole('link', {name: 'desktop'})).toHaveAttribute('href', 'https://github.com/mattermost/desktop/blob/master/NOTICE.txt');
-        expect(screen.getByRole('link', {name: 'mobile'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
-    });
-
-    test('should show ci if a ci build', () => {
-        const differentBuildConfig = {
-            ...config,
-            BuildEnterpriseReady: 'false',
-            BuildHashEnterprise: '',
-            Version: '3.6.0',
-            SchemaVersion: '77',
-            BuildNumber: '123',
-        };
-
-        renderAboutBuildModal({config: differentBuildConfig, license: {}});
-
-        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: ci');
-        expect(screen.getByTestId('aboutModalDBVersionString')).toHaveTextContent('Database Schema Version: 77');
-        expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: 123');
-        expect(screen.getByText('Mattermost Team Edition')).toBeInTheDocument();
-        expect(screen.getByText('All your team communication in one place, instantly searchable and accessible anywhere.')).toBeInTheDocument();
-        expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=');
-        expect(screen.queryByText('EE Build Hash: 0123456789abcdef')).not.toBeInTheDocument();
+        expect(screen.queryByText('Hostname: server did not provide hostname', {exact: false})).toBeInTheDocument();
 
         expect(screen.getByRole('link', {name: 'server'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt');
         expect(screen.getByRole('link', {name: 'desktop'})).toHaveAttribute('href', 'https://github.com/mattermost/desktop/blob/master/NOTICE.txt');
@@ -176,10 +169,11 @@ describe('components/AboutBuildModal', () => {
             },
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <AboutBuildModal
                 config={config}
                 license={license}
+                socketStatus={socketStatus}
                 onExited={onExited}
             />,
             state,
@@ -203,10 +197,11 @@ describe('components/AboutBuildModal', () => {
                 },
             },
         };
-        renderWithFullContext(
+        renderWithContext(
             <AboutBuildModal
                 config={config}
                 license={license}
+                socketStatus={socketStatus}
                 onExited={jest.fn()}
             />,
             state,
@@ -229,9 +224,10 @@ describe('components/AboutBuildModal', () => {
             onExited,
             config,
             license,
+            socketStatus,
             ...props,
         };
 
-        return renderWithFullContext(<AboutBuildModal {...allProps}/>);
+        return renderWithContext(<AboutBuildModal {...allProps}/>);
     }
 });

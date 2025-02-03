@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import {sectionStrings} from './strings';
 import SystemRolePermissionDropdown from './system_role_permission_dropdown';
 import {noAccess, writeAccess, readAccess, mixedAccess} from './types';
 import type {PermissionsToUpdate, PermissionToUpdate, SystemSection, PermissionAccess} from './types';
@@ -78,6 +79,8 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
     };
 
     renderSectionRow = (section: SystemSection, permissionsMap: Record<string, boolean>, permissionsToUpdate: PermissionsToUpdate, isSectionVisible: boolean) => {
+        const name = sectionStrings[section.name] ? <FormattedMessage {...sectionStrings[section.name].name}/> : section.name;
+        const description = sectionStrings[section.name] ? <FormattedMessage {...sectionStrings[section.name].description}/> : '';
         return (
             <div
                 key={section.name}
@@ -85,18 +88,12 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
             >
                 <div className='PermissionSectionText'>
                     <div className='PermissionSectionText_title'>
-                        <FormattedMessage
-                            id={`admin.permissions.sysconsole_section_${section.name}.name`}
-                            defaultMessage={section.name}
-                        />
+                        {name}
                     </div>
 
-                    {section.hasDescription &&
+                    {section.hasDescription && description &&
                         <div className='PermissionSection_description'>
-                            <FormattedMessage
-                                id={`admin.permissions.sysconsole_section_${section.name}.description`}
-                                defaultMessage={''}
-                            />
+                            {description}
                         </div>
                     }
 

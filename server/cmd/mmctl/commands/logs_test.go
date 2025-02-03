@@ -32,7 +32,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLogs(context.Background(), 0, 1).
+			GetLogs(context.TODO(), 0, 1).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
@@ -49,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLogs(context.Background(), 0, 0).
+			GetLogs(context.TODO(), 0, 0).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
@@ -68,7 +68,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.client.
 			EXPECT().
-			GetLogs(context.Background(), 0, 1).
+			GetLogs(context.TODO(), 0, 1).
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 

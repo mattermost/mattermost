@@ -78,7 +78,7 @@ describe('Custom emojis', () => {
         cy.findByPlaceholderText('Search emojis').should('be.visible').type(emojiNameForSearch1, {delay: TIMEOUTS.QUARTER_SEC});
 
         // * Get list of emojis based on search text
-        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for "' + emojiNameForSearch1 + '"');
+        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for “' + emojiNameForSearch1 + '”');
 
         // # Search for an existing emoji
         cy.findByPlaceholderText('Search emojis').should('be.visible').clear().type(emojiNameForSearch2, {delay: TIMEOUTS.QUARTER_SEC});
@@ -120,17 +120,19 @@ describe('Custom emojis', () => {
 
         cy.get('#emojiPicker').should('be.visible').within(() => {
             // # Scroll to start of custom category section
-            cy.findByLabelText('emoji_picker.custom').should('exist').click().wait(TIMEOUTS.FIVE_SEC);
+            cy.get('i.icon-emoticon-custom-outline').as('customSection');
+            cy.get('@customSection').click().wait(TIMEOUTS.FIVE_SEC);
+            cy.get('@customSection').click().wait(TIMEOUTS.FIVE_SEC);
 
             // * Verify custom category header is visible
             cy.findByText('Custom').should('exist').and('is.visible');
 
             // * Verify that first custom emoji exists and is visible to user
-            cy.findAllByAltText('custom emoji image').should('exist').eq(0).and('is.visible');
+            cy.findAllByAltText('custom emoji').should('exist').eq(0).and('is.visible');
 
             // * Verify second custom emoji exists and is visible to user,
             // if both custom emojis are visible we can conclude that they are not overlapping
-            cy.findAllByAltText('custom emoji image').should('exist').eq(1).and('is.visible');
+            cy.findAllByAltText('custom emoji').should('exist').eq(1).and('is.visible');
         });
     });
 });

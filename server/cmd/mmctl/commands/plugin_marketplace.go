@@ -50,7 +50,7 @@ var PluginMarketplaceListCmd = &cobra.Command{
 
 func init() {
 	PluginMarketplaceListCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
-	PluginMarketplaceListCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
+	PluginMarketplaceListCmd.Flags().Int("per-page", DefaultPageSize, "Number of users to be fetched")
 	PluginMarketplaceListCmd.Flags().Bool("all", false, "Fetch all plugins. --page flag will be ignore if provided")
 	PluginMarketplaceListCmd.Flags().String("filter", "", "Filter plugins by ID, name or description")
 	PluginMarketplaceListCmd.Flags().Bool("local-only", false, "Only retrieve local plugins")

@@ -23,22 +23,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
-func ptrStr(s string) *string {
-	return &s
-}
-
-func ptrInt64(i int64) *int64 {
-	return &i
-}
-
-func ptrInt(i int) *int {
-	return &i
-}
-
-func ptrBool(b bool) *bool {
-	return &b
-}
-
 func checkPreference(t *testing.T, a *App, userID string, category string, name string, value string) {
 	preferences, err := a.Srv().Store().Preference().GetCategory(userID, category)
 	require.NoErrorf(t, err, "Failed to get preferences for user %v with category %v", userID, category)
@@ -166,9 +150,9 @@ func TestImportBulkImport(t *testing.T) {
 
 	teamName := model.NewRandomTeamName()
 	channelName := model.NewId()
-	username := model.NewId()
-	username2 := model.NewId()
-	username3 := model.NewId()
+	username := model.NewUsername()
+	username2 := model.NewUsername()
+	username3 := model.NewUsername()
 	emojiName := model.NewId()
 	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
@@ -250,7 +234,7 @@ func TestImportBulkImport(t *testing.T) {
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	data := imports.LineImportData{
 		Type:    "version",
-		Version: ptrInt(1),
+		Version: model.NewPointer(1),
 	}
 	version, err := processImportDataFileVersionLine(data)
 	require.Nil(t, err, "Expected no error")
@@ -267,12 +251,16 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userID string, th *TestHelper, t *testing.T) []*model.FileInfo {
+	t.Helper()
+
 	fileInfos, err := th.App.Srv().Store().FileInfo().GetForUser(userID)
 	require.NoError(t, err)
 	return fileInfos
 }
 
 func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
+	t.Helper()
+
 	postID := files[0].PostId
 	require.NotNil(t, postID)
 
@@ -291,10 +279,10 @@ func TestProcessAttachments(t *testing.T) {
 	genAttachments := func() *[]imports.AttachmentImportData {
 		return &[]imports.AttachmentImportData{
 			{
-				Path: model.NewString("file.jpg"),
+				Path: model.NewPointer("file.jpg"),
 			},
 			{
-				Path: model.NewString("somedir/file.jpg"),
+				Path: model.NewPointer("somedir/file.jpg"),
 			},
 		}
 	}
@@ -316,24 +304,26 @@ func TestProcessAttachments(t *testing.T) {
 	userLine := imports.LineImportData{
 		Type: "user",
 		User: &imports.UserImportData{
-			ProfileImage: model.NewString("profile.jpg"),
+			Avatar: imports.Avatar{
+				ProfileImage: model.NewPointer("profile.jpg"),
+			},
 		},
 	}
 
 	emojiLine := imports.LineImportData{
 		Type: "emoji",
 		Emoji: &imports.EmojiImportData{
-			Image: model.NewString("emoji.png"),
+			Image: model.NewPointer("emoji.png"),
 		},
 	}
 
 	t.Run("empty path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewString("file.jpg"),
+				Path: model.NewPointer("file.jpg"),
 			},
 			{
-				Path: model.NewString("somedir/file.jpg"),
+				Path: model.NewPointer("somedir/file.jpg"),
 			},
 		}
 
@@ -348,10 +338,10 @@ func TestProcessAttachments(t *testing.T) {
 	t.Run("valid path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewString("/tmp/file.jpg"),
+				Path: model.NewPointer("/tmp/file.jpg"),
 			},
 			{
-				Path: model.NewString("/tmp/somedir/file.jpg"),
+				Path: model.NewPointer("/tmp/somedir/file.jpg"),
 			},
 		}
 
@@ -459,7 +449,7 @@ func BenchmarkBulkImport(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, runtime.NumCPU(), dir)
+		err, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, runtime.NumCPU(), dir)
 		require.Nil(b, err)
 	}
 	b.StopTimer()
@@ -495,9 +485,9 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 	}
 	require.NotNil(t, jsonFile)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(1000) })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewPointer(1000) })
 
-	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, 1, model.ExportDataDir)
+	appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
 	require.Nil(t, appErr)
 
 	adminUser, appErr := th.App.GetUserByUsername("sysadmin")

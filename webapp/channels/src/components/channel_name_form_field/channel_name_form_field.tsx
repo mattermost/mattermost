@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {IntlShape} from 'react-intl';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -15,7 +16,7 @@ import URLInput from 'components/widgets/inputs/url_input/url_input';
 
 import Constants from 'utils/constants';
 import {cleanUpUrlable, getSiteURL, validateChannelUrl} from 'utils/url';
-import {generateSlug, localizeMessage} from 'utils/utils';
+import {generateSlug} from 'utils/utils';
 
 export type Props = {
     value: string;
@@ -31,17 +32,17 @@ export type Props = {
 
 import './channel_name_form_field.scss';
 
-function validateDisplayName(displayNameParam: string) {
+function validateDisplayName(intl: IntlShape, displayNameParam: string) {
     const errors: string[] = [];
 
     const displayName = displayNameParam.trim();
 
     if (displayName.length < Constants.MIN_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.longer', 'Channel names must have at least 2 characters.'));
+        errors.push(intl.formatMessage({id: 'channel_modal.name.longer', defaultMessage: 'Channel names must have at least 2 characters.'}));
     }
 
     if (displayName.length > Constants.MAX_CHANNELNAME_LENGTH) {
-        errors.push(localizeMessage('channel_modal.name.shorter', 'Channel names must have maximum 64 characters.'));
+        errors.push(intl.formatMessage({id: 'channel_modal.name.shorter', defaultMessage: 'Channel names must have maximum 64 characters.'}));
     }
 
     return errors;
@@ -61,14 +62,14 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     const [urlError, setURLError] = useState<string>('');
     const [inputCustomMessage, setInputCustomMessage] = useState<CustomMessageInputType | null>(null);
 
-    const {name: currentTeamName} = useSelector(getCurrentTeam);
+    const currentTeamName = useSelector(getCurrentTeam)?.name;
     const teamName = props.team ? props.team.name : currentTeamName;
 
     const handleOnDisplayNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         const {target: {value: updatedDisplayName}} = e;
 
-        const displayNameErrors = validateDisplayName(updatedDisplayName);
+        const displayNameErrors = validateDisplayName(intl, updatedDisplayName);
 
         // set error if any, else clear it
         setDisplayNameError(displayNameErrors.length ? displayNameErrors[displayNameErrors.length - 1] : '');
@@ -96,7 +97,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [props.onURLChange, displayName.current, url, displayNameModified]);
 
-    const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         e.preventDefault();
         const {target: {value: url}} = e;
 
@@ -116,7 +117,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
     }, [displayNameError, urlError]);
 
     return (
-        <React.Fragment>
+        <>
             <Input
                 type='text'
                 autoComplete='off'
@@ -143,7 +144,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 error={urlError || props.urlError}
                 onChange={handleOnURLChange}
             />
-        </React.Fragment>
+        </>
     );
 };
 

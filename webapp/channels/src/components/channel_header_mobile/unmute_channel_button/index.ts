@@ -6,11 +6,10 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import UnmuteChannelButton from './unmute_channel_button';
 
-const mapDispatchToProps = (dispatch: Dispatch<GenericAction>) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
         updateChannelNotifyProps,
     }, dispatch),

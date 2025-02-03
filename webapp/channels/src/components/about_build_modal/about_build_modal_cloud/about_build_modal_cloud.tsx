@@ -57,18 +57,13 @@ export default function AboutBuildModalCloud(props: Props) {
         </div>
     );
 
-    let mmversion = config.BuildNumber;
-    if (!isNaN(config.BuildNumber)) {
-        mmversion = 'ci';
-    }
-
     return (
         <Modal
             dialogClassName={classNames('a11y__modal', 'about-modal', 'cloud')}
             show={props.show}
             onHide={props.doHide}
             onExited={props.onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='aboutModalLabel'
         >
             <Modal.Header closeButton={true}>
@@ -94,12 +89,12 @@ export default function AboutBuildModalCloud(props: Props) {
                         </h3>
                         <p className='subtitle'>{subTitle}</p>
                         <div className='description'>
-                            <div>
+                            <div data-testid='aboutModalVersion'>
                                 <FormattedMessage
                                     id='about.version'
                                     defaultMessage='Mattermost Version:'
                                 />
-                                <span id='versionString'>{'\u00a0' + mmversion}</span>
+                                <span id='versionString'>{'\u00a0' + config.Version}</span>
                             </div>
                         </div>
                         {licensee}

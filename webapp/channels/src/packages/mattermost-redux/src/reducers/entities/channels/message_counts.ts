@@ -8,6 +8,7 @@ import type {
 } from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {
     AdminTypes,
     ChannelTypes,
@@ -15,9 +16,8 @@ import {
     SchemeTypes,
 } from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-export default function messageCounts(state: RelationOneToOne<Channel, ChannelMessageCount> = {}, action: GenericAction): RelationOneToOne<Channel, ChannelMessageCount> {
+export default function messageCounts(state: RelationOneToOne<Channel, ChannelMessageCount> = {}, action: MMReduxAction): RelationOneToOne<Channel, ChannelMessageCount> {
     switch (action.type) {
     case ChannelTypes.RECEIVED_CHANNEL: {
         const channel: ServerChannel = action.data;

@@ -6,12 +6,13 @@ import {combineReducers} from 'redux';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 
+import type {MMAction} from 'types/store';
+
 // plugins tracks the set of marketplace plugins returned by the server
-function plugins(state: MarketplacePlugin[] = [], action: GenericAction): MarketplacePlugin[] {
+function plugins(state: MarketplacePlugin[] = [], action: MMAction): MarketplacePlugin[] {
     switch (action.type) {
     case ActionTypes.RECEIVED_MARKETPLACE_PLUGINS:
         return action.plugins ? action.plugins : [];
@@ -31,7 +32,7 @@ function plugins(state: MarketplacePlugin[] = [], action: GenericAction): Market
 }
 
 // apps tracks the set of marketplace apps returned by the apps plugin
-function apps(state: MarketplaceApp[] = [], action: GenericAction): MarketplaceApp[] {
+function apps(state: MarketplaceApp[] = [], action: MMAction): MarketplaceApp[] {
     switch (action.type) {
     case ActionTypes.RECEIVED_MARKETPLACE_APPS:
         return action.apps ? action.apps : [];
@@ -51,7 +52,7 @@ function apps(state: MarketplaceApp[] = [], action: GenericAction): MarketplaceA
 }
 
 // installing tracks the items pending installation
-function installing(state: {[id: string]: boolean} = {}, action: GenericAction): {[id: string]: boolean} {
+function installing(state: {[id: string]: boolean} = {}, action: MMAction): {[id: string]: boolean} {
     switch (action.type) {
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM:
         if (state[action.id]) {
@@ -65,7 +66,7 @@ function installing(state: {[id: string]: boolean} = {}, action: GenericAction):
 
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM_SUCCEEDED:
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM_FAILED: {
-        if (!Object.prototype.hasOwnProperty.call(state, action.id)) {
+        if (!Object.hasOwn(state, action.id)) {
             return state;
         }
 
@@ -90,7 +91,7 @@ function installing(state: {[id: string]: boolean} = {}, action: GenericAction):
 }
 
 // errors tracks the error messages for items that failed installation
-function errors(state: {[id: string]: string} = {}, action: GenericAction): {[id: string]: string} {
+function errors(state: {[id: string]: string} = {}, action: MMAction): {[id: string]: string} {
     switch (action.type) {
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM_FAILED:
         return {
@@ -100,7 +101,7 @@ function errors(state: {[id: string]: string} = {}, action: GenericAction): {[id
 
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM_SUCCEEDED:
     case ActionTypes.INSTALLING_MARKETPLACE_ITEM: {
-        if (!Object.prototype.hasOwnProperty.call(state, action.id)) {
+        if (!Object.hasOwn(state, action.id)) {
             return state;
         }
 
@@ -125,7 +126,7 @@ function errors(state: {[id: string]: string} = {}, action: GenericAction): {[id
 }
 
 // filter tracks the current marketplace search query filter
-function filter(state = '', action: GenericAction): string {
+function filter(state = '', action: MMAction): string {
     switch (action.type) {
     case ActionTypes.FILTER_MARKETPLACE_LISTING:
         return action.filter;

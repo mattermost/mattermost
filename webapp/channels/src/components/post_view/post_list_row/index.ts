@@ -9,7 +9,6 @@ import {getCloudLimits, getCloudLimitsLoaded} from 'mattermost-redux/selectors/e
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLimitedViews, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getUsage} from 'mattermost-redux/selectors/entities/usage';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
@@ -56,7 +55,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return props;
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             emitShortcutReactToLastPostFrom,

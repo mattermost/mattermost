@@ -10,11 +10,11 @@ describe('components/admin_console/group_settings/group_details/GroupProfile', (
     test('should match snapshot', () => {
         const wrapper = shallow(
             <GroupProfile
+                customID='test'
                 isDisabled={false}
                 name='Test'
                 showAtMention={true}
-                title='admin.group_settings.group_details.group_profile.name'
-                titleDefault='Name:'
+                title={{id: 'admin.group_settings.group_details.group_profile.name', defaultMessage: 'Name:'}}
             />,
         );
         expect(wrapper).toMatchSnapshot();

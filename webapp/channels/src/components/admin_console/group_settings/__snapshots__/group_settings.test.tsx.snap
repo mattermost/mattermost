@@ -35,17 +35,24 @@ For more information on Groups, please see <link>documentation</link>."
         </div>
       </div>
       <AdminPanel
-        className=""
         id="ldap_groups"
-        subtitleDefault="Connect AD/LDAP and create groups in Mattermost. To get started, configure group attributes on the <link>AD/LDAP</link> configuration page."
-        subtitleId="admin.group_settings.ldapGroupsDescription"
+        subtitle={
+          Object {
+            "defaultMessage": "Connect AD/LDAP and create groups in Mattermost. To get started, configure group attributes on the <link>AD/LDAP</link> configuration page.",
+            "id": "admin.group_settings.ldapGroupsDescription",
+          }
+        }
         subtitleValues={
           Object {
             "link": [Function],
           }
         }
-        titleDefault="AD/LDAP Groups"
-        titleId="admin.group_settings.ldapGroupsTitle"
+        title={
+          Object {
+            "defaultMessage": "AD/LDAP Groups",
+            "id": "admin.group_settings.ldapGroupsTitle",
+          }
+        }
       >
         <Connect(GroupsList) />
       </AdminPanel>

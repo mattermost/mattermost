@@ -4,6 +4,7 @@
 package model
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"unicode/utf8"
@@ -116,38 +117,8 @@ func (o *ChannelMember) IsValid() *AppError {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	notifyLevel := o.NotifyProps[DesktopNotifyProp]
-	if len(notifyLevel) > 20 || !IsChannelNotifyLevelValid(notifyLevel) {
-		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_level.app_error", nil, "notify_level="+notifyLevel, http.StatusBadRequest)
-	}
-
-	markUnreadLevel := o.NotifyProps[MarkUnreadNotifyProp]
-	if len(markUnreadLevel) > 20 || !IsChannelMarkUnreadLevelValid(markUnreadLevel) {
-		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.unread_level.app_error", nil, "mark_unread_level="+markUnreadLevel, http.StatusBadRequest)
-	}
-
-	if pushLevel, ok := o.NotifyProps[PushNotifyProp]; ok {
-		if len(pushLevel) > 20 || !IsChannelNotifyLevelValid(pushLevel) {
-			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.push_level.app_error", nil, "push_notification_level="+pushLevel, http.StatusBadRequest)
-		}
-	}
-
-	if sendEmail, ok := o.NotifyProps[EmailNotifyProp]; ok {
-		if len(sendEmail) > 20 || !IsSendEmailValid(sendEmail) {
-			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.email_value.app_error", nil, "push_notification_level="+sendEmail, http.StatusBadRequest)
-		}
-	}
-
-	if ignoreChannelMentions, ok := o.NotifyProps[IgnoreChannelMentionsNotifyProp]; ok {
-		if len(ignoreChannelMentions) > 40 || !IsIgnoreChannelMentionsValid(ignoreChannelMentions) {
-			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.ignore_channel_mentions_value.app_error", nil, "ignore_channel_mentions="+ignoreChannelMentions, http.StatusBadRequest)
-		}
-	}
-
-	if channelAutoFollowThreads, ok := o.NotifyProps[ChannelAutoFollowThreads]; ok {
-		if len(channelAutoFollowThreads) > 3 || !IsChannelAutoFollowThreadsValid(channelAutoFollowThreads) {
-			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error", nil, "channel_auto_follow_threads="+channelAutoFollowThreads, http.StatusBadRequest)
-		}
+	if appErr := IsChannelMemberNotifyPropsValid(o.NotifyProps, false); appErr != nil {
+		return appErr
 	}
 
 	if len(o.Roles) > UserRolesMaxLength {
@@ -155,9 +126,49 @@ func (o *ChannelMember) IsValid() *AppError {
 			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
-	jsonStringNotifyProps := string(ToJSON(o.NotifyProps))
+	return nil
+}
+
+func IsChannelMemberNotifyPropsValid(notifyProps map[string]string, allowMissingFields bool) *AppError {
+	if notifyLevel, ok := notifyProps[DesktopNotifyProp]; ok || !allowMissingFields {
+		if len(notifyLevel) > 20 || !IsChannelNotifyLevelValid(notifyLevel) {
+			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_level.app_error", nil, "notify_level="+notifyLevel, http.StatusBadRequest)
+		}
+	}
+
+	if markUnreadLevel, ok := notifyProps[MarkUnreadNotifyProp]; ok || !allowMissingFields {
+		if len(markUnreadLevel) > 20 || !IsChannelMarkUnreadLevelValid(markUnreadLevel) {
+			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.unread_level.app_error", nil, "mark_unread_level="+markUnreadLevel, http.StatusBadRequest)
+		}
+	}
+
+	if pushLevel, ok := notifyProps[PushNotifyProp]; ok {
+		if len(pushLevel) > 20 || !IsChannelNotifyLevelValid(pushLevel) {
+			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.push_level.app_error", nil, "push_notification_level="+pushLevel, http.StatusBadRequest)
+		}
+	}
+
+	if sendEmail, ok := notifyProps[EmailNotifyProp]; ok {
+		if len(sendEmail) > 20 || !IsSendEmailValid(sendEmail) {
+			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.email_value.app_error", nil, "push_notification_level="+sendEmail, http.StatusBadRequest)
+		}
+	}
+
+	if ignoreChannelMentions, ok := notifyProps[IgnoreChannelMentionsNotifyProp]; ok {
+		if len(ignoreChannelMentions) > 40 || !IsIgnoreChannelMentionsValid(ignoreChannelMentions) {
+			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.ignore_channel_mentions_value.app_error", nil, "ignore_channel_mentions="+ignoreChannelMentions, http.StatusBadRequest)
+		}
+	}
+
+	if channelAutoFollowThreads, ok := notifyProps[ChannelAutoFollowThreads]; ok {
+		if len(channelAutoFollowThreads) > 3 || !IsChannelAutoFollowThreadsValid(channelAutoFollowThreads) {
+			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error", nil, "channel_auto_follow_threads="+channelAutoFollowThreads, http.StatusBadRequest)
+		}
+	}
+
+	jsonStringNotifyProps := string(ToJSON(notifyProps))
 	if utf8.RuneCountInString(jsonStringNotifyProps) > ChannelMemberNotifyPropsMaxRunes {
-		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_props.app_error", nil, "channel_id="+o.ChannelId+" user_id="+o.UserId, http.StatusBadRequest)
+		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_props.app_error", nil, fmt.Sprint("length=", utf8.RuneCountInString(jsonStringNotifyProps)), http.StatusBadRequest)
 	}
 
 	return nil
@@ -219,4 +230,9 @@ func GetDefaultChannelNotifyProps() StringMap {
 		IgnoreChannelMentionsNotifyProp: IgnoreChannelMentionsDefault,
 		ChannelAutoFollowThreads:        ChannelAutoFollowThreadsOff,
 	}
+}
+
+type ChannelMemberIdentifier struct {
+	ChannelId string `json:"channel_id"`
+	UserId    string `json:"user_id"`
 }

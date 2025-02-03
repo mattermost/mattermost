@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent, FormEvent, SyntheticEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
@@ -19,7 +19,6 @@ import SpinnerButton from 'components/spinner_button';
 import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 import type EmojiMap from 'utils/emoji_map';
-import {localizeMessage} from 'utils/utils';
 
 export interface AddEmojiProps {
     actions: {
@@ -207,7 +206,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         const genericError = (
             <FormattedMessage
                 id='add_emoji.failedToAdd'
-                defaultMessage='Something when wrong when adding the custom emoji.'
+                defaultMessage='Something went wrong when adding the custom emoji.'
             />
         );
 
@@ -385,10 +384,11 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 />
                             </Link>
                             <SpinnerButton
+                                data-testid='save-button'
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
-                                spinningText={localizeMessage('add_emoji.saving', 'Saving...')}
+                                spinningText={defineMessage({id: 'add_emoji.saving', defaultMessage: 'Saving...'})}
                                 onClick={this.handleSaveButtonClick}
                             >
                                 <FormattedMessage
