@@ -118,7 +118,6 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     <Menu.Separator/>
                 </ChannelPermissionGate>
             )}
-            <Menu.Separator/>
             <ChannelMoveToSubMenu channel={channel}/>
             <MenuItemPluginItems pluginItems={pluginItems}/>
             <Menu.Separator/>
