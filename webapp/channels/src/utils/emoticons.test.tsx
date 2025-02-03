@@ -31,6 +31,11 @@ describe('Emoticons', () => {
                 expect(Emoticons.handleEmoticons(emoticon, new Map())).toEqual('$MM_EMOTICON0$');
             });
         });
+        Array.prototype.concat(...Object.values(emoticonPatterns)).forEach((emoticon) => {
+            test(`escaped text sequence '${emoticon}' should not be recognized as an emoticon`, () => {
+                expect(Emoticons.handleEmoticons('\\' + emoticon, new Map())).toEqual(emoticon);
+            });
+        });
 
         // test various uses of emoticons
         test('should replace emoticons with tokens', () => {
