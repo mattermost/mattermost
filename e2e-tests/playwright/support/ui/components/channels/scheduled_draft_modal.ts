@@ -47,6 +47,7 @@ export default class ScheduledDraftModal {
         await this.dateInput.click();
 
         const pacificDate = this.getPacificDate();
+        const originDate = new Date(pacificDate.getTime());
 
         // If dayFromToday is provided, add days to the current date
         if (dayFromToday) {
@@ -57,7 +58,13 @@ export default class ScheduledDraftModal {
         const month = pacificDate.toLocaleString('default', {month: 'long'});
         const dayOfWeek = pacificDate.toLocaleDateString('en-US', {weekday: 'long'});
 
-        await this.dateLocator(day, month, dayOfWeek).click();
+        const dl = this.dateLocator(day, month, dayOfWeek);
+
+        // If the date is not visible and the month has changed, click the next month button
+        if (!(await dl.isVisible()) && pacificDate.getMonth() !== originDate.getMonth()) {
+            this.container.locator('button[aria-label="Go to next month"]').click();
+        }
+        await dl.click();
     }
 
     async confirm() {
