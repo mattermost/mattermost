@@ -45,6 +45,7 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
   onHide={[Function]}
   show={true}
   showCloseButton={true}
+  showHeader={true}
 >
   <div
     className="channel-switcher__suggestion-box"

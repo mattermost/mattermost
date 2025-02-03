@@ -28,6 +28,7 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onC
   onExited={[MockFunction]}
   show={true}
   showCloseButton={true}
+  showHeader={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to send this message to <strong>{displayName}</strong>?"
@@ -70,6 +71,7 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onE
   }
   show={true}
   showCloseButton={true}
+  showHeader={true}
 >
   <MemoizedFormattedMessage
     defaultMessage="Are you sure you want to send this message to <strong>{displayName}</strong>?"

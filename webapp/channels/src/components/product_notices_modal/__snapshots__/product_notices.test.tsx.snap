@@ -25,6 +25,8 @@ exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
   }
   onExited={[Function]}
   show={true}
+  showCloseButton={true}
+  showHeader={true}
 >
   <span
     className="productNotices__helpText"
@@ -77,6 +79,8 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
   }
   onExited={[Function]}
   show={true}
+  showCloseButton={true}
+  showHeader={true}
 >
   <span
     className="productNotices__helpText"
@@ -149,6 +153,8 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
   }
   onExited={[Function]}
   show={true}
+  showCloseButton={true}
+  showHeader={true}
 >
   <span
     className="productNotices__helpText"

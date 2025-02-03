@@ -43,6 +43,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
   onExited={[Function]}
   show={true}
   showCloseButton={true}
+  showHeader={true}
 >
   <injectIntl(SearchableChannelList)
     canShowArchivedChannels={true}
