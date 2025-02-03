@@ -3,8 +3,12 @@
 
 import type {ReactNode} from 'react';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {
+    ChevronRightIcon,
+    CogOutlineIcon,
+} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -38,6 +42,7 @@ type Props = {
 const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems}: Props) => {
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
+    const {formatMessage} = useIntl();
 
     return (
         <>
@@ -66,13 +71,32 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     channel={channel}
                 />
             )}
-            <EditConversationHeader
-                channel={channel}
-            />
-            {(!isArchived && !isGroupConstrained && !isGuest(user.roles)) && (
-                <MenuItemConvertToPrivate
+            {(isArchived && isGroupConstrained && isGuest(user.roles)) && (
+                <EditConversationHeader
                     channel={channel}
                 />
+            )}
+            {(!isArchived && !isGroupConstrained && !isGuest(user.roles)) && (
+                <Menu.SubMenu
+                    id={'channelSettings'}
+                    labels={
+                        <FormattedMessage
+                            id='channelSettings'
+                            defaultMessage='Channel Settings'
+                        />
+                    }
+                    leadingElement={<CogOutlineIcon size={18}/>}
+                    trailingElements={<ChevronRightIcon size={16}/>}
+                    menuId={'channelSettings-menu'}
+                    menuAriaLabel={formatMessage({id: 'channel_header.settings', defaultMessage: 'Settings'})}
+                >
+                    <EditConversationHeader
+                        channel={channel}
+                    />
+                    <MenuItemConvertToPrivate
+                        channel={channel}
+                    />
+                </Menu.SubMenu>
             )}
             <Menu.Separator/>
             {(!isArchived && !isGroupConstrained) && (
