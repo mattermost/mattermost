@@ -52,12 +52,12 @@ export type DispatchProps = {
         showFlaggedPosts: () => void;
         setRhsExpanded: (expanded: boolean) => Action;
         closeRightHandSide: () => void;
-        autocompleteChannelsForSearch: (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
+        autocompleteChannelsForSearch: (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
         autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
         updateRhsState: (rhsState: string) => void;
-        getMorePostsForSearch: () => void;
+        getMorePostsForSearch: (teamId: string) => void;
         openRHSSearch: () => void;
-        getMoreFilesForSearch: () => void;
+        getMoreFilesForSearch: (teamId: string) => void;
         filterFilesSearchByExt: (extensions: string[]) => void;
     };
 }

@@ -96,4 +96,67 @@ describe('Collapsed Reply Threads', () => {
             cy.uiCloseRHS();
         });
     });
+
+    it('MM-T5671 should handle mention counts correctly when marking a thread as unread and unfollowing it', () => {
+        // # Post a root post as current user
+        cy.postMessageAs({
+            sender: otherUser,
+            message: `@${testUser.username} Root post for mention test`,
+            channelId: testChannel.id,
+        }).then(({id: rootId}) => {
+            // # Post a reply mentioning the user
+            cy.postMessageAs({
+                sender: otherUser,
+                message: `Hey @${testUser.username}, check this out!`,
+                channelId: testChannel.id,
+                rootId,
+            }).then(({id: replyId}) => {
+                // # Post another reply mentioning the user
+                cy.postMessageAs({
+                    sender: otherUser,
+                    message: `Hey @${testUser.username}, check this out too!`,
+                    channelId: testChannel.id,
+                    rootId,
+                });
+
+                // # Click root post to open RHS
+                cy.get(`#post_${rootId}`).click();
+
+                // # Wait for RHS to open
+                cy.wait(TIMEOUTS.ONE_SEC);
+
+                // # Mark the thread as unread
+                cy.uiClickPostDropdownMenu(replyId, 'Mark as Unread', 'RHS_COMMENT');
+
+                // # Wait for unread to be marked correctly
+                cy.wait(TIMEOUTS.ONE_SEC);
+
+                // # Close RHS
+                cy.uiCloseRHS();
+
+                // # Switch to a different team
+                cy.apiCreateTeam('team', 'Team').then(({team: otherTeam}) => {
+                    // # Click on the other team button to switch teams
+                    cy.get(`#${otherTeam.name}TeamButton`).click();
+
+                    // * Verify mention count on the original team
+                    cy.get(`#${testTeam.name}TeamButton`).find('.badge').should('be.visible');
+
+                    // # Click on the original team button to switch back
+                    cy.get(`#${testTeam.name}TeamButton`).click();
+
+                    // # Unfollow the thread
+                    cy.uiGetPostThreadFooter(rootId).findByText('Following').click();
+
+                    // # Switch to a different team and back
+                    cy.get(`#${otherTeam.name}TeamButton`).click();
+                    cy.get(`#${testTeam.name}TeamButton`).click();
+                    cy.get(`#${otherTeam.name}TeamButton`).click();
+
+                    // * Verify there is no mention count on the original team
+                    cy.get(`#${testTeam.name}TeamButton`).find('.badge').should('not.exist');
+                });
+            });
+        });
+    });
 });
