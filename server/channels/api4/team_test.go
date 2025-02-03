@@ -915,7 +915,8 @@ func TestTeamUnicodeNames(t *testing.T) {
 			DisplayName: "Some\u206c Team",
 			Description: "A \ufffatest\ufffb channel.",
 			CompanyName: "\ufeffAcme Inc\ufffc",
-			Type:        model.TeamOpen}
+			Type:        model.TeamOpen,
+		}
 		rteam, resp, err := client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -932,7 +933,8 @@ func TestTeamUnicodeNames(t *testing.T) {
 			CompanyName: "Bad Company",
 			Name:        model.NewRandomTeamName(),
 			Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
-			Type:        model.TeamOpen}
+			Type:        model.TeamOpen,
+		}
 		team, _, _ = client.CreateTeam(context.Background(), team)
 
 		team.DisplayName = "\u206eThe Team\u206f"
@@ -953,7 +955,8 @@ func TestTeamUnicodeNames(t *testing.T) {
 			CompanyName: "Some company name",
 			Name:        model.NewRandomTeamName(),
 			Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
-			Type:        model.TeamOpen}
+			Type:        model.TeamOpen,
+		}
 		team, _, _ = client.CreateTeam(context.Background(), team)
 
 		patch := &model.TeamPatch{}
@@ -2814,21 +2817,11 @@ func TestRemoveTeamMemberEvents(t *testing.T) {
 
 	client1 := th.CreateClient()
 	th.LoginBasicWithClient(client1)
-	WebSocketClient, err := th.CreateWebSocketClientWithClient(client1)
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
-	resp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Status, model.StatusOk)
+	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client1)
 
 	client2 := th.CreateClient()
 	th.LoginBasic2WithClient(client2)
-	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
-	require.NoError(t, err)
-	defer WebSocketClient2.Close()
-	WebSocketClient2.Listen()
-	resp = <-WebSocketClient2.ResponseChannel
-	require.Equal(t, resp.Status, model.StatusOk)
+	WebSocketClient2 := th.CreateConnectedWebSocketClientWithClient(t, client2)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// remove second user from basic team
@@ -3039,7 +3032,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	assert.Equal(t, true, tm2.SchemeUser)
 	assert.Equal(t, false, tm2.SchemeAdmin)
 
-	//cannot set Guest to User for single team
+	// cannot set Guest to User for single team
 	resp, err := SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, guest.Id, s2)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -3381,7 +3374,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	memberInvite := &model.MemberInvite{Emails: []string{user1, user2}}
 	emailList := memberInvite.Emails
 
-	//Delete all the messages before check the sample email
+	// Delete all the messages before check the sample email
 	err := mail.DeleteMailBox(user1)
 	require.NoError(t, err)
 	err = mail.DeleteMailBox(user2)
@@ -3401,7 +3394,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	})
 
 	checkEmail := func(t *testing.T, expectedSubject string) {
-		//Check if the email was sent to the right email address
+		// Check if the email was sent to the right email address
 		for _, email := range emailList {
 			var resultsMailbox mail.JSONMessageHeaderInbucket
 			err = mail.RetryInbucket(5, func() error {
@@ -3428,9 +3421,11 @@ func TestInviteUsersToTeam(t *testing.T) {
 	require.NoError(t, err)
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := i18n.T("api.templates.invite_subject",
-		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{
+			"SenderName":      th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 	checkEmail(t, expectedSubject)
 
 	// Test the invite to team and channel
@@ -3441,10 +3436,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, _, err = th.SystemAdminClient.InviteUsersToTeamAndChannelsGracefully(context.Background(), th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
-		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{
+			"SenderName":      th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"ChannelName":     th.BasicChannel.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 	checkEmail(t, expectedSubject)
 
 	err = mail.DeleteMailBox(user1)
@@ -3454,9 +3451,11 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, err = th.LocalClient.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, emailList)
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_subject",
-		map[string]any{"SenderName": "Administrator",
+		map[string]any{
+			"SenderName":      "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 	checkEmail(t, expectedSubject)
 
 	// Test the invite local to team and channel
@@ -3467,10 +3466,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, _, err = th.LocalClient.InviteUsersToTeamAndChannelsGracefully(context.Background(), th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
-		map[string]any{"SenderName": "Administrator",
+		map[string]any{
+			"SenderName":      "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"ChannelName":     th.BasicChannel.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 	checkEmail(t, expectedSubject)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "@global.com,@common.com" })
@@ -3541,7 +3542,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	emailList := []string{guest1, guest2}
 
-	//Delete all the messages before check the sample email
+	// Delete all the messages before check the sample email
 	err := mail.DeleteMailBox(guest1)
 	require.NoError(t, err)
 	err = mail.DeleteMailBox(guest2)
@@ -3593,11 +3594,13 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := i18n.T("api.templates.invite_guest_subject",
-		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{
+			"SenderName":      th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"],
+		})
 
-	//Check if the email was send to the right email address
+	// Check if the email was send to the right email address
 	for _, email := range emailList {
 		var resultsMailbox mail.JSONMessageHeaderInbucket
 		err := mail.RetryInbucket(5, func() error {

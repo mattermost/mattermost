@@ -57,7 +57,7 @@ func CheckClientCompatibility(agentString string) bool {
 	return true
 }
 
-func Handle404(a app.AppIface, w http.ResponseWriter, r *http.Request) {
+func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	ipAddress := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
 	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
@@ -75,19 +75,19 @@ func Handle404(a app.AppIface, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func IsAPICall(a app.AppIface, r *http.Request) bool {
+func IsAPICall(a *app.App, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "api")+"/")
 }
 
-func IsWebhookCall(a app.AppIface, r *http.Request) bool {
+func IsWebhookCall(a *app.App, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "hooks")+"/")
 }
 
-func IsOAuthAPICall(a app.AppIface, r *http.Request) bool {
+func IsOAuthAPICall(a *app.App, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	if r.Method == "POST" && r.URL.Path == path.Join(subpath, "oauth", "authorize") {
