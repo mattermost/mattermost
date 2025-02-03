@@ -81,8 +81,8 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     id={'channelSettings'}
                     labels={
                         <FormattedMessage
-                            id='channelSettings'
-                            defaultMessage='Channel Settings'
+                            id='channel_header.settings'
+                            defaultMessage='Settings'
                         />
                     }
                     leadingElement={<CogOutlineIcon size={18}/>}
@@ -106,7 +106,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     permissions={[Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS]}
                 >
                     <MenuItemOpenMembersRHS
-                        id='channelViewMembers'
+                        id='channelMembers'
                         channel={channel}
                         text={
                             <FormattedMessage

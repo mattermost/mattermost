@@ -95,7 +95,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
 
             {(isArchived || isDefault) && (
                 <MenuItemOpenMembersRHS
-                    id='channelViewMembers'
+                    id='channelMembers'
                     channel={channel}
                     text={
                         <FormattedMessage
@@ -137,7 +137,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                         invert={true}
                     >
                         <MenuItemOpenMembersRHS
-                            id='channelViewMembers'
+                            id='channelMembers'
                             channel={channel}
                             text={
                                 <FormattedMessage

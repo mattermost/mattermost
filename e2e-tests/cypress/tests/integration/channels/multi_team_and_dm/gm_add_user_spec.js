@@ -108,7 +108,8 @@ describe('Multi-user group messages', () => {
         cy.postMessage('messages');
 
         // # Open channel menu and click Add Members
-        cy.uiOpenChannelMenu('Add Members');
+        cy.uiOpenChannelMenu('Members');
+        cy.uiGetButton('Add').click();
 
         // * Verify message says: "This will start a new conversation. If you're adding a lot of people, consider creating a private channel instead."
         cy.get('#moreDmModal').should('be.visible');

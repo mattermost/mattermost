@@ -44,7 +44,7 @@ Cypress.Commands.add('uiCreateChannel', ({
 Cypress.Commands.add('uiAddUsersToCurrentChannel', (usernameList) => {
     if (usernameList.length) {
         cy.get('#channelHeaderTitle').click();
-        cy.get('#channelAddMembers').click();
+        cy.get('#channelMembers').click();
         cy.uiGetButton('Add').click();
         cy.get('#addUsersToChannelModal').should('be.visible');
         usernameList.forEach((username) => {
