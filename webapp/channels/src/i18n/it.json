@@ -3044,8 +3044,6 @@
   "sidebar.unreads": "Più non letti",
   "sidebar_left.addChannelsCta": "Aggiugi canali",
   "sidebar_left.add_channel_dropdown.browseChannels": "Sfoglia canali",
-  "sidebar_left.add_channel_dropdown.browseOrCreateChannels": "Sfoglia o crea canali",
-  "sidebar_left.add_channel_dropdown.createCategory": "Crea una categoria",
   "sidebar_left.add_channel_dropdown.createNewChannel": "Crea nuovo canale",
   "sidebar_left.add_channel_dropdown.dropdownAriaLabel": "Aggiungi lista di selezione canale",
   "sidebar_left.channel_filter.filterByUnread": "Filtra non letti",
