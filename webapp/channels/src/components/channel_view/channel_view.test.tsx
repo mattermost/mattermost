@@ -72,6 +72,7 @@ describe('components/channel_view', () => {
             <ChannelView
                 {...baseProps}
                 canRestrictDirectMessage={true}
+                restrictDirectMessage={undefined as any}
             />,
         );
         const instance = wrapper.instance() as ChannelView;

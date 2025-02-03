@@ -10,6 +10,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     overlayType="center"
   />
   <ChannelHeader
+    canRestrictDirectMessage={false}
     channelId="channelId"
     channelIsArchived={true}
     deactivatedChannel={false}
@@ -29,6 +30,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
       }
     }
     missingChannelRole={false}
+    restrictDirectMessage={false}
     teamUrl="/team"
     viewArchivedChannels={false}
   />
@@ -76,6 +78,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     overlayType="center"
   />
   <ChannelHeader
+    canRestrictDirectMessage={false}
     channelId="channelId"
     channelIsArchived={false}
     deactivatedChannel={true}
@@ -95,6 +98,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
       }
     }
     missingChannelRole={false}
+    restrictDirectMessage={false}
     teamUrl="/team"
     viewArchivedChannels={false}
   />
@@ -141,6 +145,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     overlayType="center"
   />
   <ChannelHeader
+    canRestrictDirectMessage={false}
     channelId="channelId"
     channelIsArchived={false}
     deactivatedChannel={false}
@@ -160,6 +165,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
       }
     }
     missingChannelRole={false}
+    restrictDirectMessage={false}
     teamUrl="/team"
     viewArchivedChannels={false}
   />
