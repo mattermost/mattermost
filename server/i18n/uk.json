@@ -10326,5 +10326,13 @@
   {
     "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
     "translation": "Підрахунок активності каналів: {{.NumCompleted}}/{{.NumChannels}} каналів завершено."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Не вдалось зареєструвати групу властивостей \"Атрибути користувацького профілю\""
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Неможливо створити поле \"Атрибут користувацького профілю\""
   }
 ]
