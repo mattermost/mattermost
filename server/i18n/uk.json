@@ -10334,5 +10334,13 @@
   {
     "id": "app.custom_profile_attributes.create_property_field.app_error",
     "translation": "Неможливо створити поле \"Атрибут користувацького профілю\""
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Неможливо отримати поле \"Атрибут профілю користувача\""
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Досягнуто ліміт поля \"Атрибути профілю користувача\""
   }
 ]
