@@ -8987,7 +8987,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			mockedLdapUser := ldapUser
 			mockedLdapUser.FailedAttempts = i
-			mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(mockedLdapUser, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"})
+			mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(mockedLdapUser, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})
 			_, _, err := client.LoginByLdap(context.Background(), *ldapUser.AuthData, "wrongpassword")
 			require.Error(t, err)
 		}
@@ -9168,7 +9168,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		for i := 0; i < 4; i++ {
 			mockedLdapUser := ldapUser
 			mockedLdapUser.FailedAttempts = i
-			mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(mockedLdapUser, &model.AppError{Id: "api.user.check_user_password.invalid.app_error"})
+			mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(mockedLdapUser, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})
 			_, _, err := client.LoginByLdap(context.Background(), *ldapUser.AuthData, "wrongpassword")
 			require.Error(t, err)
 		}
