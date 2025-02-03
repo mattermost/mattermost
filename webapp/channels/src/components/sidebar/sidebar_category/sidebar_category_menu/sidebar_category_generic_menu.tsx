@@ -50,7 +50,7 @@ const SidebarCategoryGenericMenu = ({
                 }}
                 menuButtonTooltip={{
                     text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}, {name}),
-                    class: 'hidden-xs',
+                    class: 'hidden-xs firstLetterCapitalize',
                 }}
                 menu={{
                     id: `SidebarChannelMenu-MenuList-${id}`,

@@ -226,13 +226,13 @@ const SidebarCategoryMenu = ({
         trackEvent('ui', 'ui_sidebar_category_menu_viewCategory');
     }, [dispatch, unreadsIds]);
 
-    const markAsReadMenuItem = showUnreadsCategory ? null : (
+    const markAsReadMenuItem = showUnreadsCategory === false ? (
         <MarkAsReadMenuItem
             id={category.id}
             handleViewCategory={handleViewCategory}
             numChannels={unreadsIds.length}
         />
-    );
+    ) : null;
 
     return (
         <SidebarCategoryGenericMenu
