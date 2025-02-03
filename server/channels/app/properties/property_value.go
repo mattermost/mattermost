@@ -11,15 +11,19 @@ func (ps *PropertyService) CreatePropertyValue(value *model.PropertyValue) (*mod
 	return ps.valueStore.Create(value)
 }
 
-func (ps *PropertyService) GetPropertyValue(id string) (*model.PropertyValue, error) {
-	return ps.valueStore.Get(id)
+func (ps *PropertyService) GetPropertyValue(groupID, id string) (*model.PropertyValue, error) {
+	return ps.valueStore.Get(groupID, id)
 }
 
-func (ps *PropertyService) GetPropertyValues(ids []string) ([]*model.PropertyValue, error) {
-	return ps.valueStore.GetMany(ids)
+func (ps *PropertyService) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error) {
+	return ps.valueStore.GetMany(groupID, ids)
 }
 
-func (ps *PropertyService) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+func (ps *PropertyService) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	// groupID and targetID are part of the search method signature to
+	// incentivize the use of the database indexes in searches
+	opts.GroupID = groupID
+	opts.TargetID = targetID
 	return ps.valueStore.SearchPropertyValues(opts)
 }
 

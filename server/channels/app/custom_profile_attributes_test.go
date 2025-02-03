@@ -24,9 +24,9 @@ func TestGetCPAField(t *testing.T) {
 	require.NoError(t, cErr)
 
 	t.Run("should fail when getting a non-existent field", func(t *testing.T) {
-		field, err := th.App.GetCPAField(model.NewId())
-		require.NotNil(t, err)
-		require.Equal(t, "app.custom_profile_attributes.get_property_field.app_error", err.Id)
+		field, appErr := th.App.GetCPAField(model.NewId())
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.property_field_not_found.app_error", appErr.Id)
 		require.Empty(t, field)
 	})
 
@@ -154,7 +154,7 @@ func TestCreateCPAField(t *testing.T) {
 		require.Equal(t, cpaGroupID, createdField.GroupID)
 		require.Equal(t, model.StringInterface{"visibility": "hidden"}, createdField.Attrs)
 
-		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField(createdField.ID)
+		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
 		require.NoError(t, gErr)
 		require.Equal(t, field.Name, fetchedField.Name)
 		require.NotZero(t, fetchedField.CreateAt)
@@ -305,7 +305,7 @@ func TestDeleteCPAField(t *testing.T) {
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		err := th.App.DeleteCPAField(model.NewId())
 		require.NotNil(t, err)
-		require.Equal(t, "app.custom_profile_attributes.get_property_field.app_error", err.Id)
+		require.Equal(t, "app.custom_profile_attributes.property_field_not_found.app_error", err.Id)
 	})
 
 	t.Run("should not allow to delete a field outside of CPA", func(t *testing.T) {
@@ -325,7 +325,7 @@ func TestDeleteCPAField(t *testing.T) {
 	t.Run("should correctly delete the field", func(t *testing.T) {
 		// check that we have the associated values to the field prior deletion
 		opts := model.PropertyValueSearchOpts{PerPage: 10, FieldID: createdField.ID}
-		values, err := th.App.Srv().propertyService.SearchPropertyValues(opts)
+		values, err := th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 
@@ -333,17 +333,17 @@ func TestDeleteCPAField(t *testing.T) {
 		require.Nil(t, th.App.DeleteCPAField(createdField.ID))
 
 		// check that it is marked as deleted
-		fetchedField, err := th.App.Srv().propertyService.GetPropertyField(createdField.ID)
+		fetchedField, err := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
 		require.NoError(t, err)
 		require.NotZero(t, fetchedField.DeleteAt)
 
 		// ensure that the associated fields have been marked as deleted too
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
 		require.NoError(t, err)
 		require.Len(t, values, 0)
 
 		opts.IncludeDeleted = true
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 		for _, value := range values {

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -37,13 +38,14 @@ func (a *App) GetCPAField(fieldID string) (*model.PropertyField, *model.AppError
 		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	field, err := a.Srv().propertyService.GetPropertyField(fieldID)
+	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
-		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if field.GroupID != groupID {
-		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return field, nil
@@ -56,12 +58,11 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 	}
 
 	opts := model.PropertyFieldSearchOpts{
-		GroupID: groupID,
 		Page:    0,
 		PerPage: CustomProfileAttributesFieldLimit,
 	}
 
-	fields, err := a.Srv().propertyService.SearchPropertyFields(opts)
+	fields, err := a.Srv().propertyService.SearchPropertyFields(groupID, "", opts)
 	if err != nil {
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -130,13 +131,13 @@ func (a *App) DeleteCPAField(id string) *model.AppError {
 		return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	existingField, err := a.Srv().propertyService.GetPropertyField(id)
-	if err != nil {
-		return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if existingField.GroupID != groupID {
-		return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
+	if _, err := a.Srv().propertyService.GetPropertyField(groupID, id); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
+		default:
+			return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	if err := a.Srv().propertyService.DeletePropertyField(id); err != nil {
@@ -159,13 +160,11 @@ func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppEr
 	}
 
 	opts := model.PropertyValueSearchOpts{
-		GroupID:        groupID,
-		TargetID:       userID,
 		Page:           0,
 		PerPage:        999999,
 		IncludeDeleted: false,
 	}
-	fields, err := a.Srv().propertyService.SearchPropertyValues(opts)
+	fields, err := a.Srv().propertyService.SearchPropertyValues(groupID, userID, opts)
 	if err != nil {
 		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -179,13 +178,9 @@ func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError
 		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	value, err := a.Srv().propertyService.GetPropertyValue(valueID)
+	value, err := a.Srv().propertyService.GetPropertyValue(groupID, valueID)
 	if err != nil {
 		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if value.GroupID != groupID {
-		return nil, model.NewAppError("GetCPAValue", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
 	}
 
 	return value, nil

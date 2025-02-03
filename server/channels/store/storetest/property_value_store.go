@@ -73,43 +73,57 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 
 func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting value", func(t *testing.T) {
-		value, err := ss.PropertyValue().Get(model.NewId())
+		value, err := ss.PropertyValue().Get("", model.NewId())
 		require.Zero(t, value)
 		require.ErrorIs(t, err, sql.ErrNoRows)
 	})
 
-	t.Run("should be able to retrieve an existing property value", func(t *testing.T) {
-		newValue := &model.PropertyValue{
-			TargetID:   model.NewId(),
-			TargetType: "test_type",
-			GroupID:    model.NewId(),
-			FieldID:    model.NewId(),
-			Value:      "test value",
-		}
-		_, err := ss.PropertyValue().Create(newValue)
-		require.NoError(t, err)
-		require.NotZero(t, newValue.ID)
+	groupID := model.NewId()
+	newValue := &model.PropertyValue{
+		TargetID:   model.NewId(),
+		TargetType: "test_type",
+		GroupID:    groupID,
+		FieldID:    model.NewId(),
+		Value:      "test value",
+	}
+	_, err := ss.PropertyValue().Create(newValue)
+	require.NoError(t, err)
+	require.NotZero(t, newValue.ID)
 
-		value, err := ss.PropertyValue().Get(newValue.ID)
+	t.Run("should be able to retrieve an existing property value", func(t *testing.T) {
+		value, err := ss.PropertyValue().Get(groupID, newValue.ID)
 		require.NoError(t, err)
 		require.Equal(t, newValue.ID, value.ID)
 		require.Equal(t, newValue.Value, value.Value)
+
+		// should work without specifying the group ID as well
+		value, err = ss.PropertyValue().Get("", newValue.ID)
+		require.NoError(t, err)
+		require.Equal(t, newValue.ID, value.ID)
+		require.Equal(t, newValue.Value, value.Value)
+	})
+
+	t.Run("should not be able to retrieve an existing value when specifying a different group ID", func(t *testing.T) {
+		value, err := ss.PropertyValue().Get(model.NewId(), newValue.ID)
+		require.Zero(t, value)
+		require.ErrorIs(t, err, sql.ErrNoRows)
 	})
 }
 
 func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting values", func(t *testing.T) {
-		values, err := ss.PropertyValue().GetMany([]string{model.NewId(), model.NewId()})
+		values, err := ss.PropertyValue().GetMany("", []string{model.NewId(), model.NewId()})
 		require.Empty(t, values)
 		require.ErrorContains(t, err, "missmatch results")
 	})
 
+	groupID := model.NewId()
 	newValues := []*model.PropertyValue{}
 	for i := 0; i < 3; i++ {
 		newValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
 			TargetType: "test_type",
-			GroupID:    model.NewId(),
+			GroupID:    groupID,
 			FieldID:    model.NewId(),
 			Value:      fmt.Sprintf("test value %d", i),
 		}
@@ -120,17 +134,40 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		newValues = append(newValues, newValue)
 	}
 
+	newValueOutsideGroup := &model.PropertyValue{
+		TargetID:   model.NewId(),
+		TargetType: "test_type",
+		GroupID:    model.NewId(),
+		FieldID:    model.NewId(),
+		Value:      "value outside the groupID",
+	}
+	_, err := ss.PropertyValue().Create(newValueOutsideGroup)
+	require.NoError(t, err)
+	require.NotZero(t, newValueOutsideGroup.ID)
+
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
-		values, err := ss.PropertyValue().GetMany([]string{newValues[0].ID, newValues[1].ID, model.NewId()})
+		values, err := ss.PropertyValue().GetMany(groupID, []string{newValues[0].ID, newValues[1].ID, model.NewId()})
 		require.Empty(t, values)
 		require.ErrorContains(t, err, "missmatch results")
 	})
 
 	t.Run("should be able to retrieve existing property values", func(t *testing.T) {
-		values, err := ss.PropertyValue().GetMany([]string{newValues[0].ID, newValues[1].ID, newValues[2].ID})
+		values, err := ss.PropertyValue().GetMany(groupID, []string{newValues[0].ID, newValues[1].ID, newValues[2].ID})
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 		require.ElementsMatch(t, newValues, values)
+	})
+
+	t.Run("should fail if asked for valid IDs but outside the group", func(t *testing.T) {
+		values, err := ss.PropertyValue().GetMany(groupID, []string{newValues[0].ID, newValueOutsideGroup.ID})
+		require.Empty(t, values)
+		require.ErrorContains(t, err, "missmatch results")
+	})
+
+	t.Run("should be able to retrieve existing property values from multiple groups", func(t *testing.T) {
+		fields, err := ss.PropertyValue().GetMany("", []string{newValues[0].ID, newValueOutsideGroup.ID})
+		require.NoError(t, err)
+		require.Len(t, fields, 2)
 	})
 }
 
@@ -206,13 +243,13 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify first value
-		updated1, err := ss.PropertyValue().Get(value1.ID)
+		updated1, err := ss.PropertyValue().Get("", value1.ID)
 		require.NoError(t, err)
 		require.Equal(t, "updated value 1", updated1.Value)
 		require.Greater(t, updated1.UpdateAt, updated1.CreateAt)
 
 		// Verify second value
-		updated2, err := ss.PropertyValue().Get(value2.ID)
+		updated2, err := ss.PropertyValue().Get("", value2.ID)
 		require.NoError(t, err)
 		require.Equal(t, "updated value 2", updated2.Value)
 		require.Greater(t, updated2.UpdateAt, updated2.CreateAt)
@@ -254,12 +291,12 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Contains(t, err.Error(), "model.property_value.is_valid.app_error")
 
 		// Check that values were not updated
-		updated1, err := ss.PropertyValue().Get(value1.ID)
+		updated1, err := ss.PropertyValue().Get("", value1.ID)
 		require.NoError(t, err)
 		require.Equal(t, "Value 1", updated1.Value)
 		require.Equal(t, originalUpdateAt1, updated1.UpdateAt)
 
-		updated2, err := ss.PropertyValue().Get(value2.ID)
+		updated2, err := ss.PropertyValue().Get("", value2.ID)
 		require.NoError(t, err)
 		require.Equal(t, groupID, updated2.GroupID)
 		require.Equal(t, originalUpdateAt2, updated2.UpdateAt)
@@ -289,7 +326,7 @@ func testDeletePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify the value was soft-deleted
-		deletedValue, err := ss.PropertyValue().Get(value.ID)
+		deletedValue, err := ss.PropertyValue().Get("", value.ID)
 		require.NoError(t, err)
 		require.NotZero(t, deletedValue.DeleteAt)
 	})
@@ -486,12 +523,13 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 
 func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
 	fieldID := model.NewId()
+	groupID := model.NewId()
 
 	// Create test values
 	value1 := &model.PropertyValue{
 		TargetID:   model.NewId(),
 		TargetType: "test_type",
-		GroupID:    model.NewId(),
+		GroupID:    groupID,
 		FieldID:    fieldID,
 		Value:      "value 1",
 	}
@@ -499,7 +537,7 @@ func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
 	value2 := &model.PropertyValue{
 		TargetID:   model.NewId(),
 		TargetType: "test_type",
-		GroupID:    model.NewId(),
+		GroupID:    groupID,
 		FieldID:    fieldID,
 		Value:      "value 2",
 	}
@@ -507,7 +545,7 @@ func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
 	value3 := &model.PropertyValue{
 		TargetID:   model.NewId(),
 		TargetType: "test_type",
-		GroupID:    model.NewId(),
+		GroupID:    groupID,
 		FieldID:    model.NewId(), // Different field ID
 		Value:      "value 3",
 	}
@@ -522,14 +560,14 @@ func testDeleteForField(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	// Verify values were soft-deleted
-	deletedValues, err := ss.PropertyValue().GetMany([]string{value1.ID, value2.ID})
+	deletedValues, err := ss.PropertyValue().GetMany(groupID, []string{value1.ID, value2.ID})
 	require.NoError(t, err)
 	require.Len(t, deletedValues, 2)
 	require.NotZero(t, deletedValues[0].DeleteAt)
 	require.NotZero(t, deletedValues[1].DeleteAt)
 
 	// Verify value with different field ID was not deleted
-	nonDeletedValue, err := ss.PropertyValue().Get(value3.ID)
+	nonDeletedValue, err := ss.PropertyValue().Get(groupID, value3.ID)
 	require.NoError(t, err)
 	require.Zero(t, nonDeletedValue.DeleteAt)
 }

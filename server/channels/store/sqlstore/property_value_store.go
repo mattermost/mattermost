@@ -141,10 +141,14 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 	return value, nil
 }
 
-func (s *SqlPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
-	queryString, args, err := s.tableSelectQuery.
-		Where(sq.Eq{"id": id}).
-		ToSql()
+func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, error) {
+	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
+	queryString, args, err := builder.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_get_tosql")
 	}
@@ -163,10 +167,14 @@ func (s *SqlPropertyValueStore) Get(id string) (*model.PropertyValue, error) {
 	return value, nil
 }
 
-func (s *SqlPropertyValueStore) GetMany(ids []string) ([]*model.PropertyValue, error) {
-	queryString, args, err := s.tableSelectQuery.
-		Where(sq.Eq{"id": ids}).
-		ToSql()
+func (s *SqlPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.PropertyValue, error) {
+	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
+	queryString, args, err := builder.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_get_many_tosql")
 	}

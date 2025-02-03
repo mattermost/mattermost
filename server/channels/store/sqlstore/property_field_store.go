@@ -52,8 +52,12 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	return field, nil
 }
 
-func (s *SqlPropertyFieldStore) Get(id string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
 
 	var field model.PropertyField
 	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
@@ -63,8 +67,12 @@ func (s *SqlPropertyFieldStore) Get(id string) (*model.PropertyField, error) {
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
 
 	fields := []*model.PropertyField{}
 	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {

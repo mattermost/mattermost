@@ -1080,8 +1080,8 @@ type PropertyGroupStore interface {
 
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
-	Get(id string) (*model.PropertyField, error)
-	GetMany(ids []string) ([]*model.PropertyField, error)
+	Get(groupID, id string) (*model.PropertyField, error)
+	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(field []*model.PropertyField) ([]*model.PropertyField, error)
 	Delete(id string) error
@@ -1089,8 +1089,8 @@ type PropertyFieldStore interface {
 
 type PropertyValueStore interface {
 	Create(value *model.PropertyValue) (*model.PropertyValue, error)
-	Get(id string) (*model.PropertyValue, error)
-	GetMany(ids []string) ([]*model.PropertyValue, error)
+	Get(groupID, id string) (*model.PropertyValue, error)
+	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
 	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 	Update(field []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(id string) error
