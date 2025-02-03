@@ -194,10 +194,6 @@ export type ViewsState = {
         lastSelectedChannel: string;
     };
 
-    addChannelDropdown: {
-        isOpen: boolean;
-    };
-
     addChannelCtaDropdown: {
         isOpen: boolean;
     };

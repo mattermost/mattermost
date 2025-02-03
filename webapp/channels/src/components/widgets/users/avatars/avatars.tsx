@@ -63,7 +63,7 @@ function UserAvatar({
     return (
         <ProfilePopover<HTMLButtonElement>
             triggerComponentAs='button'
-            triggerComponentClass='style--none rounded-button'
+            triggerComponentClass='style--none btn-round'
             userId={userId}
             src={profilePictureURL}
         >

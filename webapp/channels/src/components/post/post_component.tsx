@@ -49,6 +49,7 @@ import {getDateForUnixTicks, makeIsEligibleForClick} from 'utils/utils';
 
 import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
+import {withPostErrorBoundary} from './post_error_boundary';
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';
 
@@ -119,7 +120,7 @@ export type Props = {
     pluginActions: PostActionComponent[];
 };
 
-const PostComponent = (props: Props): JSX.Element => {
+function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
@@ -525,7 +526,6 @@ const PostComponent = (props: Props): JSX.Element => {
                 ref={postRef}
                 id={getTestId()}
                 data-testid={postAriaLabelDivTestId}
-                tabIndex={0}
                 post={post}
                 className={getClassName()}
                 onClick={handlePostClick}
@@ -566,7 +566,6 @@ const PostComponent = (props: Props): JSX.Element => {
                     channelId={post.channel_id}
                 />
                 <div
-                    role='application'
                     className={`post__content ${props.center ? 'center' : ''}`}
                     data-testid='postContent'
                 >
@@ -670,6 +669,6 @@ const PostComponent = (props: Props): JSX.Element => {
             </PostAriaLabelDiv>
         </>
     );
-};
+}
 
-export default PostComponent;
+export default withPostErrorBoundary(PostComponent);
