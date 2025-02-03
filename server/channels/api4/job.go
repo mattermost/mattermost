@@ -126,7 +126,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	zipReader, err := c.App.ZipReader(cleanedExportDir, false)
+	zipReader, err := c.App.ExportZipReader(cleanedExportDir, false)
 	if err != nil {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
 			"error creating zip reader", http.StatusNotFound).Wrap(err)
