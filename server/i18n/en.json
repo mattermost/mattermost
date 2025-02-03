@@ -1866,6 +1866,10 @@
     "translation": "Can not save draft to deleted channel"
   },
   {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Cannot save draft to restricted direct message channel"
+  },
+  {
     "id": "api.drafts.disabled.app_error",
     "translation": "Drafts feature is disabled."
   },
@@ -2521,6 +2525,10 @@
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
   },
   {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Cannot post to restricted direct message channel."
+  },
+  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
   },
@@ -2547,6 +2555,10 @@
   {
     "id": "api.post.deduplicate_create_post.pending",
     "translation": "Rejected post since another client is making the same request."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": ""
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
@@ -2605,6 +2617,10 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Cannot update post in restricted direct message channel."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
@@ -2681,6 +2697,10 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Cannot update post in restricted direct message channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -4665,6 +4685,10 @@
   {
     "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
     "translation": "Unable to check unreads and mentions"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Error get common teams for channel"
   },
   {
     "id": "app.channel.get_common_teams.incorrect_channel_type",
@@ -7063,6 +7087,10 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Cannot upload to a deleted channel."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Cannot upload file to a restricted direct message."
   },
   {
     "id": "app.upload.create.incorrect_channel_id.app_error",

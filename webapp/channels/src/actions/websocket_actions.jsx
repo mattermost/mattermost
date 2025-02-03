@@ -895,6 +895,11 @@ export function handleLeaveTeamEvent(msg) {
         });
     }
 
+    const config = getConfig(state);
+    if (config.RestrictDirectMessage === 'team') {
+        actions.push({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
+    }
+
     dispatch(batchActions(actions));
     const currentUser = getCurrentUser(state);
 
@@ -1051,6 +1056,10 @@ function handleUserAddedEvent(msg) {
         // This event is fired when a user first joins the server, so refresh analytics to see if we're now over the user limit
         if (license.Cloud === 'true' && isCurrentUserSystemAdmin(doGetState())) {
             doDispatch(getStandardAnalytics());
+        }
+
+        if (msg.data.team_id && config.RestrictDirectMessage === 'team') {
+            dispatch({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
         }
     };
 }

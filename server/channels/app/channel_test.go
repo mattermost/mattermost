@@ -2742,7 +2742,7 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 	}
 }
 
-func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
+func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -2797,13 +2797,13 @@ func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeams(th.Context, "gm_channel_id")
+	commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, "gm_channel_id")
 	require.Nil(t, appErr)
 	require.Equal(t, 3, len(commonTeams))
 
 	// case of no common teams
 	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2"}).Return([]string{}, nil)
-	commonTeams, appErr = th.App.GetGroupMessageMembersCommonTeams(th.Context, "gm_channel_id")
+	commonTeams, appErr = th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, "gm_channel_id")
 	require.Nil(t, appErr)
 	require.Equal(t, 0, len(commonTeams))
 }
@@ -3135,4 +3135,74 @@ func TestGetChannelFileCount(t *testing.T) {
 	count, appErr := th.App.GetChannelFileCount(th.Context, channel.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(2), count)
+}
+
+func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.CreateDmChannel(th.BasicUser2)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+	})
+
+	// Ensure the two users do not share a team
+	teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+	require.Nil(t, err)
+	for _, team := range teams {
+		th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+	}
+	teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+	require.Nil(t, err)
+	for _, team := range teams {
+		th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+	}
+
+	team1 := th.CreateTeam()
+	team2 := th.CreateTeam()
+	th.LinkUserToTeam(th.BasicUser, team1)
+	th.LinkUserToTeam(th.BasicUser2, team2)
+
+	t.Run("should be restricted", func(t *testing.T) {
+		restricted, err := th.App.CheckIfChannelIsRestrictedDM(th.Context, channel)
+		require.Nil(t, err)
+		require.True(t, restricted)
+	})
+
+	t.Run("setting set to any", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
+
+		restricted, err := th.App.CheckIfChannelIsRestrictedDM(th.Context, channel)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		require.Nil(t, err)
+		require.False(t, restricted)
+	})
+
+	t.Run("channel is not a direct or group channel", func(t *testing.T) {
+		openChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		restricted, err := th.App.CheckIfChannelIsRestrictedDM(th.Context, openChannel)
+		require.Nil(t, err)
+		require.False(t, restricted)
+	})
+
+	t.Run("group message where users share a team", func(t *testing.T) {
+		team := th.CreateTeam()
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		th.LinkUserToTeam(user1, team)
+		th.LinkUserToTeam(user2, team)
+		th.LinkUserToTeam(th.BasicUser, team)
+
+		groupChannel := th.CreateGroupChannel(th.Context, user1, user2)
+
+		restricted, err := th.App.CheckIfChannelIsRestrictedDM(th.Context, groupChannel)
+		require.Nil(t, err)
+		require.False(t, restricted)
+	})
 }

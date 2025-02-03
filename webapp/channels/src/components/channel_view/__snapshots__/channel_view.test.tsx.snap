@@ -15,6 +15,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     deactivatedChannel={false}
     enableOnboardingFlow={true}
     enableWebSocketEventScope={false}
+    fetchIsRestrictedDM={[MockFunction]}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
     isChannelBookmarksEnabled={false}
@@ -80,6 +81,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     deactivatedChannel={true}
     enableOnboardingFlow={true}
     enableWebSocketEventScope={false}
+    fetchIsRestrictedDM={[MockFunction]}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
     isChannelBookmarksEnabled={false}
@@ -144,6 +146,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     deactivatedChannel={false}
     enableOnboardingFlow={true}
     enableWebSocketEventScope={false}
+    fetchIsRestrictedDM={[MockFunction]}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
     isChannelBookmarksEnabled={false}

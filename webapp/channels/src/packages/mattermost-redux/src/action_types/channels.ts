@@ -91,4 +91,7 @@ export default keyMirror({
     INCREMENT_FILE_COUNT: null,
 
     GM_CONVERTED_TO_CHANNEL: null,
+
+    RECEIVED_IS_DM_RESTRICTED: null,
+    RESTRICTED_DMS_TEAMS_CHANGED: null,
 });
