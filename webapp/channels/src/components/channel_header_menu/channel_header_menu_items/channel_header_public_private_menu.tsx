@@ -17,7 +17,6 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 
 import {Constants} from 'utils/constants';
 
-import MenuItemAddMembers from '../menu_items/add_channel_members';
 import MenuItemArchiveChannel from '../menu_items/archive_channel';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_submenu';
