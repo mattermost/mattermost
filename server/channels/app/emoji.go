@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/disintegration/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	_ "golang.org/x/image/webp"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -337,7 +337,7 @@ func resizeEmoji(img image.Image, width int, height int) image.Image {
 	if emojiHeight <= MaxEmojiHeight && emojiWidth <= MaxEmojiWidth {
 		return img
 	}
-	return imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight, imaging.Lanczos)
+	return imaging.Fit(img, MaxEmojiWidth, MaxEmojiHeight)
 }
 
 func imageToPaletted(img image.Image) *image.Paletted {
