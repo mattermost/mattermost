@@ -3231,6 +3231,7 @@
   "channel_header.setConversationHeader": "Edit Header",
   "channel_header.setHeader": "Edit Channel Header",
   "channel_header.setPurpose": "Edit Channel Purpose",
+  "channel_header.settings": "Settings",
   "channel_header.unarchive": "Unarchive Channel",
   "channel_header.unmute": "Unmute Channel",
   "channel_header.unmuteConversation": "Unmute",
