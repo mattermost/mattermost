@@ -65,7 +65,8 @@ describe('Multi-user group messages', () => {
         cy.get('#channelHeaderTitle').click();
 
         // # From the dropdown menu, click on "Add members"
-        cy.get('#channelAddMembers').click();
+        cy.get('#channelMembers').click();
+        cy.uiGetButton('Add').click();
 
         // # Try to add one more user from the group message's list
         addUsersToGMViaModal(1);

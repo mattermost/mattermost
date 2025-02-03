@@ -31,8 +31,8 @@ describe('Archive channel members spec', () => {
         // * View members menu option should not be visible;
         cy.get('#channelViewMembers').should('not.exist');
 
-        // * Manage members menu option should be visible;
-        cy.get('#channelManageMembers').should('be.visible');
+        // * Members menu option should be visible;
+        cy.get('#channelMembers').should('be.visible');
 
         // # Close the channel dropdown menu
         cy.get('body').type('{esc}{esc}');
@@ -44,7 +44,7 @@ describe('Archive channel members spec', () => {
         cy.get('#channelHeaderTitle').click();
 
         // * Manage members menu option should not be visible;
-        cy.get('#channelManageMembers').should('not.exist');
+        cy.get('#channelMembers').should('not.exist');
 
         // # click on view members menu option;
         cy.get('#channelViewMembers').should('be.visible').click();

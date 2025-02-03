@@ -46,6 +46,14 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
 
     return (
         <>
+            <MenuItemToggleInfo
+                channel={channel}
+            />
+            <MenuItemToggleMuteChannel
+                userID={user.id}
+                channel={channel}
+                isMuted={isMuted}
+            />
             {isMobile && (
                 <>
                     <MenuItemToggleFavoriteChannel
@@ -57,14 +65,6 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     />
                 </>
             )}
-            <MenuItemToggleInfo
-                channel={channel}
-            />
-            <MenuItemToggleMuteChannel
-                userID={user.id}
-                channel={channel}
-                isMuted={isMuted}
-            />
             {!isArchived && (
                 <MenuItemNotification
                     user={user}

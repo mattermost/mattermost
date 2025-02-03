@@ -119,7 +119,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
                             />
                         )}
                         <MenuItemOpenMembersRHS
-                            id='channelManageMembers'
+                            id='channelMembers'
                             channel={channel}
                             text={
                                 <FormattedMessage
