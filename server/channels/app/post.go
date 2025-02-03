@@ -58,8 +58,7 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	}
 
 	if restrictDM {
-		err := model.NewAppError("createPost", "api.post.create_post.can_not_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("createPost", "api.post.create_post.can_not_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
 	rp, err := a.CreatePost(c, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
@@ -989,8 +988,7 @@ func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch, pa
 	}
 
 	if restrictDM {
-		err := model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
 	if !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
@@ -1476,7 +1474,7 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	}
 
 	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
-	if err != nil {
+	if appErr != nil {
 		return nil, appErr
 	}
 

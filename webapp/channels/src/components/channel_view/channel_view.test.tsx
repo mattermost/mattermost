@@ -28,6 +28,8 @@ describe('components/channel_view', () => {
         isChannelBookmarksEnabled: false,
         missingChannelRole: false,
         fetchIsRestrictedDM: jest.fn(),
+        canRestrictDirectMessage: false,
+        restrictDirectMessage: false,
     };
 
     it('Should match snapshot with base props', () => {

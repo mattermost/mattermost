@@ -3150,12 +3150,14 @@ func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
 	teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
 	require.Nil(t, err)
 	for _, team := range teams {
-		th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, teamErr)
 	}
 	teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
 	require.Nil(t, err)
 	for _, team := range teams {
-		th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+		teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+		require.Nil(t, teamErr)
 	}
 
 	team1 := th.CreateTeam()
