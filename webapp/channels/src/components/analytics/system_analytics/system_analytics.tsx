@@ -521,7 +521,10 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
                         {advancedGraphs}
                         {pluginDoughnutCharts}
                         {pluginLineCharts}
-                        <details onToggle={this.handleLineChartsToggle}>
+                        <details
+                            onToggle={this.handleLineChartsToggle}
+                            data-testid='details-expander'
+                        >
                             <summary>
                                 <FormattedMessage
                                     id='analytics.system.perDayStatistics'
