@@ -185,7 +185,6 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         props.actions.getMoreOmnisearchForSearch();
     }, [props.actions]);
 
-
     // handle cloding of rhs-flyout
     const handleClose = (): void => actions.closeRightHandSide();
 
