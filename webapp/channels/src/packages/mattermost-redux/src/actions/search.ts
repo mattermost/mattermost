@@ -9,8 +9,8 @@ import type {SearchParameter, OmniSearchResult} from '@mattermost/types/search';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionResult, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getChannelAndMyMember, getChannelMembers} from './channels';
@@ -130,10 +130,9 @@ export function getMoreOmnisearchForSearch(): ActionFuncAsync {
     };
 }
 
-export function getMorePostsForSearch(): ActionFuncAsync {
+export function getMorePostsForSearch(teamId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        const teamId = getCurrentTeamId(getState());
-        const {params, isEnd} = getState().entities.search.current[teamId];
+        const {params, isEnd} = getState().entities.search.current[teamId || 'ALL_TEAMS'];
         if (!isEnd) {
             const newParams = Object.assign({}, params);
             newParams.page += 1;
@@ -237,10 +236,9 @@ export function searchInOmniSearch(params: SearchParameter): ActionFuncAsync {
     };
 }
 
-export function getMoreFilesForSearch(): ActionFuncAsync {
+export function getMoreFilesForSearch(teamId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        const teamId = getCurrentTeamId(getState());
-        const {params, isFilesEnd} = getState().entities.search.current[teamId];
+        const {params, isFilesEnd} = getState().entities.search.current[teamId || 'ALL_TEAMS'];
         if (!isFilesEnd) {
             const newParams = Object.assign({}, params);
             newParams.page += 1;

@@ -6,10 +6,10 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {getSearchTeam} from 'selectors/rhs';
 
+import SelectTeam from 'components/new_search/select_team';
 import type {SearchFilterType} from 'components/search/types';
 
 import type {A11yFocusEventDetail} from 'utils/constants';
@@ -41,22 +41,12 @@ type Props = {
 type DataSearchLiteral = typeof DataSearchTypes[keyof typeof DataSearchTypes];
 
 export default function MessagesOrFilesSelector(props: Props): JSX.Element {
-    const teams = useSelector((state: GlobalState) => getMyTeams(state));
     const searchTeam = useSelector((state: GlobalState) => getSearchTeam(state));
 
     // REFS to the tabs so there is ability to pass the custom A11y focus event
     const messagesTabRef = useRef<HTMLButtonElement>(null);
     const filesTabRef = useRef<HTMLButtonElement>(null);
     const config = useSelector(getConfig);
-
-    const options = [{value: '', label: 'All teams', selected: searchTeam === ''}];
-    for (const team of teams) {
-        options.push({value: team.id, label: team.display_name, selected: searchTeam === team.id});
-    }
-
-    const onTeamChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        props.onTeamChange(e.target.value);
-    };
 
     // Enhanced arrow key handling to focus the new select tab and also send the a11y custom event
     const handleTabKeyDown = (
@@ -159,19 +149,10 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             </div>
             {props.crossTeamSearchEnabled && (
                 <div className='team-selector-container'>
-                    <select
-                        value={searchTeam}
-                        onChange={onTeamChange}
-                    >
-                        {options.map((option) => (
-                            <option
-                                key={option.value}
-                                value={option.value}
-                            >
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
+                    <SelectTeam
+                        selectedTeamId={searchTeam}
+                        onTeamSelected={props.onTeamChange}
+                    />
                 </div>
             )}
             {props.selected === DataSearchTypes.FILES_SEARCH_TYPE && (

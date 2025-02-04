@@ -604,6 +604,10 @@
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
   },
   {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Can not run command in deleted channel."
+  },
+  {
     "id": "api.command.execute_command.failed.app_error",
     "translation": "Command with a trigger of '{{.Trigger}}' failed."
   },
@@ -5219,8 +5223,16 @@
     "translation": "Failed to find files for post."
   },
   {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Failed to get count of all files."
+  },
+  {
     "id": "app.file_info.get_for_post.app_error",
     "translation": "Unable to get the file info for the post."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage of all files."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
