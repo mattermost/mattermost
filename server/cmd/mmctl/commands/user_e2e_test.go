@@ -1604,3 +1604,36 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 		s.Require().Error(err)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestSendPasswordResetEmailCmd() {
+	s.SetupTestHelper().InitBasic()
+	s.RunForAllClients("all users can send password reset email", func(c client.Client) {
+		printer.Clean()
+		emailArg1 := "demo1@example.com"
+		emailArg2 := "demo2@example.com"
+
+		err := sendPasswordResetEmailCmdF(c, &cobra.Command{}, []string{emailArg1, emailArg2})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("send valid and invalid email", func(c client.Client) {
+		printer.Clean()
+		emailArg1 := "demo@example.com"
+		emailArg2 := "invalid.Email@example.com"
+
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", emailArg2))
+
+		err := sendPasswordResetEmailCmdF(c, &cobra.Command{}, []string{emailArg1, emailArg2})
+		s.Require().EqualError(err, expected.Error())
+		s.Require().Len(printer.GetErrorLines(), 1)
+	})
+
+	s.RunForAllClients("no arguments passed", func(c client.Client) {
+		printer.Clean()
+		err := sendPasswordResetEmailCmdF(c, &cobra.Command{}, []string{})
+		s.Require().EqualError(err, "expected at least one argument. See help text for details")
+	})
+}
