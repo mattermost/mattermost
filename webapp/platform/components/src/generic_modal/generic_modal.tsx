@@ -10,7 +10,7 @@ import './generic_modal.scss';
 
 export type Props = {
     className?: string;
-    onExited: () => void;
+    onExited?: () => void;
     onEntered?: () => void;
     onHide?: () => void;
     modalHeaderText?: React.ReactNode;
