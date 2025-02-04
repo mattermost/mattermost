@@ -343,11 +343,13 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 			Trigger:   model.NewRandomString(6),
 		}
 
-		command, _, _ := c.CreateCommand(context.Background(), newCmd)
-		err := showCommandCmdF(c, &cobra.Command{}, []string{command.Id})
-		s.Require().Nil(err)
+		command, _, err := c.CreateCommand(context.Background(), newCmd)
+		s.Require().NoError(err)
+		err = showCommandCmdF(c, &cobra.Command{}, []string{command.Id})
+		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
+		s.Equal(command, printer.GetLines()[0])
 	})
 
 	s.RunForSystemAdminAndLocal("Show commands with team:trigger", func(c client.Client) {
