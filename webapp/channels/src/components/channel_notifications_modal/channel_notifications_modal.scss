@@ -1,8 +1,8 @@
-.modal .channel-notifications-settings-modal {
+.modal .ChannelNotificationModal {
     overflow: hidden;
     width: 100%;
     max-width: 600px;
-    margin-top: -24px;
+    margin-top: 5vh !important;
 
     .modal-content {
         display: flex;

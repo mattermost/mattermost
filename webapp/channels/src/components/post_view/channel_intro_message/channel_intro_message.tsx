@@ -757,7 +757,7 @@ function createNotificationPreferencesButton(channel: Channel, currentUser: User
             ariaLabel={Utils.localizeMessage({id: 'intro_messages.notificationPreferences', defaultMessage: 'Notification Preferences'})}
             className={'action-button'}
             dialogType={ChannelNotificationsModal}
-            dialogProps={{channel, currentUser}}
+            dialogProps={{channel, currentUser, focusOriginElement: 'TBD'}}
         >
             <BellRingOutlineIcon size={24}/>
             <FormattedMessage

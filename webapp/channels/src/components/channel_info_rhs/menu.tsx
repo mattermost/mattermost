@@ -152,6 +152,7 @@ export default function Menu(props: MenuProps) {
                     text={formatMessage({
                         id: 'channel_info_rhs.menu.notification_preferences',
                         defaultMessage: 'Notification Preferences',
+                        focusOriginElement: 'TBD',
                     })}
                     onClick={actions.openNotificationSettings}
                 />

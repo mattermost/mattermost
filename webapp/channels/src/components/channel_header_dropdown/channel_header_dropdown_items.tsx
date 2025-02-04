@@ -137,6 +137,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         dialogProps={{
                             channel,
                             currentUser: user,
+                            focusOriginElement: 'TBD',
                         }}
                         text={localizeMessage({id: 'navbar.preferences', defaultMessage: 'Notification Preferences'})}
                     />
