@@ -790,6 +790,10 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
 
+	auditRec := c.MakeAuditRecord("searchPosts", audit.Fail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelAPI)
+	audit.AddEventParameterAuditable(auditRec, "search_params", params)
+
 	startTime := time.Now()
 
 	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
@@ -814,6 +818,8 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	}
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
+	audit.AddEventParameterAuditable(auditRec, "search_results", results)
+	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := results.EncodeJSON(w); err != nil {

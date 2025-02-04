@@ -1696,7 +1696,6 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 }
 
 func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, error) {
-	var count int64
 	query := us.getQueryBuilder().
 		Select("COUNT(Id)").
 		From("Users")
@@ -1712,11 +1711,9 @@ func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, error) {
 			sq.Gt{"Users.DeleteAt": 0},
 		})
 	}
-	queryStr, args, err := query.ToSql()
-	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to create a SQL query to count inactive users")
-	}
-	err = us.GetReplica().Get(&count, queryStr, args...)
+
+	var count int64
+	err := us.GetReplica().GetBuilder(&count, query)
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to count inactive Users")
 	}
