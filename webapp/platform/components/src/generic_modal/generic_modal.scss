@@ -1,7 +1,15 @@
 .console__body .modal .GenericModal,
 .app__body .modal .GenericModal {
-    &.modal-dialog {
+    &__location--top {
+        margin-top: 5vh;
+    }
+
+    &__location--center {
         margin-top: calc(50vh - 240px);
+    }
+
+    &__location--bottom {
+        margin-top: calc(50vh + 240px);
     }
 
     &.modal-overflow {

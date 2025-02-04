@@ -8,6 +8,8 @@ import {FormattedMessage} from 'react-intl';
 
 import './generic_modal.scss';
 
+export type ModalLocation = 'top' | 'center' | 'bottom';
+
 export type Props = {
     className?: string;
     onExited?: () => void;
@@ -50,6 +52,20 @@ export type Props = {
     headerButton?: React.ReactNode;
     showCloseButton?: boolean;
     showHeader?: boolean;
+
+    /*
+     * Controls the vertical location of the modal.
+     * 'top' => margin-top: 5vh
+     * 'center' => margin-top: calc(50vh - 240px)
+     * 'bottom' => margin-top: calc(50vh + 240px) (example calculation)
+     */
+    modalLocation?: ModalLocation;
+
+    /**
+     * Optionally set a test ID for the container, so that the modal can be easily referenced
+     * in tests (Cypress, Playwright, etc.)
+     */
+    dataTestId?: string;
 };
 
 type State = {
@@ -67,6 +83,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
         bodyPadding: true,
         showCloseButton: true,
         showHeader: true,
+        modalLocation: 'center',
     };
 
     constructor(props: Props) {
@@ -188,6 +205,14 @@ export class GenericModal extends React.PureComponent<Props, State> {
             </div>
         );
 
+        const locationClassMapping: Record<Required<Props>['modalLocation'], string> = {
+            top: 'GenericModal__location--top',
+            center: 'GenericModal__location--center',
+            bottom: 'GenericModal__location--bottom',
+        };
+
+        const modalLocationClass = locationClassMapping[this.props.modalLocation ?? 'center'];
+
         return (
             <Modal
                 id={this.props.id}
@@ -195,6 +220,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 aria-label={this.props.ariaLabel}
                 aria-labelledby={this.props.ariaLabel ? undefined : 'genericModalLabel'}
                 dialogClassName={classNames(
+                    modalLocationClass,
                     'a11y__modal GenericModal',
                     {
                         GenericModal__compassDesign: this.props.compassDesign,
@@ -212,6 +238,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 container={this.props.container}
                 keyboard={this.props.keyboardEscape}
                 onEntered={this.props.onEntered}
+                data-testid={this.props.dataTestId}
             >
                 <div
                     onKeyDown={this.onEnterKeyDown}
