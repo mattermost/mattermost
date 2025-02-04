@@ -30,6 +30,7 @@ type Props = {
 type FieldActions = {
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
+    reorderField: (field: UserPropertyField, nextOrder: number) => void;
 }
 
 export const useUserPropertiesTable = (): SectionHook => {
@@ -53,6 +54,7 @@ export const useUserPropertiesTable = (): SectionHook => {
                 data={userPropertyFields}
                 updateField={itemOps.update}
                 deleteField={itemOps.delete}
+                reorderField={itemOps.reorder}
             />
             {nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES && (
                 <LinkButton onClick={itemOps.create}>
@@ -78,7 +80,7 @@ export const useUserPropertiesTable = (): SectionHook => {
     };
 };
 
-export function UserPropertiesTable({data: collection, updateField, deleteField}: Props & FieldActions) {
+export function UserPropertiesTable({data: collection, updateField, deleteField, reorderField}: Props & FieldActions) {
     const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
     const col = createColumnHelper<UserPropertyField>();
@@ -202,7 +204,6 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                 cell: ({row}) => (
                     <Actions
                         field={row.original}
-                        updateField={updateField}
                         deleteField={deleteField}
                     />
                 ),
@@ -215,9 +216,6 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
     const table = useReactTable({
         data,
         columns,
-        initialState: {
-            sorting: [],
-        },
         getCoreRowModel: getCoreRowModel<UserPropertyField>(),
         getSortedRowModel: getSortedRowModel<UserPropertyField>(),
         enableSortingRemoval: false,
@@ -226,6 +224,9 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
         meta: {
             tableId: 'userProperties',
             disablePaginationControls: true,
+            onReorder: (prev: number, next: number) => {
+                reorderField(collection.data[collection.order[prev]], next);
+            },
         },
         manualPagination: true,
     });
@@ -283,7 +284,7 @@ const TableWrapper = styled.div`
     }
 `;
 
-const Actions = ({field, deleteField}: {field: UserPropertyField} & FieldActions) => {
+const Actions = ({field, deleteField}: {field: UserPropertyField} & Pick<FieldActions, 'deleteField'>) => {
     const {promptDelete} = useUserPropertyFieldDelete();
     const {formatMessage} = useIntl();
 

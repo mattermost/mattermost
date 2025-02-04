@@ -97,8 +97,8 @@ export const collectionToArray = <T extends {id: string}>({data, order}: IDMappe
     return order.map((id) => data[id]);
 };
 
-export const collectionReplaceItem = <T extends {id: string}>(collection: IDMappedCollection<T>, item: T) => {
-    return {...collection, data: {...collection.data, [item.id]: item}};
+export const collectionReplaceItem = <T extends {id: string}>(collection: IDMappedCollection<T>, ...items: T[]) => {
+    return {...collection, data: {...collection.data, ...items.reduce((r, item) => ({...r, [item.id]: item}), {})}};
 };
 
 export const collectionAddItem = <T extends {id: string}>(collection: IDMappedCollection<T>, item: T) => {
