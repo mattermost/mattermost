@@ -10394,5 +10394,17 @@
   {
     "id": "model.property_value.is_valid.app_error",
     "translation": "Neplatná hodnota vlastnosti: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Vaše licence nepodporuje vlastní atributy profilu."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Nelze získat čtečku souborů ZIP."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Nelze spustit příkaz v odstraněném kanálu."
   }
 ]
