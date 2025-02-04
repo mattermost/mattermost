@@ -8,11 +8,10 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type DockerCompose struct {
-	Version  string                `yaml:"version"`
 	Services map[string]*Container `yaml:"services"`
 }
 
@@ -51,7 +50,6 @@ func main() {
 	}
 
 	var dockerCompose DockerCompose
-	dockerCompose.Version = "2.4"
 	dockerCompose.Services = map[string]*Container{}
 	dockerCompose.Services["start_dependencies"] = &Container{
 		Image:     "mattermost/mattermost-wait-for-dep:latest",

@@ -147,8 +147,6 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         if (backToResultsTooltip) {
             back = (
                 <WithTooltip
-                    id='backToResultsTooltip'
-                    placement='top'
                     title={backToResultsTooltip}
                 >
                     <button
@@ -163,6 +161,9 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                 </WithTooltip>
             );
         }
+
+        const collapseIconLabel = formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'});
+        const expandIconLabel = formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
 
         return (
             <div className='sidebar--right__header'>
@@ -191,30 +192,24 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     ) : null}
 
                     <WithTooltip
-                        id={this.props.isExpanded ? 'shrinkSidebarTooltip' : 'expandSidebarTooltip'}
-                        placement='bottom'
                         title={rhsHeaderTooltipContent}
                     >
                         <button
                             type='button'
                             className='sidebar--right__expand btn btn-icon btn-sm'
-                            aria-label='Expand'
+                            aria-label={this.props.isExpanded ? collapseIconLabel : expandIconLabel}
                             onClick={this.props.toggleRhsExpanded}
                         >
                             <i
                                 className='icon icon-arrow-expand'
-                                aria-label={formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
                             />
                             <i
                                 className='icon icon-arrow-collapse'
-                                aria-label={formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
                     </WithTooltip>
 
                     <WithTooltip
-                        id='closeSidebarTooltip'
-                        placement='top'
                         title={closeSidebarTooltip}
                     >
                         <button

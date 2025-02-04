@@ -108,6 +108,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
     handleA11yKeyDown = (e: KeyboardEvent<HTMLButtonElement>['nativeEvent']) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+            e.preventDefault();
             this.handleCollapse();
         }
     };
@@ -276,7 +277,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         handleOpenDirectMessagesModal={this.handleOpenDirectMessagesModal}
                     />
                     <WithTooltip
-                        id='new-group-tooltip'
                         title={
                             <>
                                 {addHelpLabel}
@@ -287,7 +287,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                 />
                             </>
                         }
-                        placement='top'
                     >
                         <button
                             className='SidebarChannelGroupHeader_addButton'

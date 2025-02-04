@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FileInfo} from '@mattermost/types/files';
+import type {FileInfo, FilesState} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import {ChannelTypes, SearchTypes} from 'mattermost-redux/action_types';
@@ -10,6 +10,7 @@ import {Posts} from 'mattermost-redux/constants';
 
 import * as Actions from 'actions/post_actions';
 
+import test_helper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
 import {Constants, ActionTypes, RHSStates} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
@@ -300,8 +301,25 @@ describe('Actions.Posts', () => {
     });
 
     test('setEditingPost', async () => {
+        const state = JSON.parse(JSON.stringify(initialState)) as GlobalState;
+
+        state.entities.posts.posts[latestPost.id] = {
+            ...latestPost,
+            file_ids: ['file_id_1', 'file_id_2'],
+        } as Post;
+
+        state.entities.files = {
+            files: {
+                file_id_1: test_helper.getFileInfoMock({id: 'file_id_1', post_id: 'latest_post_id'}),
+                file_id_2: test_helper.getFileInfoMock({id: 'file_id_2', post_id: 'latest_post_id'}),
+            },
+            fileIdsByPostId: {
+                [latestPost.id]: ['file_id_1', 'file_id_2'],
+            },
+        } as unknown as FilesState;
+
         // should allow to edit and should fire an action
-        let testStore = mockStore({...initialState});
+        let testStore = mockStore({...state});
         const {data} = await testStore.dispatch(Actions.setEditingPost('latest_post_id', 'test'));
         expect(data).toEqual(true);
 
@@ -313,7 +331,29 @@ describe('Actions.Posts', () => {
             {data: {isRHS: false, postId: 'latest_post_id', refocusId: 'test', show: true}, type: ActionTypes.TOGGLE_EDITING_POST},
         );
         expect(actions[0].payload[1]).toEqual(
-            {args: ['edit_draft_latest_post_id', {id: 'latest_post_id', user_id: 'current_user_id', message: 'test msg', channel_id: 'current_channel_id', type: 'normal'}], type: 'MOCK_SET_GLOBAL_ITEM'},
+            {
+                args: [
+                    'edit_draft_latest_post_id',
+                    {
+                        id: 'latest_post_id',
+                        user_id: 'current_user_id',
+                        message: 'test msg',
+                        channel_id: 'current_channel_id',
+                        type: 'normal',
+                        file_ids: [
+                            'file_id_1',
+                            'file_id_2',
+                        ],
+                        metadata: {
+                            files: [
+                                test_helper.getFileInfoMock({id: 'file_id_1', post_id: 'latest_post_id'}),
+                                test_helper.getFileInfoMock({id: 'file_id_2', post_id: 'latest_post_id'}),
+                            ],
+                        },
+                    },
+                ],
+                type: 'MOCK_SET_GLOBAL_ITEM',
+            },
         );
 
         const general = {
@@ -321,7 +361,7 @@ describe('Actions.Posts', () => {
             serverVersion: '5.4.0',
             config: {PostEditTimeLimit: -1},
         } as unknown as GlobalState['entities']['general'];
-        const withLicenseState = {...initialState};
+        const withLicenseState = {...state};
         withLicenseState.entities.general = {
             ...withLicenseState.entities.general,
             ...general,
@@ -338,7 +378,7 @@ describe('Actions.Posts', () => {
 
         // should not allow edit for pending post
         const newLatestPost = {...latestPost, pending_post_id: latestPost.id} as Post;
-        const withPendingPostState = {...initialState};
+        const withPendingPostState = {...state};
         withPendingPostState.entities.posts.posts[latestPost.id] = newLatestPost;
 
         testStore = mockStore(withPendingPostState);
@@ -349,11 +389,11 @@ describe('Actions.Posts', () => {
 
         // should not save draft when it already exists
         const stateWithDraft = {
-            ...initialState,
+            ...state,
             storage: {
-                ...initialState.storage,
+                ...state.storage,
                 storage: {
-                    ...initialState.storage.storage,
+                    ...state.storage.storage,
                     edit_draft_latest_post_id: {
                         timestamp: new Date(),
                         value: {id: 'latest_post_id', user_id: 'current_user_id', message: 'test msg', channel_id: 'current_channel_id', type: 'normal'},
