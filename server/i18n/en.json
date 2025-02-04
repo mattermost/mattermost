@@ -5219,8 +5219,16 @@
     "translation": "Failed to find files for post."
   },
   {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Failed to get count of all files."
+  },
+  {
     "id": "app.file_info.get_for_post.app_error",
     "translation": "Unable to get the file info for the post."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage of all files."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
