@@ -10,7 +10,7 @@ import type {Group} from '@mattermost/types/groups';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
-import type {GlobalState} from '@mattermost/types/store';
+import type {GlobalState,} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {PostTypes, ChannelTypes, FileTypes, IntegrationTypes} from 'mattermost-redux/action_types';

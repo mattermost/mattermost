@@ -174,7 +174,7 @@ const useSubmit = (
         try {
             let response;
             if (isInEditMode) {
-                response = await dispatch(editPost(submittingDraft));
+                response = await dispatch(editPost(submittingDraft as any));
                 handleFileChange(submittingDraft);
             } else {
                 response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));

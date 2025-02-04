@@ -20,6 +20,7 @@ import PluginRegistry from 'plugins/registry';
 import {ActionTypes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
+import type {ClientPluginManifest} from '@mattermost/types/plugins';
 import type {GlobalState, ActionFuncAsync} from 'types/store';
 
 import {removeWebappPlugin} from './actions';
@@ -102,8 +103,8 @@ export async function initializePlugins(): Promise<void> {
         return;
     }
 
-    await Promise.all(data.map((m: PluginManifest) => {
-        return loadPlugin(m).catch((loadErr: Error) => {
+    await Promise.all(data.map(async (m: ClientPluginManifest) => {
+        return loadPlugin(m as PluginManifest).catch((loadErr: Error) => {
             console.error(loadErr.message); //eslint-disable-line no-console
         });
     }));
@@ -112,7 +113,7 @@ export async function initializePlugins(): Promise<void> {
 }
 
 // getPlugins queries the server for all enabled plugins
-export function getPlugins(): ActionFuncAsync {
+export function getPlugins(): ActionFuncAsync<ClientPluginManifest[]> {
     return async (dispatch) => {
         let plugins;
         try {

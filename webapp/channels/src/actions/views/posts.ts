@@ -4,7 +4,7 @@
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 
-import {logError} from 'mattermost-redux/actions/errors';
+import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -31,7 +31,7 @@ export function editPost(post: Partial<Post> & {id: string}): ActionFuncAsync {
 
         // Send to error bar if it's an edit post error about time limit.
         if (result.error && result.error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
-            dispatch(logError({type: AnnouncementBarTypes.ANNOUNCEMENT, message: result.error.message}, true));
+            dispatch(logError({type: AnnouncementBarTypes.ANNOUNCEMENT, message: result.error.message}, {errorBarMode: LogErrorBarMode.Always}));
         }
 
         return result;
