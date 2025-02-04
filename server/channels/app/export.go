@@ -27,6 +27,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
+const warningsFilename = "warnings.txt"
+
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
 var exportablePreferences = map[imports.ComparablePreference]string{
@@ -193,14 +195,17 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 
 	if opts.IncludeAttachments {
 		ctx.Logger().Info("Bulk export: exporting file attachments")
-		if err = a.exportAttachments(ctx, attachments, outPath, zipWr); err != nil {
-			return err
+		warnings, appErr := a.exportAttachments(ctx, attachments, outPath, zipWr)
+		if appErr != nil {
+			return appErr
 		}
 
 		ctx.Logger().Info("Bulk export: exporting direct file attachments")
-		if err = a.exportAttachments(ctx, directAttachments, outPath, zipWr); err != nil {
-			return err
+		newWarnings, appErr := a.exportAttachments(ctx, directAttachments, outPath, zipWr)
+		if appErr != nil {
+			return appErr
 		}
+		warnings = append(warnings, newWarnings...)
 
 		totalExportedEmojis := 0
 		emojisLen := len(emojiPaths)
@@ -214,6 +219,18 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 			if totalExportedEmojis%10 == 0 {
 				ctx.Logger().Info("Bulk export: exporting emojis progress", mlog.Int("total_successfully_exported_emojis", totalExportedEmojis), mlog.Int("total_emojis_to_export", emojisLen))
 			}
+		}
+
+		if len(warnings) > 0 {
+			warningsFile, _ := zipWr.Create(warningsFilename)
+			for _, warning := range warnings {
+				_, err := warningsFile.Write([]byte(warning + "\n"))
+				if err != nil {
+					return model.NewAppError("BulkExport", "app.export.zip_create.error",
+						nil, "err="+err.Error(), http.StatusInternalServerError)
+				}
+			}
+			updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "num_warnings", len(warnings))
 		}
 
 		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "attachments_exported", len(attachments)+len(directAttachments)+len(emojiPaths))
@@ -232,12 +249,15 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	return nil
 }
 
-func (a *App) exportAttachments(ctx request.CTX, attachments []imports.AttachmentImportData, outPath string, zipWr *zip.Writer) *model.AppError {
+func (a *App) exportAttachments(ctx request.CTX, attachments []imports.AttachmentImportData, outPath string,
+	zipWr *zip.Writer) ([]string, *model.AppError) {
 	totalExportedFiles := 0
 	attachmentsLen := len(attachments)
+	var warnings []string
 	for _, attachment := range attachments {
 		if err := a.exportFile(ctx, outPath, *attachment.Path, zipWr); err != nil {
 			ctx.Logger().Warn("Unable to export file attachment", mlog.String("attachment_path", *attachment.Path), mlog.Err(err))
+			warnings = append(warnings, fmt.Sprintf("Unable to export file attachment, attachment path: %s , error: %s", *attachment.Path, err.Error()))
 		} else {
 			totalExportedFiles++
 		}
@@ -245,7 +265,7 @@ func (a *App) exportAttachments(ctx request.CTX, attachments []imports.Attachmen
 			ctx.Logger().Info("Bulk export: exporting file attachments progress", mlog.Int("total_successfully_exported_files", totalExportedFiles), mlog.Int("total_files_to_export", attachmentsLen))
 		}
 	}
-	return nil
+	return warnings, nil
 }
 
 func (a *App) exportWriteLine(w io.Writer, line *imports.LineImportData) *model.AppError {
