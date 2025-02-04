@@ -18,7 +18,7 @@ describe('i18n', () => {
         // with experimental languages
         expect(getAllLanguages(true)).toStrictEqual({
             cc: {
-                name: 'CC Language',
+                name: 'CC Language (Experimental)',
                 value: 'cc',
                 order: 22,
                 url: 'cc.json',
