@@ -46,6 +46,14 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
 
     return (
         <>
+            <MenuItemToggleInfo
+                channel={channel}
+            />
+            <MenuItemToggleMuteChannel
+                userID={user.id}
+                channel={channel}
+                isMuted={isMuted}
+            />
             {isMobile && (
                 <>
                     <MenuItemToggleFavoriteChannel
@@ -57,14 +65,6 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     />
                 </>
             )}
-            <MenuItemToggleInfo
-                channel={channel}
-            />
-            <MenuItemToggleMuteChannel
-                userID={user.id}
-                channel={channel}
-                isMuted={isMuted}
-            />
             {!isArchived && (
                 <MenuItemNotification
                     user={user}
@@ -106,7 +106,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     permissions={[Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS]}
                 >
                     <MenuItemOpenMembersRHS
-                        id='channelViewMembers'
+                        id='channelMembers'
                         channel={channel}
                         text={
                             <FormattedMessage
@@ -118,7 +118,6 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     <Menu.Separator/>
                 </ChannelPermissionGate>
             )}
-            <Menu.Separator/>
             <ChannelMoveToSubMenu channel={channel}/>
             <MenuItemPluginItems pluginItems={pluginItems}/>
             <Menu.Separator/>

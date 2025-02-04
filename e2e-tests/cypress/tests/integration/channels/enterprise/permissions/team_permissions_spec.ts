@@ -120,14 +120,8 @@ describe('Team Permissions', () => {
         // * Verify dropdown opens
         cy.get('#channelHeaderDropdownMenu').should('be.visible');
 
-        // * Verify `Add Members` menu item is not present
-        cy.get('#channelAddMembers').should('not.exist');
-
-        // * Verify `Manage Members` menu item is not present
-        cy.get('#channelManageMembers').should('not.exist');
-
         // * Verify `View Members` menu item is visible
-        cy.get('#channelViewMembers').should('be.visible');
+        cy.get('#channelMembers').should('be.visible');
 
         // # Close channel header menu
         cy.get('body').type('{esc}');
@@ -168,8 +162,9 @@ describe('Team Permissions', () => {
             // * Verify dropdown opens
             cy.get('#channelHeaderDropdownMenu').should('be.visible');
 
-            // # Click on `Add Members`
-            cy.get('#channelAddMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+            // # Click on `Members`
+            cy.get('#channelMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetButton('Add').click();
 
             // # Search and select otherUser
             cy.get('#selectItems input').typeWithForce(otherUser.username).wait(TIMEOUTS.HALF_SEC);
@@ -184,8 +179,9 @@ describe('Team Permissions', () => {
             // * Verify dropdown opens
             cy.get('#channelHeaderDropdownMenu').should('be.visible');
 
-            // # Click on `Manage Members`
-            cy.get('#channelManageMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+            // # Click on `Members`
+            cy.get('#channelMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetButton('Manage').click();
 
             // # Click on `Member`
             cy.uiGetRHS().findByTestId(`memberline-${otherUser.id}`).within(() => {

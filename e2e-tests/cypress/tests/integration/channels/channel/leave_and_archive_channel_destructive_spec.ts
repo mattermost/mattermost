@@ -54,11 +54,8 @@ describe('Leave and Archive channel actions display as destructive', () => {
         // * Mute Channel menu option should be visible
         cy.get('#channelToggleMuteChannel').should('be.visible');
 
-        // * Add Members menu option should be visible
-        cy.get('#channelAddMembers').should('be.visible');
-
         // * Manage Members menu option should be visible
-        cy.get('#channelManageMembers').should('be.visible');
+        cy.get('#channelMembers').should('be.visible');
 
         // * Channel Settings menu option should be visible
         cy.findByText('Channel Settings').should('be.visible').trigger('mouseover');
