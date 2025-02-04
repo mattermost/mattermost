@@ -19,7 +19,7 @@ describe('System Console > Team Statistics', () => {
             // # Create private channel.
             cy.apiCreateChannel(team.id, 'mmt906-ch', 'mmt906-ch', 'P');
 
-            cy.dbRefreshPostStats().then((result) => {
+            cy.dbRefreshPostStats().then(() => {
                 // # Visit team statistics page.
                 cy.visit('/admin_console/reporting/team_statistics');
 

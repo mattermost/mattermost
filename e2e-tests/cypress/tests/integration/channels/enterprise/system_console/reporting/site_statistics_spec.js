@@ -128,9 +128,10 @@ describe('System Console > Site Statistics', () => {
                     cy.visit('/admin_console');
                     cy.wait('@resources');
 
-                    cy.dbRefreshPostStats().then((result) => {
+                    cy.dbRefreshPostStats().then(() => {
                         // * Find site statistics and click it
                         cy.findByTestId('reporting.system_analytics', {timeout: TIMEOUTS.ONE_MIN}).click();
+
                         // * Expand the details
                         cy.findByTestId('details-expander', {timeout: TIMEOUTS.ONE_MIN}).click();
 
