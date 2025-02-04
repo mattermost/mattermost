@@ -100,7 +100,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		fileName = job.Id + ".zip"
 		filePath := filepath.Join(oldFilePath, fileName)
 		var fileReader filestore.ReadCloseSeeker
-		fileReader, err = c.App.FileReader(filePath)
+		fileReader, err = c.App.ExportFileReader(filePath)
 		if err != nil {
 			c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil,
 				"job.Data did not include export_dir, export_dir was malformed, or jobId.zip wasn't found",
