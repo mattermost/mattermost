@@ -233,9 +233,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                             <div className='col-sm-11'>
                                 <div className='input-group input-group--limit'>
                                     <WithTooltip
-                                        id='urlTooltip'
                                         title={title}
-                                        placement={'top'}
                                     >
                                         <span className='input-group-addon'>
                                             {title}

@@ -860,7 +860,7 @@ func (os *OpensearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *model
 	return nil
 }
 
-func (os *OpensearchInterfaceImpl) SearchChannels(teamId, userID string, term string, isGuest bool) ([]string, *model.AppError) {
+func (os *OpensearchInterfaceImpl) SearchChannels(teamId, userID string, term string, isGuest, includeDeleted bool) ([]string, *model.AppError) {
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
@@ -921,6 +921,14 @@ func (os *OpensearchInterfaceImpl) SearchChannels(teamId, userID string, term st
 							"name_suggestions": {Value: strings.ToLower(term)},
 						},
 					}},
+			},
+		})
+	}
+
+	if !includeDeleted {
+		query.Filter = append(query.Filter, types.Query{
+			Term: map[string]types.TermQuery{
+				"delete_at": {Value: 0},
 			},
 		})
 	}
@@ -1435,7 +1443,7 @@ func (os *OpensearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppErro
 	})
 	if err != nil {
 		rctx.Logger().Error("Opensearch PurgeIndexes Error", mlog.Err(err))
-		return model.NewAppError("Opensearch.PurgeIndexes", "ent.elasticsearch.purge_indexes.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.PurgeIndexes", "ent.elasticsearch.purge_index.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil

@@ -6,20 +6,21 @@ import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
+import {FileTypes} from 'mattermost-redux/action_types';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
+import type {CreatePostOptions} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
@@ -34,6 +35,11 @@ import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import DeletePostModal from 'components/delete_post_modal';
+import {
+    DropOverlayIdCreateComment,
+    DropOverlayIdCreatePost,
+    DropOverlayIdEditPost, FileUploadOverlay,
+} from 'components/file_upload_overlay/file_upload_overlay';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -66,6 +72,7 @@ import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
+import MessageWithMentionsFooter from './message_with_mentions_footer';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
@@ -83,7 +90,7 @@ import './advanced_text_editor.scss';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
-type Props = {
+export type Props = {
 
     /**
      * location of the advanced text editor in the UI (center channel / RHS)
@@ -138,7 +145,6 @@ const AdvancedTextEditor = ({
         return name;
     };
 
-    const post = useSelector((state: GlobalState) => getPost(state, postId));
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const channelDisplayName = channel?.display_name || '';
@@ -182,6 +188,7 @@ const AdvancedTextEditor = ({
 
         return enableTutorial && (tutorialStep === tourStep);
     });
+    const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId));
 
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
@@ -191,6 +198,7 @@ const AdvancedTextEditor = ({
     const draftRef = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
+    const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
     const [caretPosition, setCaretPosition] = useState(draft.message.length);
@@ -200,7 +208,6 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
-    const [showMentionHelper, setShowMentionHelper] = useState<boolean>(false);
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
@@ -216,15 +223,6 @@ const AdvancedTextEditor = ({
     const emitTypingEvent = useCallback(() => {
         GlobalActions.emitLocalUserTypingEvent(channelId, postId);
     }, [channelId, postId]);
-
-    const handleShowMentionHelper = useCallback((message: string) => {
-        if (!isInEditMode) {
-            return;
-        }
-
-        const isMentions = allAtMentions(message).length > 0;
-        setShowMentionHelper(isMentions);
-    }, [isInEditMode]);
 
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
         if (saveDraftFrame.current) {
@@ -311,11 +309,13 @@ const AdvancedTextEditor = ({
         setServerError,
         isInEditMode,
     );
+
+    const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;
     const {
         emojiPicker,
         enableEmojiPicker,
         toggleEmojiPicker,
-    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
+    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox, emojiPickerOffset);
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
@@ -340,13 +340,51 @@ const AdvancedTextEditor = ({
         isInEditMode,
     );
 
+    const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+        handleSubmit(submittingDraft, schedulingInfo, options);
+        if (!errorClass) {
+            const messageStatusElement = messageStatusRef.current;
+            const messageStatusInnerText = messageStatusElement?.textContent;
+            if (messageStatusInnerText === 'Message Sent') {
+                messageStatusElement!.textContent = 'Message Sent &nbsp;';
+            } else {
+                messageStatusElement!.textContent = 'Message Sent';
+            }
+        }
+    }, [errorClass, handleSubmit]);
+
     const handleCancel = useCallback(() => {
-        // This resets the draft to the post's original content
         handleDraftChange({
-            ...draft,
-            message: post?.message || '',
+            message: '',
+            fileInfos: [],
+            uploadsInProgress: [],
+            createAt: 0,
+            updateAt: 0,
+            channelId,
+            rootId: postId,
+            metadata: {},
         });
-    }, [handleDraftChange, draft, post]);
+    }, [handleDraftChange, channelId, postId]);
+
+    const handleFileChangesOnSave = useCallback((draft: PostDraft) => {
+        // sets the updated data for file IDs by post ID part
+        dispatch({
+            type: FileTypes.RECEIVED_FILES_FOR_POST,
+            data: draft.fileInfos,
+            postId,
+        });
+
+        // removes the data for the deleted files from store
+        const deletedFileIds = postFileIds.filter((id: string) => !draft.fileInfos.find((file) => file.id === id));
+        if (deletedFileIds) {
+            dispatch({
+                type: FileTypes.REMOVED_FILE,
+                data: {
+                    fileIds: deletedFileIds,
+                },
+            });
+        }
+    }, [dispatch, postFileIds, postId]);
 
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
@@ -365,8 +403,12 @@ const AdvancedTextEditor = ({
             return;
         }
 
-        handleSubmit();
-    }, [dispatch, draft, handleSubmit, isInEditMode, isRHS]);
+        if (isInEditMode) {
+            handleFileChangesOnSave(draft);
+        }
+
+        handleSubmitWithErrorHandling();
+    }, [dispatch, draft, handleFileChangesOnSave, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -391,8 +433,8 @@ const AdvancedTextEditor = ({
 
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
         e.preventDefault();
-        handleSubmit();
-    }, [handleSubmit]);
+        handleSubmitWithErrorHandling();
+    }, [handleSubmitWithErrorHandling]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -546,7 +588,9 @@ const AdvancedTextEditor = ({
         draftRef.current = draft;
     }, [draft]);
 
-    const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => handleSubmit(undefined, schedulingInfo), [handleSubmit]);
+    const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => {
+        handleSubmitWithErrorHandling(undefined, schedulingInfo);
+    }, [handleSubmitWithErrorHandling]);
 
     // Set the draft from store when changing post or channels, and store the previous one
     useEffect(() => {
@@ -561,11 +605,6 @@ const AdvancedTextEditor = ({
             }
         };
     }, [channelId, postId]);
-
-    useEffect(() => {
-        // this checks for the mention helper for initial load of component.
-        handleShowMentionHelper(draft.message);
-    }, [draft.message, handleShowMentionHelper]);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
@@ -680,7 +719,30 @@ const AdvancedTextEditor = ({
         />
     );
 
+    const fileUploadOverlay = useMemo(() => {
+        const overlayType = isRHS ? 'right' : 'center';
+        const direction = 'horizontal';
+
+        return isInEditMode ? (
+            <FileUploadOverlay
+                overlayType={overlayType}
+                isInEditMode={true}
+                id={DropOverlayIdEditPost}
+                direction={direction}
+            />
+        ) : (
+            <FileUploadOverlay
+                overlayType={overlayType}
+                isInEditMode={false}
+                id={isRHS ? DropOverlayIdCreateComment : DropOverlayIdCreatePost}
+                direction={direction}
+            />
+        );
+    }, [isInEditMode, isRHS]);
+
     const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
+
+    const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
 
     return (
         <form
@@ -723,6 +785,7 @@ const AdvancedTextEditor = ({
                     className={'AdvancedTextEditor__body'}
                     disabled={isDisabled}
                 >
+                    {fileUploadOverlay}
                     <div
                         ref={editorBodyRef}
                         role='application'
@@ -801,30 +864,8 @@ const AdvancedTextEditor = ({
                     )}
                 </div>
             </div>
-            { showMentionHelper ? (
-                <div
-                    className='post-body__info'
-                    data-testid='editPostAtMentionWarning'
-                >
-                    <span className='post-body__info__icon'>
-                        <InformationOutlineIcon
-                            size={14}
-                            color='currentColor'
-                        />
-                    </span>
-                    <span>{
-                        formatMessage({
-                            id: 'edit_post.no_notification_trigger_on_mention',
-                            defaultMessage: "Editing this message with an '@mention' will not notify the recipient.",
-                        })
-                    }</span>
-                </div>) : null
-            }
-            {isInEditMode && (
-                <EditPostFooter
-                    onSave={handleSubmitWrapper}
-                    onCancel={handleCancel}
-                />
+            {isInEditMode && containsAtMentionsInMessage && (
+                <MessageWithMentionsFooter/>
             )}
             <Footer
                 postError={postError}
@@ -834,6 +875,17 @@ const AdvancedTextEditor = ({
                 postId={postId}
                 noArgumentHandleSubmit={handleSubmitWrapper}
                 isInEditMode={isInEditMode}
+            />
+            {isInEditMode && (
+                <EditPostFooter
+                    onSave={handleSubmitWrapper}
+                    onCancel={handleCancel}
+                />
+            )}
+            <div
+                ref={messageStatusRef}
+                aria-live='assertive'
+                className='sr-only'
             />
         </form>
     );

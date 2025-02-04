@@ -1065,6 +1065,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 
 	// Now attempt to delete all the root posts for a user. This will also
 	// delete all the comments for each post
+	const maxLoops = 10
 	count := 0
 	for {
 		var ids []string
@@ -1083,8 +1084,8 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 
 		// This is a fail safe, give up if more than 10k messages
 		count++
-		if count >= 10 {
-			return errors.Wrapf(err, "too many Posts to delete with userId=%s", userId)
+		if count >= maxLoops {
+			return store.NewErrLimitExceeded("permanently deleting posts for user", maxLoops*1000, "userId="+userId)
 		}
 	}
 
@@ -2403,15 +2404,14 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 		})
 	}
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "post_tosql")
+	if options.UntilUpdateAt > 0 {
+		query = query.Where(sq.LtOrEq{"p.UpdateAt": options.UntilUpdateAt})
 	}
 
 	var v int64
-	err = s.GetReplica().Get(&v, queryString, args...)
+	err := s.GetReplica().GetBuilder(&v, query)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to count Posts")
+		return 0, fmt.Errorf("post_tosql failed or failed to count Posts: %w", err)
 	}
 
 	return v, nil

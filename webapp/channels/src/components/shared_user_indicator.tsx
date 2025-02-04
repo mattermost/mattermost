@@ -9,7 +9,6 @@ import {useIntl} from 'react-intl';
 import WithTooltip from 'components/with_tooltip';
 
 type Props = {
-    id: string;
 
     /**
      * If not provided, the default title 'From trusted organizations' will be used for the tooltip.
@@ -20,7 +19,6 @@ type Props = {
 
     className?: string;
     withTooltip?: boolean;
-    placement?: string;
 };
 
 const SharedUserIndicator = (props: Props) => {
@@ -40,9 +38,7 @@ const SharedUserIndicator = (props: Props) => {
 
     return (
         <WithTooltip
-            id={props.id}
             title={props.title || intl.formatMessage({id: 'shared_user_indicator.tooltip', defaultMessage: 'From trusted organizations'})}
-            placement={props.placement || 'bottom'}
         >
             {sharedIcon}
         </WithTooltip>

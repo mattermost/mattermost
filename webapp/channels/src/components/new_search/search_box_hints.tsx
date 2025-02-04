@@ -15,14 +15,16 @@ import SearchHints from './search_hint';
 
 type Props = {
     searchTerms: string;
+    searchTeam: string;
     setSearchTerms: (searchTerms: string) => void;
     searchType: string;
     selectedOption: number;
     providerResults: ProviderResult<unknown>|null;
     focus: (pos: number) => void;
+    showFilterHaveBeenReset: boolean;
 }
 
-const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResults, selectedOption, focus}: Props) => {
+const SearchBoxHints = ({searchTerms, searchTeam, setSearchTerms, searchType, providerResults, selectedOption, focus, showFilterHaveBeenReset}: Props) => {
     const filterSelectedCallback = useCallback((filter: string) => {
         if (searchTerms.endsWith(' ') || searchTerms.length === 0) {
             setSearchTerms(searchTerms + filter);
@@ -47,7 +49,9 @@ const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResult
                 onSelectFilter={filterSelectedCallback}
                 searchType={searchType}
                 searchTerms={searchTerms}
+                searchTeam={searchTeam}
                 hasSelectedOption={Boolean(providerResults && providerResults.items.length > 0 && selectedOption !== -1)}
+                showFilterHaveBeenReset={showFilterHaveBeenReset}
                 isDate={providerResults?.component === SearchDateSuggestion}
             />
         );
@@ -64,7 +68,7 @@ const SearchBoxHints = ({searchTerms, setSearchTerms, searchType, providerResult
         return null;
     }
 
-    const Component: any = pluginComponentInfo.component;
+    const Component = pluginComponentInfo.component;
 
     return (
         <ErrorBoundary>

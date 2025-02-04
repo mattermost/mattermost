@@ -40,12 +40,6 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Username, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
@@ -93,12 +87,6 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
-				GetUserByEmail(context.TODO(), user.Username, "").
-				Return(nil, &model.Response{}, nil).
-				Times(1)
-
-			s.client.
-				EXPECT().
 				GetUserByUsername(context.TODO(), user.Username, "").
 				Return(user, &model.Response{}, nil).
 				Times(1)
@@ -109,12 +97,6 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), notFoundUser.Username, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -173,12 +155,6 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Username, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
@@ -201,12 +177,6 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 			EXPECT().
 			GetRoleByName(context.TODO(), mockRole.Name).
 			Return(mockRole, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), requestedUser, "").
-			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
@@ -240,12 +210,6 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 			Username: "user1",
 			Roles:    fmt.Sprintf("system_user %s team_admin", roleName),
 		}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Username, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -286,12 +250,6 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
-				GetUserByEmail(context.TODO(), user.Username, "").
-				Return(nil, &model.Response{}, nil).
-				Times(1)
-
-			s.client.
-				EXPECT().
 				GetUserByUsername(context.TODO(), user.Username, "").
 				Return(user, &model.Response{}, nil).
 				Times(1)
@@ -302,12 +260,6 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), notFoundUser.Username, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -337,12 +289,6 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Username, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), mockUser.Username, "").
 			Return(mockUser, &model.Response{}, nil).
 			Times(1)
@@ -354,12 +300,6 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 	s.Run("Unassigning a user that is not found", func() {
 		requestedUser := "user99"
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), requestedUser, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
