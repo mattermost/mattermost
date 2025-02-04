@@ -164,6 +164,7 @@ describe('Team Permissions', () => {
 
             // # Click on `Members`
             cy.get('#channelMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetButton('Add').click();
 
             // # Search and select otherUser
             cy.get('#selectItems input').typeWithForce(otherUser.username).wait(TIMEOUTS.HALF_SEC);
@@ -178,8 +179,9 @@ describe('Team Permissions', () => {
             // * Verify dropdown opens
             cy.get('#channelHeaderDropdownMenu').should('be.visible');
 
-            // # Click on `MMembers`
+            // # Click on `Members`
             cy.get('#channelMembers').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetButton('Manage').click();
 
             // # Click on `Member`
             cy.uiGetRHS().findByTestId(`memberline-${otherUser.id}`).within(() => {
