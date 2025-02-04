@@ -145,50 +145,50 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	ctx.Logger().Info("Bulk export: exporting teams")
-	teamNames, err := a.exportAllTeams(ctx, job, writer)
-	if err != nil {
-		return err
+	teamNames, appErr := a.exportAllTeams(ctx, job, writer)
+	if appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting channels")
-	if err = a.exportAllChannels(ctx, job, writer, teamNames, opts.IncludeArchivedChannels); err != nil {
-		return err
+	if appErr = a.exportAllChannels(ctx, job, writer, teamNames, opts.IncludeArchivedChannels); appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting users")
-	profilePictures, err := a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures)
-	if err != nil {
-		return err
+	profilePictures, appErr := a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures)
+	if appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting bots")
-	botPPs, err := a.exportAllBots(ctx, job, writer, opts.IncludeProfilePictures)
-	if err != nil {
-		return err
+	botPPs, appErr := a.exportAllBots(ctx, job, writer, opts.IncludeProfilePictures)
+	if appErr != nil {
+		return appErr
 	}
 	profilePictures = append(profilePictures, botPPs...)
 
 	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
-	if err != nil {
-		return err
+	attachments, appErr := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+	if appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting emoji")
-	emojiPaths, err := a.exportCustomEmoji(ctx, job, writer, outPath, "exported_emoji", !opts.CreateArchive)
-	if err != nil {
-		return err
+	emojiPaths, appErr := a.exportCustomEmoji(ctx, job, writer, outPath, "exported_emoji", !opts.CreateArchive)
+	if appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct channels")
-	if err = a.exportAllDirectChannels(ctx, job, writer, opts.IncludeArchivedChannels); err != nil {
-		return err
+	if appErr = a.exportAllDirectChannels(ctx, job, writer, opts.IncludeArchivedChannels); appErr != nil {
+		return appErr
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct posts")
-	directAttachments, err := a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
-	if err != nil {
-		return err
+	directAttachments, appErr := a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+	if appErr != nil {
+		return appErr
 	}
 
 	if opts.IncludeAttachments {
