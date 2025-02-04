@@ -62,7 +62,7 @@ describe('Managing bots in Teams and Channels', () => {
         });
     });
 
-    it.only('MM-T1817 Add a BOT to a channel that is not on the Team', () => {
+    it('MM-T1817 Add a BOT to a channel that is not on the Team', () => {
         cy.makeClient().then(async (client) => {
             // # Go to channel
             const channel = await client.createChannel(createChannelPatch(team.id, 'a-chan', 'A Channel') as Channel);
