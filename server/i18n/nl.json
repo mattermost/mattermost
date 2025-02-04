@@ -10402,5 +10402,17 @@
   {
     "id": "app.custom_profile_attributes.property_value_update.app_error",
     "translation": "Kan de waarde van de eigenschap niet bijwerken"
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Kan geen opdracht uitvoeren in verwijderde chatroom."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Kon geen zip-bestandslezer vinden."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Jouw licentie ondersteunt geen Aangepaste Profielattributen."
   }
 ]
