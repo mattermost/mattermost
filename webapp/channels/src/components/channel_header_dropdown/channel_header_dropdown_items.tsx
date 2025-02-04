@@ -137,7 +137,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         dialogProps={{
                             channel,
                             currentUser: user,
-                            focusOriginElement: 'TBD',
+                            focusOriginElement: 'channelHeaderMenuButton',
                         }}
                         text={localizeMessage({id: 'navbar.preferences', defaultMessage: 'Notification Preferences'})}
                     />
@@ -168,7 +168,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                             show={channel.type === Constants.GM_CHANNEL && !isArchived && !isGroupConstrained}
                             modalId={ModalIdentifiers.CREATE_DM_CHANNEL}
                             dialogType={MoreDirectChannels}
-                            dialogProps={{isExistingChannel: true, focusOriginElement: 'channel_header.menuAriaLabel'}}
+                            dialogProps={{isExistingChannel: true, focusOriginElement: 'channelHeaderMenuButton'}}
                             text={localizeMessage({id: 'navbar.addMembers', defaultMessage: 'Add Members'})}
                         />
                     </ChannelPermissionGate>

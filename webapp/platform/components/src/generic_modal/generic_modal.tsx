@@ -216,7 +216,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 <div
                     onKeyDown={this.onEnterKeyDown}
                     tabIndex={this.props.tabIndex || 0}
-                    className='GenericModal__wrapper-enter-key-press-catcher'
+                    className='GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher'
                 >
                     {this.props.showHeader && <Modal.Header closeButton={this.props.showCloseButton}>
                         <div

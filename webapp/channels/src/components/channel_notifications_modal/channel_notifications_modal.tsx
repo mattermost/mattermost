@@ -18,6 +18,7 @@ import ModalSection from 'components/widgets/modals/components/modal_section';
 import RadioSettingItem from 'components/widgets/modals/components/radio_setting_item';
 import type {Option} from 'components/widgets/modals/components/react_select_item';
 
+import {focusElement} from 'utils/a11y_utils';
 import {NotificationLevels, DesktopSound, IgnoreChannelMentions} from 'utils/constants';
 import {convertDesktopSoundNotifyPropFromUserToDesktop, DesktopNotificationSounds, getValueOfNotificationSoundsSelect, stopTryNotificationRing, tryNotificationSound} from 'utils/notification_sounds';
 
@@ -44,6 +45,8 @@ export type Props = PropsFromRedux & {
      * Object with info about current user
      */
     currentUser: UserProfile;
+
+    focusOriginElement?: string;
 };
 
 export default function ChannelNotificationsModal(props: Props) {
@@ -64,6 +67,14 @@ export default function ChannelNotificationsModal(props: Props) {
 
     function handleHide() {
         setShow(false);
+    }
+
+    function handleExited() {
+        // set the focus here
+        if (props.focusOriginElement) {
+            focusElement(props.focusOriginElement, true);
+        }
+        props.onExited?.();
     }
 
     const handleChange = useCallback((values: Record<string, string>) => {
@@ -277,7 +288,7 @@ export default function ChannelNotificationsModal(props: Props) {
 
     const desktopAndMobileNotificationSectionContent = settings.mark_unread === 'all' ? (
         <>
-            <div className='channel-notifications-settings-modal__divider'/>
+            <div className='ChannelNotificationModal__divider'/>
             <ModalSection
                 title={formatMessage({
                     id: 'channel_notifications.desktopNotificationsTitle',
@@ -297,7 +308,7 @@ export default function ChannelNotificationsModal(props: Props) {
                 })}
                 content={desktopNotificationsSectionContent}
             />
-            <div className='channel-notifications-settings-modal__divider'/>
+            <div className='ChannelNotificationModal__divider'/>
             <ModalSection
                 title={formatMessage({
                     id: 'channel_notifications.mobileNotificationsTitle',
@@ -344,34 +355,70 @@ export default function ChannelNotificationsModal(props: Props) {
         />
     );
 
+    const footerContent = (
+        <footer className='ChannelNotificationModal__footer'>
+            {serverError &&
+            <span
+                role='alert'
+                className='ChannelNotificationModal__server-error'
+            >
+                {serverError}
+            </span>
+            }
+            <button
+                className='btn btn-tertiary btn-md'
+                onClick={handleHide}
+            >
+                <FormattedMessage
+                    id='generic_btn.cancel'
+                    defaultMessage='Cancel'
+                />
+            </button>
+            <button
+                className='btn btn-primary btn-md'
+                onClick={handleSave}
+            >
+                <FormattedMessage
+                    id='generic_btn.save'
+                    defaultMessage='Save'
+                />
+            </button>
+        </footer>
+    );
+
+    const headerText = (
+        <ModalHeader
+            id={'channelNotificationModalLabel'}
+            title={formatMessage({
+                id: 'channel_notifications.preferences',
+                defaultMessage: 'Notification Preferences',
+            })}
+            subtitle={props.channel.display_name}
+        />
+    );
+
     return (
         <GenericModal
             id='channelNotificationModal'
             className='a11y__modal ChannelNotificationModal modal--overflow'
             show={show}
             onHide={handleHide}
-            onExited={props.onExited}
+            onExited={handleExited}
             ariaLabel='channelNotificationModalLabel'
             compassDesign={true}
-            showCloseButton={false}
-            showHeader={false}
+            footerContent={footerContent}
+            modalHeaderText={headerText}
+            bodyPadding={false}
+            footerDivider={true}
         >
-            <ModalHeader
-                id={'channelNotificationModalLabel'}
-                title={formatMessage({
-                    id: 'channel_notifications.preferences',
-                    defaultMessage: 'Notification Preferences',
-                })}
-                subtitle={props.channel.display_name}
-                handleClose={handleHide}
-            />
-            <main className='channel-notifications-settings-modal__body'>
-                <fieldset aria-labelledby='channel-notifications-settings-modal-legend'>
+
+            <main className='ChannelNotificationModal__body'>
+                <fieldset aria-labelledby='ChannelNotificationModal-legend'>
                     <ModalSection
                         title={
                             <legend
                                 style={{all: 'unset'}}
-                                id='channel-notifications-settings-modal-legend'
+                                id='ChannelNotificationModal-legend'
                             >
                                 {formatMessage({
                                     id: 'channel_notifications.muteAndIgnore',
@@ -385,7 +432,7 @@ export default function ChannelNotificationsModal(props: Props) {
                 {desktopAndMobileNotificationSectionContent}
                 {props.collapsedReplyThreads &&
                     <>
-                        <div className='channel-notifications-settings-modal__divider'/>
+                        <div className='ChannelNotificationModal__divider'/>
                         <ModalSection
                             title={formatMessage({
                                 id: 'channel_notifications.autoFollowThreadsTitle',
@@ -400,34 +447,6 @@ export default function ChannelNotificationsModal(props: Props) {
                     </>
                 }
             </main>
-            <footer className='channel-notifications-settings-modal__footer'>
-                {serverError &&
-                    <span
-                        role='alert'
-                        className='channel-notifications-settings-modal__server-error'
-                    >
-                        {serverError}
-                    </span>
-                }
-                <button
-                    className='btn btn-tertiary btn-md'
-                    onClick={handleHide}
-                >
-                    <FormattedMessage
-                        id='generic_btn.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </button>
-                <button
-                    className='btn btn-primary btn-md'
-                    onClick={handleSave}
-                >
-                    <FormattedMessage
-                        id='generic_btn.save'
-                        defaultMessage='Save'
-                    />
-                </button>
-            </footer>
         </GenericModal>
     );
 }
