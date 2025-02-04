@@ -425,14 +425,14 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 	}
 }
 
+// truncateDNDEndTime takes a user-provided timestamp for when their DND expiry should end and truncates it to line up
+// with the DND expiry job so that the user's DND time doesn't expire late by an interval. The job to expire statuses
+// runs every minute currently, so this trims the seconds and milliseconds off the given timestamp.
+//
+// This will result in statuses expiring slightly earlier than specified in the UI, but the status will expire at
+// the correct time on the wall clock. For example, if the time is currently 13:04:29 and the user sets the expiry to
+// to 5 minutes, truncating will make the status will expire at 13:09:00 instead of at 13:10:00.
 func truncateDNDEndTime(endtime int64) int64 {
-	// Values sent by the client include seconds and milliseconds, so we need to truncate them so that the status ends
-	// on the expected interval and not the one after that. The job to expire statuses runs every interval, so this
-	// ensures that DND statuses don't expire late by an interval.
-	//
-	// This will result in statuses expiring slightly earlier than specified in the UI, but the status will expire at
-	// the correct time on the wall clock. For example, if the time is currently 13:04:29 and the user sets the expiry
-	// to 5 minutes, truncating will make the status will expire at 13:09:00 instead of at 13:10:00.
 	return model.GetMillisForTime(model.GetTimeForMillis(endtime).Truncate(model.DNDExpiryInterval))
 }
 
