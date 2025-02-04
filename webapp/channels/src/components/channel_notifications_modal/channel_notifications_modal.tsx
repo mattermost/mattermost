@@ -70,7 +70,6 @@ export default function ChannelNotificationsModal(props: Props) {
     }
 
     function handleExited() {
-        // set the focus here
         if (props.focusOriginElement) {
             focusElement(props.focusOriginElement, true);
         }
