@@ -4,6 +4,7 @@
 package jobs
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -11,6 +12,10 @@ import (
 )
 
 func TestStartWorkers(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("uninitialized", func(t *testing.T) {
 		jobServer, _, _ := makeJobServer(t)
 		err := jobServer.StartWorkers()
@@ -43,6 +48,10 @@ func TestStartWorkers(t *testing.T) {
 }
 
 func TestStopWorkers(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("uninitialized", func(t *testing.T) {
 		jobServer, _, _ := makeJobServer(t)
 		err := jobServer.StopWorkers()
@@ -69,6 +78,10 @@ func TestStopWorkers(t *testing.T) {
 }
 
 func TestStartSchedulers(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("uninitialized", func(t *testing.T) {
 		jobServer, _, _ := makeJobServer(t)
 		err := jobServer.StartSchedulers()
@@ -99,6 +112,10 @@ func TestStartSchedulers(t *testing.T) {
 }
 
 func TestStopSchedulers(t *testing.T) {
+	if os.Getenv("ENABLE_FULLY_PARALLEL_TESTS") == "true" {
+		t.Parallel()
+	}
+
 	t.Run("uninitialized", func(t *testing.T) {
 		jobServer, _, _ := makeJobServer(t)
 		err := jobServer.StopSchedulers()

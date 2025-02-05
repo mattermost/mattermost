@@ -134,6 +134,9 @@ func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, 
 }
 
 func TestPublicFilesPathConfiguration(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -164,6 +167,9 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 }
 
 func TestPluginAPIGetUserPreference(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("should return preferences when called", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -211,6 +217,9 @@ func TestPluginAPIGetUserPreference(t *testing.T) {
 }
 
 func TestPluginAPIGetUserPreferences(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -244,6 +253,9 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -305,6 +317,9 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -356,6 +371,9 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIGetUsers(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -455,6 +473,9 @@ func TestPluginAPIGetUsers(t *testing.T) {
 }
 
 func TestPluginAPIGetUsersByIds(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -519,6 +540,9 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 }
 
 func TestPluginAPIGetUsersInTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -647,6 +671,9 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 }
 
 func TestPluginAPIUserCustomStatus(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -703,6 +730,9 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 }
 
 func TestPluginAPIGetFile(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -731,6 +761,9 @@ func TestPluginAPIGetFile(t *testing.T) {
 }
 
 func TestPluginAPIGetFileInfos(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -828,6 +861,9 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 }
 
 func TestPluginAPISavePluginConfig(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -871,6 +907,9 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 }
 
 func TestPluginAPILoadPluginConfiguration(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -904,6 +943,9 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 }
 
 func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -941,6 +983,9 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 }
 
 func TestPluginAPIGetPlugins(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1000,6 +1045,9 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 }
 
 func TestPluginAPIInstallPlugin(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1036,6 +1084,9 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 }
 
 func TestInstallPlugin(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	// TODO(ilgooz): remove this setup func to use existent setupPluginAPITest().
 	// following setupTest() func is a modified version of setupPluginAPITest().
 	// we need a modified version of setupPluginAPITest() because it wasn't possible to use it directly here
@@ -1162,6 +1213,9 @@ func TestInstallPlugin(t *testing.T) {
 }
 
 func TestPluginAPIGetTeamIcon(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1193,6 +1247,9 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 }
 
 func TestPluginAPISetTeamIcon(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1223,6 +1280,9 @@ func TestPluginAPISetTeamIcon(t *testing.T) {
 }
 
 func TestPluginAPIRemoveTeamIcon(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1278,6 +1338,9 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 // 5. Successfully running test should return nil, "OK". Any other returned string is considered and error
 
 func TestBasicAPIPlugins(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	defaultSchema := getDefaultPluginSettingsSchema()
 	testFolder := filepath.Join(server.GetPackagePath(), "channels", "app", "plugin_api_tests")
 	dirs, err := os.ReadDir(testFolder)
@@ -1286,6 +1349,10 @@ func TestBasicAPIPlugins(t *testing.T) {
 		d := dir.Name()
 		if dir.IsDir() && !strings.HasPrefix(d, "manual.") {
 			t.Run(d, func(t *testing.T) {
+				if mainHelper.Options.RunParallel {
+					t.Parallel()
+				}
+
 				mainPath := filepath.Join(testFolder, d, "main.go")
 				_, err := os.Stat(mainPath)
 				require.NoError(t, err, "Cannot find plugin main file at %v", mainPath)
@@ -1300,6 +1367,9 @@ func TestBasicAPIPlugins(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndSet(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1396,6 +1466,9 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndDelete(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1448,6 +1521,9 @@ func TestPluginAPIKVCompareAndDelete(t *testing.T) {
 }
 
 func TestPluginCreateBot(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1469,6 +1545,9 @@ func TestPluginCreateBot(t *testing.T) {
 }
 
 func TestPluginCreatePostWithUploadedFile(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1505,6 +1584,9 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 }
 
 func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1524,6 +1606,9 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1561,6 +1646,9 @@ func TestPluginAPIGetConfig(t *testing.T) {
 }
 
 func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1598,6 +1686,9 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 }
 
 func TestPluginAddUserToChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1610,11 +1701,15 @@ func TestPluginAddUserToChannel(t *testing.T) {
 }
 
 func TestInterpluginPluginHTTP(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
 	setupMultiPluginAPITest(t,
-		[]string{`
+		[]string{
+			`
 		package main
 
 		import (
@@ -1739,6 +1834,9 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 }
 
 func TestAPIMetrics(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1759,8 +1857,7 @@ func TestAPIMetrics(t *testing.T) {
 
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		code :=
-			`
+		code := `
 	package main
 
 	import (
@@ -1821,6 +1918,9 @@ func TestAPIMetrics(t *testing.T) {
 }
 
 func TestPluginAPIGetPostsForChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	require := require.New(t)
 
 	th := Setup(t).InitBasic()
@@ -1864,6 +1964,9 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 }
 
 func TestPluginHTTPConnHijack(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1897,6 +2000,9 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 }
 
 func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1968,6 +2074,9 @@ func (mscp *MockSlashCommandProvider) DoCommand(a *App, c request.CTX, args *mod
 }
 
 func TestPluginExecuteSlashCommand(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1993,6 +2102,9 @@ func TestPluginExecuteSlashCommand(t *testing.T) {
 }
 
 func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -2040,6 +2152,9 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 }
 
 func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -2078,6 +2193,9 @@ func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 }
 
 func TestPluginAPIUpdateCommand(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -2136,6 +2254,9 @@ func TestPluginAPIIsEnterpriseReady(t *testing.T) {
 }
 
 func TestPluginUploadsAPI(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2235,6 +2356,9 @@ func TestPluginUploadsAPI(t *testing.T) {
 var configurationWillBeSavedHookTemplate string
 
 func TestConfigurationWillBeSavedHook(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2336,6 +2460,9 @@ func TestConfigurationWillBeSavedHook(t *testing.T) {
 }
 
 func TestSendPushNotification(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	if testing.Short() {
 		t.Skip("skipping TestSendPushNotification test in short mode")
 	}
@@ -2433,6 +2560,9 @@ func TestSendPushNotification(t *testing.T) {
 }
 
 func TestPluginServeMetrics(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t, StartMetrics)
 	defer th.TearDown()
 
@@ -2491,6 +2621,9 @@ func TestPluginServeMetrics(t *testing.T) {
 }
 
 func TestPluginGetChannelsForTeamForUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2594,6 +2727,9 @@ func TestPluginGetChannelsForTeamForUser(t *testing.T) {
 }
 
 func TestPluginPatchChannelMembersNotifications(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("should be able to set fields for multiple members", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
