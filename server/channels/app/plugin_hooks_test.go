@@ -1568,7 +1568,10 @@ func TestHookOnOmniSearch(t *testing.T) {
 		*cfg.ServiceSettings.EnableOmniSearch = true
 	})
 
-	th.App.Srv().SetLicense(model.NewTestLicense("omnisearch"))
+	license := model.NewTestLicense()
+	license.SkuShortName = model.LicenseShortSkuEnterprise
+
+	th.App.Srv().SetLicense(license)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -1591,7 +1594,7 @@ func TestHookOnOmniSearch(t *testing.T) {
 
 			return []*model.OmniSearchResult{
 				{
-					Id:          "result1",
+					ID:          "result1",
 					Title:       "Result 1",
 					Description: "First test result",
 					Link:        "/link/to/result1",
@@ -1610,7 +1613,7 @@ func TestHookOnOmniSearch(t *testing.T) {
 	results, err := th.App.OmniSearch(th.Context, "searchterm", th.BasicUser.Id, false, 0, 0, 10)
 	require.Nil(t, err)
 	require.Len(t, results, 1)
-	require.Equal(t, "result1", results[0].Id)
+	require.Equal(t, "result1", results[0].ID)
 	require.Equal(t, "Result 1", results[0].Title)
 	require.Equal(t, "First test result", results[0].Description)
 	require.Equal(t, "/link/to/result1", results[0].Link)
