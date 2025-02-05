@@ -16,6 +16,12 @@ func TestOmniSearch(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	searchterm := "searchterm"
+	isOrSearch := false
+	tzOffset := 0
+	page := 0
+	perPage := 10
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOmniSearch = true
 	})
@@ -28,14 +34,14 @@ func TestOmniSearch(t *testing.T) {
 		})
 
 		params := &model.SearchParameter{
-			Terms:          model.NewString("searchterm"),
-			IsOrSearch:     model.NewBool(false),
-			TimeZoneOffset: model.NewInt(0),
-			Page:           model.NewInt(0),
-			PerPage:        model.NewInt(10),
+			Terms:          &searchterm,
+			IsOrSearch:     &isOrSearch,
+			TimeZoneOffset: &tzOffset,
+			Page:           &page,
+			PerPage:        &perPage,
 		}
 
-		_, resp, err := th.Client.OmniSearch(context.Background(), params)
+		_, resp, err := th.Client.DoAPIPost(context.Background(), "/omnisearch/search", params.ToJson())
 		require.Error(t, err)
 		require.Equal(t, 501, resp.StatusCode)
 	})
@@ -47,14 +53,14 @@ func TestOmniSearch(t *testing.T) {
 		})
 
 		params := &model.SearchParameter{
-			Terms:          model.NewString("searchterm"),
-			IsOrSearch:     model.NewBool(false),
-			TimeZoneOffset: model.NewInt(0),
-			Page:           model.NewInt(0),
-			PerPage:        model.NewInt(10),
+			Terms:          &searchterm,
+			IsOrSearch:     &isOrSearch,
+			TimeZoneOffset: &tzOffset,
+			Page:           &page,
+			PerPage:        &perPage,
 		}
 
-		_, resp, err := th.Client.OmniSearch(context.Background(), params)
+		_, resp, err := th.Client.DoAPIPost(context.Background(), "/omnisearch/search", params.ToJson())
 		require.Error(t, err)
 		require.Equal(t, 501, resp.StatusCode)
 	})
@@ -67,28 +73,28 @@ func TestOmniSearch(t *testing.T) {
 
 		params := &model.SearchParameter{
 			Terms:          nil,
-			IsOrSearch:     model.NewBool(false),
-			TimeZoneOffset: model.NewInt(0),
-			Page:           model.NewInt(0),
-			PerPage:        model.NewInt(10),
+			IsOrSearch:     &isOrSearch,
+			TimeZoneOffset: &tzOffset,
+			Page:           &page,
+			PerPage:        &perPage,
 		}
 
-		_, resp, err := th.Client.OmniSearch(context.Background(), params)
+		_, resp, err := th.Client.DoAPIPost(context.Background(), "/omnisearch/search", params.ToJson())
 		require.Error(t, err)
 		require.Equal(t, 400, resp.StatusCode)
 	})
 
 	t.Run("should handle unauthorized user", func(t *testing.T) {
 		params := &model.SearchParameter{
-			Terms:          model.NewString("searchterm"),
-			IsOrSearch:     model.NewBool(false),
-			TimeZoneOffset: model.NewInt(0),
-			Page:           model.NewInt(0),
-			PerPage:        model.NewInt(10),
+			Terms:          &searchterm,
+			IsOrSearch:     &isOrSearch,
+			TimeZoneOffset: &tzOffset,
+			Page:           &page,
+			PerPage:        &perPage,
 		}
 
 		client := th.CreateClient()
-		_, resp, err := client.OmniSearch(context.Background(), params)
+		_, resp, err := client.DoAPIPost(context.Background(), "/omnisearch/search", params.ToJson())
 		require.Error(t, err)
 		require.Equal(t, 401, resp.StatusCode)
 	})
