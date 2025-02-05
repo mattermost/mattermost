@@ -7,6 +7,7 @@ import {
     FloatingFocusManager,
     FloatingOverlay,
     FloatingPortal,
+    offset,
     shift,
     useClick,
     useDismiss,
@@ -24,6 +25,8 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {RootHtmlPortalId} from 'utils/constants';
 
 import EmojiPickerTabs from './emoji_picker_tabs';
+
+export const useEmojiPickerOffset = 4;
 
 type UseEmojiPickerOptions = {
     showEmojiPicker: boolean;
@@ -60,6 +63,7 @@ export default function useEmojiPicker({
         middleware = [];
     } else {
         middleware = [
+            offset(useEmojiPickerOffset),
             shift(),
             flip({
                 fallbackAxisSideDirection: 'end',
