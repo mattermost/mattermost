@@ -126,14 +126,6 @@ func constructMySQLJSONArgs(props map[string]string) ([]any, string) {
 	return args, argString
 }
 
-func makeStringArgs(params []string) []any {
-	args := make([]any, len(params))
-	for i, name := range params {
-		args[i] = name
-	}
-	return args
-}
-
 func constructArrayArgs(ids []string) (string, []any) {
 	var placeholder strings.Builder
 	values := make([]any, 0, len(ids))
