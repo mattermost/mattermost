@@ -147,6 +147,11 @@ type AppIface interface {
 	//
 	// The caller is responsible for closing the returned ReadCloseSeeker.
 	ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
+	// ExportZipReader returns a ReadCloser for path from the ExportFileBackend.
+	// If deflate is true, the zip will use compression.
+	//
+	// The caller is responsible for closing the returned ReadCloser.
+	ExportZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError)
 	// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 	// A new ExpiresAt is only written if enough time has elapsed since last update.
 	// Returns true only if the session was extended.
