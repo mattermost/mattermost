@@ -72,7 +72,9 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to build SQL query for OAuthApp with id=%s", app.Id)
 	}
-	if err := as.GetReplica().Get(&oldApp, query, args...); err != nil {
+
+	err = as.GetReplica().Get(&oldApp, query, args...)
+	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get OAuthApp with id=%s", app.Id)
 	}
 	if oldApp.Id == "" {
@@ -300,7 +302,6 @@ func (as SqlOAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 	query, args, err := as.oAuthAuthDataQuery.
 		Where(sq.Eq{"Code": code}).
 		ToSql()
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to build SQL query for AuthData with code=%s", code)
 	}
