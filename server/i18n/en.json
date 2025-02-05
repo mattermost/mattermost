@@ -10237,6 +10237,10 @@
     "translation": "Searching with omnisearch been disabled on this server. Please contact your System Administrator."
   },
   {
+    "id": "store.sql_omnisearch.entreprise-only",
+    "translation": "Feature requires an upgrade to Enterprise Edition."
+  },
+  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
