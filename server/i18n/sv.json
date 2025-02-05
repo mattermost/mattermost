@@ -10282,5 +10282,121 @@
   {
     "id": "web.incoming_webhook.decode.app_error",
     "translation": "Misslyckades med att tolka datat av mediatyp {{.media_type}} för inkommande webhook {{.hook_id}}."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Det går inte att registrera en egenskapsgrupp för anpassade profilattribut"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Det går inte att skapa fältet för anpassade profilattribut"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Det går inte att hämta värden för anpassade profilattribut"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Det går inte att ta bort det anpassade profilattributfältet"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Det går inte att uppdatera egenskapens värde"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Det går inte att söka efter fälten för anpassade profilattribut"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Misslyckades med att ta bort de begärda filerna från databasen"
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Misslyckades med att hämta den gamla postversionen."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Du har inte rätt behörighet."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Det angivna meddelande-ID:t för inläggshistorik motsvarar inte något historiskt objekt för det angivna meddelandet."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Det går inte att ta bort rollen."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Beräkning av kanalaktivitet: {{.NumCompleted}}/{{.NumChannels}} kanaler slutförda."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exportera kanalinformation för {{.NumChannels}} kanaler."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Misslyckades med att beräkna exportdata för kanaler."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Misslyckades med att konvertera ett värde från jobbets datafält."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Längden på länkens metadata URL är {{ .Length }} tecken lång, vilket överskrider den maximala gränsen på {{ .MaxLength }} tecken."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Ogiltigt egenskapsfält: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Ogiltigt egenskapsvärde: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Det går inte att hämta fälten för anpassade profilattribut"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Det går inte att uppdatera anpassade profilattribut-fältet"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Det går inte att skapa ett egenskaps-värde"
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Misslyckades med att återställa bilagor till postfiler."
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Gränsen för fältet för anpassade profilattribut har nåtts"
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Det angivna meddelande-ID:t för inläggshistorik motsvarar inte något historiskt meddelandet."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Anpassade profilattribut-fältet hittades inte"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Det går inte att få filinformationen genom id för postredigeringshistorik."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Det går inte att hämta värden för egenskaper"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Din licens tillåter inte anpassade profil-attribut."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Kunde inte använda en zip-filsläsare."
   }
 ]
