@@ -112,6 +112,8 @@ func TestOmniSearch(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}`
+		pluginManifest1 := `{"id": "testplugin_success", "server": {"executable": "backend.exe"}}`
+		pluginID1 := "testplugin_success"
 
 		// Second plugin - returns error
 		pluginCode2 := `
@@ -134,9 +136,10 @@ func TestOmniSearch(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}`
+		pluginManifest2 := `{"id": "testplugin_error", "server": {"executable": "backend.exe"}}`
+		pluginID2 := "testplugin_error"
 
-		setupPluginAPITest(t, pluginCode1, `{"id": "testplugin_success", "server": {"executable": "backend.exe"}}`, "testplugin_success", th.App, th.Context)
-		setupPluginAPITest(t, pluginCode2, `{"id": "testplugin_error", "server": {"executable": "backend.exe"}}`, "testplugin_error", th.App, th.Context)
+		setupMultiPluginAPITest(t, []string{pluginCode1, pluginCode2}, []string{pluginManifest1, pluginManifest2}, []string{pluginID1, pluginID2}, true, th.App, th.Context)
 
 		results, err := th.App.OmniSearch(th.Context, "searchterm", th.BasicUser.Id, false, 0, 0, 10)
 		require.Nil(t, err)

@@ -14,7 +14,7 @@ import (
 )
 
 func (a *App) OmniSearch(ctx request.CTX, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, *model.AppError) {
-	if !a.License().IsE20OrEnterprise() {
+	if a.License() == nil || !a.License().IsE20OrEnterprise() {
 		return nil, model.NewAppError("OmniSearch", "store.sql_omnisearch.entreprise-only", nil, fmt.Sprintf("userId=%v", userID), http.StatusNotImplemented)
 	}
 	if !*a.Config().ServiceSettings.EnableOmniSearch {
