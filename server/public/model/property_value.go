@@ -3,18 +3,21 @@
 
 package model
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 type PropertyValue struct {
-	ID         string `json:"id"`
-	TargetID   string `json:"target_id"`
-	TargetType string `json:"target_type"`
-	GroupID    string `json:"group_id"`
-	FieldID    string `json:"field_id"`
-	Value      string `json:"value"`
-	CreateAt   int64  `json:"create_at"`
-	UpdateAt   int64  `json:"update_at"`
-	DeleteAt   int64  `json:"delete_at"`
+	ID         string          `json:"id"`
+	TargetID   string          `json:"target_id"`
+	TargetType string          `json:"target_type"`
+	GroupID    string          `json:"group_id"`
+	FieldID    string          `json:"field_id"`
+	Value      json.RawMessage `json:"value"`
+	CreateAt   int64           `json:"create_at"`
+	UpdateAt   int64           `json:"update_at"`
+	DeleteAt   int64           `json:"delete_at"`
 }
 
 func (pv *PropertyValue) PreSave() {
