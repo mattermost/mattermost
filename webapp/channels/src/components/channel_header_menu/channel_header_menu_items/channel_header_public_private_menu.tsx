@@ -155,7 +155,9 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
             {!isMobile && (
                 <MenuItemPluginItems pluginItems={pluginItems}/>
             )}
-            <Menu.Separator/>
+            {!isDefault && (
+                <Menu.Separator/>
+            )}
             {!isDefault && !isGuest(user.roles) && (
                 <MenuItemLeaveChannel
                     id='channelLeaveChannel'
