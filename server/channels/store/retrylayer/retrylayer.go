@@ -8718,11 +8718,11 @@ func (s *RetryLayerPreferenceStore) GetCategory(userID string, category string) 
 
 }
 
-func (s *RetryLayerPreferenceStore) GetCategoryAndName(category string, nane string) (model.Preferences, error) {
+func (s *RetryLayerPreferenceStore) GetCategoryAndName(category string, name string) (model.Preferences, error) {
 
 	tries := 0
 	for {
-		result, err := s.PreferenceStore.GetCategoryAndName(category, nane)
+		result, err := s.PreferenceStore.GetCategoryAndName(category, name)
 		if err == nil {
 			return result, nil
 		}
