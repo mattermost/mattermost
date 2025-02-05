@@ -106,6 +106,13 @@ export default class WebSocketClient {
             return;
         }
 
+	// We have a timeout waiting to re-initialize the websocket.
+	// We should wait until that fires before initializing,
+	// otherwise we may not respect the configured backoff.
+	if (this.reconnectTimeout) {
+	    return;
+	}
+
         if (connectionUrl == null) {
             console.log('websocket must have connection url'); //eslint-disable-line no-console
             return;
@@ -185,6 +192,7 @@ export default class WebSocketClient {
 
             this.reconnectTimeout = setTimeout(
                 () => {
+		    this.reconnectTimeout = null;
                     this.initialize(this.connectionUrl, this.token, this.postedAck);
                 },
                 retryTime,
