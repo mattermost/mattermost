@@ -63,13 +63,8 @@ func (es SqlEmojiStore) GetByName(c request.CTX, name string, allowFromCache boo
 func (es SqlEmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error) {
 	query := es.emojiSelectQuery.Where(sq.Eq{"Name": names})
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "error building SQL query to get emojis by names %v", names)
-	}
-
 	var emojis []*model.Emoji
-	if err := es.DBXFromContext(c.Context()).Select(&emojis, queryString, args...); err != nil {
+	if err := es.DBXFromContext(c.Context()).SelectBuilder(&emojis, query); err != nil {
 		return nil, errors.Wrapf(err, "error getting emojis by names %v", names)
 	}
 
@@ -86,12 +81,7 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji,
 
 	query = query.Limit(uint64(limit)).Offset(uint64(offset))
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not build SQL query to get list of emojis")
-	}
-
-	if err := es.GetReplica().Select(&emojis, queryString, args...); err != nil {
+	if err := es.GetReplica().SelectBuilder(&emojis, query); err != nil {
 		return nil, errors.Wrap(err, "could not get list of emojis")
 	}
 	return emojis, nil
@@ -126,16 +116,12 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 	}
 	term += name + "%"
 
-	query, args, err := es.emojiSelectQuery.
+	query := es.emojiSelectQuery.
 		Where(sq.Like{"Name": term}).
 		OrderBy("Name").
-		Limit(uint64(limit)).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "could not build SQL query to search emojis")
-	}
+		Limit(uint64(limit))
 
-	if err := es.GetReplica().Select(&emojis, query, args...); err != nil {
+	if err := es.GetReplica().SelectBuilder(&emojis, query); err != nil {
 		return nil, errors.Wrapf(err, "could not search emojis by name %s", name)
 	}
 	return emojis, nil
@@ -145,14 +131,9 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 func (es SqlEmojiStore) getBy(c request.CTX, what, key string) (*model.Emoji, error) {
 	var emoji model.Emoji
 
-	query, args, err := es.emojiSelectQuery.
-		Where(sq.Eq{what: key}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "could not build SQL query to get emoji by %s with value %s", what, key)
-	}
+	query := es.emojiSelectQuery.Where(sq.Eq{what: key})
 
-	err = es.DBXFromContext(c.Context()).Get(&emoji, query, args...)
+	err := es.DBXFromContext(c.Context()).GetBuilder(&emoji, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Emoji", fmt.Sprintf("%s=%s", what, key))
