@@ -365,17 +365,8 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		expectedIDs   []string
 	}{
 		{
-			name: "negative page",
-			opts: model.PropertyValueSearchOpts{
-				Page:    -1,
-				PerPage: 10,
-			},
-			expectedError: true,
-		},
-		{
 			name: "negative per_page",
 			opts: model.PropertyValueSearchOpts{
-				Page:    0,
 				PerPage: -1,
 			},
 			expectedError: true,
@@ -384,7 +375,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by group_id",
 			opts: model.PropertyValueSearchOpts{
 				GroupID: groupID,
-				Page:    0,
 				PerPage: 10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
@@ -394,7 +384,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			opts: model.PropertyValueSearchOpts{
 				GroupID:    groupID,
 				TargetType: "test_type",
-				Page:       0,
 				PerPage:    10,
 			},
 			expectedIDs: []string{value1.ID},
@@ -405,7 +394,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 				GroupID:        groupID,
 				TargetType:     "test_type",
 				IncludeDeleted: true,
-				Page:           0,
 				PerPage:        10,
 			},
 			expectedIDs: []string{value1.ID, value4.ID},
@@ -414,7 +402,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by target_id",
 			opts: model.PropertyValueSearchOpts{
 				TargetID: targetID,
-				Page:     0,
 				PerPage:  10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
@@ -424,7 +411,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			opts: model.PropertyValueSearchOpts{
 				GroupID:  groupID,
 				TargetID: targetID,
-				Page:     0,
 				PerPage:  10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
@@ -433,7 +419,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by field_id",
 			opts: model.PropertyValueSearchOpts{
 				FieldID: fieldID,
-				Page:    0,
 				PerPage: 10,
 			},
 			expectedIDs: []string{value1.ID},
@@ -443,7 +428,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			opts: model.PropertyValueSearchOpts{
 				FieldID:        fieldID,
 				IncludeDeleted: true,
-				Page:           0,
 				PerPage:        10,
 			},
 			expectedIDs: []string{value1.ID, value4.ID},
@@ -452,7 +436,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "pagination page 0",
 			opts: model.PropertyValueSearchOpts{
 				GroupID: groupID,
-				Page:    0,
 				PerPage: 1,
 			},
 			expectedIDs: []string{value1.ID},
@@ -461,7 +444,10 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "pagination page 1",
 			opts: model.PropertyValueSearchOpts{
 				GroupID: groupID,
-				Page:    1,
+				Cursor: model.PropertyValueSearchCursor{
+					CreateAt:        value1.CreateAt,
+					PropertyValueID: value1.ID,
+				},
 				PerPage: 1,
 			},
 			expectedIDs: []string{value2.ID},
@@ -477,7 +463,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			}
 
 			require.NoError(t, err)
-			var ids = make([]string, len(results))
+			ids := make([]string, len(results))
 			for i, value := range results {
 				ids[i] = value.ID
 			}

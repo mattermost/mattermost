@@ -79,8 +79,8 @@ func (s *SqlPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, e
 }
 
 func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	if opts.Page < 0 {
-		return nil, errors.New("page must be positive integer")
+	if err := opts.Cursor.IsValid(); err != nil {
+		return nil, fmt.Errorf("cursor is invalid: %w", err)
 	}
 
 	if opts.PerPage < 1 {
@@ -88,9 +88,18 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 	}
 
 	builder := s.tableSelectQuery.
-		OrderBy("CreateAt ASC").
-		Offset(uint64(opts.Page * opts.PerPage)).
+		OrderBy("CreateAt ASC, Id ASC").
 		Limit(uint64(opts.PerPage))
+
+	if !opts.Cursor.IsEmpty() {
+		builder = builder.Where(sq.Or{
+			sq.Gt{"CreateAt": opts.Cursor.CreateAt},
+			sq.And{
+				sq.Eq{"CreateAt": opts.Cursor.CreateAt},
+				sq.Gt{"Id": opts.Cursor.PropertyFieldID},
+			},
+		})
+	}
 
 	if !opts.IncludeDeleted {
 		builder = builder.Where(sq.Eq{"DeleteAt": 0})

@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"testing"
@@ -515,5 +516,65 @@ func TestPatchCPAValue(t *testing.T) {
 		require.NoError(t, json.Unmarshal(updatedValue.Value, &arrayValues))
 		require.Equal(t, []string{"newOption1", "newOption2"}, arrayValues)
 		require.Equal(t, userID, updatedValue.TargetID)
+	})
+}
+
+func TestListCPAValues(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
+
+	userID := model.NewId()
+
+	t.Run("should return empty list when user has no values", func(t *testing.T) {
+		values, appErr := th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Empty(t, values)
+	})
+
+	t.Run("should list all values for a user, doing pagination if needed", func(t *testing.T) {
+		var expectedValues []json.RawMessage
+
+		// Make sure we insert more than one page worth of data
+		numberToInsert := int(CustomProfileAttributesValuesPerPage + math.Floor(CustomProfileAttributesValuesPerPage/2))
+
+		for i := 1; i <= numberToInsert; i++ {
+			field := &model.PropertyField{
+				GroupID: cpaGroupID,
+				Name:    fmt.Sprintf("Field %d", i),
+				Type:    model.PropertyFieldTypeText,
+			}
+			_, err := th.App.Srv().propertyService.CreatePropertyField(field)
+			require.NoError(t, err)
+
+			value := &model.PropertyValue{
+				TargetID:   userID,
+				TargetType: "user",
+				GroupID:    cpaGroupID,
+				FieldID:    field.ID,
+				Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
+			}
+			_, err = th.App.Srv().propertyService.CreatePropertyValue(value)
+			require.NoError(t, err)
+			expectedValues = append(expectedValues, value.Value)
+		}
+
+		// List values for original user
+		values, appErr := th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Len(t, values, numberToInsert)
+
+		actualValues := make([]json.RawMessage, len(values))
+		for i, value := range values {
+			require.Equal(t, userID, value.TargetID)
+			require.Equal(t, "user", value.TargetType)
+			require.Equal(t, cpaGroupID, value.GroupID)
+			actualValues[i] = value.Value
+		}
+		require.ElementsMatch(t, expectedValues, actualValues)
 	})
 }

@@ -12,7 +12,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-const CustomProfileAttributesFieldLimit = 20
+const (
+	CustomProfileAttributesFieldLimit    = 20
+	CustomProfileAttributesValuesPerPage = CustomProfileAttributesFieldLimit
+)
 
 var cpaGroupID string
 
@@ -58,7 +61,6 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 
 	opts := model.PropertyFieldSearchOpts{
 		GroupID: groupID,
-		Page:    0,
 		PerPage: CustomProfileAttributesFieldLimit,
 	}
 
@@ -159,19 +161,34 @@ func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppEr
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	opts := model.PropertyValueSearchOpts{
-		GroupID:        groupID,
-		TargetID:       userID,
-		Page:           0,
-		PerPage:        999999,
-		IncludeDeleted: false,
-	}
-	fields, err := a.Srv().propertyService.SearchPropertyValues(opts)
-	if err != nil {
-		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	var allValues []*model.PropertyValue
+	cursor := model.PropertyValueSearchCursor{}
+	for {
+		var err error
+		opts := model.PropertyValueSearchOpts{
+			GroupID:        groupID,
+			TargetID:       userID,
+			Cursor:         cursor,
+			PerPage:        CustomProfileAttributesValuesPerPage,
+			IncludeDeleted: false,
+		}
+		values, err := a.Srv().propertyService.SearchPropertyValues(opts)
+		if err != nil {
+			return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		allValues = append(allValues, values...)
+
+		if len(values) < CustomProfileAttributesValuesPerPage {
+			break
+		}
+
+		lastValue := values[len(values)-1]
+		cursor.CreateAt = lastValue.CreateAt
+		cursor.PropertyValueID = lastValue.ID
 	}
 
-	return fields, nil
+	return allValues, nil
 }
 
 func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError) {

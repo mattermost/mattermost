@@ -368,17 +368,8 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		expectedIDs   []string
 	}{
 		{
-			name: "negative page",
-			opts: model.PropertyFieldSearchOpts{
-				Page:    -1,
-				PerPage: 10,
-			},
-			expectedError: true,
-		},
-		{
 			name: "negative per_page",
 			opts: model.PropertyFieldSearchOpts{
-				Page:    0,
 				PerPage: -1,
 			},
 			expectedError: true,
@@ -387,7 +378,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by group_id",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID: groupID,
-				Page:    0,
 				PerPage: 10,
 			},
 			expectedIDs: []string{field1.ID, field2.ID},
@@ -396,7 +386,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by group_id including deleted",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:        groupID,
-				Page:           0,
 				PerPage:        10,
 				IncludeDeleted: true,
 			},
@@ -406,7 +395,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by target_type",
 			opts: model.PropertyFieldSearchOpts{
 				TargetType: "test_type",
-				Page:       0,
 				PerPage:    10,
 			},
 			expectedIDs: []string{field1.ID, field3.ID},
@@ -415,7 +403,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by target_id",
 			opts: model.PropertyFieldSearchOpts{
 				TargetID: targetID,
-				Page:     0,
 				PerPage:  10,
 			},
 			expectedIDs: []string{field1.ID, field2.ID},
@@ -424,7 +411,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "pagination page 0",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:        groupID,
-				Page:           0,
 				PerPage:        2,
 				IncludeDeleted: true,
 			},
@@ -433,8 +419,11 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "pagination page 1",
 			opts: model.PropertyFieldSearchOpts{
-				GroupID:        groupID,
-				Page:           1,
+				GroupID: groupID,
+				Cursor: model.PropertyFieldSearchCursor{
+					CreateAt:        field2.CreateAt,
+					PropertyFieldID: field2.ID,
+				},
 				PerPage:        2,
 				IncludeDeleted: true,
 			},
@@ -451,7 +440,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			}
 
 			require.NoError(t, err)
-			var ids = make([]string, len(results))
+			ids := make([]string, len(results))
 			for i, field := range results {
 				ids[i] = field.ID
 			}
