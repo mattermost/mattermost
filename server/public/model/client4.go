@@ -9360,6 +9360,26 @@ func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceRe
 	return BuildResponse(res), nil
 }
 
+// OmniSearch performs a search using the provided parameters.
+func (c *Client4) OmniSearch(ctx context.Context, params *SearchParameter) ([]*OmniSearchResult, *Response, error) {
+	buf, err := json.Marshal(params)
+	if err != nil {
+		return nil, nil, NewAppError("OmniSearch", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, "/omnisearch/search", string(buf))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var list []*OmniSearchResult
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("OmniSearch", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountOptions) (*UsersStats, *Response, error) {
 	v := url.Values{}
 	v.Set("in_team", options.TeamId)
