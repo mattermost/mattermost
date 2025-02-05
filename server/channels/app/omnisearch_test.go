@@ -82,6 +82,71 @@ func TestOmniSearch(t *testing.T) {
 		require.Equal(t, "test_source", results[0].Source)
 	})
 
+	t.Run("should handle multiple plugins with mixed results", func(t *testing.T) {
+		// First plugin - returns results successfully
+		pluginCode1 := `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnOmniSearch(c *plugin.Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error) {
+				return []*model.OmniSearchResult{
+					{
+						ID: "success1",
+						Title: "Success Result",
+						Description: "Result from successful plugin",
+						Link: "/link/to/success",
+						CreateAt: 1234,
+						Source: "success_plugin",
+					},
+				}, nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}`
+
+		// Second plugin - returns error
+		pluginCode2 := `
+			package main
+
+			import (
+				"fmt"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnOmniSearch(c *plugin.Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error) {
+				return nil, fmt.Errorf("simulated error")
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}`
+
+		setupPluginAPITest(t, pluginCode1, `{"id": "testplugin_success", "server": {"executable": "backend.exe"}}`, "testplugin_success", th.App, th.Context)
+		setupPluginAPITest(t, pluginCode2, `{"id": "testplugin_error", "server": {"executable": "backend.exe"}}`, "testplugin_error", th.App, th.Context)
+
+		results, err := th.App.OmniSearch(th.Context, "searchterm", th.BasicUser.Id, false, 0, 0, 10)
+		require.Nil(t, err)
+		require.Len(t, results, 1)
+		require.Equal(t, "success1", results[0].ID)
+		require.Equal(t, "Success Result", results[0].Title)
+		require.Equal(t, "Result from successful plugin", results[0].Description)
+		require.Equal(t, "success_plugin", results[0].Source)
+	})
+
 	t.Run("should handle plugin error", func(t *testing.T) {
 		pluginCode := `
 			package main
