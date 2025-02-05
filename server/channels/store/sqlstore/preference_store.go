@@ -145,7 +145,7 @@ func (s SqlPreferenceStore) GetCategoryAndName(category string, name string) (mo
 		Where(sq.Eq{"Category": category}).
 		Where(sq.Eq{"Name": name})
 
-	if err := s.GetReplica().GetBuilder(&preferences, query); err != nil {
+	if err := s.GetReplica().SelectBuilder(&preferences, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Preferences with category=%s, name=%s", category, name)
 	}
 	return preferences, nil
