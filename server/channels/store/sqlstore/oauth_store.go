@@ -16,7 +16,7 @@ import (
 
 type SqlOAuthStore struct {
 	*SqlStore
-	oAuthAppSelectQuery  sq.SelectBuilder
+	oAuthAppsSelectQuery sq.SelectBuilder
 	oAuthAccessDataQuery sq.SelectBuilder
 	oAuthAuthDataQuery   sq.SelectBuilder
 }
@@ -26,9 +26,9 @@ func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 		SqlStore: sqlStore,
 	}
 
-	s.oAuthAppSelectQuery = s.getQueryBuilder().
-		Select("Id", "CreatorId", "CreateAt", "UpdateAt", "ClientSecret", "Name", "Description", "IconURL", "CallbackUrls", "Homepage", "IsTrusted", "MattermostAppID").
-		From("OAuthApps")
+	s.oAuthAppsSelectQuery = s.getQueryBuilder().
+		Select("o.Id", "o.CreatorId", "o.CreateAt", "o.UpdateAt", "o.ClientSecret", "o.Name", "o.Description", "o.IconURL", "o.CallbackUrls", "o.Homepage", "o.IsTrusted", "o.MattermostAppID").
+		From("OAuthApps o")
 
 	s.oAuthAccessDataQuery = s.getQueryBuilder().
 		Select("ClientId", "UserId", "Token", "RefreshToken", "RedirectUri", "ExpiresAt", "Scope").
@@ -68,7 +68,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	}
 
 	var oldApp model.OAuthApp
-	query := as.oAuthAppSelectQuery.Where(sq.Eq{"Id": app.Id})
+	query := as.oAuthAppsSelectQuery.Where(sq.Eq{"o.Id": app.Id})
 
 	err := as.GetReplica().GetBuilder(&oldApp, query)
 	if err != nil {
@@ -101,7 +101,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 
 func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	var app model.OAuthApp
-	query := as.oAuthAppSelectQuery.Where(sq.Eq{"Id": id})
+	query := as.oAuthAppsSelectQuery.Where(sq.Eq{"o.Id": id})
 
 	if err := as.GetReplica().GetBuilder(&app, query); err != nil {
 		if err == sql.ErrNoRows {
@@ -118,7 +118,7 @@ func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 func (as SqlOAuthStore) GetAppByUser(userId string, offset, limit int) ([]*model.OAuthApp, error) {
 	apps := []*model.OAuthApp{}
 
-	query := as.oAuthAppSelectQuery.Where(sq.Eq{"CreatorId": userId}).Limit(uint64(limit)).Offset(uint64(offset))
+	query := as.oAuthAppsSelectQuery.Where(sq.Eq{"o.CreatorId": userId}).Limit(uint64(limit)).Offset(uint64(offset))
 
 	if err := as.GetReplica().SelectBuilder(&apps, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find OAuthApps with userId=%s", userId)
@@ -130,7 +130,7 @@ func (as SqlOAuthStore) GetAppByUser(userId string, offset, limit int) ([]*model
 func (as SqlOAuthStore) GetApps(offset, limit int) ([]*model.OAuthApp, error) {
 	apps := []*model.OAuthApp{}
 
-	query := as.oAuthAppSelectQuery.Limit(uint64(limit)).Offset(uint64(offset))
+	query := as.oAuthAppsSelectQuery.Limit(uint64(limit)).Offset(uint64(offset))
 
 	if err := as.GetReplica().SelectBuilder(&apps, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find OAuthApps")
@@ -142,11 +142,7 @@ func (as SqlOAuthStore) GetApps(offset, limit int) ([]*model.OAuthApp, error) {
 func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*model.OAuthApp, error) {
 	apps := []*model.OAuthApp{}
 
-	query := as.getQueryBuilder().
-		Select("o.Id", "o.CreatorId", "o.CreateAt", "o.UpdateAt", "o.ClientSecret",
-			"o.Name", "o.Description", "o.IconURL", "o.CallbackUrls",
-			"o.Homepage", "o.IsTrusted", "o.MattermostAppID").
-		From("OAuthApps AS o").
+	query := as.oAuthAppsSelectQuery.
 		InnerJoin("Preferences AS p ON p.Name = o.Id AND p.UserId = ?", userId).
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
@@ -227,8 +223,7 @@ func (as SqlOAuthStore) GetAccessDataByRefreshToken(token string) (*model.Access
 func (as SqlOAuthStore) GetPreviousAccessData(userID, clientID string) (*model.AccessData, error) {
 	accessData := model.AccessData{}
 
-	query := as.oAuthAccessDataQuery.Where(sq.Eq{"UserId": userID, "ClientId": clientID}).
-		OrderBy("ExpiresAt DESC").Limit(1)
+	query := as.oAuthAccessDataQuery.Where(sq.Eq{"UserId": userID, "ClientId": clientID})
 
 	if err := as.GetReplica().GetBuilder(&accessData, query); err != nil {
 		if err == sql.ErrNoRows {
