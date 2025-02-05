@@ -14,7 +14,7 @@ const (
 	GroupSourceCustom GroupSource = "custom"
 
 	// plugin groups must prefix their source with this
-	GroupSourceCustomPrefix GroupSource = "custom_"
+	GroupSourcePluginPrefix GroupSource = "plugin_"
 
 	GroupNameMaxLength        = 64
 	GroupSourceMaxLength      = 64
@@ -152,6 +152,12 @@ type GroupSearchOpts struct {
 
 	// Only return archived groups
 	FilterArchived bool
+
+	// Sources is a list of specific group sources to filter by
+	Sources []GroupSource
+
+	// SourcePrefixes is a list of group source prefixes to filter by
+	SourcePrefixes []GroupSource
 }
 
 type GetGroupOpts struct {
@@ -211,7 +217,7 @@ func (group *Group) IsValidForCreate() *AppError {
 	isValidSource := false
 	if group.Source == GroupSourceLdap ||
 		group.Source == GroupSourceCustom ||
-		strings.HasPrefix(string(group.Source), string(GroupSourceCustomPrefix)) {
+		strings.HasPrefix(string(group.Source), string(GroupSourcePluginPrefix)) {
 		isValidSource = true
 	}
 
@@ -227,7 +233,19 @@ func (group *Group) IsValidForCreate() *AppError {
 }
 
 func (group *Group) requiresRemoteId() bool {
-	return group.Source == GroupSourceLdap || strings.HasPrefix(string(group.Source), string(GroupSourceCustomPrefix))
+	return group.Source == GroupSourceLdap || strings.HasPrefix(string(group.Source), string(GroupSourcePluginPrefix))
+}
+
+func GetSyncableGroupSources() []GroupSource {
+	return []GroupSource{GroupSourceLdap}
+}
+
+func GetSyncableGroupSourcePrefixes() []GroupSource {
+	return []GroupSource{GroupSourcePluginPrefix}
+}
+
+func (group *Group) IsSyncable() bool {
+	return group.Source == GroupSourceLdap || strings.HasPrefix(string(group.Source), string(GroupSourcePluginPrefix))
 }
 
 func (group *Group) IsValidForUpdate() *AppError {

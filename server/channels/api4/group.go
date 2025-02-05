@@ -670,7 +670,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		return appErr
 	}
 
-	if group.Source != model.GroupSourceLdap {
+	if !group.IsSyncable() {
 		return model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 	}
 
@@ -1038,6 +1038,15 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	source := c.Params.GroupSource
 
+	includeSyncableSources := r.URL.Query().Get("include_syncable_sources") == "true"
+
+	var sources []model.GroupSource
+	var sourcePrefixes []model.GroupSource
+	if includeSyncableSources {
+		sources = model.GetSyncableGroupSources()
+		sourcePrefixes = model.GetSyncableGroupSourcePrefixes()
+	}
+
 	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
 		teamID = id
 	}
@@ -1078,6 +1087,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeTimezones:          includeTimezones,
 		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
 		IncludeArchived:           includeArchived,
+		Sources:                   sources,
+		SourcePrefixes:            sourcePrefixes,
 	}
 
 	if teamID != "" {
@@ -1473,6 +1484,10 @@ func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupS
 	}
 
 	if source == model.GroupSourceLdap && !*lic.Features.LDAPGroups {
+		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+	}
+
+	if strings.HasPrefix(string(source), string(model.GroupSourcePluginPrefix)) && !*lic.Features.LDAPGroups {
 		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 

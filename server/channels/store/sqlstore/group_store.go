@@ -1620,6 +1620,15 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 
 	if opts.Source != "" {
 		groupsQuery = groupsQuery.Where("g.Source = ?", opts.Source)
+	} else if len(opts.Sources) > 0 || len(opts.SourcePrefixes) > 0 {
+		orClauses := sq.Or{}
+		if len(opts.Sources) > 0 {
+			orClauses = append(orClauses, sq.Eq{"g.Source": opts.Sources})
+		}
+		for _, prefix := range opts.SourcePrefixes {
+			orClauses = append(orClauses, sq.Like{"g.Source": string(prefix) + "%"})
+		}
+		groupsQuery = groupsQuery.Where(orClauses)
 	}
 
 	queryString, args, err := groupsQuery.ToSql()
