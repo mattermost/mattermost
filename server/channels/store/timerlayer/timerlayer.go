@@ -671,6 +671,22 @@ func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) AnalyticsCountAll(teamID string) (map[model.ChannelType]int64, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.AnalyticsCountAll(teamID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.AnalyticsCountAll", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 	start := time.Now()
 
@@ -3859,6 +3875,22 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postI
 	return err
 }
 
+func (s *TimerLayerFileInfoStore) RefreshFileStats() error {
+	start := time.Now()
+
+	err := s.FileInfoStore.RefreshFileStats()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.RefreshFileStats", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
 	start := time.Now()
 
@@ -5811,6 +5843,22 @@ func (s *TimerLayerPostStore) AnalyticsPostCount(options *model.PostCountOptions
 	return result, err
 }
 
+func (s *TimerLayerPostStore) AnalyticsPostCountByTeam(teamID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.AnalyticsPostCountByTeam(teamID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.AnalyticsPostCountByTeam", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 	start := time.Now()
 
@@ -6461,6 +6509,22 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(rctx request.CTX, userID str
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostStore) RefreshPostStats() error {
+	start := time.Now()
+
+	err := s.PostStore.RefreshPostStats()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.RefreshPostStats", success, elapsed)
 	}
 	return err
 }

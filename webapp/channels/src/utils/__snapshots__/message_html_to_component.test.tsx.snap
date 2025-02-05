@@ -147,7 +147,7 @@ exports[`messageHtmlToComponent link with enabled a tooltip plugin 1`] = `
   <PluginLinkTooltip
     nodeAttributes={
       Object {
-        "class": "theme markdown__link",
+        "className": "theme markdown__link",
         "href": "http://www.dolor.com",
         "rel": "noreferrer",
         "target": "_blank",

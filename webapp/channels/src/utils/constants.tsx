@@ -250,7 +250,6 @@ export const ActionTypes = keyMirror({
     INCREMENT_EMOJI_PICKER_PAGE: null,
     SET_RECENT_SKIN: null,
 
-    ADD_CHANNEL_DROPDOWN_TOGGLE: null,
     ADD_CHANNEL_CTA_DROPDOWN_TOGGLE: null,
 
     SHOW_ONBOARDING_TASK_COMPLETION: null,
@@ -825,8 +824,6 @@ export const StatTypes = keyMirror({
     TOTAL_PRIVATE_GROUPS: null,
     TOTAL_POSTS: null,
     TOTAL_TEAMS: null,
-    TOTAL_FILE_POSTS: null,
-    TOTAL_HASHTAG_POSTS: null,
     TOTAL_IHOOKS: null,
     TOTAL_OHOOKS: null,
     TOTAL_COMMANDS: null,
@@ -841,6 +838,8 @@ export const StatTypes = keyMirror({
     TOTAL_READ_DB_CONNECTIONS: null,
     DAILY_ACTIVE_USERS: null,
     MONTHLY_ACTIVE_USERS: null,
+    TOTAL_FILE_COUNT: null,
+    TOTAL_FILE_SIZE: null,
 });
 
 export const SearchTypes = keyMirror({

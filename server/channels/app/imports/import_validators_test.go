@@ -1039,18 +1039,20 @@ func TestImportValidatePostImportData(t *testing.T) {
 	})
 
 	t.Run("Test with valid all optional parameters", func(t *testing.T) {
-		t.Skip("MM-62440")
+		postCreateAt := model.GetMillis()
+		repliesCreateAt := postCreateAt + 1
+		reactionsCreateAt := postCreateAt + 2
 
 		reactions := []ReactionImportData{{
 			User:      model.NewPointer("username"),
 			EmojiName: model.NewPointer("emoji"),
-			CreateAt:  model.NewPointer(model.GetMillis()),
+			CreateAt:  model.NewPointer(reactionsCreateAt),
 		}}
 
 		replies := []ReplyImportData{{
 			User:     model.NewPointer("username"),
 			Message:  model.NewPointer("message"),
-			CreateAt: model.NewPointer(model.GetMillis()),
+			CreateAt: model.NewPointer(repliesCreateAt),
 		}}
 
 		data := PostImportData{
@@ -1058,7 +1060,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 			Channel:   model.NewPointer("channelname"),
 			User:      model.NewPointer("username"),
 			Message:   model.NewPointer("message"),
-			CreateAt:  model.NewPointer(model.GetMillis()),
+			CreateAt:  model.NewPointer(postCreateAt),
 			Reactions: &reactions,
 			Replies:   &replies,
 		}

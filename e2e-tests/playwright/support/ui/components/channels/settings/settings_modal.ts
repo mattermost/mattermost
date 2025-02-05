@@ -15,7 +15,7 @@ export default class SettingsModal {
         this.container = container;
 
         this.notificationsSettingsTab = container.locator('#notificationsButton');
-        this.notificationsSettings = new NotificationsSettings(container.locator('#notificationSettings'));
+        this.notificationsSettings = new NotificationsSettings(container.locator('#notificationsSettings'));
     }
 
     async toBeVisible() {

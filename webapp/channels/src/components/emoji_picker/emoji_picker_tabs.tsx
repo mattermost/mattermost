@@ -3,7 +3,7 @@
 
 import React, {useCallback, useRef, useState} from 'react';
 import {Tab, Tabs} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -24,6 +24,9 @@ export interface Props {
 }
 
 export default function EmojiPickerTabs(props: Props) {
+    const intl = useIntl();
+
+    const [activeKey, setActiveKey] = useState(1);
     const [filter, setFilter] = useState('');
 
     const rootPickerNodeRef = useRef<HTMLDivElement>(null);
@@ -35,6 +38,9 @@ export default function EmojiPickerTabs(props: Props) {
                 id='emojiGifPicker'
                 ref={rootPickerNodeRef}
                 className='a11y__popup emoji-picker'
+                role='dialog'
+                aria-label={activeKey === 1 ? intl.formatMessage({id: 'emoji_gif_picker.dialog.emojis', defaultMessage: 'Emoji Picker'}) : intl.formatMessage({id: 'emoji_gif_picker.dialog.gifs', defaultMessage: 'GIF Picker'})}
+                aria-modal='true'
             >
                 <Tabs
                     id='emoji-picker-tabs'
@@ -42,6 +48,8 @@ export default function EmojiPickerTabs(props: Props) {
                     justified={true}
                     mountOnEnter={true}
                     unmountOnExit={true}
+                    activeKey={activeKey}
+                    onSelect={(activeKey) => setActiveKey(activeKey)}
                 >
                     <EmojiPickerHeader handleEmojiPickerClose={props.onEmojiClose}/>
                     <Tab
@@ -101,6 +109,9 @@ export default function EmojiPickerTabs(props: Props) {
         <div
             id='emojiPicker'
             className='a11y__popup emoji-picker emoji-picker--single'
+            role='dialog'
+            aria-label={intl.formatMessage({id: 'emoji_gif_picker.dialog.emojis', defaultMessage: 'Emoji Picker'})}
+            aria-modal='true'
         >
             <EmojiPickerHeader handleEmojiPickerClose={props.onEmojiClose}/>
             <EmojiPicker

@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func PostPriorityCheckWithApp(where string, a AppIface, userId string, priority *model.PostPriority, rootId string) *model.AppError {
+func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority, rootId string) *model.AppError {
 	user, appErr := a.GetUser(userId)
 	if appErr != nil {
 		return appErr
@@ -84,7 +84,7 @@ func postPriorityCheck(
 	return nil
 }
 
-func PostHardenedModeCheckWithApp(a AppIface, isIntegration bool, props model.StringInterface) *model.AppError {
+func PostHardenedModeCheckWithApp(a *App, isIntegration bool, props model.StringInterface) *model.AppError {
 	hardenedModeEnabled := *a.Config().ServiceSettings.ExperimentalEnableHardenedMode
 	return postHardenedModeCheck(hardenedModeEnabled, isIntegration, props)
 }
@@ -99,7 +99,7 @@ func postHardenedModeCheck(hardenedModeEnabled, isIntegration bool, props model.
 	return nil
 }
 
-func userCreatePostPermissionCheckWithApp(c request.CTX, a AppIface, userId, channelId string) *model.AppError {
+func userCreatePostPermissionCheckWithApp(c request.CTX, a *App, userId, channelId string) *model.AppError {
 	hasPermission := false
 	if a.HasPermissionToChannel(c, userId, channelId, model.PermissionCreatePost) {
 		hasPermission = true

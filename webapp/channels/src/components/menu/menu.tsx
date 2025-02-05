@@ -34,12 +34,14 @@ import {MenuContext, useMenuContextValue} from './menu_context';
 
 import './menu.scss';
 
+export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
+
 const MENU_OPEN_ANIMATION_DURATION = 150;
 const MENU_CLOSE_ANIMATION_DURATION = 100;
 
 type MenuButtonProps = {
     id: string;
-    dateTestId?: string;
+    dataTestId?: string;
     'aria-label'?: string;
     'aria-describedby'?: string;
     disabled?: boolean;
@@ -56,8 +58,14 @@ type MenuButtonTooltipProps = {
 }
 
 type MenuProps = {
+
+    /**
+     * ID is mandatory as it is used in mobileWebview to open modal equivalent to menu
+     */
     id: string;
     'aria-label'?: string;
+    className?: string;
+    'aria-labelledby'?: string;
 
     /**
      * @warning Make the styling of your components such a way that they don't need this handler
@@ -161,6 +169,7 @@ export function Menu(props: Props) {
                         menuButtonId: props.menuButton.id,
                         menuId: props.menu.id,
                         menuAriaLabel: props.menu?.['aria-label'] ?? '',
+                        className: props.menu.className,
                         onModalClose: handleMenuModalClose,
                         children: props.children,
                         onKeyDown: props.menu.onKeyDown,
@@ -184,7 +193,7 @@ export function Menu(props: Props) {
         const triggerElement = (
             <MenuButtonComponent
                 id={props.menuButton.id}
-                data-testid={props.menuButton.dateTestId}
+                data-testid={props.menuButton.dataTestId}
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
@@ -244,9 +253,11 @@ export function Menu(props: Props) {
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
                     MenuListProps={{
                         id: props.menu.id,
-                        'aria-label': props.menu?.['aria-label'] ?? '',
+                        className: props.menu.className,
+                        'aria-label': props.menu?.['aria-label'],
+                        'aria-labelledby': props.menu?.['aria-labelledby'],
                         style: {
-                            width: props.menu.width || 'inherit',
+                            width: props.menu?.width,
                         },
                     }}
                     TransitionProps={{
@@ -255,6 +266,11 @@ export function Menu(props: Props) {
                         timeout: {
                             enter: MENU_OPEN_ANIMATION_DURATION,
                             exit: MENU_CLOSE_ANIMATION_DURATION,
+                        },
+                    }}
+                    slotProps={{
+                        backdrop: {
+                            id: ELEMENT_ID_FOR_MENU_BACKDROP,
                         },
                     }}
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -272,6 +288,7 @@ interface MenuModalProps {
     menuButtonId: MenuButtonProps['id'];
     menuId: MenuProps['id'];
     menuAriaLabel: MenuProps['aria-label'];
+    className: MenuProps['className'];
     onModalClose: (modalId: MenuProps['id']) => void;
     children: Props['children'];
     onKeyDown?: MenuProps['onKeyDown'];
@@ -318,6 +335,7 @@ function MenuModal(props: MenuModalProps) {
                     component='div'
                     aria-labelledby={props.menuButtonId}
                     onClick={handleModalClickCapture}
+                    className={props.className}
                 >
                     {props.children}
                 </MuiMenuList>

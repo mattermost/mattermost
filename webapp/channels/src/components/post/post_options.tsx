@@ -22,7 +22,7 @@ import PostRecentReactions from 'components/post_view/post_recent_reactions';
 import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {PostActionComponent} from 'types/store/plugins';
 
 type Props = {
     post: Post;
@@ -52,7 +52,7 @@ type Props = {
     isPostHeaderVisible?: boolean | null;
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
-    pluginActions: PluginComponent[];
+    pluginActions: PostActionComponent[];
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -126,12 +126,14 @@ const PostOptions = (props: Props): JSX.Element => {
     let commentIcon;
     if (showCommentIcon) {
         commentIcon = (
-            <CommentIcon
-                handleCommentClick={props.handleCommentClick}
-                postId={post.id}
-                extraClass={commentIconExtraClass}
-                commentCount={props.collapsedThreadsEnabled ? 0 : props.replyCount}
-            />
+            <li>
+                <CommentIcon
+                    handleCommentClick={props.handleCommentClick}
+                    postId={post.id}
+                    extraClass={commentIconExtraClass}
+                    commentCount={props.collapsedThreadsEnabled ? 0 : props.replyCount}
+                />
+            </li>
         );
     }
 
@@ -158,37 +160,43 @@ const PostOptions = (props: Props): JSX.Element => {
     let postReaction;
     if (showReactionIcon) {
         postReaction = (
-            <PostReaction
-                channelId={post.channel_id}
-                location={props.location}
-                postId={post.id}
-                teamId={props.teamId}
-                showEmojiPicker={showEmojiPicker}
-                setShowEmojiPicker={toggleEmojiPicker}
-            />
+            <li>
+                <PostReaction
+                    channelId={post.channel_id}
+                    location={props.location}
+                    postId={post.id}
+                    teamId={props.teamId}
+                    showEmojiPicker={showEmojiPicker}
+                    setShowEmojiPicker={toggleEmojiPicker}
+                />
+            </li>
         );
     }
 
     let flagIcon: ReactNode = null;
     if (!isMobileView && (!isEphemeral && !post.failed && !systemMessage)) {
         flagIcon = (
-            <PostFlagIcon
-                location={props.location}
-                postId={post.id}
-                isFlagged={props.isFlagged}
-            />
+            <li>
+                <PostFlagIcon
+                    location={props.location}
+                    postId={post.id}
+                    isFlagged={props.isFlagged}
+                />
+            </li>
         );
     }
 
     // Action menus
     const showActionsMenuIcon = props.shouldShowActionsMenu && (isMobileView || hoverLocal);
     const actionsMenu = showActionsMenuIcon && (
-        <ActionsMenu
-            post={post}
-            location={props.location}
-            handleDropdownOpened={handleActionsMenuOpened}
-            isMenuOpen={showActionsMenu}
-        />
+        <li>
+            <ActionsMenu
+                post={post}
+                location={props.location}
+                handleDropdownOpened={handleActionsMenuOpened}
+                isMenuOpen={showActionsMenu}
+            />
+        </li>
     );
 
     let pluginItems: ReactNode = null;
@@ -196,12 +204,13 @@ const PostOptions = (props: Props): JSX.Element => {
         pluginItems = props.pluginActions?.
             map((item) => {
                 if (item.component) {
-                    const Component = item.component as any;
+                    const Component = item.component;
                     return (
-                        <Component
-                            post={props.post}
-                            key={item.id}
-                        />
+                        <li key={item.id}>
+                            <Component
+                                post={props.post}
+                            />
+                        </li>
                     );
                 }
                 return null;
@@ -209,17 +218,19 @@ const PostOptions = (props: Props): JSX.Element => {
     }
 
     const dotMenu = (
-        <DotMenu
-            post={props.post}
-            location={props.location}
-            isFlagged={props.isFlagged}
-            handleDropdownOpened={handleDotMenuOpened}
-            handleCommentClick={props.handleCommentClick}
-            handleAddReactionClick={toggleEmojiPicker}
-            isReadOnly={isReadOnly || channelIsArchived}
-            isMenuOpen={showDotMenu}
-            enableEmojiPicker={props.enableEmojiPicker}
-        />
+        <li>
+            <DotMenu
+                post={props.post}
+                location={props.location}
+                isFlagged={props.isFlagged}
+                handleDropdownOpened={handleDotMenuOpened}
+                handleCommentClick={props.handleCommentClick}
+                handleAddReactionClick={toggleEmojiPicker}
+                isReadOnly={isReadOnly || channelIsArchived}
+                isMenuOpen={showDotMenu}
+                enableEmojiPicker={props.enableEmojiPicker}
+            />
+        </li>
     );
 
     // Build post options
@@ -240,10 +251,11 @@ const PostOptions = (props: Props): JSX.Element => {
     } else if (props.location === Locations.SEARCH) {
         const hasCRTFooter = props.collapsedThreadsEnabled && !post.root_id && (post.reply_count > 0 || post.is_following);
         options = (
-            <div className='col__controls post-menu'>
+            <ul className='col__controls post-menu'>
                 {dotMenu}
                 {flagIcon}
                 {props.canReply && !hasCRTFooter &&
+                <li>
                     <CommentIcon
                         location={props.location}
                         handleCommentClick={props.handleCommentClick}
@@ -252,22 +264,25 @@ const PostOptions = (props: Props): JSX.Element => {
                         searchStyle={'search-item__comment'}
                         extraClass={props.replyCount ? 'icon--visible' : ''}
                     />
+                </li>
                 }
-                <a
-                    href='#'
-                    onClick={props.handleJumpClick}
-                    className='search-item__jump'
-                >
-                    <FormattedMessage
-                        id='search_item.jump'
-                        defaultMessage='Jump'
-                    />
-                </a>
-            </div>
+                <li>
+                    <a
+                        href='#'
+                        onClick={props.handleJumpClick}
+                        className='search-item__jump'
+                    >
+                        <FormattedMessage
+                            id='search_item.jump'
+                            defaultMessage='Jump'
+                        />
+                    </a>
+                </li>
+            </ul>
         );
     } else if (!props.isPostBeingEdited) {
         options = (
-            <div
+            <ul
                 data-testid={`post-menu-${props.post.id}`}
                 className={classnames('col post-menu', {'post-menu--position': !hoverLocal && showCommentIcon})}
             >
@@ -279,7 +294,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {actionsMenu}
                 {commentIcon}
                 {(collapsedThreadsEnabled || showRecentlyUsedReactions) && dotMenu}
-            </div>
+            </ul>
         );
     }
 

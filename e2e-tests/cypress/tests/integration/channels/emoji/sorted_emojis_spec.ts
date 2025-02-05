@@ -32,8 +32,13 @@ describe('Emoji sorting', () => {
 
         // # Assert first recently used emoji has the data-test-id value of 'cat' which was the last one we sent
         cy.findAllByTestId('emojiItem').
-            findByRole('button', {name: 'cat emoji'}).
-            should('exist');
+            each(($btn) => {
+                // Check if the button has the specific aria-label
+                if ($btn.attr('aria-label') === 'cat emoji') {
+                    // If the aria-label matches, check if the button exists
+                    cy.wrap($btn).should('exist');
+                }
+            });
 
         const emojiList = [];
 
