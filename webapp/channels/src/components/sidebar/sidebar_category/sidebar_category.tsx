@@ -108,6 +108,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
     handleA11yKeyDown = (e: KeyboardEvent<HTMLButtonElement>['nativeEvent']) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+            e.preventDefault();
             this.handleCollapse();
         }
     };
@@ -173,7 +174,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         }
 
         return (
-            <React.Fragment>
+            <>
                 <Draggable
                     draggableId={`NEW_CHANNEL_SPACER__${category.id}`}
                     isDragDisabled={true}
@@ -212,7 +213,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         </span>
                     </div>
                 </div>
-            </React.Fragment>
+            </>
         );
     };
 
@@ -270,13 +271,12 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             const addHelpLabel = localizeMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Create new direct message'});
 
             categoryMenu = (
-                <React.Fragment>
+                <>
                     <SidebarCategorySortingMenu
                         category={category}
                         handleOpenDirectMessagesModal={this.handleOpenDirectMessagesModal}
                     />
                     <WithTooltip
-                        id='new-group-tooltip'
                         title={
                             <>
                                 {addHelpLabel}
@@ -287,7 +287,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                 />
                             </>
                         }
-                        placement='top'
                     >
                         <button
                             className='SidebarChannelGroupHeader_addButton'
@@ -297,7 +296,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                             <i className='icon-plus'/>
                         </button>
                     </WithTooltip>
-                </React.Fragment>
+                </>
             );
 
             if (!channelIds || !channelIds.length) {

@@ -6,6 +6,7 @@ import {useIntl, FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import useCopyText from 'components/common/hooks/useCopyText';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -122,50 +123,89 @@ export default function TopButtons({
 
     return (
         <ChannelInfoRhsTopButtons>
-            <Button
-                onClick={actions.toggleFavorite}
-                className={isFavorite ? 'active' : ''}
+            <WithTooltip
+                title={
+                    <FormattedMessage
+                        id='channel_info_rhs.top_buttons.favorite.tooltip'
+                        defaultMessage='Add this channel to favorites'
+                    />
+                }
             >
-                <div>
-                    <i className={'icon ' + favoriteIcon}/>
-                </div>
-                <span>{favoriteText}</span>
-            </Button>
-            <Button
-                onClick={actions.toggleMute}
-                className={isMuted ? 'active' : ''}
-            >
-                <div>
-                    <i className={'icon ' + mutedIcon}/>
-                </div>
-                <span>{mutedText}</span>
-            </Button>
-            {canAddPeople && (
                 <Button
-                    onClick={actions.addPeople}
-                    className={isInvitingPeople ? 'active' : ''}
+                    onClick={actions.toggleFavorite}
+                    className={isFavorite ? 'active' : ''}
+                    aria-label={favoriteText}
                 >
                     <div>
-                        <i className='icon icon-account-plus-outline'/>
+                        <i className={'icon ' + favoriteIcon}/>
                     </div>
-                    <span>
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.add_people'
-                            defaultMessage='Add People'
-                        />
-                    </span>
+                    <span>{favoriteText}</span>
                 </Button>
+            </WithTooltip>
+            <WithTooltip
+                title={
+                    <FormattedMessage
+                        id='channel_info_rhs.top_buttons.mute.tooltip'
+                        defaultMessage='Mute notifications for this channel'
+                    />
+                }
+            >
+                <Button
+                    onClick={actions.toggleMute}
+                    className={isMuted ? 'active' : ''}
+                    aria-label={mutedText}
+                >
+                    <div>
+                        <i className={'icon ' + mutedIcon}/>
+                    </div>
+                    <span>{mutedText}</span>
+                </Button>
+            </WithTooltip>
+            {canAddPeople && (
+                <WithTooltip
+                    title={
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.add_people.tooltip'
+                            defaultMessage='Add team members to this channel'
+                        />
+                    }
+                >
+                    <Button
+                        onClick={actions.addPeople}
+                        className={isInvitingPeople ? 'active' : ''}
+                    >
+                        <div>
+                            <i className='icon icon-account-plus-outline'/>
+                        </div>
+                        <span>
+                            <FormattedMessage
+                                id='channel_info_rhs.top_buttons.add_people'
+                                defaultMessage='Add People'
+                            />
+                        </span>
+                    </Button>
+                </WithTooltip>
             )}
             {canCopyLink && (
-                <CopyButton
-                    onClick={copyLink.onClick}
-                    className={copyLink.copiedRecently ? 'success' : ''}
+                <WithTooltip
+                    title={
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.copy_link.tooltip'
+                            defaultMessage='Copy link to this channel'
+                        />
+                    }
                 >
-                    <div>
-                        <i className={'icon ' + copyIcon}/>
-                    </div>
-                    <span>{copyText}</span>
-                </CopyButton>
+                    <CopyButton
+                        onClick={copyLink.onClick}
+                        className={copyLink.copiedRecently ? 'success' : ''}
+                        aria-label={copyText}
+                    >
+                        <div>
+                            <i className={'icon ' + copyIcon}/>
+                        </div>
+                        <span>{copyText}</span>
+                    </CopyButton>
+                </WithTooltip>
             )}
         </ChannelInfoRhsTopButtons>
     );

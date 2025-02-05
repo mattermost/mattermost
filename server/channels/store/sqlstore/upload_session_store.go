@@ -40,7 +40,7 @@ func (us SqlUploadSessionStore) Save(session *model.UploadSession) (*model.Uploa
 	if err != nil {
 		return nil, errors.Wrap(err, "SqlUploadSessionStore.Save: failed to build query")
 	}
-	if _, err := us.GetMasterX().Exec(query, args...); err != nil {
+	if _, err := us.GetMaster().Exec(query, args...); err != nil {
 		return nil, errors.Wrap(err, "SqlUploadSessionStore.Save: failed to insert")
 	}
 	return session, nil
@@ -70,7 +70,7 @@ func (us SqlUploadSessionStore) Update(session *model.UploadSession) error {
 	if err != nil {
 		return errors.Wrap(err, "SqlUploadSessionStore.Update: failed to build query")
 	}
-	if _, err := us.GetMasterX().Exec(query, args...); err != nil {
+	if _, err := us.GetMaster().Exec(query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return store.NewErrNotFound("UploadSession", session.Id)
 		}
@@ -112,7 +112,7 @@ func (us SqlUploadSessionStore) GetForUser(userId string) ([]*model.UploadSessio
 		return nil, errors.Wrap(err, "SqlUploadSessionStore.GetForUser: failed to build query")
 	}
 	sessions := []*model.UploadSession{}
-	if err := us.GetReplicaX().Select(&sessions, query, args...); err != nil {
+	if err := us.GetReplica().Select(&sessions, query, args...); err != nil {
 		return nil, errors.Wrap(err, "SqlUploadSessionStore.GetForUser: failed to select")
 	}
 	return sessions, nil
@@ -131,7 +131,7 @@ func (us SqlUploadSessionStore) Delete(id string) error {
 		return errors.Wrap(err, "SqlUploadSessionStore.Delete: failed to build query")
 	}
 
-	if _, err := us.GetMasterX().Exec(query, args...); err != nil {
+	if _, err := us.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "SqlUploadSessionStore.Delete: failed to delete")
 	}
 

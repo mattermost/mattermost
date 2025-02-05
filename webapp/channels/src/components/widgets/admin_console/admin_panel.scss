@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .AdminPanel {
     padding: 0;
@@ -17,7 +17,7 @@
         width: 100%;
 
         th {
-            border-bottom: solid 1px alpha-color($black, 0.1);
+            border-bottom: solid 1px alpha-color(variables.$black, 0.1);
         }
 
         td,
@@ -37,7 +37,7 @@
         justify-content: space-between;
         padding: 20px;
         border-radius: var(--radius-s) var(--radius-s) 0 0;
-        background: $white;
+        background: variables.$white;
 
         h3 {
             padding: 0;

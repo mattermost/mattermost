@@ -9,8 +9,6 @@
 // Stage: @prod
 // Group: @playbooks
 
-/* eslint-disable no-only-tests/no-only-tests */
-
 describe('playbooks > edit', {testIsolation: true}, () => {
     let testTeam;
     let testUser;

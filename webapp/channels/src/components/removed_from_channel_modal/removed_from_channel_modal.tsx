@@ -61,7 +61,7 @@ export default class RemovedFromChannelModal extends React.PureComponent<Props, 
                 show={this.state.show}
                 onHide={this.onHide}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='removeFromChannelModalLabel'
             >
                 <Modal.Header closeButton={true}>

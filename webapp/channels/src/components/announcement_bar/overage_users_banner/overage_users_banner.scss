@@ -1,4 +1,4 @@
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .overage_users_banner {
     &__description {
@@ -9,7 +9,7 @@
     }
 
     &__button {
-        @include link;
+        @include mixins.link;
 
         background: transparent;
         font-size: 14px;

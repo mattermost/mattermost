@@ -13,7 +13,6 @@ import * as TeamActions from 'mattermost-redux/actions/teams';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {addUsersToTeam} from 'actions/team_actions';
@@ -22,6 +21,8 @@ import type {InviteResult} from 'components/invitation_modal/result_table';
 import type {InviteResults} from 'components/invitation_modal/result_view';
 
 import {ConsolePages} from 'utils/constants';
+
+import type {DispatchFunc, ActionFuncAsync} from 'types/store';
 
 export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[]): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {

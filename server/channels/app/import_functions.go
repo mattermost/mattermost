@@ -1369,10 +1369,17 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		return err
 	}
 
+	type postAndReactions struct {
+		post      *model.Post
+		reactions *[]imports.ReactionImportData
+	}
+
 	var (
 		postsWithData         = []postAndData{}
 		postsForCreateList    = []*model.Post{}
 		postsForOverwriteList = []*model.Post{}
+		reactionsForCreateMap = make(map[string]postAndReactions)
+		interimReactionsMap   = map[int64]*[]imports.ReactionImportData{}
 	)
 
 	for _, replyData := range data {
@@ -1405,6 +1412,9 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int("reply_create_at", reply.CreateAt), mlog.Int("parent_create_at", post.CreateAt))
 			reply.CreateAt = post.CreateAt
 		}
+		if replyData.Props != nil {
+			reply.Props = *replyData.Props
+		}
 		if replyData.Type != nil {
 			reply.Type = *replyData.Type
 		}
@@ -1428,14 +1438,25 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 		if reply.Id == "" {
 			postsForCreateList = append(postsForCreateList, reply)
+			if replyData.Reactions != nil && len(*replyData.Reactions) > 0 {
+				// although createAt is not unique, I think it is safe to
+				// assume that it could be near-unique especially for the same thread.
+				// If this assumption fails, the last reactions would be used for the
+				// posts that share same createAt value.
+				interimReactionsMap[reply.CreateAt] = replyData.Reactions
+			}
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, reply)
+			if replyData.Reactions != nil && len(*replyData.Reactions) > 0 {
+				reactionsForCreateMap[reply.Id] = postAndReactions{post: reply, reactions: replyData.Reactions}
+			}
 		}
 		postsWithData = append(postsWithData, postAndData{post: reply, replyData: &replyData})
 	}
 
 	if len(postsForCreateList) > 0 {
-		if _, _, err := a.Srv().Store().Post().SaveMultiple(postsForCreateList); err != nil {
+		postsCreated, _, err := a.Srv().Store().Post().SaveMultiple(postsForCreateList)
+		if err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			switch {
@@ -1447,10 +1468,26 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 				return model.NewAppError("importReplies", "app.post.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
+		for _, created := range postsCreated {
+			reactions, ok := interimReactionsMap[created.CreateAt]
+			if !ok || reactions == nil {
+				continue
+			}
+
+			reactionsForCreateMap[created.Id] = postAndReactions{post: created, reactions: reactions}
+		}
 	}
 
 	if _, _, nErr := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); nErr != nil {
 		return model.NewAppError("importReplies", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	for _, postAndReactions := range reactionsForCreateMap {
+		for _, reaction := range *postAndReactions.reactions {
+			if err := a.importReaction(&reaction, postAndReactions.post); err != nil {
+				return err
+			}
+		}
 	}
 
 	for _, postWithData := range postsWithData {
@@ -2290,12 +2327,15 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			channel = ch
-		} else {
+		} else if len(userIDs) > 2 {
 			ch, err = a.createGroupChannel(rctx, userIDs)
 			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 			channel = ch
+		} else {
+			rctx.Logger().Warn("Not enough users to create a direct channel", mlog.Int("line_number", line.LineNumber))
+			continue
 		}
 
 		user := users[strings.ToLower(*line.DirectPost.User)]

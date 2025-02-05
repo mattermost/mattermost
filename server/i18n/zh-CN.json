@@ -2290,10 +2290,6 @@
     "translation": "必须设置 trigger_words 或 channel_id。"
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "无法解码传入的 webhook 混合数据。"
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "无法跨团队更新 webhook。"
   },
@@ -2994,60 +2990,8 @@
     "translation": "当高可用性模式开启时，系统控制台将设为只读且除非停用配置文件里的 ReadOnlyConfig。"
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "未知输出格式 {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "无法复制附件到 zip 文件。"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "无法添加附件到 CSV 导出。"
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "无法创建 CSV 导出临时文件。"
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "无法添加头到 CSV 导出。"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "无法添加元数据文件到 zip 文件。"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "无法转换元数据到 json。"
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "无法导出消息。"
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "无法创建 zip 导出文件。"
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "上传的文件因为过大而从 Global Relay 导出移除。"
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "无法打开导出临时文件。"
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "无法重新读取 Global Relay 导出临时文件。"
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "当前许可证禁用了合规功能。请联系您的系统管理员关于升级您的企业许可证。"
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "无法加载导出模板。请重试。"
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3059,31 +3003,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch 聚合器工作者创建索引任务失败"
+    "translation": "{{.Backend}} 聚合器工作者创建索引任务失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch 聚合器工作者创删除引失败"
+    "translation": "{{.Backend}} 聚合器工作者删除索引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch 聚合器工作者获取索引失败"
+    "translation": "{{.Backend}} 聚合器工作者获取索引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch 聚合器工作者因索引任务失败而失败"
+    "translation": "{{.Backend}} 聚合器工作者因索引任务失败而失败"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "设置 ElasticSearch 客户端失败"
+    "translation": "设置 {{.Backend}} 客户端失败"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "删除 ElasticSearch 索引失败"
+    "translation": "删除 {{.Backend}} 索引失败"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "获取 ElasticSearch 索引失败"
+    "translation": "获取 {{.Backend}} 索引失败"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3091,7 +3035,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "ElasticSearch 搜索未在本服务器启用"
+    "translation": "{{.Backend}} 搜索未在本服务器启用"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3099,23 +3043,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch 索引工作者解析中止时间失败"
+    "translation": "{{.Backend}} 索引工作者解析结束时间失败"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch 索引工作者解析开始时间失败"
+    "translation": "{{.Backend}} 索引工作者解析开始时间失败"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "ElasticSearch没有启动"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "删除 ElasticSearch 索引失败"
+    "translation": "{{.Backend}} 没有启动"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch 搜索已在本服务器禁用"
+    "translation": "{{.Backend}} 搜索已在本服务器禁用"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3131,11 +3071,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "ElasticSearch 已停止。"
+    "translation": "{{.Backend}} 已停止。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch 已停用。"
+    "translation": "{{.Backend}} 已禁用。"
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3228,58 +3168,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "获取用户的组失败"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "无法添加附件到 Global Relay 导出。"
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "无法关闭该 zip 文件。"
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "无法创建 eml 文件。"
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "无法生成 eml 文件数据。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "无法发送邮件到 Global Relay。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "无法设定邮件 From 地址。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "无法设置邮件消息。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "无法写入邮件消息。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "无法读取邮件信息。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "无法设定邮件 To 地址。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "无法获取导出临时文件的信息。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "无法从临时文件获取邮件地址。"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "无法打开导出临时文件。"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3703,27 +3591,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays 设定必须为大于或等于 1 的数字。"
+    "translation": "搜索的 AggregatePostsAfterDays 设置必须为大于或等于 1 的数字。"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search ConnectionUrl 设定。"
+    "translation": "当索引开启时必须提供搜索的 ConnectionUrl 设置。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "当 Elastic Search SearchEnabled 设为是时必须设定 Elastic Search IndexingEnabled 为是"
+    "translation": "当 {{.Searching}} 设置为有效时，{{.EnableIndexing}} 设置必须为有效"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch 即时索引批量大小必须至少为 1。"
+    "translation": "搜索即时索引批量大小必须至少为 1。"
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime 设置必须为“hh:mm”格式的时间。"
+    "translation": "搜索的 PostsAggregatorJobStartTime 设置必须为“hh:mm”格式的时间。"
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch 请求超时必须至少 1 秒。"
+    "translation": "搜索请求超时必须为至少 1 秒。"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4306,10 +4194,6 @@
     "translation": "无效的 Id。"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "无效的消息。"
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "无效的原始 id。"
   },
@@ -4607,11 +4491,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "找不到该命令。"
+    "translation": "找不到命令 {{.command_id}}。"
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "无法解析传入数据。"
+    "translation": "无法解析 webhook {{.hook_id}} 的传入数据。"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4623,7 +4507,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "此 webhook 不允许发消息到指定的频道。"
+    "translation": "此 webhook 不允许发布到请求的频道 {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4639,7 +4523,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "不合适的频道权限。"
+    "translation": "用户 {{.user}} 没有频道 {{.channel}} 的适当权限"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4651,7 +4535,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "找不到用户。"
+    "translation": "找不到用户 {{.user}}"
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
@@ -4946,20 +4830,12 @@
     "translation": "等待集群响应超时"
   },
   {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "无法创建 zip 文件"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "无法创建警告文件。"
-  },
-  {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 消息模板失败"
+    "translation": "创建消息的 {{.Backend}} 模板失败"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 用户模板失败"
+    "translation": "创建用户的 {{.Backend}} 模板失败"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -5003,7 +4879,7 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "获取 Elasticsearch 服务器版本失败。"
+    "translation": "获取 {{.Backend}} 服务器版本失败。"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5035,7 +4911,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "当 Elasticsearch EnableAutocomplete 设为是时必须设定 Elasticsearch EnableIndexing 为是"
+    "translation": "当 {{.Autocomplete}} 设置为有效时，{{.EnableIndexing}} 设置必须为有效"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5303,15 +5179,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 频道模板失败"
+    "translation": "创建频道的 {{.Backend}} 模板失败"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "ElasticSearch 搜索已在本服务器停用"
+    "translation": "{{.Backend}} 搜索已在本服务器禁用"
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "解析 Elasticsearch 服务器版本失败。"
+    "translation": "解析 {{.Backend}} 服务器版本失败。"
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
@@ -5683,7 +5559,7 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "无法找到频道。"
+    "translation": "无法找到现有的频道 {{.channel_id}}。"
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
@@ -5711,7 +5587,7 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "我们查找该频道时遇到了错误。"
+    "translation": "查找频道 {{.channel_id}} 时遇到错误。"
   },
   {
     "id": "app.channel.get_all_channels.app_error",
@@ -5771,11 +5647,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 17.0+"
+    "translation": "版本 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 115+"
+    "translation": "版本 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -6056,10 +5932,6 @@
   {
     "id": "app.recover.delete.app_error",
     "translation": "无法删除令牌。"
-  },
-  {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "指定时间段内获取频道用户失败。"
   },
   {
     "id": "store.sql_command.update.missing.app_error",
@@ -6372,10 +6244,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " 附加了文件。"
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "无法转换导出到 XML。"
   },
   {
     "id": "app.job.update.app_error",
@@ -7018,10 +6886,6 @@
     "translation": "所有 IncludeDeletedChannels 参数必须有相同的值。"
   },
   {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "无法获取消息的文件信息。"
-  },
-  {
     "id": "ent.ldap.do_login.x509.app_error",
     "translation": "创建密钥对时出错"
   },
@@ -7058,10 +6922,6 @@
     "translation": "我们在身份提供者的回复中收到了无效的签名。请与系统管理员联系。"
   },
   {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "无法获取消息的文件信息。"
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "找不到 LDAP 用户，请检查您的用户过滤器和证书。"
   },
@@ -7096,10 +6956,6 @@
   {
     "id": "model.plugin_command_crash.error.app_error",
     "translation": "/{{.Command}} 命令导致 {{.PluginId}} 插件崩溃。请联系系统管理员"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "无法获取消息的文件信息。"
   },
   {
     "id": "api.templates.email_us_anytime_at",
@@ -7338,18 +7194,6 @@
     "translation": "无法使用户批量进行索引。"
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "无法写入全局中继文件。"
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "无法写入 csv 文件。"
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "无法写入导出文件。"
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "无法写入文件。"
   },
@@ -7478,10 +7322,6 @@
     "translation": "错误"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "无法链接 smtp 服务器"
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "解码搜索结果失败"
   },
@@ -7491,7 +7331,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elasticsearch 文件搜索已在本服务器禁用"
+    "translation": "{{.Backend}} 文件搜索已在本服务器禁用"
   },
   {
     "id": "ent.elasticsearch.index_file.error",
@@ -7511,7 +7351,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "创建 Elasticsearch 文件模板失败"
+    "translation": "创建文件的 {{.Backend}} 模板失败"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8691,7 +8531,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch 批量索引的批量大小必须至少是 {{.BatchSize}}."
+    "translation": "搜索的批量索引的批量大小必须至少是 {{.BatchSize}}。"
   },
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
@@ -8810,10 +8650,6 @@
     "translation": "不正确的优先级"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "不正确的消息。"
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "不正确的 file id。"
   },
@@ -8839,19 +8675,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "无法打开 Elasticsearch 客户密钥文件"
+    "translation": "无法打开 {{.Backend}} 的客户端密钥文件"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "无法打开 Elasticsearch 客户证书"
+    "translation": "无法打开 {{.Backend}} 的客户端证书"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "解码 Elasticsearch 客户证书失败"
+    "translation": "解码 {{.Backend}} 客户端证书失败"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "无法打开 Elasticsearch CA 文件"
+    "translation": "无法打开 {{.Backend}} 的 CA 文件"
   },
   {
     "id": "app.user.get_badge_count.app_error",
@@ -9003,7 +8839,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch 版本 {{.Version}} 高于最大支持版本 {{.MaxVersion}}"
+    "translation": "{{.Backend}} 版本 {{.Version}} 高于最高支持版本 {{.MaxVersion}}"
   },
   {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
@@ -9447,7 +9283,7 @@
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
-    "translation": "对话移动已禁用"
+    "translation": "话题移动已禁用"
   },
   {
     "id": "api.post.move_thread.no_permission",
@@ -9459,7 +9295,7 @@
   },
   {
     "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动至私信/群组消息\n"
+    "translation": "一个包含 {{.NumMessages}} 条消息的话题已被移动至私信/群组消息\n"
   },
   {
     "id": "app.post.move_thread_command.error",
@@ -9467,7 +9303,7 @@
   },
   {
     "id": "app.post.move_thread.from_another_channel",
-    "translation": "此对话移动自其他频道"
+    "translation": "此话题移动自其他频道"
   },
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
@@ -9483,7 +9319,7 @@
   },
   {
     "id": "app.post.move_thread_command.channel.multiple_messages",
-    "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动：{{.Link}}\n"
+    "translation": "一个包含 {{.NumMessages}} 条消息的话题已被移动：{{.Link}}\n"
   },
   {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
@@ -9998,14 +9834,6 @@
     "translation": "使用此 URL 的团队已存在。"
   },
   {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "无法关闭 zip 文件"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "无法找到导出文件以开始导出。"
-  },
-  {
     "id": "api.job.status.invalid",
     "translation": "设置了无效的状态"
   },
@@ -10220,5 +10048,337 @@
   {
     "id": "model.remote_cluster_invite.is_valid.token.app_error",
     "translation": "令牌无效。"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request：错误的请求。"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "计划消息功能已禁用"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "计划消息功能需要授权"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "无法升级机器人。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "从数据库删除计划消息失败。"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "您没有删除此资源的权限。"
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "计划消息不存在。"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "无法从数据库获取现有的计划消息。"
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "获取计划消息时遇到错误。"
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "无法找到机器人的拥有者"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "导入数据行的类型为“bot”，但 bot 对象为 null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "缺少机器人的拥有者"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "无法在已归档的频道内计划消息。"
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "保存计划消息时出错。"
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "计划消息不存在。"
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "无法从数据库获取现有的计划消息。"
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "您没有更新此资源的权限。"
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "在数据库中保存更新后的计划消息失败。"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "此消息无法创建"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "无法获取用户"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "无法获取系统机器人"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "如果您收到了这条测试通知，表示通知正常工作！"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "无法获取系统机器人的私信"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "无法定位到 GIF 数据的开头。"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "频道已归档"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "未找到频道"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "消息内容无效"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "不是该频道的成员"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "没有在频道中发送消息的权限"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "话题已被删除"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "无法发送消息"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "未知错误"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "用户账号已被删除"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "用户不存在"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "other": "- {{.Count}} 条在{{.ChannelName}}频道内。原因：{{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "other": "{{.Count}} 条计划消息发送失败。"
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "无法为用户删除计划消息。"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "私有频道"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "未知频道"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "无法计划空消息。计划消息必须至少有一条消息或文件附件。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "计划消息必须有 ID。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "计划时间无效。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "处理时间无效。"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "存储类别 {{.Value}} 无效。"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "客户端重复发送相同请求后，缓存消息失败。"
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "无法将读取位置重置到插件包的起始位置。"
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "处理命令 webhook {{.hook_id}} 失败。"
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "无法解码传入 webhook {{.hook_id}} 的媒体类型 {{.media_type}} 负载。"
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "处理传入 webhook {{.hook_id}} 的媒体类型 {{.media_type}} 的负载失败。"
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "解析媒体传入 webhook {{.hook_id}} 失败。"
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "发送消息属性比最大允许长度更长。"
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "无法为自定义表情符创建目录"
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "草稿消息属性比最大允许长度更长。"
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "无法过滤配置。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "用户角色和访客状态不一致。"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "无法注册自定义个人资料属性组"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "无法创建自定义个人资料属性字段"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "无法获取自定义个人资料属性字段"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "已达到自定义个人资料属性字段数量上限"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "无法获取自定义个人资料属性值"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "无法删除自定义个人资料属性字段"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "无法更新自定义个人资料属性字段"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "无法创建属性值"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "无法获取属性值"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "无法更新属性值"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "无法搜索自定义个人资料属性字段"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "无法从数据库中删除请求的文件"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "无法通过 ID 获取消息编辑历史的文件信息。"
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "无法恢复消息的文件附件。"
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "无法获取消息的历史版本。"
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "您没有相应的权限。"
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "提供的消息历史 ID 与指定消息的任何历史记录不匹配。"
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "提供的消息历史 ID 与消息历史记录不匹配。"
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "无法删除角色。"
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "正在计算频道活跃度：{{.NumCompleted}}/{{.NumChannels}} 个频道已完成。"
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "正在导出 {{.NumChannels}} 个频道的相关信息。"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "链接元数据 URL 长度为 {{ .Length }} 字符，超过了 {{ .MaxLength }} 字符的最大限制。"
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "无效的属性字段：{{.FieldName}}（{{.Reason}}）。"
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "无效的属性值：{{.FieldName}}（{{.Reason}}）。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "未找到自定义个人资料属性字段"
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "无法计算频道导出数据。"
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "无法转换任务数据字段中的值。"
   }
 ]

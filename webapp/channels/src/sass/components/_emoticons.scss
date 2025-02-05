@@ -1,4 +1,6 @@
-@charset "UTF-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 .reacticon {
     position: relative;
@@ -54,7 +56,7 @@
 }
 
 .emoticon-suggestion {
-    @include clearfix;
+    @include mixins.clearfix;
 
     width: 100%;
     height: 30px;
@@ -96,7 +98,7 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     user-select: none;
 
-    @include clearfix;
+    @include mixins.clearfix;
 
     .emoji-picker__header {
         background: var(--sidebar-header-bg);
@@ -208,7 +210,7 @@
 
         &:active {
             color: var(--button-bg);
-            color: v(center-channel-color);
+            color: functions.v(center-channel-color);
         }
 
         &--selected {
@@ -235,8 +237,8 @@
     display: none; // only visible < 480px width screen
     width: 100%;
     padding: 13px 10px 13px 15px;
-    border: 1px solid $light-gray;
-    background: $primary-color;
+    border: 1px solid variables.$light-gray;
+    background: variables.$primary-color;
     color: var(--sidebar-header-text-color);
 
     .emoji-picker__header-title {
@@ -252,7 +254,7 @@
         opacity: 1;
 
         &:hover {
-            background: rgba($black, 0.1);
+            background: rgba(variables.$black, 0.1);
         }
     }
 }
@@ -361,7 +363,7 @@
         border-radius: 4px;
 
         &:focus-within {
-            border: 2px solid v(button-bg);
+            border: 2px solid functions.v(button-bg);
 
             & .emoji-picker__search-icon {
                 padding-top: 7px;
@@ -398,19 +400,19 @@
         border: none;
         border-radius: 4px;
         background: none;
-        color: rgba(v(center-channel-color-rgb), 0.75);
+        color: rgba(functions.v(center-channel-color-rgb), 0.75);
 
         &:hover {
-            background: rgba(v(center-channel-color-rgb), 0.08);
-            color: rgba(v(center-channel-color-rgb), 0.75);
+            background: rgba(functions.v(center-channel-color-rgb), 0.08);
+            color: rgba(functions.v(center-channel-color-rgb), 0.75);
         }
 
         &:active,
         &--active,
         &--active:hover {
             background: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
-            fill: v(button-bg);
+            color: functions.v(button-bg);
+            fill: functions.v(button-bg);
         }
     }
 
@@ -536,7 +538,9 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     height: 36px;
     align-items: center;
     justify-content: center;
+    border: none;
     border-radius: 3px;
+    background-color: transparent;
     cursor: pointer;
     vertical-align: middle;
 
@@ -546,12 +550,23 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
 
         img {
             -moz-transform: scale(0.45);
-            zoom: 0.45;
+            transform: scale(0.45);
+
+            @supports (zoom: 0.45) {
+                -moz-transform: none;
+                transform: none;
+                zoom: 0.45;
+            }
 
             &.emoji-category--custom {
                 -moz-transform: scale(1);
-                transform: scale(1.25);
-                zoom: 1;
+                transform: scale(1);
+
+                @supports (zoom: 1) {
+                    -moz-transform: none;
+                    transform: none;
+                    zoom: 1;
+                }
             }
         }
     }

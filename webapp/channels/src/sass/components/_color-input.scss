@@ -1,4 +1,4 @@
-@charset 'UTF-8';
+@use "utils/functions";
 
 .color-input {
     position: relative;
@@ -21,7 +21,7 @@
     padding: 5px;
     border-color: rgba(var(--center-channel-color-rgb), 0.32) !important;
     border-radius: 0 2px 2px 0;
-    background: v(center-channel-bg) !important;
+    background: functions.v(center-channel-bg) !important;
     line-height: 0;
 }
 

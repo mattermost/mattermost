@@ -63,6 +63,14 @@ export default class ChannelsPost {
         await this.removePostButton.waitFor();
         await this.removePostButton.click();
     }
+
+    /**
+     * `toContainText` verifies if the post contains the specified text.
+     * @param text Text to be verified in the post
+     */
+    async toContainText(text: string) {
+        await expect(this.container).toContainText(text);
+    }
 }
 
 export {ChannelsPost};

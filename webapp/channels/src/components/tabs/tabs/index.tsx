@@ -35,6 +35,7 @@ export default function Tabs({
             onSelect={onSelect}
             className={classNames('tabs', className)}
             mountOnEnter={mountOnEnter}
+            autoFocus={true}
         >
             {children}
         </ReactBootstrapTabs>

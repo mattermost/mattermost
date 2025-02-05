@@ -11,7 +11,9 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {fetchMissingChannels} from 'mattermost-redux/actions/channels';
 import {isDeactivatedDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
 
@@ -55,6 +57,13 @@ const sendNowTooltipText = (
     />
 );
 
+const copyTextTooltipText = (
+    <FormattedMessage
+        id='scheduled_post.action.copy_text'
+        defaultMessage='Copy text'
+    />
+);
+
 type Props = {
     scheduledPost: ScheduledPost;
     channel?: Channel;
@@ -62,11 +71,14 @@ type Props = {
     onDelete: (scheduledPostId: string) => Promise<{error?: string}>;
     onSend: (scheduledPostId: string) => void;
     onEdit: () => void;
+    onCopyText: () => void;
 }
 
-function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, onSend, onEdit}: Props) {
+function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, onSend, onEdit, onCopyText}: Props) {
     const dispatch = useDispatch();
     const userTimezone = useSelector(getCurrentTimezone);
+    const myChannelsMemberships = useSelector((state: GlobalState) => getMyChannelMemberships(state));
+    const isAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
 
     useEffect(() => {
         // this ensures the DM is loaded in redux store and is available
@@ -119,13 +131,13 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
         }));
     }, [channel, dispatch, onSend, scheduledPost.id]);
 
-    const showEditOption = !scheduledPost.error_code;
-
+    const userChannelMember = Boolean(channel && myChannelsMemberships[channel.id]);
     const isChannelArchived = Boolean(channel?.delete_at);
-    const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, scheduledPost.channel_id));
-    const showSendNowOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM;
 
-    const showRescheduleOption = !scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send';
+    const showEditOption = !scheduledPost.error_code && userChannelMember && !isChannelArchived;
+    const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, scheduledPost.channel_id));
+    const showSendNowOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM && userChannelMember;
+    const showRescheduleOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember && !isChannelArchived;
 
     return (
         <div className='ScheduledPostActions'>
@@ -138,7 +150,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
             />
 
             {
-                showEditOption &&
+                (isAdmin || showEditOption) &&
                 <Action
                     icon='icon-pencil-outline'
                     id='edit'
@@ -149,8 +161,16 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
                 />
             }
 
+            <Action
+                icon='icon-content-copy'
+                id='copy_text'
+                name='copy_text'
+                tooltipText={copyTextTooltipText}
+                onClick={onCopyText}
+            />
+
             {
-                showRescheduleOption &&
+                (isAdmin || showRescheduleOption) &&
                 <Action
                     icon='icon-clock-send-outline'
                     id='reschedule'
@@ -161,7 +181,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
             }
 
             {
-                showSendNowOption &&
+                (isAdmin || showSendNowOption) &&
                 <Action
                     icon='icon-send-outline'
                     id='sendNow'

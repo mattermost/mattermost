@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .Menu {
     .MenuItem {
@@ -394,6 +394,6 @@
 }
 
 .MenuItem__divider {
-    border-top: $border-gray;
+    border-top: variables.$border-gray;
     margin: 8px 0;
 }

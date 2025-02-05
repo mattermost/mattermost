@@ -1,7 +1,7 @@
 [
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Kan inte hitta användaren."
+    "translation": "Kan inte hitta användaren {{.user}}"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -13,7 +13,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Opassande kanalbehörigheter."
+    "translation": "Användaren {{.user}} har inte rätt behörighet till kanalen {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Denna webhook tillåts inte posta meddelanden i angiven kanal."
+    "translation": "Denna webhook tillåts inte posta meddelanden i kanal {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -69,11 +69,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.0+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -137,11 +137,11 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Kunde inte tolka inkommande data."
+    "translation": "Kunde inte tolka inkommande data för webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Kan inte hitta kommandot."
+    "translation": "Kan inte hitta kommandot {{.command_id}}."
   },
   {
     "id": "system.message.name",
@@ -633,31 +633,31 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout måste vara minst 1 sekund."
+    "translation": "Search Request Timeout måste vara minst 1 sekund."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime måste vara en tid i formatet \"hh:mm\"."
+    "translation": "Search PostsAggregatorJobStartTime måste vara en tid i formatet \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size måste vara minst 1."
+    "translation": "Sök Live Indexing Batch Size måste vara minst 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Inställningen för Elasticsearch EnableIndexing måste vara aktiv när Elasticsearch EnableSearching är satt till aktiv"
+    "translation": "Inställningen fö EnableIndexing måste vara aktiv när EnableSearching är aktiverad"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Inställningen för Elasticsearch EnableIndexing måste vara aktiv när Elasticsearch EnableAutocomplete är satt till aktiv"
+    "translation": "Inställningen för EnableIndexing måste vara aktiv när Sök-EnableAutocomplete är aktiverad"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Inställningen för Elasticsearch ConnectionURL måste anges när Elasticsearch indexering är aktiverad."
+    "translation": "Inställningen för sök-ConnectionURL måste anges när indexering är aktiverad."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays måste vara större eller lika med 1."
+    "translation": "Sök AggregatePostsAfterDays måste vara större eller lika med 1."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -1058,14 +1058,6 @@
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
     "translation": "Fel vid base64-avkodningen av trigger ID i den interaktiva dialogen."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Kunde inte spara exportfil."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Kunde inte konvertera exporten till XML."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -1674,10 +1666,6 @@
   {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Ogiltigt originalpost-id."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ogiltigt meddelande."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -2796,70 +2784,6 @@
     "translation": "Misslyckades att hitta meddelande att exportera."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Misslyckades att ta fram filinformationen för ett meddelande."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Kunde inte öppna den temporära export-filen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Kunde inte hämta e-postmeddelandet från den tillfälliga filen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Kunde inte hämta informationen från den tillfälliga exportfilen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Kunde inte ange e-postmeddelandets till-adress."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Kunde inte läsa e-postinformationen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Kunde inte skriva e-postmeddelandet."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Kan inte ställa in e-postmeddelandet."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Kunde inte ange e-postmeddelandets från-adress."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Kunde inte leverera e-postmeddelandet till Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Kunde inte skapa eml-fildata."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Kunde inte skapa eml-filen."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Kunde inte stänga zip-filen."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Kunde inte lägga till bilaga till Global Relay-exporten."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Misslyckades att ta fram filinformationen för ett meddelande."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Misslyckades att ta fram filinformationen för ett meddelande."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "kan inte migrera."
   },
@@ -2992,10 +2916,6 @@
     "translation": "Din licens tillåter inte pushnotifiering via meddelande-ID."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Misslyckades att hämta medlemmar i kanalen under den angivna tidsperioden."
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "Elasticsearch-serverns URL eller användarnamn har ändrats. Skriv in Elasticsearch-lösenordet igen för att testa anslutningen."
   },
@@ -3005,19 +2925,19 @@
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch är avaktiverat."
+    "translation": "{{.Backend}} är avaktiverat."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch är redan stoppad."
+    "translation": "{{.Backend}} är redan stoppad."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Det gick inte att tolka Elasticsearch-serverns versionsnummer."
+    "translation": "Det gick inte att tolka {{.Backend}}-serverns versionsnummer."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Det gick inte att hämta Elasticsearch-serverns versionsnummer."
+    "translation": "Det gick inte att hämta {{.Backend}}-serverns versionsnummer."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -3041,7 +2961,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch-sökning är avaktiverat på denna server"
+    "translation": "{{.Backend}}-sökning är avaktiverat på denna server"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -3053,15 +2973,11 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch-sökning är avaktiverat på denna server"
+    "translation": "{{.Backend}}-sökning är avaktiverat på denna server"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
     "translation": "Misslyckades att uppdatera Elasticsearch-index"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Kunde inte radera Elasticsearch-index"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -3069,7 +2985,7 @@
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch är inte startad"
+    "translation": "{{.Backend}} är inte startad"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -3077,11 +2993,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker misslyckades att tolka starttid"
+    "translation": "{{.Backend}} indexing worker misslyckades att tolka starttiden"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker misslyckades att tolka sluttid"
+    "translation": "{{.Backend}} indexing worker misslyckades att tolka sluttiden"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
@@ -3105,7 +3021,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch är inte aktiverat på denna server"
+    "translation": "{{.Backend}} är inte aktiverat på denna server"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
@@ -3129,43 +3045,43 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Kunde inte hämta Elasticsearch-index"
+    "translation": "Kunde inte hämta {{.Backend}}-index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Kunde inte radera Elasticsearch-index"
+    "translation": "Kunde inte radera {{.Backend}}-index"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Misslyckades att skapa Elasticsearch template för användare"
+    "translation": "Misslyckades att skapa {{.Backend}}-mall för användare"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Misslyckades att skapa Elasticsearch template för meddelnden"
+    "translation": "Misslyckades att skapa {{.Backend}}-mall för meddelnden"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Misslyckades att skapa Elasticsearch template för kanalerna"
+    "translation": "Misslyckades att skapa {{.Backend}}-mall för kanalerna"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Misslyckades med att sätta upp Elasticsearch-klienten"
+    "translation": "Misslyckades med att sätta upp {{.Backend}}-klienten"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker misslyckades då indexeringsjobbet gick fel"
+    "translation": "{{.Backend}} aggregator worker misslyckades då indexeringsjobbet gick fel"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker misslyckades med att hitta index"
+    "translation": "{{.Backend}} aggregator worker misslyckades med att hitta index"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker misslyckades med att radera index"
+    "translation": "{{.Backend}} aggregator worker misslyckades med att radera index"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker misslyckades med att skapa indexeringsjobbet"
+    "translation": "{{.Backend}} aggregator worker misslyckades med att skapa indexeringsjobbet"
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -3176,76 +3092,8 @@
     "translation": "Export av efterlevnadskontroll misslyckades för jobb '{{.JobName}}' vid '{{.FilePath}}'"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Kunde inte ladda exportmallar. Försök igen."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funktioner för efterlevnadskontroll är avstängda i nuvarande licensiering. Kontakta systemadministratören med önskan om att utöka licensen."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Kunde inte spara Global Relay-filen."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Kunde inte återläsa den temporära exportfilen för Global Relay."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Kunde inte öppna den tillfällifa exportfilen."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Den uppladdade filen togs bort from Global Realy-exporten för den var för stor för att skicka."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Kunde inte skapa zip-exportfilen."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Kunde inte spara cvs-filen."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Kunde inte skapa varningsfilen."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Kunde inte exportera en post."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Kunde inte skapa zip-filen"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Kunde inte konvertera metadata till json."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Kunde inte lägga till metadata-filen till zip-filen."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Kunde inte lägga till rubrik till CSV-exporten."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Kunde inte skapa en temporär CSV-exportfil."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Kunde inte lägga till bilagan till CSV-exporten."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Kunde inte kopiera bilagan till zip-filen."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Okänt utformat: {{.ExportType}}"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -4105,11 +3953,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Ett fel uppstod då kanalen hämtades."
+    "translation": "Ett fel uppstod när kanalen {{.channel_id}} eftersöktes."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Kunde inte hämta den existerande kanalen."
+    "translation": "Kunde inte hitta den existerande kanalen {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -4418,10 +4266,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Kan inte uppdatera webhook över flera team."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Kunde inte tolka multipart-meddelandet i inkommande webbhook."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -7412,7 +7256,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Filsökning med Elasticsearch är avstängt på servern"
+    "translation": "Filsökning med {{.Backend}} är avaktiverat på denna server"
   },
   {
     "id": "ent.elasticsearch.index_file.error",
@@ -7432,7 +7276,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Misslyckades att skapa Elasticsearch-mall för filer"
+    "translation": "Misslyckades att skapa {{.Backend}}-mall för filer"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -7557,10 +7401,6 @@
   {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "Värdet för Directory ska inte vara tomt."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Det gick inte att ansluta till SMTP-servern"
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
@@ -8579,7 +8419,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
+    "translation": "Search Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8874,10 +8714,6 @@
     "translation": "Ogiltig prioritet"
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ogiltigt meddelande."
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Ogiltiga fil-ID:n."
   },
@@ -8947,19 +8783,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Kunde inte öppna nyckelfilen för klientcertifikatet för Elasticsearch"
+    "translation": "Kunde inte öppna nyckelfilen till klientcertifikatet för {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Kunde inte öppna klientcertifikatfilen för Elasticsearch"
+    "translation": "Kunde inte öppna klientcertifikatfilen för {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Avkodningen av klientcertifikatet för Elasticsearch misslyckades"
+    "translation": "Avkodningen av klientcertifikatet för {{.Backend}} misslyckades"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Kunde inte öppna CA-filen för Elasticsearch"
+    "translation": "Kunde inte öppna CA-filen för {{.Backend}}"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -8999,7 +8835,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch-versionen {{.Version}} är högre än {{.MaxVersion}} som är den högsta versionen som stöds"
+    "translation": "{{.Backend}} versionen {{.Version}} är högre än {{.MaxVersion}} som är den högsta versionen som stöds"
   },
   {
     "id": "app.plugin.skip_installation.app_error",
@@ -10002,14 +9838,6 @@
     "translation": "Saknar team_id i request-meddelandet"
   },
   {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Kunde inte stänga zip-filen"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Kunde inte identifiera början på export-filen."
-  },
-  {
     "id": "store.sql_team.save_team.existing.app_error",
     "translation": "Ett team med denna URL finns redan."
   },
@@ -10228,5 +10056,347 @@
   {
     "id": "api.remote_cluster.create_invite_error",
     "translation": "Kunde inte skapa inbjudan till fjärrkluster"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Ogiltig förfrågan."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Misslyckades med att cacha inlägget efter deduplicerat av en klient som upprepat samma begäran."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "funktionen för schemalagda inlägg är inaktiverad"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Funktionen för schemalagda inlägg kräver en licens"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Misslyckades med att ta bort schemalagd post från databasen."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Du har inte behörighet att ta bort den här resursen."
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Kunde inte uppdatera bot:en."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Det går inte att hämta schemalagda poster från databasen."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Fel uppstod vid hämtning av schemalagda poster."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Det går inte att hitta ägaren till boten"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Importdataraden har typen \"bot\" men botobjektet är null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Botägaren saknas"
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Ett fel inträffade när det schemalagda inlägget sparades."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Den schemalagda posten finns inte."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Det går inte att hämta schemalagda poster från databasen."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Du har inte behörighet att uppdatera denna resurs."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Misslyckades med att spara det uppdaterade schemalagda inlägget i databasen."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Tidpunkt för schemalagd är ogiltig."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Tidpunkt för hantering är ogiltig."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Det går inte att filtrera konfigurationen."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Den schemalagda posten finns inte."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Det går inte att skapa en katalog för anpassade emoji-bilder"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Ingen behörighet att posta i kanalen"
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Egenskapen meddelandeutkast är längre än den maximalt tillåtna längden."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Egenskapen meddelande är längre än den maximalt tillåtna längden."
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Användarrollerna stämmer inte överens med gäststatus."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Kan inte få tag i systemboten"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Posten kan inte skapas"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Det går inte att få direktmeddelande från systemboten"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Det går inte att få fram användaren"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Om du fick detta testmeddelande så fungerar det!"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Det går inte att schemalägga en post i en arkiverad kanal."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Schemalagda inlägg måste ha ett ID."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Det går inte att schemalägga ett tomt inlägg. Ett schemalagt inlägg måste innehålla ett meddelande eller en bifogad fil."
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Det går inte att söka till början av GIF-data."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Inte medlem i kanalen"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} i kanalen {{.ChannelName}}. Anledning: {{.ErrorReason}}",
+      "other": "- {{.Count}} i kanalen {{.ChannelName}}. Anledning: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Misslyckades med att skicka {{.Count}} schemalagd post.",
+      "other": "Misslyckades med att skicka {{.Count}} schemalagda poster."
+    }
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Det gick inte att återställa läspositionen till början av pluginpaketet."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanalen är arkiverad"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanalen hittades inte"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Ogiltigt innehåll i posten"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Det går inte att skicka meddelandet"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Okänt fel"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Användarkontot har raderats"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Tråden har raderats"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Användaren finns inte"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privat kanal"
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Det går inte att ta bort användarens schemalagda inlägg."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Okänd kanal"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Klassen {{.Value}} för lagring är ogiltig."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Misslyckades med att hantera kommandot webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Misslyckades med att hantera nyttolasten av mediatyp {{.media_type}} för inkommande webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Misslyckades med att tolka media på inkommande webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Misslyckades med att tolka datat av mediatyp {{.media_type}} för inkommande webhook {{.hook_id}}."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Det går inte att registrera en egenskapsgrupp för anpassade profilattribut"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Det går inte att skapa fältet för anpassade profilattribut"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Det går inte att hämta värden för anpassade profilattribut"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Det går inte att ta bort det anpassade profilattributfältet"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Det går inte att uppdatera egenskapens värde"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Det går inte att söka efter fälten för anpassade profilattribut"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Misslyckades med att ta bort de begärda filerna från databasen"
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Misslyckades med att hämta den gamla postversionen."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Du har inte rätt behörighet."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Det angivna meddelande-ID:t för inläggshistorik motsvarar inte något historiskt objekt för det angivna meddelandet."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Det går inte att ta bort rollen."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Beräkning av kanalaktivitet: {{.NumCompleted}}/{{.NumChannels}} kanaler slutförda."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exportera kanalinformation för {{.NumChannels}} kanaler."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Misslyckades med att beräkna exportdata för kanaler."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Misslyckades med att konvertera ett värde från jobbets datafält."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Längden på länkens metadata URL är {{ .Length }} tecken lång, vilket överskrider den maximala gränsen på {{ .MaxLength }} tecken."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Ogiltigt egenskapsfält: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Ogiltigt egenskapsvärde: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Det går inte att hämta fälten för anpassade profilattribut"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Det går inte att uppdatera anpassade profilattribut-fältet"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Det går inte att skapa ett egenskaps-värde"
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Misslyckades med att återställa bilagor till postfiler."
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Gränsen för fältet för anpassade profilattribut har nåtts"
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Det angivna meddelande-ID:t för inläggshistorik motsvarar inte något historiskt meddelandet."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Anpassade profilattribut-fältet hittades inte"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Det går inte att få filinformationen genom id för postredigeringshistorik."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Det går inte att hämta värden för egenskaper"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Din licens tillåter inte anpassade profil-attribut."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Kunde inte använda en zip-filsläsare."
   }
 ]

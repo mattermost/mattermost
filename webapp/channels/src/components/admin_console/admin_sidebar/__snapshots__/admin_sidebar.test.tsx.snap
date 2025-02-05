@@ -3652,6 +3652,17 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               }
             />
             <AdminSidebarSection
+              definitionKey="environment.cache_settings"
+              key="environment.cache_settings"
+              name="environment/cache_settings"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Cache Settings"
+                  id="admin.cacheSettings.title"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="environment.rate_limiting"
               key="environment.rate_limiting"
               name="environment/rate_limiting"

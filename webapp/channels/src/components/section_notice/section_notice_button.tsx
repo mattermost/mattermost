@@ -21,6 +21,7 @@ const SectionNoticeButton = ({
         <button
             onClick={button.onClick}
             className={classNames('btn btn-sm sectionNoticeButton', buttonClass)}
+            disabled={button.disabled}
         >
             {button.loading && (<i className='icon fa fa-pulse fa-spinner'/>)}
             {leading}

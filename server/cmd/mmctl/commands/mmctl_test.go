@@ -96,3 +96,7 @@ func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Cli
 		fn(s.th.LocalClient)
 	})
 }
+
+func (s *MmctlE2ETestSuite) CheckErrorID(err error, errorId string) {
+	api4.CheckErrorID(s.T(), err, errorId)
+}

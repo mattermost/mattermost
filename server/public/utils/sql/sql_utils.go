@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	DBPingTimeoutSecs = 10
+	DBPingTimeout    = 10 * time.Second
+	DBConnRetrySleep = 2 * time.Second
 
 	replicaLagPrefix = "replica-lag"
 )
@@ -65,15 +66,15 @@ func SetupConnection(logger mlog.LoggerIFace, connType string, dataSource string
 
 	for i := 0; i < attempts; i++ {
 		logger.Info("Pinging SQL")
-		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeout)
 		defer cancel()
 		err = db.PingContext(ctx)
 		if err != nil {
 			if i == attempts-1 {
 				return nil, err
 			}
-			logger.Error("Failed to ping DB", mlog.Int("retrying in seconds", DBPingTimeoutSecs), mlog.Err(err))
-			time.Sleep(DBPingTimeoutSecs * time.Second)
+			logger.Error("Failed to ping DB", mlog.Float("retrying in seconds", DBConnRetrySleep.Seconds()), mlog.Err(err))
+			time.Sleep(DBConnRetrySleep)
 			continue
 		}
 		break

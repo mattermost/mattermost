@@ -134,7 +134,9 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       style="height: 290px;"
     >
       <div
+        aria-labelledby="emojiPickerSearch"
         class="emoji-picker__container"
+        role="grid"
       >
         <div
           style="overflow: visible; height: 0px; width: 0px;"

@@ -36,43 +36,6 @@ function createSearchData(prefix: string) {
     });
 }
 
-function enableElasticSearch() {
-    // # Enable elastic search via the API
-    cy.apiUpdateConfig({
-        ElasticsearchSettings: {
-            EnableIndexing: true,
-            EnableSearching: true,
-        },
-    } as Cypress.AdminConfig);
-
-    // # Navigate to the elastic search setting page
-    cy.visit('/admin_console/environment/elasticsearch');
-    cy.get('[data-testid="enableIndexing"] > .col-sm-8 > :nth-child(2)').click();
-
-    // * Test the connection and verify that we are successful
-    cy.contains('button', 'Test Connection').click();
-    cy.get('.alert-success').should('have.text', 'Test successful. Configuration saved.');
-
-    // # Index so we are up to date
-    cy.contains('button', 'Index Now').click();
-
-    // # Small wait to ensure new row is added
-    cy.wait(TIMEOUTS.ONE_SEC).get('.job-table__table').find('tbody > tr').eq(0).as('firstRow');
-
-    // * Newest row should eventually result in Success
-    const checkFirstRow = () => {
-        return cy.get('@firstRow').then((el) => {
-            return el.find('.status-icon-success').length > 0;
-        });
-    };
-    const options = {
-        timeout: TIMEOUTS.TWO_MIN,
-        interval: TIMEOUTS.TWO_SEC,
-        errorMsg: 'Reindex did not succeed in time',
-    };
-    cy.waitUntil(checkFirstRow, options);
-}
-
 function getTestUsers(prefix = ''): Record<string, SimpleUser> {
     if (Cypress.env('searchTestUsers')) {
         return JSON.parse(Cypress.env('searchTestUsers'));
@@ -156,7 +119,7 @@ function getPostTextboxInput() {
 }
 
 function getQuickChannelSwitcherInput() {
-    cy.findByRole('textbox', {name: 'quick switch input'}).
+    cy.findByRole('combobox', {name: 'quick switch input'}).
         should('be.visible').
         as('input').
         clear();
@@ -195,7 +158,7 @@ function searchForChannel(name: string) {
     cy.typeCmdOrCtrl().type('k').wait(TIMEOUTS.ONE_SEC);
 
     // # Clear out and type in the name
-    cy.findByRole('textbox', {name: 'quick switch input'}).
+    cy.findByRole('combobox', {name: 'quick switch input'}).
         should('be.visible').
         as('input').
         clear().
@@ -281,7 +244,6 @@ export {
     createPrivateChannel,
     createPublicChannel,
     createSearchData,
-    enableElasticSearch,
     getTestUsers,
     getPostTextboxInput,
     getQuickChannelSwitcherInput,

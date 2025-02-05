@@ -659,13 +659,13 @@ describe('Actions.Posts', () => {
                             {
                                 fields: [
                                     {title: '@bbb', value: '@ccc'},
-                                    {value: '@ddd'},
+                                    {title: 'some title', value: '@ddd'},
                                 ],
                             },
                             {
                                 fields: [
                                     {title: '@eee', value: '@fff'},
-                                    {value: '@ggg'},
+                                    {title: 'some other title', value: '@ggg'},
                                 ],
                             },
                         ],

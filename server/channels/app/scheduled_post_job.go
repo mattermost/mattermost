@@ -6,11 +6,13 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/pkg/errors"
@@ -23,15 +25,12 @@ const (
 
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "scheduled_post_job")))
-	rctx.Logger().Debug("ProcessScheduledPosts called...")
 
 	if !*a.Config().ServiceSettings.ScheduledPosts {
-		rctx.Logger().Debug("ProcessScheduledPosts exiting as the feature is turned off via ServiceSettings.ScheduledPosts setting...")
 		return
 	}
 
 	if a.License() == nil {
-		rctx.Logger().Debug("ProcessScheduledPosts exiting as no license is available")
 		return
 	}
 
@@ -42,7 +41,6 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	for {
 		// we wait some time before processing each batch to avoid hammering the database with too many requests.
 		time.Sleep(scheduledPostBatchWaitTime)
-		rctx.Logger().Debug("ProcessScheduledPosts: fetching page of pending scheduled posts...")
 
 		scheduledPostsBatch, err := a.Srv().Store().ScheduledPost().GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, getPendingScheduledPostsPageSize)
 		if err != nil {
@@ -61,9 +59,7 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 			break
 		}
 
-		rctx.Logger().Debug("ProcessScheduledPosts: entries found in page of pending scheduled posts", mlog.Int("entries", len(scheduledPostsBatch)))
 		if len(scheduledPostsBatch) == 0 {
-			rctx.Logger().Debug("ProcessScheduledPosts: skipping as there are no pending scheduled")
 			// break loop if there are no more scheduled posts
 			break
 		}
@@ -87,8 +83,6 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 			continue
 		}
 
-		rctx.Logger().Debug("ProcessScheduledPosts: finished processing a page of pending scheduled posts.")
-
 		if len(scheduledPostsBatch) < getPendingScheduledPostsPageSize {
 			// if we got less than page size worth of scheduled posts, it indicates
 			// that we have no more pending scheduled posts. So, we can break instead of making
@@ -110,46 +104,37 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 
 // processScheduledPostBatch processes one batch
 func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
-	rctx.Logger().Debug("processScheduledPostBatch called...")
 	var failedScheduledPosts []*model.ScheduledPost
 	var successfulScheduledPostIDs []string
 
 	for i := range scheduledPosts {
-		rctx.Logger().Trace("processScheduledPostBatch processing scheduled post", mlog.String("scheduled_post_id", scheduledPosts[i].Id))
 		scheduledPost, err := a.postScheduledPost(rctx, scheduledPosts[i])
 		if err != nil {
-			rctx.Logger().Debug("processScheduledPostBatch scheduled post processing failed", mlog.String("scheduled_post_id", scheduledPosts[i].Id), mlog.Err(err))
+			rctx.Logger().Error("processScheduledPostBatch scheduled post processing failed", mlog.String("scheduled_post_id", scheduledPosts[i].Id), mlog.Err(err))
 			failedScheduledPosts = append(failedScheduledPosts, scheduledPost)
 			continue
 		}
 
-		rctx.Logger().Trace("processScheduledPostBatch scheduled post processing successful", mlog.String("scheduled_post_id", scheduledPosts[i].Id))
 		successfulScheduledPostIDs = append(successfulScheduledPostIDs, scheduledPost.Id)
 	}
 
-	rctx.Logger().Trace("processScheduledPostBatch handling successful scheduled posts...", mlog.Int("count", len(successfulScheduledPostIDs)))
 	if err := a.handleSuccessfulScheduledPosts(rctx, successfulScheduledPostIDs); err != nil {
 		return errors.Wrap(err, "App.processScheduledPostBatch: failed to handle successfully posted scheduled posts")
 	}
 
-	rctx.Logger().Trace("processScheduledPostBatch handling failed scheduled posts...", mlog.Int("count", len(failedScheduledPosts)))
 	a.handleFailedScheduledPosts(rctx, failedScheduledPosts)
-	rctx.Logger().Debug("processScheduledPostBatch finished...")
 	return nil
 }
 
 // postScheduledPost processes an individual scheduled post
 func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
-	rctx.Logger().Debug("postScheduledPost called...", mlog.String("scheduled_post_id", scheduledPost.Id))
-
 	// we'll process scheduled posts one by one.
 	// If an error occurs, we'll log it and move onto the next scheduled post
 
-	rctx.Logger().Trace("postScheduledPost fetching channel for scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId))
 	channel, appErr := a.GetChannel(rctx, scheduledPost.ChannelId)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			rctx.Logger().Debug("postScheduledPost channel for scheduled post not found, setting error code", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId), mlog.String("error_code", model.ScheduledPostErrorCodeChannelNotFound))
+			rctx.Logger().Warn("channel for scheduled post not found, setting error code", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId), mlog.String("error_code", model.ScheduledPostErrorCodeChannelNotFound), mlog.Err(appErr))
 
 			scheduledPost.ErrorCode = model.ScheduledPostErrorCodeChannelNotFound
 			return scheduledPost, nil
@@ -167,7 +152,6 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, appErr
 	}
 
-	rctx.Logger().Trace("postScheduledPost checking if scheduled post can be posted", mlog.String("scheduled_post_id", scheduledPost.Id))
 	errorCode, err := a.canPostScheduledPost(rctx, scheduledPost, channel)
 	scheduledPost.ErrorCode = errorCode
 	if err != nil {
@@ -194,7 +178,6 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, fmt.Errorf("App.processScheduledPostBatch: skipping posting a scheduled post as `can post` check failed, error_code: %s", scheduledPost.ErrorCode)
 	}
 
-	rctx.Logger().Trace("postScheduledPost converting scheduled post to post", mlog.String("scheduled_post_id", scheduledPost.Id))
 	post, err := scheduledPost.ToPost()
 	if err != nil {
 		rctx.Logger().Error(
@@ -208,7 +191,6 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, err
 	}
 
-	rctx.Logger().Trace("postScheduledPost posting the scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id))
 	createPostFlags := model.CreatePostFlags{
 		TriggerWebhooks: true,
 		SetOnline:       false,
@@ -235,8 +217,6 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 
 // canPostScheduledPost checks whether the scheduled post be created based on permissions and other checks.
 func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, channel *model.Channel) (string, error) {
-	rctx.Logger().Trace("canPostScheduledPost called...", mlog.String("scheduled_post_id", scheduledPost.Id))
-
 	user, appErr := a.GetUser(scheduledPost.UserId)
 	if appErr != nil {
 		if appErr.Id == MissingAccountError {
@@ -325,7 +305,6 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 		return model.ScheduledPostErrorInvalidPost, nil
 	}
 
-	rctx.Logger().Debug("canPostScheduledPost scheduled post can be posted", mlog.String("scheduled_post_id", scheduledPost.Id))
 	return "", nil
 }
 
@@ -374,5 +353,137 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 			"scheduled_posts_failed",
 			map[string]any{"count": len(failedScheduledPosts)},
 		)
+		a.notifyUserAboutFailedScheduledMessages(rctx, failedScheduledPosts)
 	}
+}
+
+func (a *App) notifyUserAboutFailedScheduledMessages(rctx request.CTX, failedMessages []*model.ScheduledPost) {
+	failedMessagesByUser := aggregateFailMessagesByUser(failedMessages)
+	systemBot, err := a.GetSystemBot(rctx)
+	if err != nil {
+		rctx.Logger().Error("Failed to get the system bot", mlog.Err(err))
+		return
+	}
+
+	for userId, userFailedMessages := range failedMessagesByUser {
+		a.Srv().Go(func(userId string, userFailedMessages []*model.ScheduledPost) func() {
+			return func() {
+				a.notifyUser(rctx, userId, userFailedMessages, systemBot)
+			}
+		}(userId, userFailedMessages))
+	}
+}
+
+func aggregateFailMessagesByUser(failedMessages []*model.ScheduledPost) map[string][]*model.ScheduledPost {
+	aggregated := make(map[string][]*model.ScheduledPost)
+	for _, msg := range failedMessages {
+		aggregated[msg.UserId] = append(aggregated[msg.UserId], msg)
+	}
+	return aggregated
+}
+
+func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*model.ScheduledPost, systemBot *model.Bot) {
+	channel, err := a.GetOrCreateDirectChannel(rctx, userId, systemBot.UserId)
+	if err != nil {
+		rctx.Logger().Error("Failed to get or create the DM", mlog.Err(err))
+		return
+	}
+
+	user, err := a.GetUser(userId)
+	if err != nil {
+		rctx.Logger().Error("Failed to get the user", mlog.Err(err))
+		return
+	}
+
+	T := i18n.GetUserTranslations(user.Locale)
+
+	type channelErrorKey struct {
+		ChannelId string
+		ErrorCode string
+	}
+
+	channelErrorCounts := make(map[channelErrorKey]int)
+	channelIdsSet := make(map[string]struct{})
+	for _, msg := range userFailedMessages {
+		key := channelErrorKey{ChannelId: msg.ChannelId, ErrorCode: msg.ErrorCode}
+		channelErrorCounts[key]++
+		channelIdsSet[msg.ChannelId] = struct{}{}
+	}
+
+	channelNames := make(map[string]string)
+	for channelId := range channelIdsSet {
+		ch, err := a.GetChannel(rctx, channelId)
+		if err != nil {
+			rctx.Logger().Error("Failed to get channel", mlog.String("channel_id", channelId), mlog.Err(err))
+			channelNames[channelId] = T("app.scheduled_post.unknown_channel")
+			continue
+		}
+		if ch.Type != model.ChannelTypePrivate {
+			channelNames[channelId] = ch.DisplayName
+		} else {
+			channelNames[channelId] = T("app.scheduled_post.private_channel")
+		}
+	}
+
+	var messageBuilder strings.Builder
+
+	totalFailedMessages := len(userFailedMessages)
+	messageHeader := T("app.scheduled_post.failed_messages", map[string]any{
+		"Count": totalFailedMessages,
+	})
+	messageBuilder.WriteString(messageHeader)
+	messageBuilder.WriteString("\n")
+
+	for key, count := range channelErrorCounts {
+		channelName := channelNames[key.ChannelId]
+		errorReason := getErrorReason(T, key.ErrorCode)
+
+		detailedMessage := T("app.scheduled_post.failed_message_detail", map[string]any{
+			"Count":       count,
+			"ChannelName": channelName,
+			"ErrorReason": errorReason,
+		})
+		messageBuilder.WriteString(detailedMessage)
+		messageBuilder.WriteString("\n")
+	}
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   messageBuilder.String(),
+		Type:      model.PostTypeDefault,
+		UserId:    systemBot.UserId,
+	}
+
+	if _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+		rctx.Logger().Error("Failed to post notification about failed scheduled messages", mlog.Err(err))
+	}
+}
+
+func getErrorReason(T i18n.TranslateFunc, errorCode string) string {
+	var reason string
+	switch errorCode {
+	case "unknown":
+		reason = T("app.scheduled_post.error_reason.unknown")
+	case "channel_archived":
+		reason = T("app.scheduled_post.error_reason.channel_archived")
+	case "channel_not_found":
+		reason = T("app.scheduled_post.error_reason.channel_not_found")
+	case "user_missing":
+		reason = T("app.scheduled_post.error_reason.user_missing")
+	case "user_deleted":
+		reason = T("app.scheduled_post.error_reason.user_deleted")
+	case "no_channel_permission":
+		reason = T("app.scheduled_post.error_reason.no_channel_permission")
+	case "no_channel_member":
+		reason = T("app.scheduled_post.error_reason.no_channel_member")
+	case "thread_deleted":
+		reason = T("app.scheduled_post.error_reason.thread_deleted")
+	case "unable_to_send":
+		reason = T("app.scheduled_post.error_reason.unable_to_send")
+	case "invalid_post":
+		reason = T("app.scheduled_post.error_reason.invalid_post")
+	default:
+		reason = errorCode
+	}
+	return reason
 }

@@ -59,6 +59,13 @@ func SetFileStore(filestore filestore.FileBackend) Option {
 	}
 }
 
+func ForceEnableRedis() Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.ForceEnableRedis())
+		return nil
+	}
+}
+
 func RunEssentialJobs(s *Server) error {
 	s.runEssentialJobs = true
 

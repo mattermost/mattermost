@@ -389,7 +389,9 @@ func (ch *Channels) installPluginLocally(bundle io.ReadSeeker, installationStrat
 
 // extractPlugin unpacks the given plugin bundle into the specified directory.
 func extractPlugin(bundle io.ReadSeeker, extractDir string) (*model.Manifest, string, *model.AppError) {
-	bundle.Seek(0, 0)
+	if _, err := bundle.Seek(0, 0); err != nil {
+		return nil, "", model.NewAppError("extractPlugin", "app.plugin.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 	if err := extractTarGz(bundle, extractDir); err != nil {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.extract.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}

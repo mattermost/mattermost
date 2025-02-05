@@ -3,10 +3,10 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "9.3.0",
+  "version": "10.6.0",
   "private": true,
   "dependencies": {
-    "@floating-ui/react": "0.26.6",
+    "@floating-ui/react": "0.26.28",
     "@giphy/js-fetch-api": "5.1.0",
     "@giphy/react-components": "8.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
@@ -46,7 +46,6 @@
     "inobounce": "0.2.1",
     "ipaddr.js": "2.1.0",
     "katex": "0.16.10",
-    "key-mirror": "1.0.1",
     "localforage": "1.10.0",
     "localforage-observable": "2.1.1",
     "lodash": "4.17.21",
@@ -136,6 +135,7 @@
     "@types/react-window": "1.8.5",
     "@types/react-window-infinite-loader": "1.0.6",
     "@types/redux-mock-store": "1.0.3",
+    "@types/regenerator-runtime": "0.13.8",
     "@types/semver": "7.5.8",
     "@types/shallow-equals": "1.0.3",
     "@types/styled-components": "5.1.32",

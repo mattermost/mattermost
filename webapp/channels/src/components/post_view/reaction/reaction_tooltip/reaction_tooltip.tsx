@@ -14,7 +14,6 @@ type Props = {
     children: React.ReactNode;
     currentUserReacted: boolean;
     emojiName: string;
-    id: string;
     onShow: () => void;
     reactions: ReactionType[];
     users: string[];
@@ -27,7 +26,6 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         children,
         currentUserReacted,
         emojiName,
-        id,
         onShow,
         reactions,
         users,
@@ -101,7 +99,7 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         });
     }
 
-    const tooltip = intl.formatMessage(
+    const tooltipTitle = intl.formatMessage(
         {
             id: 'reaction.reacted',
             defaultMessage: '{users} {reactionVerb} with {emoji}',
@@ -113,28 +111,30 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         },
     );
 
-    let clickTooltip;
+    let tooltipHint;
     if (currentUserReacted && canRemoveReactions) {
-        clickTooltip = intl.formatMessage({
+        tooltipHint = intl.formatMessage({
             id: 'reaction.clickToRemove',
             defaultMessage: '(click to remove)',
         });
     } else if (!currentUserReacted && canAddReactions) {
-        clickTooltip = intl.formatMessage({
+        tooltipHint = intl.formatMessage({
             id: 'reaction.clickToAdd',
             defaultMessage: '(click to add)',
         });
     }
 
+    if (!React.isValidElement(children)) {
+        return null;
+    }
+
     return (
         <WithTooltip
-            id={id}
+            title={tooltipTitle}
+            hint={tooltipHint}
             emoji={emojiName}
-            emojiStyle='large'
-            placement='top'
-            title={tooltip}
-            hint={clickTooltip}
-            onShow={onShow}
+            isEmojiLarge={true}
+            onOpen={onShow}
         >
             {children}
         </WithTooltip>

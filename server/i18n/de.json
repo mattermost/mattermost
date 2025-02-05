@@ -2295,10 +2295,6 @@
     "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Konnte die Multipart-Daten des eingehenden Webhooks nicht entschlüsseln."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Kann Webhooks nicht über Teams hinweg aktualisieren."
   },
@@ -2999,60 +2995,8 @@
     "translation": "Systemkonsole ist im Hochverfügbarkeitsmodus nur lesbar, außer ReadOnlyConfig ist in der Konfigurationsdatei deaktiviert."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unbekanntes Ausgabeformat {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Konnte den Anhang nicht in die ZIP-Datei kopieren."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Konnte den Anhang nicht dem CSV-Export hinzufügen."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Konnte temporäre CSV-Exportdatei nicht erstellen."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Konnte den Header nicht dem CSV-Export hinzufügen."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Konnte Metadaten nicht der ZIP-Datei hinzufügen."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Konnte Metadaten nicht in JSON konvertieren."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Konnte eine Nachricht nicht exportieren."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Konnte die ZIP-Exportdatei nicht erstellen."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Hochgeladene Datei wurde aus dem Global-Relay-Export entfernt, da sie zu groß zum Versenden war."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Konnte temporäre Exportdatei nicht öffnen."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Konnte die temporäre Global-Relay-Exportdatei nicht erneut lesen."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance Funktionalität durch die aktuelle Lizenz deaktiviert. Bitte kontaktiere deinen Systemadministrator wegen eines Enterprise Lizenzupgrades."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Konnte Export-Vorlagen nicht laden. Bitte erneut versuchen."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3064,31 +3008,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte den Indizierungs-Job nicht erstellen"
+    "translation": "{{.Backend}}-Aggregator-Worker konnte den Indizierungs-Job nicht erstellen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte die Indexe nicht löschen"
+    "translation": "{{.Backend}}-Aggregator-Worker konnte die Indexe nicht löschen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte Indexe nicht abrufen"
+    "translation": "{{.Backend}}-Aggregator-Worker konnte Indexe nicht abrufen"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch-Aggregator-Worker ist fehlgeschlagen, da der Indizierungs-Job fehlgeschlagen ist"
+    "translation": "{{.Backend}}-Aggregator-Worker ist fehlgeschlagen, da der Indizierungs-Job fehlgeschlagen ist"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Fehler beim Einrichten des ElasticSearch-Client"
+    "translation": "Fehler beim Einrichten des {{.Backend}}-Client"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Konnte Elasticsearch-Index nicht löschen"
+    "translation": "Konnte {{.Backend}}-Index nicht löschen"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Konnte Elasticsearch-Index nicht abrufen"
+    "translation": "Konnte {{.Backend}}-Index nicht abrufen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3096,7 +3040,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "ElasticSearch-Suche ist auf diesem Server nicht aktiviert"
+    "translation": "{{.Backend}} Suche ist auf diesem Server nicht aktiviert"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3104,23 +3048,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
+    "translation": "{{.Backend}} Indizierungsarbeiter konnte die Endzeit nicht auswerten"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch-Aggregator-Worker konnte die Startzeit nicht verarbeiten"
+    "translation": "{{.Backend}} Indexierungsarbeiter konnte die Startzeit nicht analysieren"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch ist nicht gestartet"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Konnte ElasticSearch-Index nicht löschen"
+    "translation": "{{.Backend}} ist nicht gestartet"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
+    "translation": "{{.Backend}} Suche ist auf diesem Server deaktiviert"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3136,19 +3076,19 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch ist bereits angehalten."
+    "translation": "{{.Backend}} ist bereits gestoppt."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch ist deaktiviert."
+    "translation": "{{.Backend}} ist deaktiviert."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Deine Lizenz unterstützt Elasticsearch nicht."
+    "translation": "Deine Mattermost-Lizenz unterstützt keine indizierte Suche."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "Elasticsearch-Server-URL oder -Benutzername hat sich geändert. Bitte gib das Elasticsearch-Passwort erneut ein, um die Verbindung zu testen."
+    "translation": "Die URL des Such-Servers oder der Benutzername hat sich geändert. Bitte gib das Passwort erneut ein, um die Verbindung zu testen."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3233,58 +3173,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "Fehler beim Abrufen der Gruppen für Benutzer"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Konnte den Anhang nicht dem Global-Relay-Export hinzufügen."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Konnte die ZIP-Datei nicht schließen."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Konnte die EML-Datei nicht erstellen."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Konnte EML-Datei nicht generieren."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Konnte E-Mail nicht an Global Relay liefern."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Konnte die Von-Adresse der E-Mail nicht setzen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Konnte die Nachricht der E-Mail nicht setzen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Konnte die Nachricht der E-Mail nicht schreiben."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Konnte die Informationen der E-Mail nicht lesen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Konnte die An-Adresse der E-Mail nicht setzen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Konnte die Informationen für die temporäre Exportdatei nicht abrufen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Konnte die E-Mail nicht aus der temporären Datei abrufen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Konnte die temporäre Exportdatei nicht öffnen."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3708,27 +3596,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays-Einstellung muss eine Zahl sein, die größer als oder gleich 1 ist."
+    "translation": "Search AggregatePostsAfterDays-Einstellung muss eine Zahl sein, die größer als oder gleich 1 ist."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "ElasticSearch-Einstellung ConnectionUrl muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
+    "translation": "Die Einstellung Search ConnectionUrl muss angegeben werden, wenn die Indizierung aktiviert ist."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "ElasticSearch-Einstellung IndexingEnabled muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist"
+    "translation": "{{.EnableIndexing}} Einstellung muss auf Wahr gesetzt werden, wenn {{.Searching}} auf Wahr gesetzt ist"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "\"Elasticsearch Live Indexing Batch Size\" muss mindestens 1 sein."
+    "translation": "Search Live Indexing Batch Size muss mindestens 1 sein."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime-Einstellung muss eine Uhrzeit im Format \"hh:mm\" sein."
+    "translation": "Die Einstellung \"Search PostsAggregatorJobStartTime\" muss eine Zeit im Format \"hh:mm\" sein."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Timeout für Elasticsearch-Anfrage muss mindestens 1 Sekunde sein."
+    "translation": "Das Timeout für Suchanfragen muss mindestens 1 Sekunde betragen."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4311,10 +4199,6 @@
     "translation": "Ungültige Id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Ungültige Nachricht."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Ungültige Original-ID."
   },
@@ -4612,11 +4496,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Der Befehl konnte nicht gefunden werden."
+    "translation": "Der Befehl {{.command_id}} konnte nicht gefunden werden."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Konnte eingehende Daten nicht verarbeiten."
+    "translation": "Eingehende Daten für den Webhook {{.hook_id}} können nicht analysiert werden."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4628,7 +4512,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Dieser Webhook ist nicht berechtigt in den angeforderten Kanal zu senden."
+    "translation": "Dieser Webhook darf nicht an den angeforderten Kanal {{.channel_id}} senden"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4644,7 +4528,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Ungültige Kanalberechtigungen."
+    "translation": "Der Benutzer {{.user}} hat keine entsprechenden Rechte für den Channel {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4656,7 +4540,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Der Benutzer konnte nicht gefunden werden."
+    "translation": "Konnte den Benutzer {{.user}} nicht finden"
   },
   {
     "id": "api.bot.create_disabled",
@@ -4756,11 +4640,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.0+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4932,7 +4816,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung AutocompleteEnabled auf wahr steht"
+    "translation": "{{.EnableIndexing}} Einstellung muss auf Wahr gesetzt werden, wenn {{.Autocomplete}} auf Wahr gesetzt ist"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4984,11 +4868,11 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Fehler beim Verarbeiten der Elasticsearch-Server-Version."
+    "translation": "Das Parsen der {{.Backend}} Serverversion ist fehlgeschlagen."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Fehler beim Abrufen der Elasticsearch-Server-Version."
+    "translation": "Die {{.Backend}} Serverversion konnte nicht abgerufen werden."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -5008,11 +4892,11 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
+    "translation": "{{.Backend}} Suche ist auf diesem Server deaktiviert"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Fehler beim Abrufen des Elasticsearch-Index"
+    "translation": "Aktualisierung der Suchindizes fehlgeschlagen"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -5036,23 +4920,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Benutzer"
+    "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Benutzer"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Nachrichten"
+    "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Nachrichten"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Kanäle"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Konnte die EML-Datei nicht erstellen."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Konnte die EML-Datei nicht erstellen"
+    "translation": "Fehler beim Erstellen der {{.Backend}}-Vorlage für Kanäle"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5416,11 +5292,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Wir konnte den Kanal nicht finden."
+    "translation": "Bei der Suche nach dem Kanal {{.channel_id}} ist ein Fehler aufgetreten."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Der bestehende Kanal konnte nicht gefunden werden."
+    "translation": "Der vorhandene Kanal {{.channel_id}} konnte nicht gefunden werden."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -5987,10 +5863,6 @@
     "translation": "Konnte Direkt- oder Gruppen-Nachrichtenkanäle nicht löschen"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Fehler beim Abrufen der Mitglieder im Kanals während der spezifizierten Zeitperiode."
-  },
-  {
     "id": "app.emoji.create.internal_error",
     "translation": "Konnte das Emoji nicht speichern."
   },
@@ -6281,10 +6153,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " hat eine Datei hochgeladen."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Konnte Export nicht in XML konvertieren."
   },
   {
     "id": "app.job.update.app_error",
@@ -6707,10 +6575,6 @@
     "translation": "Ungültige Plugin ID."
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Verbindung zum SMTP Server konnte nicht hergestellt werden"
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Keine AD/LDAP Benutzer gefunden. Bitte überprüfe deinen Benutzerfilter und Zertifikate."
   },
@@ -6732,7 +6596,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Die Suche nach Dateien mit Elasticsearch ist auf diesem Server deaktiviert"
+    "translation": "{{.Backend}} Dateisuche ist auf diesem Server deaktiviert"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -8190,18 +8054,6 @@
     "translation": "Wir haben eine ungültige Signatur in der Antwort des Identity Providers erhalten. Bitte kontaktiere deinen Systemadministrator."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Konnte Dateiinformation für einen Nachricht nicht abrufen."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Konnte Dateiinformation für einen Nachricht nicht abrufen."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Konnte Dateiinformation für einen Nachricht nicht abrufen."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "konnte nicht migrieren."
   },
@@ -8231,7 +8083,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Konnte Elasticsearch Vorlage für Dateien nicht erstellen"
+    "translation": "Konnte {{.Backend}} Vorlage für Dateien nicht erstellen"
   },
   {
     "id": "ent.data_retention.run_failed.error",
@@ -8246,24 +8098,12 @@
     "translation": "Wir sind bei der Durchführen der angefragten Operation auf einen Fehler gestoßen."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Konnte globale Austauschdatei nicht schreiben."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Konnte CSV-Datei nicht schreiben."
-  },
-  {
     "id": "ent.cluster.timeout.error",
     "translation": "Zeitüberschreitung beim Warten auf eine Cluster-Antwort"
   },
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Fehler beim Ordnen der JSON Abfragen aufgetreten"
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Konnte Exportdatei nicht schreiben."
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
@@ -8611,7 +8451,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexing Batch Size muss mindestens {{.BatchSize}} sein."
+    "translation": "Search Bulk Indexing Batch Size muss mindestens {{.BatchSize}} betragen."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8834,10 +8674,6 @@
     "translation": "Ungültige Eigenschaften."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Ungültige Nachricht."
-  },
-  {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Ungültige Datei-IDs."
   },
@@ -8947,19 +8783,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Die Client-Schlüsseldatei für Elasticsearch konnte nicht geöffnet werden"
+    "translation": "Die Client-Schlüsseldatei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Die Client-Zertifikatsdatei für Elasticsearch konnte nicht geöffnet werden"
+    "translation": "Die Client-Zertifikatsdatei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Dekodierung des Client-Zertifikats für Elasticsearch fehlgeschlagen"
+    "translation": "Dekodierung des Client-Zertifikats für {{.Backend}} fehlgeschlagen"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Die CA-Datei für Elasticsearch konnte nicht geöffnet werden"
+    "translation": "Die CA-Datei für {{.Backend}} konnte nicht geöffnet werden"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9003,7 +8839,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch Version {{.Version}} ist höher als die maximal unterstützte Version von {{.MaxVersion}}"
+    "translation": "{{.Backend}} Version {{.Version}} höher ist als die maximal unterstützte Version von {{.MaxVersion}}"
   },
   {
     "id": "app.plugin.skip_installation.app_error",
@@ -9903,7 +9739,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Dein Elasticsearch-Kanal-Indexschema ist veraltet. Es wird empfohlen, deinen Kanal-Index neu zu erstellen.\nKlicke auf die Schaltfläche \"Kanal Index neu erstellen\" im [Elasticsearch-Abschnitt in der Systemkonsole] ({{.ElasticsearchSection}}), um das Problem zu beheben.\nWeitere Informationen findest du im Mattermost Changelog."
+    "translation": "Das Indexschema deines Suchkanals ist nicht mehr aktuell. Wir empfehlen dir, deinen Kanalindex neu zu erstellen.\nKlicke auf die Schaltfläche \"Index der Kanäle neu erstellen\" auf der [Elasticsearch-Seite über die Systemkonsole] ({{.ElasticsearchSection}}), um dieses Problem zu beheben.\nWeitere Informationen findest du im Mattermost Changelog."
   },
   {
     "id": "bleveengine.purge_list.not_implemented",
@@ -9911,7 +9747,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Fehler beim Löschen eines Elasticsearch-Index"
+    "translation": "Fehler beim Löschen eines Suchindex"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -10000,14 +9836,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Benutzeranzahl konnte nicht ermittelt werden"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Konnte die ZIP-Datei nicht schließen"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Kann nicht zum Anfang der Exportdatei suchen."
   },
   {
     "id": "store.sql_team.save_team.existing.app_error",
@@ -10228,5 +10056,347 @@
   {
     "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
     "translation": "Ungültige URL der Website."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Bad request."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "Die Funktion für zeitgesteuerte Beiträge ist deaktiviert"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Die Funktion \"Zeitgesteuerte Beiträge\" erfordert eine Lizenz"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Konnte den Bot nicht aktualisieren."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Der zeitgesteuerte Beitrag existiert nicht."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Vorhandene zeitgesteuerte Beiträge können nicht aus der Datenbank geladen werden."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Der geplante Beitrag konnte nicht aus der Datenbank gelöscht werden."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Du hast nicht die Erlaubnis, diese Ressource zu löschen."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Beim Abrufen der zeitgesteurten Beiträge ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Besitzer des Bots kann nicht gefunden werden"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Die Importdatenzeile hat den Typ \"bot\", aber das Bot-Objekt ist null"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot-Besitzer fehlt"
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Du kannst keinen Beitrag in einem archivierten Channel planen."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Beim Speichern des zeitgesteuerten Beitrags ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Der zeitgesteuerte Beitrag existiert nicht."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Vorhandene zeitgesteuerte Beiträge können nicht aus der Datenbank geladen werden."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Aktualisierter zeitgesteuerter Beitrag konnte nicht in der Datenbank gespeichert werden."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Du hast nicht die Erlaubnis, diese Ressource zu aktualisieren."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Ein leerer Beitrag kann nicht zeitgesteuert werden. Ein zeitgesteuerter Beitrag muss mindestens eine Nachricht oder einen Dateianhang enthalten."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Zeitgesteuerte Beiträge müssen eine ID haben."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Invalid processed at time."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Invalid scheduled at time."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Die Nachricht kann nicht erstellt werden"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Kann die System Bot-Direktnachricht nicht erhalten"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Kann den Benutzer nicht holen"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Wenn du diese Testbenachrichtigung erhalten hast, hat es funktioniert!"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Kann den Systembot nicht holen"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Es ist nicht möglich, den Anfang der GIF-Daten zu suchen."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanal ist archiviert"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanal nicht gefunden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Ungültiger Nachrichteninhalt"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Kein Mitglied des Kanals"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Keine Erlaubnis zum Posten im Kanal"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Die Unterhaltung wurde gelöscht"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Die Nachricht kann nicht gesendet werden"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Unbekannter Fehler"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privater Kanal"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in Kanal {{.ChannelName}}. Grund: {{.ErrorReason}}",
+      "other": "- {{.Count}} in Kanal {{.ChannelName}}. Grund: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Benutzerkonto ist gelöscht"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Benutzer existiert nicht"
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Der Versand von einem geplanten Beitrag ist fehlgeschlagen.",
+      "other": "Der Versand von {{.Count}} geplanten Beiträgen ist fehlgeschlagen."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Geplante Beiträge für Benutzer können nicht gelöscht werden."
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Unbekannter Kanal"
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Ungültige Speicherklasse {{.Value}}."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Nach der Deduplizierung eines Clients, der dieselbe Anfrage wiederholt hat, konnte der Beitrag nicht zwischengespeichert werden."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Die Leseposition kann nicht auf den Anfang des Plugin-Bündels zurückgesetzt werden."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Der Webhook-Befehl {{.hook_id}} konnte nicht verarbeitet werden."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Die Nutzdaten des Medientyps {{.media_type}} für den eingehenden Webhook {{.hook_id}} konnten nicht entschlüsselt werden."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Die Nutzlast des Medientyps {{.media_type}} für den eingehenden Webhook {{.hook_id}} konnte nicht verarbeitet werden."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Der eingehende Webhook {{.hook_id}} konnte nicht analysiert werden."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Der Entwurf der Nachricht ist länger als die maximal zulässige Länge."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Die Post Message Eigenschaft ist länger als die maximal erlaubte Länge."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Konfiguration kann nicht gefiltert werden."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Verzeichnis für benutzerdefinierte Emoji-Bilder kann nicht erstellt werden"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Die Benutzerrollen stimmen nicht mit dem Gaststatus überein."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Die Eigenschaftsgruppe Benutzerdefinierte Profilattribute kann nicht registriert werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht erstellt werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Feldgrenze für benutzerdefinierte Profilattribute erreicht"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Benutzerdefinierte Profilattributwerte können nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht gelöscht werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld nicht gefunden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Eigenschaftswerte können nicht abgerufen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Kann keinen Eigenschaftswert erstellen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Eigenschaftswert kann nicht aktualisiert werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Benutzerdefinierte Profilattributfelder können nicht durchsucht werden"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Die angeforderten Dateien konnten nicht aus der Datenbank entfernt werden"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Es ist nicht möglich, die Dateiinfos nach IDs für den Post-Editierverlauf zu erhalten."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Die Dateianhänge des Posts konnten nicht wiederhergestellt werden."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Es ist nicht gelungen, die alte Postversion zu erhalten."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Du hast nicht die erforderlichen Berechtigungen."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Die angegebene Post History ID entspricht keinem History Item für den angegebenen Post."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Die angegebene Post History ID entspricht nicht einem Post History Item."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Die Rolle kann nicht gelöscht werden."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Berechne die Kanalaktivität: {{.NumCompleted}}/{{.NumChannels}} Kanäle abgeschlossen."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exportieren von Kanalinformationen für {{.NumChannels}} Kanäle."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Die Berechnung der Kanalexportdaten ist fehlgeschlagen."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Ein Wert aus dem Datenfeld des Jobs konnte nicht konvertiert werden."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Die Länge der Link-Metadaten-URL ist {{ .Length }} Zeichen lang und überschreitet damit die maximale Grenze von {{ .MaxLength }} Zeichen."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Ungültiges Eigenschaftsfeld: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Ungültiger Eigenschaftswert: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Deine Lizenz unterstützt keine benutzerdefinierten Profilattribute."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Es ist nicht möglich, einen Zip-Datei-Leser zu bekommen."
   }
 ]

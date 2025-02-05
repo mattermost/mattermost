@@ -7,6 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team, TeamUnread} from '@mattermost/types/teams';
 import type {ThreadsState, UserThread} from '@mattermost/types/threads';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
 
@@ -153,7 +154,7 @@ function handleDecrementThreadCounts(state: ThreadsState['counts'], action: AnyA
     };
 }
 
-export function countsIncludingDirectReducer(state: ThreadsState['counts'] = {}, action: AnyAction, extra: ExtraData) {
+export function countsIncludingDirectReducer(state: ThreadsState['counts'] = {}, action: MMReduxAction, extra: ExtraData) {
     switch (action.type) {
     case ThreadTypes.ALL_TEAM_THREADS_READ:
         return handleAllTeamThreadsRead(state, action);
@@ -220,7 +221,7 @@ export function countsIncludingDirectReducer(state: ThreadsState['counts'] = {},
     return state;
 }
 
-export function countsReducer(state: ThreadsState['counts'] = {}, action: AnyAction, extra: ExtraData) {
+export function countsReducer(state: ThreadsState['counts'] = {}, action: MMReduxAction, extra: ExtraData) {
     switch (action.type) {
     case ThreadTypes.ALL_TEAM_THREADS_READ:
         return handleAllTeamThreadsRead(state, action);

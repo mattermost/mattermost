@@ -1,4 +1,4 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 del .mention-link,
 del .group-mention-link {
@@ -17,8 +17,17 @@ del .group-mention-link:focus {
     z-index: 10;
     padding-bottom: 2px;
     border-radius: 3px;
-    background: $primary-color;
-    color: $white;
+    background: variables.$primary-color;
+    color: variables.$white;
+}
+
+.mention-link {
+    color: var(--link-color);
+
+    &:hover,
+    &:focus {
+        text-decoration: underline;
+    }
 }
 
 .badge {

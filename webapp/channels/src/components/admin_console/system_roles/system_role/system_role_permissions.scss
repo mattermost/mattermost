@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 #SystemRolePermissions {
     margin-top: 0;
@@ -151,7 +151,6 @@
 
                 .PermissionSection_description {
                     span {
-                        padding: 0 4px;
                         border-radius: 2px;
                         background: rgba(var(--sys-center-channel-color-rgb), 0.08);
                     }

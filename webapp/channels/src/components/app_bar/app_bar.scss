@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 $app-bar-icon-size: 24px;
 $app-bar-width: 44px;
@@ -140,8 +140,8 @@ $app-bar-width: 44px;
         padding-bottom: 36px;
 
         .app_bar__marketplace_button {
-            @include icon-button;
-            @include icon-button-small-compact;
+            @include mixins.icon-button;
+            @include mixins.icon-button-small-compact;
 
             color: rgba(var(--sidebar-text-rgb), 0.64);
 

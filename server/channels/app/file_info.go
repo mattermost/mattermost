@@ -40,7 +40,9 @@ func getInfoForBytes(name string, data io.ReadSeeker, size int) (*model.FileInfo
 
 			if info.MimeType == "image/gif" {
 				// Just show the gif itself instead of a preview image for animated gifs
-				data.Seek(0, io.SeekStart)
+				if _, err := data.Seek(0, io.SeekStart); err != nil {
+					return info, model.NewAppError("getInfoForBytes", "app.file_info.seek.gif.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				}
 				frameCount, err := imgutils.CountGIFFrames(data)
 				if err != nil {
 					// Still return the rest of the info even though it doesn't appear to be an actual gif

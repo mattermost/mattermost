@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @metrics @not_cloud @license_removal
 
 import {checkMetrics, toggleMetricsOn} from './helper';
