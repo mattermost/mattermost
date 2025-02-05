@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const MAX_WEBSOCKET_FAILS = 7;
-const MIN_WEBSOCKET_RETRY_TIME = 3000; // 3 sec
-const MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
-const JITTER_RANGE = 2000; // 2 sec
+const DEFAULT_MAX_WEBSOCKET_FAILS = 7;
+const DEFAULT_MIN_WEBSOCKET_RETRY_TIME = 3000; // 3 sec
+const DEFAULT_MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
+const DEFAULT_JITTER_RANGE = 2000; // 2 sec
 
 const WEBSOCKET_HELLO = 'hello';
 
@@ -15,9 +15,20 @@ export type MissedMessageListener = () => void;
 export type ErrorListener = (event: Event) => void;
 export type CloseListener = (connectFailCount: number) => void;
 
+export interface WebSocketClientConfig {
+    maxWebSocketFails?: number,
+    minWebSocketRetryTime?: number,
+    maxWebSocketRetryTime?: number,
+    reconnectJitterRange?: number,
+    newWebSocketFn?: (url: string) => WebSocket,
+}
+
 export default class WebSocketClient {
+    private config: WebSocketClientConfig;
+
     private conn: WebSocket | null;
     private connectionUrl: string | null;
+    private token: string | undefined;
 
     // responseSequence is the number to track a response sent
     // via the websocket. A response will always have the same sequence number
@@ -28,7 +39,7 @@ export default class WebSocketClient {
     // server-sent event stream.
     private serverSequence: number;
     private connectFailCount: number;
-    private responseCallbacks: {[x: number]: ((msg: any) => void)};
+    private responseCallbacks: { [x: number]: ((msg: any) => void) };
 
     /**
      * @deprecated Use messageListeners instead
@@ -71,7 +82,7 @@ export default class WebSocketClient {
     private serverHostname: string | null;
     private postedAck: boolean;
 
-    constructor() {
+    constructor(config?: WebSocketClientConfig) {
         this.conn = null;
         this.connectionUrl = null;
         this.responseSequence = 1;
@@ -81,6 +92,7 @@ export default class WebSocketClient {
         this.connectionId = '';
         this.serverHostname = '';
         this.postedAck = false;
+        this.config = config ? config : {};
     }
 
     // on connect, only send auth cookie and blank state.
@@ -107,12 +119,18 @@ export default class WebSocketClient {
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
         // We cannot also send it as part of the auth_challenge, because the session cookie is already sent with the request.
-        this.conn = new WebSocket(`${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}${this.postedAck ? '&posted_ack=true' : ''}`);
+        const websocketUrl = `${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}${this.postedAck ? '&posted_ack=true' : ''}`
+        if (this.config.newWebSocketFn) {
+            this.conn = this.config.newWebSocketFn(websocketUrl)
+        } else {
+            this.conn = new WebSocket(websocketUrl);
+        }
         this.connectionUrl = connectionUrl;
+        this.token = token;
 
         this.conn.onopen = () => {
             if (token) {
-                this.sendMessage('authentication_challenge', {token});
+                this.sendMessage('authentication_challenge', { token });
             }
 
             if (this.connectFailCount > 0) {
@@ -141,22 +159,30 @@ export default class WebSocketClient {
             this.closeCallback?.(this.connectFailCount);
             this.closeListeners.forEach((listener) => listener(this.connectFailCount));
 
-            let retryTime = MIN_WEBSOCKET_RETRY_TIME;
+
+            let retryTime = this.config.minWebSocketRetryTime ?
+                this.config.minWebSocketRetryTime : DEFAULT_MIN_WEBSOCKET_RETRY_TIME;
+            const maxRetryTime = this.config.maxWebSocketRetryTime ?
+                this.config.maxWebSocketRetryTime : DEFAULT_MAX_WEBSOCKET_RETRY_TIME;
+            const maxFails = this.config.maxWebSocketFails ?
+                this.config.maxWebSocketFails : DEFAULT_MAX_WEBSOCKET_FAILS;
+            const jitterRange = this.config.reconnectJitterRange ?
+                this.config.reconnectJitterRange : DEFAULT_JITTER_RANGE;
 
             // If we've failed a bunch of connections then start backing off
-            if (this.connectFailCount > MAX_WEBSOCKET_FAILS) {
-                retryTime = MIN_WEBSOCKET_RETRY_TIME * this.connectFailCount * this.connectFailCount;
-                if (retryTime > MAX_WEBSOCKET_RETRY_TIME) {
-                    retryTime = MAX_WEBSOCKET_RETRY_TIME;
+            if (this.connectFailCount > maxFails) {
+                retryTime = retryTime * this.connectFailCount * this.connectFailCount;
+                if (retryTime > maxRetryTime) {
+                    retryTime = maxRetryTime;
                 }
             }
 
             // Applying jitter to avoid thundering herd problems.
-            retryTime += Math.random() * JITTER_RANGE;
+            retryTime += Math.random() * jitterRange;
 
             setTimeout(
                 () => {
-                    this.initialize(connectionUrl, token, postedAck);
+                    this.initialize(this.connectionUrl, this.token, this.postedAck);
                 },
                 retryTime,
             );
@@ -359,7 +385,7 @@ export default class WebSocketClient {
         this.connectFailCount = 0;
         this.responseSequence = 1;
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
-            this.conn.onclose = () => {};
+            this.conn.onclose = () => { };
             this.conn.close();
             this.conn = null;
             console.log('websocket closed'); //eslint-disable-line no-console
