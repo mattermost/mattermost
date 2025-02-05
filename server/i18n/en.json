@@ -2558,7 +2558,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
-    "translation": ""
+    "translation": "Cannot delete a post in a restricted direct message channel."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
