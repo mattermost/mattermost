@@ -11,7 +11,6 @@ import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '@
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 function profilesToSet(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction) {
     const id = action.id;
