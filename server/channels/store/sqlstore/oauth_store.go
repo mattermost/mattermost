@@ -68,12 +68,9 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	}
 
 	var oldApp model.OAuthApp
-	query, args, err := as.oAuthAppSelectQuery.Where(sq.Eq{"Id": app.Id}).ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build SQL query for OAuthApp with id=%s", app.Id)
-	}
+	query := as.oAuthAppSelectQuery.Where(sq.Eq{"Id": app.Id})
 
-	err = as.GetReplica().Get(&oldApp, query, args...)
+	err := as.GetReplica().GetBuilder(&oldApp, query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get OAuthApp with id=%s", app.Id)
 	}
@@ -104,12 +101,9 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 
 func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	var app model.OAuthApp
-	query, args, err := as.oAuthAppSelectQuery.Where(sq.Eq{"Id": id}).ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build SQL query for OAuthApp with id=%s", id)
-	}
+	query := as.oAuthAppSelectQuery.Where(sq.Eq{"Id": id})
 
-	if err := as.GetReplica().Get(&app, query, args...); err != nil {
+	if err := as.GetReplica().GetBuilder(&app, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("OAuthApp", id)
 		}
@@ -124,12 +118,9 @@ func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 func (as SqlOAuthStore) GetAppByUser(userId string, offset, limit int) ([]*model.OAuthApp, error) {
 	apps := []*model.OAuthApp{}
 
-	query, args, err := as.oAuthAppSelectQuery.Where(sq.Eq{"CreatorId": userId}).Limit(uint64(limit)).Offset(uint64(offset)).ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build SQL query for OAuthApps with userId=%s", userId)
-	}
+	query := as.oAuthAppSelectQuery.Where(sq.Eq{"CreatorId": userId}).Limit(uint64(limit)).Offset(uint64(offset))
 
-	if err := as.GetReplica().Select(&apps, query, args...); err != nil {
+	if err := as.GetReplica().SelectBuilder(&apps, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find OAuthApps with userId=%s", userId)
 	}
 
@@ -139,12 +130,9 @@ func (as SqlOAuthStore) GetAppByUser(userId string, offset, limit int) ([]*model
 func (as SqlOAuthStore) GetApps(offset, limit int) ([]*model.OAuthApp, error) {
 	apps := []*model.OAuthApp{}
 
-	query, args, err := as.oAuthAppSelectQuery.Limit(uint64(limit)).Offset(uint64(offset)).ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to build SQL query for OAuthApps")
-	}
+	query := as.oAuthAppSelectQuery.Limit(uint64(limit)).Offset(uint64(offset))
 
-	if err := as.GetReplica().Select(&apps, query, args...); err != nil {
+	if err := as.GetReplica().SelectBuilder(&apps, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find OAuthApps")
 	}
 
@@ -154,20 +142,16 @@ func (as SqlOAuthStore) GetApps(offset, limit int) ([]*model.OAuthApp, error) {
 func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*model.OAuthApp, error) {
 	apps := []*model.OAuthApp{}
 
-	query, args, err := as.getQueryBuilder().
+	query := as.getQueryBuilder().
 		Select("o.Id", "o.CreatorId", "o.CreateAt", "o.UpdateAt", "o.ClientSecret",
 			"o.Name", "o.Description", "o.IconURL", "o.CallbackUrls",
 			"o.Homepage", "o.IsTrusted", "o.MattermostAppID").
 		From("OAuthApps AS o").
 		InnerJoin("Preferences AS p ON p.Name = o.Id AND p.UserId = ?", userId).
 		Limit(uint64(limit)).
-		Offset(uint64(offset)).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build SQL query for OAuthApps with userId=%s", userId)
-	}
+		Offset(uint64(offset))
 
-	if err := as.GetReplica().Select(&apps, query, args...); err != nil {
+	if err := as.GetReplica().SelectBuilder(&apps, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find OAuthApps with userId=%s", userId)
 	}
 
@@ -299,14 +283,9 @@ func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData,
 func (as SqlOAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 	var authData model.AuthData
 
-	query, args, err := as.oAuthAuthDataQuery.
-		Where(sq.Eq{"Code": code}).
-		ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build SQL query for AuthData with code=%s", code)
-	}
+	query := as.oAuthAuthDataQuery.Where(sq.Eq{"Code": code})
 
-	if err := as.GetReplica().Get(&authData, query, args...); err != nil {
+	if err := as.GetReplica().GetBuilder(&authData, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code))
 		}
