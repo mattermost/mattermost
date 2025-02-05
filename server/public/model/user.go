@@ -142,6 +142,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"terms_of_service_id":        u.TermsOfServiceId,
 		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
 		"disable_welcome_email":      u.DisableWelcomeEmail,
+		"custom_profile_attributes":  u.CustomProfileAttributes,
 	}
 }
 

@@ -150,15 +150,15 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()
 		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
+		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
 		th.BasicUser = th.CreateUser()
-		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
+		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		userCache.BasicUser = th.BasicUser.DeepCopy()
 
 		th.BasicUser2 = th.CreateUser()
-		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
+		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
 	})
 	// restore cached users

@@ -122,7 +122,7 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 		s.Require().Equal(printer.GetLines()[0], "AD/LDAP IdAttribute migration complete. You can now change your IdAttribute to: "+"cn")
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		updatedUser, appErr := s.th.App.GetUser(ldapUser.Id)
+		updatedUser, appErr := s.th.App.GetUser(ldapUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(appErr)
 		s.Require().Equal("Dev1", *updatedUser.AuthData)
 	})

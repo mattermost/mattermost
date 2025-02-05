@@ -819,7 +819,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 	assert.NotNil(t, session)
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		user, _ := th.App.GetUser(th.BasicUser.Id)
+		user, _ := th.App.GetUser(th.BasicUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Equal(c, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
 	}, 2*time.Second, 100*time.Millisecond)
 }
@@ -867,7 +867,7 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
@@ -911,7 +911,7 @@ func TestUserHasBeenCreated(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
@@ -1093,7 +1093,7 @@ func TestActiveHooks(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(user1.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
@@ -1200,7 +1200,7 @@ func TestHookMetrics(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(user1.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 

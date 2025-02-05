@@ -33,7 +33,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().Zero(ruser.DeleteAt)
 	})
@@ -50,7 +50,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().NotZero(ruser.DeleteAt)
 	})
@@ -83,7 +83,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().NotZero(ruser.DeleteAt)
 	})
@@ -100,7 +100,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
 
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().Zero(ruser.DeleteAt)
 	})
@@ -386,7 +386,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// make sure user is updated after reset mfa
-		ruser, err := s.th.App.GetUser(user.Id)
+		ruser, err := s.th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().NotEqual(ruser.UpdateAt, user.UpdateAt)
 	})
@@ -615,7 +615,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 		err := updateUserEmailCmdF(c, &cobra.Command{}, []string{s.th.BasicUser2.Email, newEmail})
 		s.Require().Nil(err)
 
-		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().Equal(newEmail, u.Email)
 
@@ -630,7 +630,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newEmail})
 		s.Require().EqualError(err, "You do not have the appropriate permissions.")
 
-		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().Equal(s.th.BasicUser2.Email, u.Email)
 	})
@@ -654,7 +654,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 		err := updateUsernameCmdF(c, &cobra.Command{}, []string{s.th.BasicUser2.Username, newName})
 		s.Require().Nil(err)
 
-		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().Equal(newName, u.Username)
 
@@ -669,7 +669,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newUsername})
 		s.Require().EqualError(err, "You do not have the appropriate permissions.")
 
-		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().Equal(s.th.BasicUser2.Username, u.Username)
 	})
@@ -680,7 +680,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newUsername})
 		s.Require().EqualError(err, "invalid username: '"+newUsername+"'")
 
-		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().Equal(s.th.BasicUser2.Username, u.Username)
 	})
@@ -718,7 +718,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(newUser.Username, deletedUser.Username)
 
 		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
+		_, err = s.th.App.GetUser(newUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().NotNil(err)
 		s.Require().Equal("GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id, err.Error())
 	})
@@ -765,7 +765,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: You do not have the appropriate permissions.", newUser.Username), printer.GetErrorLines()[0])
 
 		// expect user not deleted
-		user, err := s.th.App.GetUser(newUser.Id)
+		user, err := s.th.App.GetUser(newUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().Equal(newUser.Username, user.Username)
 	})
@@ -791,7 +791,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: Permanent user deletion feature is not enabled. Please contact your System Administrator.", newUser.Username), printer.GetErrorLines()[0])
 
 		// expect user not deleted
-		user, err := s.th.App.GetUser(newUser.Id)
+		user, err := s.th.App.GetUser(newUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err)
 		s.Require().Equal(newUser.Username, user.Username)
 	})
@@ -819,7 +819,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(newUser.Username, deletedUser.Username)
 
 		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
+		_, err = s.th.App.GetUser(newUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "GetUser: Unable to find the user., resource \"User\" not found, id: "+newUser.Id)
 	})
@@ -1120,7 +1120,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().Equal("Successfully migrated accounts.", printer.GetLines()[0])
 		s.Require().Empty(printer.GetErrorLines())
 
-		updatedUser, appErr := s.th.App.GetUser(ldapUser.Id)
+		updatedUser, appErr := s.th.App.GetUser(ldapUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.UserAuthServiceSaml, updatedUser.AuthService)
 	})
@@ -1149,7 +1149,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().Equal("Successfully migrated accounts.", printer.GetLines()[0])
 		s.Require().Empty(printer.GetErrorLines())
 
-		updatedUser, appErr := s.th.App.GetUser(samlUser.Id)
+		updatedUser, appErr := s.th.App.GetUser(samlUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.UserAuthServiceLdap, updatedUser.AuthService)
 	})

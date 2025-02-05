@@ -87,7 +87,7 @@ func TestCreateBot(t *testing.T) {
 		assert.Equal(t, "a bot", bot.Description)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
 
-		user, err := th.App.GetUser(bot.UserId)
+		user, err := th.App.GetUser(bot.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 		require.Nil(t, err)
 
 		// Check that a post was created to add bot to team and channels
@@ -700,7 +700,7 @@ func TestDisableUserBots(t *testing.T) {
 	require.Nil(t, err)
 	require.Zero(t, bot.DeleteAt)
 
-	user, err := th.App.GetUser(u2bot1.UserId)
+	user, err := th.App.GetUser(u2bot1.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, err)
 	require.Zero(t, user.DeleteAt)
 

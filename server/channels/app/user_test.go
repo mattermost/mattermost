@@ -222,7 +222,7 @@ func TestUpdateUser(t *testing.T) {
 		// Give the user a LastPictureUpdate to mimic having a custom profile picture
 		err := th.App.Srv().Store().User().UpdateLastPictureUpdate(user.Id)
 		require.NoError(t, err)
-		iUser, errGetUser := th.App.GetUser(user.Id)
+		iUser, errGetUser := th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		require.Nil(t, errGetUser)
 		iUser.Username = "updatedUsername"
 		iLastPictureUpdate := iUser.LastPictureUpdate
@@ -332,7 +332,7 @@ func TestCreateUser(t *testing.T) {
 
 		time.Sleep(1 * time.Second)
 
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		require.Nil(t, err)
 		require.Equal(t, "sanitized", user.Nickname)
 	})
@@ -382,7 +382,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	retbot1, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.Zero(t, retbot1.DeleteAt)
-	user1, err := th.App.GetUser(bot.UserId)
+	user1, err := th.App.GetUser(bot.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, err)
 	require.Zero(t, user1.DeleteAt)
 
@@ -400,7 +400,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	retbot2, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.NotZero(t, retbot2.DeleteAt)
-	user2, err := th.App.GetUser(bot.UserId)
+	user2, err := th.App.GetUser(bot.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, err)
 	require.NotZero(t, user2.DeleteAt)
 
@@ -583,7 +583,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		appErr = th.App.VerifyEmailFromToken(th.Context, token.Token)
 		assert.Nil(t, appErr)
 
-		user2, appErr = th.App.GetUser(user2.Id)
+		user2, appErr = th.App.GetUser(user2.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, appErr)
 		assert.Equal(t, newEmail, user2.Email)
 		assert.True(t, user2.EmailVerified)
@@ -710,7 +710,7 @@ func TestUpdateUserEmail(t *testing.T) {
 }
 
 func getUserFromDB(a *App, id string, t *testing.T) *model.User {
-	user, err := a.GetUser(id)
+	user, err := a.GetUser(id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, err, "user is not found", err)
 	return user
 }
@@ -1121,7 +1121,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	assert.Equal(t, 1, len(bots1))
 
 	// test that bot is deleted from bots table
-	retUser1, err := th.App.GetUser(bot.UserId)
+	retUser1, err := th.App.GetUser(bot.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	assert.Nil(t, err)
 
 	err = th.App.PermanentDeleteUser(th.Context, retUser1)
@@ -1569,7 +1569,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		err := th.App.PromoteGuestToUser(th.Context, th.BasicUser, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		user, err := th.App.GetUser(th.BasicUser.Id)
+		user, err := th.App.GetUser(th.BasicUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", user.Roles)
 	})
@@ -1580,7 +1580,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		err := th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
-		guest, err = th.App.GetUser(guest.Id)
+		guest, err = th.App.GetUser(guest.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
 	})
@@ -1596,7 +1596,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
-		guest, err = th.App.GetUser(guest.Id)
+		guest, err = th.App.GetUser(guest.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
@@ -1620,7 +1620,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
-		guest, err = th.App.GetUser(guest.Id)
+		guest, err = th.App.GetUser(guest.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
@@ -1652,7 +1652,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
-		guest, err = th.App.GetUser(guest.Id)
+		guest, err = th.App.GetUser(guest.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
@@ -1732,7 +1732,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		err := th.App.DemoteUserToGuest(th.Context, guest)
 		require.Nil(t, err)
 
-		user, err := th.App.GetUser(guest.Id)
+		user, err := th.App.GetUser(guest.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 	})
@@ -1743,7 +1743,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		err := th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 	})
@@ -1759,7 +1759,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -1783,7 +1783,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -1815,7 +1815,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -1863,7 +1863,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 
@@ -1892,15 +1892,15 @@ func TestDeactivateGuests(t *testing.T) {
 	err := th.App.DeactivateGuests(th.Context)
 	require.Nil(t, err)
 
-	guest1, err = th.App.GetUser(guest1.Id)
+	guest1, err = th.App.GetUser(guest1.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	assert.Nil(t, err)
 	assert.NotEqual(t, int64(0), guest1.DeleteAt)
 
-	guest2, err = th.App.GetUser(guest2.Id)
+	guest2, err = th.App.GetUser(guest2.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	assert.Nil(t, err)
 	assert.NotEqual(t, int64(0), guest2.DeleteAt)
 
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), user.DeleteAt)
 }

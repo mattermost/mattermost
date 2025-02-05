@@ -421,7 +421,7 @@ func (a *App) GetUser(userID string, options *model.GetUserOptions) (*model.User
 
 	if options != nil && options.CustomProfileAttributes {
 		values, appErr := a.ListCPAValues(userID)
-		if appErr == nil {
+		if appErr == nil && len(values) > 0 {
 			user.CustomProfileAttributes = make(map[string]string)
 			for _, value := range values {
 				user.CustomProfileAttributes[value.FieldID] = value.Value

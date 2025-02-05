@@ -1808,7 +1808,7 @@ func TestAPIMetrics(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(1 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(user1.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 

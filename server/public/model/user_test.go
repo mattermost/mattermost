@@ -52,6 +52,9 @@ func TestUserAuditable(t *testing.T) {
 			Timezone:  timezones.DefaultUserTimezone(),
 			MfaActive: true,
 			RemoteId:  NewPointer("some_remote"),
+			CustomProfileAttributes: StringMap{
+				"foo": "bar",
+			},
 		}
 		m := u.Auditable()
 
@@ -87,6 +90,9 @@ func TestUserAuditable(t *testing.T) {
 			"terms_of_service_id":        "",
 			"terms_of_service_create_at": int64(0),
 			"disable_welcome_email":      false,
+			"custom_profile_attributes": StringMap{
+				"foo": "bar",
+			},
 		}
 
 		assert.Equal(t, expected, m)

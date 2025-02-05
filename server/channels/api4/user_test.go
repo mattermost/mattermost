@@ -2283,7 +2283,7 @@ func TestPatchUser(t *testing.T) {
 	require.NotNil(t, appErr, "Password should not match")
 
 	currentPassword := user.Password
-	user, appErr = th.App.GetUser(ruser.Id)
+	user, appErr = th.App.GetUser(ruser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, appErr)
 
 	appErr = th.App.CheckPasswordAndAllCriteria(th.Context, user.Id, currentPassword, "")
@@ -4147,13 +4147,13 @@ func TestSetProfileImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	buser, appErr := th.App.GetUser(user.Id)
+	buser, appErr := th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, appErr)
 
 	_, err = th.SystemAdminClient.SetProfileImage(context.Background(), user.Id, data)
 	require.NoError(t, err)
 
-	ruser, appErr := th.App.GetUser(user.Id)
+	ruser, appErr := th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, appErr)
 	assert.True(t, buser.LastPictureUpdate == ruser.LastPictureUpdate, "Same picture should not have updated")
 
@@ -4163,7 +4163,7 @@ func TestSetProfileImage(t *testing.T) {
 	_, err = th.SystemAdminClient.SetProfileImage(context.Background(), user.Id, data2)
 	require.NoError(t, err)
 
-	ruser, appErr = th.App.GetUser(user.Id)
+	ruser, appErr = th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, appErr)
 
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
@@ -4184,7 +4184,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	_, err := th.Client.SetDefaultProfileImage(context.Background(), user.Id)
 	require.NoError(t, err)
 
-	iuser, getUserErr := th.App.GetUser(user.Id)
+	iuser, getUserErr := th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, getUserErr)
 	assert.Less(t, iuser.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 
@@ -4211,7 +4211,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), user.Id)
 	require.NoError(t, err)
 
-	ruser, appErr := th.App.GetUser(user.Id)
+	ruser, appErr := th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, appErr)
 	assert.Less(t, ruser.LastPictureUpdate, iuser.LastPictureUpdate, "LastPictureUpdate should be updated to a lower negative number")
 
@@ -6093,7 +6093,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 	_, err = th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, termsOfService.Id, true)
 	require.NoError(t, err)
 
-	_, appErr = th.App.GetUser(th.BasicUser.Id)
+	_, appErr = th.App.GetUser(th.BasicUser.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, appErr)
 }
 
