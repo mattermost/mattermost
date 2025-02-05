@@ -6,7 +6,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig} from 'react-select';
+import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue} from 'react-select';
 
 import 'components/widgets/inputs/input/input.scss';
 import './dropdown_input_hybrid.scss';
@@ -17,7 +17,7 @@ type OptionType = {
     value: string;
 }
 
-type Props<T extends OptionType> = Omit<SelectProps<T>, 'onChange' | 'onInputChange'> & {
+type Props<T extends OptionType> = Omit<SelectProps<T>, 'onChange' | 'onInputChange' | 'isMulti'> & {
     value: T;
     legend?: string | MessageDescriptor;
     error?: string;
@@ -59,7 +59,7 @@ const baseStyles = {
     }),
 } satisfies StylesConfig<OptionType, boolean>;
 
-const IndicatorsContainer = (props: IndicatorsContainerProps<OptionType>) => (
+const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T>) => (
     <div className='DropdownInput__indicatorsContainer'>
         <components.IndicatorsContainer {...props}>
             <i className='icon icon-chevron-down'/>
@@ -67,13 +67,13 @@ const IndicatorsContainer = (props: IndicatorsContainerProps<OptionType>) => (
     </div>
 );
 
-const Control = (props: ControlProps<OptionType>) => (
+const Control = <T extends OptionType>(props: ControlProps<T>) => (
     <div className='DropdownInput__controlContainer'>
         <components.Control {...props}/>
     </div>
 );
 
-const Option = (props: OptionProps<OptionType>) => (
+const Option = <T extends OptionType>(props: OptionProps<T>) => (
     <div
         className={classNames('DropdownInput__option', {
             selected: props.isSelected,
@@ -156,7 +156,12 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
         props.onBlur?.(event);
     };
 
-    const onValueChange = (event: T) => {
+    const onValueChange = (event: SingleValue<T>) => {
+        if (!event) {
+            // This case doesn't seem possible with the way that we're using ReactSelect
+            return;
+        }
+
         showTextInput(event.value);
 
         onDropdownChange(event);
@@ -223,18 +228,18 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         width: showInput ? `${width}px` : '100%',
                     }}
                 >
-                    <ReactSelect
+                    <ReactSelect<T>
                         id={`DropdownInput_${name}`}
                         placeholder={focused ? '' : placeholder}
                         components={{
                             IndicatorsContainer,
                             Option,
                             Control,
-                        } as any}
+                        }}
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={dropdownClassNamePrefix}
-                        onChange={onValueChange as any}
-                        styles={{...baseStyles, ...getMenuStyles() as any}}
+                        onChange={onValueChange}
+                        styles={{...baseStyles, ...getMenuStyles()}}
                         value={value}
                         hideSelectedOptions={true}
                         isSearchable={false}
