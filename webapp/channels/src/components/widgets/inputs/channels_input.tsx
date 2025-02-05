@@ -7,7 +7,7 @@ import type {ComponentProps, RefObject} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import {components} from 'react-select';
-import type {ActionMeta, InputActionMeta, SelectInstance, SingleValue, MultiValue, GroupBase, MultiValueRemoveProps} from 'react-select';
+import type {InputActionMeta, SelectInstance, MultiValue, GroupBase, MultiValueRemoveProps} from 'react-select';
 import AsyncSelect from 'react-select/async';
 import type {SelectComponents} from 'react-select/dist/declarations/src/components';
 
@@ -57,7 +57,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         loadingMessage: messages.loading,
         noOptionsMessage: messages.noOptions,
     };
-    private selectRef: RefObject<SelectInstance<T, boolean, GroupBase<T>> & {handleInputChange: (newValue: string, actionMeta: InputActionMeta | {action: 'custom'}) => string}>;
+    private selectRef: RefObject<SelectInstance<T, true>>;
 
     constructor(props: Props<T>) {
         super(props);
@@ -73,7 +73,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         if (action.action === 'input-blur' && inputValue !== '') {
             for (const option of this.state.options) {
                 if (this.props.inputValue === option.name) {
-                    this.onChange([...this.props.value, option], {} as ActionMeta<T>);
+                    this.onChange([...this.props.value, option]);
                     this.props.onInputChange('');
                     return;
                 }
@@ -84,12 +84,12 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         }
     };
 
-    optionsLoader = (_input: string, callback: (options: T[]) => void) => {
+    optionsLoader = (inputValue: string, callback: (options: T[]) => void) => {
         const customCallback = (options: T[]) => {
             this.setState({options});
             callback(options);
         };
-        const result = this.props.channelsLoader(this.props.inputValue, customCallback);
+        const result = this.props.channelsLoader(inputValue, customCallback);
         if (result && result.then) {
             result.then(customCallback);
         }
@@ -102,8 +102,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
             />
         );
 
-        // faking types due to longstanding mismatches in react-select & @types/react-select
-        return (<LoadingSpinner text={text}/> as unknown as string);
+        return (<LoadingSpinner text={text}/>);
     };
 
     NoOptionsMessage = (props: Record<string, any>) => {
@@ -138,10 +137,10 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         );
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onChange = (value: T[], _meta: ActionMeta<T>) => {
+    onChange = (value: MultiValue<T>) => {
         if (this.props.onChange) {
-            this.props.onChange(value);
+            // Copy value to avoid callers from having to deal with it being readonly
+            this.props.onChange([...value]);
         }
     };
 
@@ -153,21 +152,21 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         </div>);
     };
 
-    components: Partial<SelectComponents<T, boolean, GroupBase<T>>> = {
+    components: Partial<SelectComponents<T, true, GroupBase<T>>> = {
         NoOptionsMessage: this.NoOptionsMessage,
         MultiValueRemove: this.MultiValueRemove,
         IndicatorsContainer: () => null,
     };
 
     onFocus = () => {
-        this.selectRef.current?.handleInputChange(this.props.inputValue, {action: 'custom'});
+        this.selectRef.current?.onInputChange(this.props.inputValue, {prevInputValue: this.props.inputValue, action: 'set-value'});
     };
 
     render() {
         return (
             <AsyncSelect
                 ref={this.selectRef}
-                onChange={this.onChange as (newValue: SingleValue<Channel> | MultiValue<Channel>, actionMeta: ActionMeta<Channel>) => void}
+                onChange={this.onChange}
 
                 loadOptions={this.optionsLoader}
                 isMulti={true}
