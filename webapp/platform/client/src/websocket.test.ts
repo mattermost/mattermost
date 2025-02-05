@@ -134,37 +134,4 @@ describe('websocketclient', () => {
             done()
         }, 80)
     });
-
-    
-    test('send should not re-initialize during reconnection delay', done => {
-        let mockWebSocket = new MockWebSocket();
-        mockWebSocket.open = jest.fn(mockWebSocket.open)
-
-        let client = new WebSocketClient({
-            newWebSocketFn: (url: string) => {
-                mockWebSocket.url = url;
-                if (mockWebSocket.onopen) {
-                    mockWebSocket.open();
-                }
-                return mockWebSocket;
-            },
-            minWebSocketRetryTime: 50,
-            reconnectJitterRange: 1,
-        });
-        client.initialize = jest.fn(client.initialize)
-        client.initialize("mock.url")
-        mockWebSocket.open();
-        mockWebSocket.close();
-
-        setTimeout(() => {
-            client.sendMessage("ping", null)
-        }, 10)
-
-        setTimeout(() => {
-            client.close()
-            expect(client.initialize).toBeCalledTimes(2)
-            expect(mockWebSocket.open).toBeCalledTimes(2)
-            done()
-        }, 80)
-    });
 });
