@@ -328,7 +328,7 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 			previousJob.Data = make(map[string]string)
 		}
 
-		// Backwards compatability for <10.5:
+		// Backwards compatibility for <10.5:
 		if batchStartTimestamp, prevExists := previousJob.Data["batch_start_timestamp"]; prevExists {
 			previousJob.Data[shared.JobDataBatchStartTime] = batchStartTimestamp
 		}
