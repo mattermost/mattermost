@@ -43,7 +43,6 @@ import {
     handleStatusChangedEvent,
     handleCustomAttributeValuesUpdated,
 } from './websocket_actions';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),

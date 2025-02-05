@@ -485,8 +485,6 @@ export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync
             return {error};
         }
 
-        console.log('getCustomProfile valuse ');
-        console.log(data);
         dispatch({
             type: UserTypes.RECEIVED_PROFILE_CUSTOM_PROFILE_ATTRIUBUTES,
             data: {userID, customAttributeValues: data},
