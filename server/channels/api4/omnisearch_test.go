@@ -41,7 +41,7 @@ func TestOmniSearch(t *testing.T) {
 			PerPage:        &perPage,
 		}
 
-		_, resp, err := th.Client.DoAPIPost(context.Background(), "/omnisearch/search", params.ToJson())
+		_, resp, err := th.Client.OmniSearch(context.Background(), params)
 		require.Error(t, err)
 		require.Equal(t, 501, resp.StatusCode)
 	})
@@ -60,7 +60,7 @@ func TestOmniSearch(t *testing.T) {
 			PerPage:        &perPage,
 		}
 
-		_, resp, err := th.Client.DoAPIPost(context.Background(), "/omnisearch/search", params.ToJson())
+		_, resp, err := th.Client.OmniSearch(context.Background(), params)
 		require.Error(t, err)
 		require.Equal(t, 501, resp.StatusCode)
 	})
@@ -79,7 +79,7 @@ func TestOmniSearch(t *testing.T) {
 			PerPage:        &perPage,
 		}
 
-		_, resp, err := th.Client.DoAPIPost(context.Background(), "/omnisearch/search", params.ToJson())
+		_, resp, err := th.Client.OmniSearch(context.Background(), params)
 		require.Error(t, err)
 		require.Equal(t, 400, resp.StatusCode)
 	})
@@ -94,7 +94,7 @@ func TestOmniSearch(t *testing.T) {
 		}
 
 		client := th.CreateClient()
-		_, resp, err := client.DoAPIPost(context.Background(), "/omnisearch/search", params.ToJson())
+		_, resp, err := client.OmniSearch(context.Background(), params)
 		require.Error(t, err)
 		require.Equal(t, 401, resp.StatusCode)
 	})
