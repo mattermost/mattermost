@@ -408,16 +408,6 @@ func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader,
 }
 
 func (a *App) GetUser(userID string, options *model.GetUserOptions) (*model.User, *model.AppError) {
-	if options != nil && options.CustomProfileAttributes {
-		values, appErr := a.ListCPAValues(userID)
-		if appErr != nil {
-			returnValue := make(map[string]string)
-			for _, value := range values {
-				returnValue[value.FieldID] = value.Value
-			}
-		}
-	}
-	
 	user, err := a.ch.srv.userService.GetUser(userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -426,6 +416,16 @@ func (a *App) GetUser(userID string, options *model.GetUserOptions) (*model.User
 			return nil, model.NewAppError("GetUser", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	if options != nil && options.CustomProfileAttributes {
+		values, appErr := a.ListCPAValues(userID)
+		if appErr == nil {
+			user.CustomProfileAttributes = make(map[string]string)
+			for _, value := range values {
+				user.CustomProfileAttributes[value.FieldID] = value.Value
+			}
 		}
 	}
 
