@@ -10398,5 +10398,9 @@
   {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Es ist nicht möglich, einen Zip-Datei-Leser zu bekommen."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Kommando kann nicht in einem gelöschten Kanal ausgeführt werden."
   }
 ]
