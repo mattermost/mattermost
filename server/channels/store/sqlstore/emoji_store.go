@@ -24,7 +24,6 @@ type SqlEmojiStore struct {
 }
 
 func newSqlEmojiStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
-
 	emojiSelectQuery := sqlStore.getQueryBuilder().
 		Select("Id", "CreateAt", "UpdateAt", "DeleteAt", "CreatorId", "Name").
 		From("Emoji").
@@ -132,7 +131,6 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 		OrderBy("Name").
 		Limit(uint64(limit)).
 		ToSql()
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not build SQL query to search emojis")
 	}
