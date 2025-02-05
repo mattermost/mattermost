@@ -340,6 +340,7 @@ const EmojiPicker = ({
             return;
         }
 
+        searchInputRef.current?.setAttribute('aria-activedescendant', newCursorEmoji.name.toLocaleLowerCase().replaceAll(' ', '_'));
         setCursor({
             rowIndex: newCursor.rowIndex,
             emojiId: newCursor.emojiId,
