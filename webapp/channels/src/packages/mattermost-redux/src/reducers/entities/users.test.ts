@@ -1072,7 +1072,7 @@ describe('Reducers.users', () => {
             };
             const {profiles: newProfiles} = reducer(state as unknown as ReducerState, action);
 
-            expect(newProfiles.first_user_id.custom_profile_attributes.field1).toEqual('value1');
+            expect(newProfiles.first_user_id.custom_profile_attributes!.field1).toEqual('value1');
 
             // update field
             const updateAction = {
@@ -1084,7 +1084,7 @@ describe('Reducers.users', () => {
             };
             const {profiles: updatedProfiles} = reducer(state as unknown as ReducerState, updateAction);
 
-            expect(updatedProfiles.first_user_id.custom_profile_attributes.field1).toEqual('updatedValue');
+            expect(updatedProfiles.first_user_id.custom_profile_attributes!.field1).toEqual('updatedValue');
         });
     });
 
