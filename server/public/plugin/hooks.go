@@ -400,7 +400,7 @@ type Hooks interface {
 	// OnOmniSearch is invoked when a search is executed to allow the plugin to provide results to that search.
 	// It allows plugins to include their own content in the Support Packet.
 	//
-	// Minimum server version: 9.10
+	// Minimum server version: 10.6
 	// Enterprise only
 	OnOmniSearch(c *Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error)
 }
