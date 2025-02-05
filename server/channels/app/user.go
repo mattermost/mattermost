@@ -407,7 +407,17 @@ func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader,
 	return ruser, nil
 }
 
-func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
+func (a *App) GetUser(userID string, options *model.GetUserOptions) (*model.User, *model.AppError) {
+	if options != nil && options.CustomProfileAttributes {
+		values, appErr := a.ListCPAValues(userID)
+		if appErr != nil {
+			returnValue := make(map[string]string)
+			for _, value := range values {
+				returnValue[value.FieldID] = value.Value
+			}
+		}
+	}
+	
 	user, err := a.ch.srv.userService.GetUser(userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -734,7 +744,7 @@ func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User 
 }
 
 func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -752,7 +762,7 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 }
 
 func (a *App) ActivateMfa(userID, token string) *model.AppError {
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return appErr
 	}
@@ -781,7 +791,7 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 }
 
 func (a *App) DeactivateMfa(userID string) *model.AppError {
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return appErr
 	}
@@ -849,7 +859,7 @@ func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.App
 		return err
 	}
 
-	updatedUser, appErr := a.GetUser(user.Id)
+	updatedUser, appErr := a.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		c.Logger().Warn("Error in getting users profile forcing logout", mlog.String("user_id", user.Id), mlog.Err(appErr))
 		return nil
@@ -929,7 +939,7 @@ func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Read
 }
 
 func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPassword string) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}
@@ -957,7 +967,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
 	a.SetStatusOffline(userID, false)
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}
@@ -1159,7 +1169,7 @@ func (a *App) CheckProviderAttributes(c request.CTX, user *model.User, patch *mo
 }
 
 func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return nil, err
 	}
@@ -1318,7 +1328,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 			c.Logger().Warn("Error with updating default profile image", mlog.Err(err))
 		}
 
-		tempUser, getUserErr := a.GetUser(user.Id)
+		tempUser, getUserErr := a.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		if getUserErr != nil {
 			c.Logger().Warn("Error when retrieving user after profile picture update, avatar may fail to update automatically on client applications.", mlog.Err(getUserErr))
 		} else {
@@ -1362,7 +1372,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 }
 
 func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 
 	if err != nil {
 		return err
@@ -1404,7 +1414,7 @@ func (a *App) UpdateMfa(c request.CTX, activate bool, userID, token string) *mod
 	}
 
 	a.Srv().Go(func() {
-		user, err := a.GetUser(userID)
+		user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 		if err != nil {
 			c.Logger().Error("Failed to get user", mlog.Err(err))
 			return
@@ -1419,7 +1429,7 @@ func (a *App) UpdateMfa(c request.CTX, activate bool, userID, token string) *mod
 }
 
 func (a *App) UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}
@@ -1492,7 +1502,7 @@ func (a *App) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPasswo
 }
 
 func (a *App) UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}
@@ -1538,7 +1548,7 @@ func (a *App) resetPasswordFromToken(c request.CTX, userSuppliedTokenString, new
 		return model.NewAppError("resetPassword", "api.user.reset_password.token_parse.error", nil, "", http.StatusInternalServerError)
 	}
 
-	user, err := a.GetUser(tokenData.UserId)
+	user, err := a.GetUser(tokenData.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}
@@ -1697,7 +1707,7 @@ func (a *App) DeleteToken(token *model.Token) *model.AppError {
 }
 
 func (a *App) UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, err
@@ -1968,7 +1978,7 @@ func (a *App) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string
 		return model.NewAppError("VerifyEmailFromToken", "api.user.verify_email.token_parse.error", nil, "", http.StatusInternalServerError)
 	}
 
-	user, err := a.GetUser(tokenData.UserId)
+	user, err := a.GetUser(tokenData.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}
@@ -2038,7 +2048,7 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 
 	a.InvalidateCacheForUser(userID)
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 
 	if err != nil {
 		return err
@@ -2423,7 +2433,7 @@ func (a *App) PromoteGuestToUser(c request.CTX, user *model.User, requestorId st
 		}
 	}
 
-	promotedUser, err := a.GetUser(user.Id)
+	promotedUser, err := a.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
@@ -2528,7 +2538,7 @@ func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppEr
 func (a *App) invalidateUserCacheAndPublish(rctx request.CTX, userID string) {
 	a.InvalidateCacheForUser(userID)
 
-	user, userErr := a.GetUser(userID)
+	user, userErr := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if userErr != nil {
 		rctx.Logger().Error("Error in getting users profile", mlog.String("user_id", userID), mlog.Err(userErr))
 		return
@@ -2768,7 +2778,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	if appErr != nil {
 		return appErr
 	}
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return appErr
 	}
@@ -2826,7 +2836,7 @@ func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, use
 }
 
 func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return nil, err
 	}

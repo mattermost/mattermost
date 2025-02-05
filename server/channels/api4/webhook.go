@@ -65,7 +65,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if _, err = c.App.GetUser(hook.UserId); err != nil {
+		if _, err = c.App.GetUser(hook.UserId, &model.GetUserOptions{CustomProfileAttributes: false}); err != nil {
 			c.Err = err
 			return
 		}
@@ -445,7 +445,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, err := c.App.GetUser(hook.CreatorId)
+		_, err := c.App.GetUser(hook.CreatorId, &model.GetUserOptions{CustomProfileAttributes: false})
 		if err != nil {
 			c.Err = err
 			return

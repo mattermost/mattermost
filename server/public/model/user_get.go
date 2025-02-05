@@ -46,3 +46,8 @@ type UserGetByIdsOptions struct {
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
 }
+
+type GetUserOptions struct {
+	// return the Custom Profile Attributes
+	CustomProfileAttributes bool
+}

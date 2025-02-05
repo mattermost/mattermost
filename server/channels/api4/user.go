@@ -193,7 +193,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -360,7 +360,7 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -396,7 +396,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -476,7 +476,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		audit.AddEventParameter(auditRec, "filename", imageArray[0].Filename)
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.SetInvalidURLParam("user_id")
 		return
@@ -523,7 +523,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -892,7 +892,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		if sort == "display_name" {
 			var user *model.User
 
-			user, appErr = c.App.GetUser(c.AppContext.Session().UserId)
+			user, appErr = c.App.GetUser(c.AppContext.Session().UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 			if appErr != nil {
 				c.Err = appErr
 				return
@@ -1262,7 +1262,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ouser, err := c.App.GetUser(user.Id)
+	ouser, err := c.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -1339,7 +1339,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ouser, err := c.App.GetUser(c.Params.UserId)
+	ouser, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.SetInvalidParam("user_id")
 		return
@@ -1425,7 +1425,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(userId)
+	user, err := c.App.GetUser(userId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -1538,7 +1538,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -1610,7 +1610,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
+	if user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false}); err == nil {
 		auditRec.AddEventPriorState(user)
 	}
 
@@ -1650,7 +1650,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
+	if user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false}); err == nil {
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
@@ -1729,7 +1729,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempted")
 
 	var canUpdatePassword bool
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
+	if user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false}); err == nil {
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 
 		if user.IsSystemAdmin() {
@@ -2338,7 +2338,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
+	if user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false}); err == nil {
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
@@ -2475,7 +2475,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -2682,7 +2682,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
+	if user, errGet := c.App.GetUser(accessToken.UserId, &model.GetUserOptions{CustomProfileAttributes: false}); errGet == nil {
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
@@ -2727,7 +2727,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
+	if user, errGet := c.App.GetUser(accessToken.UserId, &model.GetUserOptions{CustomProfileAttributes: false}); errGet == nil {
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
@@ -2772,7 +2772,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
+	if user, errGet := c.App.GetUser(accessToken.UserId, &model.GetUserOptions{CustomProfileAttributes: false}); errGet == nil {
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
@@ -2812,7 +2812,7 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 	audit.AddEventParameter(auditRec, "accepted", accepted)
 
-	if user, err := c.App.GetUser(userId); err == nil {
+	if user, err := c.App.GetUser(userId, &model.GetUserOptions{CustomProfileAttributes: false}); err == nil {
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
@@ -2859,7 +2859,7 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -2912,7 +2912,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -2975,7 +2975,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return
@@ -3010,7 +3010,7 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, appErr := c.App.GetUser(c.Params.UserId)
+	user, appErr := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		c.Err = appErr
 		return

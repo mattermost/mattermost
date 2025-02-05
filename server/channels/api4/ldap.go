@@ -431,7 +431,7 @@ func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, appErr := c.App.GetUser(c.Params.UserId)
+	user, appErr := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		c.Err = appErr
 		return

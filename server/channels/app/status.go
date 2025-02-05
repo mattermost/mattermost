@@ -93,7 +93,7 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 		}
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 }
 
 func (a *App) RemoveCustomStatus(c request.CTX, userID string) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (a *App) RemoveCustomStatus(c request.CTX, userID string) *model.AppError {
 }
 
 func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return &model.CustomStatus{}, err
 	}

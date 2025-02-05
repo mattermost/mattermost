@@ -30,7 +30,7 @@ func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Sessi
 	// remote/synthetic users cannot create sessions. This lookup will already be cached.
 	// Some unit tests rely on sessions being created for users that don't exist, therefore
 	// missing users are allowed.
-	user, appErr := a.GetUser(session.UserId)
+	user, appErr := a.GetUser(session.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return nil, appErr
 	}

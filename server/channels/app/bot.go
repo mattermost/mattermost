@@ -546,7 +546,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(rctx request.CTX, userID string
 	}
 
 	// user being disabled
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}

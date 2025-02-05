@@ -235,7 +235,7 @@ func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Se
 }
 
 func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
-	user, err := a.GetUser(askingUserId)
+	user, err := a.GetUser(askingUserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return false
 	}

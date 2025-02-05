@@ -127,7 +127,7 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
+	user, appErr := c.App.GetUser(c.AppContext.Session().UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusForbidden).Wrap(appErr)
 		return
@@ -177,7 +177,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if userErr != nil {
 		c.Err = userErr
 		return

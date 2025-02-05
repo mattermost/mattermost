@@ -182,7 +182,7 @@ func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userI
 	}
 
 	var user *model.User
-	if user, err = a.GetUser(userID); err != nil {
+	if user, err = a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false}); err != nil {
 		return nil, err
 	}
 
@@ -1662,7 +1662,7 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = a.GetUser(userID); err != nil {
+	if user, err = a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false}); err != nil {
 		return nil, err
 	}
 
@@ -1672,7 +1672,7 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 
 	var userRequestor *model.User
 	if opts.UserRequestorID != "" {
-		if userRequestor, err = a.GetUser(opts.UserRequestorID); err != nil {
+		if userRequestor, err = a.GetUser(opts.UserRequestorID, &model.GetUserOptions{CustomProfileAttributes: false}); err != nil {
 			return nil, err
 		}
 	}
@@ -2601,7 +2601,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 
 	var actorUser *model.User
 	if removerUserId != "" {
-		actorUser, _ = a.GetUser(removerUserId)
+		actorUser, _ = a.GetUser(removerUserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	}
 
 	a.Srv().Go(func() {
@@ -2634,7 +2634,7 @@ func (a *App) RemoveUserFromChannel(c request.CTX, userIDToRemove string, remove
 	}
 
 	var user *model.User
-	if user, err = a.GetUser(userIDToRemove); err != nil {
+	if user, err = a.GetUser(userIDToRemove, &model.GetUserOptions{CustomProfileAttributes: false}); err != nil {
 		return err
 	}
 
@@ -2770,7 +2770,7 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 		return nil, err
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return nil, err
 	}
@@ -2797,7 +2797,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		return nil, appErr
 	}
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2915,7 +2915,7 @@ func (a *App) AutocompleteChannels(c request.CTX, userID, term string) (model.Ch
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2932,7 +2932,7 @@ func (a *App) AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term st
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3749,7 +3749,7 @@ func (a *App) validateForConvertGroupMessageToChannel(c request.CTX, convertedBy
 }
 
 func (a *App) postMessageForConvertGroupMessageToChannel(c request.CTX, channelID, convertedByUserId string, channelUsers []*model.User) *model.AppError {
-	convertedByUser, appErr := a.GetUser(convertedByUserId)
+	convertedByUser, appErr := a.GetUser(convertedByUserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return appErr
 	}

@@ -217,7 +217,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 
 // canPostScheduledPost checks whether the scheduled post be created based on permissions and other checks.
 func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, channel *model.Channel) (string, error) {
-	user, appErr := a.GetUser(scheduledPost.UserId)
+	user, appErr := a.GetUser(scheduledPost.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		if appErr.Id == MissingAccountError {
 			rctx.Logger().Debug("canPostScheduledPost user not found for scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("user_id", scheduledPost.UserId), mlog.String("error_code", model.ScheduledPostErrorCodeUserDoesNotExist))
@@ -389,7 +389,7 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 		return
 	}
 
-	user, err := a.GetUser(userId)
+	user, err := a.GetUser(userId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		rctx.Logger().Error("Failed to get the user", mlog.Err(err))
 		return
