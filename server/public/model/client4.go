@@ -716,6 +716,10 @@ func (c *Client4) clientPerfMetricsRoute() string {
 	return "/client_perf"
 }
 
+func (c *Client4) omniSearchRoute() string {
+	return "/omnisearch"
+}
+
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
 	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
@@ -9367,7 +9371,7 @@ func (c *Client4) OmniSearch(ctx context.Context, params *SearchParameter) ([]*O
 		return nil, nil, NewAppError("OmniSearch", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	r, err := c.DoAPIPost(ctx, "/omnisearch/search", string(buf))
+	r, err := c.DoAPIPost(ctx, c.omniSearchRoute()+"/search", string(buf))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
