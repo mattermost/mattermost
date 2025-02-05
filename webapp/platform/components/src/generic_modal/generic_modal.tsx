@@ -219,7 +219,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 id={this.props.id}
                 role='none'
                 aria-label={this.props.ariaLabel}
-                aria-labelledby={this.props.ariaLabeledBy ?? 'genericModalLabel'}
+                aria-labelledby={this.props.ariaLabeledBy}
                 aria-modal='true'
                 dialogClassName={classNames(
                     modalLocationClass,
