@@ -9,12 +9,12 @@
         border: var(--border-default);
         border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
-        overflow-y: auto;
+        overflow-y: hidden;
 
         .GenericModal__wrapper {
             display: flex;
             overflow: hidden;
-            max-height: calc(100vh - 240px);
+            max-height: calc(100vh - 160px);
             flex-direction: column;
             border: var(--border-default);
             border-radius: var(--radius-l);
@@ -112,4 +112,11 @@
             max-height: calc(100vh - 160px);
         }
     }
+
+    @media screen and (max-height: 600px) {
+        .ChannelNotificationModal .modal-content, .ChannelNotificationModal .GenericModal__wrapper {
+            max-height: 80vh !important;
+        }
+    }
+    
 }
