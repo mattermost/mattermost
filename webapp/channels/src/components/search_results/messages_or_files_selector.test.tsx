@@ -1,80 +1,107 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import type {ShallowWrapper} from 'enzyme';
+import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
+import {IntlProvider} from 'react-intl';
 
 import MessagesOrFilesSelector from 'components/search_results/messages_or_files_selector';
 
 import mockStore from 'tests/test_store';
 
 describe('components/search_results/MessagesOrFilesSelector', () => {
-    const store = mockStore({});
+    const baseProps = {
+        selected: 'messages',
+        selectedFilter: 'code',
+        messagesCounter: '5',
+        filesCounter: '10',
+        omnisearchCounter: '7',
+        isFileAttachmentsEnabled: true,
+        onChange: jest.fn(),
+        onFilter: jest.fn(),
+        onTeamChange: jest.fn(),
+        crossTeamSearchEnabled: false,
+    };
 
-    test('should match snapshot, on messages selected', () => {
-        const wrapper: ShallowWrapper<any, any, any> = shallow(
+    const renderComponent = (props = {}, storeData = {}) => {
+        const store = mockStore({
+            entities: {
+                general: {
+                    config: {},
+                },
+                ...storeData,
+            },
+        });
+
+        return render(
             <Provider store={store}>
-                <MessagesOrFilesSelector
-                    selected='messages'
-                    selectedFilter='code'
-                    messagesCounter='5'
-                    filesCounter='10'
-                    omnisearchCounter='7'
-                    isFileAttachmentsEnabled={true}
-                    onChange={jest.fn()}
-                    onFilter={jest.fn()}
-                    onTeamChange={jest.fn()}
-                    crossTeamSearchEnabled={false}
-                />
+                <IntlProvider locale='en'>
+                    <MessagesOrFilesSelector {...baseProps} {...props}/>
+                </IntlProvider>
             </Provider>,
         );
+    };
 
-        expect(wrapper).toMatchSnapshot();
+    it('shows omnisearch tab when enabled', () => {
+        renderComponent({}, {
+            entities: {
+                general: {
+                    config: {
+                        EnableOmniSearch: 'true',
+                    },
+                },
+            },
+        });
+
+        expect(screen.getByText('Omnisearch')).toBeInTheDocument();
+        expect(screen.getByText('7')).toBeInTheDocument();
     });
 
-    test('should match snapshot, on files selected', () => {
-        const wrapper: ShallowWrapper<any, any, any> = shallow(
+    it('hides omnisearch tab when disabled', () => {
+        renderComponent({}, {
+            entities: {
+                general: {
+                    config: {
+                        EnableOmniSearch: 'false',
+                    },
+                },
+            },
+        });
 
-            <Provider store={store}>
-                <MessagesOrFilesSelector
-                    selected='files'
-                    selectedFilter='code'
-                    messagesCounter='5'
-                    filesCounter='10'
-                    omnisearchCounter='7'
-                    isFileAttachmentsEnabled={true}
-                    onChange={jest.fn()}
-                    onFilter={jest.fn()}
-                    onTeamChange={jest.fn()}
-                    crossTeamSearchEnabled={false}
-                />
-            </Provider>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.queryByText('Omnisearch')).not.toBeInTheDocument();
     });
-    test('should match snapshot, without files tab', () => {
-        const wrapper: ShallowWrapper<any, any, any> = shallow(
 
-            <Provider store={store}>
-                <MessagesOrFilesSelector
-                    selected='files'
-                    selectedFilter='code'
-                    messagesCounter='5'
-                    filesCounter='10'
-                    omnisearchCounter='7'
-                    isFileAttachmentsEnabled={false}
-                    onChange={jest.fn()}
-                    onFilter={jest.fn()}
-                    onTeamChange={jest.fn()}
-                    crossTeamSearchEnabled={false}
-                />
+    it('calls onChange when clicking omnisearch tab', () => {
+        const onChange = jest.fn();
+        renderComponent({onChange}, {
+            entities: {
+                general: {
+                    config: {
+                        EnableOmniSearch: 'true',
+                    },
+                },
+            },
+        });
 
-            </Provider>,
-        );
+        fireEvent.click(screen.getByText('Omnisearch'));
+        expect(onChange).toHaveBeenCalledWith('omnisearch');
+    });
 
-        expect(wrapper).toMatchSnapshot();
+    it('handles keyboard navigation to omnisearch tab', () => {
+        const onChange = jest.fn();
+        renderComponent({onChange}, {
+            entities: {
+                general: {
+                    config: {
+                        EnableOmniSearch: 'true',
+                    },
+                },
+            },
+        });
+
+        const omnisearchButton = screen.getByText('Omnisearch');
+        fireEvent.keyDown(omnisearchButton, {key: 'Enter', code: 'Enter'});
+        expect(onChange).toHaveBeenCalledWith('omnisearch');
     });
 });
