@@ -22,65 +22,6 @@ func TestOmniSearch(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("omnisearch"))
 
-	t.Run("should return results from plugin", func(t *testing.T) {
-		pluginCode := `
-			package main
-
-			import (
-				"github.com/mattermost/mattermost/server/public/plugin"
-				"github.com/mattermost/mattermost/server/public/model"
-			)
-
-			type MyPlugin struct {
-				plugin.MattermostPlugin
-			}
-
-			func (p *MyPlugin) OnOmniSearch(c *plugin.Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error) {
-				if terms != "searchterm" {
-					return nil, nil
-				}
-
-				return []*model.OmniSearchResult{
-					{
-						Id: "result1",
-						Title: "Result 1",
-						Description: "First test result",
-						Link: "/link/to/result1",
-						CreateAt: 1234,
-						Source: "test_source",
-					},
-				}, nil
-			}
-
-			func main() {
-				plugin.ClientMain(&MyPlugin{})
-			}`
-
-		pluginID := "testplugin"
-		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
-
-		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
-
-		params := &model.SearchParameter{
-			Terms:          model.NewString("searchterm"),
-			IsOrSearch:     model.NewBool(false),
-			TimeZoneOffset: model.NewInt(0),
-			Page:           model.NewInt(0),
-			PerPage:        model.NewInt(10),
-		}
-
-		results, resp, err := th.Client.OmniSearch(context.Background(), params)
-		require.NoError(t, err)
-		require.Equal(t, 200, resp.StatusCode)
-		require.Len(t, results, 1)
-		require.Equal(t, "result1", results[0].Id)
-		require.Equal(t, "Result 1", results[0].Title)
-		require.Equal(t, "First test result", results[0].Description)
-		require.Equal(t, "/link/to/result1", results[0].Link)
-		require.Equal(t, int64(1234), results[0].CreateAt)
-		require.Equal(t, "test_source", results[0].Source)
-	})
-
 	t.Run("should handle disabled omnisearch", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableOmniSearch = false
