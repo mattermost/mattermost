@@ -36,6 +36,11 @@ type UseEmojiPickerOptions = {
     onAddCustomEmojiClick?: () => void;
     onEmojiClick: (emoji: Emoji) => void;
     onGifClick?: (gif: string) => void;
+
+    /**
+     * Replaces the middleware for positioning the emoji picker in cases where we want it positioned differently.
+     */
+    overrideMiddleware?: UseFloatingOptions['middleware'];
 }
 
 type UseEmojiPickerReturn = {
@@ -52,15 +57,19 @@ export default function useEmojiPicker({
     onAddCustomEmojiClick,
     onEmojiClick,
     onGifClick,
+
+    overrideMiddleware,
 }: UseEmojiPickerOptions): UseEmojiPickerReturn {
     const isMobileView = useSelector(getIsMobileView);
 
     const hideEmojiPicker = useCallback(() => setShowEmojiPicker(false), [setShowEmojiPicker]);
 
-    // Only position the emoji picker in desktop view
     let middleware: UseFloatingOptions['middleware'];
     if (isMobileView) {
+        // Disable middleware in mobile view because we use CSS to make the emoji picker fullscreen
         middleware = [];
+    } else if (overrideMiddleware) {
+        middleware = overrideMiddleware;
     } else {
         middleware = [
             offset(useEmojiPickerOffset),

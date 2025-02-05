@@ -132,6 +132,24 @@ const AdvancedTextEditor = ({
     const getDraftSelector = useMemo(makeGetDraft, []);
     const getDisplayName = useMemo(makeGetDisplayName, []);
 
+    let textboxId = 'textbox';
+
+    switch (location) {
+    case Locations.CENTER:
+        textboxId = 'post_textbox';
+        break;
+    case Locations.RHS_COMMENT:
+        textboxId = 'reply_textbox';
+        break;
+    case Locations.MODAL:
+        textboxId = 'modal_textbox';
+        break;
+    }
+
+    if (isInEditMode) {
+        textboxId = 'edit_textbox';
+    }
+
     const isRHS = Boolean(postId && !isThreadView);
 
     const getFormattingBarPreferenceName = () => {
@@ -314,7 +332,16 @@ const AdvancedTextEditor = ({
         emojiPicker,
         enableEmojiPicker,
         toggleEmojiPicker,
-    } = useEditorEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
+    } = useEditorEmojiPicker(
+        textboxId,
+        isDisabled,
+        draft,
+        caretPosition,
+        setCaretPosition,
+        handleDraftChange,
+        showPreview,
+        focusTextbox,
+    );
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
@@ -651,24 +678,6 @@ const AdvancedTextEditor = ({
     }
 
     const messageValue = isDisabled ? '' : draft.message_source || draft.message;
-
-    let textboxId = 'textbox';
-
-    switch (location) {
-    case Locations.CENTER:
-        textboxId = 'post_textbox';
-        break;
-    case Locations.RHS_COMMENT:
-        textboxId = 'reply_textbox';
-        break;
-    case Locations.MODAL:
-        textboxId = 'modal_textbox';
-        break;
-    }
-
-    if (isInEditMode) {
-        textboxId = 'edit_textbox';
-    }
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
