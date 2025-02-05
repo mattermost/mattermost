@@ -18,6 +18,7 @@ func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("PreferenceSave", func(t *testing.T) { testPreferenceSave(t, rctx, ss) })
 	t.Run("PreferenceGet", func(t *testing.T) { testPreferenceGet(t, rctx, ss) })
 	t.Run("PreferenceGetCategory", func(t *testing.T) { testPreferenceGetCategory(t, rctx, ss) })
+	t.Run("PreferenceGetCategoryAndName", func(t *testing.T) { testPreferenceGetCategoryAndName(t, rctx, ss) })
 	t.Run("PreferenceGetAll", func(t *testing.T) { testPreferenceGetAll(t, rctx, ss) })
 	t.Run("PreferenceDeleteByUser", func(t *testing.T) { testPreferenceDeleteByUser(t, rctx, ss) })
 	t.Run("PreferenceDelete", func(t *testing.T) { testPreferenceDelete(t, rctx, ss) })
@@ -101,6 +102,70 @@ func testPreferenceGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	// make sure getting a missing preference fails
 	_, err = ss.Preference().Get(model.NewId(), model.NewId(), model.NewId())
 	require.Error(t, err, "no error on getting a missing preference")
+}
+
+func testPreferenceGetCategoryAndName(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	category := model.PreferenceCategoryGroupChannelShow
+	name := model.NewId()
+
+	preferences := model.Preferences{
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     name,
+			Value:    "user1",
+		},
+		// same category/name, different user
+		{
+			UserId:   model.NewId(),
+			Category: category,
+			Name:     name,
+			Value:    "otherUser",
+		},
+		// same user/name, different category
+		{
+			UserId:   userId,
+			Category: model.NewId(),
+			Name:     name,
+			Value:    "",
+		},
+		// same user/category, different name
+		{
+			UserId:   userId,
+			Category: category,
+			Name:     model.NewId(),
+			Value:    "",
+		},
+	}
+
+	err := ss.Preference().Save(preferences)
+	require.NoError(t, err)
+
+	actualPreferences, err := ss.Preference().GetCategoryAndName(category, name)
+	require.NoError(t, err)
+	assert.Equal(t, 2, len(actualPreferences), "got the wrong number of preferences")
+
+	for _, preference := range preferences {
+		// Preferences with empty values aren't expected.
+		if preference.Value == "" {
+			continue
+		}
+
+		found := false
+		for _, actualPreference := range actualPreferences {
+			if actualPreference == preference {
+				found = true
+			}
+		}
+
+		assert.True(t, found, "didnt find preference with value %s", preference.Value)
+	}
+
+	// make sure getting a missing preference category and name doesn't fail
+	actualPreferences, err = ss.Preference().GetCategoryAndName(model.NewId(), model.NewId())
+	require.NoError(t, err)
+	require.Equal(t, 0, len(actualPreferences), "shouldn't have got any preferences")
 }
 
 func testPreferenceGetCategory(t *testing.T, rctx request.CTX, ss store.Store) {
