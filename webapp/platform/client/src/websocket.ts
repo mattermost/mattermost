@@ -16,11 +16,11 @@ export type ErrorListener = (event: Event) => void;
 export type CloseListener = (connectFailCount: number) => void;
 
 export interface WebSocketClientConfig {
-    maxWebSocketFails?: number,
-    minWebSocketRetryTime?: number,
-    maxWebSocketRetryTime?: number,
-    reconnectJitterRange?: number,
-    newWebSocketFn?: (url: string) => WebSocket,
+    maxWebSocketFails?: number;
+    minWebSocketRetryTime?: number;
+    maxWebSocketRetryTime?: number;
+    reconnectJitterRange?: number;
+    newWebSocketFn?: (url: string) => WebSocket;
 }
 
 export default class WebSocketClient {
@@ -95,7 +95,7 @@ export default class WebSocketClient {
         this.serverHostname = '';
         this.postedAck = false;
         this.reconnectTimeout = null;
-        this.config = config ? config : {};
+        this.config = config;
     }
 
     // on connect, only send auth cookie and blank state.
@@ -106,12 +106,12 @@ export default class WebSocketClient {
             return;
         }
 
-	// We have a timeout waiting to re-initialize the websocket.
-	// We should wait until that fires before initializing,
-	// otherwise we may not respect the configured backoff.
-	if (this.reconnectTimeout) {
-	    return;
-	}
+        // We have a timeout waiting to re-initialize the websocket.
+        // We should wait until that fires before initializing,
+        // otherwise we may not respect the configured backoff.
+        if (this.reconnectTimeout) {
+            return;
+        }
 
         if (connectionUrl == null) {
             console.log('websocket must have connection url'); //eslint-disable-line no-console
@@ -129,9 +129,9 @@ export default class WebSocketClient {
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
         // We cannot also send it as part of the auth_challenge, because the session cookie is already sent with the request.
-        const websocketUrl = `${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}${this.postedAck ? '&posted_ack=true' : ''}`
+        const websocketUrl = `${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}${this.postedAck ? '&posted_ack=true' : ''}`;
         if (this.config.newWebSocketFn) {
-            this.conn = this.config.newWebSocketFn(websocketUrl)
+            this.conn = this.config.newWebSocketFn(websocketUrl);
         } else {
             this.conn = new WebSocket(websocketUrl);
         }
@@ -140,7 +140,7 @@ export default class WebSocketClient {
 
         this.conn.onopen = () => {
             if (token) {
-                this.sendMessage('authentication_challenge', { token });
+                this.sendMessage('authentication_challenge', {token});
             }
 
             if (this.connectFailCount > 0) {
@@ -169,7 +169,6 @@ export default class WebSocketClient {
             this.closeCallback?.(this.connectFailCount);
             this.closeListeners.forEach((listener) => listener(this.connectFailCount));
 
-
             let retryTime = this.config.minWebSocketRetryTime ?
                 this.config.minWebSocketRetryTime : DEFAULT_MIN_WEBSOCKET_RETRY_TIME;
             const maxRetryTime = this.config.maxWebSocketRetryTime ?
@@ -190,15 +189,15 @@ export default class WebSocketClient {
             // Applying jitter to avoid thundering herd problems.
             retryTime += Math.random() * jitterRange;
 
-	    // If we already have a reconnect timeout waiting,
-	    // we should let that handle the next connection.
-	    if (this.reconnectTimeout) {
-		return
-	    }
-	    
+            // If we already have a reconnect timeout waiting,
+            // we should let that handle the next connection.
+            if (this.reconnectTimeout) {
+                return;
+            }
+
             this.reconnectTimeout = setTimeout(
                 () => {
-		    this.reconnectTimeout = null;
+                    this.reconnectTimeout = null;
                     this.initialize(this.connectionUrl, this.token, this.postedAck);
                 },
                 retryTime,
@@ -424,10 +423,10 @@ export default class WebSocketClient {
             this.responseCallbacks[msg.seq] = responseCallback;
         }
 
-	// Only try to send the message if the websocket is open.
-	// If the websocket is closed here, we will drop the message,
-	// but logic elsewhere should be trying to re-establish
-	// the connection.
+        // Only try to send the message if the websocket is open.
+        // If the websocket is closed here, we will drop the message,
+        // but logic elsewhere should be trying to re-establish
+        // the connection.
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.send(JSON.stringify(msg));
         }

@@ -7,11 +7,11 @@ import WebSocketClient from './websocket';
 if (typeof WebSocket === 'undefined') {
     (global as any).WebSocket = {
         CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3,
-    }
+    };
 }
 
 export class MockWebSocket {
-    readonly binaryType: BinaryType = "blob";
+    readonly binaryType: BinaryType = 'blob';
     readonly bufferedAmount: number = 0;
     readonly extensions: string = '';
 
@@ -43,71 +43,74 @@ export class MockWebSocket {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     send(msg: any) { }
     addEventListener() { }
     removeEventListener() { }
-    dispatchEvent(): boolean { return false; }
+    dispatchEvent(): boolean {
+        return false;
+    }
 }
 
 describe('websocketclient', () => {
     test('should call callbacks', () => {
-        let mockWebSocket = new MockWebSocket();
+        const mockWebSocket = new MockWebSocket();
 
-        let client = new WebSocketClient({
+        const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
                 return mockWebSocket;
             },
         });
-        client.initialize("mock.url")
+        client.initialize('mock.url');
 
-        expect(mockWebSocket.onopen).toBeTruthy()
-        mockWebSocket.onopen = jest.fn()
-        expect(mockWebSocket.onclose).toBeTruthy()
-        mockWebSocket.onclose = jest.fn()
+        expect(mockWebSocket.onopen).toBeTruthy();
+        mockWebSocket.onopen = jest.fn();
+        expect(mockWebSocket.onclose).toBeTruthy();
+        mockWebSocket.onclose = jest.fn();
 
-        mockWebSocket.open()
+        mockWebSocket.open();
 
-        expect(mockWebSocket.onopen).toHaveBeenCalled()
-        expect(mockWebSocket.readyState).toBe(mockWebSocket.OPEN)
+        expect(mockWebSocket.onopen).toHaveBeenCalled();
+        expect(mockWebSocket.readyState).toBe(mockWebSocket.OPEN);
 
-        mockWebSocket.close()
+        mockWebSocket.close();
 
-        expect(mockWebSocket.onclose).toHaveBeenCalled()
-        expect(mockWebSocket.readyState).toBe(mockWebSocket.CLOSED)
+        expect(mockWebSocket.onclose).toHaveBeenCalled();
+        expect(mockWebSocket.readyState).toBe(mockWebSocket.CLOSED);
 
         client.close();
     });
 
-    test('should reconnect on websocket close', done => {
-        let mockWebSocket = new MockWebSocket();
-        mockWebSocket.open = jest.fn(mockWebSocket.open)
+    test('should reconnect on websocket close', (done) => {
+        const mockWebSocket = new MockWebSocket();
+        mockWebSocket.open = jest.fn(mockWebSocket.open);
 
-        let client = new WebSocketClient({
+        const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
-                mockWebSocket.open()
+                mockWebSocket.open();
                 return mockWebSocket;
             },
             minWebSocketRetryTime: 1,
             reconnectJitterRange: 1,
         });
-        client.initialize("mock.url")
+        client.initialize('mock.url');
 
-        mockWebSocket.close()
+        mockWebSocket.close();
 
         setTimeout(() => {
-            client.close()
-            expect(mockWebSocket.open).toHaveBeenCalledTimes(2)
-            done()
-        }, 10)
+            client.close();
+            expect(mockWebSocket.open).toHaveBeenCalledTimes(2);
+            done();
+        }, 10);
     });
 
-    test('should close during reconnection delay', done => {
-        let mockWebSocket = new MockWebSocket();
-        mockWebSocket.open = jest.fn(mockWebSocket.open)
+    test('should close during reconnection delay', (done) => {
+        const mockWebSocket = new MockWebSocket();
+        mockWebSocket.open = jest.fn(mockWebSocket.open);
 
-        let client = new WebSocketClient({
+        const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
                 if (mockWebSocket.onopen) {
@@ -118,28 +121,28 @@ describe('websocketclient', () => {
             minWebSocketRetryTime: 50,
             reconnectJitterRange: 1,
         });
-        client.initialize = jest.fn(client.initialize)
-        client.initialize("mock.url")
+        client.initialize = jest.fn(client.initialize);
+        client.initialize('mock.url');
         mockWebSocket.open();
         mockWebSocket.close();
 
         setTimeout(() => {
-            client.close()
-        }, 10)
+            client.close();
+        }, 10);
 
         setTimeout(() => {
-            client.close()
-            expect(client.initialize).toBeCalledTimes(1)
-            expect(mockWebSocket.open).toBeCalledTimes(1)
-            done()
-        }, 80)
+            client.close();
+            expect(client.initialize).toBeCalledTimes(1);
+            expect(mockWebSocket.open).toBeCalledTimes(1);
+            done();
+        }, 80);
     });
 
-    test('should not re-open if initialize called during reconnection delay', done => {
-        let mockWebSocket = new MockWebSocket();
-        mockWebSocket.open = jest.fn(mockWebSocket.open)
+    test('should not re-open if initialize called during reconnection delay', (done) => {
+        const mockWebSocket = new MockWebSocket();
+        mockWebSocket.open = jest.fn(mockWebSocket.open);
 
-        let client = new WebSocketClient({
+        const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
                 if (mockWebSocket.onopen) {
@@ -150,30 +153,30 @@ describe('websocketclient', () => {
             minWebSocketRetryTime: 50,
             reconnectJitterRange: 1,
         });
-        client.initialize = jest.fn(client.initialize)
-        client.initialize("mock.url")
+        client.initialize = jest.fn(client.initialize);
+        client.initialize('mock.url');
         mockWebSocket.open();
         mockWebSocket.close();
 
         setTimeout(() => {
-            client.initialize("mock.url")
-            expect(client.initialize).toBeCalledTimes(2)
-            expect(mockWebSocket.open).toBeCalledTimes(1)
-        }, 10)
+            client.initialize('mock.url');
+            expect(client.initialize).toBeCalledTimes(2);
+            expect(mockWebSocket.open).toBeCalledTimes(1);
+        }, 10);
 
         setTimeout(() => {
-            client.close()
-            expect(client.initialize).toBeCalledTimes(3)
-            expect(mockWebSocket.open).toBeCalledTimes(2)
-            done()
-        }, 80)
+            client.close();
+            expect(client.initialize).toBeCalledTimes(3);
+            expect(mockWebSocket.open).toBeCalledTimes(2);
+            done();
+        }, 80);
     });
 
-    test('should not register second reconnection timeout if onclose called twice', done => {
-        let mockWebSocket = new MockWebSocket();
-        mockWebSocket.open = jest.fn(mockWebSocket.open)
+    test('should not register second reconnection timeout if onclose called twice', (done) => {
+        const mockWebSocket = new MockWebSocket();
+        mockWebSocket.open = jest.fn(mockWebSocket.open);
 
-        let client = new WebSocketClient({
+        const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
                 mockWebSocket.url = url;
                 if (mockWebSocket.onopen) {
@@ -184,20 +187,20 @@ describe('websocketclient', () => {
             minWebSocketRetryTime: 50,
             reconnectJitterRange: 1,
         });
-        client.initialize = jest.fn(client.initialize)
-        client.initialize("mock.url")
+        client.initialize = jest.fn(client.initialize);
+        client.initialize('mock.url');
         mockWebSocket.open();
         mockWebSocket.close();
 
         setTimeout(() => {
             mockWebSocket.close();
-        }, 10)
+        }, 10);
 
         setTimeout(() => {
-            client.close()
-            expect(client.initialize).toBeCalledTimes(2)
-            expect(mockWebSocket.open).toBeCalledTimes(2)
-            done()
-        }, 80)
+            client.close();
+            expect(client.initialize).toBeCalledTimes(2);
+            expect(mockWebSocket.open).toBeCalledTimes(2);
+            done();
+        }, 80);
     });
 });
