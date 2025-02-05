@@ -95,7 +95,7 @@ export default class WebSocketClient {
         this.serverHostname = '';
         this.postedAck = false;
         this.reconnectTimeout = null;
-        this.config = config;
+        this.config = config ?? {};
     }
 
     // on connect, only send auth cookie and blank state.
@@ -169,14 +169,10 @@ export default class WebSocketClient {
             this.closeCallback?.(this.connectFailCount);
             this.closeListeners.forEach((listener) => listener(this.connectFailCount));
 
-            let retryTime = this.config.minWebSocketRetryTime ?
-                this.config.minWebSocketRetryTime : DEFAULT_MIN_WEBSOCKET_RETRY_TIME;
-            const maxRetryTime = this.config.maxWebSocketRetryTime ?
-                this.config.maxWebSocketRetryTime : DEFAULT_MAX_WEBSOCKET_RETRY_TIME;
-            const maxFails = this.config.maxWebSocketFails ?
-                this.config.maxWebSocketFails : DEFAULT_MAX_WEBSOCKET_FAILS;
-            const jitterRange = this.config.reconnectJitterRange ?
-                this.config.reconnectJitterRange : DEFAULT_JITTER_RANGE;
+            let retryTime = this.config.minWebSocketRetryTime ?? DEFAULT_MIN_WEBSOCKET_RETRY_TIME;
+            const maxRetryTime = this.config.maxWebSocketRetryTime ?? DEFAULT_MAX_WEBSOCKET_RETRY_TIME;
+            const maxFails = this.config.maxWebSocketFails ?? DEFAULT_MAX_WEBSOCKET_FAILS;
+            const jitterRange = this.config.reconnectJitterRange ?? DEFAULT_JITTER_RANGE;
 
             // If we've failed a bunch of connections then start backing off
             if (this.connectFailCount > maxFails) {
