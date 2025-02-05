@@ -114,8 +114,8 @@
     }
 
     @media screen and (max-height: 600px) {
-        .ChannelNotificationModal .modal-content, .ChannelNotificationModal .GenericModal__wrapper {
-            max-height: 80vh !important;
+        .modal-content, .GenericModal__wrapper {
+            max-height: 85vh !important;
         }
     }
     
