@@ -193,7 +193,6 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) error {
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"Category": category}).
 		Where(sq.Eq{"Name": name}).ToSql()
-
 	if err != nil {
 		return errors.Wrap(err, "could not build sql query to get delete preference")
 	}
@@ -210,7 +209,6 @@ func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error
 		Delete("Preferences").
 		Where(sq.Eq{"UserId": userId}).
 		Where(sq.Eq{"Category": category}).ToSql()
-
 	if err != nil {
 		return errors.Wrap(err, "could not build sql query to get delete preference by category")
 	}
@@ -227,7 +225,6 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 		Delete("Preferences").
 		Where(sq.Eq{"Name": name}).
 		Where(sq.Eq{"Category": category}).ToSql()
-
 	if err != nil {
 		return errors.Wrap(err, "could not build sql query to get delete preference by category and name")
 	}
@@ -284,7 +281,6 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 		Where(sq.Eq{"Category": model.PreferenceCategoryFlaggedPost}).
 		Where(sq.Expr("name IN ("+nameInQ+")", nameInArgs...)).
 		ToSql()
-
 	if err != nil {
 		return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
 	}

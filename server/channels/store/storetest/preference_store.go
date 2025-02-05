@@ -28,7 +28,7 @@ func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("PreferenceDeleteInvalidVisibleDmsGms", func(t *testing.T) { testDeleteInvalidVisibleDmsGms(t, rctx, ss, s) })
 }
 
-func testPreferenceSave(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPreferenceSave(t *testing.T, _ request.CTX, ss store.Store) {
 	id := model.NewId()
 
 	preferences := model.Preferences{
@@ -64,7 +64,7 @@ func testPreferenceSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 }
 
-func testPreferenceGet(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPreferenceGet(t *testing.T, _ request.CTX, ss store.Store) {
 	userId := model.NewId()
 	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
@@ -104,7 +104,7 @@ func testPreferenceGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Error(t, err, "no error on getting a missing preference")
 }
 
-func testPreferenceGetCategoryAndName(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPreferenceGetCategoryAndName(t *testing.T, _ request.CTX, ss store.Store) {
 	userId := model.NewId()
 	category := model.PreferenceCategoryGroupChannelShow
 	name := model.NewId()
@@ -168,7 +168,7 @@ func testPreferenceGetCategoryAndName(t *testing.T, rctx request.CTX, ss store.S
 	require.Equal(t, 0, len(actualPreferences), "shouldn't have got any preferences")
 }
 
-func testPreferenceGetCategory(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPreferenceGetCategory(t *testing.T, _ request.CTX, ss store.Store) {
 	userId := model.NewId()
 	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
@@ -217,7 +217,7 @@ func testPreferenceGetCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, 0, len(preferencesByCategory), "shouldn't have got any preferences")
 }
 
-func testPreferenceGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPreferenceGetAll(t *testing.T, _ request.CTX, ss store.Store) {
 	userId := model.NewId()
 	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
@@ -260,7 +260,7 @@ func testPreferenceGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 }
 
-func testPreferenceDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPreferenceDeleteByUser(t *testing.T, _ request.CTX, ss store.Store) {
 	userId := model.NewId()
 	category := model.PreferenceCategoryDirectChannelShow
 	name := model.NewId()
@@ -298,7 +298,7 @@ func testPreferenceDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) 
 	require.NoError(t, err)
 }
 
-func testPreferenceDelete(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPreferenceDelete(t *testing.T, _ request.CTX, ss store.Store) {
 	preference := model.Preference{
 		UserId:   model.NewId(),
 		Category: model.PreferenceCategoryDirectChannelShow,
@@ -320,7 +320,7 @@ func testPreferenceDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Empty(t, preferences, "should've returned no preferences")
 }
 
-func testPreferenceDeleteCategory(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPreferenceDeleteCategory(t *testing.T, _ request.CTX, ss store.Store) {
 	category := model.NewId()
 	userId := model.NewId()
 
@@ -353,7 +353,7 @@ func testPreferenceDeleteCategory(t *testing.T, rctx request.CTX, ss store.Store
 	assert.Empty(t, preferences, "should've returned no preferences")
 }
 
-func testPreferenceDeleteCategoryAndName(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPreferenceDeleteCategoryAndName(t *testing.T, _ request.CTX, ss store.Store) {
 	category := model.NewId()
 	name := model.NewId()
 	userId := model.NewId()
@@ -469,7 +469,7 @@ func testPreferenceDeleteOrphanedRows(t *testing.T, rctx request.CTX, ss store.S
 	assert.NoError(t, nErr, "newer preference should not have been deleted")
 }
 
-func testDeleteInvalidVisibleDmsGms(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+func testDeleteInvalidVisibleDmsGms(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	userId1 := model.NewId()
 	userId2 := model.NewId()
 	userId3 := model.NewId()
