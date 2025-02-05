@@ -82,6 +82,8 @@ export default class WebSocketClient {
     private serverHostname: string | null;
     private postedAck: boolean;
 
+    private reconnectTimeout: ReturnType<typeof setTimeout> | null;
+
     constructor(config?: WebSocketClientConfig) {
         this.conn = null;
         this.connectionUrl = null;
@@ -92,6 +94,7 @@ export default class WebSocketClient {
         this.connectionId = '';
         this.serverHostname = '';
         this.postedAck = false;
+        this.reconnectTimeout = null;
         this.config = config ? config : {};
     }
 
@@ -180,7 +183,7 @@ export default class WebSocketClient {
             // Applying jitter to avoid thundering herd problems.
             retryTime += Math.random() * jitterRange;
 
-            setTimeout(
+            this.reconnectTimeout = setTimeout(
                 () => {
                     this.initialize(this.connectionUrl, this.token, this.postedAck);
                 },
@@ -384,6 +387,10 @@ export default class WebSocketClient {
     close() {
         this.connectFailCount = 0;
         this.responseSequence = 1;
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.onclose = () => { };
             this.conn.close();

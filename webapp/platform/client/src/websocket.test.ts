@@ -102,4 +102,36 @@ describe('websocketclient', () => {
             done()
         }, 10)
     });
+
+    test('should close during reconnection delay', done => {
+        let mockWebSocket = new MockWebSocket();
+        mockWebSocket.open = jest.fn(mockWebSocket.open)
+
+        let client = new WebSocketClient({
+            newWebSocketFn: (url: string) => {
+                mockWebSocket.url = url;
+                if (mockWebSocket.onopen) {
+                    mockWebSocket.open();
+                }
+                return mockWebSocket;
+            },
+            minWebSocketRetryTime: 50,
+            reconnectJitterRange: 1,
+        });
+        client.initialize = jest.fn(client.initialize)
+        client.initialize("mock.url")
+        mockWebSocket.open();
+        mockWebSocket.close();
+
+        setTimeout(() => {
+            client.close()
+        }, 10)
+
+        setTimeout(() => {
+            client.close()
+            expect(client.initialize).toBeCalledTimes(1)
+            expect(mockWebSocket.open).toBeCalledTimes(1)
+            done()
+        }, 80)
+    });
 });
