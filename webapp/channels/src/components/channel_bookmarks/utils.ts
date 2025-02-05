@@ -57,6 +57,11 @@ export const getHaveIChannelBookmarkPermission = (state: GlobalState, channelId:
     if (!channel) {
         return false;
     }
+
+    if (channel.delete_at !== 0) {
+        return false;
+    }
+
     const {type} = channel;
 
     if (type === 'threads') {
