@@ -9,7 +9,6 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 import {components} from 'react-select';
 import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase, MultiValueRemoveProps} from 'react-select';
 import AsyncCreatable from 'react-select/async-creatable';
-import type {SelectComponents} from 'react-select/dist/declarations/src/components';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -87,7 +86,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         loadingMessage: messages.loadingDefault,
         showError: false,
     };
-    private selectRef: RefObject<SelectInstance<UserProfile | EmailInvite, boolean, GroupBase<UserProfile | EmailInvite>> & { onInputChange: (newValue: string, actionMeta: InputActionMeta | { action: 'custom' }) => string }>;
+    private selectRef: RefObject<SelectInstance<UserProfile | EmailInvite, true>>;
 
     constructor(props: Props) {
         super(props);
@@ -217,7 +216,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         </>
     );
 
-    Input = (props: InputProps<EmailInvite | UserProfile, boolean>) => {
+    Input = (props: InputProps<EmailInvite | UserProfile, true>) => {
         const handlePaste = (e: ClipboardEvent) => {
             e.preventDefault();
             const clipboardText = e.clipboardData?.getData('Text') || '';
@@ -260,7 +259,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         );
     };
 
-    MultiValueRemove = (props: MultiValueRemoveProps<EmailInvite | UserProfile, boolean>) => {
+    MultiValueRemove = (props: MultiValueRemoveProps<EmailInvite | UserProfile, true>) => {
         const {children, innerProps} = props;
 
         return (<div {...innerProps}>
@@ -268,7 +267,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
         </div>);
     };
 
-    components: Partial<SelectComponents<UserProfile | EmailInvite, boolean, GroupBase<UserProfile | EmailInvite>>> = {
+    components = {
         NoOptionsMessage: this.props.suppressNoOptionsMessage ? () => null : this.NoOptionsMessage,
         MultiValueRemove: this.MultiValueRemove,
         IndicatorsContainer: () => null,
@@ -349,7 +348,7 @@ export default class UsersEmailsInput extends React.PureComponent<Props, State> 
     };
 
     onFocus = () => {
-        this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'custom'});
+        this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'set-value', prevInputValue: this.props.inputValue});
     };
 
     onBlur = () => {
