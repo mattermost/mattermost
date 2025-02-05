@@ -11,6 +11,7 @@ import type {IDMappedObjects, RelationOneToManyUnique, RelationOneToOne} from '@
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
+import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 function profilesToSet(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction) {
     const id = action.id;
@@ -226,6 +227,15 @@ function profiles(state: UsersState['profiles'] = {}, action: MMReduxAction) {
         const user = action.data;
 
         return receiveUserProfile(state, user);
+    }
+    case UserTypes.RECEIVED_PROFILE_CUSTOM_PROFILE_ATTRIUBUTES: {
+        const {userID, customAttributeValues} = action.data;
+        const existingProfile = state[userID];
+        if (!existingProfile) {
+            return state;
+        }
+        const profileAttributes = {...existingProfile.custom_profile_attributes, ...customAttributeValues};
+        return receiveUserProfile(state, {...existingProfile, custom_profile_attributes: profileAttributes});
     }
     case UserTypes.RECEIVED_PROFILES_LIST: {
         const users: UserProfile[] = action.data;

@@ -11,7 +11,7 @@ import {
 } from 'mattermost-redux/actions/posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
-import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
+import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
@@ -41,7 +41,9 @@ import {
     handleCloudSubscriptionChanged,
     handleGroupAddedMemberEvent,
     handleStatusChangedEvent,
+    handleCustomAttributeValuesUpdated,
 } from './websocket_actions';
+import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
@@ -1280,5 +1282,71 @@ describe('handleStatusChangedEvent', () => {
         }));
 
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.OFFLINE);
+    });
+});
+
+describe('handleCustomAttributeValuesUpdated', () => {
+    const currentUserId = 'user1';
+
+    function makeInitialState() {
+        return {
+            entities: {
+                users: {
+                    profiles: {
+                        user1: {id: currentUserId},
+                    },
+                },
+            },
+        };
+    }
+
+    test('should add the CustomAttributeValues to the user', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({
+            event: SocketEvents.USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED,
+            data: {
+                userID: currentUserId,
+                customAttributeValues: {field1: 'value1', field2: 'value2'},
+            },
+        }));
+
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeTruthy();
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field1).toEqual('value1');
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field2).toEqual('value2');
+
+        // update one field, add new field
+        testStore.dispatch(handleCustomAttributeValuesUpdated({
+            event: SocketEvents.USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED,
+            data: {
+                userID: currentUserId,
+                customAttributeValues: {field1: 'valueChanged', field3: 'new field'},
+            },
+        }));
+
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeTruthy();
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field1).toEqual('valueChanged');
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field2).toEqual('value2');
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes.field3).toEqual('new field');
+    });
+
+    test('should ignore the CustomAttributeValues if no user', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
+
+        testStore.dispatch(handleCustomAttributeValuesUpdated({
+            event: SocketEvents.USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED,
+            data: {
+                user_id: 'nonExistantUser',
+                customAttributeValues: {field1: 'value1', field2: 'value2'},
+            },
+        }));
+
+        expect(stateUser(testStore.getState(), 'nonExistintUser')).toBeFalsy();
+        expect(stateUser(testStore.getState(), currentUserId)).toBeTruthy();
+        expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeFalsy();
     });
 });

@@ -206,6 +206,11 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		results[fieldID] = patchedValue.Value
 	}
 
+	message := model.NewWebSocketEvent(model.WebsocketEventUserCustomAttributeValuesUpdated, "", "", "", nil, "")
+	message.Add("userID", userID)
+	message.Add("customAttributeValues", results)
+	c.App.Publish(message)
+
 	auditRec.Success()
 	auditRec.AddEventObjectType("patchCPAValues")
 

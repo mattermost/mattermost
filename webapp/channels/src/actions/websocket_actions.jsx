@@ -630,6 +630,9 @@ export function handleEvent(msg) {
     case SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED:
         dispatch(handleHostedCustomerSignupProgressUpdated(msg));
         break;
+    case SocketEvents.USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED:
+        dispatch(handleCustomAttributeValuesUpdated(msg));
+        break;
     default:
     }
 
@@ -1897,5 +1900,12 @@ function handleChannelBookmarkSorted(msg) {
     return {
         type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
         data: {channelId: msg.broadcast.channel_id, bookmarks},
+    };
+}
+
+export function handleCustomAttributeValuesUpdated(msg) {
+    return {
+        type: UserTypes.RECEIVED_PROFILE_CUSTOM_PROFILE_ATTRIUBUTES,
+        data: {userID: msg.data.userID, customAttributeValues: msg.data.customAttributeValues},
     };
 }

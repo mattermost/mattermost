@@ -476,6 +476,26 @@ export function getMe(): ActionFuncAsync<UserProfile> {
     };
 }
 
+export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync {
+    return async (dispatch) => {
+        let data;
+        try {
+            data = await Client4.getUserCustomProfileAttributesValues(userID);
+        } catch (error) {
+            return {error};
+        }
+
+        console.log('getCustomProfile valuse ');
+        console.log(data);
+        dispatch({
+            type: UserTypes.RECEIVED_PROFILE_CUSTOM_PROFILE_ATTRIUBUTES,
+            data: {userID, customAttributeValues: data},
+        });
+
+        return {data};
+    };
+}
+
 export function updateMyTermsOfServiceStatus(termsOfServiceId: string, accepted: boolean): ActionFuncAsync {
     return async (dispatch, getState) => {
         const response = await dispatch(bindClientFunc({
