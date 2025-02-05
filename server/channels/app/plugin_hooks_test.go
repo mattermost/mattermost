@@ -1560,6 +1560,90 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 	}
 }
 
+func TestHookOnOmniSearch(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOmniSearch = true
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("omnisearch"))
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnOmniSearch(c *plugin.Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error) {
+			if terms != "searchterm" {
+				return nil, nil
+			}
+
+			return []*model.OmniSearchResult{
+				{
+					Id:          "result1",
+					Title:       "Result 1",
+					Description: "First test result",
+					Link:        "/link/to/result1",
+					CreateAt:    1234,
+					Source:      "test_source",
+				},
+			}, nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	results, err := th.App.OmniSearch(th.Context, "searchterm", th.BasicUser.Id, false, 0, 0, 10)
+	require.Nil(t, err)
+	require.Len(t, results, 1)
+	require.Equal(t, "result1", results[0].Id)
+	require.Equal(t, "Result 1", results[0].Title)
+	require.Equal(t, "First test result", results[0].Description)
+	require.Equal(t, "/link/to/result1", results[0].Link)
+	require.Equal(t, int64(1234), results[0].CreateAt)
+	require.Equal(t, "test_source", results[0].Source)
+
+	// Test with non-matching terms
+	results, err = th.App.OmniSearch(th.Context, "other", th.BasicUser.Id, false, 0, 0, 10)
+	require.Nil(t, err)
+	require.Empty(t, results)
+
+	// Test with disabled omnisearch
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOmniSearch = false
+	})
+
+	results, err = th.App.OmniSearch(th.Context, "searchterm", th.BasicUser.Id, false, 0, 0, 10)
+	require.NotNil(t, err)
+	require.Equal(t, "store.sql_omnisearch.disabled", err.Id)
+	require.Empty(t, results)
+
+	// Test without license
+	th.App.Srv().SetLicense(nil)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOmniSearch = true
+	})
+
+	results, err = th.App.OmniSearch(th.Context, "searchterm", th.BasicUser.Id, false, 0, 0, 10)
+	require.NotNil(t, err)
+	require.Equal(t, "store.sql_omnisearch.entreprise-only", err.Id)
+	require.Empty(t, results)
+}
+
 func TestHookMessagesWillBeConsumed(t *testing.T) {
 	setupPlugin := func(t *testing.T, th *TestHelper) {
 		var mockAPI plugintest.API
