@@ -223,7 +223,8 @@ func (as SqlOAuthStore) GetAccessDataByRefreshToken(token string) (*model.Access
 func (as SqlOAuthStore) GetPreviousAccessData(userID, clientID string) (*model.AccessData, error) {
 	accessData := model.AccessData{}
 
-	query := as.oAuthAccessDataQuery.Where(sq.Eq{"UserId": userID, "ClientId": clientID})
+	query := as.oAuthAccessDataQuery.Where(sq.Eq{"UserId": userID, "ClientId": clientID}).
+		OrderBy("ExpiresAt DESC").Limit(1)
 
 	if err := as.GetReplica().GetBuilder(&accessData, query); err != nil {
 		if err == sql.ErrNoRows {
