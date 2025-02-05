@@ -34,6 +34,7 @@ export type Props = {
     enforceFocus?: boolean;
     container?: React.ReactNode | React.ReactNodeArray;
     ariaLabel?: string;
+    ariaLabeledBy?: string;
     errorText?: string | React.ReactNode;
     compassDesign?: boolean;
     backdrop?: boolean | 'static';
@@ -218,7 +219,8 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 id={this.props.id}
                 role='none'
                 aria-label={this.props.ariaLabel}
-                aria-labelledby={this.props.ariaLabel ? undefined : 'genericModalLabel'}
+                aria-labelledby={this.props.ariaLabeledBy ?? 'genericModalLabel'}
+                aria-modal='true'
                 dialogClassName={classNames(
                     modalLocationClass,
                     'a11y__modal GenericModal',
