@@ -566,22 +566,18 @@ func validateDMChannelPattern(ss *SqlStore) []model.IntegrityCheckResult {
 			},
 		}))
 	if err != nil {
-		mlog.Error("There is performing a pattern check on DM channel names", mlog.Err(err))
+		mlog.Error("There is an issue with validating the DM Channel Name pattern", mlog.Err(err))
 		return result
 	}
 	invalidChannelRecords.RelName = "Channel"
 
 	err = ss.GetMaster().SelectBuilder(&records, ss.getQueryBuilder().
 		Select().
-		Column("CT.name AS ParentId, CT.Id AS ChildId").
-		From(`SELECT 
-			  Id AS ChildId, 
-			  SUBSTRING(name, 1, 26) AS ParentId
-			FROM 
-			  Channels 
-			WHERE 
-			  Type = 'D'
-		  ) AS CT`).
+		Columns("ParentId", "ChildId").
+		FromSelect(sq.SelectBuilder(ss.getQueryBuilder().Select().Column(`
+		Id AS ChildId, 
+		SUBSTRING(name, 1, 26) AS ParentId`).
+			From("Channels").Where(`Type = 'D'`)), "CT").
 		Where(`NOT EXISTS (
 			SELECT 
 			  1
@@ -591,12 +587,12 @@ func validateDMChannelPattern(ss *SqlStore) []model.IntegrityCheckResult {
 			  PT.id = CT.ParentId
 		  )`).OrderBy("CT.ParentId"))
 	if err != nil {
-		mlog.Error("There is performing an inegrity check on DM Channel names", mlog.Err(err))
+		mlog.Error("There is an issue with performing an inegrity check on DM Channel names", mlog.Err(err))
 		return result
 	}
 
 	relationalData.ParentName = "Channels"
-	relationalData.ChildName = "ChannelId"
+	relationalData.ChildName = "Name"
 	relationalData.Records = append(relationalData.Records, records...)
 
 	temp := model.IntegrityCheckResult{}
