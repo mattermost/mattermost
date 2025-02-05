@@ -190,6 +190,12 @@ export default class WebSocketClient {
             // Applying jitter to avoid thundering herd problems.
             retryTime += Math.random() * jitterRange;
 
+	    // If we already have a reconnect timeout waiting,
+	    // we should let that handle the next connection.
+	    if (this.reconnectTimeout) {
+		return
+	    }
+	    
             this.reconnectTimeout = setTimeout(
                 () => {
 		    this.reconnectTimeout = null;
