@@ -1,0 +1,46 @@
+project_name: mattermost-govet
+
+env:
+  - GO111MODULE=on
+  - CGO_ENABLED=0
+
+# Prevents parallel builds from stepping on eachothers toes downloading modules
+before:
+  hooks:
+  - go mod tidy
+
+builds:
+- id: mattermost-govet
+  binary: mattermost-govet-{{ .Os }}-{{ .Arch }}
+  no_unique_dist_dir: true
+  main: .
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch:
+    - amd64
+    - arm64
+  ignore:
+    - goos: windows
+      goarch: arm64
+
+archives:
+- format: binary
+  name_template: "{{ .Binary }}"
+  allow_different_binary_count: true
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+
+snapshot:
+  name_template: SNAPSHOT-{{ .ShortCommit }}
+
+release:
+  prerelease: auto # remove this when we start publishing non-prerelease or set to auto
+  draft: true # allow for manual edits
+  github:
+    owner: mattermost
+    name: mattermost-govet
+  footer: |
+    ### Thanks for all contributors!
