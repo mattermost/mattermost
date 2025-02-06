@@ -30,8 +30,6 @@ import {getGlobalItem} from 'selectors/storage';
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
-import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
-import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
@@ -712,7 +710,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 <ColumnLayout
                     title={titleColumn}
                     message={formatMessage({id: 'signup_user_completed.invalid_invite.message', defaultMessage: 'Please speak with your Administrator to receive an invitation.'})}
-                    SVGElement={<LaptopAlertSVG/>}
                     extraContent={(
                         <div className='signup-body-content-button-container'>
                             <button
@@ -782,11 +779,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                         </h1>
                     )}
                     {getMessageSubtitle()}
-                    {!enableCustomBrand && (
-                        <div className='signup-body-message-svg'>
-                            <ManWithLaptopSVG/>
-                        </div>
-                    )}
                 </div>
                 <div className='signup-body-action'>
                     {!isMobileView && getAlternateLink()}

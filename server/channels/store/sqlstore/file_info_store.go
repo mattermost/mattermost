@@ -132,13 +132,16 @@ func (fs SqlFileInfoStore) Save(rctx request.CTX, info *model.FileInfo) (*model.
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
+func (fs SqlFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
 	query := fs.getQueryBuilder().
 		Select(fs.queryFields...).
 		From("FileInfo").
 		Where(sq.Eq{"FileInfo.Id": ids}).
-		Where(sq.Eq{"FileInfo.DeleteAt": 0}).
 		OrderBy("FileInfo.CreateAt DESC")
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"FileInfo.DeleteAt": 0})
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -455,6 +458,27 @@ func (fs SqlFileInfoStore) DeleteForPost(rctx request.CTX, postId string) (strin
 	return postId, nil
 }
 
+func (fs SqlFileInfoStore) DeleteForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	query := fs.getQueryBuilder().
+		Update("FileInfo").
+		Set("DeleteAt", model.GetMillis()).
+		Where(sq.Eq{
+			"PostId": postId,
+			"Id":     fileIDs,
+		})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "SqlFileInfoStore.DeleteForPostByIds: failed to generate sql from query")
+	}
+
+	if _, err := fs.GetMaster().Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "SqlFileInfoStore.DeleteForPostByIds: failed to soft delete FileInfo from database")
+	}
+
+	return nil
+}
+
 func (fs SqlFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string) error {
 	if _, err := fs.GetMaster().Exec(`DELETE FROM FileInfo WHERE PostId = ?`, postID); err != nil {
 		return errors.Wrapf(err, "failed to delete FileInfo with PostId=%s", postID)
@@ -688,18 +712,20 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 }
 
 func (fs SqlFileInfoStore) CountAll() (int64, error) {
-	query := fs.getQueryBuilder().
-		Select("COUNT(*)").
-		From("FileInfo").
-		Where("DeleteAt = 0")
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return int64(0), errors.Wrap(err, "count_tosql")
+	var query sq.SelectBuilder
+	if fs.DriverName() == model.DatabaseDriverPostgres {
+		query = fs.getQueryBuilder().
+			Select("num").
+			From("file_stats")
+	} else {
+		query = fs.getQueryBuilder().
+			Select("COUNT(*)").
+			From("FileInfo").
+			Where("DeleteAt = 0")
 	}
 
 	var count int64
-	err = fs.GetReplica().Get(&count, queryString, args...)
+	err := fs.GetReplica().GetBuilder(&count, query)
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to count Files")
 	}
@@ -734,13 +760,20 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 	return files, nil
 }
 
-func (fs SqlFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error) {
-	query := fs.getQueryBuilder().
-		Select("COALESCE(SUM(Size), 0)").
-		From("FileInfo")
+func (fs SqlFileInfoStore) GetStorageUsage(_, includeDeleted bool) (int64, error) {
+	var query sq.SelectBuilder
+	if fs.DriverName() == model.DatabaseDriverPostgres && !includeDeleted {
+		query = fs.getQueryBuilder().
+			Select("usage").
+			From("file_stats")
+	} else {
+		query = fs.getQueryBuilder().
+			Select("COALESCE(SUM(Size), 0)").
+			From("FileInfo")
 
-	if !includeDeleted {
-		query = query.Where("DeleteAt = 0")
+		if !includeDeleted {
+			query = query.Where("DeleteAt = 0")
+		}
 	}
 
 	var size int64
@@ -795,4 +828,40 @@ func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 	}
 
 	return createAt, nil
+}
+
+func (fs SqlFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
+	query := fs.getQueryBuilder().
+		Update("FileInfo").
+		Set("DeleteAt", 0).
+		Where(sq.Eq{
+			"PostId": postId,
+			"Id":     fileIDs,
+		})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "SqlFileInfoStore.RestoreForPostByIds: failed to generate sql from query")
+	}
+
+	if _, err := fs.GetMaster().Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "SqlFileInfoStore.RestoreForPostByIds: failed to undelete FileInfo from database")
+	}
+
+	return nil
+}
+
+func (fs SqlFileInfoStore) RefreshFileStats() error {
+	if fs.DriverName() == model.DatabaseDriverPostgres {
+		// CONCURRENTLY is not used deliberately because as per Postgres docs,
+		// not using CONCURRENTLY takes less resources and completes faster
+		// at the expense of locking the mat view. Since viewing admin console
+		// is not a very frequent activity, we accept the tradeoff to let the
+		// refresh happen as fast as possible.
+		if _, err := fs.GetMaster().Exec("REFRESH MATERIALIZED VIEW file_stats"); err != nil {
+			return errors.Wrap(err, "error refreshing materialized view file_stats")
+		}
+	}
+
+	return nil
 }
