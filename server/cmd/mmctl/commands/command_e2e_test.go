@@ -326,7 +326,7 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 		printer.Clean()
 
 		err := showCommandCmdF(c, &cobra.Command{}, []string{"nonexistent-command-id"})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Equal("unable to find command 'nonexistent-command-id'", err.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -344,6 +344,7 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 		}
 
 		command, _, err := c.CreateCommand(context.Background(), newCmd)
+		fmt.Printf("Created command: %+v\n", command)
 		s.Require().NoError(err)
 		err = showCommandCmdF(c, &cobra.Command{}, []string{command.Id})
 		s.Require().NoError(err)
@@ -364,10 +365,15 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 			Trigger:   trigger,
 		}
 
-		_, _, _ = c.CreateCommand(context.Background(), newCmd)
-		err := showCommandCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + trigger})
-		s.Require().Nil(err)
+		command, _, err := c.CreateCommand(context.Background(), newCmd)
+
+		s.Require().NoError(err)
+		err = showCommandCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + trigger})
+		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
+		outputCmd := printer.GetLines()[0].(*model.Command)
+		s.Require().Equal(command.TeamId, outputCmd.TeamId)
+		s.Require().Equal(command.Trigger, outputCmd.Trigger)
 	})
 }
