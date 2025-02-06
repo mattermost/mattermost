@@ -255,6 +255,8 @@ channels/db/migrations/mysql/000128_create_scheduled_posts.down.sql
 channels/db/migrations/mysql/000128_create_scheduled_posts.up.sql
 channels/db/migrations/mysql/000129_add_property_system_architecture.down.sql
 channels/db/migrations/mysql/000129_add_property_system_architecture.up.sql
+channels/db/migrations/mysql/000130_system_console_stats.down.sql
+channels/db/migrations/mysql/000130_system_console_stats.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -511,3 +513,5 @@ channels/db/migrations/postgres/000128_create_scheduled_posts.down.sql
 channels/db/migrations/postgres/000128_create_scheduled_posts.up.sql
 channels/db/migrations/postgres/000129_add_property_system_architecture.down.sql
 channels/db/migrations/postgres/000129_add_property_system_architecture.up.sql
+channels/db/migrations/postgres/000130_system_console_stats.down.sql
+channels/db/migrations/postgres/000130_system_console_stats.up.sql

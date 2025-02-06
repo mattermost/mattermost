@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactNode} from 'react';
+import type {ReactElement} from 'react';
 import {useState, useCallback, useEffect} from 'react';
 import {useSelector} from 'react-redux';
 
@@ -12,7 +12,7 @@ export class BatchProcessingError<T = Error> extends Error {
 }
 
 export type SectionHook = SectionIO & {
-    content: ReactNode;
+    content: ReactElement;
 }
 
 export type SectionIO = {
@@ -114,7 +114,13 @@ export function useThing<T>(ops: ReadOperations<T>, initial: T) {
  * @param opts.commit Action to save pending thing.
  * @remarks After successfully committing, sync the resulting thing back to the current thing to reconcile or complete or the cycle and clear any diffs.
  */
-export function usePendingThing<T extends Record<string, unknown>, TErr extends Error>(data: T, opts: {commit: (pending: T, current: T) => T | Promise<T>}) {
+export function usePendingThing<T extends Record<string, unknown>, TErr extends Error>(
+    data: T,
+    opts: {
+        commit: (pending: T, current: T) => T | Promise<T>;
+        beforeUpdate?: (pending: T, current: T) => T;
+    },
+) {
     const [pending, setPending] = useState(data);
     const hasChanges = pending !== data;
 
@@ -122,11 +128,19 @@ export function usePendingThing<T extends Record<string, unknown>, TErr extends 
 
     useEffect(() => {
         setPending(data);
-    }, [data]);
+    }, [setPending, data]);
 
     const apply = useCallback((update: T | ((current: T) => T)) => {
-        setPending((current) => (typeof update === 'function' ? update(current) : ({...current, ...update})));
-    }, [setPending]);
+        setPending((currentPending) => {
+            const next = typeof update === 'function' ? update(currentPending) : ({...currentPending, ...update});
+
+            if (opts.beforeUpdate) {
+                return opts?.beforeUpdate(next, data);
+            }
+
+            return next;
+        });
+    }, [setPending, data, opts.beforeUpdate]);
 
     const reset = useCallback(() => {
         setPending(data);
