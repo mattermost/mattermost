@@ -10383,6 +10383,6 @@
   },
   {
     "id": "api.command.execute_command.deleted.error",
-    "translation": "不能在已删除频道中执行命令."
+    "translation": "不能在已删除的频道中执行命令。"
   }
 ]
