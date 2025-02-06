@@ -51,6 +51,16 @@ describe('components/search_results/OmniSearchResultItem', () => {
                     },
                 },
             },
+            groups: {
+                groups: {},
+                syncables: {},
+                myGroups: [],
+                stats: {},
+            },
+            emojis: {
+                customEmoji: {},
+                nonExistentEmoji: new Set(),
+            },
         },
     };
     const baseProps = {
@@ -67,7 +77,7 @@ describe('components/search_results/OmniSearchResultItem', () => {
         const store = mockStore({
             ...defaultStore,
             ...storeData,
-        });
+        } as any);
 
         return render(
             <Provider store={store}>
@@ -118,7 +128,7 @@ describe('components/search_results/OmniSearchResultItem', () => {
         });
 
         const boldText = screen.getByText('Bold');
-        expect(boldText).toHaveStyle('font-weight: 600');
+        expect(boldText).toHaveStyle('font-weight: bold');
 
         const italicText = screen.getByText('italic');
         expect(italicText).toHaveStyle('font-style: italic');

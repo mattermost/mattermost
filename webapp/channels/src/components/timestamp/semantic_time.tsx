@@ -18,6 +18,7 @@ const SemanticTime: FC<Props> = ({
     return (
         <time
             {...props}
+            data-testid="timestamp"
             dateTime={DateTime.fromJSDate(value).toLocal().toISO({includeOffset: false})}
         >
             {children}

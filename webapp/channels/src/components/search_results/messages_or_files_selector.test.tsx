@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
+import type {ShallowWrapper} from 'enzyme';
+
 import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
@@ -11,6 +14,73 @@ import MessagesOrFilesSelector from 'components/search_results/messages_or_files
 import mockStore from 'tests/test_store';
 
 describe('components/search_results/MessagesOrFilesSelector', () => {
+    const store = mockStore({});
+
+    test('should match snapshot, on messages selected', () => {
+        const wrapper: ShallowWrapper<any, any, any> = shallow(
+            <Provider store={store}>
+                <MessagesOrFilesSelector
+                    selected='messages'
+                    selectedFilter='code'
+                    messagesCounter='5'
+                    filesCounter='10'
+                    omnisearchCounter='7'
+                    isFileAttachmentsEnabled={true}
+                    onChange={jest.fn()}
+                    onFilter={jest.fn()}
+                    onTeamChange={jest.fn()}
+                    crossTeamSearchEnabled={false}
+                />
+            </Provider>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, on files selected', () => {
+        const wrapper: ShallowWrapper<any, any, any> = shallow(
+
+            <Provider store={store}>
+                <MessagesOrFilesSelector
+                    selected='files'
+                    selectedFilter='code'
+                    messagesCounter='5'
+                    filesCounter='10'
+                    omnisearchCounter='7'
+                    isFileAttachmentsEnabled={true}
+                    onChange={jest.fn()}
+                    onFilter={jest.fn()}
+                    onTeamChange={jest.fn()}
+                    crossTeamSearchEnabled={false}
+                />
+            </Provider>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+    test('should match snapshot, without files tab', () => {
+        const wrapper: ShallowWrapper<any, any, any> = shallow(
+
+            <Provider store={store}>
+                <MessagesOrFilesSelector
+                    selected='files'
+                    selectedFilter='code'
+                    messagesCounter='5'
+                    filesCounter='10'
+                    omnisearchCounter='7'
+                    isFileAttachmentsEnabled={false}
+                    onChange={jest.fn()}
+                    onFilter={jest.fn()}
+                    onTeamChange={jest.fn()}
+                    crossTeamSearchEnabled={false}
+                />
+
+            </Provider>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
     const baseProps = {
         selected: 'messages',
         selectedFilter: 'code',
@@ -24,13 +94,21 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         crossTeamSearchEnabled: false,
     };
 
-    const renderComponent = (props = {}, storeData = {}) => {
+    const renderComponent = (props: any = {}, storeData = {}) => {
         const store = mockStore({
             entities: {
                 general: {
                     config: {},
                 },
+                teams: {
+                    currentTeamId: 'team-id',
+                },
                 ...storeData,
+            },
+            views: {
+                rhs: {
+                    searchTeam: null,
+                },
             },
         });
 
@@ -43,13 +121,11 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         );
     };
 
-    it('shows omnisearch tab when enabled', () => {
+    test('shows omnisearch tab when enabled', () => {
         renderComponent({}, {
-            entities: {
-                general: {
-                    config: {
-                        EnableOmniSearch: 'true',
-                    },
+            general: {
+                config: {
+                    EnableOmniSearch: 'true',
                 },
             },
         });
@@ -58,13 +134,11 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         expect(screen.getByText('7')).toBeInTheDocument();
     });
 
-    it('hides omnisearch tab when disabled', () => {
+    test('hides omnisearch tab when disabled', () => {
         renderComponent({}, {
-            entities: {
-                general: {
-                    config: {
-                        EnableOmniSearch: 'false',
-                    },
+            general: {
+                config: {
+                    EnableOmniSearch: 'false',
                 },
             },
         });
@@ -72,14 +146,12 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         expect(screen.queryByText('Omnisearch')).not.toBeInTheDocument();
     });
 
-    it('calls onChange when clicking omnisearch tab', () => {
+    test('calls onChange when clicking omnisearch tab', () => {
         const onChange = jest.fn();
         renderComponent({onChange}, {
-            entities: {
-                general: {
-                    config: {
-                        EnableOmniSearch: 'true',
-                    },
+            general: {
+                config: {
+                    EnableOmniSearch: 'true',
                 },
             },
         });
@@ -88,14 +160,12 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         expect(onChange).toHaveBeenCalledWith('omnisearch');
     });
 
-    it('handles keyboard navigation to omnisearch tab', () => {
+    test('handles keyboard navigation to omnisearch tab', () => {
         const onChange = jest.fn();
         renderComponent({onChange}, {
-            entities: {
-                general: {
-                    config: {
-                        EnableOmniSearch: 'true',
-                    },
+            general: {
+                config: {
+                    EnableOmniSearch: 'true',
                 },
             },
         });

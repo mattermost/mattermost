@@ -46,6 +46,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
     // REFS to the tabs so there is ability to pass the custom A11y focus event
     const messagesTabRef = useRef<HTMLButtonElement>(null);
     const filesTabRef = useRef<HTMLButtonElement>(null);
+    const omnisearchTabRef = useRef<HTMLButtonElement>(null);
     const config = useSelector(getConfig);
 
     // Enhanced arrow key handling to focus the new select tab and also send the a11y custom event
@@ -62,6 +63,12 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             if (currentTab === DataSearchTypes.MESSAGES_SEARCH_TYPE && props.isFileAttachmentsEnabled) {
                 nextTab = DataSearchTypes.FILES_SEARCH_TYPE;
                 nextTabRef = filesTabRef;
+            } else if (currentTab === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isFileAttachmentsEnabled && config.EnableOmniSearch === 'true') {
+                nextTab = DataSearchTypes.OMNISEARCH_SEARCH_TYPE;
+                nextTabRef = omnisearchTabRef;
+            } else if (currentTab === DataSearchTypes.FILES_SEARCH_TYPE && config.EnableOmniSearch === 'true') {
+                nextTab = DataSearchTypes.OMNISEARCH_SEARCH_TYPE;
+                nextTabRef = omnisearchTabRef;
             } else {
                 nextTab = DataSearchTypes.MESSAGES_SEARCH_TYPE;
                 nextTabRef = messagesTabRef;
@@ -135,6 +142,12 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                 )}
                 {(config.EnableOmniSearch === 'true') && (
                     <button
+                        ref={omnisearchTabRef}
+                        role='tab'
+                        aria-selected={props.selected === DataSearchTypes.OMNISEARCH_SEARCH_TYPE ? 'true' : 'false'}
+                        tabIndex={props.selected === DataSearchTypes.OMNISEARCH_SEARCH_TYPE ? 0 : -1}
+                        aria-controls='omnisearchPanel'
+                        id='omnisearchTab'
                         onClick={() => props.onChange('omnisearch')}
                         onKeyDown={(e: React.KeyboardEvent<HTMLSpanElement>) => Keyboard.isKeyPressed(e, KeyCodes.ENTER) && props.onChange('omnisearch')}
                         className={props.selected === 'omnisearch' ? 'active tab files-tab' : 'tab files-tab'}
