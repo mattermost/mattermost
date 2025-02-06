@@ -10384,5 +10384,9 @@
   {
     "id": "api.command.execute_command.deleted.error",
     "translation": "不能在已删除的频道中执行命令。"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "你的授权不支持自定义属性."
   }
 ]
