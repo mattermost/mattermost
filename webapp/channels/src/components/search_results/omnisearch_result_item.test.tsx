@@ -4,10 +4,36 @@
 import React from 'react';
 import {render, screen} from '@testing-library/react';
 import {IntlProvider} from 'react-intl';
+import {Provider} from 'react-redux';
+
+import mockStore from 'tests/test_store';
 
 import OmniSearchResultItem from './omnisearch_result_item';
 
 describe('components/search_results/OmniSearchResultItem', () => {
+    const defaultStore = {
+        entities: {
+            general: {
+                config: {
+                    EnableLinkPreviews: 'true',
+                    EnableSVGs: 'true',
+                    HasImageProxy: 'true',
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            users: {
+                currentUserId: 'user-1',
+                profiles: {
+                    'user-1': {
+                        id: 'user-1',
+                        username: 'test-user',
+                    },
+                },
+            },
+        },
+    };
     const baseProps = {
         icon: 'https://example.com/icon.png',
         link: 'https://example.com/result',
@@ -18,11 +44,18 @@ describe('components/search_results/OmniSearchResultItem', () => {
         source: 'test_source',
     };
 
-    const renderComponent = (props = {}) => {
+    const renderComponent = (props = {}, storeData = {}) => {
+        const store = mockStore({
+            ...defaultStore,
+            ...storeData,
+        });
+
         return render(
-            <IntlProvider locale='en'>
-                <OmniSearchResultItem {...baseProps} {...props}/>
-            </IntlProvider>,
+            <Provider store={store}>
+                <IntlProvider locale='en'>
+                    <OmniSearchResultItem {...baseProps} {...props}/>
+                </IntlProvider>
+            </Provider>,
         );
     };
 
