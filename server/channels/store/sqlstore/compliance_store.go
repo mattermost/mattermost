@@ -35,7 +35,7 @@ func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
 			"UserId",
 			"Status",
 			"Count",
-			"Desc",
+			s.toReserveCase("desc"),
 			"Type",
 			"StartAt",
 			"EndAt",
