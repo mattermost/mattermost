@@ -518,6 +518,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
                   </span>
                 </div>
               }
+              modalLocation="center"
               onExited={[Function]}
               onHide={[Function]}
               show={false}
@@ -527,10 +528,11 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               <Modal
                 animation={true}
                 aria-label="confirmModalLabel"
+                aria-modal="true"
                 autoFocus={true}
                 backdrop={true}
                 bsClass="modal"
-                dialogClassName="a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
+                dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
                 dialogComponentClass={[Function]}
                 enforceFocus={true}
                 id="confirmModal"
@@ -1130,6 +1132,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
                   </span>
                 </div>
               }
+              modalLocation="center"
               onExited={[Function]}
               onHide={[Function]}
               show={false}
@@ -1139,10 +1142,11 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               <Modal
                 animation={true}
                 aria-label="confirmModalLabel"
+                aria-modal="true"
                 autoFocus={true}
                 backdrop={true}
                 bsClass="modal"
-                dialogClassName="a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
+                dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
                 dialogComponentClass={[Function]}
                 enforceFocus={true}
                 id="confirmModal"

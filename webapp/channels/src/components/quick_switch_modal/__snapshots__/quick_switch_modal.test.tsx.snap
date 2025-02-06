@@ -25,6 +25,7 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
       </h2>
     </div>
   }
+  modalLocation="center"
   modalSubheaderText={
     <div
       className="channel-switcher__hint"

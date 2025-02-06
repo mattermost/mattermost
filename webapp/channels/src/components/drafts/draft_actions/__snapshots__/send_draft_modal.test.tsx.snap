@@ -25,6 +25,7 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onC
   id="genericModal"
   keyboardEscape={true}
   modalHeaderText="Send message now"
+  modalLocation="center"
   onExited={[MockFunction]}
   show={true}
   showCloseButton={true}
@@ -56,6 +57,7 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onE
   id="genericModal"
   keyboardEscape={true}
   modalHeaderText="Send message now"
+  modalLocation="center"
   onExited={
     [MockFunction] {
       "calls": Array [

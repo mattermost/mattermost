@@ -334,7 +334,10 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         }
 
         const headerTitle = (
-            <div className='UserSettingsModal__headerWrapper'>
+            <div
+                className='UserSettingsModal__headerWrapper'
+                id='accountSettingsHeader'
+            >
                 <span
                     id='accountSettingsModalLabel'
                     className='modal-header__title'

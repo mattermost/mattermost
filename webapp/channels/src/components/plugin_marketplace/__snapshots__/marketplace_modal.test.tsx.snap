@@ -4,10 +4,11 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -94,10 +95,11 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace with-web-marketplace-link"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace with-web-marketplace-link"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -185,10 +187,11 @@ exports[`components/marketplace/ should render default 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -327,10 +330,11 @@ exports[`components/marketplace/ should render with error banner 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -486,10 +490,11 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -636,10 +641,11 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"
@@ -804,10 +810,11 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
 <Modal
   animation={true}
   aria-label="App Marketplace"
+  aria-modal="true"
   autoFocus={true}
   backdrop={true}
   bsClass="modal"
-  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
+  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign marketplace-modal"
   dialogComponentClass={[Function]}
   enforceFocus={true}
   id="marketplace-modal"

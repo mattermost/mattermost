@@ -18,6 +18,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
         role="dialog"
@@ -25,7 +26,7 @@ Object {
         tabindex="-1"
       >
         <div
-          class="a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
+          class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
         >
           <div
             class="modal-content"
@@ -493,6 +494,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
         role="dialog"
@@ -500,7 +502,7 @@ Object {
         tabindex="-1"
       >
         <div
-          class="a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
+          class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
         >
           <div
             class="modal-content"
@@ -1106,6 +1108,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
         role="dialog"
@@ -1113,7 +1116,7 @@ Object {
         tabindex="-1"
       >
         <div
-          class="a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
+          class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
         >
           <div
             class="modal-content"
@@ -1464,6 +1467,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
         role="dialog"
@@ -1471,7 +1475,7 @@ Object {
         tabindex="-1"
       >
         <div
-          class="a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
+          class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
         >
           <div
             class="modal-content"
@@ -2020,6 +2024,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
         role="dialog"
@@ -2027,7 +2032,7 @@ Object {
         tabindex="-1"
       >
         <div
-          class="a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
+          class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
         >
           <div
             class="modal-content"
@@ -2576,6 +2581,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
         role="dialog"
@@ -2583,7 +2589,7 @@ Object {
         tabindex="-1"
       >
         <div
-          class="a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
+          class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign a11y__modal ChannelNotificationModal modal--overflow modal-dialog"
         >
           <div
             class="modal-content"

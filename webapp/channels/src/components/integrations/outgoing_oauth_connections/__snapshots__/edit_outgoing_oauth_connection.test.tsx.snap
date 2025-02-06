@@ -572,6 +572,7 @@ https://myothersite.com/api/v2"
                           </span>
                         </div>
                       }
+                      modalLocation="center"
                       onHide={[Function]}
                       show={false}
                       showCloseButton={true}
@@ -580,10 +581,11 @@ https://myothersite.com/api/v2"
                       <Modal
                         animation={true}
                         aria-label="confirmModalLabel"
+                        aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
                         bsClass="modal"
-                        dialogClassName="a11y__modal GenericModal GenericModal__compassDesign modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
+                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
                         dialogComponentClass={[Function]}
                         enforceFocus={true}
                         id="confirmModal"
@@ -696,6 +698,7 @@ https://myothersite.com/api/v2"
                     </span>
                   </div>
                 }
+                modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
                 show={false}
@@ -705,10 +708,11 @@ https://myothersite.com/api/v2"
                 <Modal
                   animation={true}
                   aria-label="confirmModalLabel"
+                  aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
                   bsClass="modal"
-                  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
+                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
                   dialogComponentClass={[Function]}
                   enforceFocus={true}
                   id="confirmModal"
@@ -1344,6 +1348,7 @@ https://myothersite.com/api/v2"
                           </span>
                         </div>
                       }
+                      modalLocation="center"
                       onHide={[Function]}
                       show={false}
                       showCloseButton={true}
@@ -1352,10 +1357,11 @@ https://myothersite.com/api/v2"
                       <Modal
                         animation={true}
                         aria-label="confirmModalLabel"
+                        aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
                         bsClass="modal"
-                        dialogClassName="a11y__modal GenericModal GenericModal__compassDesign modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
+                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
                         dialogComponentClass={[Function]}
                         enforceFocus={true}
                         id="confirmModal"
@@ -1468,6 +1474,7 @@ https://myothersite.com/api/v2"
                     </span>
                   </div>
                 }
+                modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
                 show={false}
@@ -1477,10 +1484,11 @@ https://myothersite.com/api/v2"
                 <Modal
                   animation={true}
                   aria-label="confirmModalLabel"
+                  aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
                   bsClass="modal"
-                  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
+                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
                   dialogComponentClass={[Function]}
                   enforceFocus={true}
                   id="confirmModal"
@@ -2115,6 +2123,7 @@ https://myothersite.com/api/v2"
                           </span>
                         </div>
                       }
+                      modalLocation="center"
                       onHide={[Function]}
                       show={false}
                       showCloseButton={true}
@@ -2123,10 +2132,11 @@ https://myothersite.com/api/v2"
                       <Modal
                         animation={true}
                         aria-label="confirmModalLabel"
+                        aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
                         bsClass="modal"
-                        dialogClassName="a11y__modal GenericModal GenericModal__compassDesign modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
+                        dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm integrations-backstage-modal a11y__modal ConfirmModal"
                         dialogComponentClass={[Function]}
                         enforceFocus={true}
                         id="confirmModal"
@@ -2239,6 +2249,7 @@ https://myothersite.com/api/v2"
                     </span>
                   </div>
                 }
+                modalLocation="center"
                 onExited={[Function]}
                 onHide={[Function]}
                 show={false}
@@ -2248,10 +2259,11 @@ https://myothersite.com/api/v2"
                 <Modal
                   animation={true}
                   aria-label="confirmModalLabel"
+                  aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
                   bsClass="modal"
-                  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
+                  dialogClassName="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-confirm  a11y__modal ConfirmModal"
                   dialogComponentClass={[Function]}
                   enforceFocus={true}
                   id="confirmModal"
