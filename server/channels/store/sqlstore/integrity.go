@@ -521,7 +521,6 @@ func checkUsersIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult
 	results <- checkUsersUserAccessTokensIntegrity(ss)
 	for _, v := range validateDMChannelPattern(ss) {
 		results <- v
-		mlog.Warn("********hitting target!***********")
 	}
 }
 
