@@ -249,12 +249,16 @@ func (w *sqlxDBWrapper) SelectCtx(ctx context.Context, dest any, query string, a
 }
 
 func (w *sqlxDBWrapper) SelectBuilder(dest any, builder Builder) error {
+	return w.SelectBuilderCtx(context.Background(), dest, builder)
+}
+
+func (w *sqlxDBWrapper) SelectBuilderCtx(ctx context.Context, dest any, builder Builder) error {
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return err
 	}
 
-	return w.Select(dest, query, args...)
+	return w.SelectCtx(ctx, dest, query, args...)
 }
 
 type sqlxTxWrapper struct {

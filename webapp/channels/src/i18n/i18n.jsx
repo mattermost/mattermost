@@ -109,7 +109,7 @@ export const languages = {
     },
     uk: {
         value: 'uk',
-        name: 'Yкраїнська (Alpha)',
+        name: 'Yкраїнська',
         order: 16,
         url: langFiles.uk,
     },

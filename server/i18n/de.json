@@ -10390,5 +10390,13 @@
   {
     "id": "model.property_value.is_valid.app_error",
     "translation": "Ungültiger Eigenschaftswert: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Deine Lizenz unterstützt keine benutzerdefinierten Profilattribute."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Es ist nicht möglich, einen Zip-Datei-Leser zu bekommen."
   }
 ]

@@ -207,9 +207,10 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		ctx.Logger().Info("Bulk export: exporting custom emojis")
 		for _, emojiPath := range emojiPaths {
 			if err := a.exportFile(ctx, outPath, emojiPath, zipWr); err != nil {
-				return err
+				ctx.Logger().Warn("Unable to export emoji", mlog.String("emoji_path", emojiPath), mlog.Err(err))
+			} else {
+				totalExportedEmojis++
 			}
-			totalExportedEmojis++
 			if totalExportedEmojis%10 == 0 {
 				ctx.Logger().Info("Bulk export: exporting emojis progress", mlog.Int("total_successfully_exported_emojis", totalExportedEmojis), mlog.Int("total_emojis_to_export", emojisLen))
 			}
@@ -236,9 +237,10 @@ func (a *App) exportAttachments(ctx request.CTX, attachments []imports.Attachmen
 	attachmentsLen := len(attachments)
 	for _, attachment := range attachments {
 		if err := a.exportFile(ctx, outPath, *attachment.Path, zipWr); err != nil {
-			return err
+			ctx.Logger().Warn("Unable to export file attachment", mlog.String("attachment_path", *attachment.Path), mlog.Err(err))
+		} else {
+			totalExportedFiles++
 		}
-		totalExportedFiles++
 		if totalExportedFiles%10 == 0 {
 			ctx.Logger().Info("Bulk export: exporting file attachments progress", mlog.Int("total_successfully_exported_files", totalExportedFiles), mlog.Int("total_files_to_export", attachmentsLen))
 		}
