@@ -6,7 +6,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
-import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {
     updateMe,
     sendVerificationEmail,
@@ -68,7 +67,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setDefaultProfileImage,
             uploadProfileImage,
             saveCustomProfileAttribute,
-            getCustomProfileAttributeFields,
             getCustomProfileAttributeValues,
         }, dispatch),
     };

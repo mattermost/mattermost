@@ -4,7 +4,6 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getCustomProfileAttributeValues} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
@@ -22,9 +21,10 @@ const ProfilePopoverCustomAttributes = ({
     const customProfileAttributeFields = useSelector((state: GlobalState) => getCustomProfileAttributes(state));
 
     useEffect(() => {
-        dispatch(getCustomProfileAttributeFields());
-        dispatch(getCustomProfileAttributeValues(userID));
-    }, [userID, dispatch]);
+        if (!userProfile.custom_profile_attributes) {
+            dispatch(getCustomProfileAttributeValues(userID));
+        }
+    });
     const attributeSections = Object.values(customProfileAttributeFields).map((attribute) => {
         if (userProfile.custom_profile_attributes) {
             const value = userProfile.custom_profile_attributes[attribute.id];

@@ -120,7 +120,6 @@ export type Props = {
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
         saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult<Record<string, string>>>;
-        getCustomProfileAttributeFields: () => Promise<ActionResult>;
         getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string>>>;
     };
     requireEmailVerification?: boolean;
@@ -166,9 +165,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        if (this.props.enableCustomProfileAttributes) {
+        if (this.props.enableCustomProfileAttributes && !this.props.user.custom_profile_attributes) {
             this.props.actions.getCustomProfileAttributeValues(this.props.user.id);
-            this.props.actions.getCustomProfileAttributeFields();
         }
     }
 
@@ -1324,7 +1322,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     createCustomAttributeSection = () => {
-        if (this.props.customProfileAttributeFields == null) {
+        if (!this.props.enableCustomProfileAttributes || this.props.customProfileAttributeFields == null) {
             return <></>;
         }
 
@@ -1527,7 +1525,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         const usernameSection = this.createUsernameSection();
         const positionSection = this.createPositionSection();
         const emailSection = this.createEmailSection();
-        const customProperiesSection = this.createCustomAttributeSection();
+        const customAttributeSection = this.createCustomAttributeSection();
         const pictureSection = this.createPictureSection();
 
         return (
@@ -1567,7 +1565,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     <div className='divider-light'/>
                     {emailSection}
                     <div className='divider-light'/>
-                    {customProperiesSection}
+                    {customAttributeSection}
                     {pictureSection}
                     <div className='divider-dark'/>
                 </div>
