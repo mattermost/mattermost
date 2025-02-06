@@ -18,6 +18,10 @@ describe('components/search_results/OmniSearchResultItem', () => {
                     EnableLinkPreviews: 'true',
                     EnableSVGs: 'true',
                     HasImageProxy: 'true',
+                    TelemetryId: 'telemetry_id',
+                },
+                license: {
+                    Cloud: 'false',
                 },
             },
             preferences: {
@@ -29,6 +33,21 @@ describe('components/search_results/OmniSearchResultItem', () => {
                     'user-1': {
                         id: 'user-1',
                         username: 'test-user',
+                    },
+                },
+            },
+            channels: {
+                channels: {},
+                myMembers: {},
+                channelsInTeam: {},
+                currentChannelId: '',
+            },
+            teams: {
+                currentTeamId: 'team1',
+                teams: {
+                    team1: {
+                        id: 'team1',
+                        name: 'team1',
                     },
                 },
             },
