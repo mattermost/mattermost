@@ -57,7 +57,7 @@ const baseStyles = {
         ...provided,
         zIndex: 99999999,
     }),
-} satisfies StylesConfig<OptionType, boolean>;
+} satisfies StylesConfig<OptionType, false>;
 
 const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T>) => (
     <div className='DropdownInput__indicatorsContainer'>
@@ -138,7 +138,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                 width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '0px',
                 left: inputRef.current ? `-${inputRef.current.offsetWidth}px` : '0px',
             }),
-        } satisfies StylesConfig<OptionType, boolean> : {});
+        } satisfies StylesConfig<OptionType, false> : {});
 
     const onInputBlur = () => setInputFocused(false);
 
