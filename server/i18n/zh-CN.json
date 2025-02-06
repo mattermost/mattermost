@@ -10380,5 +10380,9 @@
   {
     "id": "ent.message_export.job_data_conversion.app_error",
     "translation": "无法转换任务数据字段中的值。"
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "不能在已删除频道中执行命令."
   }
 ]
