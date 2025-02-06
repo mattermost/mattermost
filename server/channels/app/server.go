@@ -502,8 +502,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
-	app.initElasticsearchChannelIndexCheck()
-
 	return s, nil
 }
 

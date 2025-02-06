@@ -7,18 +7,22 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
+import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import type {PermissionsOptions} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {
-    getMySystemPermissions,
-    getMySystemRoles,
+    getMySystemPermissions as getMySystemPermissionsInternal,
+    getMySystemRoles as getMySystemRolesInternal,
     getPermissionsForRoles,
-    getRoles,
-    haveISystemPermission,
+    getRoles as getRolesInternal,
+    haveISystemPermission as haveISystemPermissionInternal,
 } from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getTeamMemberships, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-export {getMySystemPermissions, getMySystemRoles, getRoles, haveISystemPermission};
+// Re-define these types to ensure that these are typed correctly when mattermost-redux is published
+export const getMySystemPermissions: (state: GlobalState) => Set<string> = getMySystemPermissionsInternal;
+export const getMySystemRoles: (state: GlobalState) => Set<string> = getMySystemRolesInternal;
+export const getRoles: (state: GlobalState) => Record<string, Role> = getRolesInternal;
+export const haveISystemPermission: (state: GlobalState, options: PermissionsOptions) => boolean = haveISystemPermissionInternal;
 
 export const getGroupMemberships: (state: GlobalState) => Record<string, GroupMembership> = createSelector(
     'getGroupMemberships',

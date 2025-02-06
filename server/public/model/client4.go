@@ -9489,21 +9489,21 @@ func (c *Client4) DeleteCPAField(ctx context.Context, fieldID string) (*Response
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]string, *Response, error) {
+func (c *Client4) ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.userCustomProfileAttributesRoute(userID), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 
-	fields := make(map[string]string)
+	fields := make(map[string]json.RawMessage)
 	if err := json.NewDecoder(r.Body).Decode(&fields); err != nil {
 		return nil, nil, NewAppError("ListCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return fields, BuildResponse(r), nil
 }
 
-func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) (map[string]string, *Response, error) {
+func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *Response, error) {
 	buf, err := json.Marshal(values)
 	if err != nil {
 		return nil, nil, NewAppError("PatchCPAValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -9515,7 +9515,7 @@ func (c *Client4) PatchCPAValues(ctx context.Context, values map[string]string) 
 	}
 	defer closeBody(r)
 
-	var patchedValues map[string]string
+	var patchedValues map[string]json.RawMessage
 	if err := json.NewDecoder(r.Body).Decode(&patchedValues); err != nil {
 		return nil, nil, NewAppError("PatchCPAValues", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
