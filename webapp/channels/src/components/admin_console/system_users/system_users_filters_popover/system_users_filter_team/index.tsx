@@ -84,7 +84,7 @@ export function SystemUsersFilterTeam(props: Props) {
         }
     }
 
-    async function searchInList(term: string, callBack: (options: Options<{label: string; value: string}>) => void) {
+    async function searchInList(term: string) {
         try {
             const response = await dispatch(searchTeams(term, {page: 0, per_page: TEAMS_PER_PAGE} as TeamSearchOpts));
             if (response && response.data && response.data.teams && response.data.teams.length > 0) {
@@ -93,14 +93,14 @@ export function SystemUsersFilterTeam(props: Props) {
                     label: team.display_name,
                 }));
 
-                callBack(teams);
+                return teams;
             }
 
-            callBack([]);
+            return [];
         } catch (error) {
             setError(formatMessage({id: 'admin.system_users.filters.team.errorSearching', defaultMessage: 'Error while searching teams'}));
             console.error(error); // eslint-disable-line no-console
-            callBack([]);
+            return [];
         }
     }
 
@@ -143,8 +143,7 @@ export function SystemUsersFilterTeam(props: Props) {
                         placeholder={''} // Since we have a default value, we don't need placeholder
                         loadingMessage={() => formatMessage({id: 'admin.channels.filterBy.team.loading', defaultMessage: 'Loading teams'})}
                         noOptionsMessage={() => formatMessage({id: 'admin.channels.filterBy.team.noTeams', defaultMessage: 'No teams found'})}
-                        // eslint-disable-next-line no-void
-                        loadOptions={void searchInList} // disabled eslint rule because of conflict between Promise<void> and void
+                        loadOptions={searchInList}
                         defaultOptions={list}
                         value={value}
                         onChange={handleOnChange}

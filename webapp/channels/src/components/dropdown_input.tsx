@@ -28,6 +28,8 @@ type Props<T extends ValueType> = Omit<SelectProps<T>, 'onChange'> & {
     onChange: (value: T, action: ActionMeta<T>) => void;
     testId?: string;
     required?: boolean;
+    addon?: React.ReactNode;
+    textPrefix?: React.ReactNode;
 };
 
 const baseStyles = {
@@ -54,7 +56,7 @@ const baseStyles = {
         ...provided,
         zIndex: 100,
     }),
-} satisfies StylesConfig<any>; // Using `StylesConfig<any>` because this is a legacy codebase, and the types for the options have not been fully updated to match the new react-select v5 type expectations;
+} satisfies StylesConfig;
 
 const IndicatorsContainer = (props: any) => {
     return (
@@ -88,7 +90,7 @@ const Option = (props: any) => {
 };
 
 const DropdownInput = <T extends ValueType>(props: Props<T>) => {
-    const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, required, ...otherProps} = props as any; // types are not inferred correctly for `props` in react-select version v5.
+    const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, required, ...otherProps} = props; // types are not inferred correctly for `props` in react-select version v5.
 
     const [focused, setFocused] = useState(false);
 

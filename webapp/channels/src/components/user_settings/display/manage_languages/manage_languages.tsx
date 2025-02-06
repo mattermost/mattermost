@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import ReactSelect from 'react-select';
-import type {StylesConfig, OnChangeValue} from 'react-select';
+import type {StylesConfig, OnChangeValue, AriaOnFocus, AriaOnChange} from 'react-select';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -190,6 +190,14 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
             }),
         } satisfies StylesConfig<SelectedOption, boolean>;
 
+        const onFocusMessage: AriaOnFocus<SelectedOption> = ({focused}) => {
+            return `option ${focused.label} focused`;
+        };
+
+        const onChangeMessage: AriaOnChange<SelectedOption, boolean> = (option) => {
+            return `option ${option.label} selected`;
+        };
+
         const interfaceLanguageLabelAria = intl.formatMessage({id: 'user.settings.languages.dropdown.arialabel', defaultMessage: 'Dropdown selector to change the interface language'});
 
         const input = (
@@ -213,6 +221,10 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                     <ReactSelect
                         className='react-select react-select-top'
                         classNamePrefix='react-select'
+                        ariaLiveMessages={{
+                            onFocus: onFocusMessage,
+                            onChange: onChangeMessage,
+                        }}
                         id='displayLanguage'
                         menuIsOpen={this.state.openMenu}
                         menuPortalTarget={document.body}
@@ -225,6 +237,7 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                         onMenuClose={this.handleMenuClose}
                         onMenuOpen={this.handleMenuOpen}
                         aria-labelledby='changeInterfaceLanguageLabel'
+                        aria-live='assertive'
                     />
                     {serverError}
                 </div>

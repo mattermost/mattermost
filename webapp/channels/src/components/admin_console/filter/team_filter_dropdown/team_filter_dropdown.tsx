@@ -55,7 +55,7 @@ function TeamFilterDropdown(props: Props) {
         }
     }
 
-    async function searchInList(term: string, callBack: (options: Options<TeamSelectOption>) => void) {
+    async function searchInList(term: string) {
         try {
             const response = await props.searchTeams(term, {page: 0, per_page: TEAMS_PER_PAGE} as PagedTeamSearchOpts);
             if (response && response.data && response.data.teams && response.data.teams.length > 0) {
@@ -64,13 +64,13 @@ function TeamFilterDropdown(props: Props) {
                     label: team.display_name,
                 }));
 
-                callBack(teams);
+                return teams;
             }
 
-            callBack([]);
+            return [];
         } catch (error) {
             console.error(error); // eslint-disable-line no-console
-            callBack([]);
+            return [];
         }
     }
 
@@ -117,8 +117,7 @@ function TeamFilterDropdown(props: Props) {
                 placeholder={formatMessage({id: 'admin.channels.filterBy.team.placeholder', defaultMessage: 'Search and select teams'})}
                 loadingMessage={() => formatMessage({id: 'admin.channels.filterBy.team.loading', defaultMessage: 'Loading teams'})}
                 noOptionsMessage={() => formatMessage({id: 'admin.channels.filterBy.team.noTeams', defaultMessage: 'No teams found'})}
-                // eslint-disable-next-line no-void
-                loadOptions={void searchInList} // disabled eslint rule because of conflict between Promise<void> and void.
+                loadOptions={searchInList}
                 defaultOptions={list}
                 value={selectedValues}
                 onChange={handleOnChange}
