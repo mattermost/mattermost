@@ -344,7 +344,6 @@ func (s *MmctlE2ETestSuite) TestShowCommandCmdF() {
 		}
 
 		command, _, err := c.CreateCommand(context.Background(), newCmd)
-		fmt.Printf("Created command: %+v\n", command)
 		s.Require().NoError(err)
 		err = showCommandCmdF(c, &cobra.Command{}, []string{command.Id})
 		s.Require().NoError(err)
