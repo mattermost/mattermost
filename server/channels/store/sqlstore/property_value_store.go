@@ -180,6 +180,97 @@ func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue) (_ []*mode
 	return values, nil
 }
 
+func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
+	if len(values) == 0 {
+		return nil, nil
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_value_upsert_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	updatedValues := make([]*model.PropertyValue, len(values))
+	updateTime := model.GetMillis()
+	for i, value := range values {
+		value.PreSave()
+		value.UpdateAt = updateTime
+
+		if err := value.IsValid(); err != nil {
+			return nil, errors.Wrap(err, "property_value_upsert_isvalid")
+		}
+
+		valueJSON := value.Value
+		if s.IsBinaryParamEnabled() {
+			valueJSON = AppendBinaryFlag(valueJSON)
+		}
+
+		builder := s.getQueryBuilder().
+			Insert("PropertyValues").
+			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
+
+		if s.DriverName() == model.DatabaseDriverMysql {
+			builder = builder.SuffixExpr(sq.Expr(
+				"ON DUPLICATE KEY UPDATE Value = ?, UpdateAt = ?, DeleteAt = ?",
+				valueJSON,
+				value.UpdateAt,
+				0,
+			))
+
+			if _, err := transaction.ExecBuilder(builder); err != nil {
+				return nil, errors.Wrap(err, "property_value_upsert_exec")
+			}
+
+			// MySQL doesn't support RETURNING, so we need to fetch
+			// the new field to get its ID in case we hit a DUPLICATED
+			// KEY and the value.ID we have is not the right one
+			gBuilder := s.tableSelectQuery.Where(sq.Eq{
+				"GroupID":  value.GroupID,
+				"TargetID": value.TargetID,
+				"FieldID":  value.FieldID,
+				"DeleteAt": 0,
+			})
+
+			var values []*model.PropertyValue
+			if gErr := transaction.SelectBuilder(&values, gBuilder); gErr != nil {
+				return nil, errors.Wrap(gErr, "property_value_upsert_select")
+			}
+
+			if len(values) != 1 {
+				return nil, errors.New("property_value_upsert_select_length")
+			}
+
+			updatedValues[i] = values[0]
+		} else {
+			builder = builder.SuffixExpr(sq.Expr(
+				"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ? RETURNING *",
+				valueJSON,
+				value.UpdateAt,
+				0,
+			))
+
+			var values []*model.PropertyValue
+			if err := transaction.SelectBuilder(&values, builder); err != nil {
+				return nil, errors.Wrapf(err, "failed to upsert property value with id: %s", value.ID)
+			}
+
+			if len(values) != 1 {
+				return nil, errors.New("property_value_upsert_select_length")
+			}
+
+			updatedValues[i] = values[0]
+		}
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "property_value_upsert_commit")
+	}
+
+	return updatedValues, nil
+}
+
 func (s *SqlPropertyValueStore) Delete(id string) error {
 	builder := s.getQueryBuilder().
 		Update("PropertyValues").
