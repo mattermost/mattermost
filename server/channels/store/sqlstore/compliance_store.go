@@ -42,7 +42,7 @@ func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
 			"Keywords",
 			"Emails",
 		).
-		From("Compliance")
+		From("Compliances")
 
 	return &s
 }
@@ -112,7 +112,7 @@ func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error)
 		Offset(uint64(offset))
 
 	var compliances model.Compliances
-	if err := s.GetReplica().GetBuilder(&compliances, query); err != nil {
+	if err := s.GetReplica().SelectBuilder(&compliances, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find all Compliances")
 	}
 
@@ -120,12 +120,7 @@ func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error)
 }
 
 func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
-	query := s.tableSelectQuery.
-		Where(
-			sq.Eq{
-				"Id": id,
-			},
-		)
+	query := s.tableSelectQuery.Where(sq.Eq{"Id": id})
 
 	var compliance model.Compliance
 	if err := s.GetReplica().GetBuilder(&compliance, query); err != nil {
