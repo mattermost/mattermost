@@ -95,6 +95,7 @@ const (
 	WebsocketScheduledPostUpdated                     WebsocketEventType = "scheduled_post_updated"
 	WebsocketScheduledPostDeleted                     WebsocketEventType = "scheduled_post_deleted"
 	WebsocketEventUserCustomAttributeValuesUpdated    WebsocketEventType = "user_custom_attribute_values_updated"
+	WebsocketEventCustomAttributesUpdated             WebsocketEventType = "user_custom_attributes_updated"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"

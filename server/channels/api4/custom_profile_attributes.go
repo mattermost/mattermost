@@ -71,6 +71,10 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	message := model.NewWebSocketEvent(model.WebsocketEventCustomAttributesUpdated, "", "", "", nil, "")
+	message.Add("created", createdField)
+	c.App.Publish(message)
+
 	auditRec.Success()
 	auditRec.AddEventResultState(createdField)
 	auditRec.AddEventObjectType("property_field")
@@ -124,6 +128,10 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	message := model.NewWebSocketEvent(model.WebsocketEventCustomAttributesUpdated, "", "", "", nil, "")
+	message.Add("patched", patchedField)
+	c.App.Publish(message)
+
 	auditRec.Success()
 	auditRec.AddEventResultState(patchedField)
 	auditRec.AddEventObjectType("property_field")
@@ -164,6 +172,10 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventCustomAttributesUpdated, "", "", "", nil, "")
+	message.Add("deleted", c.Params.FieldId)
+	c.App.Publish(message)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(field)

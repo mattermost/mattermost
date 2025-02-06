@@ -633,6 +633,9 @@ export function handleEvent(msg) {
     case SocketEvents.USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED:
         dispatch(handleCustomAttributeValuesUpdated(msg));
         break;
+    case SocketEvents.USER_CUSTOM_ATTRIBUTES_UPDATED:
+        dispatch(handleCustomAttributesUpdated(msg));
+        break;
     default:
     }
 
@@ -1905,7 +1908,29 @@ function handleChannelBookmarkSorted(msg) {
 
 export function handleCustomAttributeValuesUpdated(msg) {
     return {
-        type: UserTypes.RECEIVED_PROFILE_CUSTOM_PROFILE_ATTRIUBUTES,
+        type: UserTypes.RECEIVED_CUSTOM_PROFILE_ATTRIBUTE_VALUES,
         data: {userID: msg.data.userID, customAttributeValues: msg.data.customAttributeValues},
     };
+}
+
+export function handleCustomAttributesUpdated(msg) {
+    if (msg.data.created) {
+        return {
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_CREATED,
+            data: msg.data.created,
+        };
+    }
+    if (msg.data.deleted) {
+        return {
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_DELETED,
+            data: msg.data.deleted,
+        };
+    }
+    if (msg.data.patched) {
+        return {
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_PATCHED,
+            data: msg.data.patched,
+        };
+    }
+    return null;
 }

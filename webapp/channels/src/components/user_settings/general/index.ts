@@ -13,6 +13,7 @@ import {
     setDefaultProfileImage,
     uploadProfileImage,
     saveCustomProfileAttribute,
+    getCustomProfileAttributeValues,
 } from 'mattermost-redux/actions/users';
 import {getConfig, getCustomProfileAttributes, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
@@ -68,6 +69,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             uploadProfileImage,
             saveCustomProfileAttribute,
             getCustomProfileAttributeFields,
+            getCustomProfileAttributeValues,
         }, dispatch),
     };
 }

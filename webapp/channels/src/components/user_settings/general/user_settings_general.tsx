@@ -121,6 +121,7 @@ export type Props = {
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
         saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult<Record<string, string>>>;
         getCustomProfileAttributeFields: () => Promise<ActionResult>;
+        getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string>>>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -166,13 +167,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     componentDidMount() {
         if (this.props.enableCustomProfileAttributes) {
-            const fetchValues = async () => {
-                const response = await Client4.getUserCustomProfileAttributesValues(this.props.user.id);
-                this.setState({customAttributeValues: response});
-            };
-
+            this.props.actions.getCustomProfileAttributeValues(this.props.user.id);
             this.props.actions.getCustomProfileAttributeFields();
-            fetchValues();
         }
     }
 
@@ -495,10 +491,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     setupInitialState(props: Props) {
         const user = props.user;
-        let cav = {};
-        if (this.state !== undefined) {
-            cav = this.state.customAttributeValues;
-        }
         return {
             username: user.username,
             firstName: user.first_name,
@@ -514,7 +506,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             sectionIsSaving: false,
             showSpinner: false,
             serverError: '',
-            customAttributeValues: cav,
+            customAttributeValues: user.custom_profile_attributes || {},
         };
     }
 
@@ -1337,7 +1329,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         }
 
         const attributeSections = Object.values(this.props.customProfileAttributeFields).map((attribute) => {
-            const attributeValue = this.state.customAttributeValues?.[attribute.id] ?? '';
             const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
@@ -1365,7 +1356,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateAttribute}
-                                value={attributeValue}
+                                value={this.state.customAttributeValues[attribute.id]}
                                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                                 autoCapitalize='off'
                                 onFocus={Utils.moveCursorToEnd}
@@ -1399,8 +1390,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
             }
             let describe: JSX.Element|string = '';
-            if (attributeValue) {
-                describe = attributeValue;
+            if (this.props.user.custom_profile_attributes?.[attribute.id]) {
+                describe = this.props.user.custom_profile_attributes![attribute.id];
             } else {
                 describe = (
                     <FormattedMessage

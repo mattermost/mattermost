@@ -476,7 +476,7 @@ export function getMe(): ActionFuncAsync<UserProfile> {
     };
 }
 
-export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync {
+export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync<Record<string, string>> {
     return async (dispatch) => {
         let data;
         try {
@@ -486,7 +486,7 @@ export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync
         }
 
         dispatch({
-            type: UserTypes.RECEIVED_PROFILE_CUSTOM_PROFILE_ATTRIUBUTES,
+            type: UserTypes.RECEIVED_CUSTOM_PROFILE_ATTRIBUTE_VALUES,
             data: {userID, customAttributeValues: data},
         });
 

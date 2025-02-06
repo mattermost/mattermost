@@ -227,7 +227,7 @@ function profiles(state: UsersState['profiles'] = {}, action: MMReduxAction) {
 
         return receiveUserProfile(state, user);
     }
-    case UserTypes.RECEIVED_PROFILE_CUSTOM_PROFILE_ATTRIUBUTES: {
+    case UserTypes.RECEIVED_CUSTOM_PROFILE_ATTRIBUTE_VALUES: {
         const {userID, customAttributeValues} = action.data;
         const existingProfile = state[userID];
         if (!existingProfile) {
