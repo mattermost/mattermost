@@ -1,0 +1,82 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {render, screen} from '@testing-library/react';
+import {IntlProvider} from 'react-intl';
+
+import OmniSearchResultItem from './omnisearch_result_item';
+
+describe('components/search_results/OmniSearchResultItem', () => {
+    const baseProps = {
+        icon: 'https://example.com/icon.png',
+        link: 'https://example.com/result',
+        title: 'Test Result',
+        subtitle: 'Test Subtitle',
+        description: 'Test Description',
+        createAt: 1234567890,
+        source: 'test_source',
+    };
+
+    const renderComponent = (props = {}) => {
+        return render(
+            <IntlProvider locale='en'>
+                <OmniSearchResultItem {...baseProps} {...props}/>
+            </IntlProvider>,
+        );
+    };
+
+    test('renders all components correctly', () => {
+        renderComponent();
+
+        // Check main elements are present
+        expect(screen.getByText('Test Result')).toBeInTheDocument();
+        expect(screen.getByText('Test Subtitle')).toBeInTheDocument();
+        expect(screen.getByText('Test Description')).toBeInTheDocument();
+        expect(screen.getByText('test_source')).toBeInTheDocument();
+
+        // Check icon
+        const icon = screen.getByRole('img');
+        expect(icon).toHaveAttribute('src', 'https://example.com/icon.png');
+
+        // Check link
+        const link = screen.getByRole('link');
+        expect(link).toHaveAttribute('href', 'https://example.com/result');
+    });
+
+    test('renders without subtitle', () => {
+        renderComponent({subtitle: ''});
+
+        expect(screen.queryByText('Test Subtitle')).not.toBeInTheDocument();
+        expect(screen.getByText('Test Result')).toBeInTheDocument();
+        expect(screen.getByText('Test Description')).toBeInTheDocument();
+    });
+
+    test('renders timestamp correctly', () => {
+        renderComponent();
+
+        // Note: The actual timestamp display will depend on the user's locale and timezone
+        // We're just checking if the Timestamp component is rendered
+        expect(screen.getByTestId('timestamp')).toBeInTheDocument();
+    });
+
+    test('renders markdown in description', () => {
+        renderComponent({
+            description: '**Bold** and *italic* text',
+        });
+
+        const boldText = screen.getByText('Bold');
+        expect(boldText).toHaveStyle('font-weight: 600');
+
+        const italicText = screen.getByText('italic');
+        expect(italicText).toHaveStyle('font-style: italic');
+    });
+
+    test('handles external link attributes', () => {
+        renderComponent();
+
+        const link = screen.getByRole('link');
+        expect(link).toHaveAttribute('rel', 'noreferrer');
+        expect(link).toHaveAttribute('target', '_blank');
+    });
+});
