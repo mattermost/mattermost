@@ -72,8 +72,10 @@ func testComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	compliances, _ := ss.Compliance().GetAll(0, 1000)
+	compliances, err := ss.Compliance().GetAll(0, 1000)
+	require.NoError(t, err)
 
+	require.Len(t, compliances, 2)
 	require.Equal(t, model.ComplianceStatusRunning, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
@@ -81,20 +83,26 @@ func testComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Compliance().Update(compliance2)
 	require.NoError(t, err)
 
-	compliances, _ = ss.Compliance().GetAll(0, 1000)
+	compliances, err = ss.Compliance().GetAll(0, 1000)
+	require.NoError(t, err)
 
+	require.Len(t, compliances, 2)
 	require.Equal(t, model.ComplianceStatusFailed, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
-	compliances, _ = ss.Compliance().GetAll(0, 1)
+	compliances, err = ss.Compliance().GetAll(0, 1)
+	require.NoError(t, err)
 
 	require.Len(t, compliances, 1)
 
-	compliances, _ = ss.Compliance().GetAll(1, 1)
+	compliances, err = ss.Compliance().GetAll(1, 1)
+	require.NoError(t, err)
 
 	require.Len(t, compliances, 1)
 
-	rc2, _ := ss.Compliance().Get(compliance2.Id)
+	rc2, err := ss.Compliance().Get(compliance2.Id)
+	require.NoError(t, err)
+
 	require.Equal(t, compliance2.Status, rc2.Status)
 }
 
