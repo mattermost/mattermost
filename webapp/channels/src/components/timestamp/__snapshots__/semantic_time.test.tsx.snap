@@ -7,6 +7,7 @@ exports[`components/timestamp/SemanticTime should support custom label 1`] = `
 >
   <time
     aria-label="A custom label"
+    data-testid="timestamp"
     dateTime="2020-06-05T10:20:30.000"
   />
 </Memo(SemanticTime)>
