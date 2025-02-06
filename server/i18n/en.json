@@ -9085,6 +9085,14 @@
     "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set."
   },
   {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Invalid client side user id: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Number of elements in ClientSideUserIds {{.CurrentLength}} is higher than maximum limit of {{.MaxLength}}."
+  },
+  {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
   },
@@ -9434,7 +9442,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Invalid Id."
+    "translation": "Invalid Id: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",

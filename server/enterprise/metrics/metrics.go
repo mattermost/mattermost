@@ -55,6 +55,8 @@ type MetricsInterfaceImpl struct {
 
 	Registry *prometheus.Registry
 
+	ClientSideUserIds map[string]bool
+
 	DbMasterConnectionsGauge prometheus.GaugeFunc
 	DbReadConnectionsGauge   prometheus.GaugeFunc
 	DbSearchConnectionsGauge prometheus.GaugeFunc
@@ -240,12 +242,18 @@ func init() {
 	})
 }
 
-// New creates a new MetricsInterface. The driver and datasoruce parameters are added during
+// New creates a new MetricsInterface. The driver and datasource parameters are added during
 // migrating configuration store to the new platform service. Once the store and license are migrated,
 // we will be able to remove server dependency and lean on platform service during initialization.
 func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterfaceImpl {
 	m := &MetricsInterfaceImpl{
 		Platform: ps,
+	}
+
+	// Initialize ClientSideUserIds map
+	m.ClientSideUserIds = make(map[string]bool)
+	for _, userId := range ps.Config().MetricsSettings.ClientSideUserIds {
+		m.ClientSideUserIds[userId] = true
 	}
 
 	m.Registry = prometheus.NewRegistry()
@@ -1195,7 +1203,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "time_to_first_byte",
 			Help:      "Duration from when a browser starts to request a page from a server until when it starts to receive data in response (seconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "user_id"},
 		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientTimeToFirstByte)
@@ -1207,7 +1215,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "time_to_last_byte",
 			Help:      "Duration from when a browser starts to request a page from a server until when it receives the last byte of the resource or immediately before the transport connection is closed, whichever comes first. (seconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "user_id"},
 		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientTimeToLastByte)
@@ -1220,7 +1228,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Duration from when a browser starts to request a page from a server until when it sets the document's readyState to interactive. (seconds)",
 			Buckets:   []float64{.1, .25, .5, 1, 2.5, 5, 7.5, 10, 12.5, 15},
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "user_id"},
 		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientTimeToDOMInteractive)
@@ -1233,7 +1241,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "Duration from when a browser starts to request a page from a server until when the splash screen ends. (seconds)",
 			Buckets:   []float64{.1, .25, .5, 1, 2.5, 5, 7.5, 10, 12.5, 15},
 		},
-		[]string{"platform", "agent", "page_type"},
+		[]string{"platform", "agent", "page_type", "user_id"},
 		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientSplashScreenEnd)
@@ -1248,7 +1256,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
 			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "user_id"},
 	)
 	m.Registry.MustRegister(m.ClientFirstContentfulPaint)
 
@@ -1262,7 +1270,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			// Extend the range of buckets for this while we get a better idea of the expected range of this metric is
 			Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 15, 20},
 		},
-		[]string{"platform", "agent", "region"},
+		[]string{"platform", "agent", "region", "user_id"},
 	)
 	m.Registry.MustRegister(m.ClientLargestContentfulPaint)
 
@@ -1273,7 +1281,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "interaction_to_next_paint",
 			Help:      "Measure of how long it takes for a user to see the effects of clicking with a mouse, tapping with a touchscreen, or pressing a key on the keyboard (seconds)",
 		},
-		[]string{"platform", "agent", "interaction"},
+		[]string{"platform", "agent", "interaction", "user_id"},
 	)
 	m.Registry.MustRegister(m.ClientInteractionToNextPaint)
 
@@ -1284,7 +1292,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "cumulative_layout_shift",
 			Help:      "Measure of how much a page's content shifts unexpectedly",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "user_id"},
 	)
 	m.Registry.MustRegister(m.ClientCumulativeLayoutShift)
 
@@ -1295,7 +1303,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "long_tasks",
 			Help:      "Counter of the number of times that the browser's main UI thread is blocked for more than 50ms by a single task",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "user_id"},
 	)
 	m.Registry.MustRegister(m.ClientLongTasks)
 
@@ -1307,7 +1315,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Help:      "The amount of time from when the browser starts loading the web app until when the web app's load event has finished (seconds)",
 			Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10, 20, 40},
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "user_id"},
 		m.Platform.Log(),
 	)
 	m.Registry.MustRegister(m.ClientPageLoadDuration)
@@ -1319,7 +1327,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "channel_switch",
 			Help:      "Duration of the time taken from when a user clicks on a channel in the LHS to when posts in that channel become visible (seconds)",
 		},
-		[]string{"platform", "agent", "fresh"},
+		[]string{"platform", "agent", "fresh", "user_id"},
 	)
 	m.Registry.MustRegister(m.ClientChannelSwitchDuration)
 
@@ -1330,7 +1338,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "team_switch",
 			Help:      "Duration of the time taken from when a user clicks on a team in the LHS to when posts in that team become visible (seconds)",
 		},
-		[]string{"platform", "agent", "fresh"},
+		[]string{"platform", "agent", "fresh", "user_id"},
 	)
 	m.Registry.MustRegister(m.ClientTeamSwitchDuration)
 
@@ -1341,7 +1349,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "rhs_load",
 			Help:      "Duration of the time taken from when a user clicks to open a thread in the RHS until when posts in that thread become visible (seconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "user_id"},
 	)
 	m.Registry.MustRegister(m.ClientRHSLoadDuration)
 
@@ -1352,7 +1360,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Name:      "global_threads_load",
 			Help:      "Duration of the time taken from when a user clicks to open Threads in the LHS until when the global threads view becomes visible (milliseconds)",
 		},
-		[]string{"platform", "agent"},
+		[]string{"platform", "agent", "user_id"},
 	)
 	m.Registry.MustRegister(m.ClientGlobalThreadsLoadDuration)
 
@@ -1995,63 +2003,81 @@ func (mi *MetricsInterfaceImpl) DecrementHTTPWebSockets(originClient string) {
 	mi.HTTPWebsocketsGauge.With(prometheus.Labels{"origin_client": originClient}).Dec()
 }
 
+func (mi *MetricsInterfaceImpl) getEffectiveUserID(userID string) string {
+	if mi.ClientSideUserIds[userID] {
+		return userID
+	}
+	return "<placeholder>"
+}
+
 func (mi *MetricsInterfaceImpl) ObserveClientTimeToFirstByte(platform, agent, userID string, elapsed float64) {
-	mi.ClientTimeToFirstByte.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientTimeToFirstByte.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}, userID).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientTimeToLastByte(platform, agent, userID string, elapsed float64) {
-	mi.ClientTimeToLastByte.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientTimeToLastByte.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}, userID).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientTimeToDomInteractive(platform, agent, userID string, elapsed float64) {
-	mi.ClientTimeToDOMInteractive.With(prometheus.Labels{"platform": platform, "agent": agent}, userID).Observe(elapsed)
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientTimeToDOMInteractive.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}, userID).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientSplashScreenEnd(platform, agent, pageType, userID string, elapsed float64) {
-	mi.ClientSplashScreenEnd.With(prometheus.Labels{"platform": platform, "agent": agent, "page_type": pageType}, userID).Observe(elapsed)
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientSplashScreenEnd.With(prometheus.Labels{"platform": platform, "agent": agent, "page_type": pageType, "user_id": effectiveUserID}, userID).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agent string, elapsed float64) {
-	mi.ClientFirstContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientFirstContentfulPaint(platform, agent, userID string, elapsed float64) {
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientFirstContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientLargestContentfulPaint(platform, agent, region string, elapsed float64) {
-	mi.ClientLargestContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "region": region}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientLargestContentfulPaint(platform, agent, region, userID string, elapsed float64) {
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientLargestContentfulPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "region": region, "user_id": effectiveUserID}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientInteractionToNextPaint(platform, agent, interaction string, elapsed float64) {
-	mi.ClientInteractionToNextPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "interaction": interaction}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientInteractionToNextPaint(platform, agent, interaction, userID string, elapsed float64) {
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientInteractionToNextPaint.With(prometheus.Labels{"platform": platform, "agent": agent, "interaction": interaction, "user_id": effectiveUserID}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientCumulativeLayoutShift(platform, agent string, elapsed float64) {
-	mi.ClientCumulativeLayoutShift.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientCumulativeLayoutShift(platform, agent, userID string, elapsed float64) {
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientCumulativeLayoutShift.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) IncrementClientLongTasks(platform, agent string, inc float64) {
-	mi.ClientLongTasks.With(prometheus.Labels{"platform": platform, "agent": agent}).Add(inc)
+func (mi *MetricsInterfaceImpl) IncrementClientLongTasks(platform, agent, userID string, inc float64) {
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientLongTasks.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}).Add(inc)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveClientPageLoadDuration(platform, agent, userID string, elapsed float64) {
-	mi.ClientPageLoadDuration.With(prometheus.Labels{
-		"platform": platform,
-		"agent":    agent,
-	}, userID).Observe(elapsed)
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientPageLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}, userID).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent, fresh string, elapsed float64) {
-	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientChannelSwitchDuration(platform, agent, fresh, userID string, elapsed float64) {
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientChannelSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh, "user_id": effectiveUserID}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent, fresh string, elapsed float64) {
-	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientTeamSwitchDuration(platform, agent, fresh, userID string, elapsed float64) {
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientTeamSwitchDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "fresh": fresh, "user_id": effectiveUserID}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent string, elapsed float64) {
-	mi.ClientRHSLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveClientRHSLoadDuration(platform, agent, userID string, elapsed float64) {
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientRHSLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}).Observe(elapsed)
 }
 
-func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent string, elapsed float64) {
-	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent}).Observe(elapsed)
+func (mi *MetricsInterfaceImpl) ObserveGlobalThreadsLoadDuration(platform, agent, userID string, elapsed float64) {
+	effectiveUserID := mi.getEffectiveUserID(userID)
+	mi.ClientGlobalThreadsLoadDuration.With(prometheus.Labels{"platform": platform, "agent": agent, "user_id": effectiveUserID}).Observe(elapsed)
 }
 
 func (mi *MetricsInterfaceImpl) ObserveDesktopCpuUsage(platform, version, process string, usage float64) {
