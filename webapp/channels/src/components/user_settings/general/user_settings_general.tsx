@@ -13,7 +13,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
 import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
-import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
@@ -1388,8 +1387,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
             }
             let describe: JSX.Element|string = '';
-            if (this.props.user.custom_profile_attributes?.[attribute.id]) {
-                describe = this.props.user.custom_profile_attributes![attribute.id];
+            const attributeValue = this.state.customAttributeValues?.[attribute.id];
+            if (attributeValue) {
+                describe = attributeValue;
             } else {
                 describe = (
                     <FormattedMessage

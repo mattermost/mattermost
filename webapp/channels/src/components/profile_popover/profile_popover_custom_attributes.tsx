@@ -53,6 +53,7 @@ const ProfilePopoverCustomAttributes = ({
         }
         return null;
     });
+
     return (
         <>{attributeSections}</>
     );
