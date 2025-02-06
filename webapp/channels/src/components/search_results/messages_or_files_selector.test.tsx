@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent, render, screen} from '@testing-library/react';
 import {shallow} from 'enzyme';
 import type {ShallowWrapper} from 'enzyme';
-
-import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
-import {Provider} from 'react-redux';
 import {IntlProvider} from 'react-intl';
+import {Provider} from 'react-redux';
 
 import MessagesOrFilesSelector from 'components/search_results/messages_or_files_selector';
 
@@ -115,7 +114,10 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         return render(
             <Provider store={store}>
                 <IntlProvider locale='en'>
-                    <MessagesOrFilesSelector {...baseProps} {...props}/>
+                    <MessagesOrFilesSelector
+                        {...baseProps}
+                        {...props}
+                    />
                 </IntlProvider>
             </Provider>,
         );
