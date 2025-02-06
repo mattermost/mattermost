@@ -18,10 +18,33 @@ import (
 
 type SqlComplianceStore struct {
 	*SqlStore
+
+	tableSelectQuery sq.SelectBuilder
 }
 
 func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
-	return &SqlComplianceStore{sqlStore}
+	s := SqlComplianceStore{
+		SqlStore: sqlStore,
+	}
+
+	s.tableSelectQuery = s.
+		getQueryBuilder().
+		Select(
+			"Id",
+			"CreateAt",
+			"UserId",
+			"Status",
+			"Count",
+			"Desc",
+			"Type",
+			"StartAt",
+			"EndAt",
+			"Keywords",
+			"Emails",
+		).
+		From("Compliance")
+
+	return &s
 }
 
 func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
@@ -83,9 +106,7 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 }
 
 func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error) {
-	query := s.getQueryBuilder().
-		Select("*").
-		From("Compliances").
+	query := s.tableSelectQuery.
 		OrderBy("CreateAt DESC").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
@@ -99,9 +120,7 @@ func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error)
 }
 
 func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
-	query := s.getQueryBuilder().
-		Select("*").
-		From("Compliances").
+	query := s.tableSelectQuery.
 		Where(
 			sq.Eq{
 				"Id": id,
