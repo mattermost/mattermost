@@ -3556,16 +3556,6 @@ func resetPasswordFailedAttempts(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if user.AuthService == model.UserAuthServiceLdap && user.FailedAttempts < *c.App.Config().LdapSettings.MaximumLoginAttempts {
-		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.ldap_max_attempts.app_error", errParams, "", http.StatusBadRequest)
-		return
-	}
-
-	if user.AuthService == "" && user.FailedAttempts < *c.App.Config().ServiceSettings.MaximumLoginAttempts {
-		c.Err = model.NewAppError("resetPasswordFailedAttempts", "api.user.reset_password_failed_attempts.email_max_attempts.app_error", errParams, "", http.StatusBadRequest)
-		return
-	}
-
 	if err := c.App.ResetPasswordFailedAttempts(c.AppContext, user); err != nil {
 		c.Err = err
 		return

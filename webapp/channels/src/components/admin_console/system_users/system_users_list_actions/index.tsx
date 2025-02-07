@@ -340,16 +340,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             return false;
         }
 
-        if (user.auth_service === Constants.LDAP_SERVICE && config.LdapSettings?.MaximumLoginAttempts !== undefined && user.failed_attempts < config.LdapSettings?.MaximumLoginAttempts) {
-            return false;
-        }
-
-        if (user.auth_service === '' && config.ServiceSettings?.MaximumLoginAttempts !== undefined && user.failed_attempts < config.ServiceSettings?.MaximumLoginAttempts) {
-            return false;
-        }
-
         return true;
-    }, [user, config.LdapSettings?.MaximumLoginAttempts, config.ServiceSettings?.MaximumLoginAttempts]);
+    }, [user]);
 
     return (
         <Menu.Container

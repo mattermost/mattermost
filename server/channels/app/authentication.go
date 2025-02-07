@@ -152,7 +152,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 	a.ch.ldapLoginAttemptsMut.Lock()
 	defer a.ch.ldapLoginAttemptsMut.Unlock()
 
-	// We need to get the latest value of the user from the database after we acquire the lock. UserID is empty for first time LDAP users.
+	// We need to get the latest value of the user from the database after we acquire the lock. user is nil for first-time LDAP users.
 	if user.Id != "" {
 		var err *model.AppError
 		user, err = a.GetUser(user.Id)
@@ -182,7 +182,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 
 	ldapUser, err := a.Ldap().DoLogin(rctx, *ldapID, password)
 	if err != nil {
-		// If this is a new ldap user we need to get the user from the database because DoLogin will have created the user
+		// If this is a new LDAP user, we need to get the user from the database because DoLogin will have created the user.
 		if user.Id == "" {
 			var getUserByAuthErr *model.AppError
 			ldapUser, getUserByAuthErr = a.GetUserByAuth(ldapID, model.UserAuthServiceLdap)
@@ -221,8 +221,10 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		return nil, err
 	}
 
-	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, 0); passErr != nil {
-		return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+	if ldapUser.FailedAttempts > 0 {
+		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, 0); passErr != nil {
+			return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+		}
 	}
 
 	// user successfully authenticated

@@ -4191,16 +4191,8 @@
     "translation": "Unable to parse the reset password token"
   },
   {
-    "id": "api.user.reset_password_failed_attempts.email_max_attempts.app_error",
-    "translation": "User has not reached the maximum number of failed password attempts."
-  },
-  {
     "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
     "translation": "User auth service must be LDAP or Email."
-  },
-  {
-    "id": "api.user.reset_password_failed_attempts.ldap_max_attempts.app_error",
-    "translation": "User has not reached the maximum number of failed password attempts."
   },
   {
     "id": "api.user.reset_password_failed_attempts.permissions.app_error",
