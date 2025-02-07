@@ -327,6 +327,12 @@ func (w *MessageExportWorker) initJobData(logger mlog.LoggerIFace, job *model.Jo
 		if previousJob.Data == nil {
 			previousJob.Data = make(map[string]string)
 		}
+
+		// Backwards compatibility for <10.5:
+		if batchStartTimestamp, prevExists := previousJob.Data["batch_start_timestamp"]; prevExists {
+			previousJob.Data[shared.JobDataBatchStartTime] = batchStartTimestamp
+		}
+
 		if _, prevExists := previousJob.Data[shared.JobDataBatchStartTime]; !prevExists {
 			exportFromTimestamp := strconv.FormatInt(*w.jobServer.Config().MessageExportSettings.ExportFromTimestamp, 10)
 			logger.Info("Worker: Previously successful job lacks job data, falling back to configured MessageExportSettings.ExportFromTimestamp", mlog.String("export_from_timestamp", exportFromTimestamp))
