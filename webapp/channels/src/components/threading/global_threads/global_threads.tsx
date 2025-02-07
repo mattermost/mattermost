@@ -27,6 +27,7 @@ import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 import {useGlobalState} from 'stores/hooks';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import ChatIllustration from 'components/common/svg_images_components/chat_illustration';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 
@@ -39,7 +40,6 @@ import {LhsItemType, LhsPage} from 'types/store/lhs';
 import ThreadList, {ThreadFilter, FILTER_STORAGE_KEY} from './thread_list';
 import ThreadPane from './thread_pane';
 
-import ChatIllustration from '../common/chat_illustration';
 import {useThreadRouting} from '../hooks';
 import ThreadViewer from '../thread_viewer';
 
