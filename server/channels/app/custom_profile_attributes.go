@@ -161,34 +161,16 @@ func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppEr
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	var allValues []*model.PropertyValue
-	cursor := model.PropertyValueSearchCursor{}
-	for {
-		var err error
-		opts := model.PropertyValueSearchOpts{
-			GroupID:        groupID,
-			TargetID:       userID,
-			Cursor:         cursor,
-			PerPage:        CustomProfileAttributesValuesPerPage,
-			IncludeDeleted: false,
-		}
-		values, err := a.Srv().propertyService.SearchPropertyValues(opts)
-		if err != nil {
-			return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-
-		allValues = append(allValues, values...)
-
-		if len(values) < CustomProfileAttributesValuesPerPage {
-			break
-		}
-
-		lastValue := values[len(values)-1]
-		cursor.CreateAt = lastValue.CreateAt
-		cursor.PropertyValueID = lastValue.ID
+	values, err := a.Srv().propertyService.SearchPropertyValues(model.PropertyValueSearchOpts{
+		GroupID:  groupID,
+		TargetID: userID,
+		PerPage:  CustomProfileAttributesValuesPerPage,
+	})
+	if err != nil {
+		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return allValues, nil
+	return values, nil
 }
 
 func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError) {
