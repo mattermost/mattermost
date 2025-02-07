@@ -7,7 +7,7 @@
     .GenericModal__wrapper {
         display: flex;
         overflow: hidden;
-        max-height: calc(100vh - 160px);
+        max-height: 90vh;
         flex-direction: column;
         border: var(--border-default);
         border-radius: var(--radius-l);
@@ -67,7 +67,7 @@
 
     @media screen and (max-height: 900px) and (min-width: 768px) {
         .modal-content {
-            max-height: calc(100vh - 160px);
+            max-height: 90vh;
         }
     }
 

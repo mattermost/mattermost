@@ -213,13 +213,14 @@ export class GenericModal extends React.PureComponent<Props, State> {
         };
 
         const modalLocationClass = locationClassMapping[this.props.modalLocation ?? 'center'];
+        const ariaLabeledBy = this.props.ariaLabeledBy || 'genericModalLabel';
 
         return (
             <Modal
                 id={this.props.id}
                 role='none'
                 aria-label={this.props.ariaLabel}
-                aria-labelledby={this.props.ariaLabeledBy}
+                aria-labelledby={ariaLabeledBy}
                 aria-modal='true'
                 dialogClassName={classNames(
                     modalLocationClass,
