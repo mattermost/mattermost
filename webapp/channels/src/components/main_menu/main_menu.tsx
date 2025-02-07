@@ -33,7 +33,7 @@ import {makeUrlSafe} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 
 import type {ModalData} from 'types/actions';
-import type {PluginComponent} from 'types/store/plugins';
+import type {MainMenuAction} from 'types/store/plugins';
 
 import LearnAboutTeamsLink from './learn_about_teams_link';
 import './main_menu.scss';
@@ -56,7 +56,7 @@ export type Props = {
     helpLink?: string;
     reportAProblemLink?: string;
     moreTeamsToJoin: boolean;
-    pluginMenuItems?: PluginComponent[];
+    pluginMenuItems?: MainMenuAction[];
     isMentionSearch?: boolean;
     teamIsGroupConstrained: boolean;
     isLicensedForLDAPGroups?: boolean;

@@ -121,6 +121,7 @@ function PostPriorityPickerOverlay({
                                 zIndex: 3,
                             }}
                             {...getPickerFloatingProps()}
+                            aria-labelledby='messagePriority-heading'
                         >
                             <PostPriorityPicker
                                 settings={settings}

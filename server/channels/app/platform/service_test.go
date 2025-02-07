@@ -7,11 +7,13 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -230,4 +232,21 @@ func TestSetTelemetryId(t *testing.T) {
 		clientConfig = th.Service.LimitedClientConfig()
 		require.Equal(t, clientConfig["DiagnosticId"], id)
 	})
+}
+
+func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	databaseType, schemaVersion, err := th.Service.DatabaseTypeAndSchemaVersion()
+	require.NoError(t, err)
+	if *th.Service.Config().SqlSettings.DriverName == model.DatabaseDriverPostgres {
+		assert.Equal(t, "postgres", databaseType)
+	} else {
+		assert.Equal(t, "mysql", databaseType)
+	}
+
+	// It's hard to check wheather the schema version is correct or not.
+	// So, we just check if it's greater than 1.
+	assert.GreaterOrEqual(t, schemaVersion, strconv.Itoa(1))
 }

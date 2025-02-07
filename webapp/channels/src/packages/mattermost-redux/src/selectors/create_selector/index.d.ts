@@ -5,8 +5,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export as namespace Reselect;
-
 export type Selector<S, R> = (state: S) => R;
 
 export type OutputSelector<S, R, C> = Selector<S, R> & {

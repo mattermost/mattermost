@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -456,13 +457,13 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 	}{
 		{
 			driver: model.DatabaseDriverPostgres,
-			ver:    "100001",
+			ver:    "110001",
 			ok:     false,
 			err:    "",
 		},
 		{
 			driver: model.DatabaseDriverPostgres,
-			ver:    "110001",
+			ver:    "130001",
 			ok:     true,
 			err:    "",
 		},
@@ -521,7 +522,7 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 			store.settings = mySettings
 		}
 		ok, err := store.ensureMinimumDBVersion(tc.ver)
-		assert.Equal(t, tc.ok, ok)
+		assert.Equal(t, tc.ok, ok, "driver: %s, version: %s", tc.driver, tc.ver)
 		if tc.err != "" {
 			assert.Contains(t, err.Error(), tc.err)
 		}
@@ -974,6 +975,43 @@ func TestGetAppliedMigrations(t *testing.T) {
 			migrations, err := store.GetAppliedMigrations()
 			require.NoError(t, err)
 			require.ElementsMatch(t, migrationsFromFiles, migrations)
+		})
+	}
+}
+
+func TestSkipMigrationsOption(t *testing.T) {
+	testDrivers := []string{
+		model.DatabaseDriverPostgres,
+		model.DatabaseDriverMysql,
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	for _, d := range testDrivers {
+		driver := d
+		t.Run("Should not apply migrations when skipMigrations=true for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings, err := makeSqlSettings(driver)
+			if err != nil {
+				t.Skip(err)
+			}
+
+			store, err := New(*settings, logger, nil, SkipMigrations())
+			require.NoError(t, err)
+
+			_, err = store.GetDBSchemaVersion()
+			assert.Error(t, err)
+
+			// Unfortunately there's no error for table doesn't exist, but we know it won't be ErrNoRows:
+			assert.True(t, !errors.Is(err, sql.ErrNoRows))
+
+			// And we know what each db will return:
+			if driver == model.DatabaseDriverPostgres {
+				assert.Contains(t, err.Error(), "pq: relation \"db_migrations\" does not exist")
+			} else {
+				// Mysql includes the random db name, so test the end:
+				assert.Contains(t, err.Error(), ".db_migrations' doesn't exist")
+			}
 		})
 	}
 }

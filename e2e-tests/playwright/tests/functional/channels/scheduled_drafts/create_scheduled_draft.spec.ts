@@ -1,28 +1,29 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import {expect, Page} from '@playwright/test';
 import {test} from '@e2e-support/test_fixture';
 import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 import {duration, wait} from '@e2e-support/util';
 
-test.fixme('MM-T5643_1 should create a scheduled message from a channel', async ({pw, pages}) => {
-    test.setTimeout(120000);
+test('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
+    test.setTimeout(duration.four_min);
 
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
-    const {page} = await pw.testBrowser.login(user);
-    const channelPage = new pages.ChannelsPage(page);
-    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+    const {user} = await pw.initSetup();
+    const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    await setupChannelPage(channelPage, draftMessage);
-    await scheduleMessage(channelPage);
+    await setupChannelPage(channelsPage, draftMessage);
+    await scheduleMessage(channelsPage);
 
-    await channelPage.centerView.verifyscheduledDraftChannelInfo();
+    await channelsPage.centerView.verifyscheduledDraftChannelInfo();
 
-    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
+    const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
 
-    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
+    await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
@@ -31,37 +32,33 @@ test.fixme('MM-T5643_1 should create a scheduled message from a channel', async 
     await goBackToChannelAndWaitForMessageToArrive(page);
 
     // * Verify the message has been sent and there's no more scheduled messages
-    await expect(channelPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
-
-    await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
+    await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
+    await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
+    await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
+    await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
 
-test.fixme('MM-T5643_6 should create a scheduled message under a thread post ', async ({pw, pages}) => {
-    test.setTimeout(120000);
-
+test('MM-T5643_6 should create a scheduled message under a thread post ', async ({pw}) => {
     const draftMessage = 'Scheduled Threaded Message';
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
-    const {page} = await pw.testBrowser.login(user);
+    const {channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
     // # Visit default channel page
-    const channelPage = new pages.ChannelsPage(page);
-    await channelPage.goto();
-    await channelPage.toBeVisible();
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
 
-    await channelPage.centerView.postCreate.postMessage('Root Message');
+    await channelsPage.centerView.postCreate.postMessage('Root Message');
 
     // # Start a thread by clicking on reply menuitem from post options menu
-    const post = await channelPage.centerView.getLastPost();
+    const post = await channelsPage.centerView.getLastPost();
     await replyToLastPost(post);
 
-    const sidebarRight = channelPage.sidebarRight;
+    const sidebarRight = channelsPage.sidebarRight;
     await sidebarRight.toBeVisible();
 
     // # Post a message in the thread
@@ -74,19 +71,18 @@ test.fixme('MM-T5643_6 should create a scheduled message under a thread post ', 
     await sidebarRight.postCreate.scheduleDraftMessageButton.isVisible();
     await sidebarRight.postCreate.scheduleDraftMessageButton.click();
 
-    await scheduleMessage(channelPage);
+    await scheduleMessage(channelsPage);
 
-    await sidebarRight.scheduledDraftChannelInfo.isVisible();
+    await sidebarRight.postBoxIndicator.isVisible();
     const messageLocator = sidebarRight.scheduledDraftChannelInfoMessage.first();
     await expect(messageLocator).toContainText('Message scheduled for');
 
     // Save the time displayed in the thread
-    const scheduledDraftThreadedPanelInfo = await sidebarRight.scheduledDraftChannelInfo.innerText();
-    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+    const scheduledDraftThreadedPanelInfo = await sidebarRight.postBoxIndicator.innerText();
 
-    await channelPage.sidebarRight.clickOnSeeAllscheduledDrafts();
+    await channelsPage.sidebarRight.clickOnSeeAllscheduledDrafts();
     const scheduledDraftPageInfo = await scheduledDraftPage.scheduledDraftPageInfo.innerHTML();
-    await channelPage.sidebarLeft.assertscheduledDraftCountLHS('1');
+    await channelsPage.sidebarLeft.assertscheduledDraftCountLHS('1');
 
     await scheduledDraftPage.toBeVisible();
     await scheduledDraftPage.assertBadgeCountOnTab('1');
@@ -98,69 +94,60 @@ test.fixme('MM-T5643_6 should create a scheduled message under a thread post ', 
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
-    await goBackToChannelAndWaitForMessageToArrive(page);
+    await scheduledDraftPage.sendScheduledMessage(draftMessage);
 
-    await replyToLastPost(post);
+    await sidebarRight.toBeVisible();
+    (await sidebarRight.getLastPost()).toContainText(draftMessage);
 
-    // * Verify the message has been sent and there's no more scheduled messages
-    await expect(channelPage.sidebarRight.scheduledDraftChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-
-    const lastPost = channelPage.sidebarRight.rhsPostBody.last();
-    await expect(lastPost).toHaveText(draftMessage);
-    await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
-
-    await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
+    await expect(channelsPage.sidebarRight.scheduledDraftChannelInfoMessage).not.toBeVisible();
+    await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
+    await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
 
-test.fixme('MM-T5644 should rechedule a scheduled message', async ({pw, pages}) => {
+test('MM-T5644 should reschedule a scheduled message', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
     const {user} = await pw.initSetup();
-    const {page} = await pw.testBrowser.login(user);
-    const channelPage = new pages.ChannelsPage(page);
-    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+    const {channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    await setupChannelPage(channelPage, draftMessage);
-    await scheduleMessage(channelPage);
+    await setupChannelPage(channelsPage, draftMessage);
+    await scheduleMessage(channelsPage);
 
     // * Verify the Initial Date and time of scheduled Draft
-    await channelPage.centerView.verifyscheduledDraftChannelInfo();
-    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
-    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
+    await channelsPage.centerView.verifyscheduledDraftChannelInfo();
+    const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
+    await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
     await scheduledDraftPage.openRescheduleModal(draftMessage);
 
     // # Reschedule it to 2 days from today
-    await channelPage.scheduledDraftModal.selectDay(2);
-    await channelPage.scheduledDraftModal.confirm();
+    await channelsPage.scheduledDraftModal.selectDay(2);
+    await channelsPage.scheduledDraftModal.confirm();
 
     // # Note the new Scheduled time
     const scheduledDraftPageInfo = await scheduledDraftPage.getTimeStampOfMessage(draftMessage);
 
     // # Go to Channel
-    await channelPage.goto();
+    await channelsPage.goto();
 
     // * Verify the New Time reflecting in the channel
-    const rescheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
+    const rescheduledDraftChannelInfo = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
     await compareMessageTimestamps(rescheduledDraftChannelInfo, scheduledDraftPageInfo, scheduledDraftPage);
 });
 
-test.fixme('MM-T5645 should delete a scheduled message', async ({pw, pages}) => {
+test('MM-T5645 should delete a scheduled message', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
     const {user} = await pw.initSetup();
-    const {page} = await pw.testBrowser.login(user);
-    const channelPage = new pages.ChannelsPage(page);
-    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+    const {channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    await setupChannelPage(channelPage, draftMessage);
-    await scheduleMessage(channelPage);
-    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
+    await setupChannelPage(channelsPage, draftMessage);
+    await scheduleMessage(channelsPage);
+    const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
 
-    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
+    await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
     await scheduledDraftPage.deleteScheduledMessage(draftMessage);
 
@@ -168,34 +155,31 @@ test.fixme('MM-T5645 should delete a scheduled message', async ({pw, pages}) => 
     await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
 });
 
-test.fixme('MM-T5643_9 should send a scheduled message immediately', async ({pw, pages}) => {
+test('MM-T5643_9 should send a scheduled message immediately', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
     const {user} = await pw.initSetup();
-    const {page} = await pw.testBrowser.login(user);
-    const channelPage = new pages.ChannelsPage(page);
-    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+    const {channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    await setupChannelPage(channelPage, draftMessage);
-    await scheduleMessage(channelPage);
-    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
+    await setupChannelPage(channelsPage, draftMessage);
+    await scheduleMessage(channelsPage);
+    const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
 
-    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
+    await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
     await scheduledDraftPage.sendScheduledMessage(draftMessage);
+    await wait(duration.two_sec);
 
     await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
 
     // Verify message has arrived
-    await expect(channelPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
+    await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
+    await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
+    await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
 });
 
-test.fixme('MM-T5643_3 should create a scheduled message from a DM', async ({pw, pages}) => {
-    test.setTimeout(120000);
-
+test('MM-T5643_3 should create a scheduled message from a DM', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
@@ -203,88 +187,77 @@ test.fixme('MM-T5643_3 should create a scheduled message from a DM', async ({pw,
     const {user, team} = await pw.initSetup();
     const {user: user2} = await pw.initSetup();
 
-    const {page} = await pw.testBrowser.login(user);
-    const channelPage = new pages.ChannelsPage(page);
-    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+    const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    await setupChannelPage(channelPage, draftMessage, team.name, `@${user2.username}`);
-    await scheduleMessage(channelPage);
+    await setupChannelPage(channelsPage, draftMessage, team.name, `@${user2.username}`);
+    await scheduleMessage(channelsPage);
 
-    await channelPage.centerView.verifyscheduledDraftChannelInfo();
+    await channelsPage.centerView.verifyscheduledDraftChannelInfo();
 
-    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
+    const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
 
-    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
+    await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
-    // # Go back and wait for message to arrive
-    await goBackToChannelAndWaitForMessageToArrive(page);
+    await scheduledDraftPage.sendScheduledMessage(draftMessage);
+    await page.waitForSelector(channelsPage.centerView.scheduledDraftChannelInfoMessageLocator, {state: 'hidden'});
 
     // * Verify the message has been sent and there's no more scheduled messages
-    await expect(channelPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
+    await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
+    await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
+    await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
 
-    await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
+    await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
 
-test('MM-T5648 should create a draft and then schedule it', async ({pw, pages}) => {
-    test.setTimeout(120000);
-
+test('MM-T5648 should create a draft and then schedule it', async ({pw}) => {
     const draftMessage = 'Draft to be Scheduled';
     await pw.skipIfNoLicense();
 
     const {user, team} = await pw.initSetup();
-    const {page} = await pw.testBrowser.login(user);
-    const channelPage = new pages.ChannelsPage(page);
+    const {channelsPage, draftPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    // await setupChannelPage(channelPage, draftMessage);
-    await channelPage.goto();
-    await channelPage.toBeVisible();
-    await channelPage.centerView.postCreate.writeMessage(draftMessage);
+    // await setupChannelPage(channelsPage, draftMessage);
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
+    await channelsPage.centerView.postCreate.writeMessage(draftMessage);
 
     // go to drafts page
-    const draftsPage = new pages.DraftPage(page);
-    await draftsPage.goTo(team.name);
-    await draftsPage.toBeVisible();
-    await draftsPage.assertBadgeCountOnTab('1');
-    await draftsPage.assertDraftBody(draftMessage);
-    await draftsPage.verifyScheduleIcon(draftMessage);
-    await draftsPage.openScheduleModal(draftMessage);
+    await draftPage.goTo(team.name);
+    await draftPage.toBeVisible();
+    await draftPage.assertBadgeCountOnTab('1');
+    await draftPage.assertDraftBody(draftMessage);
+    await draftPage.verifyScheduleIcon(draftMessage);
+    await draftPage.openScheduleModal(draftMessage);
 
     // # Reschedule it to 2 days from today
-    await channelPage.scheduledDraftModal.selectDay(2);
-    await channelPage.scheduledDraftModal.confirm();
+    await channelsPage.scheduledDraftModal.selectDay(2);
+    await channelsPage.scheduledDraftModal.confirm();
 
-    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
     await scheduledDraftPage.goTo(team.name);
     await scheduledDraftPage.toBeVisible();
     await scheduledDraftPage.assertBadgeCountOnTab('1');
     await scheduledDraftPage.assertscheduledDraftBody(draftMessage);
 });
 
-test.fixme('MM-T5644 should edit scheduled message', async ({pw, pages}) => {
-    test.setTimeout(120000);
-
+test('MM-T5644 should edit scheduled message', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
-    const {page} = await pw.testBrowser.login(user);
-    const channelPage = new pages.ChannelsPage(page);
-    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+    const {user} = await pw.initSetup();
+    const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    await setupChannelPage(channelPage, draftMessage);
-    await scheduleMessage(channelPage);
+    await setupChannelPage(channelsPage, draftMessage);
+    await scheduleMessage(channelsPage);
 
-    await channelPage.centerView.verifyscheduledDraftChannelInfo();
+    await channelsPage.centerView.verifyscheduledDraftChannelInfo();
 
-    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
+    const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
 
-    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
+    await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
@@ -292,71 +265,55 @@ test.fixme('MM-T5644 should edit scheduled message', async ({pw, pages}) => {
     const updatedText = 'updated text';
     await scheduledDraftPage.editText(updatedText);
 
-    // # Go back and wait for message to arrive
-    await goBackToChannelAndWaitForMessageToArrive(page);
+    await scheduledDraftPage.sendScheduledMessage(updatedText);
 
     // * Verify the message has been sent and there's no more scheduled messages
-    await expect(channelPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
-    await expect(channelPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelPage.getLastPost()).toHaveText(draftMessage);
+    await page.waitForSelector(channelsPage.centerView.scheduledDraftChannelInfoMessageLocator, {state: 'hidden'});
+    await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
+    await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
+    await expect(await channelsPage.getLastPost()).toHaveText(updatedText);
 
-    await verifyNoscheduledDraftsPending(channelPage, team, scheduledDraftPage, draftMessage);
+    await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
 
-test.fixme('MM-T5650 should copy scheduled message', async ({pw, pages, browserName}) => {
-    test.setTimeout(120000);
-
+test('MM-T5650 should copy scheduled message', async ({pw, browserName}) => {
     // Skip this test in Firefox clipboard permissions are not supported
     test.skip(browserName === 'firefox', 'Test not supported in Firefox');
 
-    const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
+    const draftMessage = 'Scheduled Draft';
+
     const {user} = await pw.initSetup();
-    const {page, context} = await pw.testBrowser.login(user);
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
-    const channelPage = new pages.ChannelsPage(page);
-    const scheduledDraftPage = new pages.ScheduledDraftPage(page);
+    await setupChannelPage(channelsPage, draftMessage);
+    await scheduleMessage(channelsPage);
 
-    await setupChannelPage(channelPage, draftMessage);
-    await scheduleMessage(channelPage);
+    await channelsPage.centerView.verifyscheduledDraftChannelInfo();
 
-    await channelPage.centerView.verifyscheduledDraftChannelInfo();
+    const postBoxIndicator = await channelsPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
 
-    const scheduledDraftChannelInfo = await channelPage.centerView.scheduledDraftChannelInfoMessageText.innerText();
-
-    await verifyscheduledDrafts(channelPage, pages, draftMessage, scheduledDraftChannelInfo);
+    await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
     await scheduledDraftPage.copyScheduledMessage(draftMessage);
 
     await page.goBack();
 
-    await channelPage.centerView.postCreate.input.focus();
+    await channelsPage.centerView.postCreate.input.focus();
 
-    await page.keyboard.down('Meta');
+    await page.keyboard.down('ControlOrMeta');
     await page.keyboard.press('V');
-    await page.keyboard.up('Meta');
+    await page.keyboard.up('ControlOrMeta');
 
     // * Assert the message typed is same as the copied message
-    await expect(channelPage.centerView.postCreate.input).toHaveText(draftMessage);
+    await expect(channelsPage.centerView.postCreate.input).toHaveText(draftMessage);
 });
-
-async function verifyNoscheduledDraftsPending(
-    channelPage: ChannelsPage,
-    team: any,
-    scheduledDraftPage: ScheduledDraftPage,
-    draftMessage: string,
-): Promise<void> {
-    await channelPage.goto(team.name, 'scheduled_posts');
-    await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
-    await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
-}
 
 async function goBackToChannelAndWaitForMessageToArrive(page: Page): Promise<void> {
     await page.goBack();
-    await wait(duration.half_min);
+    await wait(duration.two_min);
     await page.reload();
 }
 
@@ -367,16 +324,16 @@ async function replyToLastPost(post: any): Promise<void> {
 }
 
 async function setupChannelPage(
-    channelPage: ChannelsPage,
+    channelsPage: ChannelsPage,
     draftMessage: string,
     teamName?: string,
     channelName?: string,
 ): Promise<void> {
-    await channelPage.goto(teamName, channelName);
-    await channelPage.toBeVisible();
+    await channelsPage.goto(teamName, channelName);
+    await channelsPage.toBeVisible();
 
-    await channelPage.centerView.postCreate.writeMessage(draftMessage);
-    await channelPage.centerView.postCreate.clickOnScheduleDraftDropdownButton();
+    await channelsPage.centerView.postCreate.writeMessage(draftMessage);
+    await channelsPage.centerView.postCreate.clickOnScheduleDraftDropdownButton();
 }
 
 /**
@@ -395,21 +352,19 @@ async function scheduleMessage(pageObject: ChannelsPage): Promise<void> {
 /**
  * Extracts and verifies the scheduled message on the scheduled page and in the channel.
  */
-async function verifyscheduledDrafts(
-    channelPage: ChannelsPage,
-    pages: any,
+async function verifyScheduledDraft(
+    channelsPage: ChannelsPage,
+    scheduledDraftPage: ScheduledDraftPage,
     draftMessage: string,
-    scheduledDraftChannelInfo: string,
+    postBoxIndicator: string,
 ): Promise<void> {
-    const scheduledDraftPage = new pages.ScheduledDraftPage(channelPage.page);
-
-    await verifyscheduledDraftCount(channelPage, '1');
+    await verifyscheduledDraftCount(channelsPage, '1');
     await scheduledDraftPage.toBeVisible();
     await scheduledDraftPage.assertBadgeCountOnTab('1');
     await scheduledDraftPage.assertscheduledDraftBody(draftMessage);
 
     const scheduledDraftPageInfo = await scheduledDraftPage.getTimeStampOfMessage(draftMessage);
-    await compareMessageTimestamps(scheduledDraftChannelInfo, scheduledDraftPageInfo, scheduledDraftPage);
+    await compareMessageTimestamps(postBoxIndicator, scheduledDraftPageInfo, scheduledDraftPage);
 }
 
 /**

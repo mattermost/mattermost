@@ -3000,60 +3000,8 @@
     "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo a menos que ReadOnlyConfig estiver desativado no arquivo de configurações."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Formato de saída {{.ExportType}} desconhecido"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Não é possível copiar o anexo para um arquivo zip."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Não é possível adicionar o anexo à exportação CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Não é possível criar o arquivo temporário de exportação CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Não é possível adicionar cabeçalho à exportação CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Não é possível adicionar arquivo de metadados ao arquivo zip."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Não é possível converter metadados para json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Não é possível exportar uma publicação."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Não é possível criar o arquivo de exportação zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "O arquivo enviado foi removido da exportação do Global Relay porque era muito grande para ser enviado."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Não é possível abrir o arquivo temporário de exportação."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Não é possível reler o arquivo de exportação temporário do Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funcionalidade Conformidade desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Não é possível carregar os modelos de exportação. Por favor tente novamente."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3065,31 +3013,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Agregador do Elastisearch falhou para criar os índices"
+    "translation": "{{.Backend}} O worker do agregador não conseguiu criar o trabalho de indexação"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Agregador do Elastisearch falhou para apagar os índices"
+    "translation": "{{.Backend}} O worker do agregador não conseguiu excluir os índices"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Agregador do Elastisearch falhou para buscar os índices"
+    "translation": "{{.Backend}} O worker do agregador não conseguiu obter os índices"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Agregador do Elastisearch falhou devido a falha do job de indexação"
+    "translation": "{{.Backend}} O worker agregador falhou devido à falha do trabalho de indexação"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Configuração do Cliente de ElasticSearch Falhou"
+    "translation": "Falha na configuração do Cliente {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Não foi possível remover o índice do ElasticSearch"
+    "translation": "Falha ao excluir o índice {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Não foi possível obter os índices do ElasticSearch"
+    "translation": "Falha ao obter os índices {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3114,10 +3062,6 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "{{.Backend}} não está iniciado"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Não foi possível deletar o ElasticSearch index"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3234,58 +3178,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "erro ao obter os grupos para o usuário"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Não é possível adicionar o anexo à exportação do Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Não é possível fechar o arquivo zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Não é possível criar o arquivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Não é possível gerar dados do arquivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Não foi possível entregar o email para Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Não foi possível definir o Remetente do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Não foi possível definir a mensagem do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Não foi possível escrever a mensagem de email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Não foi possível ler a informação do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Não foi possível definir o Destinatário do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Não foi possível obter a informação do arquivo temporário de exportação."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Não foi possível obter um remetente de email do arquivo temporário."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Não foi possível abrir o arquivo temporário de exportação."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3709,27 +3601,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays a configuração deve ser um número maior ou igual a 1."
+    "translation": "A configuração Search AggregatePostsAfterDays deve ser um número maior ou igual a 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "A ElasticSearch ConnectionUrl deve ser fornecida quando ElasticSearch indexing está ativado."
+    "translation": "A configuração Search ConnectionUrl deve ser fornecida quando a indexação estiver ativada."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "O opção ElasticSearch IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro"
+    "translation": "O opção Search IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size deve ser pelo menos 1."
+    "translation": "O Tamanho do Lote de Indexação do Search Live deve ser de pelo menos 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime a configuração deve ser uma hora no formato \"hh:mm\"."
+    "translation": "A configuração Search PostsAggregatorJobStartTime deve ser uma hora no formato \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "O tempo limite de Requisição Elasticsearch deve ser pelo menos 1 segundo."
+    "translation": "O tempo limite da solicitação de pesquisa deve ser de pelo menos 1 segundo."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4885,7 +4777,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "A configuração Elasticsearch EnableIndexing deve ser definida como verdadeiro quando Elasticsearch EnableAutocomplete estiver definido como verdadeiro"
+    "translation": "A configuração Search EnableIndexing deve ser definida como verdadeiro quando Elasticsearch EnableAutocomplete estiver definido como verdadeiro"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4961,7 +4853,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "{{.Backend}} A pesquisa está desativada neste servidor"
+    "translation": "A pesquisa {{.Backend}} está desativada neste servidor"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -4989,23 +4881,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Falha ao criar modelo Elasticsearch para usuários"
+    "translation": "Falha ao criar o modelo {{.Backend}} para os usuários"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Falha ao criar modelo Elasticsearch para publicações"
+    "translation": "Falha ao criar o modelo {{.Backend}} para publicações"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Falha ao criar modelo Elasticsearch para canais"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Não é possível criar o arquivo de aviso."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Não é possível criar o arquivo zip"
+    "translation": "Falha ao criar o modelo {{.Backend}} para Canais"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5924,10 +5808,6 @@
     "translation": "Não é possível excluir o token."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Falha ao obter usuários no canal durante o período de tempo especificado."
-  },
-  {
     "id": "app.command.listteamcommands.internal_error",
     "translation": "Não foi possível obter os comandos."
   },
@@ -6406,10 +6286,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " anexou um arquivo."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Não foi possível converter a exportação para XML."
   },
   {
     "id": "app.job.update.app_error",
@@ -7008,18 +6884,6 @@
     "translation": "O comando /{{.Command}} travou o plug-in {{.PluginId}}. Entre em contato com o administrador do sistema"
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Falha ao obter informações do arquivo para uma publicação."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Falha ao obter informações do arquivo para uma publicação."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Falha ao obter informações do arquivo para uma publicação."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Nenhum usuário LDAP encontrado, verifique seu filtro de usuário e certificados."
   },
@@ -7508,10 +7372,6 @@
     "translation": "Erro"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Não é possível conectar ao servidor smtp"
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Falha ao decodificar os resultados da pesquisa"
   },
@@ -7521,7 +7381,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "{{.Backend}} A pesquisa de arquivos está desativada neste servidor"
+    "translation": "A pesquisa de arquivos via {{.Backend}} está desativada neste servidor"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -7545,19 +7405,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Falha ao criar modelo Elasticsearch para arquivos"
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Não foi possível gravar o arquivo de retransmissão global."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Não foi possível gravar o arquivo csv."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Não foi possível gravar o arquivo de exportação."
+    "translation": "Falha ao criar o modelo {{.Backend}} para arquivos"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -9141,7 +8989,7 @@
   },
   {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
-    "translation": "Não foi possível atualizar os dados de notificação dos membros do canal."
+    "translation": "Não foi possível atualizar as props de notificação dos membros do canal."
   },
   {
     "id": "app.notification.body.dm.subTitle",
@@ -9373,7 +9221,7 @@
   },
   {
     "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
-    "translation": "Não foi possível atualizar o membro do canal, o limite de tamanho dos dados de notificação foi excedido."
+    "translation": "Não foi possível atualizar o membro do canal, o limite de tamanho das propriedades de notificação foi excedido."
   },
   {
     "id": "app.eport.generate_presigned_url.driver.app_error",
@@ -9876,14 +9724,6 @@
     "translation": "O SAML não pôde carregar o Certificado Público do Provedor de Identidade com sucesso, entre em contato com o administrador do sistema."
   },
   {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Não foi possível fechar o arquivo zip"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Não foi possível buscar o início do arquivo de exportação."
-  },
-  {
     "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
     "translation": "A conexão oauth de saída não foi encontrada."
   },
@@ -9934,5 +9774,257 @@
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
     "translation": "Falha ao excluir um índice desconhecido especificado"
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "O recurso de lista de purga não está disponível para o Bleve."
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Falha na verificação dos limites de imagem. A resolução é muito alta."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "O URL é muito longo"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Falha ao analisar o valor:{{.Value}} para int64"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "O URL do link está ausente ou é inválido."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Id original inválido."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Id de proprietário inválido."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Não foi possível criar um diretório para imagens de emoji personalizadas"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "As funções do usuário não são consistentes com o status de convidado."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Não foi possível abrir o arquivo CA para {{.Backend}}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Ocorreu um erro ao recuperar as conexões oauth de saída."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "URL de imagem inválida."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Não é possível definir um link e um arquivo no mesmo marcador."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Id pai inválido."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Tipo inválido."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "post_id inválido"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Sua licença não suporta conexões oauth de saída."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Não foi possível enviar a resposta automática do usuário."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Não foi possível filtrar a configuração."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "A decodificação do certificado do cliente para {{.Backend}} falhou"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Não foi possível abrir o arquivo de certificado do cliente para {{.Backend}}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Houve um erro ao salvar a conexão oauth de saída: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Já existe uma conexão oauth de saída para a audiência fornecida: {{ .Audience }}"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "O limite de tamanho das props de notificação foi excedido."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Id inválido"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Atualizado em deve ser um horário válido."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Não é possível ativar o usuário. O servidor excede o limite de usuários seguros. Entre em contato com o administrador com: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "A conexão oauth de saída para a audiência fornecida não foi encontrada."
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Falha ao verificar se o armazenamento do usuário está vazio."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Não foi possível abrir o arquivo de chave do cliente para {{.Backend}}"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "A senha não é válida"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "A audiência fornecida é inválida: {{ .Error }}"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Erro ao determinar o número de contas de Administrador do Sistema."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Não foi possível rebaixar o último administrador do sistema."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Não foi possível determinar se esse nome de usuário já existe"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Valor inválido de channel-auto-follow-threads."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Não foi possível obter o webhook para teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Simultaneidade de decodificador inválida {{.Value}}. Deve ser um número positivo ou -1."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Backend de pesquisa inválido. Deve ser elasticsearch ou opensearch."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "O tamanho do lote de indexação em massa Bleve deve ser de pelo menos {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Valor inválido para o tempo limite dos metadados do link. Deve ser um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow deve ser true para habilitar CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Os índices ignorados para purga não devem começar com um traço."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Os dias de retenção de arquivos e as horas de retenção de arquivos não podem ser ambos 0."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Não foi possível localizar o diretório do arquivo de soquete local."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Os dias de retenção de arquivos e as horas de retenção de arquivos não podem ser ambos maiores que 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "As horas de retenção de arquivos não podem ser inferiores a 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Os dias de retenção de mensagens e as horas de retenção de mensagens não podem ser ambos 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "As horas de retenção de mensagens não podem ser inferiores a 0"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "O tamanho do Lote de Indexação em Batelada da Pesquisa deve ser de pelo menos {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Tamanho máximo de carga útil inválido para configurações de serviço. Deve ser um número inteiro maior que zero."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "O valor de update at deve ser um horário válido."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Id de usuário inválido."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Funções de membro de canal inválidas com mais de {{.Limit}} caracteres."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Os dias de retenção de mensagens e as horas de retenção de mensagens não podem ser ambos maiores que 0."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "O nome entra em conflito com o nome emoji do sistema existente."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Formato inválido: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Valor de tempo limite inválido {{.Value}}. Deve ser um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Comprimento máximo de URL inválido para configurações de serviço. Deve ser um número inteiro maior que zero."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress deve ser especificado para o tipo de cache redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "O Redis DB deve ter um valor maior ou igual a zero."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "O tipo de cache deve ser LRU ou Redis."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Falha ao restaurar os anexos do arquivo de publicação."
   }
 ]

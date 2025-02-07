@@ -2995,60 +2995,8 @@
     "translation": "Systeem Console is ingesteld op alleen-lezen wanneer Hoge Beschikbaarheid is ingeschakeld, tenzij ReadOnlyConfig is uitgeschakeld in het configuratiebestand."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Onbekende uitvoerindeling {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "De bijlage kan niet worden gekopieerd naar het zip-bestand."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Bijlage kan niet worden toegevoegd aan CSV-export."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Kan tijdelijk CSV-exportbestand niet maken."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Er kon geen koptekst aan de CSV-export worden toegevoegd."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Kon metagegevensbestand niet toevoegen aan het ZIP-bestand."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Kan metadata niet omzetten naar json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Kan een bericht niet exporteren."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Fout bij het aanmaken van het zip-bestand."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Het geüploade bestand is verwijderd uit de Global Relay-export omdat het te groot was om te verzenden."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Kan het tijdelijke exportbestand niet openen."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Kan het tijdelijke exportbestand van Global Relay niet opnieuw lezen."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionaliteit is uitgeschakeld met de huidige licentie. Neem contact op met de beheerder voor een upgrade van de licentie."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Exportsjablonen kunnen niet worden geladen. Probeer het opnieuw."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3111,10 +3059,6 @@
     "translation": "{{.Backend}} is niet gestart"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Fout bij het verwijderen van de Elastisearch index"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "{{.Backend}} zoeken is uitgeschakeld op deze server"
   },
@@ -3140,11 +3084,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Jouw licentie biedt geen ondersteuning voor Elasticsearch."
+    "translation": "Je Mattermost licentie ondersteunt geïndexeerd zoeken niet."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "De Elasticsearch Server URL of gebruikersnaam is gewijzigd. Voer het Elasticsearch-wachtwoord opnieuw in om de verbinding te testen."
+    "translation": "De URL of gebruikersnaam van de zoekserver is gewijzigd. Voer het wachtwoord opnieuw in om de verbinding te testen."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3229,58 +3173,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "fout bij ophalen van groepen voor gebruiker"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Bijlage kan niet worden toegevoegd aan de Global Relay-export."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Het zip-bestand kon niet worden gesloten."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Kan het eml-bestand niet aanmaken."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Kan geen eml-bestand genereren."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Kan de e-mail niet afleveren bij Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Kan het From e-mailadres niet instellen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Kan het e-mailbericht niet instellen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Kan het e-mailbericht niet schrijven."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "De e-mailgegevens kunnen niet worden gelezen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Kan het To e-mailadres niet instellen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Kan de informatie van het tijdelijke export bestand niet krijgen."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Er kan geen e-mail worden opgehaald uit het tijdelijke bestand."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Kan het tijdelijke exportbestand niet openen."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3712,7 +3604,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "De instelling Search IndexingEnabled moet worden ingesteld op waar als de functie Elastisearch SearchEnabled ingesteld is op waar"
+    "translation": "{{.EnableIndexing}} instelling moet worden ingesteld op actief als {{.Searching}} is ingesteld op actief"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4904,7 +4796,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "De Bleve IndexingEnabled instelling moet op waar worden ingesteld wanneer Bleve AutocompleteEnabled ingesteld is op waar"
+    "translation": "{{.EnableIndexing}} instelling moet worden ingesteld op actief als {{.Autocomplete}} is ingesteld op actief"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4984,7 +4876,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Fout bij het vernieuwen van de Elasticsearch-indexen"
+    "translation": "Zoekindexen zijn niet vernieuwd"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -5017,14 +4909,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "{{.Backend}}-sjabloon voor kanalen kon niet aangemaakt worden"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Fout bij het aanmaken van het waarschuwingsbestand."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Fout bij het aanmaken van het zip-bestand"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -6067,10 +5951,6 @@
     "translation": "Kan de opdracht niet bewaren."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Ophalen van gebruikers in kanaal tijdens opgegeven periode is mislukt."
-  },
-  {
     "id": "app.command.tryexecutecustomcommand.internal_error",
     "translation": "Fout bij het uitvoeren van de eigen opdracht."
   },
@@ -6439,10 +6319,6 @@
     "translation": " voegde een bestand toe."
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Kan export niet converteren naar XML."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "Taak kan niet worden bijgewerkt."
   },
@@ -6691,10 +6567,6 @@
     "translation": "Kan niet SAML migreren."
   },
   {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Fout bij het verkrijgen van de bestandsinfo voor een bericht."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Geen LDAP gebruikers gevonden, controleer je gebruikersfilter en certificaten."
   },
@@ -6753,14 +6625,6 @@
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
     "translation": "Alle IncludeDeletedChannels parameters moeten dezelfde waarde hebben."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Fout bij het verkrijgen van de bestandsinfo voor een bericht."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Fout bij het verkrijgen van de bestandsinfo voor een bericht."
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
@@ -7335,14 +7199,6 @@
     "translation": "Aangepaste rechtenschema's worden niet ondersteund door je huidige licentie"
   },
   {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Kan het csv-bestand niet schrijven."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Kan het exportbestand niet schrijven."
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "Kan het bestand niet schrijven."
   },
@@ -7385,10 +7241,6 @@
   {
     "id": "api.file.append_file.app_error",
     "translation": "Kan geen gegevens aan het bestand toevoegen."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Kan het bestand voor globalrelay niet schrijven."
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
@@ -7549,10 +7401,6 @@
   {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "De waarde voor Directory mag niet leeg zijn."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Kan geen verbinding maken met de smtp server"
   },
   {
     "id": "app.export.zip_create.error",
@@ -9887,7 +9735,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Het schema van je Elasticsearch kanaalindex is verouderd. Het wordt aanbevolen om je kanaalindex te regenereren.\nKlik op de `Kanalenindex herbouwen` knop in [Elasticsearch sectie in System Console]({{.ElasticsearchSection}}) om het probleem op te lossen.\nZie Mattermost changelog voor meer informatie."
+    "translation": "Het schema van de index van je zoekkanalen is verouderd. We raden aan om je kanaalindex te regenereren.\nKlik op de `Rebuild Channels Index` knop in de [Elasticsearch pagina via de System Console]({{.ElasticsearchSection}}) om dit probleem op te lossen.\nZie de Mattermost changelog voor meer informatie."
   },
   {
     "id": "bleveengine.purge_list.not_implemented",
@@ -9895,7 +9743,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Het verwijderen van een Elasticsearch-index is mislukt"
+    "translation": "Het is niet gelukt een zoekindex te verwijderen"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -10000,14 +9848,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Fout bij het ophalen van het aantal gebruikers"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Kan het zip-bestand niet sluiten"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Fout bij het zoeken van het begin van exportbestand."
   },
   {
     "id": "store.sql_team.save_team.existing.app_error",
@@ -10442,5 +10282,125 @@
   {
     "id": "model.post.is_valid.message_length.app_error",
     "translation": "De eigenschap Postbericht is langer dan de maximaal toegestane lengte."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Kan de configuratie niet filteren."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Kan geen map maken voor aangepaste emoji-afbeeldingen"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Gebruikersrollen zijn niet consistent met de gaststatus."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Kan eigenschapgroep Aangepaste profielattributen niet registreren"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Kan geen aangepast profielattribuutveld maken"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Kan geen aangepast profielattribuutveld krijgen"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Veldlimiet aangepaste profielattributen bereikt"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Kan aangepast profielattribuutveld niet verwijderen"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Kan de waarden van aangepaste profielattributen niet ophalen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Aangepast profielattribuutveld niet gevonden"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Kan aangepast profielattribuutveld niet bijwerken"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Kan eigenschap waarde niet creëren"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Kan niet zoeken in aangepaste profielattribuutvelden"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Het is niet gelukt de gevraagde bestanden uit de database te verwijderen"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Kan de bestandsinfo niet krijgen via id's voor de bewerkingsgeschiedenis van berichten."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Het is niet gelukt om bijlagen van berichtbestanden te herstellen."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Het is niet gelukt om de oude berichttversie te krijgen."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Je beschikt niet over de juiste rechten."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "De opgegeven geschiedenis-ID van het bericht komt niet overeen met een geschiedenisitem voor het opgegeven bericht."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "De opgegeven postgeschiedenis-ID komt niet overeen met een postgeschiedenisitem."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Kan rol niet verwijderen."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Kanaalactiviteit berekenen: {{.NumCompleted}}/{{.NumChannels}} kanalen voltooid."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Kanaalinformatie exporteren voor {{.NumChannels}} kanalen."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Fout bij het berekenen van kanaalexportgegevens."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Fout bij het converteren van een waarde uit het gegevensveld van de taak."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "De lengte van de URL met linkmetagegevens is {{ .Length }} tekens lang, wat meer is dan de maximale limiet van {{ .MaxLength }} tekens."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Ongeldig eigenschapsveld: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Ongeldige waarde voor de eigenschap: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Kan de waarden van eigenschappen niet ophalen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Kan de waarde van de eigenschap niet bijwerken"
   }
 ]
