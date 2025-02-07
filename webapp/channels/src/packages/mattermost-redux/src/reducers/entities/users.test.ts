@@ -1054,7 +1054,7 @@ describe('Reducers.users', () => {
             expect(newProfiles.third_user_id).toEqual(thirdUser);
         });
 
-        test('UserTypes.RECEIVED_CUSTOM_PROFILE_ATTRIBUTE_VALUES, should merge existing users custom attributes', () => {
+        test('UserTypes.RECEIVED_CPA_VALUES, should merge existing users custom attributes', () => {
             const firstUser = TestHelper.getUserMock({id: 'first_user_id'});
             const secondUser = TestHelper.getUserMock({id: 'second_user_id'});
             const state = {
@@ -1064,7 +1064,7 @@ describe('Reducers.users', () => {
                 },
             };
             const action = {
-                type: UserTypes.RECEIVED_CUSTOM_PROFILE_ATTRIBUTE_VALUES,
+                type: UserTypes.RECEIVED_CPA_VALUES,
                 data: {
                     userID: 'first_user_id',
                     customAttributeValues: {field1: 'value1'},
@@ -1076,7 +1076,7 @@ describe('Reducers.users', () => {
 
             // update field
             const updateAction = {
-                type: UserTypes.RECEIVED_CUSTOM_PROFILE_ATTRIBUTE_VALUES,
+                type: UserTypes.RECEIVED_CPA_VALUES,
                 data: {
                     userID: 'first_user_id',
                     customAttributeValues: {field1: 'updatedValue'},

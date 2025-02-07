@@ -11,6 +11,7 @@ import {
 } from 'mattermost-redux/actions/posts';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
+import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
 import {handleNewPost} from 'actions/post_actions';
@@ -42,6 +43,9 @@ import {
     handleGroupAddedMemberEvent,
     handleStatusChangedEvent,
     handleCustomAttributeValuesUpdated,
+    handleCustomAttributesCreated,
+    handleCustomAttributesUpdated,
+    handleCustomAttributesDeleted,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
@@ -1305,7 +1309,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED,
+            event: SocketEvents.CPA_VALUES_UPDATED,
             data: {
                 userID: currentUserId,
                 customAttributeValues: {field1: 'value1', field2: 'value2'},
@@ -1318,7 +1322,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
 
         // update one field, add new field
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED,
+            event: SocketEvents.CPA_VALUES_UPDATED,
             data: {
                 userID: currentUserId,
                 customAttributeValues: {field1: 'valueChanged', field3: 'new field'},
@@ -1337,7 +1341,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED,
+            event: SocketEvents.CPA_VALUES_UPDATED,
             data: {
                 user_id: 'nonExistantUser',
                 customAttributeValues: {field1: 'value1', field2: 'value2'},
@@ -1347,5 +1351,77 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), 'nonExistintUser')).toBeFalsy();
         expect(stateUser(testStore.getState(), currentUserId)).toBeTruthy();
         expect(stateUser(testStore.getState(), currentUserId).custom_profile_attributes).toBeFalsy();
+    });
+});
+
+describe('handleCustomAttributeCRUD', () => {
+    const field1 = {id: 'field1', groupid: 'group1', name: 'FIELD ONE', type: 'text'};
+    const field2 = {id: 'field2', groupid: 'group1', name: 'FIELD TWO', type: 'text'};
+
+    function makeInitialState() {
+        return {
+            entities: {
+                general: {
+                },
+            },
+        };
+    }
+
+    test('should add the CustomAttributeField to the state', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        testStore.dispatch(handleCustomAttributesCreated({
+            event: SocketEvents.CPA_FIELD_CREATED,
+            data: {
+                field: field1,
+            },
+        }));
+
+        let cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(Object.keys(cpaFields).length).toEqual(1);
+        expect(cpaFields.field1.type).toEqual(field1.type);
+        expect(cpaFields.field1.name).toEqual(field1.name);
+
+        // create second field
+        testStore.dispatch(handleCustomAttributesCreated({
+            event: SocketEvents.CPA_FIELD_CREATED,
+            data: {
+                field: field2,
+            },
+        }));
+
+        cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(Object.keys(cpaFields).length).toEqual(2);
+        expect(cpaFields.field2.type).toEqual(field2.type);
+        expect(cpaFields.field2.name).toEqual(field2.name);
+
+        // update field
+        testStore.dispatch(handleCustomAttributesUpdated({
+            event: SocketEvents.CPA_FIELD_UPDATED,
+            data: {
+                field: {...field1, name: 'Updated Name'},
+            },
+        }));
+
+        cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(Object.keys(cpaFields).length).toEqual(2);
+        expect(cpaFields.field1.name).toEqual('Updated Name');
+        expect(cpaFields.field2.name).toEqual(field2.name);
+
+        // delete field
+        testStore.dispatch(handleCustomAttributesDeleted({
+            event: SocketEvents.CPA_FIELD_DELETED,
+            data: {
+                fieldID: field1.id,
+            },
+        }));
+
+        cpaFields = getCustomProfileAttributes(testStore.getState());
+        expect(cpaFields).toBeTruthy();
+        expect(Object.keys(cpaFields).length).toEqual(1);
+        expect(cpaFields.field2).toBeTruthy();
     });
 });

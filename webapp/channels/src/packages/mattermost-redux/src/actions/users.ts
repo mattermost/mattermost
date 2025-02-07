@@ -486,7 +486,7 @@ export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync
         }
 
         dispatch({
-            type: UserTypes.RECEIVED_CUSTOM_PROFILE_ATTRIBUTE_VALUES,
+            type: UserTypes.RECEIVED_CPA_VALUES,
             data: {userID, customAttributeValues: data},
         });
 

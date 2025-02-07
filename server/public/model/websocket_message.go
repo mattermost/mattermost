@@ -94,8 +94,10 @@ const (
 	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
 	WebsocketScheduledPostUpdated                     WebsocketEventType = "scheduled_post_updated"
 	WebsocketScheduledPostDeleted                     WebsocketEventType = "scheduled_post_deleted"
-	WebsocketEventUserCustomAttributeValuesUpdated    WebsocketEventType = "user_custom_attribute_values_updated"
-	WebsocketEventCustomAttributesUpdated             WebsocketEventType = "user_custom_attributes_updated"
+	WebsocketEventCPAFieldCreated                     WebsocketEventType = "custom_profile_attributes_field_created"
+	WebsocketEventCPAFieldUpdated                     WebsocketEventType = "custom_profile_attributes_field_updated"
+	WebsocketEventCPAFieldDeleted                     WebsocketEventType = "custom_profile_attributes_field_deleted"
+	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"

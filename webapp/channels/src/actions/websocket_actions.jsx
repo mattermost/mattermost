@@ -630,11 +630,17 @@ export function handleEvent(msg) {
     case SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED:
         dispatch(handleHostedCustomerSignupProgressUpdated(msg));
         break;
-    case SocketEvents.USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED:
+    case SocketEvents.CPA_VALUES_UPDATED:
         dispatch(handleCustomAttributeValuesUpdated(msg));
         break;
-    case SocketEvents.USER_CUSTOM_ATTRIBUTES_UPDATED:
+    case SocketEvents.CPA_FIELD_CREATED:
+        dispatch(handleCustomAttributesCreated(msg));
+        break;
+    case SocketEvents.CPA_FIELD_UPDATED:
         dispatch(handleCustomAttributesUpdated(msg));
+        break;
+    case SocketEvents.CPA_FIELD_DELETED:
+        dispatch(handleCustomAttributesDeleted(msg));
         break;
     default:
     }
@@ -1908,29 +1914,30 @@ function handleChannelBookmarkSorted(msg) {
 
 export function handleCustomAttributeValuesUpdated(msg) {
     return {
-        type: UserTypes.RECEIVED_CUSTOM_PROFILE_ATTRIBUTE_VALUES,
+        type: UserTypes.RECEIVED_CPA_VALUES,
         data: {userID: msg.data.userID, customAttributeValues: msg.data.customAttributeValues},
     };
 }
 
+export function handleCustomAttributesCreated(msg) {
+    console.log('handleCreated ');
+    console.log(msg.data.field);
+    return {
+        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_CREATED,
+        data: msg.data.field,
+    };
+}
+
 export function handleCustomAttributesUpdated(msg) {
-    if (msg.data.created) {
-        return {
-            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_CREATED,
-            data: msg.data.created,
-        };
-    }
-    if (msg.data.deleted) {
-        return {
-            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_DELETED,
-            data: msg.data.deleted,
-        };
-    }
-    if (msg.data.patched) {
-        return {
-            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_PATCHED,
-            data: msg.data.patched,
-        };
-    }
-    return null;
+    return {
+        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_PATCHED,
+        data: msg.data.field,
+    };
+}
+
+export function handleCustomAttributesDeleted(msg) {
+    return {
+        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_DELETED,
+        data: msg.data.fieldID,
+    };
 }

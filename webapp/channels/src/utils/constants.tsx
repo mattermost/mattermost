@@ -664,8 +664,10 @@ export const SocketEvents = {
     SCHEDULED_POST_DELETED: 'scheduled_post_deleted',
     PERSISTENT_NOTIFICATION_TRIGGERED: 'persistent_notification_triggered',
     HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED: 'hosted_customer_signup_progress_updated',
-    USER_CUSTOM_ATTRIBUTES_UPDATED: 'user_custom_attributes_updated',
-    USER_CUSTOM_ATTRIBUTE_VALUES_UPDATED: 'user_custom_attribute_values_updated',
+    CPA_FIELD_CREATED: 'custom_profile_attributes_field_created',
+    CPA_FIELD_UPDATED: 'custom_profile_attributes_field_updated',
+    CPA_FIELD_DELETED: 'custom_profile_attributes_field_deleted',
+    CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
 };
 
 export const TutorialSteps = {
