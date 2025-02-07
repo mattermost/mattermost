@@ -3,10 +3,10 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
-export function clickCategoryMenuItem(categoryDisplayName, menuItemText, isSubMenu = false) {
+export function clickCategoryMenuItem(categoryDisplayName, menuItemText, categoryMenuButtonName = categoryDisplayName, isSubMenu = false) {
     cy.get('#SidebarContainer').should('be.visible').within(() => {
         cy.findByText(categoryDisplayName).should('exist').parents('.SidebarChannelGroupHeader').within(() => {
-            cy.findByLabelText(`${categoryDisplayName} category options`).should('exist').click({force: true});
+            cy.findByLabelText(`${categoryMenuButtonName} category options`).should('exist').click({force: true});
         });
     });
 
