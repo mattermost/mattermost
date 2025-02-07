@@ -11,6 +11,8 @@
     "dist"
   ],
   "exports": {
+    ".": "./dist/index.js",
+    "./test.config": "./dist/test.config.js",
     "./*": "./dist/*.js"
   },
   "keywords": [
