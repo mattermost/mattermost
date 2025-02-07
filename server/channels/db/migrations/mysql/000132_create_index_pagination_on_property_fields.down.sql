@@ -5,7 +5,7 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND index_name = 'idx_propertyfields_create_at_id'
     ) > 0,
-    'DROP INDEX idx_propertyfields_create_at_id OM PropertyFields;',
+    'DROP INDEX idx_propertyfields_create_at_id ON PropertyFields;',
     'SELECT 1'
 ));
 
