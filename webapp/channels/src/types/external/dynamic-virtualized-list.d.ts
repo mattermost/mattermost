@@ -34,6 +34,7 @@ declare module 'dynamic-virtualized-list' {
         style: CSSProperties;
         width: number;
 
+        id?: string;
         className?: string;
         correctScrollToBottom?: boolean;
         innerListStyle?: CSSProperties;
