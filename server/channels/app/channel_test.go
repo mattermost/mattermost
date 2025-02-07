@@ -294,6 +294,11 @@ func TestMoveChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		require.Equal(t, int64(1), threads.Total)
+		// Check that the thread count after move
+		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, sourceTeam.Id, model.GetUserThreadsOpts{})
+		require.Nil(t, appErr)
+
+		require.Zero(t, threads.Total)
 	})
 }
 

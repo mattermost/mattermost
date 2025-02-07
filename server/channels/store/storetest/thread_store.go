@@ -2102,7 +2102,7 @@ func testUpdateTeamIdForChannelThreads(t *testing.T, rctx request.CTX, ss store.
 		require.Len(t, threads, 1)
 	})
 
-	t.Run("Should not move threads to a non exitent team", func(t *testing.T) {
+	t.Run("Should not move threads to a non existent team", func(t *testing.T) {
 		userA, err := ss.User().Save(request.TestContext(t), &model.User{
 			Username: model.NewId(),
 			Email:    MakeEmail(),
@@ -2113,7 +2113,7 @@ func testUpdateTeamIdForChannelThreads(t *testing.T, rctx request.CTX, ss store.
 		newTeamID := model.NewId()
 
 		_, clean := createThreadMembership(userA.Id, rootPost1.Id, true)
-		defer clean()
+		t.Cleanup(clean)
 
 		err = ss.Thread().UpdateTeamIdForChannelThreads(channel1.Id, newTeamID)
 		require.NoError(t, err)
