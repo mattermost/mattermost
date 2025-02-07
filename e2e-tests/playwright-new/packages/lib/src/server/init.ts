@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect} from '@playwright/test';
-import {PreferenceType} from 'mmtest_types/preferences';
+import {PreferenceType} from '@mattermost/types/preferences';
 
 import testConfig from '../test.config';
 import {getFileDataFromAsset} from '../file';
@@ -30,7 +30,7 @@ export async function initSetup({
         }
 
         // Reset server config
-        const adminConfig = await adminClient.updateConfig(getOnPremServerConfig());
+        const adminConfig = await adminClient.updateConfig(getOnPremServerConfig() as any);
 
         // Create new team
         const team = await adminClient.createTeam(createRandomTeam(teamPrefix.name, teamPrefix.displayName));

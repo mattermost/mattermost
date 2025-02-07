@@ -35,8 +35,8 @@
     "axe-core": "4.10.2",
     "deepmerge": "4.3.1",
     "dotenv": "16.4.7",
-    "mmtest_client": "10.5.0",
-    "mmtest_types": "10.5.0",
+    "@mattermost/client": "10.5.0",
+    "@mattermost/types": "10.5.0",
     "uuid": "11.0.5"
   }
 }
