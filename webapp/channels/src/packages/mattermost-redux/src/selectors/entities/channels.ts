@@ -27,10 +27,10 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
 import {
-    getCurrentChannelId,
+    getCurrentChannelId as getCurrentChannelIdInternal,
     getCurrentUser,
-    getMyChannelMemberships,
-    getMyCurrentChannelMembership,
+    getMyChannelMemberships as getMyChannelMembershipsInternal,
+    getMyCurrentChannelMembership as getMyCurrentChannelMembershipInternal,
     getUsers,
 } from 'mattermost-redux/selectors/entities/common';
 import {
@@ -69,7 +69,11 @@ import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 import {isPostPriorityEnabled} from './posts';
 import {getThreadCounts, getThreadCountsIncludingDirect} from './threads';
 
-export {getCurrentChannelId, getMyChannelMemberships, getMyCurrentChannelMembership};
+// Re-define these types to ensure that these are typed correctly when mattermost-redux is published
+export const getCurrentChannelId: (state: GlobalState) => string = getCurrentChannelIdInternal;
+export const getMyChannelMemberships: (state: GlobalState) => RelationOneToOne<Channel, ChannelMembership> = getMyChannelMembershipsInternal;
+export const getMyCurrentChannelMembership: (state: GlobalState) => ChannelMembership | undefined = getMyCurrentChannelMembershipInternal;
+
 export function getAllChannels(state: GlobalState): IDMappedObjects<Channel> {
     return state.entities.channels.channels;
 }
