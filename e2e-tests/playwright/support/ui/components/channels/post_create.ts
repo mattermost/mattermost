@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect, Locator} from '@playwright/test';
+import path from 'node:path';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
@@ -11,6 +12,7 @@ export default class ChannelsPostCreate {
     readonly emojiButton;
     readonly sendMessageButton;
     readonly scheduleDraftMessageButton;
+    readonly priorityButton;
     readonly suggestionList;
 
     constructor(container: Locator, isRHS = false) {
@@ -22,10 +24,11 @@ export default class ChannelsPostCreate {
             this.input = container.getByTestId('reply_textbox');
         }
 
-        this.attachmentButton = container.getByLabel('attachment');
+        this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleDraftMessageButton = container.getByLabel('Schedule message');
+        this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByTestId('suggestionList');
     }
 
@@ -82,10 +85,29 @@ export default class ChannelsPostCreate {
     }
 
     /**
+     * Opens the message priority menu
+     */
+    async openPriorityMenu() {
+        await expect(this.priorityButton).toBeVisible();
+        await expect(this.priorityButton).toBeEnabled();
+        await this.priorityButton.click();
+    }
+
+    /**
      * Composes and sends a message
      */
-    async postMessage(message: string) {
+    async postMessage(message: string, files?: string[]) {
         await this.writeMessage(message);
+
+        if (files) {
+            const filePaths = files.map((file) => path.join(path.resolve(__dirname), '../../../asset', file));
+            this.container.page().once('filechooser', async (fileChooser) => {
+                await fileChooser.setFiles(filePaths);
+            });
+
+            await this.attachmentButton.click();
+        }
+
         await this.sendMessage();
     }
 
