@@ -442,6 +442,7 @@
                         background-color: rgba(255, 255, 255, 0.05);
                         overflow-y: hidden;
                         transition: all 0.4s ease-out;
+                        visibility: hidden;
 
                         @include mixins.pie-clearfix;
 
@@ -449,6 +450,7 @@
                             max-height: 1200px;
                             padding: 24px 0 0 24px;
                             margin: 0 20px 0 0;
+                            visibility: visible;
                         }
                     }
 
