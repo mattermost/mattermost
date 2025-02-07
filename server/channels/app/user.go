@@ -2923,16 +2923,6 @@ func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 	return true
 }
 
-func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  500,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
-	}
-	return a.GetUsersFromProfiles(userOptions)
-}
-
 func (a *App) ResetPasswordFailedAttempts(c request.CTX, user *model.User) *model.AppError {
 	err := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
 	if err != nil {
