@@ -12,7 +12,10 @@
   ],
   "exports": {
     ".": "./dist/index.js",
-    "./test.config": "./dist/test.config.js",
+    "./test.config": {
+      "require": "./dist/test.config.js",
+      "import": "./dist/test.config.js"
+    },
     "./*": "./dist/*.js"
   },
   "keywords": [
