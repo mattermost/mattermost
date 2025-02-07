@@ -1920,8 +1920,6 @@ export function handleCustomAttributeValuesUpdated(msg) {
 }
 
 export function handleCustomAttributesCreated(msg) {
-    console.log('handleCreated ');
-    console.log(msg.data.field);
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_CREATED,
         data: msg.data.field,

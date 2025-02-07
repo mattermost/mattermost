@@ -71,7 +71,7 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventCustomAttributesCreated, "", "", "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldCreated, "", "", "", nil, "")
 	message.Add("field", createdField)
 	c.App.Publish(message)
 
