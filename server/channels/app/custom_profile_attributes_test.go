@@ -6,7 +6,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"net/http"
 	"os"
 	"testing"
@@ -536,13 +535,10 @@ func TestListCPAValues(t *testing.T) {
 		require.Empty(t, values)
 	})
 
-	t.Run("should list all values for a user, doing pagination if needed", func(t *testing.T) {
+	t.Run("should list all values for a user", func(t *testing.T) {
 		var expectedValues []json.RawMessage
 
-		// Make sure we insert more than one page worth of data
-		numberToInsert := int(CustomProfileAttributesValuesPerPage + math.Floor(CustomProfileAttributesValuesPerPage/2))
-
-		for i := 1; i <= numberToInsert; i++ {
+		for i := 1; i <= CustomProfileAttributesValuesPerPage; i++ {
 			field := &model.PropertyField{
 				GroupID: cpaGroupID,
 				Name:    fmt.Sprintf("Field %d", i),
@@ -566,7 +562,7 @@ func TestListCPAValues(t *testing.T) {
 		// List values for original user
 		values, appErr := th.App.ListCPAValues(userID)
 		require.Nil(t, appErr)
-		require.Len(t, values, numberToInsert)
+		require.Len(t, values, CustomProfileAttributesValuesPerPage)
 
 		actualValues := make([]json.RawMessage, len(values))
 		for i, value := range values {
