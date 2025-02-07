@@ -517,6 +517,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                 <Modal
                   animation={true}
                   aria-label="confirmModalLabel"
+                  aria-labelledby="genericModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}

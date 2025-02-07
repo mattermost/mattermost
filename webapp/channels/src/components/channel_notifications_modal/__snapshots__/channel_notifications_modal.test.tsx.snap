@@ -18,6 +18,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-labelledby="genericModalLabel"
         aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
@@ -494,6 +495,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-labelledby="genericModalLabel"
         aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
@@ -1108,6 +1110,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-labelledby="genericModalLabel"
         aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
@@ -1467,6 +1470,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-labelledby="genericModalLabel"
         aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
@@ -2024,6 +2028,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-labelledby="genericModalLabel"
         aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"
@@ -2581,6 +2586,7 @@ Object {
       />
       <div
         aria-label="channelNotificationModalLabel"
+        aria-labelledby="genericModalLabel"
         aria-modal="true"
         class="fade modal"
         id="channelNotificationModal"

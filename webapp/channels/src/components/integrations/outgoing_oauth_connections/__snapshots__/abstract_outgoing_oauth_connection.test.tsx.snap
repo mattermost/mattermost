@@ -528,6 +528,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               <Modal
                 animation={true}
                 aria-label="confirmModalLabel"
+                aria-labelledby="genericModalLabel"
                 aria-modal="true"
                 autoFocus={true}
                 backdrop={true}
@@ -1142,6 +1143,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               <Modal
                 animation={true}
                 aria-label="confirmModalLabel"
+                aria-labelledby="genericModalLabel"
                 aria-modal="true"
                 autoFocus={true}
                 backdrop={true}

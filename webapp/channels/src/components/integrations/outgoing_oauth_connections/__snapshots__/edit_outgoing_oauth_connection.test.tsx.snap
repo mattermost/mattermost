@@ -581,6 +581,7 @@ https://myothersite.com/api/v2"
                       <Modal
                         animation={true}
                         aria-label="confirmModalLabel"
+                        aria-labelledby="genericModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -708,6 +709,7 @@ https://myothersite.com/api/v2"
                 <Modal
                   animation={true}
                   aria-label="confirmModalLabel"
+                  aria-labelledby="genericModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
@@ -1357,6 +1359,7 @@ https://myothersite.com/api/v2"
                       <Modal
                         animation={true}
                         aria-label="confirmModalLabel"
+                        aria-labelledby="genericModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -1484,6 +1487,7 @@ https://myothersite.com/api/v2"
                 <Modal
                   animation={true}
                   aria-label="confirmModalLabel"
+                  aria-labelledby="genericModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
@@ -2132,6 +2136,7 @@ https://myothersite.com/api/v2"
                       <Modal
                         animation={true}
                         aria-label="confirmModalLabel"
+                        aria-labelledby="genericModalLabel"
                         aria-modal="true"
                         autoFocus={true}
                         backdrop={true}
@@ -2259,6 +2264,7 @@ https://myothersite.com/api/v2"
                 <Modal
                   animation={true}
                   aria-label="confirmModalLabel"
+                  aria-labelledby="genericModalLabel"
                   aria-modal="true"
                   autoFocus={true}
                   backdrop={true}
