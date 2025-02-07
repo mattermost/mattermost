@@ -13545,6 +13545,27 @@ func (s *RetryLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 
 }
 
+func (s *RetryLayerThreadStore) UpdateTeamIdForChannelThreads(channelId string, teamId string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.UpdateTeamIdForChannelThreads(channelId, teamId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerTokenStore) Cleanup(expiryTime int64) {
 
 	s.TokenStore.Cleanup(expiryTime)
