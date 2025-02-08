@@ -10342,5 +10342,13 @@
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
     "translation": "Досягнуто ліміт поля \"Атрибути профілю користувача\""
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Неможливо виконати команду у видаленому каналі."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Користувацьке поле атрибуту профілю не знайдено"
   }
 ]
