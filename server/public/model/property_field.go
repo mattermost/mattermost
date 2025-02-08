@@ -24,7 +24,7 @@ type PropertyField struct {
 	GroupID    string            `json:"group_id"`
 	Name       string            `json:"name"`
 	Type       PropertyFieldType `json:"type"`
-	Attrs      map[string]any    `json:"attrs"`
+	Attrs      StringInterface   `json:"attrs"`
 	TargetID   string            `json:"target_id"`
 	TargetType string            `json:"target_type"`
 	CreateAt   int64             `json:"create_at"`
@@ -71,12 +71,12 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	if !(pf.Type == PropertyFieldTypeText ||
-		pf.Type == PropertyFieldTypeSelect ||
-		pf.Type == PropertyFieldTypeMultiselect ||
-		pf.Type == PropertyFieldTypeDate ||
-		pf.Type == PropertyFieldTypeUser ||
-		pf.Type == PropertyFieldTypeMultiuser) {
+	if pf.Type != PropertyFieldTypeText &&
+		pf.Type != PropertyFieldTypeSelect &&
+		pf.Type != PropertyFieldTypeMultiselect &&
+		pf.Type != PropertyFieldTypeDate &&
+		pf.Type != PropertyFieldTypeUser &&
+		pf.Type != PropertyFieldTypeMultiuser {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 

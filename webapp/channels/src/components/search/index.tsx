@@ -5,12 +5,15 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+
 import {getMorePostsForSearch, getMoreFilesForSearch} from 'mattermost-redux/actions/search';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
 import {autocompleteChannelsForSearch} from 'actions/channel_actions';
-import {autocompleteUsersInTeam} from 'actions/user_actions';
+import {autocompleteUsersInCurrentTeam} from 'actions/user_actions';
 import {
     updateSearchTerms,
     updateSearchTeam,
@@ -41,18 +44,13 @@ function mapStateToProps(state: GlobalState) {
     const isMobileView = getIsMobileView(state);
     const isRhsOpen = getIsRhsOpen(state);
 
-    let searchTeam = getSearchTeam(state);
-    if (!searchTeam) {
-        searchTeam = currentChannel?.team_id || '';
-    }
-
     return {
         currentChannel,
         isRhsExpanded: getIsRhsExpanded(state),
         isRhsOpen,
         isSearchingTerm: getIsSearchingTerm(state),
         searchTerms: getSearchTerms(state),
-        searchTeam,
+        searchTeam: getSearchTeam(state),
         searchType: getSearchType(state),
         searchVisible: rhsState !== null && (![
             RHSStates.PLUGIN,
@@ -71,6 +69,10 @@ function mapStateToProps(state: GlobalState) {
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
+    const autocompleteChannels = (term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void): void => {
+        autocompleteChannelsForSearch(term, success, error);
+    };
+
     return {
         actions: bindActionCreators({
             updateSearchTerms,
@@ -83,8 +85,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             showFlaggedPosts,
             setRhsExpanded,
             closeRightHandSide,
-            autocompleteChannelsForSearch,
-            autocompleteUsersInTeam,
+            autocompleteChannelsForSearch: autocompleteChannels,
+            autocompleteUsersInTeam: autocompleteUsersInCurrentTeam,
             updateRhsState,
             getMorePostsForSearch,
             openRHSSearch,

@@ -33,8 +33,8 @@ const addInfoButton = (
 const noCompanyInfoSection = (
     <div className='CompanyInfoDisplay__noCompanyInfo'>
         <CompanySvg
-            width={300}
-            height={210}
+            width={170}
+            height={149}
         />
         <div className='CompanyInfoDisplay__noCompanyInfo-message'>
             <FormattedMessage
@@ -64,7 +64,7 @@ const CompanyInfoDisplay: React.FC = () => {
 
     let body = noCompanyInfoSection;
     const address = companyInfo?.company_address?.line1 ? companyInfo.company_address : companyInfo?.billing_address;
-    const isCompanyBillingFilled = address?.line1 !== undefined;
+    const isCompanyBillingFilled = address?.line1 !== undefined && address?.line1 !== '';
     if (isCompanyBillingFilled) {
         body = (
             <div className='CompanyInfoDisplay__companyInfo'>

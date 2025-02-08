@@ -236,6 +236,10 @@
     "translation": "Your license does not support channel bookmarks."
   },
   {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to create the channel bookmark."
+  },
+  {
     "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "User is not allowed to create a channel bookmark."
   },
@@ -246,6 +250,10 @@
   {
     "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
     "translation": "Failed to create the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to delete the channel bookmark."
   },
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
@@ -260,6 +268,10 @@
     "translation": "Failed to delete the channel bookmark."
   },
   {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark."
+  },
+  {
     "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "Failed to update the channel bookmark."
   },
@@ -270,6 +282,10 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
     "translation": "Failed to update the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark's sort order."
   },
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
@@ -602,6 +618,10 @@
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Can not run command in deleted channel."
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -1836,6 +1856,10 @@
   {
     "id": "api.custom_groups.no_remote_id",
     "translation": "remote_id must be blank for custom group"
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "trying to patch a field that does not exist"
   },
   {
     "id": "api.custom_profile_attributes.license_error",
@@ -4359,6 +4383,10 @@
     "translation": "Cannot retrieve users for an archived channel"
   },
   {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Cannot retrieve bookmarks for an archived channel"
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
@@ -4581,10 +4609,6 @@
   {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
-  },
-  {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Your search channel index schema is out of date. We recommend regenerating your channel index.\nClick the `Rebuild Channels Index` button in the [Elasticsearch page via the System Console]({{.ElasticsearchSection}}) to fix this issue.\nSee the Mattermost changelog for more information."
   },
   {
     "id": "app.channel.get.existing.app_error",
@@ -5215,8 +5239,16 @@
     "translation": "Failed to find files for post."
   },
   {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Failed to get count of all files."
+  },
+  {
     "id": "app.file_info.get_for_post.app_error",
     "translation": "Unable to get the file info for the post."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage of all files."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
