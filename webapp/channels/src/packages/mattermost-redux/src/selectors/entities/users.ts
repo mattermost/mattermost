@@ -224,6 +224,16 @@ export const getCurrentUserMentionKeys: (state: GlobalState) => UserMentionKey[]
             keys.push({key: usernameKey});
         }
 
+        const usernicknameKey = '@' + user.nickname;
+        if (keys.findIndex((key) => key.key === usernicknameKey) === -1) {
+            keys.push({key: usernicknameKey});
+        }
+
+        const userfullnameKey = '@' + user.first_name + ' ' + user.last_name;
+        if (keys.findIndex((key) => key.key === userfullnameKey) === -1) {
+            keys.push({key: userfullnameKey});
+        }
+
         return keys;
     },
 );
