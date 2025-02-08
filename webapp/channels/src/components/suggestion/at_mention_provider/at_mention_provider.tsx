@@ -21,6 +21,7 @@ import type {GlobalState} from 'types/store';
 import AtMentionSuggestion from './at_mention_suggestion';
 
 import Provider from '../provider';
+import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
 
 const profilesInChannelOptions = {active: true};
 const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
@@ -362,12 +363,33 @@ export default class AtMentionProvider extends Provider {
         } else if (this.lastPrefixWithNoResults === this.latestPrefix) {
             this.lastPrefixWithNoResults = '';
         }
+
         const mentions = items.map((item) => {
+            if (item.type === Constants.MENTION_MEMBERS) {
+                const state = store.getState();
+                const teammateNameDisplay = getTeammateNameDisplaySetting(state)
+
+                if (teammateNameDisplay == 'nickname_full_name') {
+                    if (item.nickname) {
+                        return '@' + item.nickname;
+                    } else if (item.first_name && item.last_name) {
+                        return '@' + item.first_name + ' ' + item.last_name;
+                    }
+                }
+
+                if (teammateNameDisplay == 'full_name') {
+                    if (item.first_name && item.last_name) {
+                        return '@' + item.first_name + ' ' + item.last_name;
+                    }
+                }
+            }
+
             if (item.username) {
                 return '@' + item.username;
             } else if (item.name) {
                 return '@' + item.name;
             }
+
             return '';
         });
 
