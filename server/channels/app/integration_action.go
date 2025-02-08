@@ -524,7 +524,7 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 		return &response, nil
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(&response) // Don't fail, an empty response is acceptable
+	err = json.Unmarshal(body, &response) // Don't fail, an empty response is acceptable
 	if err != nil {
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
