@@ -297,7 +297,6 @@ export const ActionTypes = keyMirror({
 
     SET_UNREAD_FILTER_ENABLED: null,
     UPDATE_TOAST_STATUS: null,
-    UPDATE_THREAD_TOAST_STATUS: null,
 
     SIDEBAR_DRAGGING_SET_STATE: null,
     SIDEBAR_DRAGGING_STOP: null,
@@ -724,11 +723,12 @@ export const RecommendedNextStepsLegacy = {
     SKIP: 'skip',
 };
 
-export const Threads = {
-    CHANGED_SELECTED_THREAD: 'changed_selected_thread',
-    CHANGED_LAST_VIEWED_AT: 'changed_last_viewed_at',
-    MANUALLY_UNREAD_THREAD: 'manually_unread_thread',
-};
+export const Threads = keyMirror({
+    CHANGED_SELECTED_THREAD: null,
+    CHANGED_LAST_VIEWED_AT: null,
+    MANUALLY_UNREAD_THREAD: null,
+    UPDATE_THREAD_TOAST_STATUS: null,
+});
 
 export const CloudBanners = {
     HIDE: 'hide',
@@ -855,10 +855,10 @@ export const SearchTypes = keyMirror({
 });
 
 export const StorageTypes = keyMirror({
+    STORAGE_INITIALIZED: null,
     SET_GLOBAL_ITEM: null,
     REMOVE_GLOBAL_ITEM: null,
     ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX: null,
-    STORAGE_REHYDRATE: null,
 });
 
 export const StoragePrefixes = {

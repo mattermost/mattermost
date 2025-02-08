@@ -75,7 +75,7 @@ export function toastStatus(state: ViewsState['threads']['toastStatus'] = false,
     switch (action.type) {
     case ActionTypes.SELECT_POST:
         return false;
-    case ActionTypes.UPDATE_THREAD_TOAST_STATUS:
+    case Threads.UPDATE_THREAD_TOAST_STATUS:
         return action.data;
 
     case UserTypes.LOGOUT_SUCCESS:
