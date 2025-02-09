@@ -10380,5 +10380,17 @@
   {
     "id": "model.property_value.is_valid.app_error",
     "translation": "不正なプロパティ値: {{.FieldName}} {{.Reason}}。"
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "削除されたチャンネルではコマンドを実行できません。"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "あなたのライセンスはカスタムプロフィール属性をサポートしていません。"
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "ZIPファイルリーダーを取得できませんでした。"
   }
 ]
