@@ -17,6 +17,7 @@ exports[`GenericModal should match snapshot for base case 1`] = `
         class="fade modal-backdrop in"
       />
       <div
+        aria-labelledby="genericModalLabel"
         aria-modal="true"
         class="fade in modal"
         id="genericModal"
