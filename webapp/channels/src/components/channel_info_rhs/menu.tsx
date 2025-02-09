@@ -68,10 +68,11 @@ interface MenuItemProps {
     opensSubpanel?: boolean;
     badge?: string | number | JSX.Element;
     onClick: () => void;
+    id?: string;
 }
 
 function MenuItem(props: MenuItemProps) {
-    const {icon, text, opensSubpanel, badge, onClick} = props;
+    const {icon, text, opensSubpanel, badge, onClick, id} = props;
     const hasRightSide = (badge !== undefined) || opensSubpanel;
 
     return (
@@ -79,6 +80,7 @@ function MenuItem(props: MenuItemProps) {
             onClick={onClick}
             aria-label={text}
             type='button'
+            id={id || ''}
         >
             <Icon>{icon}</Icon>
             <MenuItemText>{text}</MenuItemText>
@@ -148,6 +150,7 @@ export default function Menu(props: MenuProps) {
         >
             {showNotificationPreferences && (
                 <MenuItem
+                    id='channelInfoRHSNotificationSettings'
                     icon={<i className='icon icon-bell-outline'/>}
                     text={formatMessage({
                         id: 'channel_info_rhs.menu.notification_preferences',

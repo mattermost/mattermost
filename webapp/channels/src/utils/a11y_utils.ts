@@ -22,6 +22,9 @@ export function focusElement(
     keyboardOnly = true,
     resetOriginElement = false,
 ) {
+    if (!elementOrId) {
+        return;
+    }
     let target: HTMLElement | null = null;
 
     if (typeof elementOrId === 'string') {

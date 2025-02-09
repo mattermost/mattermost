@@ -25,6 +25,7 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
       </h2>
     </div>
   }
+  modalLocation="center"
   modalSubheaderText={
     <div
       className="channel-switcher__hint"
@@ -44,6 +45,8 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
   onExited={[Function]}
   onHide={[Function]}
   show={true}
+  showCloseButton={true}
+  showHeader={true}
 >
   <div
     className="channel-switcher__suggestion-box"

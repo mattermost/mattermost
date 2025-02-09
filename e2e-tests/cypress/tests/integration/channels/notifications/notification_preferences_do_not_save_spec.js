@@ -55,7 +55,7 @@ describe('Notifications', () => {
                 cy.wait(TIMEOUTS.HALF_SEC);
 
                 // # Close the modal
-                cy.get('#accountSettingsHeader').find('button').should('be.visible').click();
+                cy.uiClose();
             } else {
                 // * Ensure that 'Send email notifications' is set to 'Immediately'
                 cy.get('#emailNotificationImmediately').should('be.visible').and('be.checked');

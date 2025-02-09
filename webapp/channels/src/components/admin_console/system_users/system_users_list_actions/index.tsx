@@ -134,6 +134,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     adminMode: true,
                     isContentProductSettings: true,
                     userID: user.id,
+                    focusOriginElement: menuButtonId,
                 },
             }));
         }
@@ -144,6 +145,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             dialogProps: {
                 user,
                 onConfirm: onConfirmManageUserSettingsClick,
+                focusOriginElement: menuButtonId,
             },
         }));
     }, [user]);

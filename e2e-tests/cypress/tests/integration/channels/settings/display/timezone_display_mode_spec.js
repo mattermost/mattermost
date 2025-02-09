@@ -196,7 +196,7 @@ function setTimezoneDisplayTo(isAutomatic, value) {
     });
 
     // # Close Settings modal
-    cy.get('#accountSettingsHeader > .close').should('be.visible').click();
+    cy.uiClose();
 }
 
 function setTimezoneDisplayToAutomatic(value) {
