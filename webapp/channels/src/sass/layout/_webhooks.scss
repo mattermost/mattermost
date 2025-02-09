@@ -373,6 +373,12 @@
 
             button {
                 margin-top: 8px;
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: var(--center-channel-color);
+
+                &:hover {
+                    background: rgba(var(--center-channel-color-rgb), 0.16);
+                }
             }
 
             .alert {

@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
 	"github.com/pkg/errors"
@@ -16,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -52,7 +54,7 @@ func (ps *PlatformService) initLogging() error {
 	}
 
 	// redirect default Go logger to app logger.
-	ps.logger.RedirectStdLog(mlog.LvlStdLog)
+	ps.logger.RedirectStdLog(mlog.LvlWarn)
 
 	// use the app logger as the global logger (eventually remove all instances of global logging).
 	mlog.InitGlobalLogger(ps.logger)
@@ -244,6 +246,44 @@ func (ps *PlatformService) GetNotificationLogFile(_ request.CTX) (*model.FileDat
 		Filename: config.LogNotificationFilename,
 		Body:     notificationsLogFileData,
 	}, nil
+}
+
+func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, error) {
+	advancedLoggingJSON := ps.Config().LogSettings.AdvancedLoggingJSON
+	if utils.IsEmptyJSON(advancedLoggingJSON) {
+		return nil, nil
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	err := json.Unmarshal(advancedLoggingJSON, &cfg)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid advanced logging configuration")
+	}
+
+	var ret []*model.FileData
+	for _, t := range cfg {
+		if t.Type != "file" {
+			continue
+		}
+		var fileOption struct {
+			Filename string `json:"filename"`
+		}
+		if err := json.Unmarshal(t.Options, &fileOption); err != nil {
+			return nil, errors.Wrap(err, "error decoding file target options")
+		}
+		data, err := os.ReadFile(fileOption.Filename)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to read notifcation log file at path %s", fileOption.Filename)
+		}
+
+		fileName := path.Base(fileOption.Filename)
+		ret = append(ret, &model.FileData{
+			Filename: fileName,
+			Body:     data,
+		})
+	}
+
+	return ret, nil
 }
 
 func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {

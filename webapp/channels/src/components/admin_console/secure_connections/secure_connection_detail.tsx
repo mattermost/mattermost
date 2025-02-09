@@ -47,7 +47,7 @@ import type {SharedChannelRemoteRow} from './utils';
 import {getEditLocation, isConfirmed, isErrorState, isPendingState, useRemoteClusterEdit, useSharedChannelRemoteRows, useTeamOptions} from './utils';
 
 import {AdminConsoleListTable} from '../list_table';
-import SaveChangesPanel from '../team_channel_settings/save_changes_panel';
+import SaveChangesPanel from '../save_changes_panel';
 
 type Params = {
     connection_id: 'create' | RemoteCluster['remote_id'];

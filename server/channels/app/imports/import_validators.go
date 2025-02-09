@@ -200,7 +200,7 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.Username == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidUsername(*data.Username) {
+	} else if !model.IsValidUsername(model.NormalizeUsername(*data.Username)) { // we already lowercase the username while saving and querying so we are more forgiving here
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -329,7 +329,7 @@ func ValidateBotImportData(data *BotImportData) *model.AppError {
 
 	if data.Username == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidUsername(*data.Username) {
+	} else if !model.IsValidUsername(model.NormalizeUsername(*data.Username)) { // we already lowercase the username while saving and querying so we are more forgiving here
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -472,6 +472,19 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt < parentCreateAt {
 		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int("reply_create_at", *data.CreateAt), mlog.Int("parent_create_at", parentCreateAt))
+	}
+
+	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Reactions != nil {
+		for _, reaction := range *data.Reactions {
+			reaction := reaction
+			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

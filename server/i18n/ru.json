@@ -3000,60 +3000,8 @@
     "translation": "Системная консоль устанавливается только для чтения, если включена Высокая доступность, если только ReadOnlyConfig не отключен в файле конфигурации."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Неизвестный формат вывода {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Невозможно скопировать вложение в zip-файл."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Невозможно добавить вложение в экспорт CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Невозможно создать временный файл экспорта CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Невозможно добавить заголовок в экспорт CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Невозможно добавить файл метаданных в zip-файл."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Невозможно преобразовать метаданные в формат json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Невозможно экспортировать сообщение."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Невозможно создать файл экспорта zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Загруженный файл был удален из экспорта Global Relay, поскольку он был слишком большим для отправки."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Невозможно открыть временный файл экспорта."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Невозможно перечитать файл временного экспорта Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Функция комплаенса недоступна при текущей лицензии. Пожалуйста, свяжитесь с системным администратором по поводу улучшения вашей корпоративной лицензии."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Невозможно загрузить шаблоны экспорта. Пожалуйста, попробуйте еще раз."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3065,31 +3013,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось создать задание индексации"
+    "translation": "Рабочий агрегатор {{.Backend}} не смог создать задание на индексирование"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось удалить индексы"
+    "translation": "Рабочему агрегатору {{.Backend}} не удалось удалить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Работнику агрегатора Elasticsearch не удалось получить индексы"
+    "translation": "Рабочему агрегатору {{.Backend}} не удалось получить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Сбой в работе сборщика Elasticsearch из-за сбоя задания индексирования"
+    "translation": "Сбой в работе сборщика {{.Backend}} из-за сбоя задания индексирования"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Ошибка установки клиента Elasticsearch"
+    "translation": "Ошибка установки клиента {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "Не удалось удалить индекс {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Не удалось получить индексы Elasticsearch"
+    "translation": "Не удалось получить индексы {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3097,7 +3045,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Поиск Elasticsearch не включен на этом сервере"
+    "translation": "Поиск {{.Backend}} не включен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3105,23 +3053,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время окончания"
+    "translation": "Работнику индексирования {{.Backend}} не удалось проанализировать время окончания"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время начала"
+    "translation": "Работнику индексирования {{.Backend}} не удалось проанализировать время начала"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch не запущен"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "{{.Backend}} не запущен"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Поиск Elasticsearch отключен на этом сервере"
+    "translation": "Поиск {{.Backend}} отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3137,19 +3081,19 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch уже остановлен."
+    "translation": "{{.Backend}} уже остановлен."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch отключён."
+    "translation": "{{.Backend}} отключён."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Ваша версия сервера Mattermost не поддерживает Elasticsearch."
+    "translation": "Ваша лицензия Mattermost не поддерживает индексированный поиск."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL или имя пользователя сервера Elasticsearch были изменены. Пожалуйста, введите пароль Elasticsearch еще раз, чтобы проверить соединение."
+    "translation": "URL поискового сервера или имя пользователя изменились. Пожалуйста, повторно введите пароль, чтобы проверить соединение."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3234,58 +3178,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "ошибка при получении групп для пользователя"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Невозможно добавить вложение в экспорт Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Невозможно закрыть zip-файл."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Невозможно создать файл eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Невозможно сгенерировать данные файла eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Невозможно доставить письмо в Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Невозможно установить адрес \"От кого\" электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Невозможно установить сообщение электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Невозможно написать сообщение электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Невозможно прочитать информацию электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Невозможно установить адрес \"Кому\" электронной почты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Невозможно получить информацию о временном файле экспорта."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Невозможно получить письмо из временного файла."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Невозможно открыть временный файл экспорта."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3709,27 +3601,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Параметр Elasticsearch AggregatePostsAfterDays должен быть числом больше или равным 1."
+    "translation": "Настройка поиска AggregatePostsAfterDays должна быть числом больше или равным 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Настройка Search ConnectionUrl должна быть указана, если включена индексация."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Для параметра Elasticsearch EnableIndexing должно быть установлено значение true, если для параметра Elasticsearch SearchEnabled установлено значение true"
+    "translation": "{{.EnableIndexing}} параметр должен быть установлен в true, когда {{.Searching}} установлен в true"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Размер пакета живого индексирования Elasticsearch должен быть не менее 1."
+    "translation": "Размер пакета живого индексирования должен быть не менее 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Параметр Elasticsearch PostsAggregatorJobStartTime должен быть временем в формате «чч:мм»."
+    "translation": "Параметр поиска PostsAggregatorJobStartTime должен быть временем в формате «чч:мм»."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Время ожидания запроса Elasticsearch должно составлять не менее 1 секунды."
+    "translation": "Время ожидания запроса должно составлять не менее 1 секунды."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4609,11 +4501,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Не удалось найти команду."
+    "translation": "Не удалось найти команду {{.command_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Невозможно разобрать входящие данные."
+    "translation": "Невозможно разобрать входящие данные вебхука {{.hook_id}}."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4625,7 +4517,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Этому вебхуку не разрешено публиковать сообщения на запрошенном канале."
+    "translation": "Этому вебхуку не разрешено публиковать сообщения на запрошенном канале {{.channel_id}}"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4641,7 +4533,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Несоответствующие права канала."
+    "translation": "Пользователь {{.user}} не имеет соответствующих прав на канал {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4653,7 +4545,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Не удалось найти пользователя."
+    "translation": "Не удалось найти пользователя {{.user}}"
   },
   {
     "id": "api.license.request-trial.bad-request",
@@ -4988,12 +4880,8 @@
     "translation": "Тайм-аут ожидания ответа кластера"
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Невозможно создать файл уведомления."
-  },
-  {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для каналов"
+    "translation": "Не удалось создать шаблон {{.Backend}} для каналов"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -5009,11 +4897,11 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Не удалось обновить индексы Elasticsearch"
+    "translation": "Не удалось обновить поисковые индексы"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Поиск Elasticsearch отключен на этом сервере"
+    "translation": "Поиск {{.Backend}} отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -5029,11 +4917,11 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Не удалось получить версию сервера Elasticsearch."
+    "translation": "Не удалось получить версию сервера {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Не удалось проанализировать версию сервера Elasticsearch."
+    "translation": "Не удалось проанализировать версию сервера {{.Backend}}."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -5396,16 +5284,12 @@
     "translation": "Произошла ошибка во время маршалирования запроса JSON"
   },
   {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Невозможно создать файл zip"
-  },
-  {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для сообщений"
+    "translation": "Не удалось создать шаблон {{.Backend}} для сообщений"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для пользователей"
+    "translation": "Не удалось создать шаблон {{.Backend}} для пользователей"
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
@@ -5445,7 +5329,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Параметр Elasticsearch IndexingEnabled должен иметь значение true, если для Elasticsearch AutocompleteEnabled установлено значение true"
+    "translation": "{{.EnableIndexing}} параметр должен быть установлен в true, когда {{.Autocomplete}} установлен в true"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5522,10 +5406,6 @@
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
     "translation": "Эта версия вашего браузера больше не поддерживается Mattermost"
-  },
-  {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Не удалось получить пользователей в канале в течение указанного периода времени."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -5701,11 +5581,11 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Не удалось найти существующий канал."
+    "translation": "Не удалось найти существующий канал {{.channel_id}}."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Возникла проблема при поиске канала."
+    "translation": "Возникла проблема при поиске канала {{.channel_id}}."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
@@ -5793,11 +5673,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версия 115+"
+    "translation": "Версия 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Версия 17.0+"
+    "translation": "Версия 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -6450,10 +6330,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " прикрепил файл."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Не удалось экспортировать в XML."
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
@@ -7152,22 +7028,6 @@
     "translation": "Возникла ошибка по время проверки ответа от провайдера учётных записей. Пожалуйста, свяжитесь с системным администратором."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Не удалось получить информацию о файле для сообщения."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Не удалось подключиться к серверу smtp"
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Не удалось получить информацию о файле для сообщения."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Не удалось получить информацию о файле для сообщения."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Пользователи LDAP не найдены, проверьте пользовательский фильтр и сертификаты."
   },
@@ -7193,7 +7053,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "На этом сервере отключена функция поиска файлов Elasticsearch"
+    "translation": "На этом сервере отключена функция поиска файлов {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -7221,19 +7081,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Не удалось создать шаблон Elasticsearch для файлов"
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Невозможно записать global relay файл."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Невозможно записать csv-файл."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Не удалось записать экспортный файл."
+    "translation": "Не удалось создать шаблон {{.Backend}} для файлов"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -8609,7 +8457,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Размер пакета массового индексирования Elasticsearch должен быть не менее {{.BatchSize}}."
+    "translation": "Размер пакета массового индексирования должен быть не менее {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
@@ -8937,19 +8785,19 @@
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Не удалось открыть файл клиентского ключа для Elasticsearch"
+    "translation": "Не удалось открыть файл клиентского ключа для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Не удалось открыть файл сертификата клиента для Elasticsearch"
+    "translation": "Не удалось открыть файл сертификата клиента для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Не удалось декодировать сертификат клиента для Elasticsearch"
+    "translation": "Не удалось декодировать сертификат клиента для {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Не удалось открыть файл CA для Elasticsearch"
+    "translation": "Не удалось открыть файл CA для {{.Backend}}"
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -9001,7 +8849,7 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Версия Elasticsearch {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
+    "translation": "Версия {{.Backend}} {{.Version}} выше максимально поддерживаемой версии {{.MaxVersion}}"
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -9937,7 +9785,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "Не удалось удалить поисковый индекс"
   },
   {
     "id": "model.user.is_valid.pwd_min_length.app_error",
@@ -9957,7 +9805,7 @@
   },
   {
     "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Схема индекса Elasticsearch для вашего канала устарела. Рекомендуется перегенерировать индекс каналов.\nНажмите кнопку `Rebuild Channels Index` в разделе [Elasticsearch в Системной консоли]({{.ElasticsearchSection}}), чтобы исправить проблему.\nБолее подробную информацию смотрите в журнале изменений Mattermost."
+    "translation": "Схема поискового индекса ваших каналов устарела. Мы рекомендуем регенерировать индекс ваших каналов.\nНажмите кнопку `Ребилд индексов каналов` на [странице Elasticsearch через Системную консоль]({{.ElasticsearchSection}}), чтобы исправить эту проблему.\nБолее подробную информацию смотри в журнале изменений Mattermost."
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.multiple",
@@ -9990,14 +9838,6 @@
   {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Не удалось получить количество пользователей"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Невозможно закрыть zip-файл"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Невозможно перейти к началу файла экспорта."
   },
   {
     "id": "store.sql_team.save_team.existing.app_error",
@@ -10162,5 +10002,61 @@
   {
     "id": "api.remote_cluster.create_invite_error",
     "translation": "Не удалось создать приглашение на удаленный кластер"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Невозможно обновить бота."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Вы не можете изменить статус пользователя. Пользователь управляется из LDAP-каталога"
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Невозможно отфильтровать конфигурацию."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Не удалось закешировать сообщение после дедупликации клиента, повторяющего один и тот же запрос."
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Не удалось получить данные управления общим каналом"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Не удалось пригласить удалённо на канал"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Не удалось отменить приглашение дистанционного пользователя на канал"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Невозможно зарегистрировать группу свойств \"Атрибуты пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Невозможно создать поле \"Атрибут пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Невозможно получить поле \"Атрибут пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Достигнут лимит поля \"Атрибуты пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Невозможно получить значения пользовательских атрибутов профиля"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Ваша лицензия не поддерживает пользовательские атрибуты профиля."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Невозможно получить программу для чтения zip-файлов."
   }
 ]

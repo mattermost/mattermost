@@ -3,6 +3,7 @@
 
 import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     AccountMultipleOutlineIcon,
@@ -15,6 +16,7 @@ import {
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AboutBuildModal from 'components/about_build_modal';
 import {VisitSystemConsoleTour} from 'components/onboarding_tasks';
@@ -85,6 +87,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
         enableCustomUserGroups,
     } = props;
     const {formatMessage} = useIntl();
+    const isAdmin = useSelector(isCurrentUserSystemAdmin);
 
     useEffect(() => {
         props.actions.getPrevTrialLicense();
@@ -151,7 +154,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     text={formatMessage({id: 'navbar_dropdown.userGroups', defaultMessage: 'User Groups'})}
                     icon={<AccountMultipleOutlineIcon size={18}/>}
                     disabled={isStarterFree}
-                    sibling={(isStarterFree || isFreeTrial) && (
+                    sibling={(isAdmin && (isStarterFree || isFreeTrial)) && (
                         <RestrictedIndicator
                             blocked={isStarterFree}
                             feature={MattermostFeatures.CUSTOM_USER_GROUPS}
