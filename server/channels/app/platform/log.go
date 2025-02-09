@@ -54,7 +54,7 @@ func (ps *PlatformService) initLogging() error {
 	}
 
 	// redirect default Go logger to app logger.
-	ps.logger.RedirectStdLog(mlog.LvlStdLog)
+	ps.logger.RedirectStdLog(mlog.LvlWarn)
 
 	// use the app logger as the global logger (eventually remove all instances of global logging).
 	mlog.InitGlobalLogger(ps.logger)
