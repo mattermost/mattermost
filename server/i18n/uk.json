@@ -10350,5 +10350,9 @@
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Користувацьке поле атрибуту профілю не знайдено"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Не вдається оновити поле атрибуту користувацького профілю"
   }
 ]
