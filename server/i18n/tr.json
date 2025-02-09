@@ -10398,5 +10398,9 @@
   {
     "id": "model.property_value.is_valid.app_error",
     "translation": "Özellik değeri geçersiz: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Silinmiş bir kanalda komut yürütülemez."
   }
 ]
