@@ -371,15 +371,15 @@ export default class AtMentionProvider extends Provider {
 
                 if (teammateNameDisplay == 'nickname_full_name') {
                     if (item.nickname) {
-                        return '@' + item.nickname;
-                    } else if (item.first_name && item.last_name) {
-                        return '@' + item.first_name + ' ' + item.last_name;
+                        return `@${item.username}(${item.nickname})`;
+                    } else if (item.fullname) {
+                        return `@${item.username}(${item.fullname})`;
                     }
                 }
 
                 if (teammateNameDisplay == 'full_name') {
-                    if (item.first_name && item.last_name) {
-                        return '@' + item.first_name + ' ' + item.last_name;
+                    if (item.fullname) {
+                        return `@${item.username}(${item.fullname})`;
                     }
                 }
             }
