@@ -1,5 +1,5 @@
-@import 'utils/variables';
-@import 'utils/functions';
+@use 'utils/variables';
+@use 'utils/functions';
 
 .MenuGroup {
     &.menu-divider {

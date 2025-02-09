@@ -316,7 +316,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 3,
-                  "text": "Español (Beta)",
+                  "text": "Español (Alpha)",
                   "value": "es",
                 },
                 Object {
@@ -381,7 +381,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 16,
-                  "text": "Yкраїнська (Alpha)",
+                  "text": "Yкраїнська",
                   "value": "uk",
                 },
                 Object {
@@ -401,7 +401,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 20,
-                  "text": "中文 (繁體)",
+                  "text": "中文 (繁體) (Beta)",
                   "value": "zh-TW",
                 },
                 Object {
@@ -445,7 +445,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 3,
-                  "text": "Español (Beta)",
+                  "text": "Español (Alpha)",
                   "value": "es",
                 },
                 Object {
@@ -510,7 +510,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 16,
-                  "text": "Yкраїнська (Alpha)",
+                  "text": "Yкраїнська",
                   "value": "uk",
                 },
                 Object {
@@ -530,7 +530,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 20,
-                  "text": "中文 (繁體)",
+                  "text": "中文 (繁體) (Beta)",
                   "value": "zh-TW",
                 },
                 Object {
@@ -675,8 +675,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       savingMessage="Saving Config..."
     />
     <WithTooltip
-      id="error-tooltip"
-      placement="top"
       title=""
     >
       <div

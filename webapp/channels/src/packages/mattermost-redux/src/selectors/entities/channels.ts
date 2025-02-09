@@ -27,10 +27,10 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
 import {
-    getCurrentChannelId,
+    getCurrentChannelId as getCurrentChannelIdInternal,
     getCurrentUser,
-    getMyChannelMemberships,
-    getMyCurrentChannelMembership,
+    getMyChannelMemberships as getMyChannelMembershipsInternal,
+    getMyCurrentChannelMembership as getMyCurrentChannelMembershipInternal,
     getUsers,
 } from 'mattermost-redux/selectors/entities/common';
 import {
@@ -69,7 +69,11 @@ import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 import {isPostPriorityEnabled} from './posts';
 import {getThreadCounts, getThreadCountsIncludingDirect} from './threads';
 
-export {getCurrentChannelId, getMyChannelMemberships, getMyCurrentChannelMembership};
+// Re-define these types to ensure that these are typed correctly when mattermost-redux is published
+export const getCurrentChannelId: (state: GlobalState) => string = getCurrentChannelIdInternal;
+export const getMyChannelMemberships: (state: GlobalState) => RelationOneToOne<Channel, ChannelMembership> = getMyChannelMembershipsInternal;
+export const getMyCurrentChannelMembership: (state: GlobalState) => ChannelMembership | undefined = getMyCurrentChannelMembershipInternal;
+
 export function getAllChannels(state: GlobalState): IDMappedObjects<Channel> {
     return state.entities.channels.channels;
 }
@@ -238,6 +242,26 @@ export const getCurrentChannel: (state: GlobalState) => Channel | undefined = cr
     },
 );
 
+const getChannelNameForSearch = (channel: Channel | undefined, users: UsersState): string | undefined => {
+    if (!channel) {
+        return undefined;
+    }
+
+    // Only get the extra info from users if we need it
+    if (channel.type === General.DM_CHANNEL) {
+        const dmChannelWithInfo = completeDirectChannelInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel);
+        return `@${dmChannelWithInfo.display_name}`;
+    }
+
+    // Replace spaces in GM channel names
+    if (channel.type === General.GM_CHANNEL) {
+        const gmChannelWithInfo = completeDirectGroupInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel, false);
+        return `@${gmChannelWithInfo.display_name.replace(/\s/g, '')}`;
+    }
+
+    return channel.name;
+};
+
 export const getCurrentChannelNameForSearchShortcut: (state: GlobalState) => string | undefined = createSelector(
     'getCurrentChannelNameForSearchShortcut',
     getAllChannels,
@@ -245,20 +269,18 @@ export const getCurrentChannelNameForSearchShortcut: (state: GlobalState) => str
     (state: GlobalState): UsersState => state.entities.users,
     (allChannels: IDMappedObjects<Channel>, currentChannelId: string, users: UsersState): string | undefined => {
         const channel = allChannels[currentChannelId];
+        return getChannelNameForSearch(channel, users);
+    },
+);
 
-        // Only get the extra info from users if we need it
-        if (channel?.type === General.DM_CHANNEL) {
-            const dmChannelWithInfo = completeDirectChannelInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel);
-            return `@${dmChannelWithInfo.display_name}`;
-        }
-
-        // Replace spaces in GM channel names
-        if (channel?.type === General.GM_CHANNEL) {
-            const gmChannelWithInfo = completeDirectGroupInfo(users, Preferences.DISPLAY_PREFER_USERNAME, channel, false);
-            return `@${gmChannelWithInfo.display_name.replace(/\s/g, '')}`;
-        }
-
-        return channel?.name;
+export const getChannelNameForSearchShortcut: (state: GlobalState, channelId: string) => string | undefined = createSelector(
+    'getChannelNameForSearchShortcut',
+    getAllChannels,
+    (state: GlobalState): UsersState => state.entities.users,
+    (state: GlobalState, channelId: string): string => channelId,
+    (allChannels: IDMappedObjects<Channel>, users: UsersState, channelId: string): string | undefined => {
+        const channel = allChannels[channelId];
+        return getChannelNameForSearch(channel, users);
     },
 );
 
@@ -545,7 +567,7 @@ export const getMyChannels: (state: GlobalState) => Channel[] = createSelector(
     getAllDirectChannels,
     getMyChannelMemberships,
     (channels: Channel[], directChannels: Channel[], myMembers: RelationOneToOne<Channel, ChannelMembership>): Channel[] => {
-        return [...channels, ...directChannels].filter((c) => myMembers.hasOwnProperty(c.id));
+        return [...channels, ...directChannels].filter((c) => Object.hasOwn(myMembers, c.id));
     },
 );
 
@@ -555,7 +577,7 @@ export const getOtherChannels: (state: GlobalState, archived?: boolean | null) =
     getMyChannelMemberships,
     (state: GlobalState, archived: boolean | undefined | null = true) => archived,
     (channels: Channel[], myMembers: RelationOneToOne<Channel, ChannelMembership>, archived?: boolean | null): Channel[] => {
-        return channels.filter((c) => !myMembers.hasOwnProperty(c.id) && c.type === General.OPEN_CHANNEL && (archived ? true : c.delete_at === 0));
+        return channels.filter((c) => !Object.hasOwn(myMembers, c.id) && c.type === General.OPEN_CHANNEL && (archived ? true : c.delete_at === 0));
     },
 );
 
@@ -1341,7 +1363,7 @@ export function searchChannelsInPolicy(state: GlobalState, policyId: string, ter
 
 export function getDirectTeammate(state: GlobalState, channelId: string): UserProfile | undefined {
     const channel = getChannel(state, channelId);
-    if (!channel) {
+    if (!channel || channel.type !== 'D') {
         return undefined;
     }
 
@@ -1444,3 +1466,8 @@ export const getRecentProfilesFromDMs: (state: GlobalState) => UserProfile[] = c
         return [...sortedUserProfiles];
     },
 );
+
+export const isDeactivatedDirectChannel = (state: GlobalState, channelId: string) => {
+    const teammate = getDirectTeammate(state, channelId);
+    return Boolean(teammate && teammate.delete_at);
+};

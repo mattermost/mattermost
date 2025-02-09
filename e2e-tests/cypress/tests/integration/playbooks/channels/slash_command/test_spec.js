@@ -6,7 +6,6 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
 
 describe('channels > slash command > test', {testIsolation: true}, () => {

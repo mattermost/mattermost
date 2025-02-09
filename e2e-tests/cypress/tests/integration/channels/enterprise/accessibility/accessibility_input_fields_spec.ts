@@ -81,15 +81,15 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchContainer().click();
 
         // * Verify Accessibility support in search input
-        cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchHints').and('have.attr', 'aria-label', 'Search');
-        cy.uiGetSearchBox().find('input').focus();
+        cy.uiGetSearchBox().should('have.attr', 'aria-describedby', 'searchbar-help-popup').and('have.attr', 'aria-label', 'Search messages');
+        cy.uiGetSearchBox().focus();
         cy.get('#searchHints').should('be.visible');
 
         // # Ensure User list is cached once in UI
-        cy.uiGetSearchBox().find('input').type('from:').wait(TIMEOUTS.FIVE_SEC);
+        cy.uiGetSearchBox().type('from:').wait(TIMEOUTS.FIVE_SEC);
 
         // # Trigger the user autocomplete again
-        cy.uiGetSearchBox().find('input').clear().type('from:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().first().clear().type('from:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2);
@@ -103,10 +103,10 @@ describe('Verify Accessibility Support in different input fields', () => {
         verifySearchAutocomplete(3);
 
         // # Type the in: filter and ensure channel list is cached once
-        cy.uiGetSearchBox().find('input').clear().type('in:').wait(TIMEOUTS.FIVE_SEC);
+        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.FIVE_SEC);
 
         // # Trigger the channel autocomplete again
-        cy.uiGetSearchBox().find('input').clear().type('in:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
+        cy.uiGetSearchBox().first().clear().type('in:').wait(TIMEOUTS.FIVE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
         verifySearchAutocomplete(2, 'channel');
@@ -122,7 +122,7 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                 cy.apiAddUserToChannel(testChannel.id, user.id).then(() => {
                     // * Verify Accessibility support in post input field
-                    cy.uiGetPostTextBox().should('have.attr', 'aria-label', `write to ${testChannel.display_name}`).clear().focus();
+                    cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).clear().focus();
 
                     // # Ensure User list is cached once in UI
                     cy.uiGetPostTextBox().type('@').wait(TIMEOUTS.FIVE_SEC);
@@ -168,7 +168,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     it('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
         cy.get('#advancedTextEditorCell').within(() => {
             // * Verify Accessibility Support in Main Post input
-            cy.uiGetPostTextBox().should('have.attr', 'aria-label', `write to ${testChannel.display_name}`).and('have.attr', 'role', 'textbox').clear().focus().type('test');
+            cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).and('have.attr', 'role', 'textbox').clear().focus().type('test');
 
             // # Set a11y focus on the textbox
             cy.get('#FormattingControl_bold').focus().tab({shift: true});
@@ -231,7 +231,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         cy.get('#rhsContainer').within(() => {
             // * Verify Accessibility Support in RHS input
-            cy.uiGetReplyTextBox().should('have.attr', 'aria-label', 'reply to this thread...').and('have.attr', 'role', 'textbox').focus().type('test').tab({shift: true}).tab().tab();
+            cy.uiGetReplyTextBox().should('have.attr', 'placeholder', 'Reply to this thread...').and('have.attr', 'role', 'textbox').focus().type('test').tab();
 
             // * Verify if the focus is on the preview button
             cy.get('#PreviewInputTextButton').should('be.focused').and('have.attr', 'aria-label', 'preview').tab();
@@ -246,7 +246,7 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#FormattingControl_strike').should('be.focused').and('have.attr', 'aria-label', 'strike through').tab();
 
             // * Verify if the focus is on the hidden controls button
-            cy.get('#HiddenControlsButtonRHS_COMMENT').should('be.focused').and('have.attr', 'aria-label', 'show hidden formatting options').tab();
+            cy.get('#HiddenControlsButtonRHS_COMMENT').should('be.focused').and('have.attr', 'aria-label', 'show hidden formatting options').click().tab();
 
             // * Verify if the focus is on the hidden heading button
             cy.get('#FormattingControl_heading').should('be.focused').and('have.attr', 'aria-label', 'heading').tab();
@@ -290,7 +290,7 @@ function getUserMentionAriaLabel(displayName) {
 }
 
 function verifySearchAutocomplete(index, type = 'user') {
-    cy.uiGetSearchBox().find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
+    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
         if (type === 'user') {
             cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
                 const usernameLength = 12;

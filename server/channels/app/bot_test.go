@@ -206,9 +206,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    sToP("invalid username"),
-			DisplayName: sToP("an updated bot"),
-			Description: sToP("updated bot"),
+			Username:    model.NewPointer("invalid username"),
+			DisplayName: model.NewPointer("an updated bot"),
+			Description: model.NewPointer("updated bot"),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -232,9 +232,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    sToP("username"),
-			DisplayName: sToP("display name"),
-			Description: sToP(strings.Repeat("x", 1025)),
+			Username:    model.NewPointer("username"),
+			DisplayName: model.NewPointer("display name"),
+			Description: model.NewPointer(strings.Repeat("x", 1025)),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -261,9 +261,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    sToP("username2"),
-			DisplayName: sToP("updated bot"),
-			Description: sToP("an updated bot"),
+			Username:    model.NewPointer("username2"),
+			DisplayName: model.NewPointer("updated bot"),
+			Description: model.NewPointer("an updated bot"),
 		}
 
 		patchedBot, err := th.App.PatchBot(th.Context, createdBot.UserId, botPatch)
@@ -296,7 +296,7 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username: sToP(th.BasicUser2.Username),
+			Username: model.NewPointer(th.BasicUser2.Username),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -872,9 +872,17 @@ func TestConvertUserToBot(t *testing.T) {
 		})
 	})
 
-	t.Run("valid user", func(t *testing.T) {
+	t.Run("valid user and session revoked", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+
+		// make sure session is valid
+		testSession, err := th.App.GetSession(session.Token)
+		require.Nil(t, err)
+		require.False(t, testSession.IsExpired())
 
 		bot, err := th.App.ConvertUserToBot(th.Context, &model.User{
 			Username: "username",
@@ -882,11 +890,16 @@ func TestConvertUserToBot(t *testing.T) {
 		})
 		require.Nil(t, err)
 		defer func() {
-			err := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
 			require.Nil(t, err)
 		}()
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+
+		// make sure session is no longer valid
+		_, err = th.App.GetSession(session.Token)
+		require.NotNil(t, err)
+		require.Equal(t, "api.context.invalid_token.error", err.Id)
 	})
 }
 
@@ -926,8 +939,4 @@ func TestGetSystemBot(t *testing.T) {
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
 	})
-}
-
-func sToP(s string) *string {
-	return &s
 }

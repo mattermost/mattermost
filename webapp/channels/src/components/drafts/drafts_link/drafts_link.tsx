@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect} from 'react';
+import classNames from 'classnames';
+import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {NavLink, useRouteMatch} from 'react-router-dom';
 
+import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {
+    getScheduledPostsByTeamCount, hasScheduledPostError, isScheduledPostsEnabled,
+} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {getDrafts} from 'actions/views/drafts';
@@ -14,28 +19,94 @@ import {makeGetDraftsCount} from 'selectors/drafts';
 
 import DraftsTourTip from 'components/drafts/drafts_link/drafts_tour_tip/drafts_tour_tip';
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
+import WithTooltip from 'components/with_tooltip';
+
+import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+
+const getDraftsCount = makeGetDraftsCount();
 
 import './drafts_link.scss';
 
-const getDraftsCount = makeGetDraftsCount();
+const scheduleIcon = (
+    <i
+        data-testid='scheduledPostIcon'
+        className='icon icon-draft-indicator icon-clock-send-outline'
+    />
+);
+
+const pencilIcon = (
+    <i
+        data-testid='draftIcon'
+        className='icon icon-draft-indicator icon-pencil-outline'
+    />
+);
 
 function DraftsLink() {
     const dispatch = useDispatch();
 
+    const initialScheduledPostsLoaded = useRef(false);
+
     const syncedDraftsAllowedAndEnabled = useSelector(syncedDraftsAreAllowedAndEnabled);
-    const count = useSelector(getDraftsCount);
+    const draftCount = useSelector(getDraftsCount);
     const teamId = useSelector(getCurrentTeamId);
+    const teamScheduledPostCount = useSelector((state: GlobalState) => getScheduledPostsByTeamCount(state, teamId, true));
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
+
+    const hasDrafts = draftCount > 0;
+    const hasScheduledPosts = teamScheduledPostCount > 0;
+    const itemsExist = hasDrafts || (isScheduledPostEnabled && hasScheduledPosts);
+
+    const scheduledPostsHasError = useSelector((state: GlobalState) => hasScheduledPostError(state, teamId));
 
     const {url} = useRouteMatch();
     const isDraftUrlMatch = useRouteMatch('/:team/drafts');
+    const isScheduledPostUrlMatch = useRouteMatch('/:team/' + SCHEDULED_POST_URL_SUFFIX);
+
+    const urlMatches = isDraftUrlMatch || isScheduledPostUrlMatch;
 
     useEffect(() => {
         if (syncedDraftsAllowedAndEnabled) {
             dispatch(getDrafts(teamId));
         }
-    }, [teamId, syncedDraftsAllowedAndEnabled]);
+    }, [teamId, syncedDraftsAllowedAndEnabled, dispatch]);
 
-    if (!count && !isDraftUrlMatch) {
+    useEffect(() => {
+        const loadDMsAndGMs = !initialScheduledPostsLoaded.current;
+
+        if (isScheduledPostEnabled) {
+            dispatch(fetchTeamScheduledPosts(teamId, loadDMsAndGMs));
+        }
+
+        initialScheduledPostsLoaded.current = true;
+    }, [dispatch, isScheduledPostEnabled, teamId]);
+
+    const showScheduledPostCount = isScheduledPostEnabled && teamScheduledPostCount > 0;
+
+    const tooltipText = useMemo(() => {
+        const lineBreaks = (x: React.ReactNode) => {
+            if (draftCount > 0 && teamScheduledPostCount > 0) {
+                return (<><br/>{x}</>);
+            }
+
+            return null;
+        };
+
+        return (
+            <FormattedMessage
+                id='drafts.tooltipText'
+                defaultMessage=''
+                values={{
+                    draftCount,
+                    scheduledPostCount: teamScheduledPostCount,
+                    br: lineBreaks,
+                }}
+            />
+        );
+    }, [draftCount, teamScheduledPostCount]);
+
+    if (!itemsExist && !urlMatches) {
         return null;
     }
 
@@ -55,8 +126,8 @@ function DraftsLink() {
                     tabIndex={0}
                 >
                     <i
-                        data-testid='draftIcon'
-                        className='icon icon-pencil-outline'
+                        data-testid='sendPostIcon'
+                        className='icon icon-send-post icon-send'
                     />
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
@@ -66,9 +137,29 @@ function DraftsLink() {
                             />
                         </span>
                     </div>
-                    {count > 0 && (
-                        <ChannelMentionBadge unreadMentions={count}/>
-                    )}
+                    <WithTooltip
+                        title={tooltipText}
+                    >
+                        <div>
+                            {
+                                draftCount > 0 &&
+                                <ChannelMentionBadge
+                                    unreadMentions={draftCount}
+                                    icon={pencilIcon}
+                                />
+                            }
+
+                            {
+                                showScheduledPostCount &&
+                                <ChannelMentionBadge
+                                    unreadMentions={teamScheduledPostCount}
+                                    icon={scheduleIcon}
+                                    className={classNames('scheduledPostBadge', {persistent: scheduledPostsHasError})}
+                                    hasUrgent={scheduledPostsHasError}
+                                />
+                            }
+                        </div>
+                    </WithTooltip>
                 </NavLink>
                 <DraftsTourTip/>
             </li>

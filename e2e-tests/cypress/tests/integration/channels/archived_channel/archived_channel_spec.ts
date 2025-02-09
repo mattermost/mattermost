@@ -42,7 +42,7 @@ describe('Leave an archived channel', () => {
 
             // # Search for a post in an archived channel
             cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().find('input').clear().type(`${testArchivedMessage}{enter}`);
+            cy.uiGetSearchBox().first().clear().type(`${testArchivedMessage}{enter}`);
 
             // # Open the archived channel by selecting Jump from search results and then selecting the link to move to the most recent posts in the channel
             cy.uiGetSearchContainer().should('be.visible');
@@ -113,7 +113,7 @@ describe('Leave an archived channel', () => {
         createArchivedChannel({prefix: 'archived-search-for'}, messageList).then(({name}) => {
             // # Locate the post in a search
             cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().find('input').clear().type(`${messageList[1]}{enter}`);
+            cy.uiGetSearchBox().first().clear().type(`${messageList[1]}{enter}`);
 
             // # Click jump to open an archive post in permalink view
             cy.uiGetSearchContainer().should('be.visible');

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {render} from '@testing-library/react';
+import {renderHook} from '@testing-library/react-hooks';
 import userEvent from '@testing-library/user-event';
 import type {History} from 'history';
 import {createBrowserHistory} from 'history';
@@ -54,28 +55,14 @@ export const renderWithContext = (
         store: testStore,
     };
 
-    // This should wrap the component in roughly the same providers used in App and RootProvider
-    function WrapComponent(props: {children: React.ReactElement}) {
-        // Every time this is called, these values should be updated from `renderState`
-        return (
-            <Provider store={renderState.store}>
-                <Router history={renderState.history}>
-                    <IntlProvider
-                        locale={renderState.options.locale}
-                        messages={renderState.options.intlMessages}
-                    >
-                        <WebSocketContext.Provider value={WebSocketClient}>
-                            {props.children}
-                        </WebSocketContext.Provider>
-                    </IntlProvider>
-                </Router>
-            </Provider>
-        );
-    }
-
     replaceGlobalStore(() => renderState.store);
 
-    const results = render(component, {wrapper: WrapComponent});
+    const results = render(component, {
+        wrapper: ({children}) => {
+            // Every time this is called, these values should be updated from `renderState`
+            return <Providers {...renderState}>{children}</Providers>;
+        },
+    });
 
     return {
         ...results,
@@ -106,6 +93,36 @@ export const renderWithContext = (
     };
 };
 
+export const renderHookWithContext = <TProps, TResult>(
+    callback: (props: TProps) => TResult,
+    initialState: DeepPartial<GlobalState> = {},
+    partialOptions?: FullContextOptions,
+) => {
+    const options = {
+        intlMessages: partialOptions?.intlMessages,
+        locale: partialOptions?.locale ?? 'en',
+        useMockedStore: partialOptions?.useMockedStore ?? false,
+    };
+
+    const testStore = configureOrMockStore(initialState, options.useMockedStore, partialOptions?.pluginReducers);
+
+    // Store these in an object so that they can be maintained through rerenders
+    const renderState = {
+        callback,
+        history: partialOptions?.history ?? createBrowserHistory(),
+        options,
+        store: testStore,
+    };
+    replaceGlobalStore(() => renderState.store);
+
+    return renderHook(callback, {
+        wrapper: ({children}) => {
+            // Every time this is called, these values should be updated from `renderState`
+            return <Providers {...renderState}>{children}</Providers>;
+        },
+    });
+};
+
 function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean, extraReducersKeys?: string[]) {
     let testReducers;
     if (extraReducersKeys) {
@@ -133,3 +150,29 @@ function replaceGlobalStore(getStore: () => any) {
     // This may stop working if getStore starts to return new results
     jest.spyOn(globalStore, 'subscribe').mockImplementation((...args) => getStore().subscribe(...args));
 }
+
+type Opts = {
+    intlMessages: Record<string, string> | undefined;
+    locale: string;
+    useMockedStore: boolean;
+}
+
+type RenderStateProps = {children: React.ReactNode; store: any; history: History<unknown>; options: Opts}
+
+// This should wrap the component in roughly the same providers used in App and RootProvider
+const Providers = ({children, store, history, options}: RenderStateProps) => {
+    return (
+        <Provider store={store}>
+            <Router history={history}>
+                <IntlProvider
+                    locale={options.locale}
+                    messages={options.intlMessages}
+                >
+                    <WebSocketContext.Provider value={WebSocketClient}>
+                        {children}
+                    </WebSocketContext.Provider>
+                </IntlProvider>
+            </Router>
+        </Provider>
+    );
+};

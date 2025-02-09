@@ -32,7 +32,7 @@ export async function shouldHaveFeatureFlag(name: string, value: string | boolea
 
 export async function shouldRunInLinux() {
     const platform = os.platform();
-    await expect(platform, 'Run in Linux or Playwright docker image only').toBe('linux');
+    expect(platform, 'Run in Linux or Playwright docker image only').toBe('linux');
 }
 
 export async function ensureLicense() {
@@ -41,7 +41,7 @@ export async function ensureLicense() {
 
     if (license?.IsLicensed !== 'true') {
         const config = await adminClient.getClientConfigOld();
-        await expect(
+        expect(
             config.ServiceEnvironment === 'dev',
             'The trial license request fails in the local development environment. Please manually upload the test license.',
         ).toBeFalsy();
@@ -51,7 +51,7 @@ export async function ensureLicense() {
         license = await adminClient.getClientLicenseOld();
     }
 
-    await expect(license?.IsLicensed === 'true', 'Ensure server has license').toBeTruthy();
+    expect(license?.IsLicensed === 'true', 'Ensure server has license').toBeTruthy();
 }
 
 export async function requestTrialLicense() {
@@ -64,7 +64,6 @@ export async function requestTrialLicense() {
             users: 100,
         });
     } catch (error) {
-        // eslint-disable-next-line no-console
         expect(error, 'Failed to request trial license').toBeFalsy();
         throw error;
     }
@@ -75,4 +74,11 @@ export async function skipIfNoLicense() {
     const license = await adminClient.getClientLicenseOld();
 
     test.skip(license.IsLicensed === 'false', 'Skipping test - server not licensed');
+}
+
+export async function skipIfFeatureFlagNotSet(name: string, value: string | boolean) {
+    const {adminClient} = await getAdminClient();
+    const cfg = await adminClient.getConfig();
+
+    test.skip(cfg.FeatureFlags[name] !== value, `Skipping test - Feature Flag ${name} needs to be set to ${value}`);
 }

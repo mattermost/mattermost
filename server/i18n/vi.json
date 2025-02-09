@@ -414,10 +414,6 @@
     "translation": "Dữ liệu trong trường 'image' bị trống"
   },
   {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Không thể sao chép tệp đính kèm vào tệp zip."
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
     "translation": "Địa chỉ nhận email thông báo không hợp lệ."
   },
@@ -448,10 +444,6 @@
   {
     "id": "api.admin.upload_brand_image.array.app_error",
     "translation": "Dữ liệu trong trường 'image' bị trống"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Không thể đọc thông tin email."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
@@ -518,10 +510,6 @@
     "translation": "đuổi"
   },
   {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Không thể thêm tệp đính kèm vào Global Relay export."
-  },
-  {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "Không có ai để mời."
   },
@@ -564,10 +552,6 @@
   {
     "id": "api.user.upload_profile_user.storage.app_error",
     "translation": "Không thể tải hình ảnh lên. Kho dữ liệu ảnh chưa được cấu hình."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Không thể đặt thông báo email."
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -804,10 +788,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "lỗi truy xuất nhóm cho người dùng"
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Không thể mở tệp xuất tạm thời."
   },
   {
     "id": "api.command_channel_header.message.app_error",
@@ -1064,10 +1044,6 @@
     "translation": "đổi tên"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Không thể xóa chỉ mục Elaticsearch"
-  },
-  {
     "id": "api.channel.guest_join_channel.post_and_forget",
     "translation": "%v tham gia kênh với vai trò khách mời"
   },
@@ -1188,10 +1164,6 @@
     "translation": "Thiếu thuộc tính Người dùng yêu cầu: email"
   },
   {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Không thể tạo tệp eml."
-  },
-  {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
     "translation": "Đã xảy ra lỗi khi phân tích cú pháp thông tin siêu dữ liệu nhận được từ Nhà cung cấp danh tính thành chứng chỉ."
   },
@@ -1202,10 +1174,6 @@
   {
     "id": "model.user.is_valid.id.app_error",
     "translation": "User id không hợp lệ"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Không thể nhận email từ tệp tạm thời"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
@@ -1258,10 +1226,6 @@
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
     "translation": "MFA không có sẵn cho loại tài khoản này"
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Không thể thêm tiêu đề vào CSV export."
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -1346,10 +1310,6 @@
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
     "translation": "Tên biểu tượng cảm xúc không hợp lệ"
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Tệp đã tải lên đã bị xóa khỏi Global Relay export vì quá lớn để gửi."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
@@ -2350,10 +2310,6 @@
     "translation": "Người dùng chưa đăng ký trên máy chủ AD / LDAP"
   },
   {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Không thể chuyển đổi siêu dữ liệu sang json."
-  },
-  {
     "id": "api.channel.remove_members.denied",
     "translation": "Xóa thành viên kênh bị từ chối đối với những người dùng sau vì các ràng buộc nhóm: {{ .UserIDs }}"
   },
@@ -2392,10 +2348,6 @@
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Tài khoản khách đã bị vô hiệu hoá."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Không thể đặt email Từ địa chỉ."
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
@@ -2778,10 +2730,6 @@
     "translation": "Không thể cập nhật bot"
   },
   {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Không thể đóng tệp zip."
-  },
-  {
     "id": "api.user.upload_profile_user.too_large.app_error",
     "translation": "Không thể tải hình ảnh lên. File quá lớn."
   },
@@ -2846,10 +2794,6 @@
     "translation": "Chúng tôi đã nhận được phản hồi trống từ Nhà cung cấp danh tính"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Không thể mở tệp tạm thời xuất"
-  },
-  {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
     "translation": "invalid_request: Redirect_uri được cung cấp không hợp lệ với mã ủy quyền redirect_uri"
   },
@@ -2884,10 +2828,6 @@
   {
     "id": "api.slackimport.slack_import.note2",
     "translation": "- Tin nhắn bot trùng hiện không được hỗ trợ.\n"
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Không thể tạo tệp CSV export tạm thời."
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3194,10 +3134,6 @@
     "translation": "Lỗi khi truy xuất kênh hiện tại."
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Không thể tạo tệp eml."
-  },
-  {
     "id": "app.import.validate_team_import_data.description_length.error",
     "translation": "Mô tả nhóm quá dài."
   },
@@ -3228,10 +3164,6 @@
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
     "translation": "Không thể sao chép hình ảnh biểu tượng cảm xúc tùy chỉnh"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Không thể đặt email đến địa chỉ."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_secret.app_error",
@@ -3618,10 +3550,6 @@
     "translation": "Không thể lấy thông tin người dùng từ {{.Service}}"
   },
   {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Không thể đọc lại tệp xuất tạm thời Global Relay."
-  },
-  {
     "id": "model.compliance.is_valid.end_at.app_error",
     "translation": "Phải là một thời gian hợp lệ"
   },
@@ -3700,10 +3628,6 @@
   {
     "id": "model.post.is_valid.props.app_error",
     "translation": "Props không hợp lệ"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Không thể gửi email đến Global Relay."
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -3844,10 +3768,6 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Giấy phép của bạn không hỗ trợ Elaticsearch."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Không thể giải mã gói dữ liệu nhiều phần của webhook sắp tới."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
@@ -4518,10 +4438,6 @@
     "translation": "Đã xảy ra lỗi khi rời khỏi kênh."
   },
   {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Không thể thêm tệp siêu dữ liệu vào tệp zip."
-  },
-  {
     "id": "api.command_invite.fail.app_error",
     "translation": "Đã xảy ra lỗi khi tham gia kênh."
   },
@@ -4564,10 +4480,6 @@
   {
     "id": "app.export.export_write_line.io_writer.error",
     "translation": "Đã xảy ra lỗi khi ghi dữ liệu xuất."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Không thể tạo dữ liệu tệp eml."
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
@@ -4664,10 +4576,6 @@
     "translation": "@{{.Username}} không nhận được thông báo vì họ không ở trong kênh giao tiếp."
   },
   {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Không thể tạo tệp xuất zip."
-  },
-  {
     "id": "api.admin.upload_brand_image.parse.app_error",
     "translation": "Không thể phân tích form với định dạng multipart"
   },
@@ -4720,16 +4628,8 @@
     "translation": "Giấy phép của bạn không hỗ trợ Lưu giữ dữ liệu."
   },
   {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Không thể xuất một bài đăng."
-  },
-  {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
     "translation": "ID nhóm không hợp lệ"
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -5290,10 +5190,6 @@
     "translation": "Thiếu thuộc tính Trả lời yêu cầu: Người dùng."
   },
   {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Không thể tạo tệp eml."
-  },
-  {
     "id": "api.command_invite.desc",
     "translation": "Mời người dùng vào một kênh"
   },
@@ -5324,14 +5220,6 @@
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Không thể tạo nhiều hơn {{.MaxChannelsPerTeam}} kênh cho nhóm hiện tại"
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Không thể kết xuất theo dạng {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Không thể thêm tệp đính kèm vào CSV export."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
@@ -5370,10 +5258,6 @@
     "translation": "Thất bại gửi email \"đặt lại mật khẩu thành công\""
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Không thể tải mẫu xuất. Vui lòng thử lại."
-  },
-  {
     "id": "api.templates.signin_change_email.body.method_email",
     "translation": "email và mật khẩu"
   },
@@ -5394,16 +5278,8 @@
     "translation": "Tên trang web phải nhỏ hơn hoặc bằng {{.MaxLength}} ký tự"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Không thể lấy thông tin của tệp tạm thời xuất"
-  },
-  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Trường Create_at phải là thời gian hợp lệ."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Không thể viết tin nhắn email."
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -7046,10 +6922,6 @@
     "translation": "Không thể phân tích phiên bản máy chủ Elaticsearch."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Không thể thu hút người dùng vào kênh trong khoảng thời gian được chỉ định."
-  },
-  {
     "id": "ent.id_loaded.license_disable.app_error",
     "translation": "Giấy phép của bạn không hỗ trợ Thông báo đẩy được tải ID."
   },
@@ -7084,22 +6956,6 @@
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "không thể di cư."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Không thể lấy thông tin tệp cho bài đăng."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Không thể lấy thông tin tệp cho bài đăng."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Không thể kết nối với máy chủ smtp"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Không thể lấy thông tin tệp cho bài đăng."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -8610,10 +8466,6 @@
     "translation": "Lỗi tạo chỉ mục người dùng."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Không thể ghi tập tin chuyển tiếp toàn cầu."
-  },
-  {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
     "translation": "Đánh chỉ mục người dùng thất bại."
   },
@@ -9190,24 +9042,12 @@
     "translation": "Không phân tích được giá trị:{{.Value}} thành int64"
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Không thể chuyển đổi xuất sang XML."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Không thể ghi tập tin xuất."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " đính kèm một tập tin."
   },
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Đã xảy ra lỗi khi sắp xếp thứ tự yêu cầu JSON"
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Không thể ghi tệp csv."
   },
   {
     "id": "ent.data_retention.policies.internal_error",
@@ -9256,10 +9096,6 @@
   {
     "id": "model.draft.is_valid.file_ids.app_error",
     "translation": "Id tập tin không hợp lệ."
-  },
-  {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Tin nhắn không hợp lệ."
   },
   {
     "id": "model.draft.is_valid.priority.app_error",

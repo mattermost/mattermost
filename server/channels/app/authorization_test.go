@@ -178,8 +178,10 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 
 	ch1 := th.CreateChannel(th.Context, th.BasicTeam)
 	ch2 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+	assert.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
+	assert.Nil(t, appErr)
 
 	allChannels := []string{th.BasicChannel.Id, ch1.Id, ch2.Id}
 
@@ -196,7 +198,8 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 			UserId: th.BasicUser.Id,
 		}
 
-		th.App.removeUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, ch1)
+		appErr := th.App.removeUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, ch1)
+		assert.Nil(t, appErr)
 		assert.False(t, th.App.SessionHasPermissionToChannels(th.Context, session, allChannels, model.PermissionReadChannel))
 	})
 
@@ -256,7 +259,10 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		assert.Nil(t, appErr)
+	}()
 	assert.NotNil(t, bot)
 
 	t.Run("test my bot", func(t *testing.T) {
@@ -385,7 +391,10 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 		})
 		require.Nil(t, err)
 		assert.NotNil(t, bot)
-		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			assert.Nil(t, appErr)
+		}()
 
 		assert.False(t, th.App.SessionHasPermissionToUser(session, bot.UserId))
 	})
@@ -410,7 +419,10 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		assert.Nil(t, appErr)
+	}()
 
 	t.Run("test basic user access", func(t *testing.T) {
 		session := model.Session{
@@ -685,12 +697,14 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 	require.Nil(t, err)
 
 	channel := th.CreateChannel(th.Context, th.BasicTeam)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	assert.Nil(t, appErr)
 	post := th.CreatePost(channel)
 
 	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	archivedPost := th.CreatePost(archivedChannel)
-	th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+	appErr = th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+	assert.Nil(t, appErr)
 
 	t.Run("read channel", func(t *testing.T) {
 		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, post.Id, model.PermissionReadChannel))
@@ -734,12 +748,14 @@ func TestHasPermissionToChannelByPost(t *testing.T) {
 	defer th.TearDown()
 
 	channel := th.CreateChannel(th.Context, th.BasicTeam)
-	th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	assert.Nil(t, appErr)
 	post := th.CreatePost(channel)
 
 	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
 	archivedPost := th.CreatePost(archivedChannel)
-	th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+	appErr = th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+	assert.Nil(t, appErr)
 
 	t.Run("read channel", func(t *testing.T) {
 		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, post.Id, model.PermissionReadChannel))

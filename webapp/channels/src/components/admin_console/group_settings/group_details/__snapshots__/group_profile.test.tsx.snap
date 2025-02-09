@@ -3,12 +3,14 @@
 exports[`components/admin_console/group_settings/group_details/GroupProfile should match snapshot 1`] = `
 <div
   className="group-profile form-horizontal"
+  id="test"
 >
   <div
     className="group-profile-field form-group mb-0"
   >
     <label
       className="control-label col-sm-4"
+      htmlFor="testInput"
     >
       <MemoizedFormattedMessage
         defaultMessage="Name:"
@@ -29,6 +31,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfile shou
       <input
         className="form-control group-at-mention-input"
         disabled={false}
+        id="testInput"
         type="text"
         value="Test"
       />

@@ -1,4 +1,4 @@
-@charset "utf-8";
+@use "utils/variables";
 
 .nav > li > a:focus,
 .nav > li > a:hover {
@@ -139,7 +139,7 @@
             }
 
             .icon--white {
-                color: $white;
+                color: variables.$white;
             }
         }
 
@@ -218,6 +218,6 @@
     }
 
     .badge-notify {
-        background: $red;
+        background: variables.$red;
     }
 }

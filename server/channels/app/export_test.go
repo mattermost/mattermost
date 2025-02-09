@@ -14,6 +14,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -107,7 +111,8 @@ func TestExportUserChannels(t *testing.T) {
 	err := th.App.Srv().Store().Preference().Save(preferences)
 	require.NoError(t, err)
 
-	th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
+	_, appErr = th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
+	require.Nil(t, appErr)
 	exportData, appErr := th.App.buildUserChannelMemberships(th.Context, user.Id, team.Id, false)
 	require.Nil(t, appErr)
 	assert.Equal(t, len(*exportData), 3)
@@ -141,22 +146,25 @@ func TestCopyEmojiImages(t *testing.T) {
 	// Creating a dir named `exported_emoji_test` in the root of the repo
 	pathToDir := "../exported_emoji_test"
 
-	os.Mkdir(pathToDir, 0777)
+	err := os.Mkdir(pathToDir, 0777)
+	require.NoError(t, err)
 	defer os.RemoveAll(pathToDir)
 
 	filePath := "../data/emoji/" + emoji.Id
 	emojiImagePath := filePath + "/image"
 
-	var _, err = os.Stat(filePath)
+	_, err = os.Stat(filePath)
 	if os.IsNotExist(err) {
-		os.MkdirAll(filePath, 0777)
+		err = os.MkdirAll(filePath, 0777)
+		require.NoError(t, err)
 	}
 
 	// Creating a file with the name `image` to copy it to `exported_emoji_test`
-	os.OpenFile(filePath+"/image", os.O_RDONLY|os.O_CREATE, 0777)
+	_, err = os.OpenFile(filePath+"/image", os.O_RDONLY|os.O_CREATE, 0777)
+	require.NoError(t, err)
 	defer os.RemoveAll(filePath)
 
-	copyError := th.App.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
+	copyError := th.App.copyEmojiImages(th.Context, emoji.Id, emojiImagePath, pathToDir)
 	require.NoError(t, copyError)
 
 	_, err = os.Stat(pathToDir + "/" + emoji.Id + "/image")
@@ -232,6 +240,41 @@ func TestExportAllUsers(t *testing.T) {
 	assert.ElementsMatch(t, deletedUsers1, deletedUsers2)
 }
 
+func TestExportAllBots(t *testing.T) {
+	th1 := Setup(t)
+	defer th1.TearDown()
+
+	u := th1.CreateUser()
+	bot, err := th1.App.CreateBot(th1.Context, &model.Bot{
+		Username:    "bot_1",
+		DisplayName: model.NewId(),
+		OwnerId:     u.Id,
+	})
+	require.Nil(t, err)
+
+	var b bytes.Buffer
+	err = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	require.Nil(t, err)
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	require.Nil(t, err)
+	assert.EqualValues(t, 0, i)
+
+	u, err = th2.App.GetUserByUsername(u.Username)
+	require.Nil(t, err)
+
+	bots, err := th2.App.GetBots(th2.Context, &model.BotGetOptions{
+		OwnerId: u.Id,
+		Page:    0,
+		PerPage: 10,
+	})
+	require.Nil(t, err)
+	require.Len(t, bots, 1)
+	assert.Equal(t, bot.Username, bots[0].Username)
+}
+
 func TestExportDMChannel(t *testing.T) {
 	t.Run("Export a DM channel to another server", func(t *testing.T) {
 		th1 := Setup(t).InitBasic()
@@ -240,7 +283,7 @@ func TestExportDMChannel(t *testing.T) {
 		// DM Channel
 		ch := th1.CreateDmChannel(th1.BasicUser2)
 
-		th1.App.Srv().Store().Preference().Save(model.Preferences{
+		err := th1.App.Srv().Store().Preference().Save(model.Preferences{
 			{
 				UserId:   th1.BasicUser2.Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
@@ -248,10 +291,11 @@ func TestExportDMChannel(t *testing.T) {
 				Value:    "true",
 			},
 		})
+		require.NoError(t, err)
 
 		var b bytes.Buffer
-		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
-		require.Nil(t, err)
+		appErr := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
 
 		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
@@ -265,8 +309,9 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 0, len(channels))
 
 		// import the exported channel
-		err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
-		require.Nil(t, err)
+		var i int
+		appErr, i = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+		require.Nil(t, appErr)
 		assert.Equal(t, 0, i)
 
 		// Ensure the Members of the imported DM channel is the same was from the exported
@@ -294,8 +339,46 @@ func TestExportDMChannel(t *testing.T) {
 		require.NoError(t, nErr)
 		assert.Equal(t, 1, len(channels))
 
-		th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
-		th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser)
+		appErr := th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
+		require.Nil(t, appErr)
+		appErr = th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
+
+		th2 := Setup(t).InitBasic()
+		defer th2.TearDown()
+
+		// import the exported channel
+		appErr, _ = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
+		require.Nil(t, appErr)
+
+		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
+		require.NoError(t, nErr)
+		assert.Empty(t, channels)
+	})
+
+	t.Run("Should not export DM channel if other user is permanently deleted", func(t *testing.T) {
+		th1 := Setup(t).InitBasic()
+		defer th1.TearDown()
+
+		// Create a DM Channel with another user
+		dmc1 := th1.CreateDmChannel(th1.BasicUser2)
+		th1.CreatePost(dmc1)
+
+		// Create a DM Channel with self
+		dmc2 := th1.CreateDmChannel(th1.BasicUser)
+		th1.CreatePost(dmc2)
+
+		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
+		require.NoError(t, nErr)
+		assert.Equal(t, 2, len(channels))
+
+		// Permanentley delete other user
+		appErr := th1.App.PermanentDeleteUser(th1.Context, th1.BasicUser2)
+		require.Nil(t, appErr)
 
 		var b bytes.Buffer
 		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
@@ -305,12 +388,21 @@ func TestExportDMChannel(t *testing.T) {
 		defer th2.TearDown()
 
 		// import the exported channel
-		err, _ = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
+		err, _ = th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 		require.Nil(t, err)
 
 		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
-		assert.Empty(t, channels)
+		assert.Equal(t, 1, len(channels))
+
+		// Ensure the posts of the deleted DM channel do not leak to the self-DM channel
+		posts, nErr := th2.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{
+			ChannelId:      channels[0].Id,
+			PerPage:        1000,
+			IncludeDeleted: true,
+		}, false, nil)
+		require.NoError(t, nErr)
+		assert.Equal(t, 1, len(posts.Posts))
 	})
 }
 
@@ -446,14 +538,16 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "aa" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr := th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	p2 := &model.Post{
 		ChannelId: dmChannel.Id,
 		Message:   "bb" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p2, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr = th1.App.CreatePost(th1.Context, p2, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	// GM posts
 	p3 := &model.Post{
@@ -461,21 +555,23 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "cc" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p3, gmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr = th1.App.CreatePost(th1.Context, p3, gmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	p4 := &model.Post{
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p4, gmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr = th1.App.CreatePost(th1.Context, p4, gmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
 	assert.Equal(t, 4, len(posts))
 
 	var b bytes.Buffer
-	appErr := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
 	th1.TearDown()
@@ -531,7 +627,8 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr := th1.App.CreatePost(th1.Context, p1, dmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	p2 := &model.Post{
 		ChannelId: gmChannel.Id,
@@ -541,7 +638,8 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(th1.Context, p2, gmChannel, model.CreatePostFlags{SetOnline: true})
+	_, appErr = th1.App.CreatePost(th1.Context, p2, gmChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
 
 	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
@@ -550,7 +648,7 @@ func TestExportPostWithProps(t *testing.T) {
 	require.NotEmpty(t, posts[1].Props)
 
 	var b bytes.Buffer
-	appErr := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, appErr)
 
 	th1.TearDown()
@@ -747,6 +845,146 @@ func TestExportPostsWithThread(t *testing.T) {
 		require.Nil(t, err)
 		assertThreadFollowers(t, &b, thread.CreateAt, []string{th1.BasicUser.Username, th1.BasicUser2.Username})
 	})
+}
+
+func TestExportFileWarnings(t *testing.T) {
+	testCases := []struct {
+		Description string
+		ConfigFunc  func(cfg *model.Config)
+	}{
+		{
+			"local",
+			func(cfg *model.Config) {
+				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverLocal)
+			},
+		},
+		{
+			"s3",
+			func(cfg *model.Config) {
+				s3Host := os.Getenv("CI_MINIO_HOST")
+				if s3Host == "" {
+					s3Host = "localhost"
+				}
+
+				s3Port := os.Getenv("CI_MINIO_PORT")
+				if s3Port == "" {
+					s3Port = "9000"
+				}
+
+				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+				cfg.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+				cfg.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+				cfg.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+				cfg.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+				cfg.FileSettings.AmazonS3Region = model.NewPointer("")
+				cfg.FileSettings.AmazonS3SSL = model.NewPointer(false)
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			th := Setup(t)
+			defer th.TearDown()
+
+			th.App.UpdateConfig(testCase.ConfigFunc)
+
+			// Create a buffer to capture logs
+			buffer := &mlog.Buffer{}
+			err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+			require.NoError(t, err)
+
+			testsDir, _ := fileutils.FindDir("tests")
+			dir, err := os.MkdirTemp("", "import_test")
+			require.NoError(t, err)
+			defer os.RemoveAll(dir)
+
+			extractImportFile := func(filePath string) *os.File {
+				importFile, err2 := os.Open(filePath)
+				require.NoError(t, err2)
+				defer importFile.Close()
+
+				info, err2 := importFile.Stat()
+				require.NoError(t, err2)
+
+				paths, err2 := utils.UnzipToPath(importFile, info.Size(), dir)
+				require.NoError(t, err2)
+				require.NotEmpty(t, paths)
+
+				jsonFile, err2 := os.Open(filepath.Join(dir, "import.jsonl"))
+				require.NoError(t, err2)
+
+				return jsonFile
+			}
+
+			jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
+			defer jsonFile.Close()
+
+			appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, 1, dir)
+			require.Nil(t, appErr)
+
+			// delete one of the files
+			params := &model.SearchParams{Terms: "test3.png", SearchWithoutUserId: true}
+			results, err := th.App.Srv().Store().FileInfo().Search(th.Context, []*model.SearchParams{params}, "", "", 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.FileInfos, 1)
+
+			for _, info2 := range results.FileInfos {
+				err2 := th.App.RemoveFile(info2.Path)
+				require.Nil(t, err2)
+			}
+
+			exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
+			require.NoError(t, err)
+
+			job, appErr := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeExportProcess, nil)
+			require.Nil(t, appErr)
+			ok, appErr := th.App.Srv().Jobs.ClaimJob(job)
+			require.Nil(t, appErr)
+			require.True(t, ok)
+			job, appErr = th.App.Srv().Jobs.GetJob(th.Context, job.Id)
+			require.Nil(t, appErr)
+
+			opts := model.BulkExportOpts{
+				IncludeAttachments: true,
+				CreateArchive:      true,
+			}
+			appErr = th.App.BulkExport(th.Context, exportFile, dir, job, opts)
+			// should not get an error for the missing file
+			require.Nil(t, appErr)
+
+			// should get a warning instead:
+			testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Unable to export file attachment")
+
+			// should get info in the job data:
+			job, appErr = th.App.Srv().Jobs.GetJob(th.Context, job.Id)
+			require.Nil(t, appErr)
+			warnings, ok := job.Data["num_warnings"]
+			require.True(t, ok)
+			require.Equal(t, "1", warnings)
+
+			exportFile.Close()
+
+			// Verify warnings.txt exists in the zip and contains expected content
+			exportZipPath := filepath.Join(dir, "export.zip")
+			exportZipFile, err := os.Open(exportZipPath)
+			require.NoError(t, err)
+			defer exportZipFile.Close()
+
+			info, err := exportZipFile.Stat()
+			require.NoError(t, err)
+
+			paths, err := utils.UnzipToPath(exportZipFile, info.Size(), dir)
+			require.NoError(t, err)
+			require.Contains(t, paths, filepath.Join(dir, warningsFilename))
+
+			warningsContent, err := os.ReadFile(filepath.Join(dir, warningsFilename))
+			require.NoError(t, err)
+			require.Contains(t, string(warningsContent), "Unable to export file attachment, attachment path:")
+		})
+	}
 }
 
 func TestBulkExport(t *testing.T) {

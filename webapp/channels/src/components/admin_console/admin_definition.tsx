@@ -6,6 +6,7 @@
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
 import type {CloudState, Product} from '@mattermost/types/cloud';
@@ -34,7 +35,7 @@ import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/an
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
+import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
@@ -92,6 +93,7 @@ import SecureConnectionDetail from './secure_connections/secure_connection_detai
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
+import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
 import SystemUserDetail from './system_user_detail';
@@ -293,6 +295,24 @@ const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequiredForFe
 const adminDefinitionMessages = defineMessages({
     data_retention_title: {id: 'admin.data_retention.title', defaultMessage: 'Data Retention Policy'},
     ip_filtering_title: {id: 'admin.sidebar.ip_filtering', defaultMessage: 'IP Filtering'},
+    cache_settings_title: {id: 'admin.cacheSettings.title', defaultMessage: 'Cache Settings'},
+
+    cache_type_title: {id: 'admin.cacheSettings.cacheTypeTitle', defaultMessage: 'Cache Type'},
+    cache_type_desc: {id: 'admin.cacheSettings.cacheTypeDesc', defaultMessage: 'The type of the cache backend. E.g.: "redis" or "lru"'},
+
+    redis_address_title: {id: 'admin.cacheSettings.redisAddress', defaultMessage: 'Redis Address'},
+    redis_address_desc: {id: 'admin.cacheSettings.redisAddressDesc', defaultMessage: 'The hostname:port of the Redis server. E.g.: "localhost:6379"'},
+    redis_address_placeholder: {id: 'admin.cacheSettings.redisAddressPlaceholder', defaultMessage: 'localhost:6379'},
+
+    redis_password_title: {id: 'admin.cacheSettings.redisPassword', defaultMessage: 'Redis Password'},
+    redis_password_desc: {id: 'admin.cacheSettings.redisPasswordDesc', defaultMessage: 'The password of the Redis server.'},
+
+    redis_db_title: {id: 'admin.cacheSettings.redisDB', defaultMessage: 'Redis DB'},
+    redis_db_desc: {id: 'admin.cacheSettings.redisDBDesc', defaultMessage: 'The database of the Redis server. E.g.: "0"'},
+    redis_db_placeholder: {id: 'admin.cacheSettings.redisDBPlaceholder', defaultMessage: '0'},
+
+    redis_clientcache_title: {id: 'admin.cacheSettings.redisClientCache', defaultMessage: 'Disable Client Cache'},
+    redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
 const AdminDefinition: AdminDefinitionType = {
     about: {
@@ -553,6 +573,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             systemScheme: {
                 url: 'user_management/permissions/system_scheme',
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -561,6 +582,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             teamSchemeDetail: {
                 url: `user_management/permissions/team_override_scheme/:scheme_id(${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -569,6 +591,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             teamScheme: {
                 url: 'user_management/permissions/team_override_scheme',
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.PERMISSIONS)),
                 schema: {
                     id: 'PermissionSystemScheme',
@@ -590,6 +613,10 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_role: {
                 url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.not(it.licensedForFeature('LDAPGroups')),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'SystemRole',
@@ -742,7 +769,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.UseLetsEncrypt',
                             label: defineMessage({id: 'admin.service.useLetsEncrypt', defaultMessage: 'Use Let\'s Encrypt:'}),
                             help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription', defaultMessage: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.'}),
-                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains. This setting cannot be enabled unless the [Forward port 80 to 443](#SystemSettings.Forward80To443) setting is set to true."}),
+                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains. This setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true."}),
                             disabled_help_text_markdown: true,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -1097,6 +1124,17 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'text',
+                            key: 'FileSettings.AmazonS3StorageClass',
+                            label: defineMessage({id: 'admin.image.amazonS3StorageClassTitle', defaultMessage: 'Amazon S3 Storage Class:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3StorageClassDescription', defaultMessage: 'Storage class for your S3 Compatible Storage provider. Defaults to empty.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3StorageClassExample', defaultMessage: 'E.g.: "STANDARD" or "STANDARD_IA"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_S3)),
+                            ),
+                        },
+                        {
                             type: 'button',
                             action: testS3Connection,
                             key: 'TestS3Connection',
@@ -1278,6 +1316,17 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                                 it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAmazonS3StorageClass',
+                            label: defineMessage({id: 'admin.image.amazonS3StorageClassTitle', defaultMessage: 'Amazon S3 Storage Class:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3StorageClassDescription', defaultMessage: 'Storage class for your S3 Compatible Storage provider. Defaults to empty.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3StorageClassExample', defaultMessage: 'E.g.: "STANDARD" or "STANDARD_IA"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_S3)),
                             ),
                         },
                         {
@@ -1499,6 +1548,101 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'ClusterSettings',
                     component: ClusterSettings,
+                },
+            },
+            cache_settings: {
+                url: 'environment/cache_settings',
+                title: adminDefinitionMessages.cache_settings_title,
+                isHidden: it.any(
+                    it.not(it.licensedForFeature('Cluster')),
+                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                ),
+                searchableStrings: [
+                    adminDefinitionMessages.cache_settings_title,
+                    adminDefinitionMessages.cache_type_title,
+                    adminDefinitionMessages.cache_type_desc,
+                    adminDefinitionMessages.redis_address_title,
+                    adminDefinitionMessages.redis_address_desc,
+                    adminDefinitionMessages.redis_password_title,
+                    adminDefinitionMessages.redis_password_desc,
+                    adminDefinitionMessages.redis_db_title,
+                    adminDefinitionMessages.redis_db_desc,
+                    adminDefinitionMessages.redis_clientcache_title,
+                    adminDefinitionMessages.redis_clientcache_desc,
+                ],
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                schema: {
+                    id: 'CacheSettings',
+                    name: adminDefinitionMessages.cache_settings_title,
+                    settings: [
+                        {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
+                            banner_type: 'info',
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'CacheSettings.CacheType',
+                            label: adminDefinitionMessages.cache_type_title,
+                            help_text: adminDefinitionMessages.cache_type_desc,
+                            help_text_markdown: true,
+                            options: [
+                                {
+                                    value: CacheTypes.LRU,
+                                    display_name: defineMessage({id: 'admin.cacheSettings.cacheType.lru', defaultMessage: 'LRU'}),
+                                },
+                                {
+                                    value: CacheTypes.REDIS,
+                                    display_name: defineMessage({id: 'admin.cacheSettings.cacheType.redis', defaultMessage: 'Redis'}),
+                                },
+                            ],
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'CacheSettings.RedisAddress',
+                            label: adminDefinitionMessages.redis_address_title,
+                            help_text: adminDefinitionMessages.redis_address_desc,
+                            placeholder: adminDefinitionMessages.redis_address_placeholder,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'CacheSettings.RedisPassword',
+                            label: adminDefinitionMessages.redis_password_title,
+                            help_text: adminDefinitionMessages.redis_password_desc,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'number',
+                            key: 'CacheSettings.RedisDB',
+                            label: adminDefinitionMessages.redis_db_title,
+                            help_text: adminDefinitionMessages.redis_db_desc,
+                            placeholder: adminDefinitionMessages.redis_db_placeholder,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'CacheSettings.DisableClientCache',
+                            label: adminDefinitionMessages.redis_clientcache_title,
+                            help_text: adminDefinitionMessages.redis_clientcache_desc,
+                            help_text_markdown: false,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.HIGH_AVAILABILITY)),
+                                it.not(it.stateEquals('CacheSettings.CacheType', CacheTypes.REDIS)),
+                            ),
+                        },
+                    ],
                 },
             },
             rate_limiting: {
@@ -2036,6 +2180,19 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            system_properties: {
+                url: 'site_config/system_properties',
+                title: defineMessage({id: 'admin.sidebar.system_properties', defaultMessage: 'System Properties'}),
+                searchableStrings: systemPropertiesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.licensedForSku(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
+                )),
+                schema: {
+                    id: 'SystemProperties',
+                    component: SystemProperties,
+                },
+            },
             localization: {
                 url: 'site_config/localization',
                 title: defineMessage({id: 'admin.sidebar.localization', defaultMessage: 'Localization'}),
@@ -2077,6 +2234,13 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             multiple: true,
                             no_result: defineMessage({id: 'admin.general.localization.availableLocalesNoResults', defaultMessage: 'No results found'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'LocalizationSettings.EnableExperimentalLocales',
+                            label: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesTitle', defaultMessage: 'Enable Experimental Locales:'}),
+                            help_text: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesDescription', defaultMessage: 'When true, it allows users to select experimental (e.g., in progress) languages.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
                         },
                     ],
@@ -2609,6 +2773,15 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                             isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.ScheduledPosts',
+                            label: defineMessage({id: 'admin.posts.scheduledPosts.title', defaultMessage: 'Scheduled Posts'}),
+                            help_text: defineMessage({id: 'admin.posts.scheduledPosts.description', defaultMessage: 'When enabled, users can schedule and send messages in the future.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                            isHidden: it.not(it.licensed),
                         },
                         {
                             type: 'number',
@@ -3198,7 +3371,6 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'banner',
                             label: defineMessage({id: 'admin.mfa.bannerDesc', defaultMessage: '<link>Multi-factor authentication</link> is available for accounts with AD/LDAP or email login. If other login methods are used, MFA should be configured with the authentication provider.'}),
-                            label_markdown: false,
                             label_values: {
                                 link: (msg: string) => (
                                     <ExternalLink
@@ -5795,9 +5967,14 @@ const AdminDefinition: AdminDefinitionType = {
                     settings: [
                         {
                             type: 'banner',
-                            label: defineMessage({id: 'admin.compliance.newComplianceExportBanner', defaultMessage: 'This feature is replaced by a new [Compliance Export]({siteURL}/admin_console/compliance/export) feature, and will be removed in a future release. We recommend migrating to the new system.'}),
-                            label_markdown: true,
-                            label_values: {siteURL: getSiteURL()},
+                            label: defineMessage({id: 'admin.compliance.newComplianceExportBanner', defaultMessage: 'This feature is replaced by a new <link>Compliance Export</link> feature, and will be removed in a future release. We recommend migrating to the new system.'}),
+                            label_values: {
+                                link: (msg: string) => (
+                                    <Link to='/admin_console/compliance/export'>
+                                        {msg}
+                                    </Link>
+                                ),
+                            },
                             banner_type: 'info',
                             isHidden: it.not(it.licensedForFeature('Compliance')),
                         },

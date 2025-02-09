@@ -5,6 +5,7 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken} from '@mattermost/types/users';
 
@@ -197,8 +198,8 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<Arra
 
 export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAsync<Array<UserProfile['username']>> {
     return async (dispatch, getState, {loaders}: any) => {
-        if (!loaders.missingUsernameLoader) {
-            loaders.missingUsernameLoader = new DelayedDataLoader<UserProfile['username']>({
+        if (!loaders.userByUsernameLoader) {
+            loaders.userByUsernameLoader = new DelayedDataLoader<UserProfile['username']>({
                 fetchBatch: (usernames) => dispatch(getProfilesByUsernames(usernames)),
                 maxBatchSize: maxUserIdsPerProfilesRequest,
                 wait: missingProfilesWait,
@@ -210,7 +211,7 @@ export function getMissingProfilesByUsernames(usernames: string[]): ActionFuncAs
         const missingUsernames = usernames.filter((username) => !usersByUsername[username]);
 
         if (missingUsernames.length > 0) {
-            await loaders.missingUsernameLoader.queueAndWait(missingUsernames);
+            await loaders.userByUsernameLoader.queueAndWait(missingUsernames);
         }
 
         return {data: missingUsernames};
@@ -375,6 +376,21 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
     };
 }
 
+export function batchGetProfilesInChannel(channelId: string): ActionFuncAsync<Array<Channel['id']>> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.profilesInChannelLoader) {
+            loaders.profilesInChannelLoader = new DelayedDataLoader<Channel['id']>({
+                fetchBatch: (channelIds) => dispatch(getProfilesInChannel(channelIds[0], 0)),
+                maxBatchSize: 1,
+                wait: missingProfilesWait,
+            });
+        }
+
+        await loaders.profilesInChannelLoader.queueAndWait([channelId]);
+        return {};
+    };
+}
+
 export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         let channelProfiles;
@@ -389,7 +405,7 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsy
 
         const actions: AnyAction[] = [];
         for (const channelId in channelProfiles) {
-            if (channelProfiles.hasOwnProperty(channelId)) {
+            if (Object.hasOwn(channelProfiles, channelId)) {
                 const profiles = channelProfiles[channelId];
 
                 actions.push(
@@ -951,6 +967,19 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
         dispatch(loadRolesIfNeeded(data.roles.split(' ')));
 
         return {data};
+    };
+}
+
+export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync<Record<string, string>> {
+    return async (dispatch) => {
+        try {
+            const values = {[attributeID]: attributeValue.trim()};
+            const data = await Client4.updateCustomProfileAttributeValues(values);
+            return {data};
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
     };
 }
 

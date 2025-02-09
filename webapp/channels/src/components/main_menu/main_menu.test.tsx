@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
+import type {ComponentProps} from 'react';
 import React from 'react';
 import {createIntl} from 'react-intl';
 import {Provider} from 'react-redux';
@@ -12,7 +13,6 @@ import Menu from 'components/widgets/menu/menu';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import {MainMenu} from './main_menu';
@@ -28,24 +28,18 @@ describe('components/Menu', () => {
         // return wrapper.find('MainMenu').shallow();
     };
 
-    const defaultProps = {
+    const defaultProps: ComponentProps<typeof MainMenu> = {
         mobile: false,
         teamId: 'team-id',
-        teamType: Constants.OPEN_TEAM,
         teamName: 'team_name',
         currentUser: TestHelper.getUserMock(),
         appDownloadLink: undefined,
         enableCommands: false,
-        enableCustomEmoji: false,
         enableIncomingWebhooks: false,
         enableOAuthServiceProvider: false,
         enableOutgoingWebhooks: false,
         canManageSystemBots: false,
-        canCreateOrDeleteCustomEmoji: false,
         canManageIntegrations: true,
-        enableUserCreation: false,
-        enableEmailInvitations: false,
-        enablePluginMarketplace: false,
         experimentalPrimaryTeam: undefined,
         helpLink: undefined,
         reportAProblemLink: undefined,
@@ -61,13 +55,10 @@ describe('components/Menu', () => {
             showFlaggedPosts: jest.fn(),
             closeRightHandSide: jest.fn(),
             closeRhsMenu: jest.fn(),
-            getCloudLimits: jest.fn(),
         },
         teamIsGroupConstrained: false,
         isCloud: false,
         isStarterFree: false,
-        subscription: {},
-        userIsAdmin: true,
         isFreeTrial: false,
         usageDeltaTeams: 1,
     };
@@ -178,23 +169,21 @@ describe('components/Menu', () => {
     });
 
     test('should match snapshot with plugins', () => {
-        const props = {
+        const props: ComponentProps<typeof MainMenu> = {
             ...defaultProps,
             pluginMenuItems: [{
                 id: 'plugin-id-1',
                 pluginId: 'plugin-1',
                 mobileIcon: <i className='fa fa-anchor'/>,
                 action: jest.fn,
-                dropdownText: 'some dropdown text',
-                tooltipText: 'some tooltip text',
+                text: 'some text',
             },
             {
                 id: 'plugind-id-2',
                 pluginId: 'plugin-2',
                 mobileIcon: <i className='fa fa-anchor'/>,
                 action: jest.fn,
-                dropdownText: 'some dropdown text',
-                tooltipText: 'some tooltip text',
+                text: 'some text',
             },
             ],
         };
@@ -203,24 +192,22 @@ describe('components/Menu', () => {
     });
 
     test('should match snapshot with plugins in mobile', () => {
-        const props = {
+        const props: ComponentProps<typeof MainMenu> = {
             ...defaultProps,
             mobile: true,
             pluginMenuItems: [{
                 id: 'plugin-id-1',
                 pluginId: 'plugin-1',
-                icon: <i className='fa fa-anchor'/>,
+                mobileIcon: <i className='fa fa-anchor'/>,
                 action: jest.fn,
-                dropdownText: 'some dropdown text',
-                tooltipText: 'some tooltip text',
+                text: 'some text',
             },
             {
                 id: 'plugind-id-2',
                 pluginId: 'plugin-2',
-                icon: <i className='fa fa-anchor'/>,
+                mobileIcon: <i className='fa fa-anchor'/>,
                 action: jest.fn,
-                dropdownText: 'some dropdown text',
-                tooltipText: 'some tooltip text',
+                text: 'some text',
             },
             ],
         };

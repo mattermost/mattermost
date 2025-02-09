@@ -1,4 +1,6 @@
-@charset "utf-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 @use 'sass:color';
 
@@ -43,6 +45,7 @@
 
 .app__body {
     .modal {
+        z-index: variables.$z-index-modal;
         color: rgb(var(--center-channel-color-rgb));
 
         .modal-content {
@@ -54,6 +57,11 @@
 
     .edit-modal-body {
         overflow: visible;
+
+        .textarea-label {
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
 
         .custom-textarea {
             height: auto;
@@ -115,11 +123,10 @@
 }
 
 .modal__error {
+    display: inline-block;
     margin-top: 6px;
-    color: $red;
-    float: left;
+    color: variables.$red;
     font-size: 0.95em;
-    font-weight: normal;
 }
 
 .more-table {
@@ -129,7 +136,7 @@
 
 .modal {
     width: 100%;
-    color: v(center-channel-color);
+    color: functions.v(center-channel-color);
 
     .modal--overflow {
         .modal-body {
@@ -213,7 +220,7 @@
         line-height: 0;
 
         &:hover {
-            color: $red;
+            color: variables.$red;
         }
     }
 
@@ -257,7 +264,6 @@
     .modal-header {
         display: flex;
         min-height: 76px;
-        align-items: center;
         justify-content: space-between;
         padding: 16px 64px 16px 32px;
         border: none;
@@ -305,13 +311,13 @@
 
             &:active {
                 background: rgba(var(--button-bg-rgb), 0.08);
-                color: v(button-bg);
+                color: functions.v(button-bg);
             }
 
             .modal-title {
                 width: 100%;
                 background: transparent;
-                color: v(center-channel-color);
+                color: functions.v(center-channel-color);
                 font-size: 22px;
                 line-height: 28px;
             }
@@ -320,7 +326,7 @@
         .modal-title {
             width: 100%;
             background: transparent;
-            color: v(center-channel-color);
+            color: functions.v(center-channel-color);
             font-size: 22px;
             line-height: 28px;
             word-break: break-word;
@@ -363,7 +369,7 @@
         margin: 0 auto;
 
         .modal-body {
-            @include clearfix;
+            @include mixins.clearfix;
 
             display: table;
             width: 100%;
@@ -548,7 +554,7 @@
             height: 100%;
             padding: 0;
             border: none;
-            background: alpha-color($black, 0);
+            background: functions.alpha-color(variables.$black, 0);
             box-shadow: none;
         }
 
@@ -565,7 +571,7 @@
             display: block;
             height: 20px;
             margin-top: 12px;
-            color: alpha-color($white, 0.8);
+            color: functions.alpha-color(variables.$white, 0.8);
         }
 
         .modal-button-bar {
@@ -574,7 +580,7 @@
             max-width: 100%;
             justify-content: center;
             padding: 0 10px;
-            background-color: $black;
+            background-color: variables.$black;
             line-height: 40px;
 
             .modal-bar-file-count {
@@ -588,7 +594,7 @@
             .text {
                 bottom: 0;
                 margin-left: 5px;
-                color: $white;
+                color: variables.$white;
                 vertical-align: middle;
             }
 
@@ -864,7 +870,7 @@
         min-height: 65px;
         align-items: center;
         padding: 10px 32px;
-        border-top: 1px solid $light-gray;
+        border-top: 1px solid variables.$light-gray;
 
         &.clickable {
             cursor: pointer;
@@ -932,7 +938,8 @@
         display: none;
         width: 32px;
         height: 32px;
-        line-height: 32px;
+        padding: 0;
+        border: none;
         opacity: 0.75;
         text-align: center;
     }
@@ -1021,7 +1028,7 @@
 
         .team-name {
             padding-left: 5px;
-            color: $gray;
+            color: variables.$gray;
         }
 
         .icon__lock,
@@ -1038,7 +1045,7 @@
         }
 
         .more-modal__row--selected {
-            background-color: color.adjust($primary-color, $lightness: 40%);
+            background-color: color.adjust(variables.$primary-color, $lightness: 40%);
 
             .more-modal__actions--round {
                 display: block;
@@ -1048,7 +1055,7 @@
         .no-channel-message {
             width: 100%;
             margin-top: 40px;
-            color: $gray;
+            color: variables.$gray;
             font-size: 1.25em;
             text-align: center;
         }
@@ -1061,7 +1068,7 @@
     .filter-control {
         border: none;
         background: none;
-        color: $primary-color;
+        color: variables.$primary-color;
 
         &:hover,
         &:focus,
@@ -1069,7 +1076,7 @@
             border: none;
             background: none;
             box-shadow: none;
-            color: $primary-color;
+            color: variables.$primary-color;
         }
     }
 }

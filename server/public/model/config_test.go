@@ -1559,7 +1559,7 @@ func TestConfigFilteredByTag(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
 
-	cfgMap := structToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+	cfgMap := configToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
 
 	// Remove entire sections but the map is still there
 	clusterSettings, ok := cfgMap["SqlSettings"].(map[string]any)
@@ -1800,6 +1800,39 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 	})
 }
 
+func TestConfigDefaultAIPluginState(t *testing.T) {
+	t.Run("should enable AI plugin by default on self-hosted", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+
+	t.Run("should enable AI plugin by default on Cloud", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+
+	t.Run("should not re-enable AI plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"mattermost-ai": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+		assert.False(t, c1.PluginSettings.PluginStates["mattermost-ai"].Enable)
+	})
+}
+
 func TestConfigGetMessageRetentionHours(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -1933,5 +1966,185 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 		c.SetDefaults()
 		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
 		require.True(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
+	})
+}
+
+func TestFilterConfig(t *testing.T) {
+	t.Run("should clear default values", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.Empty(t, m)
+
+		cfg.ServiceSettings = ServiceSettings{
+			EnableLocalMode: NewPointer(true),
+		}
+
+		m, err = FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.Equal(t, true, m["ServiceSettings"].(map[string]any)["EnableLocalMode"])
+	})
+
+	t.Run("should clear masked config values", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		dsn := "somedb://user:password@localhost:5432/mattermost"
+		cfg.SqlSettings.DataSource = NewPointer(dsn)
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.Equal(t, dsn, m["SqlSettings"].(map[string]any)["DataSource"])
+
+		cfg.Sanitize(nil)
+		m, err = FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.Equal(t, FakeSetting, m["SqlSettings"].(map[string]any)["DataSource"])
+
+		cfg.Sanitize(nil)
+		m, err = FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+				RemoveMasked:   true,
+			},
+		})
+		require.NoError(t, err)
+		require.Empty(t, m)
+
+		cfg.SqlSettings.DriverName = NewPointer("mysql")
+		m, err = FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+				RemoveMasked:   true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.Equal(t, "mysql", m["SqlSettings"].(map[string]any)["DriverName"])
+	})
+
+	t.Run("should not clear non primitive types", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		cfg.TeamSettings.ExperimentalDefaultChannels = []string{"ch-a", "ch-b"}
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+		require.ElementsMatch(t, []string{"ch-a", "ch-b"}, m["TeamSettings"].(map[string]any)["ExperimentalDefaultChannels"])
+	})
+
+	t.Run("should be able to handle nil values", func(t *testing.T) {
+		var cfg *Config
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.Empty(t, m)
+	})
+
+	t.Run("should be able to handle float64 values", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.PluginSettings.Plugins = map[string]map[string]any{
+			"com.mattermost.plugin-a": {
+				"setting": 1.0,
+			},
+		}
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{
+				RemoveDefaults: true,
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1.0, m["PluginSettings"].(map[string]any)["Plugins"].(map[string]any)["com.mattermost.plugin-a"].(map[string]any)["setting"])
+	})
+
+	t.Run("should be able to filter specific tag", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{},
+			TagFilters: []FilterTag{
+				{
+					TagType: ConfigAccessTagType,
+					TagName: ConfigAccessTagCloudRestrictable,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+
+		fileSettings, ok := m["FileSettings"]
+		require.True(t, ok)
+
+		enableFileAttachments, ok := fileSettings.(map[string]any)["EnableFileAttachments"]
+		require.True(t, ok)
+		require.Equal(t, true, enableFileAttachments)
+
+		// All fields of SqlSettings are ConfigAccessTagCloudRestrictable
+		_, ok = m["SqlSettings"]
+		require.False(t, ok)
+	})
+
+	t.Run("should be able to filter multiple tags", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+
+		m, err := FilterConfig(cfg, ConfigFilterOptions{
+			GetConfigOptions: GetConfigOptions{},
+			TagFilters: []FilterTag{
+				{
+					TagType: ConfigAccessTagType,
+					TagName: "site_file_sharing_and_downloads",
+				},
+				{
+					TagType: ConfigAccessTagType,
+					TagName: ConfigAccessTagCloudRestrictable,
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, m)
+
+		fileSettings, ok := m["FileSettings"]
+		require.True(t, ok)
+		// EnableFileAttachments has "site_file_sharing_and_downloads" tag
+		_, ok = fileSettings.(map[string]any)["EnableFileAttachments"]
+		require.False(t, ok)
+
+		// All fields of SqlSettings are ConfigAccessTagCloudRestrictable
+		_, ok = m["SqlSettings"]
+		require.False(t, ok)
 	})
 }

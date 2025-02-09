@@ -58,6 +58,7 @@ func TestComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("MessageEditAfterExportMessage", func(t *testing.T) { testEditAfterExportMessage(t, rctx, ss) })
 	t.Run("MessageDeleteExportMessage", func(t *testing.T) { testDeleteExportMessage(t, rctx, ss) })
 	t.Run("MessageDeleteAfterExportMessage", func(t *testing.T) { testDeleteAfterExportMessage(t, rctx, ss) })
+	t.Run("MessageExport_UntilUpdateAt", func(t *testing.T) { testMessageExportUntilUpdateAt(t, rctx, ss) })
 }
 
 func testComplianceStore(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -105,7 +106,7 @@ func testComplianceExport(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
-	t1.Name = NewTestId()
+	t1.Name = NewTestID()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
 	t1, err := ss.Team().Save(t1)
@@ -130,7 +131,7 @@ func testComplianceExport(t *testing.T, rctx request.CTX, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
-	c1.Name = NewTestId()
+	c1.Name = NewTestID()
 	c1.Type = model.ChannelTypeOpen
 	c1, nErr = ss.Channel().Save(rctx, c1, -1)
 	require.NoError(t, nErr)
@@ -139,7 +140,7 @@ func testComplianceExport(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1.ChannelId = c1.Id
 	o1.UserId = u1.Id
 	o1.CreateAt = model.GetMillis()
-	o1.Message = NewTestId()
+	o1.Message = NewTestID()
 	o1, nErr = ss.Post().Save(rctx, o1)
 	require.NoError(t, nErr)
 
@@ -147,7 +148,7 @@ func testComplianceExport(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1a.ChannelId = c1.Id
 	o1a.UserId = u1.Id
 	o1a.CreateAt = o1.CreateAt + 10
-	o1a.Message = NewTestId()
+	o1a.Message = NewTestID()
 	_, nErr = ss.Post().Save(rctx, o1a)
 	require.NoError(t, nErr)
 
@@ -155,7 +156,7 @@ func testComplianceExport(t *testing.T, rctx request.CTX, ss store.Store) {
 	o2.ChannelId = c1.Id
 	o2.UserId = u1.Id
 	o2.CreateAt = o1.CreateAt + 20
-	o2.Message = NewTestId()
+	o2.Message = NewTestID()
 	_, nErr = ss.Post().Save(rctx, o2)
 	require.NoError(t, nErr)
 
@@ -163,7 +164,7 @@ func testComplianceExport(t *testing.T, rctx request.CTX, ss store.Store) {
 	o2a.ChannelId = c1.Id
 	o2a.UserId = u2.Id
 	o2a.CreateAt = o1.CreateAt + 30
-	o2a.Message = NewTestId()
+	o2a.Message = NewTestID()
 	o2a, nErr = ss.Post().Save(rctx, o2a)
 	require.NoError(t, nErr)
 
@@ -239,7 +240,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
-	t1.Name = NewTestId()
+	t1.Name = NewTestID()
 	t1.Email = MakeEmail()
 	t1.Type = model.TeamOpen
 	t1, err := ss.Team().Save(t1)
@@ -264,7 +265,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
-	c1.Name = NewTestId()
+	c1.Name = NewTestID()
 	c1.Type = model.ChannelTypeOpen
 	c1, nErr = ss.Channel().Save(rctx, c1, -1)
 	require.NoError(t, nErr)
@@ -275,7 +276,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 	o1.ChannelId = c1.Id
 	o1.UserId = u1.Id
 	o1.CreateAt = model.GetMillis()
-	o1.Message = NewTestId()
+	o1.Message = NewTestID()
 	o1, nErr = ss.Post().Save(rctx, o1)
 	require.NoError(t, nErr)
 
@@ -283,7 +284,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 	o1a.ChannelId = c1.Id
 	o1a.UserId = u1.Id
 	o1a.CreateAt = o1.CreateAt + 10
-	o1a.Message = NewTestId()
+	o1a.Message = NewTestID()
 	_, nErr = ss.Post().Save(rctx, o1a)
 	require.NoError(t, nErr)
 
@@ -291,7 +292,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 	o2.ChannelId = c1.Id
 	o2.UserId = u1.Id
 	o2.CreateAt = o1.CreateAt + 20
-	o2.Message = NewTestId()
+	o2.Message = NewTestID()
 	_, nErr = ss.Post().Save(rctx, o2)
 	require.NoError(t, nErr)
 
@@ -299,7 +300,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 	o2a.ChannelId = c1.Id
 	o2a.UserId = u2.Id
 	o2a.CreateAt = o1.CreateAt + 30
-	o2a.Message = NewTestId()
+	o2a.Message = NewTestID()
 	_, nErr = ss.Post().Save(rctx, o2a)
 	require.NoError(t, nErr)
 
@@ -307,7 +308,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 	o3.ChannelId = cDM.Id
 	o3.UserId = u1.Id
 	o3.CreateAt = o1.CreateAt + 40
-	o3.Message = NewTestId()
+	o3.Message = NewTestID()
 	o3, nErr = ss.Post().Save(rctx, o3)
 	require.NoError(t, nErr)
 
@@ -362,7 +363,7 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 			post.ChannelId = c1.Id
 			post.UserId = u1.Id
 			post.CreateAt = createAt
-			post.Message = NewTestId()
+			post.Message = NewTestID()
 			_, nErr = ss.Post().Save(rctx, post)
 			require.NoError(t, nErr)
 		}
@@ -407,7 +408,7 @@ func testMessageExportPublicChannel(t *testing.T, rctx request.CTX, ss store.Sto
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -454,7 +455,7 @@ func testMessageExportPublicChannel(t *testing.T, rctx request.CTX, ss store.Sto
 		ChannelId: channel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
@@ -463,7 +464,7 @@ func testMessageExportPublicChannel(t *testing.T, rctx request.CTX, ss store.Sto
 		ChannelId: channel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime + 10,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post2, err = ss.Post().Save(rctx, post2)
 	require.NoError(t, err)
@@ -511,7 +512,7 @@ func testMessageExportPrivateChannel(t *testing.T, rctx request.CTX, ss store.St
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -558,7 +559,7 @@ func testMessageExportPrivateChannel(t *testing.T, rctx request.CTX, ss store.St
 		ChannelId: channel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
@@ -567,7 +568,7 @@ func testMessageExportPrivateChannel(t *testing.T, rctx request.CTX, ss store.St
 		ChannelId: channel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime + 10,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post2, err = ss.Post().Save(rctx, post2)
 	require.NoError(t, err)
@@ -617,7 +618,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, rctx request.CTX, ss st
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -658,7 +659,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, rctx request.CTX, ss st
 		ChannelId: directMessageChannel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime + 20,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post, err = ss.Post().Save(rctx, post)
 	require.NoError(t, err)
@@ -698,7 +699,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, rctx request.CTX, ss sto
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -756,7 +757,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, rctx request.CTX, ss sto
 		ChannelId: groupMessageChannel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime + 20,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post, err = ss.Post().Save(rctx, post)
 	require.NoError(t, err)
@@ -796,7 +797,7 @@ func testEditExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -831,7 +832,7 @@ func testEditExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 		ChannelId: channel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
@@ -888,7 +889,7 @@ func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) 
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -923,7 +924,7 @@ func testEditAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store) 
 		ChannelId: channel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
@@ -999,7 +1000,7 @@ func testDeleteExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -1034,7 +1035,7 @@ func testDeleteExportMessage(t *testing.T, rctx request.CTX, ss store.Store) {
 		ChannelId: channel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
@@ -1084,7 +1085,7 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        NewTestId(),
+		Name:        NewTestID(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -1119,7 +1120,7 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 		ChannelId: channel.Id,
 		UserId:    user1.Id,
 		CreateAt:  startTime,
-		Message:   NewTestId(),
+		Message:   NewTestID(),
 	}
 	post1, err = ss.Post().Save(rctx, post1)
 	require.NoError(t, err)
@@ -1173,4 +1174,106 @@ func testDeleteAfterExportMessage(t *testing.T, rctx request.CTX, ss store.Store
 	assert.Equal(t, user1.Id, *v.UserId)
 	assert.Equal(t, user1.Email, *v.UserEmail)
 	assert.Equal(t, user1.Username, *v.Username)
+}
+
+func testMessageExportUntilUpdateAt(t *testing.T, rctx request.CTX, ss store.Store) {
+	defer cleanupStoreState(t, rctx, ss)
+
+	// get the starting number of message export entries
+	startTime := model.GetMillis()
+	messages, _, err := ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: startTime - 10}, 10)
+	require.NoError(t, err)
+	assert.Equal(t, 0, len(messages))
+
+	// need a team
+	team := &model.Team{
+		DisplayName: "DisplayName",
+		Name:        model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	}
+	team, err = ss.Team().Save(team)
+	require.NoError(t, err)
+
+	// and two users that are a part of that team
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user1, err = ss.User().Save(rctx, user1)
+	require.NoError(t, err)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{
+		TeamId: team.Id,
+		UserId: user1.Id,
+	}, -1)
+	require.NoError(t, nErr)
+
+	user2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user2, err = ss.User().Save(rctx, user2)
+	require.NoError(t, err)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{
+		TeamId: team.Id,
+		UserId: user2.Id,
+	}, -1)
+	require.NoError(t, nErr)
+
+	// need a public channel
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		Name:        model.NewId(),
+		DisplayName: "Public Channel",
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr = ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, nErr)
+
+	var posts []*model.Post
+	// user1 posts ten times in the public channel
+	for i := 0; i < 10; i++ {
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    user1.Id,
+			CreateAt:  startTime + int64(i),
+			UpdateAt:  startTime + int64(i),
+			Message:   model.NewId(),
+		}
+		post, err = ss.Post().Save(rctx, post)
+		require.NoError(t, err)
+		posts = append(posts, post)
+	}
+
+	// fetch 5 starting from the third post, using LastPostUpdateAt and UntilUpdateAt.
+	// UntilUpdateAt is inclusive
+	messageExportMap := map[string]model.MessageExport{}
+	messages, _, err = ss.Compliance().MessageExport(rctx, model.MessageExportCursor{LastPostUpdateAt: posts[2].UpdateAt, UntilUpdateAt: posts[2].UpdateAt + 4}, 10000)
+	require.NoError(t, err)
+	assert.Equal(t, 5, len(messages))
+
+	for _, v := range messages {
+		messageExportMap[*v.PostId] = *v
+	}
+
+	for i := 2; i < 7; i++ {
+		assert.Equal(t, posts[i].Id, *messageExportMap[posts[i].Id].PostId)
+		assert.Equal(t, posts[i].CreateAt, *messageExportMap[posts[i].Id].PostCreateAt)
+		assert.Equal(t, posts[i].Message, *messageExportMap[posts[i].Id].PostMessage)
+		assert.Equal(t, channel.Id, *messageExportMap[posts[i].Id].ChannelId)
+		assert.Equal(t, channel.DisplayName, *messageExportMap[posts[i].Id].ChannelDisplayName)
+		assert.Equal(t, user1.Id, *messageExportMap[posts[i].Id].UserId)
+		assert.Equal(t, user1.Email, *messageExportMap[posts[i].Id].UserEmail)
+		assert.Equal(t, user1.Username, *messageExportMap[posts[i].Id].Username)
+	}
+
+	// Also test AnalyticsPostCount because they are used in tandem for MessageExports
+	count, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{
+		TeamId:             channel.TeamId,
+		ExcludeSystemPosts: true,
+		SinceUpdateAt:      posts[2].UpdateAt,
+		UntilUpdateAt:      posts[2].UpdateAt + 4,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 5, int(count))
 }

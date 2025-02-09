@@ -14,16 +14,18 @@ const webpack = require('webpack');
 const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
 
-// const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-
 const packageJson = require('./package.json');
 
 const NPM_TARGET = process.env.npm_lifecycle_event;
 
+// list of known code editors that set an environment variable.
+const knownCodeEditors = ['VSCODE_CWD', 'INSIDE_EMACS'];
+const isInsideCodeEditor = knownCodeEditors.some((editor) => process.env[editor]);
+
 const targetIsRun = NPM_TARGET?.startsWith('run');
 const targetIsStats = NPM_TARGET === 'stats';
 const targetIsDevServer = NPM_TARGET?.startsWith('dev-server');
-const targetIsEslint = NPM_TARGET?.startsWith('check') || NPM_TARGET === 'fix' || process.env.VSCODE_CWD;
+const targetIsEslint = NPM_TARGET?.startsWith('check') || NPM_TARGET === 'fix' || isInsideCodeEditor;
 
 const DEV = targetIsRun || targetIsStats || targetIsDevServer;
 
@@ -97,7 +99,7 @@ var config = {
                         loader: 'sass-loader',
                         options: {
                             sassOptions: {
-                                includePaths: ['src/sass'],
+                                loadPaths: ['src/sass'],
                             },
                         },
                     },
@@ -149,7 +151,7 @@ var config = {
     target: 'web',
     plugins: [
         new webpack.ProvidePlugin({
-            process: 'process/browser',
+            process: 'process/browser.js',
         }),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
@@ -265,13 +267,6 @@ var config = {
                 sizes: '96x96',
             }],
         }),
-
-        // Disabling this plugin until we come up with better bundle analysis ci
-        // new BundleAnalyzerPlugin({
-        //     analyzerMode: 'disabled',
-        //     generateStatsFile: true,
-        //     statsFilename: 'bundlestats.json',
-        // }),
     ],
 };
 
@@ -406,16 +401,21 @@ if (targetIsDevServer) {
         devtool: 'eval-cheap-module-source-map',
         devServer: {
             liveReload: true,
-            proxy: {
-
-                // Forward these requests to the server
-                '/api': {
+            proxy: [
+                {
+                    context: '/api',
                     ...proxyToServer,
                     ws: true,
                 },
-                '/plugins': proxyToServer,
-                '/static/plugins': proxyToServer,
-            },
+                {
+                    context: '/plugins',
+                    ...proxyToServer,
+                },
+                {
+                    context: '/static/plugins',
+                    ...proxyToServer,
+                },
+            ],
             port: 9005,
             devMiddleware: {
                 writeToDisk: false,

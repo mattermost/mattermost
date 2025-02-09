@@ -404,6 +404,69 @@ components:
           type: string
         metadata:
           $ref: "#/components/schemas/PostMetadata"
+    PropertyField:
+      type: object
+      properties:
+        id:
+          type: string
+        group_id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        attrs:
+          type: object
+        target_id:
+          type: string
+        target_type:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
+    PropertyFieldPatch:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        attrs:
+          type: object
+        target_id:
+          type: string
+        target_type:
+          type: string
+    PropertyValue:
+      type: object
+      properties:
+        id:
+          type: string
+        target_id:
+          type: string
+        target_type:
+          type: string
+        group_id:
+          type: string
+        field_id:
+          type: string
+        value:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
     FileInfoList:
       type: object
       properties:
@@ -1429,6 +1492,8 @@ components:
               type: string
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -1901,6 +1966,8 @@ components:
               type: boolean
             AmazonS3SSL:
               type: boolean
+            AmazonS3StorageClass:
+              type: string
         EmailSettings:
           type: object
           properties:
@@ -3055,6 +3122,19 @@ components:
           format: int64
         has_syncables:
           type: boolean
+    GroupMember:
+      type: object
+      properties:
+        group_id:
+          type: string
+        user_id:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
     GroupSyncableTeam:
       type: object
       properties:
@@ -3681,14 +3761,39 @@ components:
           description: The time in milliseconds a user was created
           type: integer
           format: int64
+        update_at:
+          description: The time in milliseconds a user was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds a user was deleted
+          type: integer
+          format: int64
         username:
+          type: string
+        auth_data:
+          type: string
+        auth_service:
           type: string
         email:
           type: string
-        display_name:
+        nickname:
           type: string
-          description: Calculated display name based on user
-        last_login_at:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        position:
+          type: string
+        roles:
+          type: string
+        locale:
+          type: string
+        timezone:
+          $ref: "#/components/schemas/Timezone"
+        disable_welcome_email:
+          type: boolean
+        last_login:
           description: Last time the user was logged in
           type: integer
           format: int64
@@ -3779,6 +3884,46 @@ components:
         audiences:
           description: The audiences of the outgoing OAuth connection.
           type: string
+    ScheduledPost:
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          description: The time in milliseconds a scheduled post was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a scheduled post was last updated
+          type: integer
+          format: int64
+        user_id:
+          type: string
+        channel_id:
+          type: string
+        root_id:
+          type: string
+        message:
+          type: string
+        props:
+          type: object
+        file_ids:
+          type: array
+          items:
+            type: string
+        scheduled_at:
+          description: The time in milliseconds a scheduled post is scheduled to be sent at
+          type: integer
+          format: int64
+        processed_at:
+          description: The time in milliseconds a scheduled post was processed at
+          type: integer
+          format: int64
+        error_code:
+          type: string
+          description: Explains the error behind why a scheduled post could not have been sent
+        metadata:
+          $ref: "#/components/schemas/PostMetadata"
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

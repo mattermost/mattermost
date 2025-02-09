@@ -62,16 +62,16 @@ describe('Search in DMs', () => {
         cy.uiGetSearchContainer().should('be.visible').click();
 
         // # Type `in:` in searchbox
-        cy.uiGetSearchBox().find('input').type('in:');
+        cy.uiGetSearchBox().type('in:');
 
         // # Select user from suggestion list
         cy.contains('.suggestion-list__item', `@${otherUser.username}`).scrollIntoView().click();
 
         // # Validate searchbox contains the username
-        cy.uiGetSearchBox().find('input').should('have.value', 'in:@' + otherUser.username + ' ');
+        cy.uiGetSearchBox().should('have.value', 'in:@' + otherUser.username + ' ');
 
         // # Press Enter in searchbox
-        cy.uiGetSearchBox().find('input').type('word-file').type('{enter}');
+        cy.uiGetSearchBox().type('word-file').type('{enter}');
 
         // # Click the files tab
         cy.get('.files-tab').should('be.visible').click();

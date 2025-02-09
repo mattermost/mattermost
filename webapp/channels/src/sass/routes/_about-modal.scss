@@ -1,9 +1,10 @@
-@charset 'UTF-8';
+@use "utils/mixins";
+@use "utils/variables";
 
 .modal {
     .modal-content {
         border-radius: var(--radius-s);
-        box-shadow: 0 0 10px rgba($black, 0.5);
+        box-shadow: 0 0 10px rgba(variables.$black, 0.5);
     }
 
     .about-modal {
@@ -51,11 +52,12 @@
         }
 
         .about-modal__content {
-            @include clearfix;
+            @include mixins.clearfix;
 
             display: flex;
             flex-direction: row;
             padding: 1em 0 3em;
+            overflow-wrap: anywhere;
         }
 
         .about-modal__copyright {

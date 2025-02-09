@@ -80,7 +80,7 @@ describe('Managing bot accounts', () => {
         });
     });
 
-    it('MM-T1853 Bots managed plugins can be created when Enable Bot Account Creation is set to false', () => {
+    it.skip('MM-T1853 Bots managed plugins can be created when Enable Bot Account Creation is set to false', () => {
         // # Upload and enable "matterpoll" plugin
         cy.apiUploadAndEnablePlugin(matterpollPlugin);
 

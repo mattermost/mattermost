@@ -6,6 +6,17 @@ import {getRandomId} from '../utils';
 
 const ldapTmpFolder = 'ldap_tmp';
 
+export interface LdapUser {
+    username: string;
+    password: string;
+    email: string;
+    firstname: string;
+    lastname: string;
+    ldapfirstname: string;
+    ldaplastname: string;
+    keycloakId: string;
+}
+
 function modifyLDAPUsers(filename: string) {
     cy.exec(`ldapmodify -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -H ldap://${Cypress.env('ldapServer')}:${Cypress.env('ldapPort')} -f tests/fixtures/${filename} -c`, {failOnNonZeroExit: false});
 }
@@ -18,7 +29,7 @@ function resetLDAPUsers() {
 
 Cypress.Commands.add('resetLDAPUsers', resetLDAPUsers);
 
-function createLDAPUser({prefix = 'ldap', user = undefined} = {}): ChainableT<LdapUser> {
+function createLDAPUser({prefix = 'ldap', user = null} = {}): ChainableT<LdapUser> {
     const ldapUser = user || generateLDAPUser(prefix);
     const data = generateContent(ldapUser);
     const filename = `new_user_${Date.now()}.ldif`;
@@ -27,13 +38,13 @@ function createLDAPUser({prefix = 'ldap', user = undefined} = {}): ChainableT<Ld
     cy.task('writeToFile', ({filename, fixturesFolder: ldapTmpFolder, data}));
 
     return cy.ldapAdd(filePath).then(() => {
-        return cy.wrap(ldapUser as LdapUser);
+        return cy.wrap<LdapUser>(ldapUser);
     });
 }
 
 Cypress.Commands.add('createLDAPUser', createLDAPUser);
 
-function updateLDAPUser(user: LdapUser): ChainableT<LdapUser> {
+function updateLDAPUser(user: Partial<LdapUser>) {
     const data = generateContent(user, true);
     const filename = `update_user_${Date.now()}.ldif`;
     const filePath = `tests/fixtures/${ldapTmpFolder}/${filename}`;
@@ -81,7 +92,7 @@ function getLDAPCredentials() {
     return {host, bindDn, password};
 }
 
-export function generateLDAPUser(prefix = 'ldap') {
+export function generateLDAPUser(prefix = 'ldap'): LdapUser {
     const randomId = getRandomId();
     const username = `${prefix}user${randomId}`;
 
@@ -97,7 +108,7 @@ export function generateLDAPUser(prefix = 'ldap') {
     };
 }
 
-function generateContent(user: Partial<LdapUser>, isUpdate = false) {
+function generateContent(user: Partial<LdapUser> = {}, isUpdate = false) {
     let deleteContent = '';
     if (isUpdate) {
         deleteContent = `dn: uid=${user.username},ou=e2etest,dc=mm,dc=test,dc=com
@@ -122,17 +133,6 @@ uid: ${user.username}
 mail: ${user.email}
 userPassword: Password1
 `;
-}
-
-export interface LdapUser {
-    username: string;
-    password: string;
-    email: string;
-    firstname: string;
-    lastname: string;
-    ldapfirstname: string;
-    ldaplastname: string;
-    keycloakId: string;
 }
 
 declare global {

@@ -18,6 +18,13 @@ describe('Verify Accessibility Support in different Buttons', () => {
 
             // # Post a message
             cy.postMessage('hello');
+            cy.getLastPostId().then((postId) => {
+                // # On a message in center channel, click then pin the post to the channel
+                cy.uiClickPostDropdownMenu(postId, 'Pin to Channel');
+
+                // # Click pin icon next to search box
+                cy.uiGetChannelPinButton().click();
+            });
         });
     });
 
@@ -28,11 +35,7 @@ describe('Verify Accessibility Support in different Buttons', () => {
             within(() => {
                 // * Verify accessibility support in Sidebar Expand and Shrink icon
                 cy.get('button.sidebar--right__expand').
-                    should('have.attr', 'aria-label', 'Expand').
-                    within(() => {
-                        cy.get('.icon-arrow-expand').should('have.attr', 'aria-label', 'Expand Sidebar Icon');
-                        cy.get('.icon-arrow-collapse').should('have.attr', 'aria-label', 'Collapse Sidebar Icon');
-                    });
+                    should('have.attr', 'aria-label', 'Expand Sidebar Icon');
 
                 // * Verify accessibility support in Close icon
                 cy.get('#rhsCloseButton').

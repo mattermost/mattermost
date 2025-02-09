@@ -1,0 +1,13 @@
+with-expecter: false
+packages:
+  github.com/mattermost/mattermost/server/public/plugin:
+    config:
+      dir: "public/plugin/plugintest"
+      filename: "{{.InterfaceNameLower}}.go"
+      mockname: "{{.InterfaceName}}"
+      outpkg: "plugintest"
+      note: "Regenerate this file using `make plugin-mocks`."
+    interfaces:
+      API:
+      Hooks:
+      Driver:

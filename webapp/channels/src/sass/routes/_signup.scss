@@ -1,4 +1,6 @@
-@charset 'UTF-8';
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 @use 'sass:color';
 
@@ -23,7 +25,7 @@ body {
     left: 0;
     width: 100%;
     padding: 0 1em 0.2em;
-    background: $bg--gray;
+    background: variables.$bg--gray;
     line-height: 33px;
 
     .fa {
@@ -82,7 +84,7 @@ body {
             p {
                 width: 100%;
                 margin: 0;
-                color: color.adjust($black, $lightness: 50%);
+                color: color.adjust(variables.$black, $lightness: 50%);
                 line-height: 1.6em;
                 white-space: pre-wrap;
                 word-break: break-word;
@@ -140,7 +142,7 @@ body {
 
     h2 {
         margin-bottom: 0.8em;
-        font-size: em(30px);
+        font-size: functions.em(30px);
         font-weight: 600;
         letter-spacing: -0.5px;
     }
@@ -153,12 +155,12 @@ body {
 
     h4 {
         margin-bottom: 1em;
-        font-size: em(20px);
+        font-size: functions.em(20px);
         font-weight: 600;
     }
 
     h5 {
-        font-size: em(16px);
+        font-size: functions.em(16px);
     }
 
     hr {
@@ -247,7 +249,7 @@ body {
     }
 
     .form-control {
-        height: em(38px);
+        height: functions.em(38px);
     }
 
     .or__container {
@@ -281,6 +283,7 @@ body {
         }
 
         .control-label {
+            display: block;
             width: 100%;
             padding: 0.7em 1em;
             border-radius: 3px;
@@ -288,7 +291,6 @@ body {
             background: #f2f2f2;
             color: #999;
             font-size: 14px;
-            font-weight: normal;
 
             &::before {
                 @extend %font-awesome;
@@ -343,7 +345,7 @@ body {
     margin: 0 0 20px;
 
     .signup-team-dir {
-        @include pie-clearfix;
+        @include mixins.pie-clearfix;
 
         position: relative;
         display: flex;
@@ -355,7 +357,7 @@ body {
         background: #fafafa;
 
         &:hover {
-            background: $white;
+            background: variables.$white;
             transition: background-color 0.15s ease;
         }
 
@@ -399,7 +401,7 @@ body {
             text-decoration: none;
 
             &.disabled {
-                color: $dark-gray;
+                color: variables.$dark-gray;
                 cursor: default;
             }
         }
@@ -426,7 +428,7 @@ body {
 
     .signup-team__icon {
         position: relative;
-        color: $dark-gray;
+        color: variables.$dark-gray;
         font-size: 1.5em;
 
         &.fa-spin {
@@ -449,7 +451,7 @@ body {
 .authorize-box {
     width: 500px;
     height: 280px;
-    border: 1px solid $black;
+    border: 1px solid variables.$black;
     margin: 100px auto;
 }
 

@@ -64,7 +64,7 @@ const PostImage = ({
                 imageMetadata={imageMetadata}
             >
                 {(safeLink) => (
-                    <React.Fragment>
+                    <>
                         <SizeAwareImage
                             className='img-div attachment__image cursor--pointer'
                             src={safeLink}
@@ -72,7 +72,7 @@ const PostImage = ({
                             showLoader={true}
                             onClick={showModal}
                         />
-                    </React.Fragment>
+                    </>
                 )}
             </ExternalImage>
         </div>

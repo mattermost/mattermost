@@ -9,7 +9,7 @@ const dayjs = require('dayjs');
 const duration = require('dayjs/plugin/duration');
 dayjs.extend(duration);
 
-const {MOCHAWESOME_REPORT_DIR} = require('./constants');
+const {MOCHAWESOME_REPORT_DIR, AD_CYCLE_FILE} = require('./constants');
 
 const MAX_FAILED_TITLES = 5;
 
@@ -75,6 +75,16 @@ function generateShortSummary(report) {
 
     const failedFullTitles = tests.filter((t) => t.fail).map((t) => t.fullTitle);
     const statsFieldValue = generateStatsFieldValue(stats, failedFullTitles);
+
+    // If AD Cycle file is found, we have data from the Automation Dashboard available
+    // We are able to override the run stats with enriched information
+    const adCycle = readJsonFromFile(AD_CYCLE_FILE);
+    if (!(adCycle instanceof Error)) {
+        stats.passes = adCycle.pass;
+        stats.failures = adCycle.fail;
+        stats.tests = adCycle.pass + adCycle.fail;
+        stats.passPercent = 100 * (stats.passes / stats.tests);
+    }
 
     return {
         stats,

@@ -28,6 +28,7 @@ export const FormattingBarSpacer = styled.div`
     height: 48px;
     transition: height 0.25s ease;
     align-items: end;
+    background: var(--center-channel-bg);
 `;
 
 const FormattingBarContainer = styled.div`
@@ -214,7 +215,10 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     const showSeparators = wideMode === 'wide';
 
     return (
-        <FormattingBarContainer ref={formattingBarRef}>
+        <FormattingBarContainer
+            ref={formattingBarRef}
+            data-testid='formattingBarContainer'
+        >
             {controls.map((mode) => {
                 return (
                     <React.Fragment key={mode}>
@@ -259,6 +263,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 timeout={250}
                 classNames='scale'
                 in={showHiddenControls}
+                unmountOnExit={true}
             >
                 <HiddenControlsContainer
                     ref={setFloating}

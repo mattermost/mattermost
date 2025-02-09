@@ -233,9 +233,14 @@ func TestGenerateSupportPacket(t *testing.T) {
 		th.App.Srv().SetLicense(l)
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-			file, _, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
+			file, filename, _, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
 			require.NoError(t, err)
-			require.NotZero(t, len(file))
+
+			assert.Contains(t, filename, "mm_support_packet_My_awesome_Company_")
+
+			d, err := io.ReadAll(file)
+			require.NoError(t, err)
+			assert.NotZero(t, len(d))
 		})
 	})
 
@@ -249,20 +254,20 @@ func TestGenerateSupportPacket(t *testing.T) {
 		}()
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-			_, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
+			_, _, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
 		})
 	})
 
 	t.Run("As a system role, not system admin", func(t *testing.T) {
-		_, resp, err := th.SystemManagerClient.GenerateSupportPacket(context.Background())
+		_, _, resp, err := th.SystemManagerClient.GenerateSupportPacket(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("As a Regular User", func(t *testing.T) {
-		_, resp, err := th.Client.GenerateSupportPacket(context.Background())
+		_, _, resp, err := th.Client.GenerateSupportPacket(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -271,10 +276,41 @@ func TestGenerateSupportPacket(t *testing.T) {
 		_, err := th.SystemAdminClient.RemoveLicenseFile(context.Background())
 		require.NoError(t, err)
 
-		_, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
+		_, _, resp, err := th.SystemAdminClient.GenerateSupportPacket(context.Background())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+}
+
+func TestSupportPacketFileName(t *testing.T) {
+	tests := map[string]struct {
+		now          time.Time
+		customerName string
+		expected     string
+	}{
+		"standard case": {
+			now:          time.Date(2023, 11, 12, 13, 14, 15, 0, time.UTC),
+			customerName: "TestCustomer",
+			expected:     "mm_support_packet_TestCustomer_2023-11-12T13-14.zip",
+		},
+		"customer name with special characters": {
+			now:          time.Date(2023, 11, 12, 13, 14, 15, 0, time.UTC),
+			customerName: "Test/Customer:Name",
+			expected:     "mm_support_packet_Test_Customer_Name_2023-11-12T13-14.zip",
+		},
+		"empty customer name": {
+			now:          time.Date(2023, 10, 10, 10, 10, 10, 0, time.UTC),
+			customerName: "",
+			expected:     "mm_support_packet__2023-10-10T10-10.zip",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			result := supportPacketFileName(tt.now, tt.customerName)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }
 
 func TestSiteURLTest(t *testing.T) {
@@ -554,9 +590,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(0), rows2[5].Value)
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	time.Sleep(100 * time.Millisecond)
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "standard", "")
 	require.NoError(t, err)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)

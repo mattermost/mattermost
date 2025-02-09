@@ -85,7 +85,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
         cy.focused().parent().next().find('.SidebarChannel').each((el, i) => {
             if (i === 0) {
                 cy.focused().findByText('CHANNELS');
-                cy.focused().tab().tab().tab();
+                cy.focused().tab().tab();
             }
 
             // * Verify if focus changes to different channels in Channels section
@@ -120,7 +120,7 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
         cy.focused().tab().tab().parent().next().find('.SidebarChannel').each((el, i) => {
             if (i === 0) {
                 cy.focused().findByText('FAVORITES');
-                cy.focused().tab().tab().tab();
+                cy.focused().tab().tab();
             }
 
             cy.wrap(el).find('.SidebarLink').should('be.focused');
@@ -162,6 +162,81 @@ describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
 
         // * Verify if Direct Messages section has focus
         cy.uiGetLhsSection('DIRECT MESSAGES').should('be.focused');
+    });
+});
+
+describe('Accessibility tests for RHS getting focus after buttons actions', () => {
+    let testUser;
+
+    before(() => {
+        cy.apiInitSetup().then(({team, user}) => {
+            testUser = user;
+
+            // # Login as the test user and visit the town-square channel
+            cy.apiLogin(testUser);
+            cy.visit(`/${team.name}/channels/town-square`);
+            cy.get('#postListContent').should('be.visible');
+        });
+    });
+
+    beforeEach(() => {
+        // # Close the RHS
+        cy.uiCloseRHS();
+        cy.get('#sidebar-right').should('not.exist');
+    });
+
+    afterEach(() => {
+        // # Close the RHS
+        cy.uiCloseRHS();
+        cy.get('#sidebar-right').should('not.exist');
+    });
+
+    it('Focus should be on RHS when opening Recent Mentions', () => {
+        // # Click the Recent Mentions button
+        cy.findByRole('button', {name: /Recent mentions/i}).click();
+
+        // * Verify RHS is open
+        cy.get('#sidebar-right').should('be.visible');
+
+        // * Check that the RHS container is focused
+        cy.get('.sidebar-right-container').should('be.focused');
+    });
+
+    it('Focus should be on RHS when opening Saved Messages', () => {
+        // # Click the Saved Messages button
+        cy.findByRole('button', {name: /Saved messages/i}).click();
+
+        // * Verify RHS is open
+        cy.get('#sidebar-right').should('be.visible');
+
+        // * Check that the RHS container is focused
+        cy.get('.sidebar-right-container').should('be.focused');
+    });
+
+    it('Focus should be on RHS when opening Members', () => {
+        cy.get('#channelHeaderInfo').should('exist');
+
+        // # Click the Members button
+        cy.get('#member_rhs').
+            should('be.visible').
+            click();
+
+        // * Verify RHS is open
+        cy.get('#sidebar-right').should('be.visible');
+
+        // * Check that the RHS container is focused
+        cy.get('.sidebar-right-container').should('be.focused');
+    });
+
+    it('Focus should be on RHS when opening Channel files', () => {
+        // # Click the Channel files button
+        cy.findByRole('button', {name: /Channel files/i}).click();
+
+        // * Verify RHS is open
+        cy.get('#sidebar-right').should('be.visible');
+
+        // * Check that the RHS container is focused
+        cy.get('.sidebar-right-container').should('be.focused');
     });
 });
 

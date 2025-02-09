@@ -98,7 +98,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&test=true',
+            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=&test=true',
         );
     });
 
@@ -191,7 +191,7 @@ describe('components/external_link', () => {
 
         expect(screen.queryByText('Click Me')).toHaveAttribute(
             'href',
-            'https://mattermost.com?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=#desktop',
+            'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=test&uid=currentUserId&sid=#desktop',
         );
     });
 });

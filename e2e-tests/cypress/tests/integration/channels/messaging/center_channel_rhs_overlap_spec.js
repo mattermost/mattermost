@@ -116,7 +116,8 @@ describe('Messaging', () => {
             cy.get('#edit_textbox').should('be.visible');
 
             // * Update the post message and type ENTER
-            cy.get('#edit_textbox').invoke('val', '').type(message2).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.get('#edit_textbox').clear().type(message2);
+            cy.get('#edit_textbox').type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // * Edit Post Input is still visible after typing ENTER
             cy.get('#edit_textbox').should('be.visible');
@@ -719,7 +720,7 @@ describe('Messaging', () => {
         cy.getLastPostId().then((postId) => {
             // # Search for the posted message
             cy.uiGetSearchContainer().click();
-            cy.uiGetSearchBox().find('input').should('be.visible').type(messageX).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.uiGetSearchBox().should('be.visible').first().type(messageX).type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
             // # Click on post dot menu so we can edit
             cy.clickPostDotMenu(postId, 'SEARCH');
@@ -763,9 +764,6 @@ describe('Messaging', () => {
 
             // * Edit Post Input should appear
             cy.get('#edit_textbox').should('be.visible');
-
-            // # Check that a scrollbar exists
-            cy.get('.post--editing__wrapper.scroll').should('be.visible');
 
             // # Update the message
             cy.get('#edit_textbox', {timeout: TIMEOUTS.FIVE_SEC}).type(' test').wait(TIMEOUTS.HALF_SEC);

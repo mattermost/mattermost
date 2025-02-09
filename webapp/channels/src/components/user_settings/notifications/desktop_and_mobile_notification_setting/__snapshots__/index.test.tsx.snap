@@ -11,6 +11,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
     >
       Desktop and mobile notifications
     </h4>
+    <div />
     <div
       class="sectionContent col-sm-10 col-sm-offset-2"
     >
@@ -179,6 +180,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
         id="desktopAndMobileTitle"
       >
         Desktop and mobile notifications
+        <div />
       </h4>
       <button
         aria-expanded="false"
@@ -214,6 +216,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
     >
       Desktop and mobile notifications
     </h4>
+    <div />
     <div
       class="sectionContent col-sm-10 col-sm-offset-2"
     >

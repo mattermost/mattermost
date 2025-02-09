@@ -57,7 +57,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "You cannot acknowledgment in an archived channel."
+    "translation": "You cannot save an acknowledgment in an archived channel."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -236,6 +236,10 @@
     "translation": "Your license does not support channel bookmarks."
   },
   {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to create the channel bookmark."
+  },
+  {
     "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "User is not allowed to create a channel bookmark."
   },
@@ -246,6 +250,10 @@
   {
     "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
     "translation": "Failed to create the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to delete the channel bookmark."
   },
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
@@ -260,6 +268,10 @@
     "translation": "Failed to delete the channel bookmark."
   },
   {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark."
+  },
+  {
     "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
     "translation": "Failed to update the channel bookmark."
   },
@@ -270,6 +282,10 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
     "translation": "Failed to update the channel bookmark."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Failed to update the channel bookmark's sort order."
   },
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
@@ -602,6 +618,10 @@
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Can not run command in deleted channel."
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -1838,6 +1858,14 @@
     "translation": "remote_id must be blank for custom group"
   },
   {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "trying to patch a field that does not exist"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Your license does not support Custom Profile Attributes."
+  },
+  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
   },
@@ -2133,6 +2161,14 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Unable to get a zip file reader."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Unable to filter the configuration."
+  },
+  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
   },
@@ -2361,6 +2397,10 @@
     "translation": "invalid_request: Bad grant_type."
   },
   {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Bad request."
+  },
+  {
     "id": "api.oauth.get_access_token.credentials.app_error",
     "translation": "invalid_client: Invalid client credentials."
   },
@@ -2515,6 +2555,10 @@
   {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Failed to cache post after deduplicating a client repeating the same request."
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
@@ -2837,6 +2881,14 @@
   {
     "id": "api.saml.invalid_email_token.app_error",
     "translation": "Invalid email_token"
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "scheduled posts feature is disabled"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Scheduled posts feature requires a license"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
@@ -4331,6 +4383,10 @@
     "translation": "Cannot retrieve users for an archived channel"
   },
   {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Cannot retrieve bookmarks for an archived channel"
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
@@ -4365,10 +4421,6 @@
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Either trigger_words or channel_id must be set."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -4479,6 +4531,10 @@
     "translation": "Unable to delete the bot."
   },
   {
+    "id": "app.bot.update.app_error",
+    "translation": "Unable to update the bot."
+  },
+  {
     "id": "app.channel.add_member.deleted_user.app_error",
     "translation": "Unable to add the user as a member of the channel."
   },
@@ -4555,16 +4611,12 @@
     "translation": "Unable to delete the channel."
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Your Elasticsearch channel index schema is out of date. It is recommended to regenerate your channel index.\nClick the `Rebuild Channels Index` button in [Elasticsearch section in System Console]({{.ElasticsearchSection}}) to fix the issue.\nSee Mattermost changelog for more information."
-  },
-  {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Unable to find the existing channel."
+    "translation": "Unable to find the existing channel {{.channel_id}}."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "We encountered an error finding the channel."
+    "translation": "We encountered an error finding the channel {{.channel_id}}."
   },
   {
     "id": "app.channel.get_all.app_error",
@@ -4955,6 +5007,70 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Cannot register Custom Profile Attributes property group"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Unable to create Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Unable to get Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Custom Profile Attributes field limit reached"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Unable to get custom profile attribute values"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Unable to delete Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Custom Profile Attribute field not found"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Unable to update Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Cannot create property value"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Unable to retrieve property values"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Cannot update property value"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Unable to search Custom Profile Attribute fields"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Failed to delete scheduled post from database."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "You do not have permission to delete this resource."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Scheduled post does not exist."
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Unable to fetch existing scheduled post from database."
+  },
+  {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
     "translation": "Token does not exist or is expired"
   },
@@ -5079,6 +5195,10 @@
     "translation": "Unable to copy custom emoji images"
   },
   {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Unable to create a directory for custom emoji images"
+  },
+  {
     "id": "app.export.export_write_line.io_writer.error",
     "translation": "An error occurred writing the export data."
   },
@@ -5099,6 +5219,10 @@
     "translation": "Can not fetch the file as it is past the cloud plan's limit."
   },
   {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Failed to remove the requested files from database"
+  },
+  {
     "id": "app.file_info.get.app_error",
     "translation": "Unable to get the file info."
   },
@@ -5107,12 +5231,24 @@
     "translation": "Could not decode gif."
   },
   {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Unable to get the file infos by ids for post edit history."
+  },
+  {
     "id": "app.file_info.get_by_post_id.app_error",
     "translation": "Failed to find files for post."
   },
   {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Failed to get count of all files."
+  },
+  {
     "id": "app.file_info.get_for_post.app_error",
     "translation": "Unable to get the file info for the post."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage of all files."
   },
   {
     "id": "app.file_info.get_with_options.app_error",
@@ -5131,8 +5267,20 @@
     "translation": "Unable to save the file info."
   },
   {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Unable to seek to the beginning of the GIF data."
+  },
+  {
     "id": "app.file_info.set_searchable_content.app_error",
     "translation": "Unable to set the searchable content of the file."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Failed to restore post file attachments."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Error occurred fetching scheduled posts."
   },
   {
     "id": "app.group.crud_permission",
@@ -5211,6 +5359,10 @@
     "translation": "Some users not found"
   },
   {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Unable to find owner of the bot"
+  },
+  {
     "id": "app.import.import_channel.deleting.app_error",
     "translation": "Unable to archive imported channel."
   },
@@ -5253,6 +5405,10 @@
   {
     "id": "app.import.import_direct_post.create_group_channel.error",
     "translation": "Failed to get group channel"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Import data line has type \"bot\" but the bot object is null"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -5349,6 +5505,10 @@
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Unable to read the version of the data import file."
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Bot owner is missing"
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -5675,6 +5835,10 @@
     "translation": "User First Name is too long."
   },
   {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "User roles are not consistent with guest status."
+  },
+  {
     "id": "app.import.validate_user_import_data.last_name_length.error",
     "translation": "User Last Name is too long."
   },
@@ -5891,6 +6055,26 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "The post cannot be created"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Cannot get the system bot"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Cannot get the system bot direct message"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Cannot get the user"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "If you received this test notification, it worked!"
+  },
+  {
     "id": "app.notify_admin.save.app_error",
     "translation": "Unable to save notify data."
   },
@@ -6083,6 +6267,10 @@
     "translation": "Unable to restart plugin on upgrade."
   },
   {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Unable to reset the read position to the start of the plugin bundle."
+  },
+  {
     "id": "app.plugin.signature_decode.app_error",
     "translation": "Unable to decode base64 signature."
   },
@@ -6267,6 +6455,22 @@
     "translation": "Failed to permanently delete post."
   },
   {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Failed to get the old post version."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "You do not have the appropriate permissions."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to any history item for the specified post."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to a post history item."
+  },
+  {
     "id": "app.post.save.app_error",
     "translation": "Unable to save the Post."
   },
@@ -6423,6 +6627,10 @@
     "translation": "The provided role does not exist"
   },
   {
+    "id": "app.role.delete.app_error",
+    "translation": "Unable to delete role."
+  },
+  {
     "id": "app.role.get.app_error",
     "translation": "Unable to get role."
   },
@@ -6465,6 +6673,80 @@
   {
     "id": "app.save_report_chunk.unsupported_format",
     "translation": "Unsupported report format."
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Cannot schedule post in an archived channel."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Error occurred saving the scheduled post."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Channel is archived"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Channel not found"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Invalid post content"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Not a member of the channel"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "No permission to post in channel"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Thread has been deleted"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Unable to send the message"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Unknown Error"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "User account is deleted"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "User does not exist"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}",
+      "other": "- {{.Count}} in channel {{.ChannelName}}. Reason: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Failed to send {{.Count}} scheduled post.",
+      "other": "Failed to send {{.Count}} scheduled posts."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete scheduled posts for user."
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Private channel"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Unknown Channel"
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -6789,6 +7071,22 @@
   {
     "id": "app.update_error",
     "translation": "update error"
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Scheduled post does not exist."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Unable to fetch existing scheduled post from database."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Failed to save updated scheduled post in database."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "You do not have permission to update this resource."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
@@ -7399,14 +7697,6 @@
     "translation": "Unable to get SAML users."
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Unable to write the export file."
-  },
-  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " attached a file."
   },
@@ -7427,84 +7717,8 @@
     "translation": "Timed out waiting for cluster response"
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unknown output format {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Unable to add attachment to the CSV export."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Unable to create temporary CSV export file."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Unable to add header to the CSV export."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "Unable to close the zip file"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Unable to add metadata file to the zip file."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata to json."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Unable to create the zip file"
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Unable to export a post."
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Unable to seek to start of export file."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Unable to create the warning file."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Unable to write the csv file."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Unable to create the zip export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Unable to open the temporary export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Unable to write the global relay file."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load export templates. Please try again."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -7528,63 +7742,63 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+    "translation": "{{.Backend}} aggregator worker failed to create the indexing job"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+    "translation": "{{.Backend}} aggregator worker failed to delete the indexes"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
+    "translation": "{{.Backend}} aggregator worker failed to get indexes"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+    "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Could not open the CA file for Elasticsearch"
+    "translation": "Could not open the CA file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Decoding of the client certificate for Elasticsearch failed"
+    "translation": "Decoding of the client certificate for {{.Backend}} failed"
   },
   {
     "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Could not open the client certificate file for Elasticsearch"
+    "translation": "Could not open the client certificate file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Could not open the client key file for Elasticsearch"
+    "translation": "Could not open the client key file for {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up Elasticsearch Client Failed"
+    "translation": "Setting up {{.Backend}} Client Failed"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Failed to create {{.Backend}} template for channels"
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for files"
+    "translation": "Failed to create {{.Backend}} template for files"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Failed to create {{.Backend}} template for posts"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Failed to create {{.Backend}} template for users"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Failed to delete {{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Failed to get Elasticsearch indexes"
+    "translation": "Failed to get {{.Backend}} indexes"
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
@@ -7620,7 +7834,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch search is not enabled on this server"
+    "translation": "{{.Backend}} search is not enabled on this server"
   },
   {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
@@ -7656,11 +7870,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "{{.Backend}} indexing worker failed to parse the end time"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "{{.Backend}} indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -7668,11 +7882,11 @@
   },
   {
     "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+    "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is not started"
+    "translation": "{{.Backend}} is not started"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -7684,11 +7898,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Failed to delete an Elasticsearch index"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Failed to delete a search index"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
@@ -7696,11 +7906,11 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Failed to refresh Elasticsearch indexes"
+    "translation": "Failed to refresh search indexes"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "{{.Backend}} searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -7712,7 +7922,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Elasticsearch files searching is disabled on this server"
+    "translation": "{{.Backend}} files searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_files.search_failed",
@@ -7724,7 +7934,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "{{.Backend}} searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -7748,31 +7958,27 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version."
+    "translation": "Failed to get {{.Backend}} server version."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version."
+    "translation": "Failed to parse {{.Backend}} server version."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped."
+    "translation": "{{.Backend}} is already stopped."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "{{.Backend}} is disabled."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Your license does not support Elasticsearch."
+    "translation": "Your Mattermost license doesn't support indexed search."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
-  },
-  {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Failed to get users in channel during specified time period."
+    "translation": "The Search Server URL or Username has changed. Please re-enter the password to test connection."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -7907,72 +8113,20 @@
     "translation": "unable to migrate."
   },
   {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Calculating channel activity: {{.NumCompleted}}/{{.NumChannels}} channels completed."
   },
   {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exporting channel information for {{.NumChannels}} channels."
   },
   {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Failed to calculate channel export data."
   },
   {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close the zip file."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Unable to create the eml file."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Unable to deliver the email to Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Unable to read the email information."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Unable to connect to the smtp server"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Unable to get the information of the export temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Unable to get the an email from the temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Unable to open the export temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Failed to convert a value from the job's data field."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -8688,23 +8842,23 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1."
+    "translation": "Search AggregatePostsAfterDays setting must be a number greater than or equal to 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+    "translation": "Search Bulk Indexing Batch Size must be at least {{.BatchSize}}."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
+    "translation": "Search ConnectionUrl setting must be provided when indexing is enabled."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableAutocomplete is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Searching}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
@@ -8716,15 +8870,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1."
+    "translation": "Search Live Indexing Batch Size must be at least 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\"."
+    "translation": "Search PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Search Request Timeout must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -9059,6 +9213,10 @@
     "translation": "Invalid query timeout for SQL settings. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Invalid storage class {{.Value}}."
+  },
+  {
     "id": "model.config.is_valid.teammate_name_display.app_error",
     "translation": "Invalid teammate display. Must be 'full_name', 'nickname_full_name' or 'username'."
   },
@@ -9107,8 +9265,8 @@
     "translation": "Invalid file ids."
   },
   {
-    "id": "model.draft.is_valid.msg.app_error",
-    "translation": "Invalid message."
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Draft Message property is longer than the maximum permitted length."
   },
   {
     "id": "model.draft.is_valid.priority.app_error",
@@ -9343,6 +9501,10 @@
     "translation": "Link metadata URL must be set."
   },
   {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Length of link metadata URL is {{ .Length }} characters long, which exceeds the maximum limit of {{ .MaxLength }} characters."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Channel name is not valid"
   },
@@ -9559,8 +9721,8 @@
     "translation": "Invalid Id."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message."
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Post Message property is longer than the maximum permitted length."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -9611,6 +9773,14 @@
     "translation": "Value is too long."
   },
   {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Invalid property field: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Invalid property value: {{.FieldName}} ({{.Reason}})."
+  },
+  {
     "id": "model.reaction.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -9645,6 +9815,22 @@
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
     "translation": "Date range provided is invalid."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Cannot schedule an empty post. Scheduled post must have at least a message or file attachments."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Scheduled post must have an ID."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Invalid processed at time."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Invalid scheduled at time."
   },
   {
     "id": "model.scheme.is_valid.app_error",
@@ -10084,11 +10270,15 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Couldn't find the command."
+    "translation": "Couldn't find the command {{.command_id}}."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Failed to handle command webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Unable to parse incoming data."
+    "translation": "Unable to parse incoming data for webhook {{.hook_id}}."
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
@@ -10152,11 +10342,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 115+"
+    "translation": "Version 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.0+"
+    "translation": "Version 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -10196,15 +10386,27 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel."
+    "translation": "This webhook is not permitted to post to the requested channel {{.channel_id}}"
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Failed to decode the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Failed to handle the payload of media type {{.media_type}} for incoming webhook {{.hook_id}}."
+  },
+  {
     "id": "web.incoming_webhook.invalid.app_error",
     "translation": "Invalid webhook."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Failed to parse media incoming webhook {{.hook_id}}."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -10212,7 +10414,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Inappropriate channel permissions."
+    "translation": "User {{.user}} does not have appropriate permissions to channel {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -10224,6 +10426,6 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Couldn't find the user."
+    "translation": "Couldn't find the user {{.user}}"
   }
 ]

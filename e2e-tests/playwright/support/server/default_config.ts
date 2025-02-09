@@ -72,6 +72,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
+            EnableTesting: true,
         },
         TeamSettings: {
             EnableOpenServer: true,
@@ -81,7 +82,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.2 server
+// Based on v10.5 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -120,7 +121,6 @@ const defaultServerConfig: AdminConfig = {
         EnableDeveloper: false,
         DeveloperFlags: '',
         EnableClientPerformanceDebugging: false,
-        EnableOpenTracing: false,
         EnableSecurityFixAlert: true,
         EnableInsecureOutgoingConnections: false,
         AllowedUntrustedInternalConnections: '',
@@ -198,6 +198,7 @@ const defaultServerConfig: AdminConfig = {
         RefreshPostStatsRunTime: '00:00',
         MaximumPayloadSizeBytes: 300000,
         MaximumURLLength: 2048,
+        ScheduledPosts: true,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -319,6 +320,7 @@ const defaultServerConfig: AdminConfig = {
         AmazonS3Trace: false,
         AmazonS3RequestTimeoutMilliseconds: 30000,
         AmazonS3UploadPartSizeBytes: 5242880,
+        AmazonS3StorageClass: '',
         DedicatedExportStore: false,
         ExportDriverName: 'local',
         ExportDirectory: './data/',
@@ -335,6 +337,7 @@ const defaultServerConfig: AdminConfig = {
         ExportAmazonS3RequestTimeoutMilliseconds: 30000,
         ExportAmazonS3PresignExpiresSeconds: 21600,
         ExportAmazonS3UploadPartSizeBytes: 104857600,
+        ExportAmazonS3StorageClass: '',
     },
     EmailSettings: {
         EnableSignUpWithEmail: true,
@@ -507,6 +510,7 @@ const defaultServerConfig: AdminConfig = {
         DefaultServerLocale: 'en',
         DefaultClientLocale: 'en',
         AvailableLocales: '',
+        EnableExperimentalLocales: false,
     },
     SamlSettings: {
         Enable: false,
@@ -651,6 +655,8 @@ const defaultServerConfig: AdminConfig = {
         ExportFromTimestamp: 0,
         BatchSize: 10000,
         DownloadExportResults: false,
+        ChannelBatchSize: 100,
+        ChannelHistoryBatchSize: 10,
         GlobalRelaySettings: {
             CustomerType: 'A9',
             SMTPUsername: '',
@@ -680,6 +686,9 @@ const defaultServerConfig: AdminConfig = {
                 Enable: true,
             },
             'com.mattermost.nps': {
+                Enable: true,
+            },
+            'mattermost-ai': {
                 Enable: true,
             },
             playbooks: {
@@ -721,6 +730,7 @@ const defaultServerConfig: AdminConfig = {
         TestFeature: 'off',
         TestBoolFeature: false,
         EnableRemoteClusterService: false,
+        EnableSharedChannelsDMs: false,
         AppsEnabled: false,
         PermalinkPreviews: false,
         NormalizeLdapDNs: false,
@@ -738,6 +748,8 @@ const defaultServerConfig: AdminConfig = {
         WebSocketEventScope: true,
         NotificationMonitoring: true,
         ExperimentalAuditSettingsSystemConsoleUI: false,
+        ExperimentalCrossTeamSearch: false,
+        CustomProfileAttributes: false,
     },
     ImportSettings: {
         Directory: './import',

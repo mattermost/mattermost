@@ -13,6 +13,7 @@ const state: GlobalState = {
             serverVersion: '',
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
+            customProfileAttributes: {},
         },
         users: {
             currentUserId: '',
@@ -211,6 +212,12 @@ const state: GlobalState = {
                 teamsLoaded: false,
             },
         },
+        scheduledPosts: {
+            byId: {},
+            byTeamId: {},
+            errorsByTeamId: {},
+            byChannelOrThreadId: {},
+        },
     },
     errors: [],
     requests: {
@@ -312,6 +319,7 @@ const state: GlobalState = {
         lastConnectAt: 0,
         lastDisconnectAt: 0,
         connectionId: '',
+        serverHostname: '',
     },
 };
 export default state;

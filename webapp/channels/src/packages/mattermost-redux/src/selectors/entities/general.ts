@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GiphyFetch} from '@giphy/js-fetch-api';
-
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import type {UserPropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -132,19 +132,6 @@ export const isMarketplaceEnabled: (state: GlobalState) => boolean = createSelec
     },
 );
 
-export const getGiphyFetchInstance: (state: GlobalState) => GiphyFetch | null = createSelector(
-    'getGiphyFetchInstance',
-    (state) => getConfig(state).GiphySdkKey,
-    (giphySdkKey) => {
-        if (giphySdkKey) {
-            const giphyFetch = new GiphyFetch(giphySdkKey);
-            return giphyFetch;
-        }
-
-        return null;
-    },
-);
-
 export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) => number | null = createSelector(
     'getUsersStatusAndProfileFetchingPollInterval',
     getConfig,
@@ -157,3 +144,15 @@ export const getUsersStatusAndProfileFetchingPollInterval: (state: GlobalState) 
         return null;
     },
 );
+
+export function developerModeEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableDeveloper === 'true';
+}
+
+export function testingEnabled(state: GlobalState): boolean {
+    return state.entities.general.config.EnableTesting === 'true';
+}
+
+export function getCustomProfileAttributes(state: GlobalState): IDMappedObjects<UserPropertyField> {
+    return state.entities.general.customProfileAttributes;
+}

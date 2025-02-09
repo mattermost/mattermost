@@ -1,4 +1,6 @@
-@charset "utf-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 @media screen and (max-width: 768px) {
     #navbar_wrapper {
@@ -43,12 +45,12 @@
                 height: 100%;
                 padding: 2.5em 0 0;
                 padding-bottom: 50px;
-                background: alpha-color($black, 0.9);
+                background: functions.alpha-color(variables.$black, 0.9);
                 transition: all 0.35s ease;
 
                 body.announcement-bar--fixed & {
-                    top: calc(48px + #{$announcement-bar-height});
-                    height: calc(100% - 48px - #{$announcement-bar-height});
+                    top: calc(48px + #{variables.$announcement-bar-height});
+                    height: calc(100% - 48px - #{variables.$announcement-bar-height});
                 }
             }
 
@@ -72,10 +74,10 @@
                 width: 30px;
                 height: 30px;
                 padding-top: 13px;
-                border: 1px solid $white;
+                border: 1px solid variables.$white;
                 border-radius: 50%;
                 margin-left: -15px;
-                color: $white;
+                color: variables.$white;
                 font-family: 'Open Sans', sans-serif;
                 font-size: 23px;
                 font-weight: 200;
@@ -102,7 +104,7 @@
                         justify-content: center;
                         padding: 0.4rem 2rem;
                         margin: 0 auto;
-                        color: $white;
+                        color: variables.$white;
                         font-weight: 600;
                         line-height: 32px;
                         text-align: center;
@@ -121,7 +123,7 @@
                     }
 
                     hr {
-                        border-bottom: 1px solid alpha-color($white, 0.3);
+                        border-bottom: 1px solid functions.alpha-color(variables.$white, 0.3);
                         margin: 8px auto;
                     }
                 }
@@ -165,7 +167,7 @@
                 }
 
                 .nav-pills {
-                    >li {
+                    > &__tab {
                         &:hover {
                             a {
                                 background: transparent !important;
@@ -274,7 +276,9 @@
                         width: 100%;
                         margin: 0;
 
-                        >li {
+                        &-pills__tab {
+                            height: 48px;
+
                             >a {
                                 font-size: 1.1em;
                                 line-height: 2.7;
@@ -282,10 +286,6 @@
                                 .icon {
                                     margin: 0 7px;
                                 }
-                            }
-
-                            > button {
-                                height: 48px;
                             }
                         }
                     }
@@ -317,14 +317,12 @@
             }
 
             .nav-pills {
-                >li {
+                &__tab {
                     &.active {
-                        button {
-                            background: transparent;
+                        background: transparent;
 
-                            &::before {
-                                display: none;
-                            }
+                        &::before {
+                            display: none;
                         }
                     }
                 }
@@ -370,7 +368,6 @@
 
         .post,
         .SidebarMenu,
-        .AddChannelDropdown,
         .GlobalThreads {
             .Menu {
                 position: fixed;
@@ -404,7 +401,7 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: alpha-color($black, 0.3);
+                    background: functions.alpha-color(variables.$black, 0.3);
                     content: '';
                 }
 
@@ -761,66 +758,6 @@
         }
     }
 
-    #header-popover {
-        position: fixed;
-        top: 40px !important;
-        width: 100%;
-        max-width: 100%;
-        height: calc(100% - 50px);
-        border: none;
-        background: alpha-color($black, 0.9);
-        box-shadow: none;
-        transform: translate3d(0, 100%, 0);
-        transition: all 0.35s ease;
-
-        &.in {
-            transform: translate3d(0, 0, 0);
-        }
-
-        a {
-            color: #0091ff;
-        }
-
-        .arrow {
-            display: none;
-        }
-
-        .popover-content {
-            padding: 15px 20px 100px;
-            color: $white;
-            font-size: 15px;
-
-            >div {
-                &:first-child {
-                    overflow: auto;
-                    height: calc(100vh - 150px);
-                    -webkit-overflow-scrolling: touch;
-                }
-            }
-        }
-
-        .close {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            display: block;
-            width: 30px;
-            height: 30px;
-            padding-top: 13px;
-            border: 1px solid $white;
-            border-radius: 50%;
-            margin-left: -15px;
-            color: $white;
-            font-family: 'Open Sans', sans-serif;
-            font-size: 23px;
-            font-weight: 200;
-            line-height: 0;
-            opacity: 1;
-            text-align: center;
-            text-shadow: none;
-        }
-    }
-
     .video-div {
         &.embed-responsive-item {
             iframe {
@@ -992,7 +929,7 @@
             }
 
             .post-message--overflow {
-                @include clearfix;
+                @include mixins.clearfix;
             }
 
             .status-wrapper {
@@ -1265,7 +1202,7 @@
     }
 
     .file-overlay {
-        font-size: em(18px);
+        font-size: functions.em(18px);
 
         &.center-file-overlay {
             .overlay__indent {
@@ -1276,12 +1213,6 @@
         .overlay__circle {
             width: 300px;
             height: 300px;
-            margin: -150px 0 0 -150px;
-        }
-
-        .overlay__files {
-            width: 150px;
-            margin: 60px auto 15px;
         }
     }
 
@@ -1421,7 +1352,7 @@
         }
 
         .team__header {
-            @include clearfix;
+            @include mixins.clearfix;
 
             padding: 15px;
             pointer-events: none;
@@ -1513,7 +1444,7 @@
         }
 
         .team__header {
-            @include clearfix;
+            @include mixins.clearfix;
 
             padding: 15px;
             pointer-events: none;
@@ -1623,8 +1554,7 @@
             }
         }
 
-        .SidebarMenu,
-        .AddChannelDropdown {
+        .SidebarMenu {
             display: block !important;
 
             .Menu {
@@ -1862,7 +1792,7 @@
     .app__body {
         &.announcement-bar--fixed {
             .modal {
-                padding-top: $announcement-bar-height;
+                padding-top: variables.$announcement-bar-height;
             }
         }
 
@@ -1901,6 +1831,7 @@
 
                 .about-modal__content {
                     display: block;
+                    overflow-wrap: anywhere;
                 }
 
                 .about-modal__hash {
@@ -2045,8 +1976,8 @@
     }
 
     .emoji-picker__item {
-        width: calc(100% / #{$emoji-per-row});
-        padding-top: calc(100% / #{$emoji-per-row});
+        width: calc(100% / #{variables.$emoji-per-row});
+        padding-top: calc(100% / #{variables.$emoji-per-row});
         margin: 0;
     }
 

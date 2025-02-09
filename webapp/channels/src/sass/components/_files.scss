@@ -1,4 +1,6 @@
-@charset 'UTF-8';
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 .file-preview__container {
     position: relative;
@@ -16,7 +18,7 @@
 }
 
 .file-preview {
-    @include clearfix;
+    @include mixins.clearfix;
 
     position: relative;
     display: inline-block;
@@ -24,7 +26,7 @@
     height: 100px;
     flex-shrink: 0;
     flex-wrap: nowrap;
-    border: 1px solid $light-gray;
+    border: 1px solid variables.$light-gray;
     margin-right: 10px;
 
     .spinner {
@@ -49,23 +51,23 @@
         align-items: center;
         justify-content: center;
         border-radius: 4px;
-        color: rgba(v(center-channel-color-rgb), 0.75);
+        color: rgba(functions.v(center-channel-color-rgb), 0.75);
         font-size: 1.4rem;
         text-align: center;
         text-decoration: none;
 
         &:focus {
-            color: rgba(v(center-channel-color-rgb), 0.75);
+            color: rgba(functions.v(center-channel-color-rgb), 0.75);
         }
 
         &:hover {
-            background: rgba(v(center-channel-color-rgb), 0.08);
-            color: rgba(v(center-channel-color-rgb), 0.75);
+            background: rgba(functions.v(center-channel-color-rgb), 0.08);
+            color: rgba(functions.v(center-channel-color-rgb), 0.75);
         }
 
         &:active {
             background: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
+            color: functions.v(button-bg);
         }
     }
 }
@@ -82,48 +84,48 @@
     height: 100%;
 
     &.text {
-        @include file-icon('../images/icons/text.svg');
+        @include mixins.file-icon('../images/icons/text.svg');
     }
 
     &.audio {
-        @include file-icon('../images/icons/audio.svg');
+        @include mixins.file-icon('../images/icons/audio.svg');
     }
 
     &.video {
-        @include file-icon('../images/icons/video.svg');
+        @include mixins.file-icon('../images/icons/video.svg');
     }
 
     &.ppt {
-        @include file-icon('../images/icons/ppt.svg');
+        @include mixins.file-icon('../images/icons/ppt.svg');
     }
 
     &.generic,
     &.other {
-        @include file-icon('../images/icons/generic.svg');
+        @include mixins.file-icon('../images/icons/generic.svg');
     }
 
     &.code {
-        @include file-icon('../images/icons/code.svg');
+        @include mixins.file-icon('../images/icons/code.svg');
     }
 
     &.excel {
-        @include file-icon('../images/icons/excel.svg');
+        @include mixins.file-icon('../images/icons/excel.svg');
     }
 
     &.word {
-        @include file-icon('../images/icons/word.svg');
+        @include mixins.file-icon('../images/icons/word.svg');
     }
 
     &.pdf {
-        @include file-icon('../images/icons/pdf.svg');
+        @include mixins.file-icon('../images/icons/pdf.svg');
     }
 
     &.patch {
-        @include file-icon('../images/icons/patch.svg');
+        @include mixins.file-icon('../images/icons/patch.svg');
     }
 
     &.image {
-        @include file-icon('../images/icons/image.svg');
+        @include mixins.file-icon('../images/icons/image.svg');
     }
 }
 
@@ -152,18 +154,18 @@
     }
 
     .file__image {
-        @include pie-clearfix;
+        @include mixins.pie-clearfix;
 
         .image-header {
             display: flex;
-            align-items: baseline;
+            align-items: center;
         }
 
         .image-name {
             display: inline-block;
             overflow: hidden;
-            margin: -4px 0 0 0;
-            color: rgba(v(center-channel-color-rgb), 0.75);
+            margin: 0;
+            color: rgba(functions.v(center-channel-color-rgb), 0.75);
             cursor: pointer;
             font-size: 12px;
             text-overflow: ellipsis;
@@ -175,7 +177,7 @@
         }
 
         .image-container {
-            @include pie-clearfix;
+            @include mixins.pie-clearfix;
 
             position: relative;
             width: 100%;
@@ -247,7 +249,7 @@
                 }
 
                 &:hover {
-                    box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 10px 0 rgba($black, 0.1);
+                    box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 10px 0 rgba(variables.$black, 0.1);
                 }
 
                 &.min-preview {
@@ -279,7 +281,7 @@
                     height: inherit;
 
                     &:hover {
-                        box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 10px 0 rgba($black, 0.1);
+                        box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 10px 0 rgba(variables.$black, 0.1);
                     }
                 }
             }
@@ -331,11 +333,11 @@
     max-width: 100%;
     height: 6.4rem;
     align-items: center;
-    border: 1px solid rgba(v(center-channel-color-rgb), 0.16);
+    border: 1px solid rgba(functions.v(center-channel-color-rgb), 0.16);
     border-radius: 4px;
     margin: 4px 12px 4px 0;
-    background: v(center-channel-bg);
-    color: v(center-channel-color);
+    background: functions.v(center-channel-bg);
+    color: functions.v(center-channel-color);
     cursor: pointer;
     transition: box-shadow 0.15s ease;
 
@@ -351,7 +353,7 @@
     &:focus-within,
     &.keep-open {
         overflow: visible;
-        box-shadow: 0 2px 3px 0 rgba($black, 0.1), 0 2px 3px 0 rgba($black, 0.1);
+        box-shadow: 0 2px 3px 0 rgba(variables.$black, 0.1), 0 2px 3px 0 rgba(variables.$black, 0.1);
 
         .file-dropdown-icon {
             display: flex;
@@ -363,7 +365,7 @@
     }
 
     &:hover {
-        box-shadow: $elevation-1;
+        box-shadow: variables.$elevation-1;
 
         .post-image__download {
             opacity: 1;
@@ -410,7 +412,7 @@
     width: 4rem;
     height: 4rem;
     border-radius: 4px;
-    background-color: $white;
+    background-color: variables.$white;
     background-repeat: no-repeat;
     background-size: cover;
     text-align: center;
@@ -448,7 +450,7 @@
 }
 
 .post-image__thumbnail {
-    @include cursor(zoom-in);
+    @include mixins.cursor(zoom-in);
 
     z-index: 1;
     display: flex;
@@ -607,22 +609,22 @@
             align-items: center;
             justify-content: center;
             border-radius: 4px;
-            color: rgba(v(center-channel-color-rgb), 0.75);
+            color: rgba(functions.v(center-channel-color-rgb), 0.75);
             font-size: 1.6rem;
             text-decoration: none;
 
             &:focus {
-                color: rgba(v(center-channel-color-rgb), 0.75);
+                color: rgba(functions.v(center-channel-color-rgb), 0.75);
             }
 
             &:hover {
-                background: rgba(v(center-channel-color-rgb), 0.08);
-                color: rgba(v(center-channel-color-rgb), 0.75);
+                background: rgba(functions.v(center-channel-color-rgb), 0.08);
+                color: rgba(functions.v(center-channel-color-rgb), 0.75);
             }
 
             &:active {
                 background: rgba(var(--button-bg-rgb), 0.08);
-                color: v(button-bg);
+                color: functions.v(button-bg);
             }
         }
 
@@ -665,13 +667,13 @@
     }
 
     .post-image__uploadingTxt {
-        color: rgba(v(center-channel-color-rgb), 0.75);
+        color: rgba(functions.v(center-channel-color-rgb), 0.75);
     }
 }
 
 .file-details__container {
     display: flex;
-    background: $white;
+    background: variables.$white;
 
     .file-details {
         width: 320px;
@@ -682,20 +684,20 @@
 
         .file-details__name {
             margin: 5px 0;
-            color: alpha-color($black, 0.9);
+            color: functions.alpha-color(variables.$black, 0.9);
             font-size: 16px;
             word-break: break-word;
         }
 
         .file-details__info {
-            color: alpha-color($black, 0.5);
+            color: functions.alpha-color(variables.$black, 0.5);
         }
     }
 
     .file-details__preview {
         width: 320px;
         height: 270px;
-        border-right: 1px solid $light-gray;
+        border-right: 1px solid variables.$light-gray;
         vertical-align: center;
 
         img {
@@ -740,10 +742,10 @@
     align-items: center;
     justify-content: center;
     padding-top: 28px;
-    background: $black;
+    background: variables.$black;
 
     .fa {
-        color: $white;
+        color: variables.$white;
         font-size: 20px;
         opacity: 0.73;
     }
@@ -776,7 +778,7 @@
 
     &:hover {
         z-index: 2;
-        box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 5px 0 rgba($black, 0.1);
+        box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 5px 0 rgba(variables.$black, 0.1);
         transition: all 0.1s linear;
     }
 

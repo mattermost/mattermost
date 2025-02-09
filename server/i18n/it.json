@@ -2296,10 +2296,6 @@
     "translation": "Almeno una tra trigger_words o channel_id deve essere configurata."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "Impossibile decodificare la richiesta multipart del webhook in ingresso."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Impossibile aggiornare webook tra gruppi."
   },
@@ -3000,60 +2996,8 @@
     "translation": "La console di Sistema è configurata in sola lettura quando l'Alta Disponibilità è attiva a meno che il parametro ReadOnlyConfig non sia disattivato nel file di configurazione."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Formato di uscita sconosciuto {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Impossibile copiare l'allegato nel file zip."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Impossibile aggiungere l'allegato all'esportazione CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Impossibile create il file CSV temporaneo per l'esportazione."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Impossibile aggiungere l'intestazione all'esportazione CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Impossibile aggiungere il file dei metadati al file zip."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Impossibile convertire i metadati in json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Impossibile esportare una pubblicazione."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Impossibile creare il file zip esportato."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Il file caricato è stato rimosso dall'esportazione Global Relay perché troppo grande per essere inviato."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Impossibile aprire il file di esportazione temporaneo."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Impossibile rileggere il file di esportazione temporaneo Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funzionalità non conforme alla licenza disponibile. Per favore contatta il tuo amministratore di sistema informandolo di aggiornare la licenza enterprise."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Impossibile caricare i template di esportazione. Riprovare."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3097,7 +3041,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "La ricerca Elasticsearch è disabilitata su questo server"
+    "translation": "La ricerca {{.Backend}} è disabilitata su questo server"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3105,19 +3049,15 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Il lavoro di indicizzazione di Elasticsearch non è riuscito a calcolare l'ora di inizio e di fine"
+    "translation": "Il lavoro di indicizzazione di {{.Backend}} non è riuscito a calcolare l'ora di inizio e di fine"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Il lavoro di indicizzazione di Elasticsearch non è riuscito a calcolare l'ora d'inizio"
+    "translation": "Il lavoro di indicizzazione di {{.Backend}} non è riuscito a calcolare l'ora d'inizio"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch non è in esecuzione"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Impossibile cancellare l'indice ElasticSearch"
+    "translation": "{{.Backend}} non è in esecuzione"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3137,11 +3077,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch è già fermo."
+    "translation": "{{.Backend}} è già fermo."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch non è attivo."
+    "translation": "{{.Backend}} non è attivo."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3234,58 +3174,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "errore recuperando i gruppi dell'utente"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Impossibile aggiungere l'allegato all'esportazione Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Impossibile chiudere il file zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Impossibile creare il file eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Impossibile generare i dati del file eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Impossibile consegnare l'email a Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Impossibile impostare l'indirizzo From dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Impossibile impostare il testo dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Impossibile scrivere il testo dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Impossibile leggere le informazioni dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Impossibile impostare l'indirizzo To dell'email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Impossibile recuperare le informazioni sul file di esportazione temporaneo."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Impossibile recuperare l'email dal file temporaneo."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Impossibile aprire il file di esportazione temporaneo."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3717,11 +3605,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "L'impostazione Elastich Search IndexingEnabled deve essere abilitata quando l'impostazione Elastic Search SearchEnabled è abilitata"
+    "translation": "L'impostazione EnableIndexing deve essere abilitata quando l'impostazione Elastic Search EnableSearching è abilitata"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "La coda di indicizzazione in tempo reale di Elasticsearch deve contenere almeno 1 elemento."
+    "translation": "La coda di indicizzazione in tempo reale deve contenere almeno 1 elemento."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
@@ -3729,7 +3617,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Il timeout per le richieste di Elasticsearch deve essere almeno di 1 secondo."
+    "translation": "Il timeout per le ricerche deve essere almeno di 1 secondo."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4310,10 +4198,6 @@
   {
     "id": "model.post.is_valid.id.app_error",
     "translation": "ID non valido."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Messaggio invalido."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
@@ -4924,10 +4808,6 @@
     "translation": "Tempo scaduto per la risposta del cluster"
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Impossibile creare il file di avviso."
-  },
-  {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
     "translation": "Errore durante la creazione del template Elasticsearch per gli utenti"
   },
@@ -4973,7 +4853,7 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Errore interpretando la versione del server Elasticsearch."
+    "translation": "Errore interpretando la versione del server {{.Backend}}."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5324,10 +5204,6 @@
     "translation": "La ricerca non è stata completata."
   },
   {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Impossibile creare il file zip"
-  },
-  {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "Errore durante la creazione del template Elasticsearch per i canali"
   },
@@ -5341,7 +5217,7 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Impossibile trovato la versione del server Elasticsearch."
+    "translation": "Impossibile trovare la versione del server {{.Backend}}."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
@@ -6092,10 +5968,6 @@
     "translation": "Impossibile eliminare il token"
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Impossibile trovare gli utenti del canale durante il momento specificato"
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "Impossibile attivare il token di accesso."
   },
@@ -6426,10 +6298,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " ha allegato un file."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Impossibile convertire l'esportazione in XML."
   },
   {
     "id": "app.job.update.app_error",
@@ -7580,10 +7448,6 @@
     "translation": " "
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": " "
   },
@@ -7725,10 +7589,6 @@
   },
   {
     "id": "bleveengine.purge_file_index.error",
-    "translation": " "
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
     "translation": " "
   },
   {
@@ -8057,7 +7917,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": " "
+    "translation": "La ricerca {{.Backend}} di file è disabilitata su questo server"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8257,10 +8117,6 @@
   },
   {
     "id": "model.member.is_valid.channel.app_error",
-    "translation": " "
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
     "translation": " "
   },
   {
@@ -8476,10 +8332,6 @@
     "translation": " "
   },
   {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": " "
-  },
-  {
     "id": "bleveengine.create_file_index.error",
     "translation": " "
   },
@@ -8565,18 +8417,6 @@
   },
   {
     "id": "api.templates.verify_body.serverURL",
-    "translation": " "
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": " "
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": " "
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
     "translation": " "
   },
   {
@@ -8726,5 +8566,25 @@
   {
     "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
     "translation": "Parametri di input non validi."
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Non posso creare un canale diretto con un utente remoto"
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "La tua licenza non supporta i segnalibri dei canali."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Non è permessa la creazione di un segnalibro all'utente."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Creazione di un segnalibro canale fallita."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Non è possibile rimuovere una conferma in un canale archiviato."
   }
 ]

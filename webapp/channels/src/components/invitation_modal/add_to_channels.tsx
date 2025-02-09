@@ -143,7 +143,7 @@ export default function AddToChannels(props: Props) {
                 </div>
             )}
             {props.customMessage.open && (
-                <React.Fragment>
+                <>
                     <div className={'AddToChannels__customMessageTitle ' + props.titleClass}>
                         <FormattedMessage
                             id='invitation_modal.guests.custom-message.title'
@@ -159,7 +159,7 @@ export default function AddToChannels(props: Props) {
                         onChange={(e) => props.setCustomMessage(e.target.value)}
                         value={props.customMessage.message}
                     />
-                </React.Fragment>
+                </>
             )}
         </div>
     </div>);

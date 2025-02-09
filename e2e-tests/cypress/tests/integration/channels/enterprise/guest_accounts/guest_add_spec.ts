@@ -79,7 +79,7 @@ describe('Guest Account - Guest User Experience', () => {
 
         // # Search for the Guest User
         cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().find('input').wait(TIMEOUTS.FIVE_SEC).type(`in:${guestUser.username}`);
+        cy.uiGetSearchBox().wait(TIMEOUTS.FIVE_SEC).type(`in:${guestUser.username}`);
 
         // * Verify Guest Badge is not displayed at Search auto-complete
         cy.contains('.suggestion-list__item', guestUser.username).should('be.visible').within(($el) => {

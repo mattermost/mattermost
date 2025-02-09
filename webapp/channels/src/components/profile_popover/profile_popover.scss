@@ -1,33 +1,49 @@
-@import 'utils/mixins';
+@use 'utils/variables';
+@use 'utils/mixins';
 
 .user-profile-popover-floating-overlay {
-    // 99 being the z-index of the global header
-    // 1060 being the z-index of the user group popover
-    z-index: 1070;
+    z-index: variables.$z-index-popover;
 }
 
+$profilePopoverWidth: 240px;
+$profilePopoverBorderWidth: 1px;
+
 .user-profile-popover {
-    width: 240px;
-    max-height: calc(100vh - 240px);
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    width: $profilePopoverWidth;
+    max-height: calc(100vh - $profilePopoverWidth);
+    border: $profilePopoverBorderWidth solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-4);
+    overflow-x: hidden;
     overflow-y: auto;
 
+    .user-profile-popover_container {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+    }
+
     .user-profile-popover-title {
+        position: sticky;
+        z-index: 1;
+        top: 0;
         display: flex;
         flex-wrap: nowrap;
         align-items: center;
+        justify-content: flex-start;
         justify-content: end;
+        justify-content: space-between;
         padding: 12px 8px 12px 8px;
+        background: var(--center-channel-bg);
 
         .user-popover__role {
+            max-width: calc($profilePopoverWidth - 40px);
             flex-grow: 1;
             background: unset;
             padding-inline-start: 8px;
 
-            > span {
+            >span {
                 height: 16px;
                 padding: 0 4px;
                 border-radius: 4px;
@@ -103,13 +119,13 @@
             padding-inline-start: 16px;
             text-align: center;
 
-            > h5 {
-                margin:0;
+            >p {
+                margin: 0;
                 font-family: Metropolis, sans-serif;
                 font-size: 20px;
                 font-weight: 600;
                 line-height: 28px;
-                @include textEllipsis;
+                @include mixins.textEllipsis;
             }
 
             i.shared-user-icon {
@@ -129,7 +145,7 @@
             padding-inline-start: 16px;
             text-align: center;
 
-            @include textEllipsis;
+            @include mixins.textEllipsis;
         }
 
         hr {
@@ -144,8 +160,9 @@
 
         .user-profile-popover__email {
             display: flex;
+            width: calc($profilePopoverWidth - (2 * $profilePopoverBorderWidth));
             align-items: center;
-            margin: 0 16px 10px 16px;
+            padding: 0 16px 10px 16px;
             justify-self: start;
 
             i.icon-email-outline {
@@ -163,14 +180,14 @@
                 font-weight: 400;
                 line-height: 20px;
 
-                @include textEllipsis;
+                @include mixins.textEllipsis;
             }
         }
 
         .user-profile-popover-pluggables {
             &:not(:empty) {
                 padding: 0 16px 12px 16px;
-                @include textEllipsis;
+                @include mixins.textEllipsis;
             }
         }
 
@@ -184,13 +201,32 @@
                 font-size: 16px;
             }
         }
+        
+        .user-popover__custom_attributes {
+            display: flex;
+            flex-direction: column;
+            padding: 0 16px 12px 16px;
+
+            .user-popover__subtitle {
+                margin-bottom: 4px;
+                font-size: 11px;
+                font-weight: 600;
+                gap: 4px;
+                line-height: 16px;
+                @include mixins.textEllipsis;
+            }
+
+            .user-popover__subtitle-text {
+                margin: 0;
+            }
+        }
 
         .user-popover__time-status-container {
             display: flex;
             flex-direction: column;
             padding: 0 16px 12px 16px;
 
-            @include textEllipsis;
+            @include mixins.textEllipsis;
 
             .user-popover__subtitle {
                 display: flex;
@@ -199,7 +235,7 @@
                 font-weight: 600;
                 gap: 4px;
                 line-height: 16px;
-                @include textEllipsis;
+                @include mixins.textEllipsis;
             }
 
             .user-popover__subtitle-text {
@@ -208,8 +244,18 @@
 
             .user-popover__set-status {
                 width: fit-content;
+                height: auto;
+                padding: 4px 0 0;
+                border: none;
+                background: none;
             }
         }
+    }
+
+    .user-profile-popover-bottom-row {
+        position: sticky;
+        bottom: 0;
+        background: var(--center-channel-bg);
 
         .user-popover__bottom-row-container {
             display: flex;

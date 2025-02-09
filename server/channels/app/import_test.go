@@ -23,22 +23,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
-func ptrStr(s string) *string {
-	return &s
-}
-
-func ptrInt64(i int64) *int64 {
-	return &i
-}
-
-func ptrInt(i int) *int {
-	return &i
-}
-
-func ptrBool(b bool) *bool {
-	return &b
-}
-
 func checkPreference(t *testing.T, a *App, userID string, category string, name string, value string) {
 	preferences, err := a.Srv().Store().Preference().GetCategory(userID, category)
 	require.NoErrorf(t, err, "Failed to get preferences for user %v with category %v", userID, category)
@@ -69,6 +53,8 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
+	t.Helper()
+	require.NoError(t, a.Srv().Store().Post().RefreshPostStats())
 	result, err := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamName})
 	require.NoError(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
@@ -250,7 +236,7 @@ func TestImportBulkImport(t *testing.T) {
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	data := imports.LineImportData{
 		Type:    "version",
-		Version: ptrInt(1),
+		Version: model.NewPointer(1),
 	}
 	version, err := processImportDataFileVersionLine(data)
 	require.Nil(t, err, "Expected no error")
@@ -320,7 +306,9 @@ func TestProcessAttachments(t *testing.T) {
 	userLine := imports.LineImportData{
 		Type: "user",
 		User: &imports.UserImportData{
-			ProfileImage: model.NewPointer("profile.jpg"),
+			Avatar: imports.Avatar{
+				ProfileImage: model.NewPointer("profile.jpg"),
+			},
 		},
 	}
 

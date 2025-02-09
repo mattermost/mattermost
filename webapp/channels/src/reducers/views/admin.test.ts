@@ -8,7 +8,7 @@ import {needsLoggedInLimitReachedCheck} from './admin';
 describe('views/admin reducers', () => {
     describe('needsLoggedInLimitReachedCheck', () => {
         it('defaults to false', () => {
-            const actual = needsLoggedInLimitReachedCheck(undefined, {type: 'asdf'});
+            const actual = needsLoggedInLimitReachedCheck(undefined, {type: undefined});
             expect(actual).toBe(false);
         });
 

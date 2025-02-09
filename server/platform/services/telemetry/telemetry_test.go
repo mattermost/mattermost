@@ -489,33 +489,10 @@ func TestRudderTelemetry(t *testing.T) {
 		collectInfo(&info)
 
 		for _, item := range []string{
-			TrackConfigService,
-			TrackConfigTeam,
-			TrackConfigSQL,
-			TrackConfigLog,
-			TrackConfigNotificationLog,
-			TrackConfigFile,
-			TrackConfigRate,
-			TrackConfigEmail,
-			TrackConfigPrivacy,
-			TrackConfigOAuth,
-			TrackConfigLDAP,
-			TrackConfigCompliance,
-			TrackConfigLocalization,
-			TrackConfigSAML,
-			TrackConfigPassword,
-			TrackConfigCluster,
-			TrackConfigMetrics,
-			TrackConfigSupport,
-			TrackConfigNativeApp,
-			TrackConfigExperimental,
-			TrackConfigAnalytics,
-			TrackConfigPlugin,
-			TrackFeatureFlags,
 			TrackActivity,
 			TrackServer,
-			TrackConfigMessageExport,
 			TrackPlugins,
+			TrackConfigs,
 		} {
 			require.Contains(t, info, item)
 		}
@@ -532,39 +509,16 @@ func TestRudderTelemetry(t *testing.T) {
 		collectInfo(&info)
 
 		for _, item := range []string{
-			TrackConfigService,
-			TrackConfigTeam,
-			TrackConfigSQL,
-			TrackConfigLog,
-			TrackConfigNotificationLog,
-			TrackConfigFile,
-			TrackConfigRate,
-			TrackConfigEmail,
-			TrackConfigPrivacy,
-			TrackConfigOAuth,
-			TrackConfigLDAP,
-			TrackConfigCompliance,
-			TrackConfigLocalization,
-			TrackConfigSAML,
-			TrackConfigPassword,
-			TrackConfigCluster,
-			TrackConfigMetrics,
-			TrackConfigSupport,
-			TrackConfigNativeApp,
-			TrackConfigExperimental,
-			TrackConfigAnalytics,
-			TrackConfigPlugin,
-			TrackFeatureFlags,
 			TrackActivity,
 			TrackServer,
-			TrackConfigMessageExport,
 			TrackPlugins,
+			TrackConfigs,
 		} {
 			require.Contains(t, info, item)
 		}
 	})
 	t.Run("Telemetry for Marketplace plugins is returned", func(t *testing.T) {
-		service.trackPluginConfig(service.srv.Config(), marketplaceServer.URL)
+		service.trackPluginConfig(map[string]any{}, service.srv.Config(), marketplaceServer.URL)
 
 		var batches []testBatch
 		collectBatches(t, &batches, pchan)
@@ -585,7 +539,7 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("Telemetry for known plugins is returned, if request to Marketplace fails", func(t *testing.T) {
-		service.trackPluginConfig(service.srv.Config(), "http://some.random.invalid.url")
+		service.trackPluginConfig(map[string]any{}, service.srv.Config(), "http://some.random.invalid.url")
 
 		var batches []testBatch
 		collectBatches(t, &batches, pchan)

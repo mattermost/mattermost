@@ -1,4 +1,4 @@
-@import '../payment_form/mixins';
+@use '../payment_form/mixins';
 
 .shipping-address-section {
     display: flex;
@@ -39,5 +39,5 @@
 }
 
 .PurchaseModal .shipping-address-section {
-    @include payment-form-padding;
+    @include mixins.payment-form-padding;
 }

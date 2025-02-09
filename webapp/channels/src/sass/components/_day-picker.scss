@@ -1,3 +1,5 @@
+@use "utils/functions";
+
 .app__body {
     .DayPicker {
         width: 100%;
@@ -100,7 +102,7 @@
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         border-radius: 4px;
         background: rgba(var(--center-channel-bg-rgb), 1);
-        box-shadow: 0 8px 24px 0 alpha-color(black, 0.12);
+        box-shadow: 0 8px 24px 0 functions.alpha-color(black, 0.12);
 
         & .DayPicker {
             margin-top: 8px;

@@ -14,12 +14,13 @@ import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
-import {StoragePrefixes} from 'utils/constants';
+import {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
 
 import AdvancedTextEditor from './advanced_text_editor';
+import type {Props} from './advanced_text_editor';
 
 jest.mock('actions/views/drafts', () => ({
     ...jest.requireActual('actions/views/drafts'),
@@ -93,7 +94,14 @@ const initialState = {
         users: {
             currentUserId: 'current_user_id',
             profiles: {
-                current_user_id: TestHelper.getUserMock({id: 'current_user_id', roles: 'user_roles'}),
+                current_user_id: TestHelper.getUserMock({
+                    id: 'current_user_id',
+                    roles: 'user_roles',
+                    timezone: {
+                        useAutomaticTimezone: 'true',
+                        automaticTimezone: 'America/New_York',
+                        manualTimezone: '',
+                    }}),
             },
             statuses: {
                 current_user_id: 'online',
@@ -220,7 +228,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        expect(screen.getByLabelText('write to test channel')).toHaveValue('original draft');
+        expect(screen.getByPlaceholderText('Write to Test Channel')).toHaveValue('original draft');
 
         rerender(
             <AdvancedTextEditor
@@ -228,7 +236,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 channelId={otherChannelId}
             />,
         );
-        expect(screen.getByLabelText('write to other channel')).toHaveValue('a different draft');
+        expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
     });
 
     it('should save a new draft when changing channels', () => {
@@ -239,7 +247,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             initialState,
         );
 
-        userEvent.type(screen.getByLabelText('write to test channel'), 'some text');
+        userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), 'some text');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
@@ -305,7 +313,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        userEvent.type(screen.getByLabelText('write to test channel'), ' plus some new text');
+        userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), ' plus some new text');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
@@ -341,7 +349,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        userEvent.clear(screen.getByLabelText('write to test channel'));
+        userEvent.clear(screen.getByPlaceholderText('Write to Test Channel'));
 
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
@@ -377,5 +385,64 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         expect(mockedRemoveDraft).not.toHaveBeenCalled();
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
+    });
+
+    it('should show @mention warning when a mention exists in the message', () => {
+        const props = {
+            ...baseProps,
+            postId: 'post_id_1',
+            isInEditMode: true,
+        };
+
+        renderWithContext(
+            <AdvancedTextEditor
+                {...props}
+            />,
+            mergeObjects(initialState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.COMMENT_DRAFT + 'post_id_1']: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'mentioning @user',
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        expect(screen.getByText('Editing this message with an \'@mention\' will not notify the recipient.')).toBeVisible();
+    });
+
+    it('should have file upload overlay', () => {
+        const props: Props = {
+            ...baseProps,
+        };
+
+        const {container, rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...props}
+            />,
+        );
+        expect(container.querySelector('#createPostFileDropOverlay')).toBeVisible();
+
+        props.postId = 'post_id_1';
+        rerender(<AdvancedTextEditor {...props}/>);
+        expect(container.querySelector('#createCommentFileDropOverlay')).toBeVisible();
+
+        // in center channel editing a post
+        props.isInEditMode = true;
+        rerender(<AdvancedTextEditor {...props}/>);
+        expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+
+        // in RHS editing a post
+        props.location = Locations.RHS_COMMENT;
+        rerender(<AdvancedTextEditor {...props}/>);
+        expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+
+        // in threads
+        props.isThreadView = true;
+        rerender(<AdvancedTextEditor {...props}/>);
+        expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
     });
 });

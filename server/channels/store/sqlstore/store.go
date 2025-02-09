@@ -35,6 +35,8 @@ import (
 
 type migrationDirection string
 
+type Option func(s *SqlStore) error
+
 const (
 	IndexTypeFullText                 = "full_text"
 	IndexTypeFullTextFunc             = "full_text_func"
@@ -46,12 +48,13 @@ const (
 	PGDuplicateObjectErrorCode        = "42710"
 	MySQLDuplicateObjectErrorCode     = 1022
 	DBPingAttempts                    = 5
+	DBReplicaPingAttempts             = 2
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
 	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
-	minimumRequiredPostgresVersion = 110000
+	minimumRequiredPostgresVersion = 130000
 	// major*1000 + minor*100 + patch
 	minimumRequiredMySQLVersion = 8000
 
@@ -111,6 +114,10 @@ type SqlStoreStores struct {
 	postPersistentNotification store.PostPersistentNotificationStore
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
+	scheduledPost              store.ScheduledPostStore
+	propertyGroup              store.PropertyGroupStore
+	propertyField              store.PropertyFieldStore
+	propertyValue              store.PropertyValueStore
 }
 
 type SqlStore struct {
@@ -137,12 +144,20 @@ type SqlStore struct {
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
+	skipMigrations            bool
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
 }
 
-func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface) (*SqlStore, error) {
+func SkipMigrations() Option {
+	return func(s *SqlStore) error {
+		s.skipMigrations = true
+		return nil
+	}
+}
+
+func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface, options ...Option) (*SqlStore, error) {
 	store := &SqlStore{
 		rrCounter:   0,
 		srCounter:   0,
@@ -151,6 +166,12 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		logger:      logger,
 		quitMonitor: make(chan struct{}),
 		wgMonitor:   &sync.WaitGroup{},
+	}
+
+	for _, option := range options {
+		if err := option(store); err != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err)
+		}
 	}
 
 	err := store.initConnection()
@@ -176,9 +197,11 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		return nil, errors.Wrap(err, "error while checking DB collation")
 	}
 
-	err = store.migrate(migrationsDirectionUp, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to apply database migrations")
+	if !store.skipMigrations {
+		err = store.migrate(migrationsDirectionUp, false)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to apply database migrations")
+		}
 	}
 
 	store.isBinaryParam, err = store.computeBinaryParam()
@@ -236,6 +259,10 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.postPersistentNotification = newSqlPostPersistentNotificationStore(store)
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
+	store.stores.scheduledPost = newScheduledPostStore(store)
+	store.stores.propertyGroup = newPropertyGroupStore(store)
+	store.stores.propertyField = newPropertyFieldStore(store)
+	store.stores.propertyValue = newPropertyValueStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -287,7 +314,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.ReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			ss.ReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("replica-%v", i), replica, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.ReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -302,7 +329,7 @@ func (ss *SqlStore) initConnection() error {
 		ss.searchReplicaXs = make([]*atomic.Pointer[sqlxDBWrapper], len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicaXs[i] = &atomic.Pointer[sqlxDBWrapper]{}
-			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBPingAttempts)
+			handle, err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf("search-replica-%v", i), replica, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				// Initializing to be offline
 				ss.searchReplicaXs[i].Store(&sqlxDBWrapper{isOnline: &atomic.Bool{}})
@@ -319,7 +346,7 @@ func (ss *SqlStore) initConnection() error {
 			if src.DataSource == nil {
 				continue
 			}
-			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBPingAttempts)
+			ss.replicaLagHandles[i], err = sqlUtils.SetupConnection(ss.Logger(), fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings, DBReplicaPingAttempts)
 			if err != nil {
 				mlog.Warn("Failed to setup replica lag handle. Skipping..", mlog.String("db", fmt.Sprintf(replicaLagPrefix+"-%d", i)), mlog.Err(err))
 				continue
@@ -371,7 +398,7 @@ func (ss *SqlStore) computeDefaultTextSearchConfig() (string, error) {
 	}
 
 	var defaultTextSearchConfig string
-	err := ss.GetMasterX().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
+	err := ss.GetMaster().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
 	return defaultTextSearchConfig, err
 }
 
@@ -397,7 +424,7 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	}
 
 	var version string
-	err := ss.GetReplicaX().Get(&version, sqlVersion)
+	err := ss.GetReplica().Get(&version, sqlVersion)
 	if err != nil {
 		return "", err
 	}
@@ -405,7 +432,7 @@ func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	return version, nil
 }
 
-func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
+func (ss *SqlStore) GetMaster() *sqlxDBWrapper {
 	return ss.masterX
 }
 
@@ -419,16 +446,16 @@ func (ss *SqlStore) SetMasterX(db *sql.DB) {
 }
 
 func (ss *SqlStore) GetInternalMasterDB() *sql.DB {
-	return ss.GetMasterX().DB.DB
+	return ss.GetMaster().DB.DB
 }
 
 func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 	if !ss.hasLicense() {
-		return ss.GetMasterX()
+		return ss.GetMaster()
 	}
 
 	if len(ss.settings.DataSourceSearchReplicas) == 0 {
-		return ss.GetReplicaX()
+		return ss.GetReplica()
 	}
 
 	for i := 0; i < len(ss.searchReplicaXs); i++ {
@@ -439,12 +466,12 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 	}
 
 	// If all search replicas are down, then go with replica.
-	return ss.GetReplicaX()
+	return ss.GetReplica()
 }
 
-func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
+func (ss *SqlStore) GetReplica() *sqlxDBWrapper {
 	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
-		return ss.GetMasterX()
+		return ss.GetMaster()
 	}
 
 	for i := 0; i < len(ss.ReplicaXs); i++ {
@@ -455,7 +482,7 @@ func (ss *SqlStore) GetReplicaX() *sqlxDBWrapper {
 	}
 
 	// If all replicas are down, then go with master.
-	return ss.GetMasterX()
+	return ss.GetMaster()
 }
 
 func (ss *SqlStore) monitorReplicas() {
@@ -509,7 +536,7 @@ func (ss *SqlStore) setDB(replica *atomic.Pointer[sqlxDBWrapper], handle *dbsql.
 
 func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
 	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
-		return ss.GetMasterX().DB.DB
+		return ss.GetMaster().DB.DB
 	}
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
@@ -517,7 +544,7 @@ func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
-	return ss.GetMasterX().Stats().OpenConnections
+	return ss.GetMaster().Stats().OpenConnections
 }
 
 // ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
@@ -606,7 +633,7 @@ func (ss *SqlStore) MarkSystemRanUnitTests() {
 func (ss *SqlStore) DoesTableExist(tableName string) bool {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		var count int64
-		err := ss.GetMasterX().Get(&count,
+		err := ss.GetMaster().Get(&count,
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
 			strings.ToLower(tableName),
 		)
@@ -618,7 +645,7 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 		return count > 0
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
-		err := ss.GetMasterX().Get(&count,
+		err := ss.GetMaster().Get(&count,
 			`SELECT
 		    COUNT(0) AS table_exists
 			FROM
@@ -643,7 +670,7 @@ func (ss *SqlStore) DoesTableExist(tableName string) bool {
 func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		var count int64
-		err := ss.GetMasterX().Get(&count,
+		err := ss.GetMaster().Get(&count,
 			`SELECT COUNT(0)
 			FROM   pg_attribute
 			WHERE  attrelid = $1::regclass
@@ -664,7 +691,7 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		return count > 0
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
-		err := ss.GetMasterX().Get(&count,
+		err := ss.GetMaster().Get(&count,
 			`SELECT
 		    COUNT(0) AS column_exists
 		FROM
@@ -690,7 +717,7 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		var count int64
-		err := ss.GetMasterX().Get(&count, `
+		err := ss.GetMaster().Get(&count, `
 			SELECT
 				COUNT(0)
 			FROM
@@ -706,7 +733,7 @@ func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
 		return count > 0
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
 		var count int64
-		err := ss.GetMasterX().Get(&count, `
+		err := ss.GetMaster().Get(&count, `
 			SELECT
 				COUNT(0)
 			FROM
@@ -732,14 +759,14 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 	}
 
 	if ss.DriverName() == model.DatabaseDriverPostgres {
-		_, err := ss.GetMasterX().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Fatal("Failed to create column", mlog.Err(err))
 		}
 
 		return true
 	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		_, err := ss.GetMasterX().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Fatal("Failed to create column", mlog.Err(err))
 		}
@@ -755,7 +782,7 @@ func (ss *SqlStore) RemoveTableIfExists(tableName string) bool {
 		return false
 	}
 
-	_, err := ss.GetMasterX().ExecNoTimeout("DROP TABLE " + tableName)
+	_, err := ss.GetMaster().ExecNoTimeout("DROP TABLE " + tableName)
 	if err != nil {
 		mlog.Fatal("Failed to drop table", mlog.Err(err))
 	}
@@ -1039,6 +1066,18 @@ func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 	return ss.stores.channelBookmarks
 }
 
+func (ss *SqlStore) PropertyGroup() store.PropertyGroupStore {
+	return ss.stores.propertyGroup
+}
+
+func (ss *SqlStore) PropertyField() store.PropertyFieldStore {
+	return ss.stores.propertyField
+}
+
+func (ss *SqlStore) PropertyValue() store.PropertyValueStore {
+	return ss.stores.propertyValue
+}
+
 func (ss *SqlStore) DropAllTables() {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		ss.masterX.Exec(`DO
@@ -1192,7 +1231,7 @@ func (ss *SqlStore) ensureDatabaseCollation() error {
 		Variable_name string
 		Value         string
 	}
-	if err := ss.GetMasterX().Get(&connCollation, "SHOW VARIABLES LIKE 'collation_connection'"); err != nil {
+	if err := ss.GetMaster().Get(&connCollation, "SHOW VARIABLES LIKE 'collation_connection'"); err != nil {
 		return errors.Wrap(err, "unable to select variables")
 	}
 
@@ -1202,14 +1241,14 @@ func (ss *SqlStore) ensureDatabaseCollation() error {
 		// we check if table exists because this code runs before the migrations applied
 		// which means if there is a fresh db, we may fail on selecting the table_collation
 		var exists int
-		if err := ss.GetMasterX().Get(&exists, "SELECT count(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
+		if err := ss.GetMaster().Get(&exists, "SELECT count(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to check if table exists for collation check: %q", tableName))
 		} else if exists == 0 {
 			continue
 		}
 
 		var tableCollation string
-		if err := ss.GetMasterX().Get(&tableCollation, "SELECT table_collation FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
+		if err := ss.GetMaster().Get(&tableCollation, "SELECT table_collation FROM information_schema.tables WHERE table_schema = DATABASE() AND LOWER(table_name) = ?", tableName); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("unable to get table collation: %q", tableName))
 		}
 
@@ -1280,7 +1319,7 @@ func (ss *SqlStore) GetLocalSchemaVersion() (int, error) {
 
 func (ss *SqlStore) GetDBSchemaVersion() (int, error) {
 	var version int
-	if err := ss.GetMasterX().Get(&version, "SELECT Version FROM db_migrations ORDER BY Version DESC LIMIT 1"); err != nil {
+	if err := ss.GetMaster().Get(&version, "SELECT Version FROM db_migrations ORDER BY Version DESC LIMIT 1"); err != nil {
 		return 0, errors.Wrap(err, "unable to select from db_migrations")
 	}
 	return version, nil
@@ -1288,9 +1327,57 @@ func (ss *SqlStore) GetDBSchemaVersion() (int, error) {
 
 func (ss *SqlStore) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	migrations := []model.AppliedMigration{}
-	if err := ss.GetMasterX().Select(&migrations, "SELECT Version, Name FROM db_migrations ORDER BY Version DESC"); err != nil {
+	if err := ss.GetMaster().Select(&migrations, "SELECT Version, Name FROM db_migrations ORDER BY Version DESC"); err != nil {
 		return nil, errors.Wrap(err, "unable to select from db_migrations")
 	}
 
 	return migrations, nil
+}
+
+func (ss *SqlStore) determineMaxColumnSize(tableName, columnName string) (int, error) {
+	var columnSizeBytes int32
+	ss.getQueryPlaceholder()
+
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		if err := ss.GetReplica().Get(&columnSizeBytes, `
+			SELECT
+				COALESCE(character_maximum_length, 0)
+			FROM
+				information_schema.columns
+			WHERE
+				lower(table_name) = lower($1)
+			AND	lower(column_name) = lower($2)
+		`, tableName, columnName); err != nil {
+			mlog.Warn("Unable to determine the maximum supported column size for Postgres", mlog.Err(err))
+			return 0, err
+		}
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
+		if err := ss.GetReplica().Get(&columnSizeBytes, `
+			SELECT
+				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
+			FROM
+				INFORMATION_SCHEMA.COLUMNS
+			WHERE
+				table_schema = DATABASE()
+			AND	lower(table_name) = lower(?)
+			AND	lower(column_name) = lower(?)
+			LIMIT 0, 1
+		`, tableName, columnName); err != nil {
+			mlog.Warn("Unable to determine the maximum supported column size for MySQL", mlog.Err(err))
+			return 0, err
+		}
+	} else {
+		mlog.Warn("No implementation found to determine the maximum supported column size")
+	}
+
+	// Assume a worst-case representation of four bytes per rune.
+	maxColumnSize := int(columnSizeBytes) / 4
+
+	mlog.Info("Column has size restrictions", mlog.String("table_name", tableName), mlog.String("column_name", columnName), mlog.Int("max_characters", maxColumnSize), mlog.Int("max_bytes", columnSizeBytes))
+
+	return maxColumnSize, nil
+}
+
+func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
+	return ss.stores.scheduledPost
 }

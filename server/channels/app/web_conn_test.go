@@ -15,6 +15,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 )
 
+// TestWebConnShouldSendEvent is not exhaustive because some of the checks
+// happen inside web_hub.go before the event is actually broadcasted, and checked
+// via ShouldSendEvent.
 func TestWebConnShouldSendEvent(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_WEBSOCKETEVENTSCOPE", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_WEBSOCKETEVENTSCOPE")
@@ -157,14 +160,6 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		})
 	}
 
-	t.Run("should send to basic user in basic channel", func(t *testing.T) {
-		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: th.BasicChannel.Id})
-
-		assert.True(t, basicUserWc.ShouldSendEvent(event), "expected user 1")
-		assert.False(t, basicUser2Wc.ShouldSendEvent(event), "did not expect user 2")
-		assert.False(t, adminUserWc.ShouldSendEvent(event), "did not expect admin")
-	})
-
 	t.Run("should not send typing event unless in scope", func(t *testing.T) {
 		event2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", nil, "")
 		// Basic, unset case
@@ -220,14 +215,6 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		basicUserWc.SetActiveRHSThreadChannelID("")
 		basicUserWc.SetActiveThreadViewThreadChannelID("")
 		assert.False(t, basicUserWc.ShouldSendEvent(event2))
-	})
-
-	t.Run("should send to basic user and admin in channel2", func(t *testing.T) {
-		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
-
-		assert.True(t, basicUserWc.ShouldSendEvent(event), "expected user 1")
-		assert.False(t, basicUser2Wc.ShouldSendEvent(event), "did not expect user 2")
-		assert.True(t, adminUserWc.ShouldSendEvent(event), "expected admin")
 	})
 
 	t.Run("channel member cache invalidated after user added to channel", func(t *testing.T) {

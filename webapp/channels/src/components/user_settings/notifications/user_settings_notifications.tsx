@@ -31,6 +31,7 @@ import DesktopAndMobileNotificationSettings from './desktop_and_mobile_notificat
 import DesktopNotificationSoundsSettings from './desktop_notification_sounds_setting';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
+import SendTestNotificationNotice from './send_test_notification_notice';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -620,7 +621,16 @@ class NotificationsTab extends React.PureComponent<Props, State> {
             expandedSection = (
                 <SettingItemMax
                     title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
-                    inputs={inputs}
+                    inputs={
+                        <fieldset>
+                            <legend className='hidden-label'>
+                                {this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords that trigger notifications'})}
+                            </legend>
+                            <div>
+                                {inputs}
+                            </div>
+                        </fieldset>
+                    }
                     submit={this.handleSubmit}
                     saving={this.state.isSaving}
                     serverError={serverError}
@@ -979,7 +989,11 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         const areAllSectionsInactive = this.props.activeSection === '';
 
         return (
-            <div id='notificationSettings'>
+            <div
+                id='notificationsSettings'
+                aria-labelledby='notificationsButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}
@@ -1099,7 +1113,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             {keywordsWithHighlightSection}
                         </>
                     )}
-                    <div className='divider-dark'/>
+                    <SendTestNotificationNotice adminMode={this.props.adminMode}/>
                 </div>
             </div>
 
