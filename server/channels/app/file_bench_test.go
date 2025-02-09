@@ -85,9 +85,7 @@ func BenchmarkUploadFile(b *testing.B) {
 			f: func(b *testing.B, n int, data []byte, ext string) {
 				info1, appErr := th.App.DoUploadFile(th.Context, time.Now(), teamID, channelID,
 					userID, fmt.Sprintf("BenchmarkDoUploadFile-%d%s", n, ext), data, true)
-				if appErr != nil {
-					b.Fatal(appErr)
-				}
+				require.Nil(b, appErr)
 				err := th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
 				require.NoError(b, err)
 				appErr = th.App.RemoveFile(info1.Path)
