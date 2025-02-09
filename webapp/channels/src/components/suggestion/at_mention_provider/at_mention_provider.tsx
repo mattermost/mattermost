@@ -22,6 +22,7 @@ import AtMentionSuggestion from './at_mention_suggestion';
 
 import Provider from '../provider';
 import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
+import { getFullName } from 'utils/utils';
 
 const profilesInChannelOptions = {active: true};
 const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
@@ -370,16 +371,17 @@ export default class AtMentionProvider extends Provider {
                 const teammateNameDisplay = getTeammateNameDisplaySetting(state)
 
                 if (teammateNameDisplay == 'nickname_full_name') {
-                    if (item.nickname) {
-                        return `@${item.username}(${item.nickname})`;
-                    } else if (item.fullname) {
-                        return `@${item.username}(${item.fullname})`;
+                    const fullname = getFullName(item);
+                    const displayName = item.nickname || fullname;
+                    if (displayName) {
+                        return `@${item.username}(${displayName})`;
                     }
                 }
 
                 if (teammateNameDisplay == 'full_name') {
-                    if (item.fullname) {
-                        return `@${item.username}(${item.fullname})`;
+                    const fullname = getFullName(item);
+                    if (fullname) {
+                        return `@${item.username}(${fullname})`;
                     }
                 }
             }
