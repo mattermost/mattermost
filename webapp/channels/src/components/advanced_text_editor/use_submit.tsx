@@ -39,11 +39,8 @@ import {isPostDraftEmpty} from 'types/store/draft';
 
 import useGroups from './use_groups';
 import { getUsernameMentions } from 'utils/text_formatting';
-import { getUser } from 'mattermost-redux/actions/users';
-import state from 'mattermost-redux/store/initial_state';
 import { displayUsername } from 'mattermost-redux/utils/user_utils';
 import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
-import { sub } from 'date-fns';
 
 function getStatusFromSlashCommand(message: string) {
     const tokens = message.split(' ');
@@ -382,20 +379,17 @@ const useSubmit = (
             }
         }
 
-        let message = submittingDraft.message;
-        const usernameMentions = getUsernameMentions(message);
-        usernameMentions.forEach((username) => {
-            username = username.substring(1);
-            console.log('username:', username);
-            const mentioUser = usersByUsername[username];
-            console.log('mentioUser:', mentioUser);
-            if (!mentioUser) {
-                return;
+        submittingDraft.message = getUsernameMentions(submittingDraft.message).reduce((msg, mention) => {
+            const username = mention.substring(1);
+            const mentionedUser = usersByUsername[username];
+        
+            if (!mentionedUser) {
+                return msg;
             }
-            const userDisplayName = displayUsername(mentioUser, teammateNameDisplay);
-            message = message.replace(`@${username}(${userDisplayName})`, `@${username}`);
-        });
-        submittingDraft.message = message;
+        
+            const userDisplayName = displayUsername(mentionedUser, teammateNameDisplay);
+            return msg.replace(`@${username}(${userDisplayName})`, `@${username}`);
+        }, submittingDraft.message);
         
         await doSubmit(submittingDraft, schedulingInfo, options);
     }, [
