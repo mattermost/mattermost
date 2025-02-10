@@ -7,22 +7,14 @@ import {Provider} from 'react-redux';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Client4} from 'mattermost-redux/client';
-import {UserTypes} from 'mattermost-redux/action_types';
-
-// import {
-//     getCustomProfileAttributeValues,
-// } from 'mattermost-redux/actions/users';
-
 import configureStore from 'store';
 
 import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserSettingsGeneral from './user_settings_general';
 import type {UserSettingsGeneralTab} from './user_settings_general';
-import { is } from 'i18n/langmap';
 
 jest.mock('@mattermost/client', () => ({
     ...jest.requireActual('@mattermost/client'),
