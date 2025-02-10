@@ -80,5 +80,44 @@ describe('reducers.entities.general', () => {
             const actualState = reducer({customProfileAttributes: state} as ReducerState, action);
             expect(actualState.customProfileAttributes).toEqual(expectedState);
         });
+
+        it('CUSTOM_PROFILE_ATTRIBUTES_CREATED', () => {
+            const state = {};
+            const testAttributeOne = {id: '123', name: 'test attribute', type: 'text'};
+            const action = {
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_CREATED,
+                data: testAttributeOne,
+            };
+            const expectedState = {[testAttributeOne.id]: testAttributeOne} as ReducerState['customProfileAttributes'];
+            const actualState = reducer({customProfileAttributes: state} as ReducerState, action);
+            expect(actualState.customProfileAttributes).toEqual(expectedState);
+        });
+
+        it('CUSTOM_PROFILE_ATTRIBUTES_PATCHED', () => {
+            const testAttributeOne = {id: '123', name: 'test attribute', type: 'text'};
+            const state = {[testAttributeOne.id]: testAttributeOne};
+
+            const renamedAttributeOne = {...testAttributeOne, name: 'renamed attribute'};
+            const action = {
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_PATCHED,
+                data: renamedAttributeOne,
+            };
+            const expectedState = {[testAttributeOne.id]: renamedAttributeOne} as ReducerState['customProfileAttributes'];
+            const actualState = reducer({customProfileAttributes: state} as ReducerState, action);
+            expect(actualState.customProfileAttributes).toEqual(expectedState);
+        });
+
+        it('CUSTOM_PROFILE_ATTRIBUTES_DELETED', () => {
+            const testAttributeOne = {id: '123', name: 'test attribute', type: 'text'};
+            const state = {[testAttributeOne.id]: testAttributeOne};
+
+            const action = {
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_DELETED,
+                data: testAttributeOne.id,
+            };
+            const expectedState = {} as ReducerState['customProfileAttributes'];
+            const actualState = reducer({customProfileAttributes: state} as ReducerState, action);
+            expect(actualState.customProfileAttributes).toEqual(expectedState);
+        });
     });
 });

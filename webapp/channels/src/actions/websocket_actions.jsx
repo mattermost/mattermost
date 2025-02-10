@@ -630,6 +630,18 @@ export function handleEvent(msg) {
     case SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED:
         dispatch(handleHostedCustomerSignupProgressUpdated(msg));
         break;
+    case SocketEvents.CPA_VALUES_UPDATED:
+        dispatch(handleCustomAttributeValuesUpdated(msg));
+        break;
+    case SocketEvents.CPA_FIELD_CREATED:
+        dispatch(handleCustomAttributesCreated(msg));
+        break;
+    case SocketEvents.CPA_FIELD_UPDATED:
+        dispatch(handleCustomAttributesUpdated(msg));
+        break;
+    case SocketEvents.CPA_FIELD_DELETED:
+        dispatch(handleCustomAttributesDeleted(msg));
+        break;
     default:
     }
 
@@ -1897,5 +1909,33 @@ function handleChannelBookmarkSorted(msg) {
     return {
         type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
         data: {channelId: msg.broadcast.channel_id, bookmarks},
+    };
+}
+
+export function handleCustomAttributeValuesUpdated(msg) {
+    return {
+        type: UserTypes.RECEIVED_CPA_VALUES,
+        data: {userID: msg.data.userID, customAttributeValues: msg.data.customAttributeValues},
+    };
+}
+
+export function handleCustomAttributesCreated(msg) {
+    return {
+        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_CREATED,
+        data: msg.data.field,
+    };
+}
+
+export function handleCustomAttributesUpdated(msg) {
+    return {
+        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_PATCHED,
+        data: msg.data.field,
+    };
+}
+
+export function handleCustomAttributesDeleted(msg) {
+    return {
+        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_DELETED,
+        data: msg.data.field_id,
     };
 }
