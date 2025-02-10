@@ -8,7 +8,7 @@ import {ProductsIcon} from '@mattermost/compass-icons/components';
 
 import * as Menu from 'components/menu';
 
-import {useCurrentProductId} from 'utils/products';
+import {useCurrentProductId, isChannels} from 'utils/products';
 
 import ProductSwitcherChannelsMenuItem from './product_switcher_channels_menuitem';
 import ProductSwitcherProductsMenuItems from './product_switcher_products_menuitems';
@@ -20,7 +20,9 @@ export const ELEMENT_ID_FOR_PRODUCT_SWITCHER_MENU_BUTTON = 'productSwitcherMenuB
 
 export default function ProductMenu() {
     const {formatMessage} = useIntl();
+
     const currentProductID = useCurrentProductId();
+    const isProductChannels = isChannels(currentProductID);
 
     return (
         <Menu.Container
@@ -45,9 +47,6 @@ export default function ProductMenu() {
             <ProductSwitcherProductsMenuItems
                 currentProductID={currentProductID}
             />
-            {Boolean(ProductSwitcherCloudTrialMenuItem) && (
-                <Menu.Separator/>
-            )}
             <ProductSwitcherCloudTrialMenuItem/>
             <Menu.Separator/>
             <ProductSwitcherSystemConsoleMenuItem/>

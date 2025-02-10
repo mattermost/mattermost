@@ -52,14 +52,14 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
 
     const isStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
 
-    if (someLimitNeedsAttention || (!isStarter && !isFreeTrial)) {
-        return null;
-    }
+    // if (someLimitNeedsAttention || (!isStarter && !isFreeTrial)) {
+    //     return null;
+    // }
 
-    // for end users only display the trial information
-    if (!isAdmin && !isFreeTrial) {
-        return null;
-    }
+    // // for end users only display the trial information
+    // if (!isAdmin && !isFreeTrial) {
+    //     return null;
+    // }
 
     const freeTrialContent = (
         <div className='MenuCloudTrial__free-trial'>

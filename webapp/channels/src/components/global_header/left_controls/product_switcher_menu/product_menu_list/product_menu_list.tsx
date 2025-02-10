@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
 
 import {
     AccountMultipleOutlineIcon,
-    ApplicationCogIcon,
     DownloadOutlineIcon,
     InformationOutlineIcon,
     ViewGridPlusOutlineIcon,
@@ -16,13 +15,6 @@ import {
 import {Permissions} from 'mattermost-redux/constants';
 
 import AboutBuildModal from 'components/about_build_modal';
-import {
-    OnboardingTaskCategory,
-    OnboardingTasksName,
-    TaskNameMapToSteps,
-    useHandleOnBoardingTaskData,
-    VisitSystemConsoleTour} from 'components/onboarding_tasks';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import UserGroupsModal from 'components/user_groups_modal';
@@ -36,26 +28,12 @@ import * as UserAgent from 'utils/user_agent';
 
 import type {PropsFromRedux} from './index';
 
-const visitSystemConsoleTaskName = OnboardingTasksName.VISIT_SYSTEM_CONSOLE;
-
 export interface Props extends PropsFromRedux {
     isMessaging: boolean;
 }
 
 export default function ProductMenuList(props: Props) {
     const {formatMessage} = useIntl();
-
-    useEffect(() => {
-        props.getPrevTrialLicense();
-    }, []);
-
-    const handleOnBoardingTaskData = useHandleOnBoardingTaskData();
-
-    function handleVisitConsoleClick() {
-        const steps = TaskNameMapToSteps[visitSystemConsoleTaskName];
-        handleOnBoardingTaskData(visitSystemConsoleTaskName, steps.FINISHED, true, 'finish');
-        localStorage.setItem(OnboardingTaskCategory, 'true');
-    }
 
     function openGroupsModal() {
         props.openModal({
@@ -70,27 +48,6 @@ export default function ProductMenuList(props: Props) {
     return (
         <Menu.Group>
             <div>
-                <Menu.CloudTrial id='menuCloudTrial'/>
-                <SystemPermissionGate permissions={Permissions.SYSCONSOLE_READ_PERMISSIONS}>
-                    <Menu.ItemLink
-                        id='systemConsole'
-                        to='/admin_console'
-                        text={(
-                            <>
-                                {formatMessage({id: 'navbar_dropdown.console', defaultMessage: 'System Console'})}
-                                {props.showVisitSystemConsoleTour && (
-                                    <div
-                                        onClick={handleVisitConsoleClick}
-                                        className={'system-console-visit'}
-                                    >
-                                        <VisitSystemConsoleTour/>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                        icon={<ApplicationCogIcon size={18}/>}
-                    />
-                </SystemPermissionGate>
                 <Menu.ItemLink
                     id='integrations'
                     show={props.isMessaging && props.areIntegrationsEnabled}
