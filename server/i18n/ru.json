@@ -10054,5 +10054,45 @@
   {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Невозможно получить программу для чтения zip-файлов."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось создать закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось удалить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось обновить закладку канала."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Не удалось обновить порядок сортировки закладок канала."
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Невозможно получить закладки для заархивированного канала"
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "У вас нет разрешения на удаление этого ресурса."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Невозможно создать значение свойства"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Невозможно обновить значение свойства"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Невозможно получить значения свойств"
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Невозможно выполнить команду в удаленном канале."
   }
 ]
