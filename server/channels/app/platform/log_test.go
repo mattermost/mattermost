@@ -114,7 +114,7 @@ func TestGetAdvancedLogs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	t.Run("log messanges from std and LDAP level get returned", func(t *testing.T) {
+	t.Run("log messages from advanced logging settings get returned", func(t *testing.T) {
 		dir, err := os.MkdirTemp("", "logs")
 		require.NoError(t, err)
 		t.Cleanup(func() {
@@ -122,6 +122,7 @@ func TestGetAdvancedLogs(t *testing.T) {
 			require.NoError(t, err)
 		})
 
+		// Setup log files for each setting
 		optLDAP := map[string]string{
 			"filename": path.Join(dir, "ldap.log"),
 		}
@@ -134,7 +135,14 @@ func TestGetAdvancedLogs(t *testing.T) {
 		dataStd, err := json.Marshal(optStd)
 		require.NoError(t, err)
 
-		cfg := mlog.LoggerConfiguration{
+		optNotif := map[string]string{
+			"filename": path.Join(dir, "notification.log"),
+		}
+		dataNotif, err := json.Marshal(optNotif)
+		require.NoError(t, err)
+
+		// LogSettings config
+		logCfg := mlog.LoggerConfiguration{
 			"ldap-file": mlog.TargetCfg{
 				Type:   "file",
 				Format: "json",
@@ -155,34 +163,73 @@ func TestGetAdvancedLogs(t *testing.T) {
 				Options: dataStd,
 			},
 		}
-		cfgData, err := json.Marshal(cfg)
+		logCfgData, err := json.Marshal(logCfg)
+		require.NoError(t, err)
+
+		// NotificationLogSettings config
+		notifCfg := mlog.LoggerConfiguration{
+			"notification": mlog.TargetCfg{
+				Type:   "file",
+				Format: "json",
+				Levels: []mlog.Level{
+					mlog.LvlInfo,
+				},
+				Options: dataNotif,
+			},
+		}
+		notifCfgData, err := json.Marshal(notifCfg)
 		require.NoError(t, err)
 
 		th.Service.UpdateConfig(func(c *model.Config) {
-			c.LogSettings.AdvancedLoggingJSON = cfgData
+			c.LogSettings.AdvancedLoggingJSON = logCfgData
+			c.NotificationLogSettings.AdvancedLoggingJSON = notifCfgData
+			// Audit logs are not testiable as they as part of the server, not the platform
 		})
-		th.Service.Logger().LogM([]mlog.Level{mlog.LvlLDAPInfo}, "Some LDAP info")
-		th.Service.Logger().Error("Some Error")
-		err = th.Service.Logger().Flush()
+
+		// Write some logs and ensure they're flushed
+		logger := th.Service.Logger()
+		notifLogger := th.Service.NotificationsLogger()
+
+		logger.LogM([]mlog.Level{mlog.LvlLDAPInfo}, "Some LDAP info")
+		logger.Error("Some Error")
+		notifLogger.Info("Some Notification")
+
+		// Flush both loggers and wait a bit for filesystem
+		err = logger.Flush()
+		require.NoError(t, err)
+		err = notifLogger.Flush()
 		require.NoError(t, err)
 
+		// Get and verify logs
 		fileDatas, err := th.Service.GetAdvancedLogs(th.Context)
 		require.NoError(t, err)
-		require.Len(t, fileDatas, 2)
+		for _, fd := range fileDatas {
+			t.Log(fd.Filename)
+		}
+		require.Len(t, fileDatas, 3)
 
-		// Check the order of the log files
-		var ldapIndex = 0
-		var stdIndex = 1
-		if fileDatas[1].Filename == "ldap.log" {
-			ldapIndex = 1
-			stdIndex = 0
+		// Helper to find file data by name
+		findFile := func(name string) *model.FileData {
+			for _, fd := range fileDatas {
+				if fd.Filename == name {
+					return fd
+				}
+			}
+			return nil
 		}
 
-		assert.Equal(t, "ldap.log", fileDatas[ldapIndex].Filename)
-		testlib.AssertLog(t, bytes.NewBuffer(fileDatas[ldapIndex].Body), mlog.LvlLDAPInfo.Name, "Some LDAP info")
+		// Check each log file
+		ldapFile := findFile("ldap.log")
+		require.NotNil(t, ldapFile)
+		testlib.AssertLog(t, bytes.NewBuffer(ldapFile.Body), mlog.LvlLDAPInfo.Name, "Some LDAP info")
 
-		assert.Equal(t, "std.log", fileDatas[stdIndex].Filename)
-		testlib.AssertLog(t, bytes.NewBuffer(fileDatas[stdIndex].Body), mlog.LvlError.Name, "Some Error")
+		stdFile := findFile("std.log")
+		require.NotNil(t, stdFile)
+		testlib.AssertLog(t, bytes.NewBuffer(stdFile.Body), mlog.LvlError.Name, "Some Error")
+
+		notifFile := findFile("notification.log")
+		require.NotNil(t, notifFile)
+		testlib.AssertLog(t, bytes.NewBuffer(notifFile.Body), mlog.LvlInfo.Name, "Some Notification")
 	})
 	// Disable AdvancedLoggingJSON
 	th.Service.UpdateConfig(func(c *model.Config) {
