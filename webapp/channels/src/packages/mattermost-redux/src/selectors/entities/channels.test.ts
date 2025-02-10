@@ -2259,11 +2259,9 @@ describe('Selectors.Channels.getUnreadStatus', () => {
 
 describe('Selectors.Channels.getUnreadStatus', () => {
     const team1 = {id: 'team1', delete_at: 0};
-    const team2 = {id: 'team2', delete_at: 0};
 
     const channelA = {id: 'channelA', name: 'channelA', team_id: 'team1', delete_at: 0};
     const channelB = {id: 'channelB', name: 'channelB', team_id: 'team1', delete_at: 0};
-    const channelC = {id: 'channelB', name: 'channelB', team_id: 'team2', delete_at: 0};
 
     const dmChannel = {id: 'dmChannel', name: 'user1__user2', team_id: '', delete_at: 0, type: General.DM_CHANNEL};
     const gmChannel = {id: 'gmChannel', name: 'gmChannel', team_id: 'team1', delete_at: 0, type: General.GM_CHANNEL};
