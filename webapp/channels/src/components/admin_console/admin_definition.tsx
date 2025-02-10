@@ -23,6 +23,8 @@ import {
     removePrivateLdapCertificate, uploadPrivateLdapCertificate,
     removePublicLdapCertificate, uploadPublicLdapCertificate,
     invalidateAllEmailInvites, testSmtp, testSiteURL, getSamlMetadataFromIdp, setSamlIdpCertificateFromMetadata,
+    uploadAuditCertificate,
+    removeAuditCertificate,
 } from 'actions/admin_actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -6552,7 +6554,7 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'fileupload',
-                            key: 'ExperimentalAuditSettings.Certificate',
+                            key: 'ExperimentalAuditSettings.Certificate', 
                             label: defineMessage({id: 'admin.audit_logging_experimental.certificate.title', defaultMessage: 'Audit Certificate:'}),
                             help_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.help_text', defaultMessage: 'The certificate file used for audit logging encryption.'}),
                             remove_help_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.remove_help_text', defaultMessage: 'Remove the certificate used for audit logging encryption.'}),
@@ -6561,7 +6563,9 @@ const AdminDefinition: AdminDefinitionType = {
                             uploading_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.uploading', defaultMessage: 'Uploading Certificate...'}),
                             fileType: '.crt,.cer,.cert,.pem',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
+                            isHidden: it.not(it.licensedForFeature('Cloud')),
+                            upload_action: uploadAuditCertificate,
+                            remove_action: removeAuditCertificate,
                         },
                         {
                             type: 'number',
