@@ -100,7 +100,8 @@ services:
       transport.host: "127.0.0.1"
       xpack.security.enabled: "false"
       action.destructive_requires_name: "false"
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m -XX:UseSVE=0"
+      CLI_JAVA_OPTS: -XX:UseSVE=0
   opensearch:
     build:
       context: .
