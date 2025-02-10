@@ -384,6 +384,24 @@ func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterE
 	_m.Called(c, ev)
 }
 
+// OnSAMLLogin provides a mock function with given fields: c, user
+func (_m *Hooks) OnSAMLLogin(c *plugin.Context, user *model.User) error {
+	ret := _m.Called(c, user)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OnSAMLLogin")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.User) error); ok {
+		r0 = rf(c, user)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // OnSendDailyTelemetry provides a mock function with given fields:
 func (_m *Hooks) OnSendDailyTelemetry() {
 	_m.Called()
