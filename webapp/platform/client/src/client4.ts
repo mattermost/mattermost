@@ -3369,6 +3369,26 @@ export default class Client4 {
         );
     };
 
+    uploadAuditLogCertificate = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('certificate', fileData);
+
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/audit_logs/certificate`,
+            {
+                method: 'post',
+                body: formData,
+            },
+        );
+    }
+
+    removeAuditLogCertificate = () => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/audit_logs/certificate`,
+            {method: 'delete'},
+        );
+    }
+
     deletePublicSamlCertificate = () => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/saml/certificate/public`,

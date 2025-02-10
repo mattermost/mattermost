@@ -156,6 +156,8 @@ type Routes struct {
 	CustomProfileAttributesFields *mux.Router // 'api/v4/custom_profile_attributes/fields'
 	CustomProfileAttributesField  *mux.Router // 'api/v4/custom_profile_attributes/fields/{field_id:[A-Za-z0-9]+}'
 	CustomProfileAttributesValues *mux.Router // 'api/v4/custom_profile_attributes/values'
+
+	AuditLogs *mux.Router // 'api/v4/audit_logs'
 }
 
 type API struct {
@@ -297,6 +299,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.CustomProfileAttributesFields = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/fields").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesField = api.BaseRoutes.CustomProfileAttributesFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.CustomProfileAttributesValues = api.BaseRoutes.CustomProfileAttributes.PathPrefix("/values").Subrouter()
+
+	api.BaseRoutes.AuditLogs = api.BaseRoutes.APIRoot.PathPrefix("/audit_logs").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
