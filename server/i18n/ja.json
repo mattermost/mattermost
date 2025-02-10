@@ -9570,10 +9570,6 @@
     "translation": "ブックマークをソートできませんでした。"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "検索チャネルインデックススキーマが古くなっています。チャンネルインデックスの再生成を推奨します。\nこの問題を解決するには、[システムコンソールの Elasticsearch ページ]({{.ElasticsearchSection}}) にある `チャンネルインデックスの再構築` ボタンをクリックしてください。\n詳しくは Mattermostの変更履歴を参照してください。"
-  },
-  {
     "id": "app.import.import_line.null_role.error",
     "translation": "インポートデータ行に \"role\" タイプがありますが、roleオブジェクトがnullです。"
   },

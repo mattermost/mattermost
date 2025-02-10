@@ -7808,10 +7808,6 @@
     "translation": "Nelze přidat uživatele jako člena kanálu."
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Schéma indexu kanálů pro vyhledávání je zastaralé. Doporučujeme znovu vygenerovat index kanálů.\nKlikněte na tlačítko `Rebuild Channels Index` [na stránce Elasticsearch prostřednictvím systémové konzole]({{.ElasticsearchSection}}), abyste tento problém vyřešili.\nDalší informace naleznete v changelogu Mattermost."
-  },
-  {
     "id": "app.channel.bookmark.save.app_error",
     "translation": "Nepodařilo se uložit záložku."
   },

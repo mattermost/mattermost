@@ -9710,10 +9710,6 @@
     "translation": "无法排序书签。"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "您的 Elasticsearch 频道索引表已过期。推荐您重新生成频道索引。\n在[系统控制台中的 Elasticsearch 部分]({{.ElasticsearchSection}})点击`重建频道索引`以解决问题。\n查看 Mattermost 更新日志以了解更多信息。"
-  },
-  {
     "id": "ent.elasticsearch.purge_index.delete_failed",
     "translation": "删除一条 Elasticsearch 索引失败"
   },

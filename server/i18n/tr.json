@@ -9706,10 +9706,6 @@
     "translation": "Çalışma alanınıza erişmekte sorun mu yaşıyorsunuz?"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Arama kanal dizini şemanız güncel değil. Kanal dizininizi yeniden oluşturmanız önerilir.\nSorunu çözmek için [Sistem panosundaki Elasticsearch bölümünden] ({{.ElasticsearchSection}}) `Kanal dizinini yeniden oluştur` düğmesine tıklayın.\nAyrıntılı bilgi almak için Mattermost değişiklik günlüğüne bakın."
-  },
-  {
     "id": "app.user.update_active.user_limit.exceeded",
     "translation": "Kullanıcı etkinleştirilemedi. Sunucu güvenli kullanıcı sayısı sınırını aşıyor. Yöneticiniz ile görüşün: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
