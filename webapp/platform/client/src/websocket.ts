@@ -420,9 +420,7 @@ export default class WebSocketClient {
         }
 
         // Only try to send the message if the websocket is open.
-        // If the websocket is closed here, we will drop the message,
-        // but logic elsewhere should be trying to re-establish
-        // the connection.
+        // If the websocket is closed here, we will drop the message.
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.send(JSON.stringify(msg));
         }
