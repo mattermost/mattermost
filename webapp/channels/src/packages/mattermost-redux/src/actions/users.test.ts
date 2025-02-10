@@ -1777,7 +1777,7 @@ describe('Actions.Users', () => {
         });
     });
 
-    it('getCustomProfileAttributesValues', async () => {
+    it('getCustomProfileAttributeValues', async () => {
         const userID = 'user1';
         nock(Client4.getUserRoute(userID) + '/custom_profile_attributes').
             get('').

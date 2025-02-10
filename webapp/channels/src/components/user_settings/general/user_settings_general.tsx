@@ -1353,7 +1353,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 className='form-control'
                                 type='text'
                                 onChange={this.updateAttribute}
-                                value={this.state.customAttributeValues[attribute.id]}
+                                value={this.state.customAttributeValues[attribute.id] || ''}
                                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                                 autoCapitalize='off'
                                 onFocus={Utils.moveCursorToEnd}
@@ -1387,7 +1387,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
             }
             let describe: JSX.Element|string = '';
-            const attributeValue = this.state.customAttributeValues?.[attribute.id];
+            const attributeValue = this.props.user.custom_profile_attributes?.[attribute.id];
             if (attributeValue) {
                 describe = attributeValue;
             } else {
