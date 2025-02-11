@@ -78,12 +78,12 @@ func (a *App) CreateCPAField(field *model.PropertyField) (*model.PropertyField, 
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	existingFields, appErr := a.ListCPAFields()
-	if appErr != nil {
-		return nil, appErr
+	fieldCount, err := a.Srv().propertyService.CountPropertyFieldsForGroup(groupID)
+	if err != nil {
+		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.count_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if len(existingFields) >= CustomProfileAttributesFieldLimit {
+	if fieldCount >= CustomProfileAttributesFieldLimit {
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.limit_reached.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 	}
 

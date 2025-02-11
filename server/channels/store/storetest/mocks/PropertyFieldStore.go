@@ -14,6 +14,34 @@ type PropertyFieldStore struct {
 	mock.Mock
 }
 
+// CountForGroup provides a mock function with given fields: groupID
+func (_m *PropertyFieldStore) CountForGroup(groupID string) (int64, error) {
+	ret := _m.Called(groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountForGroup")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(groupID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(groupID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Create provides a mock function with given fields: field
 func (_m *PropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 	ret := _m.Called(field)
