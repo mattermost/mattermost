@@ -211,12 +211,12 @@ table.adminConsoleListTable {
     }
 
     .dragHandle {
-        width: 24px;
-        height: calc(100% - 1px);
         position: absolute;
         top: 0;
         left: 0;
         display: inline-flex;
+        width: 24px;
+        height: calc(100% - 1px);
         color: rgba(var(--center-channel-color-rgb), 0.64);
 
         svg {
