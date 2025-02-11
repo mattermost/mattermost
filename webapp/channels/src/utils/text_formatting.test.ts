@@ -24,8 +24,12 @@ import {
     doFormatText,
     replaceTokens,
     isChannelNamesMap,
+    eliminateMentionNicknameOrFullName
 } from 'utils/text_formatting';
 import type {ChannelNamesMap} from 'utils/text_formatting';
+import { Preferences } from 'mattermost-redux/constants';
+import {TestHelper} from 'utils/test_helper';
+import { displayUsername } from 'mattermost-redux/utils/user_utils';
 
 const emptyEmojiMap = new EmojiMap(new Map());
 
@@ -241,6 +245,49 @@ describe('highlightSearchTerms', () => {
         expect(tokens.get('$MM_SEARCHTERM1$')!.value).toBe('<span class="search-highlight">$MM_HASHTAG0$</span>');
     });
 });
+
+describe('eliminateMentionNicknameOrFullName', () => {
+    const user1 = TestHelper.getUserMock(
+        {id: 'abc1', username: 'username1', first_name: 'John', last_name: 'Doe', nickname: 'JD'},
+    )
+    const user2 = TestHelper.getUserMock(
+        {id: 'abc2', username: 'username2', first_name: 'Alice', last_name: 'User', nickname: 'AU'},
+    )
+    const usersByUsername = {
+        [user1.username]: user1,
+        [user2.username]: user2,
+    }
+    test('should replace mention with username when configure fullname', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_FULL_NAME;
+        const text = `@${user1.username}(${displayUsername(user1, teammateNameDisplay)}) @${user2.username}(${displayUsername(user2, teammateNameDisplay)}) Hi, how are you?`
+        const result = eliminateMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@${user1.username} @${user2.username} Hi, how are you?`)
+    })
+    test('should replace mention with username when configure nickname', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_NICKNAME;
+        const text = `@${user1.username}(${displayUsername(user1, teammateNameDisplay)}) @${user2.username}(${displayUsername(user2, teammateNameDisplay)}) Hi, how are you?`
+        const result = eliminateMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@${user1.username} @${user2.username} Hi, how are you?`)
+    })
+    test('should replace mention with username when configure username', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_USERNAME;
+        const text = `@${user1.username} @${user2.username} Hi, how are you?`
+        const result = eliminateMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@${user1.username} @${user2.username} Hi, how are you?`)
+    })
+    test('should not replace mention if user is not found', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_FULL_NAME;
+        const text = `@hoge(fuga) @${user2.username}(${displayUsername(user2, teammateNameDisplay)}) Hi, how are you?`
+        const result = eliminateMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@hoge(fuga) @${user2.username} Hi, how are you?`)
+    })
+    test('should not replace mention if displayname is not match', () => {
+        const teammateNameDisplay = Preferences.DISPLAY_PREFER_FULL_NAME;
+        const text = `@${user1.username}(hoge) @${user2.username}(${displayUsername(user2, teammateNameDisplay)}) Hi, how are you?`
+        const result = eliminateMentionNicknameOrFullName(text, usersByUsername, teammateNameDisplay );
+        expect(result).toBe(`@${user1.username}(hoge) @${user2.username} Hi, how are you?`)
+    })
+})
 
 describe('autolink channel mentions', () => {
     test('link a channel mention', () => {
