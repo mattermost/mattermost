@@ -17,6 +17,7 @@ import (
 	"math/big"
 	"net/http"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -83,6 +84,61 @@ type PostAction struct {
 	// client, or are encrypted in a Cookie.
 	Integration *PostActionIntegration `json:"integration,omitempty"`
 	Cookie      string                 `json:"cookie,omitempty" db:"-"`
+}
+
+// IsValid validates the action and returns an error if it is invalid.
+func (p *PostAction) IsValid() error {
+	var multiErr *multierror.Error
+
+	if p.Name == "" {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("action must have a name"))
+	}
+
+	if p.Style != "" {
+		validStyles := []string{"default", "primary", "success", "good", "warning", "danger"}
+		// If not a predefined style, check if it's a hex color
+		if !slices.Contains(validStyles, p.Style) && !hexColorRegex.MatchString(p.Style) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid style '%s' - must be one of [default, primary, success, good, warning, danger] or a hex color", p.Style))
+		}
+	}
+
+	switch p.Type {
+	case PostActionTypeButton:
+		if len(p.Options) > 0 {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("button action must not have options"))
+		}
+		if p.DataSource != "" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("button action must not have a data source"))
+		}
+	case PostActionTypeSelect:
+		if p.DataSource != "" {
+			validSources := []string{"users", "channels"}
+			if !slices.Contains(validSources, p.DataSource) {
+				multiErr = multierror.Append(multiErr, fmt.Errorf("invalid data_source '%s' for select action", p.DataSource))
+			}
+
+			if len(p.Options) > 0 {
+				multiErr = multierror.Append(multiErr, fmt.Errorf("select action cannot have both DataSource and Options set"))
+			}
+		} else if len(p.Options) == 0 {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("select action must have either DataSource or Options set"))
+		}
+	default:
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid action type: must be '%s' or '%s'", PostActionTypeButton, PostActionTypeSelect))
+	}
+
+	if p.Integration == nil {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("action must have integration settings"))
+	} else {
+		if p.Integration.URL == "" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("action must have an integration URL"))
+		}
+		if !(strings.HasPrefix(p.Integration.URL, "/plugins/") || strings.HasPrefix(p.Integration.URL, "plugins/") || IsValidHTTPURL(p.Integration.URL)) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("action must have an valid integration URL"))
+		}
+	}
+
+	return multiErr.ErrorOrNil()
 }
 
 func (p *PostAction) Equals(input *PostAction) bool {
@@ -190,6 +246,8 @@ type PostActionOptions struct {
 }
 
 type PostActionIntegration struct {
+	// URL is the endpoint that the action will be sent to.
+	// It can be a relative path to a plugin.
 	URL     string         `json:"url,omitempty"`
 	Context map[string]any `json:"context,omitempty"`
 }

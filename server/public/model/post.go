@@ -16,6 +16,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -780,6 +781,21 @@ func (o *Post) Attachments() []*SlackAttachment {
 		}
 	}
 	return ret
+}
+
+// ValidateAttachments checks all message attachments for validity.
+// Currently, it logs warnings for invalid attachments rather than returning an error.
+// In a future version, this will be updated to return errors for invalid attachments.
+func (o *Post) ValidateAttachments(logger mlog.LoggerIFace) {
+	for i, a := range o.Attachments() {
+		if err := a.IsValid(); err != nil {
+			logger.Warn(
+				"Invalid messsage attachment. In a future version this will result in an error. Please update your integration to be compliant.",
+				mlog.String("post_id", o.Id),
+				mlog.Int("attachment_index", i),
+				mlog.Err(err))
+		}
+	}
 }
 
 func (o *Post) AttachmentsEqual(input *Post) bool {

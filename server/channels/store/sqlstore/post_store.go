@@ -146,7 +146,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	}
 }
 
-func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
 	channelNewPosts := make(map[string]int)
 	channelNewRootPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
@@ -159,9 +159,11 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 		post.PreSave()
 		maxPostSize := s.GetMaxPostSize()
+
 		if err := post.IsValid(maxPostSize); err != nil {
 			return nil, idx, err
 		}
+		post.ValidateAttachments(rctx.Logger())
 
 		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
 			if post.IsJoinLeaveMessage() {
@@ -292,7 +294,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 }
 
 func (s *SqlPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
-	posts, _, err := s.SaveMultiple([]*model.Post{post})
+	posts, _, err := s.SaveMultiple(rctx, []*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
@@ -355,6 +357,7 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 	if err := newPost.IsValid(maxPostSize); err != nil {
 		return nil, err
 	}
+	newPost.ValidateAttachments(rctx.Logger())
 
 	if _, err := s.GetMaster().NamedExec(`UPDATE Posts
 		SET CreateAt=:CreateAt,
@@ -408,14 +411,16 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 	return newPost, nil
 }
 
-func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, _ int, err error) {
+func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) (_ []*model.Post, _ int, err error) {
 	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
 	for idx, post := range posts {
 		post.UpdateAt = updateAt
+
 		if appErr := post.IsValid(maxPostSize); appErr != nil {
 			return nil, idx, appErr
 		}
+		post.ValidateAttachments(rctx.Logger())
 	}
 
 	tx, err := s.GetMaster().Beginx()
@@ -463,7 +468,7 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, 
 }
 
 func (s *SqlPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
-	posts, _, err := s.OverwriteMultiple([]*model.Post{post})
+	posts, _, err := s.OverwriteMultiple(rctx, []*model.Post{post})
 	if err != nil {
 		return nil, err
 	}

@@ -6,9 +6,14 @@ package model
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/go-multierror"
 )
 
-var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
+var (
+	linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
+	hexColorRegex     = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+)
 
 type SlackAttachment struct {
 	Id         int64                   `json:"id"`
@@ -28,6 +33,68 @@ type SlackAttachment struct {
 	FooterIcon string                  `json:"footer_icon"`
 	Timestamp  any                     `json:"ts"` // This is either a string or an int64
 	Actions    []*PostAction           `json:"actions,omitempty"`
+}
+
+func (s *SlackAttachment) IsValid() error {
+	var multiErr *multierror.Error
+
+	if s.Color != "" && !hexColorRegex.MatchString(s.Color) {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("color must be a hex color code"))
+	}
+
+	if s.AuthorLink != "" {
+		if s.AuthorName == "" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("author link cannot be set without author name"))
+		}
+
+		if !IsValidHTTPURL(s.AuthorLink) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid author link URL"))
+		}
+	}
+
+	if s.AuthorIcon != "" && !IsValidHTTPURL(s.AuthorIcon) {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid author icon URL"))
+	}
+
+	if s.TitleLink != "" {
+		if s.Title == "" {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("title link cannot be set without title"))
+		}
+
+		if !IsValidHTTPURL(s.TitleLink) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid title link URL"))
+		}
+	}
+
+	if s.ImageURL != "" && !IsValidHTTPURL(s.ImageURL) {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid image URL"))
+	}
+
+	if s.ThumbURL != "" && !IsValidHTTPURL(s.ThumbURL) {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid thumb URL"))
+	}
+
+	if s.FooterIcon != "" && !IsValidHTTPURL(s.FooterIcon) {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid footer icon URL"))
+	}
+
+	// Validate timestamp is either string or int64
+	if s.Timestamp != nil {
+		switch s.Timestamp.(type) {
+		case string, int64:
+			// Valid types
+		default:
+			multiErr = multierror.Append(multiErr, fmt.Errorf("timestamp must be either a string or int64"))
+		}
+	}
+
+	for i, action := range s.Actions {
+		if err := action.IsValid(); err != nil {
+			multiErr = multierror.Append(multiErr, multierror.Prefix(err, fmt.Sprintf("action at index %d is invalid:", i)))
+		}
+	}
+
+	return multiErr.ErrorOrNil()
 }
 
 func (s *SlackAttachment) Equals(input *SlackAttachment) bool {
