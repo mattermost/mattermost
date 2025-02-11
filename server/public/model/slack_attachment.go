@@ -255,7 +255,7 @@ func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
 		}
 		postAttachments = append(postAttachments, attachment)
 	}
-	post.AddProp("attachments", postAttachments)
+	post.AddProp(PostPropsAttachments, postAttachments)
 }
 
 func ParseSlackLinksToMarkdown(text string) string {

@@ -134,7 +134,7 @@ func TestParseSlackAttachment(t *testing.T) {
 		expectedPost := &Post{
 			Type: PostTypeSlackAttachment,
 			Props: map[string]any{
-				"attachments": []*SlackAttachment{},
+				PostPropsAttachments: []*SlackAttachment{},
 			},
 		}
 		assert.Equal(t, expectedPost, post)
@@ -151,7 +151,7 @@ func TestParseSlackAttachment(t *testing.T) {
 		expectedPost := &Post{
 			Type: PostTypeSlackAttachment,
 			Props: map[string]any{
-				"attachments": []*SlackAttachment{},
+				PostPropsAttachments: []*SlackAttachment{},
 			},
 		}
 		assert.Equal(t, expectedPost, post)

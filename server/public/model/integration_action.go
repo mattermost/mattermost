@@ -39,7 +39,7 @@ const (
 	DialogElementBoolMaxLength        = 150
 )
 
-var PostActionRetainPropKeys = []string{"from_webhook", "override_username", "override_icon_url"}
+var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
 
 type DoPostActionRequest struct {
 	SelectedOption string `json:"selected_option,omitempty"`
@@ -548,8 +548,8 @@ func checkMaxLength(fieldName string, field string, length int) error {
 
 func (o *Post) StripActionIntegrations() {
 	attachments := o.Attachments()
-	if o.GetProp("attachments") != nil {
-		o.AddProp("attachments", attachments)
+	if o.GetProp(PostPropsAttachments) != nil {
+		o.AddProp(PostPropsAttachments, attachments)
 	}
 	for _, attachment := range attachments {
 		for _, action := range attachment.Actions {
@@ -570,10 +570,10 @@ func (o *Post) GetAction(id string) *PostAction {
 }
 
 func (o *Post) GenerateActionIds() {
-	if o.GetProp("attachments") != nil {
-		o.AddProp("attachments", o.Attachments())
+	if o.GetProp(PostPropsAttachments) != nil {
+		o.AddProp(PostPropsAttachments, o.Attachments())
 	}
-	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {
 				if action != nil && action.Id == "" {

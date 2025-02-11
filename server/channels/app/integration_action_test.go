@@ -42,7 +42,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        th.BasicUser.Id,
 		Props: model.StringInterface{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					Text: "hello",
 					Actions: []*model.PostAction{
@@ -61,7 +61,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 
 	post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 	require.Nil(t, err)
-	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -90,7 +90,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -115,7 +115,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 
 		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
@@ -134,7 +134,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -159,7 +159,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
 
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -239,7 +239,7 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
@@ -264,7 +264,7 @@ func TestPostAction(t *testing.T) {
 			post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 			require.Nil(t, err)
 
-			attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+			attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			require.NotEmpty(t, attachments[0].Actions)
@@ -276,7 +276,7 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
@@ -301,7 +301,7 @@ func TestPostAction(t *testing.T) {
 			post2, err := th.App.CreatePostAsUser(th.Context, &menuPost, "", true)
 			require.Nil(t, err)
 
-			attachments2, ok := post2.GetProp("attachments").([]*model.SlackAttachment)
+			attachments2, ok := post2.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			require.NotEmpty(t, attachments2[0].Actions)
@@ -334,7 +334,7 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
@@ -359,7 +359,7 @@ func TestPostAction(t *testing.T) {
 			postplugin, err := th.App.CreatePostAsUser(th.Context, &interactivePostPlugin, "", true)
 			require.Nil(t, err)
 
-			attachmentsPlugin, ok := postplugin.GetProp("attachments").([]*model.SlackAttachment)
+			attachmentsPlugin, ok := postplugin.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil)
@@ -382,7 +382,7 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
@@ -407,7 +407,7 @@ func TestPostAction(t *testing.T) {
 			postSiteURL, err := th.App.CreatePostAsUser(th.Context, &interactivePostSiteURL, "", true)
 			require.Nil(t, err)
 
-			attachmentsSiteURL, ok := postSiteURL.GetProp("attachments").([]*model.SlackAttachment)
+			attachmentsSiteURL, ok := postSiteURL.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "", nil)
@@ -424,7 +424,7 @@ func TestPostAction(t *testing.T) {
 				PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 				UserId:        th.BasicUser.Id,
 				Props: model.StringInterface{
-					"attachments": []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.SlackAttachment{
 						{
 							Text: "hello",
 							Actions: []*model.PostAction{
@@ -449,7 +449,7 @@ func TestPostAction(t *testing.T) {
 			postSubpath, err := th.App.CreatePostAsUser(th.Context, &interactivePostSubpath, "", true)
 			require.Nil(t, err)
 
-			attachmentsSubpath, ok := postSubpath.GetProp("attachments").([]*model.SlackAttachment)
+			attachmentsSubpath, ok := postSubpath.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 			require.True(t, ok)
 
 			_, err = th.App.DoPostActionWithCookie(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "", nil)
@@ -477,7 +477,7 @@ func TestPostActionProps(t *testing.T) {
 				"has_reactions": true,
 				"is_pinned": false,
 				"props": {
-					"from_webhook":true,
+					"from_webhook":"true",
 					"override_username":"new_override_user",
 					"override_icon_url":"new_override_icon",
 					"A":"AA"
@@ -496,7 +496,7 @@ func TestPostActionProps(t *testing.T) {
 		HasReactions:  false,
 		IsPinned:      true,
 		Props: model.StringInterface{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					Text: "hello",
 					Actions: []*model.PostAction{
@@ -515,15 +515,15 @@ func TestPostActionProps(t *testing.T) {
 					},
 				},
 			},
-			"override_icon_url": "old_override_icon",
-			"from_webhook":      false,
-			"B":                 "BB",
+			model.PostPropsOverrideIconURL: "old_override_icon",
+			model.PostPropsFromWebhook:     "false",
+			"B":                            "BB",
 		},
 	}
 
 	post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 	require.Nil(t, err)
-	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 	require.True(t, ok)
 
 	clientTriggerId, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
@@ -536,10 +536,10 @@ func TestPostActionProps(t *testing.T) {
 	assert.True(t, newPost.IsPinned)
 	assert.False(t, newPost.HasReactions)
 	assert.Nil(t, newPost.GetProp("B"))
-	assert.Nil(t, newPost.GetProp("override_username"))
+	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
 	assert.Equal(t, "AA", newPost.GetProp("A"))
-	assert.Equal(t, "old_override_icon", newPost.GetProp("override_icon_url"))
-	assert.Equal(t, false, newPost.GetProp("from_webhook"))
+	assert.Equal(t, "old_override_icon", newPost.GetProp(model.PostPropsOverrideIconURL))
+	assert.Equal(t, "false", newPost.GetProp(model.PostPropsFromWebhook))
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {
@@ -688,7 +688,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -707,7 +707,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -728,7 +728,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -747,7 +747,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -768,7 +768,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -787,7 +787,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -808,7 +808,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -827,7 +827,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -848,7 +848,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -867,7 +867,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -925,7 +925,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -944,7 +944,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -965,7 +965,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -984,7 +984,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -1005,7 +1005,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -1024,7 +1024,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
@@ -1045,7 +1045,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
 			Props: model.StringInterface{
-				"attachments": []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.SlackAttachment{
 					{
 						Text: "hello",
 						Actions: []*model.PostAction{
@@ -1064,7 +1064,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 
 		post, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
 		require.Nil(t, err)
-		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
+		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
 		require.True(t, ok)
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)

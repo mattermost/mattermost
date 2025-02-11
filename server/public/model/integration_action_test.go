@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPostActionIsValid(t *testing.T) {
+func TestPostAction_IsValid(t *testing.T) {
 	tests := map[string]struct {
 		action  *PostAction
 		wantErr string

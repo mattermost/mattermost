@@ -36,7 +36,7 @@ func TestClient4TrimTrailingSlash(t *testing.T) {
 func TestClient4CreatePost(t *testing.T) {
 	post := &model.Post{
 		Props: map[string]any{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					Actions: []*model.PostAction{
 						{

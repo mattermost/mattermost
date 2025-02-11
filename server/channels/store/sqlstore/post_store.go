@@ -163,7 +163,7 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 		if err := post.IsValid(maxPostSize); err != nil {
 			return nil, idx, err
 		}
-		post.ValidateAttachments(rctx.Logger())
+		post.ValidateProps(rctx.Logger())
 
 		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
 			if post.IsJoinLeaveMessage() {
@@ -357,7 +357,7 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 	if err := newPost.IsValid(maxPostSize); err != nil {
 		return nil, err
 	}
-	newPost.ValidateAttachments(rctx.Logger())
+	newPost.ValidateProps(rctx.Logger())
 
 	if _, err := s.GetMaster().NamedExec(`UPDATE Posts
 		SET CreateAt=:CreateAt,
@@ -420,7 +420,7 @@ func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) 
 		if appErr := post.IsValid(maxPostSize); appErr != nil {
 			return nil, idx, appErr
 		}
-		post.ValidateAttachments(rctx.Logger())
+		post.ValidateProps(rctx.Logger())
 	}
 
 	tx, err := s.GetMaster().Beginx()
