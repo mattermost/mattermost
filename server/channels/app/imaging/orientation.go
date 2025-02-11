@@ -8,7 +8,7 @@ import (
 	"image"
 	"io"
 
-	"github.com/disintegration/imaging"
+	"github.com/anthonynsimon/bild/transform"
 	"github.com/rwcarlsen/goexif/exif"
 )
 
@@ -37,19 +37,19 @@ const (
 func MakeImageUpright(img image.Image, orientation int) image.Image {
 	switch orientation {
 	case UprightMirrored:
-		return imaging.FlipH(img)
+		return transform.FlipH(img)
 	case UpsideDown:
-		return imaging.Rotate180(img)
+		return transform.Rotate(img, 180, &transform.RotationOptions{ResizeBounds: true})
 	case UpsideDownMirrored:
-		return imaging.FlipV(img)
+		return transform.FlipV(img)
 	case RotatedCWMirrored:
-		return imaging.Transpose(img)
+		return transform.Rotate(transform.FlipH(img), -90, &transform.RotationOptions{ResizeBounds: true})
 	case RotatedCCW:
-		return imaging.Rotate270(img)
+		return transform.Rotate(img, 90, &transform.RotationOptions{ResizeBounds: true})
 	case RotatedCCWMirrored:
-		return imaging.Transverse(img)
+		return transform.Rotate(transform.FlipV(img), -90, &transform.RotationOptions{ResizeBounds: true})
 	case RotatedCW:
-		return imaging.Rotate90(img)
+		return transform.Rotate(img, 270, &transform.RotationOptions{ResizeBounds: true})
 	default:
 		return img
 	}

@@ -15,8 +15,10 @@ describe('components/new_search/SearchHint', () => {
         onSelectFilter: jest.fn(),
         searchType: 'messages',
         searchTerms: '',
+        searchTeam: 'teamId',
         hasSelectedOption: false,
         isDate: false,
+        showFilterHaveBeenReset: false,
     };
 
     test('should have the right hint options on search messages empty string', () => {
@@ -58,6 +60,13 @@ describe('components/new_search/SearchHint', () => {
         expect(screen.getByText('Ext:')).toBeInTheDocument();
     });
 
+    test('should not have From: and In: where the searchTeam is set to all teams (\'\')', () => {
+        const props = {...baseProps, searchTeam: '', searchTerms: 'test '};
+        renderWithContext(<SearchHint {...props}/>);
+        expect(screen.queryByText('From:')).not.toBeInTheDocument();
+        expect(screen.queryByText('In:')).not.toBeInTheDocument();
+    });
+
     test('should be empty on search if is date', () => {
         const props = {...baseProps, isDate: true};
         const {asFragment} = renderWithContext(<SearchHint {...props}/>);
@@ -74,5 +83,11 @@ describe('components/new_search/SearchHint', () => {
         renderWithContext(<SearchHint {...baseProps}/>);
         screen.getByText('From:').click();
         expect(baseProps.onSelectFilter).toHaveBeenCalledWith('From:');
+    });
+
+    test('Shows the filter reset message when instructed', () => {
+        const props = {...baseProps, showFilterHaveBeenReset: true};
+        renderWithContext(<SearchHint {...props}/>);
+        expect(screen.getByText('Your filters were reset because you chose a different team')).toBeInTheDocument();
     });
 });
