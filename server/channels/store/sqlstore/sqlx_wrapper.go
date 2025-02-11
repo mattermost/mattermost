@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	sq "github.com/mattermost/squirrel"
 )
 
 type StoreTestWrapper struct {
@@ -36,6 +37,10 @@ func (w *StoreTestWrapper) GetMaster() storetest.SqlXExecutor {
 
 func (w *StoreTestWrapper) DriverName() string {
 	return w.orig.DriverName()
+}
+
+func (w *StoreTestWrapper) GetQueryPlaceholder() sq.PlaceholderFormat {
+	return w.orig.getQueryPlaceholder()
 }
 
 type Builder interface {
