@@ -733,6 +733,11 @@ func closeAndRemoveConn(connIndex *hubConnectionIndex, conn *WebConn) {
 	connIndex.Remove(conn)
 }
 
+type connMetadata struct {
+	byUserIdIndex  int
+	channelIndices map[string]int
+}
+
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
 // It requires 4 functionalities which need to be very fast:
 // - check if a connection exists or not.
@@ -746,7 +751,7 @@ type hubConnectionIndex struct {
 	byChannelID map[string][]*WebConn
 	// byConnection serves the dual purpose of storing the index of the webconn
 	// in the value of byUserId map, and also to get all connections.
-	byConnection   map[*WebConn]int
+	byConnection   map[*WebConn]connMetadata
 	byConnectionId map[string]*WebConn
 	// staleThreshold is the limit beyond which inactive connections
 	// will be deleted.
@@ -763,7 +768,7 @@ func newHubConnectionIndex(interval time.Duration,
 	return &hubConnectionIndex{
 		byUserId:       make(map[string][]*WebConn),
 		byChannelID:    make(map[string][]*WebConn),
-		byConnection:   make(map[*WebConn]int),
+		byConnection:   make(map[*WebConn]connMetadata),
 		byConnectionId: make(map[string]*WebConn),
 		staleThreshold: interval,
 		store:          store,
@@ -776,18 +781,24 @@ func (i *hubConnectionIndex) Add(wc *WebConn) error {
 	if err != nil {
 		return fmt.Errorf("error getChannelMembersForUser: %v", err)
 	}
+	// Initialize channelIndices map
+	channelIndices := make(map[string]int, len(cm))
 	for chID := range cm {
+		channelIndices[chID] = len(i.byChannelID[chID]) // store index where conn will be inserted
 		i.byChannelID[chID] = append(i.byChannelID[chID], wc)
 	}
 
 	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
-	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
+	i.byConnection[wc] = connMetadata{
+		byUserIdIndex:  len(i.byUserId[wc.UserId]) - 1,
+		channelIndices: channelIndices,
+	}
 	i.byConnectionId[wc.GetConnectionID()] = wc
 	return nil
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
-	userConnIndex, ok := i.byConnection[wc]
+	connMeta, ok := i.byConnection[wc]
 	if !ok {
 		return
 	}
@@ -798,31 +809,36 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	// get the last connection.
 	last := userConnections[len(userConnections)-1]
 	// https://go.dev/wiki/SliceTricks#delete-without-preserving-order
-	userConnections[userConnIndex] = last
+	userConnections[connMeta.byUserIdIndex] = last
 	userConnections[len(userConnections)-1] = nil
 	i.byUserId[wc.UserId] = userConnections[:len(userConnections)-1]
 	// set the index of the connection that was moved to the new index.
-	i.byConnection[last] = userConnIndex
+	// Update the moved connection's index
+	if last != wc {
+		i.byConnection[last] = connMetadata{
+			byUserIdIndex:  connMeta.byUserIdIndex,
+			channelIndices: i.byConnection[last].channelIndices,
+		}
+	}
 
-	connectionID := wc.GetConnectionID()
-	// Remove webconns from i.byChannelID
-	// This has O(n) complexity. We are trading off speed while removing
-	// a connection, to improve broadcasting a message.
-	for chID, webConns := range i.byChannelID {
-		// https://go.dev/wiki/SliceTricks#filtering-without-allocating
-		filtered := webConns[:0]
-		for _, conn := range webConns {
-			if conn.GetConnectionID() != connectionID {
-				filtered = append(filtered, conn)
-			}
+	// Remove from byChannelID using the channels stored in metadata
+	for chID, idx := range connMeta.channelIndices {
+		webConns := i.byChannelID[chID]
+		last := webConns[len(webConns)-1]
+		webConns[idx] = last
+		webConns[len(webConns)-1] = nil
+		i.byChannelID[chID] = webConns[:len(webConns)-1]
+
+		// If we moved a connection, update its channel index
+		if last != wc {
+			lastMeta := i.byConnection[last]
+			lastMeta.channelIndices[chID] = idx
+			i.byConnection[last] = lastMeta
 		}
-		for i := len(filtered); i < len(webConns); i++ {
-			webConns[i] = nil
-		}
-		i.byChannelID[chID] = filtered
 	}
 
 	delete(i.byConnection, wc)
+	connectionID := wc.GetConnectionID()
 	delete(i.byConnectionId, connectionID)
 }
 
@@ -833,25 +849,50 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) error {
 		return err
 	}
 
-	// Clear out all user entries which belong to channels.
-	for chID, webConns := range i.byChannelID {
-		// https://go.dev/wiki/SliceTricks#filtering-without-allocating
-		filtered := webConns[:0]
-		for _, conn := range webConns {
-			if conn.UserId != userID {
-				filtered = append(filtered, conn)
+	// Get all connections for this user
+	conns := i.ForUser(userID)
+
+	// Remove all user connections from existing channels
+	for _, conn := range conns {
+		if meta, ok := i.byConnection[conn]; ok {
+			// Remove from old channels using stored indices
+			for chID, idx := range meta.channelIndices {
+				channelConns := i.byChannelID[chID]
+				last := channelConns[len(channelConns)-1]
+				channelConns[idx] = last
+				channelConns[len(channelConns)-1] = nil
+				i.byChannelID[chID] = channelConns[:len(channelConns)-1]
+
+				// If we moved a connection, update its index
+				if last != conn {
+					lastMeta := i.byConnection[last]
+					lastMeta.channelIndices[chID] = idx
+					i.byConnection[last] = lastMeta
+				}
 			}
+
 		}
-		for i := len(filtered); i < len(webConns); i++ {
-			webConns[i] = nil
-		}
-		i.byChannelID[chID] = filtered
 	}
 
-	// re-populate the cache
+	// This operation is O(m*n) where m=number_of_channels and n=number_of_conns_for_user
+	// It's a tradeoff for being able to iterate fast and remove a connection fast.
+	// Add connections to new channels
 	for chID := range cm {
-		i.byChannelID[chID] = append(i.byChannelID[chID], i.ForUser(userID)...)
+		for _, conn := range conns {
+			if meta, ok := i.byConnection[conn]; ok {
+				// Create new channel indices map if not exists
+				if meta.channelIndices == nil {
+					meta.channelIndices = make(map[string]int, len(cm))
+				}
+				// We have to maintain the indices for the byChannelID slice
+				idx := len(i.byChannelID[chID])
+				meta.channelIndices[chID] = idx
+				i.byConnection[conn] = meta
+				i.byChannelID[chID] = append(i.byChannelID[chID], conn)
+			}
+		}
 	}
+
 	return nil
 }
 
@@ -902,7 +943,7 @@ func (i *hubConnectionIndex) ForConnection(id string) *WebConn {
 }
 
 // All returns the full webConn index.
-func (i *hubConnectionIndex) All() map[*WebConn]int {
+func (i *hubConnectionIndex) All() map[*WebConn]connMetadata {
 	return i.byConnection
 }
 
