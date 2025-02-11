@@ -309,6 +309,7 @@ export const MenuItemStyled = styled(MuiMenuItem, {
                     flexWrap: 'nowrap',
                     justifyContent: 'flex-end',
                     color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--error-text)',
+                    marginInlineStart: '24px',
                     gap: '4px',
                     fontSize: '12px',
                     lineHeight: '16px',
