@@ -372,7 +372,6 @@ const useSubmit = (
                 return;
             }
         }
-        
         await doSubmit(submittingDraft, schedulingInfo, options);
     }, [
         doSubmit,

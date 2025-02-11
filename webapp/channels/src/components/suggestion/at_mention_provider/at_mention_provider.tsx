@@ -22,7 +22,6 @@ import AtMentionSuggestion from './at_mention_suggestion';
 
 import Provider from '../provider';
 import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
-import { getFullName } from 'utils/utils';
 
 const profilesInChannelOptions = {active: true};
 const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
