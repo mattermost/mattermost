@@ -98,7 +98,7 @@ func (pf *PropertyField) SanitizeInput() {
 type PropertyFieldPatch struct {
 	Name       *string            `json:"name"`
 	Type       *PropertyFieldType `json:"type"`
-	Attrs      *map[string]any    `json:"attrs"`
+	Attrs      *StringInterface   `json:"attrs"`
 	TargetID   *string            `json:"target_id"`
 	TargetType *string            `json:"target_type"`
 }
@@ -148,4 +148,40 @@ type PropertyFieldSearchOpts struct {
 	IncludeDeleted bool
 	Page           int
 	PerPage        int
+}
+
+func (pf *PropertyField) MakeAttrsNonNil() {
+	if pf.GetAttrs() == nil {
+		pf.SetAttrs(make(StringInterface))
+	}
+}
+
+func (pf *PropertyField) DelAttr(key string) {
+	attrsCopy := make(StringInterface, len(pf.Attrs)-1)
+	for k, v := range pf.Attrs {
+		attrsCopy[k] = v
+	}
+	delete(attrsCopy, key)
+	pf.Attrs = attrsCopy
+}
+
+func (pf *PropertyField) AddAttr(key string, value any) {
+	attrsCopy := make(StringInterface, len(pf.Attrs)+1)
+	for k, v := range pf.Attrs {
+		attrsCopy[k] = v
+	}
+	attrsCopy[key] = value
+	pf.Attrs = attrsCopy
+}
+
+func (pf *PropertyField) GetAttrs() StringInterface {
+	return pf.Attrs
+}
+
+func (pf *PropertyField) SetAttrs(attrs StringInterface) {
+	pf.Attrs = attrs
+}
+
+func (pf *PropertyField) GetAttr(key string) any {
+	return pf.Attrs[key]
 }
