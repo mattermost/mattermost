@@ -15,7 +15,7 @@ import {getChannel, getAllChannelStats} from 'mattermost-redux/selectors/entitie
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, getStatusForUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {unsetEditingPost, type CreatePostOptions} from 'actions/post_actions';
 import {scrollPostListToBottom} from 'actions/views/channel';
@@ -38,9 +38,6 @@ import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
 import useGroups from './use_groups';
-import { getUsernameMentions } from 'utils/text_formatting';
-import { displayUsername } from 'mattermost-redux/utils/user_utils';
-import { getTeammateNameDisplaySetting } from 'mattermost-redux/selectors/entities/preferences';
 
 function getStatusFromSlashCommand(message: string) {
     const tokens = message.split(' ');
@@ -119,9 +116,6 @@ const useSubmit = (
         }
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
     });
-
-    const usersByUsername = useSelector((state: GlobalState) => getUsersByUsername(state));
-    const teammateNameDisplay = useSelector((state: GlobalState) => getTeammateNameDisplaySetting(state));
 
     const showPostDeletedModal = useCallback(() => {
         dispatch(openModal({
@@ -378,18 +372,6 @@ const useSubmit = (
                 return;
             }
         }
-
-        submittingDraft.message = getUsernameMentions(submittingDraft.message).reduce((msg, mention) => {
-            const username = mention.substring(1);
-            const mentionedUser = usersByUsername[username];
-        
-            if (!mentionedUser) {
-                return msg;
-            }
-        
-            const userDisplayName = displayUsername(mentionedUser, teammateNameDisplay);
-            return msg.replace(`@${username}(${userDisplayName})`, `@${username}`);
-        }, submittingDraft.message);
         
         await doSubmit(submittingDraft, schedulingInfo, options);
     }, [

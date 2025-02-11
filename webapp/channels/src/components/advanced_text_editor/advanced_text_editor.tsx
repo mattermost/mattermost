@@ -15,9 +15,9 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {get, getBool, getInt, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
@@ -85,8 +85,10 @@ import usePriority from './use_priority';
 import useSubmit from './use_submit';
 import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
+import { getUsernameMentions } from 'utils/text_formatting';
 
 import './advanced_text_editor.scss';
+import { displayUsername } from 'mattermost-redux/utils/user_utils';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
@@ -145,6 +147,21 @@ const AdvancedTextEditor = ({
         return name;
     };
 
+    const eliminateMentionNicknameOrFullName = (message: string) => {
+        let originalMessage = message;
+        return getUsernameMentions(originalMessage).reduce((msg, mention) => {
+            const username = mention.substring(1);
+            const mentionedUser = usersByUsername[username];
+        
+            if (!mentionedUser) {
+                return msg;
+            }
+        
+            const userDisplayName = displayUsername(mentionedUser, teammateNameDisplay);
+            return msg.replace(`@${username}(${userDisplayName})`, `@${username}`);
+        }, originalMessage);
+    }
+
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const channelDisplayName = channel?.display_name || '';
@@ -163,6 +180,8 @@ const AdvancedTextEditor = ({
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
+    const usersByUsername = useSelector((state: GlobalState) => getUsersByUsername(state));
+    const teammateNameDisplay = useSelector((state: GlobalState) => getTeammateNameDisplaySetting(state));
 
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -341,6 +360,7 @@ const AdvancedTextEditor = ({
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+        draft.message = eliminateMentionNicknameOrFullName(draft.message);
         handleSubmit(submittingDraft, schedulingInfo, options);
         if (!errorClass) {
             const messageStatusElement = messageStatusRef.current;
