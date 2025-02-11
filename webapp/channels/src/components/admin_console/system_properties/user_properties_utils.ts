@@ -67,7 +67,7 @@ export const useUserPropertyFields = () => {
                 errors: {}, // start with errors cleared; don't keep stale errors
             };
 
-            // delete - all
+            // delete
             await Promise.all(process.delete.map(async ({id}) => {
                 return Client4.deleteCustomProfileAttributeField(id).
                     then(() => {
@@ -82,7 +82,7 @@ export const useUserPropertyFields = () => {
                     });
             }));
 
-            // update - all
+            // update
             await Promise.all(process.edit.map(async (pendingItem) => {
                 const {id, name, type, attrs} = pendingItem;
 
@@ -96,12 +96,11 @@ export const useUserPropertyFields = () => {
                     });
             }));
 
-            // create - each, to preserve created/sort ordering
-            for (const pendingItem of process.create) {
+            // create
+            await Promise.all(process.create.map(async (pendingItem) => {
                 const {id, name, type, attrs} = pendingItem;
 
-                // eslint-disable-next-line no-await-in-loop
-                await Client4.createCustomProfileAttributeField({name, type, attrs}).
+                return Client4.createCustomProfileAttributeField({name, type, attrs}).
                     then((newItem) => {
                         // data:created (delete pending data)
                         Reflect.deleteProperty(next.data, id);
@@ -113,7 +112,7 @@ export const useUserPropertyFields = () => {
                     catch((reason: ClientError) => {
                         next.errors = {...next.errors, [id]: reason};
                     });
-            }
+            }));
 
             if (isEmpty(next.errors)) {
                 Reflect.deleteProperty(next, 'errors');
@@ -177,8 +176,9 @@ export const useUserPropertyFields = () => {
         },
         create: () => {
             pendingIO.apply((pending) => {
+                const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
                 const name = getIncrementedName('Text', pending);
-                const field = newPendingField({name, type: 'text', attrs: {sort_order: pending.order.length}});
+                const field = newPendingField({name, type: 'text', attrs: {sort_order: nextOrder}});
                 return collectionAddItem(pending, field);
             });
         },
