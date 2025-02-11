@@ -60,7 +60,7 @@ import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_util
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
-import {allAtMentions} from 'utils/text_formatting';
+import {allAtMentions, eliminateMentionNicknameOrFullName} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -85,10 +85,8 @@ import usePriority from './use_priority';
 import useSubmit from './use_submit';
 import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
-import { getUsernameMentions } from 'utils/text_formatting';
 
 import './advanced_text_editor.scss';
-import { displayUsername } from 'mattermost-redux/utils/user_utils';
 
 const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
@@ -146,21 +144,6 @@ const AdvancedTextEditor = ({
 
         return name;
     };
-
-    const eliminateMentionNicknameOrFullName = (message: string) => {
-        let originalMessage = message;
-        return getUsernameMentions(originalMessage).reduce((msg, mention) => {
-            const username = mention.substring(1);
-            const mentionedUser = usersByUsername[username];
-        
-            if (!mentionedUser) {
-                return msg;
-            }
-        
-            const userDisplayName = displayUsername(mentionedUser, teammateNameDisplay);
-            return msg.replace(`@${username}(${userDisplayName})`, `@${username}`);
-        }, originalMessage);
-    }
 
     const currentUserId = useSelector(getCurrentUserId);
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
@@ -242,7 +225,7 @@ const AdvancedTextEditor = ({
             setSaveDraftForPreview("");
         } else {
             setSaveDraftForPreview(draft.message)
-            setDraft({...draft, message: eliminateMentionNicknameOrFullName(draft.message)});
+            setDraft({...draft, message: eliminateMentionNicknameOrFullName(draft.message, usersByUsername, teammateNameDisplay)});
         }
         setShowPreview((prev) => !prev);
     }, [showPreview, draft]);
@@ -368,7 +351,7 @@ const AdvancedTextEditor = ({
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
-        draft.message = eliminateMentionNicknameOrFullName(draft.message);
+        draft.message = eliminateMentionNicknameOrFullName(draft.message, usersByUsername, teammateNameDisplay);
         handleSubmit(submittingDraft, schedulingInfo, options);
         if (!errorClass) {
             const messageStatusElement = messageStatusRef.current;
