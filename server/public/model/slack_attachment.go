@@ -66,6 +66,12 @@ func (s *SlackAttachment) IsValid() error {
 		}
 	}
 
+	for _, field := range s.Fields {
+		if err := field.IsValid(); err != nil {
+			multiErr = multierror.Append(multiErr, err)
+		}
+	}
+
 	if s.ImageURL != "" && !IsValidHTTPURL(s.ImageURL) {
 		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid image URL"))
 	}
@@ -185,6 +191,21 @@ type SlackAttachmentField struct {
 	Title string              `json:"title"`
 	Value any                 `json:"value"`
 	Short SlackCompatibleBool `json:"short"`
+}
+
+func (s *SlackAttachmentField) IsValid() error {
+	var multiErr *multierror.Error
+
+	if s.Value != nil {
+		switch s.Value.(type) {
+		case string, int:
+			// Valid types
+		default:
+			multiErr = multierror.Append(multiErr, fmt.Errorf("value must be either a string or int"))
+		}
+	}
+
+	return multiErr.ErrorOrNil()
 }
 
 func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {

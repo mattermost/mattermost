@@ -110,6 +110,32 @@ func TestSlackAttachment_IsValid(t *testing.T) {
 			},
 			wantErr: "action must have a name",
 		},
+		"invalid field value type": {
+			attachment: &SlackAttachment{
+				Fields: []*SlackAttachmentField{
+					{
+						Title: "Title",
+						Value: []string{"invalid"},
+					},
+				},
+			},
+			wantErr: "value must be either a string or int",
+		},
+		"valid fields": {
+			attachment: &SlackAttachment{
+				Fields: []*SlackAttachmentField{
+					{
+						Title: "Title",
+						Value: "string value",
+					},
+					{
+						Title: "Number",
+						Value: 42,
+					},
+				},
+			},
+			wantErr: "",
+		},
 	}
 
 	for name, tc := range tests {
