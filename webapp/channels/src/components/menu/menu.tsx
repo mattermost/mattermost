@@ -293,6 +293,7 @@ export function Menu(props: Props) {
                         aria-label={props.menu?.['aria-label']}
                         aria-labelledby={props.menu['aria-labelledby']}
                         autoFocusItem={!disableAutoFocusItem}
+                        className={props.menu.className}
                         style={{
                             width: props.menu.width,
                         }}

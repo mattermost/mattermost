@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useState, memo, useMemo} from 'react';
+import React, {useCallback, useState, memo, useMemo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -225,6 +225,14 @@ function PostPriorityPicker({
                 </button>
             </Footer>
         </div>, [handleApply, handleClose, handleFooterButtonAction, postAcknowledgementsEnabled]);
+
+    useEffect(() => {
+        if (pickerOpen) {
+            setPriority(settings?.priority || '');
+            setPersistentNotifications(settings?.persistent_notifications || false);
+            setRequestedAck(settings?.requested_ack || false);
+        }
+    }, [pickerOpen, settings]);
 
     return (<CompassDesignProvider theme={theme}>
         <Menu.Container
