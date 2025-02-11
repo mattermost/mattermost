@@ -7,7 +7,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled, {css} from 'styled-components';
 
-import {PlusIcon, TextBoxOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {MenuVariantIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
@@ -87,6 +87,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
     const columns = useMemo<Array<ColumnDef<UserPropertyField, any>>>(() => {
         return [
             col.accessor('name', {
+                size: 180,
                 header: () => {
                     return (
                         <ColHeaderLeft>
@@ -152,6 +153,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
                 enableSorting: false,
             }),
             col.accessor('type', {
+                size: 100,
                 header: () => {
                     return (
                         <ColHeaderLeft>
@@ -168,7 +170,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
                     if (type === 'text') {
                         type = (
                             <>
-                                <TextBoxOutlineIcon
+                                <MenuVariantIcon
                                     size={18}
                                     color={'rgba(var(--center-channel-color-rgb), 0.64)'}
                                 />
@@ -190,7 +192,16 @@ export function UserPropertiesTable({data: collection, updateField, deleteField,
                 enableSorting: false,
             }),
             col.display({
+                id: 'options',
+                size: 300,
+                header: () => <></>,
+                cell: () => <></>,
+                enableHiding: false,
+                enableSorting: false,
+            }),
+            col.display({
                 id: 'actions',
+                size: 100,
                 header: () => {
                     return (
                         <ColHeaderRight>
