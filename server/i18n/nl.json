@@ -9734,10 +9734,6 @@
     "translation": "Kanalen automatisch aanvullen kan niet worden ingeschakeld omdat het schema van de kanaalindex verouderd is. Het wordt aanbevolen om je kanaalindex te regenereren. Zie de Mattermost changelog voor meer informatie"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Het schema van de index van je zoekkanalen is verouderd. We raden aan om je kanaalindex te regenereren.\nKlik op de `Rebuild Channels Index` knop in de [Elasticsearch pagina via de System Console]({{.ElasticsearchSection}}) om dit probleem op te lossen.\nZie de Mattermost changelog voor meer informatie."
-  },
-  {
     "id": "bleveengine.purge_list.not_implemented",
     "translation": "De functie lijst leegmaken is niet beschikbaar voor Bleve."
   },
@@ -10402,5 +10398,17 @@
   {
     "id": "app.custom_profile_attributes.property_value_update.app_error",
     "translation": "Kan de waarde van de eigenschap niet bijwerken"
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Kan geen opdracht uitvoeren in verwijderde chatroom."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Kon geen zip-bestandslezer vinden."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Jouw licentie ondersteunt geen Aangepaste Profielattributen."
   }
 ]
