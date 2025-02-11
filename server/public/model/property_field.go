@@ -150,38 +150,6 @@ type PropertyFieldSearchOpts struct {
 	PerPage        int
 }
 
-func (pf *PropertyField) MakeAttrsNonNil() {
-	if pf.GetAttrs() == nil {
-		pf.SetAttrs(make(StringInterface))
-	}
-}
-
-func (pf *PropertyField) DelAttr(key string) {
-	attrsCopy := make(StringInterface, len(pf.Attrs)-1)
-	for k, v := range pf.Attrs {
-		attrsCopy[k] = v
-	}
-	delete(attrsCopy, key)
-	pf.Attrs = attrsCopy
-}
-
-func (pf *PropertyField) AddAttr(key string, value any) {
-	attrsCopy := make(StringInterface, len(pf.Attrs)+1)
-	for k, v := range pf.Attrs {
-		attrsCopy[k] = v
-	}
-	attrsCopy[key] = value
-	pf.Attrs = attrsCopy
-}
-
-func (pf *PropertyField) GetAttrs() StringInterface {
-	return pf.Attrs
-}
-
-func (pf *PropertyField) SetAttrs(attrs StringInterface) {
-	pf.Attrs = attrs
-}
-
 func (pf *PropertyField) GetAttr(key string) any {
 	return pf.Attrs[key]
 }
