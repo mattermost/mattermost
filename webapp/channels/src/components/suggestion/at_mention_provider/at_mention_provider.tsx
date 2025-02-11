@@ -10,7 +10,7 @@ import type {Filters} from 'mattermost-redux/selectors/entities/users';
 import {makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
 import type {ActionResult} from 'mattermost-redux/types/actions';
-import {getSuggestionsSplitBy, getSuggestionsSplitByMultiple} from 'mattermost-redux/utils/user_utils';
+import {displayUsername, getSuggestionsSplitBy, getSuggestionsSplitByMultiple} from 'mattermost-redux/utils/user_utils';
 
 import store from 'stores/redux_store';
 
@@ -369,20 +369,9 @@ export default class AtMentionProvider extends Provider {
             if (item.type === Constants.MENTION_MEMBERS) {
                 const state = store.getState();
                 const teammateNameDisplay = getTeammateNameDisplaySetting(state)
-
-                if (teammateNameDisplay == 'nickname_full_name') {
-                    const fullname = getFullName(item);
-                    const displayName = item.nickname || fullname;
-                    if (displayName) {
-                        return `@${item.username}(${displayName})`;
-                    }
-                }
-
-                if (teammateNameDisplay == 'full_name') {
-                    const fullname = getFullName(item);
-                    if (fullname) {
-                        return `@${item.username}(${fullname})`;
-                    }
+                const displayName = displayUsername(item, teammateNameDisplay);
+                if (item.username !== displayName) {
+                    return `@${item.username}(${displayName})`;
                 }
             }
 
