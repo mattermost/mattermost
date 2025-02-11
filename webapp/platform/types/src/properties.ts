@@ -31,6 +31,6 @@ export type UserPropertyFieldGroupID = 'custom_profile_attributes';
 export type UserPropertyField = PropertyField & {
     type: UserPropertyFieldType;
     group_id: UserPropertyFieldGroupID;
-    attrs?: {sort_order: number};
+    attrs?: {sort_order?: number};
 }
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type' | 'attrs'>>;
