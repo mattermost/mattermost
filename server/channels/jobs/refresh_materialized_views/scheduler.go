@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package refresh_post_stats
+package refresh_materialized_views
 
 import (
 	"time"
@@ -21,5 +21,5 @@ func MakeScheduler(jobServer *jobs.JobServer, sqlDriverName string) *jobs.DailyS
 	isEnabled := func(cfg *model.Config) bool {
 		return sqlDriverName == model.DatabaseDriverPostgres
 	}
-	return jobs.NewDailyScheduler(jobServer, model.JobTypeRefreshPostStats, startTime, isEnabled)
+	return jobs.NewDailyScheduler(jobServer, model.JobTypeRefreshMaterializedViews, startTime, isEnabled)
 }

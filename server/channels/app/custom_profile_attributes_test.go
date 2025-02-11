@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -293,7 +294,7 @@ func TestDeleteCPAField(t *testing.T) {
 			TargetType: "user",
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
-			Value:      fmt.Sprintf("Value %d", i),
+			Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
 		}
 		value, err := th.App.Srv().propertyService.CreatePropertyValue(newValue)
 		require.NoError(t, err)
@@ -373,7 +374,7 @@ func TestGetCPAValue(t *testing.T) {
 			TargetType: "user",
 			GroupID:    model.NewId(),
 			FieldID:    fieldID,
-			Value:      "Value",
+			Value:      json.RawMessage(`"Value"`),
 		}
 		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
 		require.NoError(t, err)
@@ -389,7 +390,7 @@ func TestGetCPAValue(t *testing.T) {
 			TargetType: "user",
 			GroupID:    cpaGroupID,
 			FieldID:    fieldID,
-			Value:      "Value",
+			Value:      json.RawMessage(`"Value"`),
 		}
 		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
 		require.NoError(t, err)
@@ -397,6 +398,33 @@ func TestGetCPAValue(t *testing.T) {
 		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
 		require.Nil(t, appErr)
 		require.NotNil(t, pv)
+	})
+
+	t.Run("should handle array values correctly", func(t *testing.T) {
+		arrayField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeMultiselect,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(arrayField)
+		require.NoError(t, err)
+
+		propertyValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    cpaGroupID,
+			FieldID:    createdField.ID,
+			Value:      json.RawMessage(`["option1", "option2", "option3"]`),
+		}
+		propertyValue, err = th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
+		require.NoError(t, err)
+
+		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, pv)
+		var arrayValues []string
+		require.NoError(t, json.Unmarshal(pv.Value, &arrayValues))
+		require.Equal(t, []string{"option1", "option2", "option3"}, arrayValues)
 	})
 }
 
@@ -411,7 +439,7 @@ func TestPatchCPAValue(t *testing.T) {
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		invalidFieldID := model.NewId()
-		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, "fieldValue")
+		_, appErr := th.App.PatchCPAValue(model.NewId(), invalidFieldID, json.RawMessage(`"fieldValue"`))
 		require.NotNil(t, appErr)
 	})
 
@@ -425,18 +453,18 @@ func TestPatchCPAValue(t *testing.T) {
 		require.NoError(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`))
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
-		require.Equal(t, "test value", patchedValue.Value)
+		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
 		require.Equal(t, userID, patchedValue.TargetID)
 
 		t.Run("should correctly patch the CPA property value", func(t *testing.T) {
-			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, "new patched value")
+			patch2, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"new patched value"`))
 			require.Nil(t, appErr)
 			require.NotNil(t, patch2)
 			require.Equal(t, patchedValue.ID, patch2.ID)
-			require.Equal(t, "new patched value", patch2.Value)
+			require.Equal(t, json.RawMessage(`"new patched value"`), patch2.Value)
 			require.Equal(t, userID, patch2.TargetID)
 		})
 	})
@@ -453,8 +481,37 @@ func TestPatchCPAValue(t *testing.T) {
 		require.NoError(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, "test value")
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`"test value"`))
 		require.NotNil(t, appErr)
 		require.Nil(t, patchedValue)
+	})
+
+	t.Run("should handle array values correctly", func(t *testing.T) {
+		arrayField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeMultiselect,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(arrayField)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+		patchedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`["option1", "option2", "option3"]`))
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedValue)
+		var arrayValues []string
+		require.NoError(t, json.Unmarshal(patchedValue.Value, &arrayValues))
+		require.Equal(t, []string{"option1", "option2", "option3"}, arrayValues)
+		require.Equal(t, userID, patchedValue.TargetID)
+
+		// Update array values
+		updatedValue, appErr := th.App.PatchCPAValue(userID, createdField.ID, json.RawMessage(`["newOption1", "newOption2"]`))
+		require.Nil(t, appErr)
+		require.NotNil(t, updatedValue)
+		require.Equal(t, patchedValue.ID, updatedValue.ID)
+		arrayValues = nil
+		require.NoError(t, json.Unmarshal(updatedValue.Value, &arrayValues))
+		require.Equal(t, []string{"newOption1", "newOption2"}, arrayValues)
+		require.Equal(t, userID, updatedValue.TargetID)
 	})
 }

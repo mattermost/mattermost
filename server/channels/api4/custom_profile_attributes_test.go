@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -232,7 +233,7 @@ func TestListCPAValues(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
-	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, "Field Value")
+	_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`))
 	require.Nil(t, appErr)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
@@ -257,6 +258,28 @@ func TestListCPAValues(t *testing.T) {
 		require.Len(t, values, 1)
 	})
 
+	t.Run("should handle array values correctly", func(t *testing.T) {
+		arrayField := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeMultiselect,
+		}
+		createdArrayField, appErr := th.App.CreateCPAField(arrayField)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdArrayField)
+
+		_, appErr = th.App.PatchCPAValue(th.BasicUser.Id, createdArrayField.ID, json.RawMessage(`["option1", "option2", "option3"]`))
+		require.Nil(t, appErr)
+
+		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, values)
+
+		var arrayValues []string
+		require.NoError(t, json.Unmarshal(values[createdArrayField.ID], &arrayValues))
+		require.Equal(t, []string{"option1", "option2", "option3"}, arrayValues)
+	})
+
 	t.Run("non team member should NOT be able to list values", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.RemoveTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id)
 		CheckOKStatus(t, resp)
@@ -265,6 +288,158 @@ func TestListCPAValues(t *testing.T) {
 		_, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
+	})
+}
+
+func TestSanitizePropertyValue(t *testing.T) {
+	t.Run("text field type", func(t *testing.T) {
+		t.Run("valid text", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`"hello world"`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Equal(t, "hello world", value)
+		})
+
+		t.Run("empty text should be allowed", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`""`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Empty(t, value)
+		})
+
+		t.Run("invalid JSON", func(t *testing.T) {
+			_, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`invalid`))
+			require.Error(t, err)
+		})
+
+		t.Run("wrong type", func(t *testing.T) {
+			_, err := sanitizePropertyValue(model.PropertyFieldTypeText, json.RawMessage(`123`))
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "json: cannot unmarshal number into Go value of type string")
+		})
+	})
+
+	t.Run("date field type", func(t *testing.T) {
+		t.Run("valid date", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeDate, json.RawMessage(`"2023-01-01"`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Equal(t, "2023-01-01", value)
+		})
+
+		t.Run("empty date should be allowed", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeDate, json.RawMessage(`""`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Empty(t, value)
+		})
+	})
+
+	t.Run("select field type", func(t *testing.T) {
+		t.Run("valid option", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeSelect, json.RawMessage(`"option1"`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Equal(t, "option1", value)
+		})
+
+		t.Run("empty option should be allowed", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeSelect, json.RawMessage(`""`))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Empty(t, value)
+		})
+	})
+
+	t.Run("user field type", func(t *testing.T) {
+		t.Run("valid user ID", func(t *testing.T) {
+			validID := model.NewId()
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(fmt.Sprintf(`"%s"`, validID)))
+			require.NoError(t, err)
+			var value string
+			require.NoError(t, json.Unmarshal(result, &value))
+			require.Equal(t, validID, value)
+		})
+
+		t.Run("empty user ID should be allowed", func(t *testing.T) {
+			_, err := sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`""`))
+			require.NoError(t, err)
+		})
+
+		t.Run("invalid user ID format", func(t *testing.T) {
+			_, err := sanitizePropertyValue(model.PropertyFieldTypeUser, json.RawMessage(`"invalid-id"`))
+			require.Error(t, err)
+			require.Equal(t, "invalid user id", err.Error())
+		})
+	})
+
+	t.Run("multiselect field type", func(t *testing.T) {
+		t.Run("valid options", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`["option1", "option2"]`))
+			require.NoError(t, err)
+			var values []string
+			require.NoError(t, json.Unmarshal(result, &values))
+			require.Equal(t, []string{"option1", "option2"}, values)
+		})
+
+		t.Run("empty array", func(t *testing.T) {
+			_, err := sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`[]`))
+			require.NoError(t, err)
+		})
+
+		t.Run("array with empty values should filter them out", func(t *testing.T) {
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiselect, json.RawMessage(`["option1", "", "option2", "   ", "option3"]`))
+			require.NoError(t, err)
+			var values []string
+			require.NoError(t, json.Unmarshal(result, &values))
+			require.Equal(t, []string{"option1", "option2", "option3"}, values)
+		})
+	})
+
+	t.Run("multiuser field type", func(t *testing.T) {
+		t.Run("valid user IDs", func(t *testing.T) {
+			validID1 := model.NewId()
+			validID2 := model.NewId()
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, validID1, validID2)))
+			require.NoError(t, err)
+			var values []string
+			require.NoError(t, json.Unmarshal(result, &values))
+			require.Equal(t, []string{validID1, validID2}, values)
+		})
+
+		t.Run("empty array", func(t *testing.T) {
+			_, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(`[]`))
+			require.NoError(t, err)
+		})
+
+		t.Run("array with empty strings should be filtered out", func(t *testing.T) {
+			validID1 := model.NewId()
+			validID2 := model.NewId()
+			result, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "", "   ", "%s"]`, validID1, validID2)))
+			require.NoError(t, err)
+			var values []string
+			require.NoError(t, json.Unmarshal(result, &values))
+			require.Equal(t, []string{validID1, validID2}, values)
+		})
+
+		t.Run("array with invalid ID should return error", func(t *testing.T) {
+			validID1 := model.NewId()
+			_, err := sanitizePropertyValue(model.PropertyFieldTypeMultiuser, json.RawMessage(fmt.Sprintf(`["%s", "invalid-id"]`, validID1)))
+			require.Error(t, err)
+			require.Equal(t, "invalid user id: invalid-id", err.Error())
+		})
+	})
+
+	t.Run("unknown field type", func(t *testing.T) {
+		_, err := sanitizePropertyValue("unknown", json.RawMessage(`"value"`))
+		require.Error(t, err)
+		require.Equal(t, "unknown field type: unknown", err.Error())
 	})
 }
 
@@ -283,7 +458,7 @@ func TestPatchCPAValues(t *testing.T) {
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
-		values := map[string]string{createdField.ID: "Field Value"}
+		values := map[string]json.RawMessage{createdField.ID: json.RawMessage(`"Field Value"`)}
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
@@ -295,22 +470,26 @@ func TestPatchCPAValues(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("any team member should be able to create their own values", func(t *testing.T) {
-		values := map[string]string{}
+		values := map[string]json.RawMessage{}
 		value := "Field Value"
-		values[createdField.ID] = fmt.Sprintf("  %s ", value) // value should be sanitized
+		values[createdField.ID] = json.RawMessage(fmt.Sprintf(`"  %s "`, value)) // value should be sanitized
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.NotEmpty(t, patchedValues)
 		require.Len(t, patchedValues, 1)
-		require.Equal(t, value, patchedValues[createdField.ID])
+		var actualValue string
+		require.NoError(t, json.Unmarshal(patchedValues[createdField.ID], &actualValue))
+		require.Equal(t, value, actualValue)
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.NotEmpty(t, values)
 		require.Len(t, values, 1)
-		require.Equal(t, "Field Value", values[createdField.ID])
+		actualValue = ""
+		require.NoError(t, json.Unmarshal(values[createdField.ID], &actualValue))
+		require.Equal(t, value, actualValue)
 	})
 
 	t.Run("any team member should be able to patch their own values", func(t *testing.T) {
@@ -321,15 +500,51 @@ func TestPatchCPAValues(t *testing.T) {
 		require.Len(t, values, 1)
 
 		value := "Updated Field Value"
-		values[createdField.ID] = fmt.Sprintf(" %s  \t", value) // value should be sanitized
+		values[createdField.ID] = json.RawMessage(fmt.Sprintf(`" %s  \t"`, value)) // value should be sanitized
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, value, patchedValues[createdField.ID])
+		var actualValue string
+		require.NoError(t, json.Unmarshal(patchedValues[createdField.ID], &actualValue))
+		require.Equal(t, value, actualValue)
 
 		values, resp, err = th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
-		require.Equal(t, value, values[createdField.ID])
+		actualValue = ""
+		require.NoError(t, json.Unmarshal(values[createdField.ID], &actualValue))
+		require.Equal(t, value, actualValue)
+	})
+
+	t.Run("should handle array values correctly", func(t *testing.T) {
+		arrayField := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeMultiselect,
+		}
+		createdArrayField, appErr := th.App.CreateCPAField(arrayField)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdArrayField)
+
+		values := map[string]json.RawMessage{
+			createdArrayField.ID: json.RawMessage(`["option1", "option2", "option3"]`),
+		}
+		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, patchedValues)
+
+		var actualValues []string
+		require.NoError(t, json.Unmarshal(patchedValues[createdArrayField.ID], &actualValues))
+		require.Equal(t, []string{"option1", "option2", "option3"}, actualValues)
+
+		// Test updating array values
+		values[createdArrayField.ID] = json.RawMessage(`["newOption1", "newOption2"]`)
+		patchedValues, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		actualValues = nil
+		require.NoError(t, json.Unmarshal(patchedValues[createdArrayField.ID], &actualValues))
+		require.Equal(t, []string{"newOption1", "newOption2"}, actualValues)
 	})
 }
