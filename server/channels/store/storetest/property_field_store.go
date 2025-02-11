@@ -146,8 +146,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		}
 		updatedField, err := ss.PropertyField().Update([]*model.PropertyField{field})
 		require.Zero(t, updatedField)
-		var enf *store.ErrNotFound
-		require.ErrorAs(t, err, &enf)
+		require.ErrorContains(t, err, "failed to update, some property fields were not found, got 0 of 1")
 	})
 
 	t.Run("should fail if the property field is not valid", func(t *testing.T) {
@@ -279,6 +278,46 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, groupID, updated2.GroupID)
 		require.Equal(t, originalUpdateAt2, updated2.UpdateAt)
+	})
+
+	t.Run("should not update any fields if one update points to a nonexisting one", func(t *testing.T) {
+		// Create a valid field
+		field1 := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "First field",
+			Type:    model.PropertyFieldTypeText,
+		}
+
+		_, err := ss.PropertyField().Create(field1)
+		require.NoError(t, err)
+
+		originalUpdateAt := field1.UpdateAt
+
+		// Try to update both the valid field and a nonexistent one
+		field2 := &model.PropertyField{
+			ID:         model.NewId(),
+			GroupID:    model.NewId(),
+			Name:       "Second field",
+			Type:       model.PropertyFieldTypeText,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			CreateAt:   1,
+			Attrs: map[string]any{
+				"key": "value",
+			},
+		}
+
+		field1.Name = "Updated First"
+
+		_, err = ss.PropertyField().Update([]*model.PropertyField{field1, field2})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "failed to update, some property fields were not found")
+
+		// Check that the valid field was not updated
+		updated1, err := ss.PropertyField().Get(field1.ID)
+		require.NoError(t, err)
+		require.Equal(t, "First field", updated1.Name)
+		require.Equal(t, originalUpdateAt, updated1.UpdateAt)
 	})
 }
 
