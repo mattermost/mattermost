@@ -6,11 +6,13 @@ import {flexRender} from '@tanstack/react-table';
 import classNames from 'classnames';
 import React, {useMemo} from 'react';
 import type {AriaAttributes, MouseEvent, ReactNode} from 'react';
-import type {DropResult, ResponderProvided} from 'react-beautiful-dnd';
+import type {DropResult} from 'react-beautiful-dnd';
 import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {IndicatorContainerProps, ValueType} from 'react-select';
+
+import {DragVerticalIcon} from '@mattermost/compass-icons/components';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -175,6 +177,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                     })}
                                     disabled={header.column.getCanSort() && tableMeta.loadingState === LoadingStates.Loading}
                                     onClick={header.column.getToggleSortingHandler()}
+                                    style={{width: header.column.getSize()}}
                                 >
                                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 
@@ -206,7 +209,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                 </thead>
                 <DragDropContext onDragEnd={handleDragEnd}>
                     <Droppable droppableId='table-body'>
-                        {(provided) => (
+                        {(provided, snap) => (
                             <tbody
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}
@@ -224,11 +227,11 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                                     id={`${rowIdPrefix}${row.original.id}`}
                                                     key={row.id}
                                                     onClick={handleRowClick}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
+                                                    className={classNames({clickable: Boolean(tableMeta.onRowClick) && !snap.isDraggingOver})}
                                                     ref={provided.innerRef}
+                                                    {...provided.draggableProps}
                                                 >
-                                                    {row.getVisibleCells().map((cell) => (
+                                                    {row.getVisibleCells().map((cell, i) => (
                                                         <td
                                                             key={cell.id}
                                                             id={`${cellIdPrefix}${cell.id}`}
@@ -236,7 +239,16 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                                             className={classNames(`${cell.column.id}`, {
                                                                 [PINNED_CLASS]: cell.column.getCanPin(),
                                                             })}
+                                                            style={{width: cell.column.getSize()}}
                                                         >
+                                                            {tableMeta.onReorder && i === 0 && (
+                                                                <span
+                                                                    className='dragHandle'
+                                                                    {...provided.dragHandleProps}
+                                                                >
+                                                                    <DragVerticalIcon size={18}/>
+                                                                </span>
+                                                            )}
                                                             {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </td>
                                                     ))}
