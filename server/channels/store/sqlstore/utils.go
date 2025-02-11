@@ -126,14 +126,6 @@ func constructMySQLJSONArgs(props map[string]string) ([]any, string) {
 	return args, argString
 }
 
-func makeStringArgs(params []string) []any {
-	args := make([]any, len(params))
-	for i, name := range params {
-		args[i] = name
-	}
-	return args
-}
-
 func constructArrayArgs(ids []string) (string, []any) {
 	var placeholder strings.Builder
 	values := make([]any, 0, len(ids))
@@ -160,8 +152,7 @@ func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
 // morphWriter is a target to pass to the logger instance of morph.
 // For now, everything is just logged at a debug level. If we need to log
 // errors/warnings from the library also, that needs to be seen later.
-type morphWriter struct {
-}
+type morphWriter struct{}
 
 func (l *morphWriter) Write(in []byte) (int, error) {
 	mlog.Debug(string(in))
