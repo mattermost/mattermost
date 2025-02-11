@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es2022",
+        "declaration": true,
+        "strict": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "composite": true,
+        "strictNullChecks": true,
+        "skipLibCheck": true,
+        "noEmit": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/fixture": ["fixture.ts"]
+        }
+    },
+    "include": ["./**/*"],
+    "exclude": ["node_modules", "playwright-report"]
+}

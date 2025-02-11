@@ -5,6 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import js from '@eslint/js';
 import {FlatCompat} from '@eslint/eslintrc';
+import eslintPluginHeader from 'eslint-plugin-header';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,18 +15,21 @@ const compat = new FlatCompat({
     allConfig: js.configs.all,
 });
 
+eslintPluginHeader.rules.header.meta.schema = false;
+
 export default [
     {
-        ignores: ['**/node_modules', '**/playwright-report', '**/test-results', '**/results'],
+        ignores: ['**/node_modules', '**/dist', '**/playwright-report', '**/test-results', '**/results'],
     },
     ...compat.extends('eslint:recommended', 'plugin:@typescript-eslint/recommended').map((config) => ({
         ...config,
-        files: ['**/*.ts', '**/*.s'],
+        files: ['**/*.ts', '**/*.js'],
     })),
     {
-        files: ['**/*.ts', '**/*.s'],
+        files: ['**/*.ts', '**/*.js'],
         plugins: {
             '@typescript-eslint': typescriptEslint,
+            header: eslintPluginHeader,
         },
         languageOptions: {
             globals: {
@@ -40,6 +44,12 @@ export default [
             '@typescript-eslint/no-explicit-any': 'off',
             '@typescript-eslint/no-var-requires': 'off',
             'no-console': 'error',
+            'header/header': [
+                'error',
+                'line',
+                ' Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n See LICENSE.txt for license information.',
+                2,
+            ],
         },
     },
 ];
