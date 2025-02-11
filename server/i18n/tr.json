@@ -10398,5 +10398,37 @@
   {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Silinmiş bir kanalda komut yürütülemez."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Kanal yer imi güncellenemedi."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "var olmayan bir alana eklenmeye çalışılıyor"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Arşivlenmiş bir kanalın yer imleri alınamaz"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Tüm dosyaların sayısı alınamadı."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Tüm dosyaların depolama alanı kullanımı alınamadı."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Kanal yer imi eklenemedi."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Kanal yer imi silinemedi."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Kanal yer imi sıralaması güncellenemedi."
   }
 ]
