@@ -220,6 +220,7 @@ const AdvancedTextEditor = ({
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
+    const [saveDraftForPreview, setSaveDraftForPreview] = useState("");
     const [caretPosition, setCaretPosition] = useState(draft.message.length);
     const [serverError, setServerError] = useState<(ServerError & { submittedMessage?: string }) | null>(null);
     const [postError, setPostError] = useState<React.ReactNode>(null);
@@ -236,8 +237,15 @@ const AdvancedTextEditor = ({
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
 
     const handleShowPreview = useCallback(() => {
+        if (showPreview) {
+            setDraft({...draft, message: saveDraftForPreview});
+            setSaveDraftForPreview("");
+        } else {
+            setSaveDraftForPreview(draft.message)
+            setDraft({...draft, message: eliminateMentionNicknameOrFullName(draft.message)});
+        }
         setShowPreview((prev) => !prev);
-    }, []);
+    }, [showPreview, draft]);
 
     const emitTypingEvent = useCallback(() => {
         GlobalActions.emitLocalUserTypingEvent(channelId, postId);
