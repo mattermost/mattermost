@@ -486,6 +486,7 @@ func (h *Hub) Start() {
 		connIndex := newHubConnectionIndex(inactiveConnReaperInterval,
 			h.platform.Store,
 			h.platform.logger,
+			*h.platform.Config().ServiceSettings.EnableWebHubChannelIteration,
 		)
 
 		for {
@@ -599,6 +600,11 @@ func (h *Hub) Start() {
 				for _, webConn := range connIndex.ForUser(userID) {
 					webConn.InvalidateCache()
 				}
+
+				if !*h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+					continue
+				}
+
 				err := connIndex.InvalidateCMCacheForUser(userID)
 				if err != nil {
 					h.platform.Log().Error("Error while invalidating channel member cache", mlog.String("user_id", userID), mlog.Err(err))
@@ -666,7 +672,7 @@ func (h *Hub) Start() {
 					}
 				} else if userID := msg.GetBroadcast().UserId; userID != "" {
 					targetConns = connIndex.ForUser(userID)
-				} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" {
+				} else if channelID := msg.GetBroadcast().ChannelId; channelID != "" && *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
 					targetConns = connIndex.ForChannel(channelID)
 				}
 				if targetConns != nil {
@@ -757,13 +763,15 @@ type hubConnectionIndex struct {
 	// will be deleted.
 	staleThreshold time.Duration
 
-	store  store.Store
-	logger mlog.LoggerIFace
+	fastIteration bool
+	store         store.Store
+	logger        mlog.LoggerIFace
 }
 
 func newHubConnectionIndex(interval time.Duration,
 	store store.Store,
 	logger mlog.LoggerIFace,
+	fastIteration bool,
 ) *hubConnectionIndex {
 	return &hubConnectionIndex{
 		byUserId:       make(map[string][]*WebConn),
@@ -773,19 +781,23 @@ func newHubConnectionIndex(interval time.Duration,
 		staleThreshold: interval,
 		store:          store,
 		logger:         logger,
+		fastIteration:  fastIteration,
 	}
 }
 
 func (i *hubConnectionIndex) Add(wc *WebConn) error {
-	cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), wc.UserId, false, false)
-	if err != nil {
-		return fmt.Errorf("error getChannelMembersForUser: %v", err)
-	}
-	// Initialize channelIndices map
-	channelIndices := make(map[string]int, len(cm))
-	for chID := range cm {
-		channelIndices[chID] = len(i.byChannelID[chID]) // store index where conn will be inserted
-		i.byChannelID[chID] = append(i.byChannelID[chID], wc)
+	var channelIndices map[string]int
+	if i.fastIteration {
+		cm, err := i.store.Channel().GetAllChannelMembersForUser(request.EmptyContext(i.logger), wc.UserId, false, false)
+		if err != nil {
+			return fmt.Errorf("error getChannelMembersForUser: %v", err)
+		}
+		// Initialize channelIndices map
+		channelIndices = make(map[string]int, len(cm))
+		for chID := range cm {
+			channelIndices[chID] = len(i.byChannelID[chID]) // store index where conn will be inserted
+			i.byChannelID[chID] = append(i.byChannelID[chID], wc)
+		}
 	}
 
 	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
@@ -821,25 +833,26 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 		}
 	}
 
-	// Remove from byChannelID using the channels stored in metadata
-	for chID, idx := range connMeta.channelIndices {
-		webConns := i.byChannelID[chID]
-		last := webConns[len(webConns)-1]
-		webConns[idx] = last
-		webConns[len(webConns)-1] = nil
-		i.byChannelID[chID] = webConns[:len(webConns)-1]
+	if i.fastIteration {
+		// Remove from byChannelID using the channels stored in metadata
+		for chID, idx := range connMeta.channelIndices {
+			webConns := i.byChannelID[chID]
+			last := webConns[len(webConns)-1]
+			webConns[idx] = last
+			webConns[len(webConns)-1] = nil
+			i.byChannelID[chID] = webConns[:len(webConns)-1]
 
-		// If we moved a connection, update its channel index
-		if last != wc {
-			lastMeta := i.byConnection[last]
-			lastMeta.channelIndices[chID] = idx
-			i.byConnection[last] = lastMeta
+			// If we moved a connection, update its channel index
+			if last != wc {
+				lastMeta := i.byConnection[last]
+				lastMeta.channelIndices[chID] = idx
+				i.byConnection[last] = lastMeta
+			}
 		}
 	}
 
 	delete(i.byConnection, wc)
-	connectionID := wc.GetConnectionID()
-	delete(i.byConnectionId, connectionID)
+	delete(i.byConnectionId, wc.GetConnectionID())
 }
 
 func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) error {
@@ -870,7 +883,6 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) error {
 					i.byConnection[last] = lastMeta
 				}
 			}
-
 		}
 	}
 
