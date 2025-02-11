@@ -86,7 +86,7 @@ func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetType: "test_type",
 		GroupID:    groupID,
 		FieldID:    model.NewId(),
-		Value:      "test value",
+		Value:      json.RawMessage(`"test value"`),
 	}
 	_, err := ss.PropertyValue().Create(newValue)
 	require.NoError(t, err)
@@ -141,7 +141,7 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetType: "test_type",
 		GroupID:    model.NewId(),
 		FieldID:    model.NewId(),
-		Value:      "value outside the groupID",
+		Value:      json.RawMessage(`"value outside the groupID"`),
 	}
 	_, err := ss.PropertyValue().Create(newValueOutsideGroup)
 	require.NoError(t, err)
@@ -565,7 +565,7 @@ func testCreatePropertyValueWithArray(t *testing.T, _ request.CTX, ss store.Stor
 		require.NotZero(t, updated)
 
 		// Verify updated array values
-		retrieved, err := ss.PropertyValue().Get(created.ID)
+		retrieved, err := ss.PropertyValue().Get("", created.ID)
 		require.NoError(t, err)
 		var arrayValues []string
 		require.NoError(t, json.Unmarshal(retrieved.Value, &arrayValues))
