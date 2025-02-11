@@ -741,6 +741,27 @@ func (s *RetryLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 
 }
 
+func (s *RetryLayerChannelStore) AnalyticsCountAll(teamID string) (map[model.ChannelType]int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.AnalyticsCountAll(teamID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error) {
 
 	tries := 0
@@ -4746,6 +4767,27 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteForPost(rctx request.CTX, postI
 
 }
 
+func (s *RetryLayerFileInfoStore) RefreshFileStats() error {
+
+	tries := 0
+	for {
+		err := s.FileInfoStore.RefreshFileStats()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
 
 	tries := 0
@@ -7308,6 +7350,27 @@ func (s *RetryLayerPostStore) AnalyticsPostCount(options *model.PostCountOptions
 
 }
 
+func (s *RetryLayerPostStore) AnalyticsPostCountByTeam(teamID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.AnalyticsPostCountByTeam(teamID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 
 	tries := 0
@@ -8109,6 +8172,27 @@ func (s *RetryLayerPostStore) PermanentDeleteByUser(rctx request.CTX, userID str
 
 }
 
+func (s *RetryLayerPostStore) RefreshPostStats() error {
+
+	tries := 0
+	for {
+		err := s.PostStore.RefreshPostStats()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 
 	tries := 0
@@ -8718,11 +8802,11 @@ func (s *RetryLayerPreferenceStore) GetCategory(userID string, category string) 
 
 }
 
-func (s *RetryLayerPreferenceStore) GetCategoryAndName(category string, nane string) (model.Preferences, error) {
+func (s *RetryLayerPreferenceStore) GetCategoryAndName(category string, name string) (model.Preferences, error) {
 
 	tries := 0
 	for {
-		result, err := s.PreferenceStore.GetCategoryAndName(category, nane)
+		result, err := s.PreferenceStore.GetCategoryAndName(category, name)
 		if err == nil {
 			return result, nil
 		}
@@ -13455,6 +13539,27 @@ func (s *RetryLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) UpdateTeamIdForChannelThreads(channelId string, teamId string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.UpdateTeamIdForChannelThreads(channelId, teamId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

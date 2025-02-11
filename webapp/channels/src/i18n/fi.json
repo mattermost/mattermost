@@ -1187,7 +1187,6 @@
   "intro_messages.anyMember": " Kuka tahansa jäsen voi liittyä tälle kanavalle ja lukea kanavan sisältöä.",
   "intro_messages.default": "**Tervetuloa kanavalle {display_name}!**\n \nKirjoita tänne viestejä jotka haluat kaikkien näkevän. Kaikki tiimiin liittyvät käyttäjät tulevat automaattisesti tämän kanavan pysyviksi jäseniksi.",
   "intro_messages.group_message": "Tämä on ryhmäviestihistoriasi alku näiden tiimikaverien kanssa. Täällä jaetut viestit ja tiedostot eivät näy tämän alueen ulkopuolisille henkilöille.",
-  "intro_messages.inviteOthers": "Kutsu muita tähän tiimiin",
   "intro_messages.onlyInvited": " Vain kutsutut jäsenet voivat nähdä tämän yksityiskanavan.",
   "intro_messages.purpose": " Tämän kanavan tarkoitus on: {purpose}",
   "intro_messages.readonly.default": "**Tervetuloa kanavalle {display_name}!**\n \nVain järjestelmävalvojat voivat kirjoittaa viestejä. Kaikki tiimiin liittyvät käyttäjät tulevat automaattisesti tämän kanavan pysyviksi jäseniksi.",

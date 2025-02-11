@@ -140,7 +140,7 @@ describe('menu click handlers', () => {
             expect(screen.getByText('Open modal from submenu')).toBeInTheDocument();
 
             // Press the down arrow once to focus first submenu item and then twice more to select the one we want
-            userEvent.keyboard('{arrowdown}{arrowdown}{arrowdown}');
+            userEvent.keyboard('{arrowdown}{arrowdown}');
 
             expect(screen.getByText('Open modal from submenu').closest('li')).toHaveFocus();
 
