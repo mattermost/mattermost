@@ -32,6 +32,12 @@ type Props = {
     ctaExtraContent?: ReactNode;
     clickCallback?: () => void;
     customSecondaryButtonInModal?: {msg: string; action: () => void};
+
+    /**
+     * Since now this is used in new menu, they come with padding
+     * so to make this component look correct in both places old and new menu, we need to add padding
+     */
+    padding?: string;
 }
 
 function capitalizeFirstLetter(s: string) {
@@ -55,6 +61,7 @@ const RestrictedIndicator = ({
     customSecondaryButtonInModal,
     feature,
     minimumPlanRequiredForFeature,
+    padding = '0 10px',
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -86,7 +93,12 @@ const RestrictedIndicator = ({
     };
 
     return (
-        <span className='RestrictedIndicator__icon-tooltip-container'>
+        <span
+            className='RestrictedIndicator__icon-tooltip-container'
+            style={{
+                padding,
+            }}
+        >
             <WithTooltip
                 title={
                     <div className='RestrictedIndicator__icon-tooltip'>

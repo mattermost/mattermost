@@ -912,6 +912,7 @@ Object {
               </h4>
               <span
                 class="RestrictedIndicator__icon-tooltip-container"
+                style="padding: 0px 10px;"
               >
                 <span>
                   <button
@@ -1221,6 +1222,7 @@ Object {
             </h4>
             <span
               class="RestrictedIndicator__icon-tooltip-container"
+              style="padding: 0px 10px;"
             >
               <span>
                 <button
