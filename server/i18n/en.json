@@ -1858,6 +1858,10 @@
     "translation": "remote_id must be blank for custom group"
   },
   {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "trying to patch a field that does not exist"
+  },
+  {
     "id": "api.custom_profile_attributes.license_error",
     "translation": "Your license does not support Custom Profile Attributes."
   },
@@ -4625,10 +4629,6 @@
   {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
-  },
-  {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Your search channel index schema is out of date. We recommend regenerating your channel index.\nClick the `Rebuild Channels Index` button in the [Elasticsearch page via the System Console]({{.ElasticsearchSection}}) to fix this issue.\nSee the Mattermost changelog for more information."
   },
   {
     "id": "app.channel.get.existing.app_error",

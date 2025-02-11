@@ -3276,6 +3276,11 @@ func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channe
 		}
 	}
 
+	// Update the threads within this channel to the new team
+	if err := a.Srv().Store().Thread().UpdateTeamIdForChannelThreads(channel.Id, team.Id); err != nil {
+		c.Logger().Warn("error while updating threads after channel move", mlog.Err(err))
+	}
+
 	if err := a.RemoveUsersFromChannelNotMemberOfTeam(c, user, channel, team); err != nil {
 		c.Logger().Warn("error while removing non-team member users", mlog.Err(err))
 	}

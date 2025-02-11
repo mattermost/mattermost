@@ -134,6 +134,7 @@ const state: GlobalState = {
             commands: {},
             appsBotIDs: [],
             appsOAuthAppIDs: [],
+            dialogTriggerId: '',
             outgoingOAuthConnections: {},
         },
         files: {
