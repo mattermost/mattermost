@@ -58,7 +58,7 @@ func TestCreateCPAField(t *testing.T) {
 		field := &model.PropertyField{
 			Name:  fmt.Sprintf("  %s\t", name), // name should be sanitized
 			Type:  model.PropertyFieldTypeText,
-			Attrs: map[string]any{"visibility": "default"},
+			Attrs: map[string]any{"visibility": "when_set"},
 		}
 
 		createdField, resp, err := client.CreateCPAField(context.Background(), field)
@@ -66,7 +66,7 @@ func TestCreateCPAField(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, name, createdField.Name)
-		require.Equal(t, "default", createdField.Attrs["visibility"])
+		require.Equal(t, "when_set", createdField.Attrs["visibility"])
 	}, "a user with admin permissions should be able to create the field")
 }
 
@@ -79,7 +79,7 @@ func TestListCPAFields(t *testing.T) {
 	field := &model.PropertyField{
 		Name:  model.NewId(),
 		Type:  model.PropertyFieldTypeText,
-		Attrs: map[string]any{"visibility": "default"},
+		Attrs: map[string]any{"visibility": "when_set"},
 	}
 
 	createdField, err := th.App.CreateCPAField(field)
