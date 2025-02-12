@@ -108,6 +108,7 @@ import TeamDetails from './team_channel_settings/team/details';
 import type {Check, AdminDefinition as AdminDefinitionType, ConsoleAccess} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
+import AuditLoggingCertificateUploadSetting from './audit_logging';
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -6553,19 +6554,13 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
-                            type: 'fileupload',
+                            type: 'custom',
+                            component: AuditLoggingCertificateUploadSetting,
+                            label: defineMessage({id: 'admin.audit_logging_experimental.certificate.title', defaultMessage: 'Certificate'}),
                             key: 'ExperimentalAuditSettings.Certificate', 
-                            label: defineMessage({id: 'admin.audit_logging_experimental.certificate.title', defaultMessage: 'Audit Certificate:'}),
                             help_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.help_text', defaultMessage: 'The certificate file used for audit logging encryption.'}),
-                            remove_help_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.remove_help_text', defaultMessage: 'Remove the certificate used for audit logging encryption.'}),
-                            remove_button_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.remove_button', defaultMessage: 'Remove Certificate'}),
-                            removing_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.removing', defaultMessage: 'Removing Certificate...'}),
-                            uploading_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.uploading', defaultMessage: 'Uploading Certificate...'}),
-                            fileType: '.crt,.cer,.cert,.pem',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                             isHidden: it.not(it.licensedForFeature('Cloud')),
-                            upload_action: uploadAuditCertificate,
-                            remove_action: removeAuditCertificate,
                         },
                         {
                             type: 'number',

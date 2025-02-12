@@ -353,6 +353,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitClientPerformanceMetrics()
 	api.InitScheduledPost()
 	api.InitCustomProfileAttributes()
+	api.InitAuditLogging()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {
