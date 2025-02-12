@@ -9,13 +9,14 @@
     "postinstall": "npm run build",
     "build": "npm run build --workspaces --if-present",
     "build:watch": "npm run build:watch --workspaces --if-present",
-    "clean": "rm -rf node_modules && npm run clean --workspaces --if-present",
+    "clean": "rm -rf node_modules logs results test-results && npm run clean --workspaces --if-present",
     "tsc": "npm run tsc --workspaces --if-present",
     "lint": "eslint .",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier --write .",
     "check": "npm run lint && npm run prettier && npm run tsc",
-    "test": "npm run test --workspace=test"
+    "test": "npm run test --workspace=test",
+    "test:ci": "npm run test:ci --workspace=test"
   },
   "dependencies": {
     "@playwright/test": "1.50.1"

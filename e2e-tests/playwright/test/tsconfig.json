@@ -13,10 +13,7 @@
         "strictNullChecks": true,
         "skipLibCheck": true,
         "noEmit": true,
-        "baseUrl": ".",
-        "paths": {
-            "@/fixture": ["fixture.ts"]
-        }
+        "baseUrl": "."
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "playwright-report"]

@@ -3,6 +3,7 @@
     "version": "0.0.1",
     "scripts": {
         "test": "cross-env PW_SNAPSHOT_ENABLE=true playwright test",
+        "test:ci": "cross-env PW_SNAPSHOT_ENABLE=true playwright test --project=chrome",
         "test:update-snapshots": "cross-env PW_SNAPSHOT_ENABLE=true playwright test --update-snapshots",
         "percy": "cross-env PERCY_TOKEN=$PERCY_TOKEN PW_PERCY_ENABLE=true percy exec -- playwright test --project=chrome --project=ipad",
         "tsc": "tsc -b",

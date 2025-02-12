@@ -10,7 +10,8 @@
     "build-tsc": "tsc --build --verbose",
     "build-tsc:watch": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf dist node_modules *.tsbuildinfo",
-    "tsc": "tsc -b"
+    "tsc": "tsc -b",
+    "publish": "npm publish --access=public"
   },
   "files": [
     "dist"
