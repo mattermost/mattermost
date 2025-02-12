@@ -532,17 +532,18 @@ func isDefaultInOptions(defaultValue string, options []*PostActionOptions) bool 
 	return false
 }
 
-func checkMaxLength(fieldName string, field string, length int) error {
-	var valid bool
+func checkMaxLength(fieldName string, field string, maxLength int) error {
 	// DisplayName and Name are required fields
 	if fieldName == "DisplayName" || fieldName == "Name" {
-		valid = len(field) > 0 && len(field) > length
-	} else {
-		valid = len(field) > length
+		if len(field) == 0 {
+			return errors.Errorf("%v cannot be empty", fieldName)
+		}
 	}
-	if valid {
-		return errors.Errorf("%v cannot be longer than %d characters", fieldName, length)
+
+	if len(field) > maxLength {
+		return errors.Errorf("%v cannot be longer than %d characters, got %d", fieldName, maxLength, len(field))
 	}
+
 	return nil
 }
 
