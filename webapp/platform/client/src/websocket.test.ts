@@ -66,18 +66,18 @@ describe('websocketclient', () => {
         client.initialize('mock.url');
 
         expect(mockWebSocket.onopen).toBeTruthy();
-        mockWebSocket.onopen = jest.fn();
+        const onopenSpy = jest.spyOn(mockWebSocket, 'onopen');
         expect(mockWebSocket.onclose).toBeTruthy();
-        mockWebSocket.onclose = jest.fn();
+        const oncloseSpy = jest.spyOn(mockWebSocket, 'onclose');
 
         mockWebSocket.open();
 
-        expect(mockWebSocket.onopen).toHaveBeenCalled();
+        expect(onopenSpy).toHaveBeenCalled();
         expect(mockWebSocket.readyState).toBe(mockWebSocket.OPEN);
 
         mockWebSocket.close();
 
-        expect(mockWebSocket.onclose).toHaveBeenCalled();
+        expect(oncloseSpy).toHaveBeenCalled();
         expect(mockWebSocket.readyState).toBe(mockWebSocket.CLOSED);
 
         client.close();
@@ -87,7 +87,7 @@ describe('websocketclient', () => {
         jest.useFakeTimers();
 
         const mockWebSocket = new MockWebSocket();
-        mockWebSocket.open = jest.fn(mockWebSocket.open);
+        const openSpy = jest.spyOn(mockWebSocket, 'open');
 
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
@@ -100,14 +100,14 @@ describe('websocketclient', () => {
         });
 
         client.initialize('mock.url');
-        expect(mockWebSocket.open).toHaveBeenCalledTimes(1);
+        expect(openSpy).toHaveBeenCalledTimes(1);
 
         mockWebSocket.close();
 
         jest.advanceTimersByTime(40);
 
         client.close();
-        expect(mockWebSocket.open).toHaveBeenCalledTimes(2);
+        expect(openSpy).toHaveBeenCalledTimes(2);
 
         jest.useRealTimers();
     });
@@ -116,7 +116,7 @@ describe('websocketclient', () => {
         jest.useFakeTimers();
 
         const mockWebSocket = new MockWebSocket();
-        mockWebSocket.open = jest.fn(mockWebSocket.open);
+        const openSpy = jest.spyOn(mockWebSocket, 'open');
 
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
@@ -130,7 +130,7 @@ describe('websocketclient', () => {
             reconnectJitterRange: 1,
         });
 
-        client.initialize = jest.fn(client.initialize);
+        const initializeSpy = jest.spyOn(client, 'initialize');
         client.initialize('mock.url');
         mockWebSocket.open();
         mockWebSocket.close();
@@ -142,8 +142,8 @@ describe('websocketclient', () => {
         jest.advanceTimersByTime(80);
 
         client.close();
-        expect(client.initialize).toBeCalledTimes(1);
-        expect(mockWebSocket.open).toBeCalledTimes(1);
+        expect(initializeSpy).toBeCalledTimes(1);
+        expect(openSpy).toBeCalledTimes(1);
         
         jest.useRealTimers();
     });
@@ -152,7 +152,7 @@ describe('websocketclient', () => {
         jest.useFakeTimers();
 
         const mockWebSocket = new MockWebSocket();
-        mockWebSocket.open = jest.fn(mockWebSocket.open);
+        const openSpy = jest.spyOn(mockWebSocket, 'open');
 
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
@@ -166,7 +166,7 @@ describe('websocketclient', () => {
             reconnectJitterRange: 1,
         });
 
-        client.initialize = jest.fn(client.initialize);
+        const initializeSpy = jest.spyOn(client, 'initialize');
         client.initialize('mock.url');
         mockWebSocket.open();
         mockWebSocket.close();
@@ -174,14 +174,14 @@ describe('websocketclient', () => {
         jest.advanceTimersByTime(10);
 
         client.initialize('mock.url');
-        expect(client.initialize).toBeCalledTimes(2);
-        expect(mockWebSocket.open).toBeCalledTimes(1);
+        expect(initializeSpy).toBeCalledTimes(2);
+        expect(openSpy).toBeCalledTimes(1);
 
         jest.advanceTimersByTime(80);
 
         client.close();
-        expect(client.initialize).toBeCalledTimes(3);
-        expect(mockWebSocket.open).toBeCalledTimes(2);
+        expect(initializeSpy).toBeCalledTimes(3);
+        expect(openSpy).toBeCalledTimes(2);
 
         jest.useRealTimers();
     });
@@ -190,7 +190,7 @@ describe('websocketclient', () => {
         jest.useFakeTimers();
 
         const mockWebSocket = new MockWebSocket();
-        mockWebSocket.open = jest.fn(mockWebSocket.open);
+        const openSpy = jest.spyOn(mockWebSocket, 'open');
 
         const client = new WebSocketClient({
             newWebSocketFn: (url: string) => {
@@ -204,7 +204,7 @@ describe('websocketclient', () => {
             reconnectJitterRange: 1,
         });
 
-        client.initialize = jest.fn(client.initialize);
+        const initializeSpy = jest.spyOn(client, 'initialize');
         client.initialize('mock.url');
         mockWebSocket.open();
         mockWebSocket.close();
@@ -216,8 +216,8 @@ describe('websocketclient', () => {
         jest.advanceTimersByTime(80);
 
         client.close();
-        expect(client.initialize).toBeCalledTimes(2);
-        expect(mockWebSocket.open).toBeCalledTimes(2);
+        expect(initializeSpy).toBeCalledTimes(2);
+        expect(openSpy).toBeCalledTimes(2);
         
         jest.useRealTimers();
     });
