@@ -16,6 +16,8 @@ export type WebSocketClientConfig = {
     maxWebSocketRetryTime: number;
     reconnectJitterRange: number;
     newWebSocketFn: (url: string) => WebSocket;
+    clientPingEnabled: boolean;
+    clientPingInterval: number;
 }
 
 const defaultWebSocketClientConfig: WebSocketClientConfig = {
@@ -26,6 +28,8 @@ const defaultWebSocketClientConfig: WebSocketClientConfig = {
     newWebSocketFn: (url: string) => {
         return new WebSocket(url);
     },
+    clientPingEnabled: true,
+    clientPingInterval: 30000, // 30 seconds
 };
 
 export default class WebSocketClient {
@@ -86,6 +90,8 @@ export default class WebSocketClient {
     private serverHostname: string | null;
     private postedAck: boolean;
 
+    private pingInterval: ReturnType<typeof setInterval> | null;
+
     private reconnectTimeout: ReturnType<typeof setTimeout> | null;
 
     constructor(config?: Partial<WebSocketClientConfig>) {
@@ -100,6 +106,7 @@ export default class WebSocketClient {
         this.postedAck = false;
         this.reconnectTimeout = null;
         this.config = {...defaultWebSocketClientConfig, ...config};
+        this.pingInterval = null;
     }
 
     // on connect, only send auth cookie and blank state.
@@ -154,6 +161,32 @@ export default class WebSocketClient {
             } else if (this.firstConnectCallback || this.firstConnectListeners.size > 0) {
                 this.firstConnectCallback?.();
                 this.firstConnectListeners.forEach((listener) => listener());
+            }
+
+            if (this.config.clientPingEnabled) {
+                var waitingForPong = false;
+                this.pingInterval = setInterval(
+                    () => {
+                        if (!waitingForPong) {
+                            waitingForPong = true;
+                            this.ping(() => {
+                                waitingForPong = false;
+                            });
+                            return;
+                        }
+
+                        console.log('ping received no response within time limit: re-establishing websocket'); //eslint-disable-line no-console
+
+                        // We are not calling this.close() because we need to auto-restart.
+                        this.connectFailCount = 0;
+                        this.responseSequence = 1;
+                        if (this.pingInterval) {
+                            clearInterval(this.pingInterval);
+                            this.pingInterval = null;
+                        }
+                        this.conn?.close(); // Will auto-reconnect after configured retry time
+                    },
+                    this.config.clientPingInterval);
             }
 
             this.connectFailCount = 0;
@@ -399,11 +432,30 @@ export default class WebSocketClient {
             clearTimeout(this.reconnectTimeout);
             this.reconnectTimeout = null;
         }
+        if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+            this.pingInterval = null;
+        }
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.onclose = () => {};
             this.conn.close();
             this.conn = null;
             console.log('websocket closed'); //eslint-disable-line no-console
+        }
+    }
+
+    ping(responseCallback?: (msg: any) => void) {
+        const msg = {
+            action: 'ping',
+            seq: this.responseSequence++,
+        };
+
+        if (responseCallback) {
+            this.responseCallbacks[msg.seq] = responseCallback;
+        }
+
+        if (this.conn && this.conn.readyState === WebSocket.OPEN) {
+            this.conn.send(JSON.stringify(msg));
         }
     }
 
