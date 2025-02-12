@@ -320,62 +320,94 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 }
 
 func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
-	t.Run("should return 0 for group with no properties", func(t *testing.T) {
-		count, err := ss.PropertyField().CountForGroup(model.NewId())
-		require.NoError(t, err)
-		require.Equal(t, int64(0), count)
-	})
+    t.Run("should return 0 for group with no properties", func(t *testing.T) {
+        count, err := ss.PropertyField().CountForGroup(model.NewId(), false)
+        require.NoError(t, err)
+        require.Equal(t, int64(0), count)
+    })
 
-	t.Run("should return correct count for group with properties", func(t *testing.T) {
-		groupID := model.NewId()
+    t.Run("should return correct count for group with properties", func(t *testing.T) {
+        groupID := model.NewId()
 
-		// Create 5 property fields
-		for i := 0; i < 5; i++ {
-			field := &model.PropertyField{
-				GroupID: groupID,
-				Name:    fmt.Sprintf("Field %d", i),
-				Type:    model.PropertyFieldTypeText,
-			}
-			_, err := ss.PropertyField().Create(field)
-			require.NoError(t, err)
-		}
+        // Create 5 property fields
+        for i := 0; i < 5; i++ {
+            field := &model.PropertyField{
+                GroupID: groupID,
+                Name:    fmt.Sprintf("Field %d", i),
+                Type:    model.PropertyFieldTypeText,
+            }
+            _, err := ss.PropertyField().Create(field)
+            require.NoError(t, err)
+        }
 
-		count, err := ss.PropertyField().CountForGroup(groupID)
-		require.NoError(t, err)
-		require.Equal(t, int64(5), count)
-	})
+        count, err := ss.PropertyField().CountForGroup(groupID, false)
+        require.NoError(t, err)
+        require.Equal(t, int64(5), count)
+    })
 
-	t.Run("should not count deleted properties", func(t *testing.T) {
-		groupID := model.NewId()
+    t.Run("should not count deleted properties when includeDeleted is false", func(t *testing.T) {
+        groupID := model.NewId()
 
-		// Create 5 property fields
-		for i := 0; i < 5; i++ {
-			field := &model.PropertyField{
-				GroupID: groupID,
-				Name:    fmt.Sprintf("Field %d", i),
-				Type:    model.PropertyFieldTypeText,
-			}
-			_, err := ss.PropertyField().Create(field)
-			require.NoError(t, err)
-		}
+        // Create 5 property fields
+        for i := 0; i < 5; i++ {
+            field := &model.PropertyField{
+                GroupID: groupID,
+                Name:    fmt.Sprintf("Field %d", i),
+                Type:    model.PropertyFieldTypeText,
+            }
+            _, err := ss.PropertyField().Create(field)
+            require.NoError(t, err)
+        }
 
-		// Create one more and delete it
-		deletedField := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "To be deleted",
-			Type:    model.PropertyFieldTypeText,
-		}
-		_, err := ss.PropertyField().Create(deletedField)
-		require.NoError(t, err)
+        // Create one more and delete it
+        deletedField := &model.PropertyField{
+            GroupID: groupID,
+            Name:    "To be deleted",
+            Type:    model.PropertyFieldTypeText,
+        }
+        _, err := ss.PropertyField().Create(deletedField)
+        require.NoError(t, err)
 
-		err = ss.PropertyField().Delete(deletedField.ID)
-		require.NoError(t, err)
+        err = ss.PropertyField().Delete(deletedField.ID)
+        require.NoError(t, err)
 
-		// Count should be 5 since the deleted field shouldn't be counted
-		count, err := ss.PropertyField().CountForGroup(groupID)
-		require.NoError(t, err)
-		require.Equal(t, int64(5), count)
-	})
+        // Count should be 5 since the deleted field shouldn't be counted
+        count, err := ss.PropertyField().CountForGroup(groupID, false)
+        require.NoError(t, err)
+        require.Equal(t, int64(5), count)
+    })
+
+    t.Run("should count deleted properties when includeDeleted is true", func(t *testing.T) {
+        groupID := model.NewId()
+
+        // Create 5 property fields
+        for i := 0; i < 5; i++ {
+            field := &model.PropertyField{
+                GroupID: groupID,
+                Name:    fmt.Sprintf("Field %d", i),
+                Type:    model.PropertyFieldTypeText,
+            }
+            _, err := ss.PropertyField().Create(field)
+            require.NoError(t, err)
+        }
+
+        // Create one more and delete it
+        deletedField := &model.PropertyField{
+            GroupID: groupID,
+            Name:    "To be deleted",
+            Type:    model.PropertyFieldTypeText,
+        }
+        _, err := ss.PropertyField().Create(deletedField)
+        require.NoError(t, err)
+
+        err = ss.PropertyField().Delete(deletedField.ID)
+        require.NoError(t, err)
+
+        // Count should be 6 since we're including deleted fields
+        count, err := ss.PropertyField().CountForGroup(groupID, true)
+        require.NoError(t, err)
+        require.Equal(t, int64(6), count)
+    })
 }
 
 func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
