@@ -62,6 +62,7 @@ describe('websocketclient', () => {
                 return mockWebSocket;
             },
         });
+
         client.initialize('mock.url');
 
         expect(mockWebSocket.onopen).toBeTruthy();
@@ -82,7 +83,9 @@ describe('websocketclient', () => {
         client.close();
     });
 
-    test('should reconnect on websocket close', (done) => {
+    test('should reconnect on websocket close', () => {
+        jest.useFakeTimers();
+
         const mockWebSocket = new MockWebSocket();
         mockWebSocket.open = jest.fn(mockWebSocket.open);
 
@@ -92,21 +95,24 @@ describe('websocketclient', () => {
                 mockWebSocket.open();
                 return mockWebSocket;
             },
-            minWebSocketRetryTime: 1,
-            reconnectJitterRange: 1,
+            minWebSocketRetryTime: 10,
+            reconnectJitterRange: 10,
         });
-        client.initialize('mock.url');
 
+        client.initialize('mock.url');
         mockWebSocket.close();
 
-        setTimeout(() => {
-            client.close();
-            expect(mockWebSocket.open).toHaveBeenCalledTimes(2);
-            done();
-        }, 10);
+        jest.advanceTimersByTime(40);
+
+        client.close();
+        expect(mockWebSocket.open).toHaveBeenCalledTimes(2);
+
+        jest.useRealTimers();
     });
 
-    test('should close during reconnection delay', (done) => {
+    test('should close during reconnection delay', () => {
+        jest.useFakeTimers();
+
         const mockWebSocket = new MockWebSocket();
         mockWebSocket.open = jest.fn(mockWebSocket.open);
 
@@ -121,24 +127,28 @@ describe('websocketclient', () => {
             minWebSocketRetryTime: 50,
             reconnectJitterRange: 1,
         });
+
         client.initialize = jest.fn(client.initialize);
         client.initialize('mock.url');
         mockWebSocket.open();
         mockWebSocket.close();
 
-        setTimeout(() => {
-            client.close();
-        }, 10);
+        jest.advanceTimersByTime(10);
 
-        setTimeout(() => {
-            client.close();
-            expect(client.initialize).toBeCalledTimes(1);
-            expect(mockWebSocket.open).toBeCalledTimes(1);
-            done();
-        }, 80);
+        client.close();
+
+        jest.advanceTimersByTime(80);
+
+        client.close();
+        expect(client.initialize).toBeCalledTimes(1);
+        expect(mockWebSocket.open).toBeCalledTimes(1);
+        
+        jest.useRealTimers();
     });
 
-    test('should not re-open if initialize called during reconnection delay', (done) => {
+    test('should not re-open if initialize called during reconnection delay', () => {
+        jest.useFakeTimers();
+
         const mockWebSocket = new MockWebSocket();
         mockWebSocket.open = jest.fn(mockWebSocket.open);
 
@@ -153,26 +163,30 @@ describe('websocketclient', () => {
             minWebSocketRetryTime: 50,
             reconnectJitterRange: 1,
         });
+
         client.initialize = jest.fn(client.initialize);
         client.initialize('mock.url');
         mockWebSocket.open();
         mockWebSocket.close();
 
-        setTimeout(() => {
-            client.initialize('mock.url');
-            expect(client.initialize).toBeCalledTimes(2);
-            expect(mockWebSocket.open).toBeCalledTimes(1);
-        }, 10);
+        jest.advanceTimersByTime(10);
 
-        setTimeout(() => {
-            client.close();
-            expect(client.initialize).toBeCalledTimes(3);
-            expect(mockWebSocket.open).toBeCalledTimes(2);
-            done();
-        }, 80);
+        client.initialize('mock.url');
+        expect(client.initialize).toBeCalledTimes(2);
+        expect(mockWebSocket.open).toBeCalledTimes(1);
+
+        jest.advanceTimersByTime(80);
+
+        client.close();
+        expect(client.initialize).toBeCalledTimes(3);
+        expect(mockWebSocket.open).toBeCalledTimes(2);
+
+        jest.useRealTimers();
     });
 
-    test('should not register second reconnection timeout if onclose called twice', (done) => {
+    test('should not register second reconnection timeout if onclose called twice', () => {
+        jest.useFakeTimers();
+
         const mockWebSocket = new MockWebSocket();
         mockWebSocket.open = jest.fn(mockWebSocket.open);
 
@@ -187,20 +201,22 @@ describe('websocketclient', () => {
             minWebSocketRetryTime: 50,
             reconnectJitterRange: 1,
         });
+
         client.initialize = jest.fn(client.initialize);
         client.initialize('mock.url');
         mockWebSocket.open();
         mockWebSocket.close();
 
-        setTimeout(() => {
-            mockWebSocket.close();
-        }, 10);
+        jest.advanceTimersByTime(10);
 
-        setTimeout(() => {
-            client.close();
-            expect(client.initialize).toBeCalledTimes(2);
-            expect(mockWebSocket.open).toBeCalledTimes(2);
-            done();
-        }, 80);
+        mockWebSocket.close();
+
+        jest.advanceTimersByTime(80);
+
+        client.close();
+        expect(client.initialize).toBeCalledTimes(2);
+        expect(mockWebSocket.open).toBeCalledTimes(2);
+        
+        jest.useRealTimers();
     });
 });
