@@ -9570,10 +9570,6 @@
     "translation": "ブックマークをソートできませんでした。"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "検索チャネルインデックススキーマが古くなっています。チャンネルインデックスの再生成を推奨します。\nこの問題を解決するには、[システムコンソールの Elasticsearch ページ]({{.ElasticsearchSection}}) にある `チャンネルインデックスの再構築` ボタンをクリックしてください。\n詳しくは Mattermostの変更履歴を参照してください。"
-  },
-  {
     "id": "app.import.import_line.null_role.error",
     "translation": "インポートデータ行に \"role\" タイプがありますが、roleオブジェクトがnullです。"
   },
@@ -10380,5 +10376,17 @@
   {
     "id": "model.property_value.is_valid.app_error",
     "translation": "不正なプロパティ値: {{.FieldName}} {{.Reason}}。"
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "削除されたチャンネルではコマンドを実行できません。"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "あなたのライセンスはカスタムプロフィール属性をサポートしていません。"
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "ZIPファイルリーダーを取得できませんでした。"
   }
 ]

@@ -12,6 +12,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -54,7 +55,7 @@ func (ps *PlatformService) initLogging() error {
 	}
 
 	// redirect default Go logger to app logger.
-	ps.logger.RedirectStdLog(mlog.LvlStdLog)
+	ps.logger.RedirectStdLog(mlog.LvlWarn)
 
 	// use the app logger as the global logger (eventually remove all instances of global logging).
 	mlog.InitGlobalLogger(ps.logger)
@@ -249,38 +250,50 @@ func (ps *PlatformService) GetNotificationLogFile(_ request.CTX) (*model.FileDat
 }
 
 func (ps *PlatformService) GetAdvancedLogs(_ request.CTX) ([]*model.FileData, error) {
-	advancedLoggingJSON := ps.Config().LogSettings.AdvancedLoggingJSON
-	if utils.IsEmptyJSON(advancedLoggingJSON) {
-		return nil, nil
-	}
+	var (
+		rErr *multierror.Error
+		ret  []*model.FileData
+	)
 
-	cfg := make(mlog.LoggerConfiguration)
-	err := json.Unmarshal(advancedLoggingJSON, &cfg)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid advanced logging configuration")
-	}
-
-	var ret []*model.FileData
-	for _, t := range cfg {
-		if t.Type != "file" {
+	for name, loggingJSON := range map[string]json.RawMessage{
+		"LogSettings.AdvancedLoggingJSON":               ps.Config().LogSettings.AdvancedLoggingJSON,
+		"NotificationLogSettings.AdvancedLoggingJSON":   ps.Config().NotificationLogSettings.AdvancedLoggingJSON,
+		"ExperimentalAuditSettings.AdvancedLoggingJSON": ps.Config().ExperimentalAuditSettings.AdvancedLoggingJSON,
+	} {
+		if utils.IsEmptyJSON(loggingJSON) {
 			continue
 		}
-		var fileOption struct {
-			Filename string `json:"filename"`
-		}
-		if err := json.Unmarshal(t.Options, &fileOption); err != nil {
-			return nil, errors.Wrap(err, "error decoding file target options")
-		}
-		data, err := os.ReadFile(fileOption.Filename)
+
+		cfg := make(mlog.LoggerConfiguration)
+		err := json.Unmarshal(loggingJSON, &cfg)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to read notifcation log file at path %s", fileOption.Filename)
+			rErr = multierror.Append(rErr, errors.Wrapf(err, "error decoding advanced logging configuration %s", name))
+			continue
 		}
 
-		fileName := path.Base(fileOption.Filename)
-		ret = append(ret, &model.FileData{
-			Filename: fileName,
-			Body:     data,
-		})
+		for _, t := range cfg {
+			if t.Type != "file" {
+				continue
+			}
+			var fileOption struct {
+				Filename string `json:"filename"`
+			}
+			if err := json.Unmarshal(t.Options, &fileOption); err != nil {
+				rErr = multierror.Append(rErr, errors.Wrapf(err, "error decoding file target options in %s", name))
+				continue
+			}
+			data, err := os.ReadFile(fileOption.Filename)
+			if err != nil {
+				rErr = multierror.Append(rErr, errors.Wrapf(err, "failed to read advanced log file at path %s in %s", fileOption.Filename, name))
+				continue
+			}
+
+			fileName := path.Base(fileOption.Filename)
+			ret = append(ret, &model.FileData{
+				Filename: fileName,
+				Body:     data,
+			})
+		}
 	}
 
 	return ret, nil

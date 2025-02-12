@@ -9740,10 +9740,6 @@
     "translation": "Nie można włączyć autouzupełniania kanałów, ponieważ schemat indeksu kanałów jest nieaktualny. Zaleca się regenerację indeksu kanałów. Zobacz dziennik zmian Mattermost, aby uzyskać więcej informacji"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Twój schemat indeksu kanałów wyszukiwania jest nieaktualny. Zalecamy regenerację indeksu kanałów.\nKliknij przycisk `Przebuduj Indeks Kanałów` na stronie [Elasticsearch via the System Console]({{.ElasticsearchSection}}), aby naprawić ten błąd.\nZobacz logi Mattermost, aby uzyskać więcej informacji."
-  },
-  {
     "id": "bleveengine.purge_list.not_implemented",
     "translation": "Funkcja listy czyszczenia nie jest dostępna dla Bleve."
   },
@@ -10394,5 +10390,13 @@
   {
     "id": "model.property_value.is_valid.app_error",
     "translation": "Nieprawidłowa wartość właściwości: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Twoja licencja nie obsługuje niestandardowych atrybutów profilu."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Nie można pobrać czytnika plików zip."
   }
 ]

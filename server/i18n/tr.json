@@ -3084,11 +3084,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Lisansınızda Elasticsearch özelliği bulunmuyor."
+    "translation": "Mattermost lisansınızda dizin kullanan arama özelliği bulunmuyor."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "Elasticsearch sunucusunun adresi ya da kullanıcı adı değişmiş. Bağlantıyı sınamak için lütfen Elasticsearch parolasını yeniden yazın."
+    "translation": "Arama sunucusunun adresi ya da kullanıcı adı değişmiş. Bağlantıyı sınamak için lütfen parolayı yeniden yazın."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3604,7 +3604,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Arama EnableSearching seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
+    "translation": "{{.Searching}} seçeneği true olarak ayarlandığında, {{.EnableIndexing}} seçeneği de true olarak ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4844,7 +4844,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Elasticsearch dizinleri yenilenemedi"
+    "translation": "Arama dizinleri yenilenemedi"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -5244,7 +5244,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Arama EnableAutocomplete seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
+    "translation": "{{.Autocomplete}} true olarak ayarlandığında {{.EnableIndexing}} seçeneği de true olarak ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -9367,7 +9367,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Bir Elasticsearch dizini silinemedi"
+    "translation": "Bir arama dizini silinemedi"
   },
   {
     "id": "api.getUsersForReporting.invalid_team_filter",
@@ -9704,10 +9704,6 @@
   {
     "id": "api.templates.ip_filters_changed_footer.title",
     "translation": "Çalışma alanınıza erişmekte sorun mu yaşıyorsunuz?"
-  },
-  {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Elasticsearch kanal dizini şemanız güncel değil. Kanal dizininizi yeniden oluşturmanız önerilir.\nSorunu çözmek için [Sistem panosundaki Elasticsearch bölümünden] ({{.ElasticsearchSection}}) `Kanal dizinini yeniden oluştur` düğmesine tıklayın.\nAyrıntılı bilgi almak için Mattermost değişiklik günlüğüne bakın."
   },
   {
     "id": "app.user.update_active.user_limit.exceeded",
@@ -10282,5 +10278,125 @@
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Özel ifade görselleri için bir klasörler oluşturulamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Özel profil öznitelikleri özellik grubu kaydedilemedi"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Özel profil özniteliği alanı oluşturulamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Özel profil özniteliği değerleri alınamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Özel profil özniteliği alanı alınamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Özel profil özniteliği alan sayısı sınırına ulaşıldı"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Özel profil özniteliği alanı güncellenemedi"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Özellik değeri oluşturulamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Özel profil özniteliği alanı silinemedi"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Özel profil özniteliği alanı bulunamadı"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Lisansınızda özel profil öznitelikleri özelliği yok."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Bir zip dosyası okuyucusu alınamadı."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Özellik değerleri alınamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Özellik değeri güncellenemedi"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "İstenilen dosyalar veri tabanından kaldırılamadı"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "İleti düzenleme geçmişi için dosya bilgileri kimliklere göre alınamadı."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "İleti ek dosyaları geri yüklenemedi."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Rol silinemedi."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Eski ileti sürümü alınamadı."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "İzinleriniz yeterli değil."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Kanal etkinliği hesaplanıyor: {{.NumCompleted}}/{{.NumChannels}} kanal tamamlandı."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Kanal dışa aktarma verileri hesaplanamadı."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Görevin veri alanından bir değer dönüştürülemedi."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Özellik alanı geçersiz: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Özel profil özniteliği alanlarında arama yapılamaz"
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Belirtilen ileti geçmişi kimliği, belirtilen ileti için herhangi bir geçmiş ögesine karşılık gelmiyor."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Belirtilen ileti geçmişi kimliği bir ileti geçmişi ögesine karşılık gelmiyor."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "{{.NumChannels}} kanal için kanal bilgileri dışa aktarılıyor."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Bağlantı üst veri adresinin uzunluğu {{ .Length }} karakter uzunluğunda ve olabilecek en fazla {{ .MaxLength }} karakter sınırını aşıyor."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Özellik değeri geçersiz: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Silinmiş bir kanalda komut yürütülemez."
   }
 ]

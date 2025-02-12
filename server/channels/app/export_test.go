@@ -14,6 +14,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -841,6 +845,146 @@ func TestExportPostsWithThread(t *testing.T) {
 		require.Nil(t, err)
 		assertThreadFollowers(t, &b, thread.CreateAt, []string{th1.BasicUser.Username, th1.BasicUser2.Username})
 	})
+}
+
+func TestExportFileWarnings(t *testing.T) {
+	testCases := []struct {
+		Description string
+		ConfigFunc  func(cfg *model.Config)
+	}{
+		{
+			"local",
+			func(cfg *model.Config) {
+				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverLocal)
+			},
+		},
+		{
+			"s3",
+			func(cfg *model.Config) {
+				s3Host := os.Getenv("CI_MINIO_HOST")
+				if s3Host == "" {
+					s3Host = "localhost"
+				}
+
+				s3Port := os.Getenv("CI_MINIO_PORT")
+				if s3Port == "" {
+					s3Port = "9000"
+				}
+
+				s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+				cfg.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+				cfg.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+				cfg.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+				cfg.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+				cfg.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+				cfg.FileSettings.AmazonS3Region = model.NewPointer("")
+				cfg.FileSettings.AmazonS3SSL = model.NewPointer(false)
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			th := Setup(t)
+			defer th.TearDown()
+
+			th.App.UpdateConfig(testCase.ConfigFunc)
+
+			// Create a buffer to capture logs
+			buffer := &mlog.Buffer{}
+			err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+			require.NoError(t, err)
+
+			testsDir, _ := fileutils.FindDir("tests")
+			dir, err := os.MkdirTemp("", "import_test")
+			require.NoError(t, err)
+			defer os.RemoveAll(dir)
+
+			extractImportFile := func(filePath string) *os.File {
+				importFile, err2 := os.Open(filePath)
+				require.NoError(t, err2)
+				defer importFile.Close()
+
+				info, err2 := importFile.Stat()
+				require.NoError(t, err2)
+
+				paths, err2 := utils.UnzipToPath(importFile, info.Size(), dir)
+				require.NoError(t, err2)
+				require.NotEmpty(t, paths)
+
+				jsonFile, err2 := os.Open(filepath.Join(dir, "import.jsonl"))
+				require.NoError(t, err2)
+
+				return jsonFile
+			}
+
+			jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
+			defer jsonFile.Close()
+
+			appErr, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, 1, dir)
+			require.Nil(t, appErr)
+
+			// delete one of the files
+			params := &model.SearchParams{Terms: "test3.png", SearchWithoutUserId: true}
+			results, err := th.App.Srv().Store().FileInfo().Search(th.Context, []*model.SearchParams{params}, "", "", 0, 20)
+			require.NoError(t, err)
+			require.Len(t, results.FileInfos, 1)
+
+			for _, info2 := range results.FileInfos {
+				err2 := th.App.RemoveFile(info2.Path)
+				require.Nil(t, err2)
+			}
+
+			exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
+			require.NoError(t, err)
+
+			job, appErr := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeExportProcess, nil)
+			require.Nil(t, appErr)
+			ok, appErr := th.App.Srv().Jobs.ClaimJob(job)
+			require.Nil(t, appErr)
+			require.True(t, ok)
+			job, appErr = th.App.Srv().Jobs.GetJob(th.Context, job.Id)
+			require.Nil(t, appErr)
+
+			opts := model.BulkExportOpts{
+				IncludeAttachments: true,
+				CreateArchive:      true,
+			}
+			appErr = th.App.BulkExport(th.Context, exportFile, dir, job, opts)
+			// should not get an error for the missing file
+			require.Nil(t, appErr)
+
+			// should get a warning instead:
+			testlib.AssertLog(t, buffer, mlog.LvlWarn.Name, "Unable to export file attachment")
+
+			// should get info in the job data:
+			job, appErr = th.App.Srv().Jobs.GetJob(th.Context, job.Id)
+			require.Nil(t, appErr)
+			warnings, ok := job.Data["num_warnings"]
+			require.True(t, ok)
+			require.Equal(t, "1", warnings)
+
+			exportFile.Close()
+
+			// Verify warnings.txt exists in the zip and contains expected content
+			exportZipPath := filepath.Join(dir, "export.zip")
+			exportZipFile, err := os.Open(exportZipPath)
+			require.NoError(t, err)
+			defer exportZipFile.Close()
+
+			info, err := exportZipFile.Stat()
+			require.NoError(t, err)
+
+			paths, err := utils.UnzipToPath(exportZipFile, info.Size(), dir)
+			require.NoError(t, err)
+			require.Contains(t, paths, filepath.Join(dir, warningsFilename))
+
+			warningsContent, err := os.ReadFile(filepath.Join(dir, warningsFilename))
+			require.NoError(t, err)
+			require.Contains(t, string(warningsContent), "Unable to export file attachment, attachment path:")
+		})
+	}
 }
 
 func TestBulkExport(t *testing.T) {

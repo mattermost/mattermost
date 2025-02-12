@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -191,7 +192,7 @@ func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError
 	return value, nil
 }
 
-func (a *App) PatchCPAValue(userID string, fieldID string, value string) (*model.PropertyValue, *model.AppError) {
+func (a *App) PatchCPAValue(userID string, fieldID string, value json.RawMessage) (*model.PropertyValue, *model.AppError) {
 	groupID, err := a.cpaGroupID()
 	if err != nil {
 		return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
