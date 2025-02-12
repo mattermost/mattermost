@@ -1,11 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const DEFAULT_MAX_WEBSOCKET_FAILS = 7;
-const DEFAULT_MIN_WEBSOCKET_RETRY_TIME = 3000; // 3 sec
-const DEFAULT_MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
-const DEFAULT_JITTER_RANGE = 2000; // 2 sec
-
 const WEBSOCKET_HELLO = 'hello';
 
 export type MessageListener = (msg: WebSocketMessage) => void;
@@ -15,12 +10,22 @@ export type MissedMessageListener = () => void;
 export type ErrorListener = (event: Event) => void;
 export type CloseListener = (connectFailCount: number) => void;
 
-export interface WebSocketClientConfig {
-    maxWebSocketFails?: number;
-    minWebSocketRetryTime?: number;
-    maxWebSocketRetryTime?: number;
-    reconnectJitterRange?: number;
-    newWebSocketFn?: (url: string) => WebSocket;
+export type WebSocketClientConfig = {
+    maxWebSocketFails: number;
+    minWebSocketRetryTime: number;
+    maxWebSocketRetryTime: number;
+    reconnectJitterRange: number;
+    newWebSocketFn: (url: string) => WebSocket;
+}
+
+const defaultWebSocketClientConfig: WebSocketClientConfig = {
+    maxWebSocketFails: 7,
+    minWebSocketRetryTime: 3000, // 3 seconds
+    maxWebSocketRetryTime: 300000, // 5 minutes
+    reconnectJitterRange: 2000, // 2 seconds
+    newWebSocketFn: (url: string) => {
+        return new WebSocket(url);
+    },
 }
 
 export default class WebSocketClient {
@@ -84,7 +89,7 @@ export default class WebSocketClient {
 
     private reconnectTimeout: ReturnType<typeof setTimeout> | null;
 
-    constructor(config?: WebSocketClientConfig) {
+    constructor(config?: Partial<WebSocketClientConfig>) {
         this.conn = null;
         this.connectionUrl = null;
         this.responseSequence = 1;
@@ -95,7 +100,7 @@ export default class WebSocketClient {
         this.serverHostname = '';
         this.postedAck = false;
         this.reconnectTimeout = null;
-        this.config = config ?? {};
+        this.config = {...defaultWebSocketClientConfig, ...config};
     }
 
     // on connect, only send auth cookie and blank state.
@@ -169,21 +174,17 @@ export default class WebSocketClient {
             this.closeCallback?.(this.connectFailCount);
             this.closeListeners.forEach((listener) => listener(this.connectFailCount));
 
-            let retryTime = this.config.minWebSocketRetryTime ?? DEFAULT_MIN_WEBSOCKET_RETRY_TIME;
-            const maxRetryTime = this.config.maxWebSocketRetryTime ?? DEFAULT_MAX_WEBSOCKET_RETRY_TIME;
-            const maxFails = this.config.maxWebSocketFails ?? DEFAULT_MAX_WEBSOCKET_FAILS;
-            const jitterRange = this.config.reconnectJitterRange ?? DEFAULT_JITTER_RANGE;
-
             // If we've failed a bunch of connections then start backing off
-            if (this.connectFailCount > maxFails) {
+            let retryTime = this.config.minWebSocketRetryTime;
+            if (this.connectFailCount > this.config.maxWebSocketFails) {
                 retryTime = retryTime * this.connectFailCount * this.connectFailCount;
-                if (retryTime > maxRetryTime) {
-                    retryTime = maxRetryTime;
+                if (retryTime > this.config.maxWebSocketRetryTime) {
+                    retryTime = this.config.maxWebSocketRetryTime;
                 }
             }
 
             // Applying jitter to avoid thundering herd problems.
-            retryTime += Math.random() * jitterRange;
+            retryTime += Math.random() * this.config.reconnectJitterRange;
 
             // If we already have a reconnect timeout waiting,
             // we should let that handle the next connection.
