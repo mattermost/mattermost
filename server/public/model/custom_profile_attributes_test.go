@@ -142,7 +142,7 @@ func TestNewCustomProfileAttributesSelectOptionFromMap(t *testing.T) {
 			name: "with provided id",
 			input: map[string]any{
 				"id":    "existingid123456789012345678",
-				"name":  "Test Option", 
+				"name":  "Test Option",
 				"color": "#FF0000",
 			},
 			expected: CustomProfileAttributesSelectOption{
