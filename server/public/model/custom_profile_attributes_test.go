@@ -25,6 +25,15 @@ func TestNewCustomProfileAttributeSelectOption(t *testing.T) {
 		assert.Equal(t, "Test Option", option.Name)
 		assert.Equal(t, "#FF0000", option.Color)
 	})
+
+	t.Run("preserves provided ID", func(t *testing.T) {
+		providedID := NewId()
+		option := NewCustomProfileAttributesSelectOption(providedID, "Test Option", "#FF0000")
+
+		assert.Equal(t, providedID, option.ID)
+		assert.Equal(t, "Test Option", option.Name)
+		assert.Equal(t, "#FF0000", option.Color)
+	})
 }
 
 func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
@@ -143,6 +152,32 @@ func TestNewCustomProfileAttributesSelectOptionFromMap(t *testing.T) {
 			},
 		},
 		{
+			name: "with provided ID",
+			input: map[string]any{
+				"ID":    "existingid123456789012345678",
+				"Name":  "Test Option",
+				"Color": "#FF0000",
+			},
+			expected: CustomProfileAttributesSelectOption{
+				ID:    "existingid123456789012345678",
+				Name:  "Test Option",
+				Color: "#FF0000",
+			},
+		},
+		{
+			name: "with provided lowercase id",
+			input: map[string]any{
+				"id":    "existingid123456789012345678",
+				"name":  "Test Option",
+				"color": "#FF0000",
+			},
+			expected: CustomProfileAttributesSelectOption{
+				ID:    "existingid123456789012345678",
+				Name:  "Test Option",
+				Color: "#FF0000",
+			},
+		},
+		{
 			name: "with non-string values",
 			input: map[string]any{
 				"name":  123,
@@ -166,11 +201,15 @@ func TestNewCustomProfileAttributesSelectOptionFromMap(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := NewCustomProfileAttributesSelectOptionFromMap(tt.input)
-			// Don't compare IDs since they are randomly generated
+			if tt.expected.ID != "" {
+				// When an ID is expected, verify it matches exactly
+				assert.Equal(t, tt.expected.ID, result.ID)
+			} else {
+				// When no ID is provided, verify generated ID is valid
+				assert.True(t, IsValidId(result.ID))
+			}
 			assert.Equal(t, tt.expected.Name, result.Name)
 			assert.Equal(t, tt.expected.Color, result.Color)
-			// Verify ID is valid
-			assert.True(t, IsValidId(result.ID))
 		})
 	}
 }
