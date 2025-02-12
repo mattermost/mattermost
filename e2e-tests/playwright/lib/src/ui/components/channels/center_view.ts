@@ -3,8 +3,8 @@
 
 import {expect, Locator} from '@playwright/test';
 
-import {waitUntil} from '../../../test_action';
-import {duration} from '../../../util';
+import {waitUntil} from '@/test_action';
+import {duration} from '@/util';
 
 import ChannelsHeader from './header';
 import ChannelsPostCreate from './post_create';

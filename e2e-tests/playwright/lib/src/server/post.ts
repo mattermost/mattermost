@@ -3,7 +3,7 @@
 
 import {Post, PostMetadata} from 'mmtest_types/posts';
 
-import {getRandomId} from '../util';
+import {getRandomId} from '@/util';
 
 export function createRandomPost(post?: Partial<Post>): Post {
     if (post && post.channel_id && post.user_id) {

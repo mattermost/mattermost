@@ -3,7 +3,7 @@
 
 import {Page} from '@playwright/test';
 
-import components from '../components';
+import components from '@/ui/components';
 
 class SystemConsolePage {
     readonly page: Page;

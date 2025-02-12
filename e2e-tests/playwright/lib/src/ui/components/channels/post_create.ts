@@ -5,9 +5,9 @@ import path from 'node:path';
 
 import {expect, Locator} from '@playwright/test';
 
-import {duration} from '../../../util.js';
-import {assetPath} from '../../../file.js';
-import {waitUntil} from '../../../test_action.js';
+import {duration} from '@/util';
+import {assetPath} from '@/file';
+import {waitUntil} from '@/test_action';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;

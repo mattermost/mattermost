@@ -5,10 +5,10 @@ import path from 'node:path';
 
 import {expect, Locator} from '@playwright/test';
 
-import {assetPath} from '../../../file.js';
+import {assetPath} from '@/file';
 
-import DeletePostConfirmationDialog from './delete_post_confirmation_dialog.js';
-import RestorePostConfirmationDialog from './restore_post_confirmation_dialog.js';
+import DeletePostConfirmationDialog from './delete_post_confirmation_dialog';
+import RestorePostConfirmationDialog from './restore_post_confirmation_dialog';
 
 export default class ChannelsPostEdit {
     readonly container: Locator;

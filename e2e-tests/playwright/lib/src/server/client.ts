@@ -4,7 +4,7 @@
 import {Client4} from 'mmtest_client';
 import {UserProfile} from 'mmtest_types/users';
 
-import testConfig from '../test_config';
+import testConfig from '@/test_config';
 
 // Variable to hold cache
 const clients: Record<string, ClientCache> = {};

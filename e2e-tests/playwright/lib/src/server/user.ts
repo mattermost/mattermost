@@ -3,8 +3,8 @@
 
 import {UserProfile} from 'mmtest_types/users';
 
-import {getRandomId} from '../util';
-import testConfig from '../test_config';
+import {getRandomId} from '@/util';
+import testConfig from '@/test_config';
 
 export function createRandomUser(prefix = 'user') {
     const randomId = getRandomId();

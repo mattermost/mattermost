@@ -3,9 +3,8 @@
 
 import {expect, Page} from '@playwright/test';
 
-import {duration, wait} from '../../util';
-
-import components from '../components';
+import {duration, wait} from '@/util';
+import components from '@/ui/components';
 
 export default class SignupPage {
     readonly page: Page;

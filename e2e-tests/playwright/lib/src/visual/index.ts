@@ -6,9 +6,9 @@ import os from 'node:os';
 import chalk from 'chalk';
 import {expect, TestInfo} from '@playwright/test';
 
-import {duration, illegalRe, wait} from '../util';
-import testConfig from '../test_config';
-import {ScreenshotOptions, TestArgs} from '../types';
+import {duration, illegalRe, wait} from '@/util';
+import testConfig from '@/test_config';
+import {ScreenshotOptions, TestArgs} from '@/types';
 
 import snapshotWithPercy from './percy';
 

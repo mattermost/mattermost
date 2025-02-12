@@ -3,7 +3,7 @@
 
 import {Team, TeamType} from 'mmtest_types/teams';
 
-import {getRandomId} from '../util';
+import {getRandomId} from '@/util';
 
 export function createRandomTeam(name = 'team', displayName = 'Team', type: TeamType = 'O', unique = true): Team {
     const randomSuffix = getRandomId();

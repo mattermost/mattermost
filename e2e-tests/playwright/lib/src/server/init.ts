@@ -4,8 +4,8 @@
 import {expect} from '@playwright/test';
 import {PreferenceType} from '@mattermost/types/preferences';
 
-import testConfig from '../test_config';
-import {getFileFromCommonAsset} from '../file';
+import testConfig from '@/test_config';
+import {getFileFromCommonAsset} from '@/file';
 
 import {makeClient} from './client';
 import {getOnPremServerConfig} from './default_config';

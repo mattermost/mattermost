@@ -3,7 +3,7 @@
 
 import {Channel, ChannelType} from 'mmtest_types/channels';
 
-import {getRandomId} from '../util';
+import {getRandomId} from '@/util';
 
 type ChannelInput = {
     teamId: string;

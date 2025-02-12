@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "outDir": "dist",
-        "target": "ES2020",
+        "target": "ES2022",
         "esModuleInterop": true,
         "strict": true,
         "declaration": true,
@@ -10,8 +10,10 @@
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "downlevelIteration": true,
-        "sourceMap": true,
-        "baseUrl": "src"
+        "baseUrl": "src",
+        "paths": {
+            "@/*": ["*"]
+        }
     },
     "include": ["src"],
     "exclude": ["node_modules"]

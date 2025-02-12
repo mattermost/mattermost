@@ -7,7 +7,13 @@ import copy from 'rollup-plugin-copy';
 export default {
     input: 'src/index.ts',
     output: [
-        {dir: 'dist', format: 'cjs', sourcemap: true}, // CommonJS for Playwright
+        {
+            dir: 'dist',
+            format: 'cjs', // CommonJS for Playwright
+            sourcemap: true,
+            preserveModules: true, // Keep file structure
+            preserveModulesRoot: 'src',
+        },
     ],
     plugins: [
         typescript(),

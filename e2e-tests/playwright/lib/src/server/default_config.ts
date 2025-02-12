@@ -15,7 +15,8 @@ import {
     ServiceSettings,
     TeamSettings,
 } from 'mmtest_types/config';
-import testConfig from '../test_config';
+
+import testConfig from '@/test_config';
 
 export function getOnPremServerConfig(): AdminConfig {
     return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);

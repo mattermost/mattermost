@@ -4,7 +4,7 @@
 import {expect, Page} from '@playwright/test';
 import {UserProfile} from 'mmtest_types/users';
 
-import components from '../components';
+import components from '@/ui/components';
 
 export default class LoginPage {
     readonly page: Page;

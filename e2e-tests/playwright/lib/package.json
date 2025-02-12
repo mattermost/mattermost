@@ -1,9 +1,18 @@
 {
   "name": "@mattermost/playwright-lib",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "type": "commonjs",
+  "files": [
+    "dist"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "commonjs",
+  "keywords": [
+    "mattermost",
+    "e2e",
+    "playwright",
+    "test-automation"
+  ],
   "scripts": {
     "build": "rollup -c --bundleConfigAsCjs",
     "build:watch": "npm run build -- --watch",
@@ -12,29 +21,6 @@
     "clean": "rm -rf dist node_modules *.tsbuildinfo",
     "tsc": "tsc -b",
     "publish": "npm publish --access=public"
-  },
-  "files": [
-    "dist"
-  ],
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    }
-  },
-  "keywords": [
-    "mattermost",
-    "e2e",
-    "playwright",
-    "test-automation"
-  ],
-  "devDependencies": {
-    "@rollup/plugin-typescript": "12.1.2",
-    "@types/mime-types": "2.1.4",
-    "@types/node": "22.13.1",
-    "@types/react": "19.0.8",
-    "rollup": "4.34.6",
-    "rollup-plugin-copy": "3.5.0"
   },
   "dependencies": {
     "@axe-core/playwright": "4.10.1",
@@ -48,5 +34,13 @@
     "mmtest_client": "10.5.0",
     "mmtest_types": "10.5.0",
     "uuid": "11.0.5"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "12.1.2",
+    "@types/mime-types": "2.1.4",
+    "@types/node": "22.13.1",
+    "@types/react": "19.0.8",
+    "rollup": "4.34.6",
+    "rollup-plugin-copy": "3.5.0"
   }
 }
