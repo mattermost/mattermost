@@ -209,23 +209,28 @@ func TestPostAction(t *testing.T) {
 				jsonErr := json.NewDecoder(r.Body).Decode(&request)
 				assert.NoError(t, jsonErr)
 
-				assert.Equal(t, request.UserId, th.BasicUser.Id)
-				assert.Equal(t, request.UserName, th.BasicUser.Username)
-				assert.Equal(t, request.ChannelId, channel.Id)
-				assert.Equal(t, request.ChannelName, channel.Name)
+				assert.Equal(t, th.BasicUser.Id, request.UserId)
+				assert.Equal(t, th.BasicUser.Username, request.UserName)
+				assert.Equal(t, channel.Id, request.ChannelId)
+				assert.Equal(t, channel.Name, request.ChannelName)
 				if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 					assert.Empty(t, request.TeamId)
 					assert.Empty(t, request.TeamName)
 				} else {
-					assert.Equal(t, request.TeamId, th.BasicTeam.Id)
-					assert.Equal(t, request.TeamName, th.BasicTeam.Name)
+					assert.Equal(t, th.BasicTeam.Id, request.TeamId)
+					assert.Equal(t, th.BasicTeam.Name, request.TeamName)
 				}
 				assert.True(t, request.TriggerId != "")
 				if request.Type == model.PostActionTypeSelect {
-					assert.Equal(t, request.DataSource, "some_source")
-					assert.Equal(t, request.Context["selected_option"], "selected")
+					if selectedOption, ok := request.Context["selected_option"]; ok {
+						// If something was selected, confirm that the data source and selected option are present
+						assert.Equal(t, "users", request.DataSource)
+						assert.Equal(t, "selected", selectedOption)
+					} else {
+						assert.Empty(t, request.DataSource)
+					}
 				} else {
-					assert.Equal(t, request.DataSource, "")
+					assert.Equal(t, "", request.DataSource)
 				}
 				assert.Equal(t, "foo", request.Context["s"])
 				assert.EqualValues(t, 3, request.Context["n"])
@@ -310,15 +315,15 @@ func TestPostAction(t *testing.T) {
 			clientTriggerID, err := th.App.DoPostActionWithCookie(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "", nil)
 			require.NotNil(t, err)
 			assert.Equal(t, http.StatusNotFound, err.StatusCode)
-			assert.True(t, clientTriggerID == "")
+			assert.Len(t, clientTriggerID, 0)
 
 			clientTriggerID, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 			require.Nil(t, err)
-			assert.True(t, len(clientTriggerID) == 26)
+			assert.Len(t, clientTriggerID, 26)
 
 			clientTriggerID, err = th.App.DoPostActionWithCookie(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected", nil)
 			require.Nil(t, err)
-			assert.True(t, len(clientTriggerID) == 26)
+			assert.Len(t, clientTriggerID, 26)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
@@ -528,7 +533,7 @@ func TestPostActionProps(t *testing.T) {
 
 	clientTriggerId, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil)
 	require.Nil(t, err)
-	assert.True(t, len(clientTriggerId) == 26)
+	assert.Len(t, clientTriggerId, 26)
 
 	newPost, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 	require.NoError(t, nErr)
