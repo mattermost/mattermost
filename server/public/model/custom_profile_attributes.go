@@ -60,8 +60,19 @@ type CustomProfileAttributesSelectOption struct {
 }
 
 func NewCustomProfileAttributesSelectOptionFromMap(m map[string]any) CustomProfileAttributesSelectOption {
+	id := ""
 	name := ""
 	color := ""
+
+	if v, ok := m["ID"]; ok {
+		if vStr, ok := v.(string); ok {
+			id = vStr
+		}
+	} else if v, ok := m["id"]; ok {
+		if vStr, ok := v.(string); ok {
+			id = vStr
+		}
+	}
 
 	if v, ok := m["Name"]; ok {
 		if vStr, ok := v.(string); ok {
@@ -83,12 +94,17 @@ func NewCustomProfileAttributesSelectOptionFromMap(m map[string]any) CustomProfi
 		}
 	}
 
-	return NewCustomProfileAttributesSelectOption(name, color)
+	return NewCustomProfileAttributesSelectOption(id, name, color)
 }
 
-func NewCustomProfileAttributesSelectOption(name, color string) CustomProfileAttributesSelectOption {
+func NewCustomProfileAttributesSelectOption(id, name, color string) CustomProfileAttributesSelectOption {
+	optionID := id
+	if optionID == "" {
+		optionID = NewId()
+	}
+
 	return CustomProfileAttributesSelectOption{
-		ID:    NewId(),
+		ID:    optionID,
 		Name:  strings.TrimSpace(name),
 		Color: strings.TrimSpace(color),
 	}
