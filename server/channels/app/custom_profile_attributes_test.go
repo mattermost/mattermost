@@ -282,12 +282,12 @@ func TestPatchCPAField(t *testing.T) {
 			Attrs: map[string]any{
 				"options": []any{
 					map[string]any{
-						"Name":  "Option 1",
-						"Color": "#111111",
+						"name":  "Option 1",
+						"color": "#111111",
 					},
 					map[string]any{
-						"Name":  "Option 2",
-						"Color": "#222222",
+						"name":  "Option 2",
+						"color": "#222222",
 					},
 				},
 			},
@@ -308,18 +308,18 @@ func TestPatchCPAField(t *testing.T) {
 			Attrs: model.NewPointer(map[string]any{
 				"options": []any{
 					map[string]any{
-						"ID":    originalID1,
-						"Name":  "Updated Option 1",
-						"Color": "#333333",
+						"id":    originalID1,
+						"name":  "Updated Option 1",
+						"color": "#333333",
 					},
 					map[string]any{
-						"Name":  "New Option 1.5",
-						"Color": "#353535",
+						"name":  "New Option 1.5",
+						"color": "#353535",
 					},
 					map[string]any{
-						"ID":    originalID2,
-						"Name":  "Updated Option 2",
-						"Color": "#444444",
+						"id":    originalID2,
+						"name":  "Updated Option 2",
+						"color": "#444444",
 					},
 				},
 			}),
@@ -654,12 +654,12 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 				Attrs: model.StringInterface{
 					model.CustomProfileAttributesPropertyAttrsOptions: []any{
 						map[string]interface{}{
-							"Name":  "Option 1",
-							"Color": "#123456",
+							"name":  "Option 1",
+							"color": "#123456",
 						},
 						map[string]interface{}{
-							"Name":  "Option 2",
-							"Color": "#654321",
+							"name":  "Option 2",
+							"color": "#654321",
 						},
 					},
 				},
@@ -680,12 +680,12 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 				Attrs: model.StringInterface{
 					model.CustomProfileAttributesPropertyAttrsOptions: []any{
 						map[string]interface{}{
-							"Name":  "Option 1",
-							"Color": "opt1",
+							"name":  "Option 1",
+							"color": "opt1",
 						},
 						map[string]interface{}{
-							"Name":  "Option 1",
-							"Color": "opt2",
+							"name":  "Option 1",
+							"color": "opt2",
 						},
 					},
 				},
