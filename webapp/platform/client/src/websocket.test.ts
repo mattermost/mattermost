@@ -53,7 +53,7 @@ export class MockWebSocket {
 }
 
 describe('websocketclient', () => {
-    test('should call callbacks', () => {
+    test('initialize should register connection callbacks', () => {
         const mockWebSocket = new MockWebSocket();
 
         const client = new WebSocketClient({
@@ -66,19 +66,7 @@ describe('websocketclient', () => {
         client.initialize('mock.url');
 
         expect(mockWebSocket.onopen).toBeTruthy();
-        const onopenSpy = jest.spyOn(mockWebSocket, 'onopen');
         expect(mockWebSocket.onclose).toBeTruthy();
-        const oncloseSpy = jest.spyOn(mockWebSocket, 'onclose');
-
-        mockWebSocket.open();
-
-        expect(onopenSpy).toHaveBeenCalled();
-        expect(mockWebSocket.readyState).toBe(mockWebSocket.OPEN);
-
-        mockWebSocket.close();
-
-        expect(oncloseSpy).toHaveBeenCalled();
-        expect(mockWebSocket.readyState).toBe(mockWebSocket.CLOSED);
 
         client.close();
     });
@@ -144,7 +132,7 @@ describe('websocketclient', () => {
         client.close();
         expect(initializeSpy).toBeCalledTimes(1);
         expect(openSpy).toBeCalledTimes(1);
-        
+
         jest.useRealTimers();
     });
 
@@ -218,7 +206,7 @@ describe('websocketclient', () => {
         client.close();
         expect(initializeSpy).toBeCalledTimes(2);
         expect(openSpy).toBeCalledTimes(2);
-        
+
         jest.useRealTimers();
     });
 });

@@ -26,7 +26,7 @@ const defaultWebSocketClientConfig: WebSocketClientConfig = {
     newWebSocketFn: (url: string) => {
         return new WebSocket(url);
     },
-}
+};
 
 export default class WebSocketClient {
     private config: WebSocketClientConfig;
