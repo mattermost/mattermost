@@ -538,7 +538,7 @@ func TestListCPAValues(t *testing.T) {
 	t.Run("should list all values for a user", func(t *testing.T) {
 		var expectedValues []json.RawMessage
 
-		for i := 1; i <= CustomProfileAttributesValuesPerPage; i++ {
+		for i := 1; i <= CustomProfileAttributesFieldLimit; i++ {
 			field := &model.PropertyField{
 				GroupID: cpaGroupID,
 				Name:    fmt.Sprintf("Field %d", i),
@@ -562,7 +562,7 @@ func TestListCPAValues(t *testing.T) {
 		// List values for original user
 		values, appErr := th.App.ListCPAValues(userID)
 		require.Nil(t, appErr)
-		require.Len(t, values, CustomProfileAttributesValuesPerPage)
+		require.Len(t, values, CustomProfileAttributesFieldLimit)
 
 		actualValues := make([]json.RawMessage, len(values))
 		for i, value := range values {
