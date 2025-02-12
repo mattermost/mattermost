@@ -3,7 +3,10 @@
 
 package model
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
 
@@ -35,8 +38,8 @@ type CustomProfileAttributesSelectOption struct {
 func NewCustomProfileAttributeSelectOption(name, color string) CustomProfileAttributesSelectOption {
 	return CustomProfileAttributesSelectOption{
 		ID:    NewId(),
-		Name:  name,
-		Color: color,
+		Name:  strings.TrimSpace(name),
+		Color: strings.TrimSpace(color),
 	}
 }
 

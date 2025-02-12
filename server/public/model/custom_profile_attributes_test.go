@@ -18,6 +18,13 @@ func TestNewCustomProfileAttributeSelectOption(t *testing.T) {
 		assert.Equal(t, "Test Option", option.Name)
 		assert.Equal(t, "#FF0000", option.Color)
 	})
+
+	t.Run("trims spaces from name and color", func(t *testing.T) {
+		option := NewCustomProfileAttributeSelectOption("  Test Option  ", "  #FF0000  ")
+		
+		assert.Equal(t, "Test Option", option.Name)
+		assert.Equal(t, "#FF0000", option.Color)
+	})
 }
 
 func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
