@@ -24,9 +24,27 @@ func TestSlackAttachment_IsValid(t *testing.T) {
 			attachment: &SlackAttachment{
 				Color: "invalid",
 			},
-			wantErr: "color must be a hex color code",
+			wantErr: "invalid style 'invalid' - must be one of [good, warning, danger] or a hex color",
 		},
-		"valid color": {
+		"valid predefined color": {
+			attachment: &SlackAttachment{
+				Color: "good",
+			},
+			wantErr: "",
+		},
+		"valid warning color": {
+			attachment: &SlackAttachment{
+				Color: "warning",
+			},
+			wantErr: "",
+		},
+		"valid danger color": {
+			attachment: &SlackAttachment{
+				Color: "danger",
+			},
+			wantErr: "",
+		},
+		"valid hex color": {
 			attachment: &SlackAttachment{
 				Color: "#FF0000",
 			},

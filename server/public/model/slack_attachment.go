@@ -6,6 +6,7 @@ package model
 import (
 	"fmt"
 	"regexp"
+	"slices"
 
 	"github.com/hashicorp/go-multierror"
 )
@@ -38,8 +39,12 @@ type SlackAttachment struct {
 func (s *SlackAttachment) IsValid() error {
 	var multiErr *multierror.Error
 
-	if s.Color != "" && !hexColorRegex.MatchString(s.Color) {
-		multiErr = multierror.Append(multiErr, fmt.Errorf("color must be a hex color code"))
+	if s.Color != "" {
+		validStyles := []string{"good", "warning", "danger"}
+		// If not a predefined style, check if it's a hex color
+		if !slices.Contains(validStyles, s.Color) && !hexColorRegex.MatchString(s.Color) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid style '%s' - must be one of [good, warning, danger] or a hex color", s.Color))
+		}
 	}
 
 	if s.AuthorLink != "" {
