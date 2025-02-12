@@ -1887,7 +1887,7 @@
   "admin.permissions.sysconsole_section_user_management_channels.name": "Kanaler",
   "admin.permissions.sysconsole_section_user_management_groups.name": "Grupper",
   "admin.permissions.sysconsole_section_user_management_permissions.name": "Behörigheter",
-  "admin.permissions.sysconsole_section_user_management_system_roles.name": "Systemroller",
+  "admin.permissions.sysconsole_section_user_management_system_roles.name": "Delegerad finmaskig administration",
   "admin.permissions.sysconsole_section_user_management_teams.name": "Team",
   "admin.permissions.sysconsole_section_user_management_users.description": "Kan inte återställa systemadministratörers lösenord",
   "admin.permissions.sysconsole_section_user_management_users.name": "Användare",
