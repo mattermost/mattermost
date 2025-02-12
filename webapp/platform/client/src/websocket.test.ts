@@ -100,6 +100,8 @@ describe('websocketclient', () => {
         });
 
         client.initialize('mock.url');
+        expect(mockWebSocket.open).toHaveBeenCalledTimes(1);
+
         mockWebSocket.close();
 
         jest.advanceTimersByTime(40);
