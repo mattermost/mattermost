@@ -117,31 +117,9 @@ func TestNewCustomProfileAttributesSelectOptionFromMap(t *testing.T) {
 		expected CustomProfileAttributesSelectOption
 	}{
 		{
-			name: "title case keys",
-			input: map[string]any{
-				"Name":  "Test Option",
-				"Color": "#FF0000",
-			},
-			expected: CustomProfileAttributesSelectOption{
-				Name:  "Test Option",
-				Color: "#FF0000",
-			},
-		},
-		{
-			name: "lower case keys",
+			name: "valid option",
 			input: map[string]any{
 				"name":  "Test Option",
-				"color": "#FF0000",
-			},
-			expected: CustomProfileAttributesSelectOption{
-				Name:  "Test Option",
-				Color: "#FF0000",
-			},
-		},
-		{
-			name: "mixed case keys",
-			input: map[string]any{
-				"Name":  "Test Option",
 				"color": "#FF0000",
 			},
 			expected: CustomProfileAttributesSelectOption{
@@ -161,23 +139,10 @@ func TestNewCustomProfileAttributesSelectOptionFromMap(t *testing.T) {
 			},
 		},
 		{
-			name: "with provided ID",
-			input: map[string]any{
-				"ID":    "existingid123456789012345678",
-				"Name":  "Test Option",
-				"Color": "#FF0000",
-			},
-			expected: CustomProfileAttributesSelectOption{
-				ID:    "existingid123456789012345678",
-				Name:  "Test Option",
-				Color: "#FF0000",
-			},
-		},
-		{
-			name: "with provided lowercase id",
+			name: "with provided id",
 			input: map[string]any{
 				"id":    "existingid123456789012345678",
-				"name":  "Test Option",
+				"name":  "Test Option", 
 				"color": "#FF0000",
 			},
 			expected: CustomProfileAttributesSelectOption{

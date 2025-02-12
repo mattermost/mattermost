@@ -54,9 +54,9 @@ func IsKnownCustomProfilteAttributesVisibility(visibility string) bool {
 }
 
 type CustomProfileAttributesSelectOption struct {
-	ID    string
-	Name  string
-	Color string
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Color string `json:"color"`
 }
 
 func NewCustomProfileAttributesSelectOptionFromMap(m map[string]any) CustomProfileAttributesSelectOption {
@@ -64,31 +64,19 @@ func NewCustomProfileAttributesSelectOptionFromMap(m map[string]any) CustomProfi
 	name := ""
 	color := ""
 
-	if v, ok := m["ID"]; ok {
-		if vStr, ok := v.(string); ok {
-			id = vStr
-		}
-	} else if v, ok := m["id"]; ok {
+	if v, ok := m["id"]; ok {
 		if vStr, ok := v.(string); ok {
 			id = vStr
 		}
 	}
 
-	if v, ok := m["Name"]; ok {
-		if vStr, ok := v.(string); ok {
-			name = vStr
-		}
-	} else if v, ok := m["name"]; ok {
+	if v, ok := m["name"]; ok {
 		if vStr, ok := v.(string); ok {
 			name = vStr
 		}
 	}
 
-	if v, ok := m["Color"]; ok {
-		if vStr, ok := v.(string); ok {
-			color = vStr
-		}
-	} else if v, ok := m["color"]; ok {
+	if v, ok := m["color"]; ok {
 		if vStr, ok := v.(string); ok {
 			color = vStr
 		}
