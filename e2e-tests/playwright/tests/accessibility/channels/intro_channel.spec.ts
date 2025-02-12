@@ -50,7 +50,8 @@ test('Post actions tab support', async ({pw, axe}) => {
 
     // # Analyze the page
     const accessibilityScanResults = await axe
-        .builder(page, {disableColorContrast: true}).include('.MuiList-root.MuiList-padding')
+        .builder(page, {disableColorContrast: true})
+        .include('.MuiList-root.MuiList-padding')
         .analyze();
 
     // * Should have no violation
