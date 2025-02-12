@@ -52,7 +52,7 @@ func TestGetCPAField(t *testing.T) {
 			GroupID: cpaGroupID,
 			Name:    "Test Field",
 			Type:    model.PropertyFieldTypeText,
-			Attrs:   map[string]any{"visibility": "hidden"},
+			Attrs:   map[string]any{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 		}
 
 		createdField, err := th.App.CreateCPAField(field)
@@ -63,7 +63,7 @@ func TestGetCPAField(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, createdField.ID, fetchedField.ID)
 		require.Equal(t, "Test Field", fetchedField.Name)
-		require.Equal(t, model.StringInterface{"visibility": "hidden"}, fetchedField.Attrs)
+		require.Equal(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden}, fetchedField.Attrs)
 	})
 }
 
@@ -147,14 +147,14 @@ func TestCreateCPAField(t *testing.T) {
 			GroupID: cpaGroupID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
-			Attrs:   map[string]any{"visibility": "hidden"},
+			Attrs:   map[string]any{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 		}
 
 		createdField, err := th.App.CreateCPAField(field)
 		require.Nil(t, err)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, cpaGroupID, createdField.GroupID)
-		require.Equal(t, model.StringInterface{"visibility": "hidden"}, createdField.Attrs)
+		require.Equal(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden}, createdField.Attrs)
 
 		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField(createdField.ID)
 		require.NoError(t, gErr)
@@ -227,14 +227,14 @@ func TestPatchCPAField(t *testing.T) {
 		GroupID: cpaGroupID,
 		Name:    model.NewId(),
 		Type:    model.PropertyFieldTypeText,
-		Attrs:   map[string]any{"visibility": "hidden"},
+		Attrs:   map[string]any{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 	}
 	createdField, err := th.App.CreateCPAField(newField)
 	require.Nil(t, err)
 
 	patch := &model.PropertyFieldPatch{
 		Name:       model.NewPointer("Patched name"),
-		Attrs:      model.NewPointer(map[string]any{"visibility": "when_set"}),
+		Attrs:      model.NewPointer(map[string]any{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet}),
 		TargetID:   model.NewPointer(model.NewId()),
 		TargetType: model.NewPointer(model.NewId()),
 	}
@@ -267,7 +267,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, createdField.ID, updatedField.ID)
 		require.Equal(t, "Patched name", updatedField.Name)
-		require.Equal(t, "when_set", updatedField.Attrs["visibility"])
+		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, updatedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
 		require.Empty(t, updatedField.TargetID, "CPA should not allow to patch the field's target ID")
 		require.Empty(t, updatedField.TargetType, "CPA should not allow to patch the field's target type")
 		require.Greater(t, updatedField.UpdateAt, createdField.UpdateAt)
@@ -280,7 +280,7 @@ func TestPatchCPAField(t *testing.T) {
 			Name:    "Select Field",
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: map[string]any{
-				"options": []any{
+				model.CustomProfileAttributesPropertyAttrsOptions: []any{
 					map[string]any{
 						"name":  "Option 1",
 						"color": "#111111",
@@ -296,7 +296,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, err)
 
 		// Get the original option IDs
-		options := createdSelectField.Attrs["options"].(model.CustomProfileAttributesSelectOptions)
+		options := createdSelectField.Attrs[model.CustomProfileAttributesPropertyAttrsOptions].(model.CustomProfileAttributesSelectOptions)
 		require.Len(t, options, 2)
 		originalID1 := options[0].ID
 		originalID2 := options[1].ID
@@ -306,7 +306,7 @@ func TestPatchCPAField(t *testing.T) {
 		// Patch the field with updated option names and colors
 		selectPatch := &model.PropertyFieldPatch{
 			Attrs: model.NewPointer(map[string]any{
-				"options": []any{
+				model.CustomProfileAttributesPropertyAttrsOptions: []any{
 					map[string]any{
 						"id":    originalID1,
 						"name":  "Updated Option 1",
@@ -328,7 +328,7 @@ func TestPatchCPAField(t *testing.T) {
 		updatedSelectField, err := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
 		require.Nil(t, err)
 
-		updatedOptions := updatedSelectField.Attrs["options"].(model.CustomProfileAttributesSelectOptions)
+		updatedOptions := updatedSelectField.Attrs[model.CustomProfileAttributesPropertyAttrsOptions].(model.CustomProfileAttributesSelectOptions)
 		require.Len(t, updatedOptions, 3)
 
 		// Verify the options were updated while preserving IDs
@@ -606,7 +606,7 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 			},
 			expectError: false,
 			expectedAttrs: model.StringInterface{
-				"visibility": "when_set",
+				model.CustomProfileAttributesPropertyAttrsVisibility: "when_set",
 			},
 		},
 		{
@@ -619,8 +619,8 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 			},
 			expectError: false,
 			expectedAttrs: model.StringInterface{
-				"visibility": "when_set",
-				"value_type": "email",
+				model.CustomProfileAttributesPropertyAttrsVisibility: "when_set",
+				model.CustomProfileAttributesPropertyAttrsValueType:  model.CustomProfileAttributesValueTypeEmail,
 			},
 		},
 		{
@@ -633,7 +633,7 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 			},
 			expectError: false,
 			expectedAttrs: model.StringInterface{
-				"visibility": "hidden",
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden,
 			},
 		},
 		{
@@ -666,8 +666,8 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 			},
 			expectError: false,
 			expectedAttrs: model.StringInterface{
-				"visibility": "when_set",
-				"options": model.CustomProfileAttributesSelectOptions{
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityDefault,
+				model.CustomProfileAttributesPropertyAttrsOptions: model.CustomProfileAttributesSelectOptions{
 					{Name: "Option 1", Color: "#123456"},
 					{Name: "Option 2", Color: "#654321"},
 				},
