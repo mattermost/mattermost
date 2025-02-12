@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	CustomProfileAttributesFieldLimit    = 20
-	CustomProfileAttributesValuesPerPage = CustomProfileAttributesFieldLimit
+	CustomProfileAttributesFieldLimit = 20
 )
 
 var cpaGroupID string
@@ -164,7 +163,7 @@ func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppEr
 	values, err := a.Srv().propertyService.SearchPropertyValues(model.PropertyValueSearchOpts{
 		GroupID:  groupID,
 		TargetID: userID,
-		PerPage:  CustomProfileAttributesValuesPerPage,
+		PerPage:  CustomProfileAttributesFieldLimit,
 	})
 	if err != nil {
 		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
