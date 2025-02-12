@@ -17,11 +17,21 @@ const (
 )
 
 const (
-	CustomProfileAttributesValueTypeNone  = ""
 	CustomProfileAttributesValueTypeEmail = "email"
 	CustomProfileAttributesValueTypeURL   = "url"
 	CustomProfileAttributesValueTypePhone = "phone"
 )
+
+func IsKnownCustomProfilteAttributesValueType(valueType string) bool {
+	switch valueType {
+	case CustomProfileAttributesValueTypeEmail,
+		CustomProfileAttributesValueTypeURL,
+		CustomProfileAttributesValueTypePhone:
+		return true
+	}
+
+	return false
+}
 
 const (
 	CustomProfileAttributesVisibilityHidden  = "hidden"
@@ -29,10 +39,40 @@ const (
 	CustomProfileAttributesVisibilityAlways  = "always"
 )
 
+func IsKnownCustomProfilteAttributesVisibility(visibility string) bool {
+	switch visibility {
+	case CustomProfileAttributesVisibilityHidden,
+		CustomProfileAttributesVisibilityWhenSet,
+		CustomProfileAttributesVisibilityAlways:
+		return true
+	}
+
+	return false
+}
+
 type CustomProfileAttributesSelectOption struct {
 	ID    string
 	Name  string
 	Color string
+}
+
+func NewCustomProfileAttributesSelectOptionFromMap(m map[string]any) CustomProfileAttributesSelectOption {
+	name := ""
+	color := ""
+
+	if v, ok := m["name"]; ok {
+		if vStr, ok := v.(string); ok {
+			name = vStr
+		}
+	}
+
+	if v, ok := m["color"]; ok {
+		if vStr, ok := v.(string); ok {
+			color = vStr
+		}
+	}
+
+	return NewCustomProfileAttributesSelectOption(name, color)
 }
 
 func NewCustomProfileAttributesSelectOption(name, color string) CustomProfileAttributesSelectOption {
