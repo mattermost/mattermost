@@ -740,7 +740,6 @@ func closeAndRemoveConn(connIndex *hubConnectionIndex, conn *WebConn) {
 }
 
 type connMetadata struct {
-	byUserIdIndex  int
 	channelIndices map[string]int
 }
 
@@ -751,12 +750,12 @@ type connMetadata struct {
 // - get all connections for a given channelID.
 // - get all connections.
 type hubConnectionIndex struct {
-	// byUserId stores the list of connections for a given userID
-	byUserId map[string][]*WebConn
+	// byUserId stores the set of connections for a given userID
+	byUserId map[string]map[*WebConn]struct{}
 	// byChannelID stores the list of connections for a given channelID.
 	byChannelID map[string][]*WebConn
 	// byConnection serves the dual purpose of storing the index of the webconn
-	// in the value of byUserId map, and also to get all connections.
+	// in the value of byChannelId map, and also to get all connections.
 	byConnection   map[*WebConn]connMetadata
 	byConnectionId map[string]*WebConn
 	// staleThreshold is the limit beyond which inactive connections
@@ -774,7 +773,7 @@ func newHubConnectionIndex(interval time.Duration,
 	fastIteration bool,
 ) *hubConnectionIndex {
 	return &hubConnectionIndex{
-		byUserId:       make(map[string][]*WebConn),
+		byUserId:       make(map[string]map[*WebConn]struct{}),
 		byChannelID:    make(map[string][]*WebConn),
 		byConnection:   make(map[*WebConn]connMetadata),
 		byConnectionId: make(map[string]*WebConn),
@@ -800,9 +799,12 @@ func (i *hubConnectionIndex) Add(wc *WebConn) error {
 		}
 	}
 
-	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
+	// Initialize the user's map if it doesn't exist
+	if _, ok := i.byUserId[wc.UserId]; !ok {
+		i.byUserId[wc.UserId] = make(map[*WebConn]struct{})
+	}
+	i.byUserId[wc.UserId][wc] = struct{}{}
 	i.byConnection[wc] = connMetadata{
-		byUserIdIndex:  len(i.byUserId[wc.UserId]) - 1,
 		channelIndices: channelIndices,
 	}
 	i.byConnectionId[wc.GetConnectionID()] = wc
@@ -815,21 +817,13 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 		return
 	}
 
-	// Remove the wc from i.byUserId
-	// get the conn slice.
-	userConnections := i.byUserId[wc.UserId]
-	// get the last connection.
-	last := userConnections[len(userConnections)-1]
-	// https://go.dev/wiki/SliceTricks#delete-without-preserving-order
-	userConnections[connMeta.byUserIdIndex] = last
-	userConnections[len(userConnections)-1] = nil
-	i.byUserId[wc.UserId] = userConnections[:len(userConnections)-1]
-	// set the index of the connection that was moved to the new index.
-	// Update the moved connection's index
-	if last != wc {
-		i.byConnection[last] = connMetadata{
-			byUserIdIndex:  connMeta.byUserIdIndex,
-			channelIndices: i.byConnection[last].channelIndices,
+	// Remove from byUserId
+	if userConns, ok := i.byUserId[wc.UserId]; ok {
+		delete(userConns, wc)
+		if len(userConns) == 0 {
+			delete(i.byUserId, wc.UserId)
+		} else {
+			i.byUserId[wc.UserId] = userConns
 		}
 	}
 
@@ -915,16 +909,17 @@ func (i *hubConnectionIndex) Has(wc *WebConn) bool {
 
 // ForUser returns all connections for a user ID.
 func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
-	// Fast path if there is only one or fewer connection.
-	if len(i.byUserId[id]) <= 1 {
-		return i.byUserId[id]
+	userConns, ok := i.byUserId[id]
+	if !ok {
+		return nil
 	}
-	// If there are multiple connections per user,
-	// then we have to return a clone of the slice
-	// to allow connIndex.Remove to be safely called while
-	// iterating the slice.
-	conns := make([]*WebConn, len(i.byUserId[id]))
-	copy(conns, i.byUserId[id])
+
+	// Move to using maps.Keys to use the iterator pattern with 1.23.
+	// This saves the additional slice copy.
+	conns := make([]*WebConn, 0, len(userConns))
+	for conn := range userConns {
+		conns = append(conns, conn)
+	}
 	return conns
 }
 
