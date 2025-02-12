@@ -499,7 +499,7 @@ describe('Utils.numberToFixedDynamic', () => {
     });
 });
 
-describe('Utils.isTextSelectedInPostOrReply', () => {
+describe('isTextSelectedInPostOrReply', () => {
     function createKeyboardEvent(target: Partial<HTMLTextAreaElement>) {
         return {
             target: {
