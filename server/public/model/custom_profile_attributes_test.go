@@ -91,3 +91,76 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 		})
 	}
 }
+
+func TestCustomProfileAttributesSelectOptionsIsValid(t *testing.T) {
+	tests := []struct {
+		name    string
+		options CustomProfileAttributesSelectOptions
+		wantErr string
+	}{
+		{
+			name:    "empty options",
+			options: CustomProfileAttributesSelectOptions{},
+			wantErr: "",
+		},
+		{
+			name: "valid options",
+			options: CustomProfileAttributesSelectOptions{
+				{
+					ID:    NewId(),
+					Name:  "Option 1",
+					Color: "#FF0000",
+				},
+				{
+					ID:    NewId(),
+					Name:  "Option 2",
+					Color: "#00FF00",
+				},
+			},
+			wantErr: "",
+		},
+		{
+			name: "invalid option",
+			options: CustomProfileAttributesSelectOptions{
+				{
+					ID:    NewId(),
+					Name:  "Option 1",
+					Color: "#FF0000",
+				},
+				{
+					ID:    "",
+					Name:  "Option 2",
+					Color: "#00FF00",
+				},
+			},
+			wantErr: "id cannot be empty",
+		},
+		{
+			name: "duplicate names",
+			options: CustomProfileAttributesSelectOptions{
+				{
+					ID:    NewId(),
+					Name:  "Option 1",
+					Color: "#FF0000",
+				},
+				{
+					ID:    NewId(),
+					Name:  "Option 1",
+					Color: "#00FF00",
+				},
+			},
+			wantErr: "duplicate option name found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.options.IsValid()
+			if tt.wantErr != "" {
+				assert.EqualError(t, err, tt.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

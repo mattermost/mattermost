@@ -64,3 +64,20 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 }
 
 type CustomProfileAttributesSelectOptions []CustomProfileAttributesSelectOption
+
+func (c CustomProfileAttributesSelectOptions) IsValid() error {
+	seenNames := make(map[string]bool)
+
+	for _, option := range c {
+		if err := option.IsValid(); err != nil {
+			return err
+		}
+
+		if seenNames[option.Name] {
+			return errors.New("duplicate option name found")
+		}
+		seenNames[option.Name] = true
+	}
+
+	return nil
+}
