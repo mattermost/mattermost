@@ -7105,10 +7105,10 @@ func (s *TimerLayerProductNoticesStore) View(userID string, notices []string) er
 	return err
 }
 
-func (s *TimerLayerPropertyFieldStore) CountForGroup(groupID string) (int64, error) {
+func (s *TimerLayerPropertyFieldStore) CountForGroup(groupID string, includeDeleted bool) (int64, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.CountForGroup(groupID)
+	result, err := s.PropertyFieldStore.CountForGroup(groupID, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

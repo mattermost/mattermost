@@ -14,9 +14,9 @@ type PropertyFieldStore struct {
 	mock.Mock
 }
 
-// CountForGroup provides a mock function with given fields: groupID
-func (_m *PropertyFieldStore) CountForGroup(groupID string) (int64, error) {
-	ret := _m.Called(groupID)
+// CountForGroup provides a mock function with given fields: groupID, includeDeleted
+func (_m *PropertyFieldStore) CountForGroup(groupID string, includeDeleted bool) (int64, error) {
+	ret := _m.Called(groupID, includeDeleted)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CountForGroup")
@@ -24,17 +24,17 @@ func (_m *PropertyFieldStore) CountForGroup(groupID string) (int64, error) {
 
 	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
-		return rf(groupID)
+	if rf, ok := ret.Get(0).(func(string, bool) (int64, error)); ok {
+		return rf(groupID, includeDeleted)
 	}
-	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(groupID)
+	if rf, ok := ret.Get(0).(func(string, bool) int64); ok {
+		r0 = rf(groupID, includeDeleted)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(groupID)
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(groupID, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

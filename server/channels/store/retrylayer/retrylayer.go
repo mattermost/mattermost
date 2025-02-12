@@ -8949,11 +8949,11 @@ func (s *RetryLayerProductNoticesStore) View(userID string, notices []string) er
 
 }
 
-func (s *RetryLayerPropertyFieldStore) CountForGroup(groupID string) (int64, error) {
+func (s *RetryLayerPropertyFieldStore) CountForGroup(groupID string, includeDeleted bool) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.CountForGroup(groupID)
+		result, err := s.PropertyFieldStore.CountForGroup(groupID, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
