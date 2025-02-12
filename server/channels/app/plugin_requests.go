@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -146,15 +147,30 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		token = r.URL.Query().Get("access_token")
 	}
 
+	// If MFA is required and user has not activated it, we wipe the token.
+	app := New(ServerConnector(ch))
+	rctx := request.EmptyContext(ch.srv.Log()).WithPath(r.URL.Path)
+
+	session, appErr := app.GetSession(token)
+	if session != nil {
+		rctx = rctx.WithSession(session)
+	}
+
+	if appErr := app.MFARequired(rctx); appErr != nil {
+		pluginID := mux.Vars(r)["plugin_id"]
+		ch.srv.Log().Warn("MFA authentication failed for plugin request",
+			mlog.String("plugin_id", pluginID),
+			mlog.Err(appErr),
+		)
+		token = ""
+	}
+
 	// Mattermost-Plugin-ID can only be set by inter-plugin requests
 	r.Header.Del("Mattermost-Plugin-ID")
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
-		session, appErr := New(ServerConnector(ch)).GetSession(token)
-
 		csrfCheckPassed := false
-
 		if session != nil && appErr == nil && cookieAuth && r.Method != "GET" {
 			sentToken := ""
 
