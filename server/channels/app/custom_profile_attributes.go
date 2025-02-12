@@ -263,7 +263,7 @@ func validateCustomProfileAttributesField(field *model.PropertyField) *model.App
 			}
 			valueTypeStr = strings.TrimSpace(valueTypeStr)
 			if !model.IsKnownCustomProfilteAttributesValueType(valueTypeStr) {
-				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"value_type": valueTypeStr}, "", http.StatusUnprocessableEntity)
+				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"ValueType": valueTypeStr}, "", http.StatusUnprocessableEntity)
 			}
 
 			field.Attrs[model.CustomProfileAttributesPropertyAttrsValueType] = valueTypeStr
@@ -279,7 +279,7 @@ func validateCustomProfileAttributesField(field *model.PropertyField) *model.App
 			for i, option := range optionsArr {
 				optionMap, ok := option.(map[string]any)
 				if !ok {
-					return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.not_map_option.app_error", map[string]any{"index": i}, "", http.StatusUnprocessableEntity)
+					return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.not_map_option.app_error", map[string]any{"Index": i}, "", http.StatusUnprocessableEntity)
 				}
 				option := model.NewCustomProfileAttributesSelectOptionFromMap(optionMap)
 				finalOptions = append(finalOptions, option)
@@ -296,7 +296,7 @@ func validateCustomProfileAttributesField(field *model.PropertyField) *model.App
 		if visibilityStr, ok := visibilityAttr.(string); ok {
 			visibilityStr = strings.TrimSpace(visibilityStr)
 			if !model.IsKnownCustomProfilteAttributesVisibility(visibilityStr) {
-				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"visibility": visibilityStr}, "", http.StatusUnprocessableEntity)
+				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"Visibility": visibilityStr}, "", http.StatusUnprocessableEntity)
 			}
 			visibility = visibilityStr
 		}
