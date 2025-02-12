@@ -38,6 +38,8 @@ const (
 	CustomProfileAttributesVisibilityHidden  = "hidden"
 	CustomProfileAttributesVisibilityWhenSet = "when_set"
 	CustomProfileAttributesVisibilityAlways  = "always"
+
+	CustomProfileAttributesVisibilityDefault = CustomProfileAttributesVisibilityWhenSet
 )
 
 func IsKnownCustomProfilteAttributesVisibility(visibility string) bool {
