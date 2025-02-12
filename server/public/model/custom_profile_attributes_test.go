@@ -101,7 +101,7 @@ func TestCustomProfileAttributesSelectOptionsIsValid(t *testing.T) {
 		{
 			name:    "empty options",
 			options: CustomProfileAttributesSelectOptions{},
-			wantErr: "",
+			wantErr: "options list cannot be empty",
 		},
 		{
 			name: "valid options",

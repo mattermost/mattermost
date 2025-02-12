@@ -66,8 +66,11 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 type CustomProfileAttributesSelectOptions []CustomProfileAttributesSelectOption
 
 func (c CustomProfileAttributesSelectOptions) IsValid() error {
-	seenNames := make(map[string]struct{})
+	if len(c) == 0 {
+		return errors.New("options list cannot be empty")
+	}
 
+	seenNames := make(map[string]struct{})
 	for _, option := range c {
 		if err := option.IsValid(); err != nil {
 			return err
