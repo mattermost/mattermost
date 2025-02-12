@@ -5007,6 +5007,10 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Unable to count the number of fields for the custom profile attribute group"
+  },
+  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Cannot register Custom Profile Attributes property group"
   },

@@ -328,7 +328,7 @@ func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
 
 	t.Run("should return correct count for group with properties", func(t *testing.T) {
 		groupID := model.NewId()
-		
+
 		// Create 5 property fields
 		for i := 0; i < 5; i++ {
 			field := &model.PropertyField{
@@ -347,7 +347,7 @@ func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
 
 	t.Run("should not count deleted properties", func(t *testing.T) {
 		groupID := model.NewId()
-		
+
 		// Create 5 property fields
 		for i := 0; i < 5; i++ {
 			field := &model.PropertyField{
@@ -367,7 +367,7 @@ func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
 		}
 		_, err := ss.PropertyField().Create(deletedField)
 		require.NoError(t, err)
-		
+
 		err = ss.PropertyField().Delete(deletedField.ID)
 		require.NoError(t, err)
 
