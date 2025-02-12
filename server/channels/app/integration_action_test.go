@@ -47,11 +47,11 @@ func TestPostActionInvalidURL(t *testing.T) {
 					Text: "hello",
 					Actions: []*model.PostAction{
 						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
 							Integration: &model.PostActionIntegration{
 								URL: ":test",
 							},
-							Name: "action",
-							Type: "some_type",
 						},
 					},
 				},
@@ -95,6 +95,9 @@ func TestPostActionEmptyResponse(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type:       model.PostActionTypeSelect,
+								Name:       "action",
+								DataSource: "users",
 								Integration: &model.PostActionIntegration{
 									Context: model.StringInterface{
 										"s": "foo",
@@ -102,9 +105,6 @@ func TestPostActionEmptyResponse(t *testing.T) {
 									},
 									URL: ts.URL,
 								},
-								Name:       "action",
-								Type:       "some_type",
-								DataSource: "some_source",
 							},
 						},
 					},
@@ -139,6 +139,9 @@ func TestPostActionEmptyResponse(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type:       model.PostActionTypeSelect,
+								Name:       "action",
+								DataSource: "users",
 								Integration: &model.PostActionIntegration{
 									Context: model.StringInterface{
 										"s": "foo",
@@ -146,9 +149,6 @@ func TestPostActionEmptyResponse(t *testing.T) {
 									},
 									URL: ts.URL,
 								},
-								Name:       "action",
-								Type:       "some_type",
-								DataSource: "some_source",
 							},
 						},
 					},
@@ -244,6 +244,9 @@ func TestPostAction(t *testing.T) {
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: "users",
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -251,9 +254,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: ts.URL,
 									},
-									Name:       "action",
-									Type:       "some_type",
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -281,6 +281,9 @@ func TestPostAction(t *testing.T) {
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: "users",
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -288,9 +291,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: ts.URL,
 									},
-									Name:       "action",
-									Type:       model.PostActionTypeSelect,
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -339,6 +339,9 @@ func TestPostAction(t *testing.T) {
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: "users",
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -346,9 +349,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: ts.URL + "/plugins/myplugin/myaction",
 									},
-									Name:       "action",
-									Type:       "some_type",
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -387,6 +387,9 @@ func TestPostAction(t *testing.T) {
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: "users",
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -394,9 +397,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: "http://127.1.1.1/plugins/myplugin/myaction",
 									},
-									Name:       "action",
-									Type:       "some_type",
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -429,6 +429,9 @@ func TestPostAction(t *testing.T) {
 							Text: "hello",
 							Actions: []*model.PostAction{
 								{
+									Type:       model.PostActionTypeSelect,
+									Name:       "action",
+									DataSource: "users",
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -436,9 +439,6 @@ func TestPostAction(t *testing.T) {
 										},
 										URL: ts.URL + "/subpath/plugins/myplugin/myaction",
 									},
-									Name:       "action",
-									Type:       "some_type",
-									DataSource: "some_source",
 								},
 							},
 						},
@@ -501,6 +501,9 @@ func TestPostActionProps(t *testing.T) {
 					Text: "hello",
 					Actions: []*model.PostAction{
 						{
+							Type:       model.PostActionTypeSelect,
+							Name:       "action",
+							DataSource: "users",
 							Integration: &model.PostActionIntegration{
 								Context: model.StringInterface{
 									"s": "foo",
@@ -508,9 +511,6 @@ func TestPostActionProps(t *testing.T) {
 								},
 								URL: ts.URL,
 							},
-							Name:       "action",
-							Type:       "some_type",
-							DataSource: "some_source",
 						},
 					},
 				},
@@ -693,11 +693,11 @@ func TestPostActionRelativeURL(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/notaplugin/some/path",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -733,11 +733,11 @@ func TestPostActionRelativeURL(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -773,11 +773,11 @@ func TestPostActionRelativeURL(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -813,11 +813,11 @@ func TestPostActionRelativeURL(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "//plugins/myplugin///myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -853,11 +853,11 @@ func TestPostActionRelativeURL(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -930,11 +930,11 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/notaplugin/some/path",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -970,11 +970,11 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "/plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -1010,11 +1010,11 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "//plugins/myplugin///myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},
@@ -1050,11 +1050,11 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 						Text: "hello",
 						Actions: []*model.PostAction{
 							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
 								Integration: &model.PostActionIntegration{
 									URL: "plugins/myplugin/myaction",
 								},
-								Name: "action",
-								Type: "some_type",
 							},
 						},
 					},

@@ -4677,7 +4677,7 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 			},
 			Actions: []*model.PostAction{
 				{
-					Type: "button",
+					Type: model.PostActionTypeButton,
 					Name: "test-name",
 					Integration: &model.PostActionIntegration{
 						URL: "https://test.test/action",

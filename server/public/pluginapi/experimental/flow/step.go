@@ -224,6 +224,7 @@ func processDialog(in *model.Dialog, state State) model.Dialog {
 
 func renderButton(b Button, stepName Name, i int, state State) *model.PostAction {
 	return &model.PostAction{
+		Type:     model.PostActionTypeButton,
 		Name:     formatState(b.Name, state),
 		Disabled: b.Disabled,
 		Style:    string(b.Color),
