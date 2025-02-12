@@ -33,7 +33,6 @@ export default class WebSocketClient {
 
     private conn: WebSocket | null;
     private connectionUrl: string | null;
-    private token: string | undefined;
 
     // responseSequence is the number to track a response sent
     // via the websocket. A response will always have the same sequence number
@@ -141,7 +140,6 @@ export default class WebSocketClient {
             this.conn = new WebSocket(websocketUrl);
         }
         this.connectionUrl = connectionUrl;
-        this.token = token;
 
         this.conn.onopen = () => {
             if (token) {
@@ -195,7 +193,7 @@ export default class WebSocketClient {
             this.reconnectTimeout = setTimeout(
                 () => {
                     this.reconnectTimeout = null;
-                    this.initialize(this.connectionUrl, this.token, this.postedAck);
+                    this.initialize(this.connectionUrl, token, this.postedAck);
                 },
                 retryTime,
             );
