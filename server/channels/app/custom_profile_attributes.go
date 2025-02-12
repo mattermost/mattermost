@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -85,6 +86,10 @@ func (a *App) CreateCPAField(field *model.PropertyField) (*model.PropertyField, 
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.limit_reached.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 	}
 
+	if appErr := validateCustomProfileAttributesField(field); appErr != nil {
+		return nil, appErr
+	}
+
 	field.GroupID = groupID
 	newField, err := a.Srv().propertyService.CreatePropertyField(field)
 	if err != nil {
@@ -110,6 +115,10 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 	patch.TargetID = nil
 	patch.TargetType = nil
 	existingField.Patch(patch)
+
+	if appErr := validateCustomProfileAttributesField(existingField); appErr != nil {
+		return nil, appErr
+	}
 
 	patchedField, err := a.Srv().propertyService.UpdatePropertyField(existingField)
 	if err != nil {
@@ -238,4 +247,61 @@ func (a *App) PatchCPAValue(userID string, fieldID string, value json.RawMessage
 		}
 	}
 	return existingValue, nil
+}
+
+func validateCustomProfileAttributesField(field *model.PropertyField) *model.AppError {
+	if field.Attrs == nil {
+		field.Attrs = model.StringInterface{}
+	}
+
+	switch field.Type {
+	case model.PropertyFieldTypeText:
+		if valueType, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsValueType]; ok {
+			valueTypeStr, ok := valueType.(string)
+			if !ok {
+				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.not_string_value_type.app_error", nil, "", http.StatusUnprocessableEntity)
+			}
+			valueTypeStr = strings.TrimSpace(valueTypeStr)
+			if !model.IsKnownCustomProfilteAttributesValueType(valueTypeStr) {
+				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"value_type": valueTypeStr}, "", http.StatusUnprocessableEntity)
+			}
+
+			field.Attrs[model.CustomProfileAttributesPropertyAttrsValueType] = valueTypeStr
+		}
+
+	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect:
+		if options, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsOptions]; ok {
+			var finalOptions model.CustomProfileAttributesSelectOptions
+			optionsArr, ok := options.([]any)
+			if !ok {
+				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.not_array_options.app_error", nil, "", http.StatusUnprocessableEntity)
+			}
+			for i, option := range optionsArr {
+				optionMap, ok := option.(map[string]any)
+				if !ok {
+					return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.not_map_option.app_error", map[string]any{"index": i}, "", http.StatusUnprocessableEntity)
+				}
+				option := model.NewCustomProfileAttributesSelectOptionFromMap(optionMap)
+				finalOptions = append(finalOptions, option)
+			}
+			if err := finalOptions.IsValid(); err != nil {
+				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
+			}
+			field.Attrs[model.CustomProfileAttributesPropertyAttrsOptions] = finalOptions
+		}
+	}
+
+	visibility := model.CustomProfileAttributesVisibilityDefault
+	if visibilityAttr, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility]; ok {
+		if visibilityStr, ok := visibilityAttr.(string); ok {
+			visibilityStr = strings.TrimSpace(visibilityStr)
+			if !model.IsKnownCustomProfilteAttributesVisibility(visibilityStr) {
+				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"visibility": visibilityStr}, "", http.StatusUnprocessableEntity)
+			}
+			visibility = visibilityStr
+		}
+	}
+	field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = visibility
+
+	return nil
 }
