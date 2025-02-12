@@ -286,7 +286,7 @@ func TestPatchCPAField(t *testing.T) {
 						"Color": "#111111",
 					},
 					map[string]any{
-						"Name":  "Option 2", 
+						"Name":  "Option 2",
 						"Color": "#222222",
 					},
 				},
@@ -313,9 +313,13 @@ func TestPatchCPAField(t *testing.T) {
 						"Color": "#333333",
 					},
 					map[string]any{
+						"Name":  "New Option 1.5",
+						"Color": "#353535",
+					},
+					map[string]any{
 						"ID":    originalID2,
 						"Name":  "Updated Option 2",
-						"Color": "#444444", 
+						"Color": "#444444",
 					},
 				},
 			}),
@@ -324,15 +328,20 @@ func TestPatchCPAField(t *testing.T) {
 		updatedSelectField, err := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
 		require.Nil(t, err)
 
-		// Verify the options were updated while preserving IDs
 		updatedOptions := updatedSelectField.Attrs["options"].(model.CustomProfileAttributesSelectOptions)
-		require.Len(t, updatedOptions, 2)
+		require.Len(t, updatedOptions, 3)
+
+		// Verify the options were updated while preserving IDs
 		require.Equal(t, originalID1, updatedOptions[0].ID)
 		require.Equal(t, "Updated Option 1", updatedOptions[0].Name)
 		require.Equal(t, "#333333", updatedOptions[0].Color)
-		require.Equal(t, originalID2, updatedOptions[1].ID)
-		require.Equal(t, "Updated Option 2", updatedOptions[1].Name)
-		require.Equal(t, "#444444", updatedOptions[1].Color)
+		require.Equal(t, originalID2, updatedOptions[2].ID)
+		require.Equal(t, "Updated Option 2", updatedOptions[2].Name)
+		require.Equal(t, "#444444", updatedOptions[2].Color)
+
+		// Check the new option
+		require.Equal(t, "New Option 1.5", updatedOptions[1].Name)
+		require.Equal(t, "#353535", updatedOptions[1].Color)
 	})
 }
 
