@@ -272,6 +272,68 @@ func TestPatchCPAField(t *testing.T) {
 		require.Empty(t, updatedField.TargetType, "CPA should not allow to patch the field's target type")
 		require.Greater(t, updatedField.UpdateAt, createdField.UpdateAt)
 	})
+
+	t.Run("should preserve option IDs when patching select field options", func(t *testing.T) {
+		// Create a select field with options
+		selectField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Select Field",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{
+						"Name":  "Option 1",
+						"Color": "#111111",
+					},
+					map[string]any{
+						"Name":  "Option 2", 
+						"Color": "#222222",
+					},
+				},
+			},
+		}
+		createdSelectField, err := th.App.CreateCPAField(selectField)
+		require.Nil(t, err)
+
+		// Get the original option IDs
+		options := createdSelectField.Attrs["options"].(model.CustomProfileAttributesSelectOptions)
+		require.Len(t, options, 2)
+		originalID1 := options[0].ID
+		originalID2 := options[1].ID
+		require.NotEmpty(t, originalID1)
+		require.NotEmpty(t, originalID2)
+
+		// Patch the field with updated option names and colors
+		selectPatch := &model.PropertyFieldPatch{
+			Attrs: model.NewPointer(map[string]any{
+				"options": []any{
+					map[string]any{
+						"ID":    originalID1,
+						"Name":  "Updated Option 1",
+						"Color": "#333333",
+					},
+					map[string]any{
+						"ID":    originalID2,
+						"Name":  "Updated Option 2",
+						"Color": "#444444", 
+					},
+				},
+			}),
+		}
+
+		updatedSelectField, err := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
+		require.Nil(t, err)
+
+		// Verify the options were updated while preserving IDs
+		updatedOptions := updatedSelectField.Attrs["options"].(model.CustomProfileAttributesSelectOptions)
+		require.Len(t, updatedOptions, 2)
+		require.Equal(t, originalID1, updatedOptions[0].ID)
+		require.Equal(t, "Updated Option 1", updatedOptions[0].Name)
+		require.Equal(t, "#333333", updatedOptions[0].Color)
+		require.Equal(t, originalID2, updatedOptions[1].ID)
+		require.Equal(t, "Updated Option 2", updatedOptions[1].Name)
+		require.Equal(t, "#444444", updatedOptions[1].Color)
+	})
 }
 
 func TestDeleteCPAField(t *testing.T) {
