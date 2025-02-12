@@ -22,7 +22,7 @@
     "@tippyjs/react": "4.2.6",
     "@types/color-hash": "1.0.2",
     "@types/turndown": "5.0.5",
-    "bootstrap": "3.4.1",
+    "bootstrap": "4.0.0",
     "buffer": "6.0.3",
     "chart.js": "3.8.2",
     "classnames": "2.3.2",
