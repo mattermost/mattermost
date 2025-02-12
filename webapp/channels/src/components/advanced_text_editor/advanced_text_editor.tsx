@@ -55,6 +55,7 @@ import Constants, {
     AdvancedTextEditor as AdvancedTextEditorConst,
     UserStatuses,
     ModalIdentifiers,
+    AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
@@ -653,22 +654,22 @@ const AdvancedTextEditor = ({
 
     const messageValue = isDisabled ? '' : draft.message_source || draft.message;
 
-    let textboxId = 'textbox';
+    let textboxId = AdvancedTextEditorTextboxIds.Default;
 
     switch (location) {
     case Locations.CENTER:
-        textboxId = 'post_textbox';
+        textboxId = AdvancedTextEditorTextboxIds.InCenter;
         break;
     case Locations.RHS_COMMENT:
-        textboxId = 'reply_textbox';
+        textboxId = AdvancedTextEditorTextboxIds.InRHSComment;
         break;
     case Locations.MODAL:
-        textboxId = 'modal_textbox';
+        textboxId = AdvancedTextEditorTextboxIds.InModal;
         break;
     }
 
     if (isInEditMode) {
-        textboxId = 'edit_textbox';
+        textboxId = AdvancedTextEditorTextboxIds.InEditMode;
     }
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
