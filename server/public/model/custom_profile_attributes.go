@@ -63,13 +63,13 @@ func NewCustomProfileAttributesSelectOptionFromMap(m map[string]any) CustomProfi
 	name := ""
 	color := ""
 
-	if v, ok := m["name"]; ok {
+	if v, ok := m["Name"]; ok {
 		if vStr, ok := v.(string); ok {
 			name = vStr
 		}
 	}
 
-	if v, ok := m["color"]; ok {
+	if v, ok := m["Color"]; ok {
 		if vStr, ok := v.(string); ok {
 			color = vStr
 		}
