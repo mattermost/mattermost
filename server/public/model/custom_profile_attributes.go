@@ -35,7 +35,7 @@ type CustomProfileAttributesSelectOption struct {
 	Color string
 }
 
-func NewCustomProfileAttributeSelectOption(name, color string) CustomProfileAttributesSelectOption {
+func NewCustomProfileAttributesSelectOption(name, color string) CustomProfileAttributesSelectOption {
 	return CustomProfileAttributesSelectOption{
 		ID:    NewId(),
 		Name:  strings.TrimSpace(name),
