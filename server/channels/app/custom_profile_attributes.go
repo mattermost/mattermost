@@ -78,7 +78,7 @@ func (a *App) CreateCPAField(field *model.PropertyField) (*model.PropertyField, 
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	fieldCount, err := a.Srv().propertyService.CountPropertyFieldsForGroup(groupID)
+	fieldCount, err := a.Srv().propertyService.CountActivePropertyFieldsForGroup(groupID)
 	if err != nil {
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.count_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
