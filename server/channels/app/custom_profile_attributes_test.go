@@ -436,6 +436,162 @@ func TestPatchCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+func TestValidateCustomProfileAttributesField(t *testing.T) {
+	tests := []struct {
+		name          string
+		field         *model.PropertyField
+		expectError   bool
+		errorId       string
+		expectedAttrs map[string]interface{}
+	}{
+		{
+			name: "valid text field with no value type",
+			field: &model.PropertyField{
+				Type:  model.PropertyFieldTypeText,
+				Attrs: map[string]interface{}{},
+			},
+			expectError: false,
+			expectedAttrs: map[string]interface{}{
+				"visibility": "default",
+			},
+		},
+		{
+			name: "valid text field with valid value type and whitespace",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeText,
+				Attrs: map[string]interface{}{
+					model.CustomProfileAttributesPropertyAttrsValueType: " email ",
+				},
+			},
+			expectError: false,
+			expectedAttrs: map[string]interface{}{
+				"visibility": "default",
+				"value_type": "email",
+			},
+		},
+		{
+			name: "valid text field with visibility and whitespace",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeText,
+				Attrs: map[string]interface{}{
+					model.CustomProfileAttributesPropertyAttrsVisibility: " private ",
+				},
+			},
+			expectError: false,
+			expectedAttrs: map[string]interface{}{
+				"visibility": "private",
+			},
+		},
+		{
+			name: "invalid text field with invalid value type",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeText,
+				Attrs: map[string]interface{}{
+					model.CustomProfileAttributesPropertyAttrsValueType: "invalid_type",
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.unknown_value_type.app_error",
+		},
+		{
+			name: "valid select field with valid options",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: map[string]interface{}{
+					model.CustomProfileAttributesPropertyAttrsOptions: []interface{}{
+						map[string]interface{}{
+							"name":  "Option 1",
+							"value": "opt1",
+						},
+						map[string]interface{}{
+							"name":  "Option 2",
+							"value": "opt2",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: map[string]interface{}{
+				"visibility": "default",
+				"options": model.CustomProfileAttributesSelectOptions{
+					{Name: "Option 1", Value: "opt1"},
+					{Name: "Option 2", Value: "opt2"},
+				},
+			},
+		},
+		{
+			name: "invalid select field with duplicate option names",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: map[string]interface{}{
+					model.CustomProfileAttributesPropertyAttrsOptions: []interface{}{
+						map[string]interface{}{
+							"name":  "Option 1",
+							"value": "opt1",
+						},
+						map[string]interface{}{
+							"name":  "Option 1",
+							"value": "opt2",
+						},
+					},
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
+		},
+		{
+			name: "invalid select field with non-array options",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: map[string]interface{}{
+					model.CustomProfileAttributesPropertyAttrsOptions: "not an array",
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.not_array_options.app_error",
+		},
+		{
+			name: "invalid select field with invalid option format",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: map[string]interface{}{
+					model.CustomProfileAttributesPropertyAttrsOptions: []interface{}{
+						"not a map",
+					},
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.not_map_option.app_error",
+		},
+		{
+			name: "invalid field with unknown visibility",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeText,
+				Attrs: map[string]interface{}{
+					model.CustomProfileAttributesPropertyAttrsVisibility: "unknown",
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.unknown_visibility.app_error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateCustomProfileAttributesField(tt.field)
+			if tt.expectError {
+				assert.NotNil(t, err)
+				assert.Equal(t, tt.errorId, err.Id)
+			} else {
+				assert.Nil(t, err)
+				if tt.expectedAttrs != nil {
+					assert.Equal(t, tt.expectedAttrs, tt.field.Attrs)
+				}
+			}
+		})
+	}
+}
+
 	cpaGroupID, cErr := th.App.cpaGroupID()
 	require.NoError(t, cErr)
 
