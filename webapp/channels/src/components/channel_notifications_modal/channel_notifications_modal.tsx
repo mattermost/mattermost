@@ -240,22 +240,22 @@ export default function ChannelNotificationsModal(props: Props) {
                         handleChange={(e) => handleChange({push: e.target.value})}
                     />
                     {props.collapsedReplyThreads && settings.push === 'mention' &&
-                    <CheckboxSettingItem
-                        dataTestId='mobile-reply-threads-checkbox-section'
-                        title={formatMessage({
-                            id: 'channel_notifications.ThreadsReplyTitle',
-                            defaultMessage: 'Thread reply notifications',
-                        })}
-                        inputFieldTitle={
-                            <FormattedMessage
-                                id='channel_notifications.checkbox.threadsReplyTitle'
-                                defaultMessage="Notify me about replies to threads I\'m following"
-                            />
-                        }
-                        inputFieldValue={settings.push_threads === 'all'}
-                        inputFieldData={utils.MobileReplyThreadsInputFieldData}
-                        handleChange={(e) => handleChange({push_threads: e ? 'all' : 'mention'})}
-                    />}
+                        <CheckboxSettingItem
+                            dataTestId='mobile-reply-threads-checkbox-section'
+                            title={formatMessage({
+                                id: 'channel_notifications.ThreadsReplyTitle',
+                                defaultMessage: 'Thread reply notifications',
+                            })}
+                            inputFieldTitle={
+                                <FormattedMessage
+                                    id='channel_notifications.checkbox.threadsReplyTitle'
+                                    defaultMessage="Notify me about replies to threads I\'m following"
+                                />
+                            }
+                            inputFieldValue={settings.push_threads === 'all'}
+                            inputFieldData={utils.MobileReplyThreadsInputFieldData}
+                            handleChange={(e) => handleChange({push_threads: e ? 'all' : 'mention'})}
+                        />}
                 </>
             )}
         </>
