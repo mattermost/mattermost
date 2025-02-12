@@ -1450,7 +1450,7 @@ export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEve
     id === AdvancedTextEditorTextboxIds.InRHSComment ||
     id === AdvancedTextEditorTextboxIds.InEditMode;
 
-    if (!isTypingInValidTextbox) {
+    if (isTypingInValidTextbox === false) {
         return false;
     }
 
