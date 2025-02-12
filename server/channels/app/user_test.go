@@ -2306,7 +2306,7 @@ func TestCreateUserOrGuest(t *testing.T) {
 		defer th.TearDown()
 
 		id := NewTestId()
-		userCreationMocks(t, th, id, 11000)
+		userCreationMocks(t, th, id, 5000)
 
 		user := &model.User{
 			Email:         "TestCreateUserOrGuest@example.com",
