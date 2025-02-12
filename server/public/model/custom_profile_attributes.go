@@ -5,6 +5,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -111,13 +112,13 @@ func (c CustomProfileAttributesSelectOptions) IsValid() error {
 	}
 
 	seenNames := make(map[string]struct{})
-	for _, option := range c {
+	for i, option := range c {
 		if err := option.IsValid(); err != nil {
-			return err
+			return fmt.Errorf("invalid option at index %d: %w", i, err)
 		}
 
 		if _, exists := seenNames[option.Name]; exists {
-			return errors.New("duplicate option name found")
+			return fmt.Errorf("duplicate option name found at index %d: %s", i, option.Name)
 		}
 		seenNames[option.Name] = struct{}{}
 	}

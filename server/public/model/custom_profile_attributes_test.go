@@ -49,7 +49,7 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 				Name:  "Test Option",
 				Color: "#FF0000",
 			},
-			wantErr: "id cannot be empty",
+			wantErr: "invalid option at index 1: id cannot be empty",
 		},
 		{
 			name: "invalid ID",
@@ -149,7 +149,7 @@ func TestCustomProfileAttributesSelectOptionsIsValid(t *testing.T) {
 					Color: "#00FF00",
 				},
 			},
-			wantErr: "duplicate option name found",
+			wantErr: "duplicate option name found at index 1: Option 1",
 		},
 	}
 
