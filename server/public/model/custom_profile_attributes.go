@@ -98,8 +98,8 @@ func NewCustomProfileAttributesSelectOptionFromMap(m map[string]any) CustomProfi
 }
 
 func NewCustomProfileAttributesSelectOption(id, name, color string) CustomProfileAttributesSelectOption {
-	optionID := id
-	if optionID == "" {
+	optionID := strings.TrimSpace(id)
+	if optionID == "" || !IsValidId(optionID) {
 		optionID = NewId()
 	}
 

@@ -34,6 +34,25 @@ func TestNewCustomProfileAttributeSelectOption(t *testing.T) {
 		assert.Equal(t, "Test Option", option.Name)
 		assert.Equal(t, "#FF0000", option.Color)
 	})
+
+	t.Run("generates new ID when provided ID is invalid", func(t *testing.T) {
+		invalidID := "invalid-id-format"
+		option := NewCustomProfileAttributesSelectOption(invalidID, "Test Option", "#FF0000")
+
+		assert.NotEqual(t, invalidID, option.ID)
+		assert.True(t, IsValidId(option.ID))
+		assert.Equal(t, "Test Option", option.Name)
+		assert.Equal(t, "#FF0000", option.Color)
+	})
+
+	t.Run("trims spaces from ID", func(t *testing.T) {
+		validID := NewId()
+		option := NewCustomProfileAttributesSelectOption("  "+validID+"  ", "Test Option", "#FF0000")
+
+		assert.Equal(t, validID, option.ID)
+		assert.Equal(t, "Test Option", option.Name)
+		assert.Equal(t, "#FF0000", option.Color)
+	})
 }
 
 func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
