@@ -92,6 +92,89 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 	}
 }
 
+func TestNewCustomProfileAttributesSelectOptionFromMap(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    map[string]any
+		expected CustomProfileAttributesSelectOption
+	}{
+		{
+			name: "title case keys",
+			input: map[string]any{
+				"Name":  "Test Option",
+				"Color": "#FF0000",
+			},
+			expected: CustomProfileAttributesSelectOption{
+				Name:  "Test Option",
+				Color: "#FF0000",
+			},
+		},
+		{
+			name: "lower case keys",
+			input: map[string]any{
+				"name":  "Test Option",
+				"color": "#FF0000",
+			},
+			expected: CustomProfileAttributesSelectOption{
+				Name:  "Test Option",
+				Color: "#FF0000",
+			},
+		},
+		{
+			name: "mixed case keys",
+			input: map[string]any{
+				"Name":  "Test Option",
+				"color": "#FF0000",
+			},
+			expected: CustomProfileAttributesSelectOption{
+				Name:  "Test Option",
+				Color: "#FF0000",
+			},
+		},
+		{
+			name: "with spaces to trim",
+			input: map[string]any{
+				"name":  "  Test Option  ",
+				"color": "  #FF0000  ",
+			},
+			expected: CustomProfileAttributesSelectOption{
+				Name:  "Test Option",
+				Color: "#FF0000",
+			},
+		},
+		{
+			name: "with non-string values",
+			input: map[string]any{
+				"name":  123,
+				"color": true,
+			},
+			expected: CustomProfileAttributesSelectOption{
+				Name:  "",
+				Color: "",
+			},
+		},
+		{
+			name:  "empty map",
+			input: map[string]any{},
+			expected: CustomProfileAttributesSelectOption{
+				Name:  "",
+				Color: "",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := NewCustomProfileAttributesSelectOptionFromMap(tt.input)
+			// Don't compare IDs since they are randomly generated
+			assert.Equal(t, tt.expected.Name, result.Name)
+			assert.Equal(t, tt.expected.Color, result.Color)
+			// Verify ID is valid
+			assert.True(t, IsValidId(result.ID))
+		})
+	}
+}
+
 func TestCustomProfileAttributesSelectOptionsIsValid(t *testing.T) {
 	tests := []struct {
 		name    string
