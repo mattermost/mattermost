@@ -259,11 +259,11 @@ func validateCustomProfileAttributesField(field *model.PropertyField) *model.App
 		if valueType, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsValueType]; ok {
 			valueTypeStr, ok := valueType.(string)
 			if !ok {
-				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.not_string_value_type.app_error", nil, "", http.StatusUnprocessableEntity)
+				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.not_string_value_type.app_error", nil, "", http.StatusUnprocessableEntity)
 			}
 			valueTypeStr = strings.TrimSpace(valueTypeStr)
 			if !model.IsKnownCustomProfilteAttributesValueType(valueTypeStr) {
-				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"ValueType": valueTypeStr}, "", http.StatusUnprocessableEntity)
+				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"ValueType": valueTypeStr}, "", http.StatusUnprocessableEntity)
 			}
 
 			field.Attrs[model.CustomProfileAttributesPropertyAttrsValueType] = valueTypeStr
@@ -274,18 +274,18 @@ func validateCustomProfileAttributesField(field *model.PropertyField) *model.App
 			var finalOptions model.CustomProfileAttributesSelectOptions
 			optionsArr, ok := options.([]any)
 			if !ok {
-				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.not_array_options.app_error", nil, "", http.StatusUnprocessableEntity)
+				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.not_array_options.app_error", nil, "", http.StatusUnprocessableEntity)
 			}
 			for i, option := range optionsArr {
 				optionMap, ok := option.(map[string]any)
 				if !ok {
-					return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.not_map_option.app_error", map[string]any{"Index": i}, "", http.StatusUnprocessableEntity)
+					return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.not_map_option.app_error", map[string]any{"Index": i}, "", http.StatusUnprocessableEntity)
 				}
 				option := model.NewCustomProfileAttributesSelectOptionFromMap(optionMap)
 				finalOptions = append(finalOptions, option)
 			}
 			if err := finalOptions.IsValid(); err != nil {
-				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
+				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 			}
 			field.Attrs[model.CustomProfileAttributesPropertyAttrsOptions] = finalOptions
 		}
@@ -296,7 +296,7 @@ func validateCustomProfileAttributesField(field *model.PropertyField) *model.App
 		if visibilityStr, ok := visibilityAttr.(string); ok {
 			visibilityStr = strings.TrimSpace(visibilityStr)
 			if !model.IsKnownCustomProfilteAttributesVisibility(visibilityStr) {
-				return model.NewAppError("CreateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"Visibility": visibilityStr}, "", http.StatusUnprocessableEntity)
+				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"Visibility": visibilityStr}, "", http.StatusUnprocessableEntity)
 			}
 			visibility = visibilityStr
 		}
