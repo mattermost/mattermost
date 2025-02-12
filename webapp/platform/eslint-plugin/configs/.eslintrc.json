@@ -1,7 +1,8 @@
 {
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/stylistic"
   ],
   "parserOptions": {
     "ecmaVersion": 8,
@@ -15,6 +16,7 @@
   "parser": "@typescript-eslint/parser",
   "plugins": [
     "@mattermost",
+    "@stylistic/ts",
     "@typescript-eslint",
     "header",
     "import"
@@ -28,18 +30,19 @@
   "rules": {
     "@mattermost/no-dispatch-getstate": 2,
     "@mattermost/use-external-link": 2,
-    "@typescript-eslint/array-type": [2, {"default": "array-simple"}],
-    "@typescript-eslint/consistent-type-imports": ["error", {"disallowTypeAnnotations": false}],
-    "@typescript-eslint/explicit-function-return-type": 0,
-    "@typescript-eslint/explicit-module-boundary-types": 0,
-    "@typescript-eslint/indent": [
+    "@stylistic/ts/indent": [
       2,
       4,
       {
         "SwitchCase": 0
       }
     ],
-    "@typescript-eslint/member-delimiter-style": 2,
+    "@stylistic/ts/member-delimiter-style": 2,
+    "@stylistic/ts/type-annotation-spacing": 2,
+    "@typescript-eslint/array-type": [2, {"default": "array-simple"}],
+    "@typescript-eslint/consistent-type-imports": ["error", {"disallowTypeAnnotations": false}],
+    "@typescript-eslint/explicit-function-return-type": 0,
+    "@typescript-eslint/explicit-module-boundary-types": 0,
     "@typescript-eslint/naming-convention": [
       2,
       {
@@ -79,7 +82,6 @@
       }
     ],
     "@typescript-eslint/no-var-requires": 0,
-    "@typescript-eslint/type-annotation-spacing": 2,
     "array-bracket-spacing": [
       2,
       "never"

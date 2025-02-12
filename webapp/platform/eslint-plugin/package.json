@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/eslint-plugin",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "ESLint configuration and custom rules used by Mattermost",
   "repository": {
     "type": "git",
@@ -12,8 +12,9 @@
   "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/eslint-plugin#readme",
   "main": "index.js",
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.1.0",
-    "@typescript-eslint/parser": "^7.1.0",
+    "@stylistic/eslint-plugin-ts": "^3.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
     "eslint-plugin-header": "^3.1.1",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.7.1",
