@@ -66,17 +66,17 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 type CustomProfileAttributesSelectOptions []CustomProfileAttributesSelectOption
 
 func (c CustomProfileAttributesSelectOptions) IsValid() error {
-	seenNames := make(map[string]bool)
+	seenNames := make(map[string]struct{})
 
 	for _, option := range c {
 		if err := option.IsValid(); err != nil {
 			return err
 		}
 
-		if seenNames[option.Name] {
+		if _, exists := seenNames[option.Name]; exists {
 			return errors.New("duplicate option name found")
 		}
-		seenNames[option.Name] = true
+		seenNames[option.Name] = struct{}{}
 	}
 
 	return nil
