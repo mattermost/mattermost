@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -67,6 +68,10 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	sort.Slice(fields, func(i, j int) bool {
+		return model.CustomProfileAttributesPropertySortOrder(fields[i]) < model.CustomProfileAttributesPropertySortOrder(fields[j])
+	})
 
 	return fields, nil
 }
