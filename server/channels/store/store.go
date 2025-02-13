@@ -1090,7 +1090,7 @@ type PropertyFieldStore interface {
 	Get(id string) (*model.PropertyField, error)
 	GetMany(ids []string) ([]*model.PropertyField, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
-	Update(field []*model.PropertyField) ([]*model.PropertyField, error)
+	Update(fields []*model.PropertyField) ([]*model.PropertyField, error)
 	Delete(id string) error
 }
 
@@ -1099,7 +1099,8 @@ type PropertyValueStore interface {
 	Get(id string) (*model.PropertyValue, error)
 	GetMany(ids []string) ([]*model.PropertyValue, error)
 	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
-	Update(field []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Update(values []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(id string) error
 	DeleteForField(id string) error
 }
