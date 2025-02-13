@@ -4,6 +4,7 @@
 package model
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 )
@@ -71,12 +72,12 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	if !(pf.Type == PropertyFieldTypeText ||
-		pf.Type == PropertyFieldTypeSelect ||
-		pf.Type == PropertyFieldTypeMultiselect ||
-		pf.Type == PropertyFieldTypeDate ||
-		pf.Type == PropertyFieldTypeUser ||
-		pf.Type == PropertyFieldTypeMultiuser) {
+	if pf.Type != PropertyFieldTypeText &&
+		pf.Type != PropertyFieldTypeSelect &&
+		pf.Type != PropertyFieldTypeMultiselect &&
+		pf.Type != PropertyFieldTypeDate &&
+		pf.Type != PropertyFieldTypeUser &&
+		pf.Type != PropertyFieldTypeMultiuser {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
@@ -141,11 +142,35 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
 	}
 }
 
+type PropertyFieldSearchCursor struct {
+	PropertyFieldID string
+	CreateAt        int64
+}
+
+func (p PropertyFieldSearchCursor) IsEmpty() bool {
+	return p.PropertyFieldID == "" && p.CreateAt == 0
+}
+
+func (p PropertyFieldSearchCursor) IsValid() error {
+	if p.IsEmpty() {
+		return nil
+	}
+
+	if p.CreateAt <= 0 {
+		return errors.New("create at cannot be negative or zero")
+	}
+
+	if !IsValidId(p.PropertyFieldID) {
+		return errors.New("property field id is invalid")
+	}
+	return nil
+}
+
 type PropertyFieldSearchOpts struct {
 	GroupID        string
 	TargetType     string
 	TargetID       string
 	IncludeDeleted bool
-	Page           int
+	Cursor         PropertyFieldSearchCursor
 	PerPage        int
 }
