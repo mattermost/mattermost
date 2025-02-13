@@ -152,9 +152,9 @@ func (_m *PropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearc
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: field
-func (_m *PropertyFieldStore) Update(field []*model.PropertyField) ([]*model.PropertyField, error) {
-	ret := _m.Called(field)
+// Update provides a mock function with given fields: fields
+func (_m *PropertyFieldStore) Update(fields []*model.PropertyField) ([]*model.PropertyField, error) {
+	ret := _m.Called(fields)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -163,10 +163,10 @@ func (_m *PropertyFieldStore) Update(field []*model.PropertyField) ([]*model.Pro
 	var r0 []*model.PropertyField
 	var r1 error
 	if rf, ok := ret.Get(0).(func([]*model.PropertyField) ([]*model.PropertyField, error)); ok {
-		return rf(field)
+		return rf(fields)
 	}
 	if rf, ok := ret.Get(0).(func([]*model.PropertyField) []*model.PropertyField); ok {
-		r0 = rf(field)
+		r0 = rf(fields)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyField)
@@ -174,7 +174,7 @@ func (_m *PropertyFieldStore) Update(field []*model.PropertyField) ([]*model.Pro
 	}
 
 	if rf, ok := ret.Get(1).(func([]*model.PropertyField) error); ok {
-		r1 = rf(field)
+		r1 = rf(fields)
 	} else {
 		r1 = ret.Error(1)
 	}
