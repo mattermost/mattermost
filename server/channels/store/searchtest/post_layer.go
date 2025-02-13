@@ -366,6 +366,10 @@ func testSearchANDORQuotesCombinations(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 	p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "one five six", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
+	p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "great minds think", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	p5, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "mindful of what you think", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
 
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -445,6 +449,34 @@ func testSearchANDORQuotesCombinations(t *testing.T, th *SearchTestHelper) {
 			orTerms:     true,
 			expectedLen: 2,
 			expectedIDs: []string{p1.Id, p2.Id},
+		},
+		{
+			name:        "simple search, no stemming",
+			terms:       `"minds think"`,
+			orTerms:     false,
+			expectedLen: 1,
+			expectedIDs: []string{p4.Id},
+		},
+		{
+			name:        "simple search, single word, no stemming",
+			terms:       `"minds"`,
+			orTerms:     false,
+			expectedLen: 1,
+			expectedIDs: []string{p4.Id},
+		},
+		{
+			name:        "non-simple search, stemming",
+			terms:       `minds think`,
+			orTerms:     true,
+			expectedLen: 2,
+			expectedIDs: []string{p4.Id, p5.Id},
+		},
+		{
+			name:        "simple search, no stemming, no results",
+			terms:       `"mind"`,
+			orTerms:     false,
+			expectedLen: 0,
+			expectedIDs: []string{},
 		},
 	}
 
