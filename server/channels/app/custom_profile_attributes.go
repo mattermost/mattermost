@@ -12,7 +12,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-const CustomProfileAttributesFieldLimit = 20
+const (
+	CustomProfileAttributesFieldLimit = 20
+)
 
 var cpaGroupID string
 
@@ -58,7 +60,6 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 
 	opts := model.PropertyFieldSearchOpts{
 		GroupID: groupID,
-		Page:    0,
 		PerPage: CustomProfileAttributesFieldLimit,
 	}
 
@@ -76,12 +77,12 @@ func (a *App) CreateCPAField(field *model.PropertyField) (*model.PropertyField, 
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	existingFields, appErr := a.ListCPAFields()
-	if appErr != nil {
-		return nil, appErr
+	fieldCount, err := a.Srv().propertyService.CountActivePropertyFieldsForGroup(groupID)
+	if err != nil {
+		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.count_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if len(existingFields) >= CustomProfileAttributesFieldLimit {
+	if fieldCount >= CustomProfileAttributesFieldLimit {
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.limit_reached.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 	}
 
@@ -171,19 +172,16 @@ func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppEr
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	opts := model.PropertyValueSearchOpts{
-		GroupID:        groupID,
-		TargetID:       userID,
-		Page:           0,
-		PerPage:        999999,
-		IncludeDeleted: false,
-	}
-	fields, err := a.Srv().propertyService.SearchPropertyValues(opts)
+	values, err := a.Srv().propertyService.SearchPropertyValues(model.PropertyValueSearchOpts{
+		GroupID:  groupID,
+		TargetID: userID,
+		PerPage:  CustomProfileAttributesFieldLimit,
+	})
 	if err != nil {
 		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return fields, nil
+	return values, nil
 }
 
 func (a *App) GetCPAValue(valueID string) (*model.PropertyValue, *model.AppError) {
