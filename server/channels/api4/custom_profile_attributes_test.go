@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
@@ -54,6 +55,8 @@ func TestCreateCPAField(t *testing.T) {
 	}, "an invalid field should be rejected")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
 		name := model.NewId()
 		field := &model.PropertyField{
 			Name:  fmt.Sprintf("  %s\t", name), // name should be sanitized
@@ -67,6 +70,27 @@ func TestCreateCPAField(t *testing.T) {
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, name, createdField.Name)
 		require.Equal(t, "when_set", createdField.Attrs["visibility"])
+
+		t.Run("a websocket event should be fired as part of the field creation", func(t *testing.T) {
+			var wsField model.PropertyField
+			require.Eventually(t, func() bool {
+				select {
+				case event := <-webSocketClient.EventChannel:
+					if event.EventType() == model.WebsocketEventCPAFieldCreated {
+						fieldData, err := json.Marshal(event.GetData()["field"])
+						require.NoError(t, err)
+						require.NoError(t, json.Unmarshal(fieldData, &wsField))
+						return true
+					}
+				default:
+					return false
+				}
+				return false
+			}, 5*time.Second, 100*time.Millisecond)
+
+			require.NotEmpty(t, wsField.ID)
+			require.Equal(t, createdField, &wsField)
+		})
 	}, "a user with admin permissions should be able to create the field")
 }
 
@@ -149,6 +173,8 @@ func TestPatchCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
 		field := &model.PropertyField{
 			Name: model.NewId(),
 			Type: model.PropertyFieldTypeText,
@@ -163,6 +189,27 @@ func TestPatchCPAField(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.Equal(t, newName, patchedField.Name)
+
+		t.Run("a websocket event should be fired as part of the field patch", func(t *testing.T) {
+			var wsField model.PropertyField
+			require.Eventually(t, func() bool {
+				select {
+				case event := <-webSocketClient.EventChannel:
+					if event.EventType() == model.WebsocketEventCPAFieldUpdated {
+						fieldData, err := json.Marshal(event.GetData()["field"])
+						require.NoError(t, err)
+						require.NoError(t, json.Unmarshal(fieldData, &wsField))
+						return true
+					}
+				default:
+					return false
+				}
+				return false
+			}, 5*time.Second, 100*time.Millisecond)
+
+			require.NotEmpty(t, wsField.ID)
+			require.Equal(t, patchedField, &wsField)
+		})
 	}, "a user with admin permissions should be able to patch the field")
 }
 
@@ -197,6 +244,8 @@ func TestDeleteCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
 		field := &model.PropertyField{
 			Name: model.NewId(),
 			Type: model.PropertyFieldTypeText,
@@ -213,6 +262,26 @@ func TestDeleteCPAField(t *testing.T) {
 		deletedField, appErr := th.App.GetCPAField(createdField.ID)
 		require.Nil(t, appErr)
 		require.NotZero(t, deletedField.DeleteAt)
+
+		t.Run("a websocket event should be fired as part of the field deletion", func(t *testing.T) {
+			var fieldID string
+			require.Eventually(t, func() bool {
+				select {
+				case event := <-webSocketClient.EventChannel:
+					if event.EventType() == model.WebsocketEventCPAFieldDeleted {
+						var ok bool
+						fieldID, ok = event.GetData()["field_id"].(string)
+						require.True(t, ok)
+						return true
+					}
+				default:
+					return false
+				}
+				return false
+			}, 5*time.Second, 100*time.Millisecond)
+
+			require.Equal(t, createdField.ID, fieldID)
+		})
 	}, "a user with admin permissions should be able to delete the field")
 }
 
@@ -470,6 +539,8 @@ func TestPatchCPAValues(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("any team member should be able to create their own values", func(t *testing.T) {
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
 		values := map[string]json.RawMessage{}
 		value := "Field Value"
 		values[createdField.ID] = json.RawMessage(fmt.Sprintf(`"  %s "`, value)) // value should be sanitized
@@ -490,6 +561,27 @@ func TestPatchCPAValues(t *testing.T) {
 		actualValue = ""
 		require.NoError(t, json.Unmarshal(values[createdField.ID], &actualValue))
 		require.Equal(t, value, actualValue)
+
+		t.Run("a websocket event should be fired as part of the value changes", func(t *testing.T) {
+			var wsValues map[string]json.RawMessage
+			require.Eventually(t, func() bool {
+				select {
+				case event := <-webSocketClient.EventChannel:
+					if event.EventType() == model.WebsocketEventCPAValuesUpdated {
+						valuesData, err := json.Marshal(event.GetData()["values"])
+						require.NoError(t, err)
+						require.NoError(t, json.Unmarshal(valuesData, &wsValues))
+						return true
+					}
+				default:
+					return false
+				}
+				return false
+			}, 5*time.Second, 100*time.Millisecond)
+
+			require.NotEmpty(t, wsValues)
+			require.Equal(t, patchedValues, wsValues)
+		})
 	})
 
 	t.Run("any team member should be able to patch their own values", func(t *testing.T) {

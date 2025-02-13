@@ -5007,6 +5007,10 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Unable to count the number of fields for the custom profile attribute group"
+  },
+  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Cannot register Custom Profile Attributes property group"
   },
@@ -5055,16 +5059,8 @@
     "translation": "Unable to update Custom Profile Attribute field"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Cannot create property value"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Unable to retrieve property values"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Cannot update property value"
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Unable to upsert Custom Profile Attribute fields"
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
@@ -9105,6 +9101,14 @@
     "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set."
   },
   {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Invalid client side user id: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Number of elements in ClientSideUserIds {{.CurrentLength}} is higher than maximum limit of {{.MaxLength}}."
+  },
+  {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
   },
@@ -9454,7 +9458,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Invalid Id."
+    "translation": "Invalid Id: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
