@@ -5,7 +5,6 @@ package web
 
 import (
 	"net/http"
-	"path"
 	"regexp"
 	"strings"
 

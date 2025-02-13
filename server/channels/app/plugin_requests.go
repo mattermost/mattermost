@@ -151,16 +151,17 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	app := New(ServerConnector(ch))
 	rctx := request.EmptyContext(ch.srv.Log()).WithPath(r.URL.Path)
 
+	// The appErr is later used at L175.
 	session, appErr := app.GetSession(token)
 	if session != nil {
 		rctx = rctx.WithSession(session)
 	}
 
-	if appErr := app.MFARequired(rctx); appErr != nil {
+	if mfaAppErr := app.MFARequired(rctx); mfaAppErr != nil {
 		pluginID := mux.Vars(r)["plugin_id"]
 		ch.srv.Log().Warn("MFA authentication failed for plugin request",
 			mlog.String("plugin_id", pluginID),
-			mlog.Err(appErr),
+			mlog.Err(mfaAppErr),
 		)
 		token = ""
 	}
