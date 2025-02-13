@@ -111,10 +111,6 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 		return errors.New("name cannot be empty")
 	}
 
-	if c.Color == "" {
-		return errors.New("color cannot be empty")
-	}
-
 	return nil
 }
 

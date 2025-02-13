@@ -52,11 +52,19 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: "valid option",
+			name: "valid option with color",
 			option: CustomProfileAttributesSelectOption{
 				ID:    NewId(),
 				Name:  "Test Option",
 				Color: "#FF0000",
+			},
+			wantErr: "",
+		},
+		{
+			name: "valid option without color",
+			option: CustomProfileAttributesSelectOption{
+				ID:    NewId(),
+				Name:  "Test Option",
 			},
 			wantErr: "",
 		},
@@ -86,15 +94,6 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 				Color: "#FF0000",
 			},
 			wantErr: "name cannot be empty",
-		},
-		{
-			name: "empty color",
-			option: CustomProfileAttributesSelectOption{
-				ID:    NewId(),
-				Name:  "Test Option",
-				Color: "",
-			},
-			wantErr: "color cannot be empty",
 		},
 	}
 
@@ -200,7 +199,7 @@ func TestCustomProfileAttributesSelectOptionsIsValid(t *testing.T) {
 			wantErr: "options list cannot be empty",
 		},
 		{
-			name: "valid options",
+			name: "valid options with and without color",
 			options: CustomProfileAttributesSelectOptions{
 				{
 					ID:    NewId(),
@@ -210,7 +209,6 @@ func TestCustomProfileAttributesSelectOptionsIsValid(t *testing.T) {
 				{
 					ID:    NewId(),
 					Name:  "Option 2",
-					Color: "#00FF00",
 				},
 			},
 			wantErr: "",
@@ -226,7 +224,6 @@ func TestCustomProfileAttributesSelectOptionsIsValid(t *testing.T) {
 				{
 					ID:    "",
 					Name:  "Option 2",
-					Color: "#00FF00",
 				},
 			},
 			wantErr: "invalid option at index 1: id cannot be empty",
