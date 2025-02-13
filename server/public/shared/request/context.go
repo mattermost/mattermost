@@ -67,10 +67,6 @@ func (c *Context) GetT() i18n.TranslateFunc {
 	return c.t
 }
 func (c *Context) Session() *model.Session {
-	if c.session.IsValid() != nil {
-		return nil
-	}
-
 	return &c.session
 }
 func (c *Context) RequestId() string {

@@ -165,8 +165,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
 		}
-		// if there is a session then include the user_id
-		if c.AppContext.Session() != nil {
+		// if there is a valid session then include the user_id
+		if err := c.AppContext.Session().IsValid(); err == nil {
 			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
 		}
 
