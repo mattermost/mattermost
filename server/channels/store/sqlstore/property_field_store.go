@@ -78,9 +78,26 @@ func (s *SqlPropertyFieldStore) GetMany(ids []string) ([]*model.PropertyField, e
 	return fields, nil
 }
 
+func (s *SqlPropertyFieldStore) CountForGroup(groupID string, includeDeleted bool) (int64, error) {
+	var count int64
+	builder := s.getQueryBuilder().
+		Select("COUNT(id)").
+		From("PropertyFields").
+		Where(sq.Eq{"GroupID": groupID})
+
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
+		return int64(0), errors.Wrap(err, "failed to count Sessions")
+	}
+	return count, nil
+}
+
 func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	if opts.Page < 0 {
-		return nil, errors.New("page must be positive integer")
+	if err := opts.Cursor.IsValid(); err != nil {
+		return nil, fmt.Errorf("cursor is invalid: %w", err)
 	}
 
 	if opts.PerPage < 1 {
@@ -88,9 +105,18 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 	}
 
 	builder := s.tableSelectQuery.
-		OrderBy("CreateAt ASC").
-		Offset(uint64(opts.Page * opts.PerPage)).
+		OrderBy("CreateAt ASC, Id ASC").
 		Limit(uint64(opts.PerPage))
+
+	if !opts.Cursor.IsEmpty() {
+		builder = builder.Where(sq.Or{
+			sq.Gt{"CreateAt": opts.Cursor.CreateAt},
+			sq.And{
+				sq.Eq{"CreateAt": opts.Cursor.CreateAt},
+				sq.Gt{"Id": opts.Cursor.PropertyFieldID},
+			},
+		})
+	}
 
 	if !opts.IncludeDeleted {
 		builder = builder.Where(sq.Eq{"DeleteAt": 0})

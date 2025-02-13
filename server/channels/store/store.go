@@ -1089,6 +1089,7 @@ type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
 	Get(id string) (*model.PropertyField, error)
 	GetMany(ids []string) ([]*model.PropertyField, error)
+	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(fields []*model.PropertyField) ([]*model.PropertyField, error)
 	Delete(id string) error
