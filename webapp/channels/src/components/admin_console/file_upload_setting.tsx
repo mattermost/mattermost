@@ -40,6 +40,10 @@ export default class FileUploadSetting extends React.PureComponent<Props, State>
         };
     }
 
+    handleChooseClick = () => {
+        this.fileInputRef.current?.click();
+    };
+
     handleChange = () => {
         const files = this.fileInputRef.current?.files;
         if (files && files.length > 0) {
@@ -92,6 +96,7 @@ export default class FileUploadSetting extends React.PureComponent<Props, State>
                             type='button'
                             className='btn btn-tertiary'
                             disabled={this.props.disabled}
+                            onClick={this.handleChooseClick}
                         >
                             <FormattedMessage
                                 id='admin.file_upload.chooseFile'
