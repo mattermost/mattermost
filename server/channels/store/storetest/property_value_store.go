@@ -463,7 +463,6 @@ func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		// Verify the invalid value was not inserted
 		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
 			TargetID: invalidValue.TargetID,
-			Page:     0,
 			PerPage:  10,
 		})
 		require.NoError(t, err)
