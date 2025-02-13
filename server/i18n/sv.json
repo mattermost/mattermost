@@ -9734,10 +9734,6 @@
     "translation": "\"Update at\" måste vara en giltig tid."
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Ditt Elasticsearch-indexschema för kanaler är föråldrat. En omindexering av kanal-index rekommenderas.\nKlicka på knappen `Rebuild Channels Index` i [Elasticsearch-avsnittet i systemkonsolen] ({{.ElasticsearchSection}}) för att åtgärda problemet.\nSe Mattermost changelog för mer information."
-  },
-  {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
     "translation": "Autokomplettering av kanaler kan inte aktiveras eftersom indexschemat för kanaler är föråldrat. Vi rekommenderar att du omindexerar ditt kanalindex. Se Mattermost changelog för mer information"
   },
@@ -10390,5 +10386,13 @@
   {
     "id": "app.custom_profile_attributes.property_value_list.app_error",
     "translation": "Det går inte att hämta värden för egenskaper"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Din licens tillåter inte anpassade profil-attribut."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Kunde inte använda en zip-filsläsare."
   }
 ]

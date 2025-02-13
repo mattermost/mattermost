@@ -12,7 +12,6 @@ import {ServiceEnvironment} from '@mattermost/types/config';
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
-import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import {Preferences} from 'mattermost-redux/constants';
 
 import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
@@ -36,6 +35,7 @@ import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
+import {rudderAnalytics, RudderTelemetryHandler} from 'utils/rudder';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
 import {applyTheme, isTextDroppableEvent} from 'utils/utils';

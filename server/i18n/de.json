@@ -9738,10 +9738,6 @@
     "translation": "Die automatische Vervollständigung von Kanälen kann nicht aktiviert werden, da das Schema des Kanal-Index veraltet ist. Es wird empfohlen, den Kanal-Index neu zu erstellen. Weitere Informationen findest du im Mattermost Changelog"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Das Indexschema deines Suchkanals ist nicht mehr aktuell. Wir empfehlen dir, deinen Kanalindex neu zu erstellen.\nKlicke auf die Schaltfläche \"Index der Kanäle neu erstellen\" auf der [Elasticsearch-Seite über die Systemkonsole] ({{.ElasticsearchSection}}), um dieses Problem zu beheben.\nWeitere Informationen findest du im Mattermost Changelog."
-  },
-  {
     "id": "bleveengine.purge_list.not_implemented",
     "translation": "Die Funktion Bereinigungsliste ist für Bleve nicht verfügbar."
   },
@@ -10390,5 +10386,17 @@
   {
     "id": "model.property_value.is_valid.app_error",
     "translation": "Ungültiger Eigenschaftswert: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Deine Lizenz unterstützt keine benutzerdefinierten Profilattribute."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Es ist nicht möglich, einen Zip-Datei-Leser zu bekommen."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Kommando kann nicht in einem gelöschten Kanal ausgeführt werden."
   }
 ]
