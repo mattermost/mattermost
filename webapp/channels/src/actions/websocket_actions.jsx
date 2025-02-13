@@ -1915,7 +1915,7 @@ function handleChannelBookmarkSorted(msg) {
 export function handleCustomAttributeValuesUpdated(msg) {
     return {
         type: UserTypes.RECEIVED_CPA_VALUES,
-        data: {userID: msg.data.userID, customAttributeValues: msg.data.customAttributeValues},
+        data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
     };
 }
 
