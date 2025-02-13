@@ -1311,8 +1311,8 @@ describe('handleCustomAttributeValuesUpdated', () => {
         testStore.dispatch(handleCustomAttributeValuesUpdated({
             event: SocketEvents.CPA_VALUES_UPDATED,
             data: {
-                userID: currentUserId,
-                customAttributeValues: {field1: 'value1', field2: 'value2'},
+                user_id: currentUserId,
+                values: {field1: 'value1', field2: 'value2'},
             },
         }));
 
@@ -1324,8 +1324,8 @@ describe('handleCustomAttributeValuesUpdated', () => {
         testStore.dispatch(handleCustomAttributeValuesUpdated({
             event: SocketEvents.CPA_VALUES_UPDATED,
             data: {
-                userID: currentUserId,
-                customAttributeValues: {field1: 'valueChanged', field3: 'new field'},
+                user_id: currentUserId,
+                values: {field1: 'valueChanged', field3: 'new field'},
             },
         }));
 
@@ -1344,7 +1344,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
             event: SocketEvents.CPA_VALUES_UPDATED,
             data: {
                 user_id: 'nonExistantUser',
-                customAttributeValues: {field1: 'value1', field2: 'value2'},
+                values: {field1: 'value1', field2: 'value2'},
             },
         }));
 
