@@ -63,8 +63,8 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 		{
 			name: "valid option without color",
 			option: CustomProfileAttributesSelectOption{
-				ID:    NewId(),
-				Name:  "Test Option",
+				ID:   NewId(),
+				Name: "Test Option",
 			},
 			wantErr: "",
 		},
@@ -207,8 +207,8 @@ func TestCustomProfileAttributesSelectOptionsIsValid(t *testing.T) {
 					Color: "#FF0000",
 				},
 				{
-					ID:    NewId(),
-					Name:  "Option 2",
+					ID:   NewId(),
+					Name: "Option 2",
 				},
 			},
 			wantErr: "",
@@ -222,8 +222,8 @@ func TestCustomProfileAttributesSelectOptionsIsValid(t *testing.T) {
 					Color: "#FF0000",
 				},
 				{
-					ID:    "",
-					Name:  "Option 2",
+					ID:   "",
+					Name: "Option 2",
 				},
 			},
 			wantErr: "invalid option at index 1: id cannot be empty",
