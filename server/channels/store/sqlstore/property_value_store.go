@@ -136,45 +136,54 @@ func (s *SqlPropertyValueStore) Update(values []*model.PropertyValue) (_ []*mode
 	defer finalizeTransactionX(transaction, &err)
 
 	updateTime := model.GetMillis()
-	for _, value := range values {
-		value.UpdateAt = updateTime
+	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
+	valueCase := sq.Case("id")
+	deleteAtCase := sq.Case("id")
+	ids := make([]string, len(values))
 
-		if err := value.IsValid(); err != nil {
-			return nil, errors.Wrap(err, "property_value_update_isvalid")
+	for i, value := range values {
+		value.UpdateAt = updateTime
+		if vErr := value.IsValid(); vErr != nil {
+			return nil, errors.Wrap(vErr, "property_value_update_isvalid")
 		}
 
+		ids[i] = value.ID
 		valueJSON := value.Value
 		if s.IsBinaryParamEnabled() {
 			valueJSON = AppendBinaryFlag(valueJSON)
 		}
 
-		queryString, args, err := s.getQueryBuilder().
-			Update("PropertyValues").
-			Set("Value", valueJSON).
-			Set("UpdateAt", value.UpdateAt).
-			Set("DeleteAt", value.DeleteAt).
-			Where(sq.Eq{"id": value.ID}).
-			ToSql()
-		if err != nil {
-			return nil, errors.Wrap(err, "property_value_update_tosql")
-		}
-
-		result, err := transaction.Exec(queryString, args...)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to update property value with id: %s", value.ID)
-		}
-
-		count, err := result.RowsAffected()
-		if err != nil {
-			return nil, errors.Wrap(err, "property_value_update_rowsaffected")
-		}
-		if count == 0 {
-			return nil, store.NewErrNotFound("PropertyValue", value.ID)
+		if isPostgres {
+			valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?::jsonb", valueJSON))
+			deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?::bigint", value.DeleteAt))
+		} else {
+			valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?", valueJSON))
+			deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?", value.DeleteAt))
 		}
 	}
 
+	builder := s.getQueryBuilder().
+		Update("PropertyValues").
+		Set("Value", valueCase).
+		Set("DeleteAt", deleteAtCase).
+		Set("UpdateAt", updateTime).
+		Where(sq.Eq{"id": ids})
+
+	result, err := transaction.ExecBuilder(builder)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_value_update_exec")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_value_update_rowsaffected")
+	}
+	if count != int64(len(values)) {
+		return nil, errors.Errorf("failed to update, some property values were not found, got %d of %d", count, len(values))
+	}
+
 	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "property_value_update_commit")
+		return nil, errors.Wrap(err, "property_value_update_commit_transaction")
 	}
 
 	return values, nil
