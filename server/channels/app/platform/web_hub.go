@@ -826,11 +826,6 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	// Remove from byUserId
 	if userConns, ok := i.byUserId[wc.UserId]; ok {
 		delete(userConns, wc)
-		if len(userConns) == 0 {
-			delete(i.byUserId, wc.UserId)
-		} else {
-			i.byUserId[wc.UserId] = userConns
-		}
 	}
 
 	if i.fastIteration {
@@ -838,11 +833,6 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 		for _, chID := range connMeta.channelIDs {
 			if channelConns, ok := i.byChannelID[chID]; ok {
 				delete(channelConns, wc)
-				if len(channelConns) == 0 {
-					delete(i.byChannelID, chID)
-				} else {
-					i.byChannelID[chID] = channelConns
-				}
 			}
 		}
 	}
@@ -868,11 +858,6 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string) error {
 			for _, chID := range meta.channelIDs {
 				if channelConns, ok := i.byChannelID[chID]; ok {
 					delete(channelConns, conn)
-					if len(channelConns) == 0 {
-						delete(i.byChannelID, chID)
-					} else {
-						i.byChannelID[chID] = channelConns
-					}
 				}
 			}
 		}
