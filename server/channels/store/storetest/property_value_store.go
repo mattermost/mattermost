@@ -149,8 +149,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		}
 		updatedValue, err := ss.PropertyValue().Update([]*model.PropertyValue{value})
 		require.Zero(t, updatedValue)
-		var enf *store.ErrNotFound
-		require.ErrorAs(t, err, &enf)
+		require.ErrorContains(t, err, "failed to update, some property values were not found, got 0 of 1")
 	})
 
 	t.Run("should fail if the property value is not valid", func(t *testing.T) {
@@ -220,7 +219,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Greater(t, updated2.UpdateAt, updated2.CreateAt)
 	})
 
-	t.Run("should not update any fields if one update is invalid", func(t *testing.T) {
+	t.Run("should not update any values if one update is invalid", func(t *testing.T) {
 		// Create two valid values
 		groupID := model.NewId()
 		value1 := &model.PropertyValue{
@@ -265,6 +264,45 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, groupID, updated2.GroupID)
 		require.Equal(t, originalUpdateAt2, updated2.UpdateAt)
+	})
+
+	t.Run("should not update any values if one update points to a nonexisting one", func(t *testing.T) {
+		// Create a valid value
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"Value 1"`),
+		}
+
+		_, err := ss.PropertyValue().Create(value1)
+		require.NoError(t, err)
+
+		originalUpdateAt := value1.UpdateAt
+
+		// Try to update both the valid value and a nonexistent one
+		value2 := &model.PropertyValue{
+			ID:         model.NewId(),
+			TargetID:   model.NewId(),
+			CreateAt:   1,
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"Value 2"`),
+		}
+
+		value1.Value = json.RawMessage(`"Updated Value 1"`)
+
+		_, err = ss.PropertyValue().Update([]*model.PropertyValue{value1, value2})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "failed to update, some property values were not found")
+
+		// Check that the valid value was not updated
+		updated1, err := ss.PropertyValue().Get(value1.ID)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"Value 1"`), updated1.Value)
+		require.Equal(t, originalUpdateAt, updated1.UpdateAt)
 	})
 }
 
