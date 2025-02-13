@@ -360,6 +360,7 @@ type ThreadStore interface {
 
 	SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
+	UpdateTeamIdForChannelThreads(channelId, teamId string) error
 }
 
 type PostStore interface {
@@ -665,7 +666,7 @@ type CommandWebhookStore interface {
 type PreferenceStore interface {
 	Save(preferences model.Preferences) error
 	GetCategory(userID string, category string) (model.Preferences, error)
-	GetCategoryAndName(category string, nane string) (model.Preferences, error)
+	GetCategoryAndName(category string, name string) (model.Preferences, error)
 	Get(userID string, category string, name string) (*model.Preference, error)
 	GetAll(userID string) (model.Preferences, error)
 	Delete(userID, category, name string) error
@@ -1089,7 +1090,7 @@ type PropertyFieldStore interface {
 	Get(id string) (*model.PropertyField, error)
 	GetMany(ids []string) ([]*model.PropertyField, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
-	Update(field []*model.PropertyField) ([]*model.PropertyField, error)
+	Update(fields []*model.PropertyField) ([]*model.PropertyField, error)
 	Delete(id string) error
 }
 
@@ -1098,7 +1099,8 @@ type PropertyValueStore interface {
 	Get(id string) (*model.PropertyValue, error)
 	GetMany(ids []string) ([]*model.PropertyValue, error)
 	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
-	Update(field []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Update(values []*model.PropertyValue) ([]*model.PropertyValue, error)
+	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(id string) error
 	DeleteForField(id string) error
 }

@@ -1137,11 +1137,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Search EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Searching}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Search EnableIndexing setting must be set to true when Elasticsearch EnableAutocomplete is set to true"
+    "translation": "{{.EnableIndexing}} setting must be set to true when {{.Autocomplete}} is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -3125,11 +3125,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+    "translation": "The Search Server URL or Username has changed. Please re-enter the password to test connection."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Your licence does not support Elasticsearch."
+    "translation": "Your Mattermost licence doesn't support indexed search."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3197,7 +3197,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Failed to refresh Elasticsearch indexes"
+    "translation": "Failed to refresh search indexes"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -9575,10 +9575,6 @@
     "translation": "Failed to delete an unknown index specified"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Your Elasticsearch channel index schema is out of date. It is recommended to regenerate your channel index.\nClick the `Rebuild Channels Index` button in [Elasticsearch section in System Console]({{.ElasticsearchSection}}) to fix the issue.\nSee Mattermost changelog for more information."
-  },
-  {
     "id": "model.channel_bookmark.is_valid.link_file.app_error",
     "translation": "Cannot set a link and a file in the same bookmark."
   },
@@ -9728,7 +9724,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Failed to delete an Elasticsearch index"
+    "translation": "Failed to delete a search index"
   },
   {
     "id": "model.channel_bookmark.is_valid.image_url.app_error",
@@ -10267,5 +10263,137 @@
   {
     "id": "model.post.is_valid.message_length.app_error",
     "translation": "Post Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Command can't be executed in a deleted channel."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Unable to filter the configuration."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Unable to create a directory for custom emoji images"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Cannot register Custom Profile Attributes property group"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Unable to get Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Unable to create Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Custom Profile Attributes field limit reached"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Unable to get custom profile attribute values"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Cannot create property value"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Unable to retrieve property values"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Unable to delete Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Custom Profile Attribute field not found"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Unable to update Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Unable to search Custom Profile Attribute fields"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Failed to remove the requested files from database"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Cannot update property value"
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Failed to restore post file attachments."
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "User roles are not consistent with guest status."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "You do not have the appropriate permissions."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Failed to get the old post version."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to any history item for the specified post."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "The provided post history ID does not correspond to a post history item."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Unable to delete role."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exporting channel information for {{.NumChannels}} channels."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Failed to calculate channel export data."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Failed to convert a value from the job's data field."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Calculating channel activity: {{.NumCompleted}}/{{.NumChannels}} channels completed."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Invalid property field: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Invalid property value: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Your licence does not support Custom Profile Attributes."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Unable to get a zip file reader."
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Unable to get the file infos by ids for post edit history."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Length of link metadata URL is {{ .Length }} characters long, which exceeds the maximum limit of {{ .MaxLength }} characters."
   }
 ]

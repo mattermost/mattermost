@@ -24,11 +24,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	sq "github.com/mattermost/squirrel"
 )
 
 type SqlStore interface {
 	GetMaster() SqlXExecutor
 	DriverName() string
+	GetQueryPlaceholder() sq.PlaceholderFormat
 }
 
 type SqlXExecutor interface {
@@ -5766,6 +5768,7 @@ func (s ByChannelDisplayName) Len() int { return len(s) }
 func (s ByChannelDisplayName) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
+
 func (s ByChannelDisplayName) Less(i, j int) bool {
 	if s[i].DisplayName != s[j].DisplayName {
 		return s[i].DisplayName < s[j].DisplayName
