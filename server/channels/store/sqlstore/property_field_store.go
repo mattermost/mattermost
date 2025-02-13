@@ -144,21 +144,21 @@ func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField) (_ []*mode
 		}
 
 		ids[i] = field.ID
-
+		whenID := sq.Expr("?", field.ID)
 		if isPostgres {
-			nameCase = nameCase.When(sq.Expr("?", field.ID), sq.Expr("?::text", field.Name))
-			typeCase = typeCase.When(sq.Expr("?", field.ID), sq.Expr("?::property_field_type", field.Type))
-			attrsCase = attrsCase.When(sq.Expr("?", field.ID), sq.Expr("?::jsonb", field.Attrs))
-			targetIDCase = targetIDCase.When(sq.Expr("?", field.ID), sq.Expr("?::text", field.TargetID))
-			targetTypeCase = targetTypeCase.When(sq.Expr("?", field.ID), sq.Expr("?::text", field.TargetType))
-			deleteAtCase = deleteAtCase.When(sq.Expr("?", field.ID), sq.Expr("?::bigint", field.DeleteAt))
+			nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
+			typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
+			attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
+			targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
+			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
+			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
 		} else {
-			nameCase = nameCase.When(sq.Expr("?", field.ID), sq.Expr("?", field.Name))
-			typeCase = typeCase.When(sq.Expr("?", field.ID), sq.Expr("?", field.Type))
-			attrsCase = attrsCase.When(sq.Expr("?", field.ID), sq.Expr("?", field.Attrs))
-			targetIDCase = targetIDCase.When(sq.Expr("?", field.ID), sq.Expr("?", field.TargetID))
-			targetTypeCase = targetTypeCase.When(sq.Expr("?", field.ID), sq.Expr("?", field.TargetType))
-			deleteAtCase = deleteAtCase.When(sq.Expr("?", field.ID), sq.Expr("?", field.DeleteAt))
+			nameCase = nameCase.When(whenID, sq.Expr("?", field.Name))
+			typeCase = typeCase.When(whenID, sq.Expr("?", field.Type))
+			attrsCase = attrsCase.When(whenID, sq.Expr("?", field.Attrs))
+			targetIDCase = targetIDCase.When(whenID, sq.Expr("?", field.TargetID))
+			targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?", field.TargetType))
+			deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?", field.DeleteAt))
 		}
 	}
 
