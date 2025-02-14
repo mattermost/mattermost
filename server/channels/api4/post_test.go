@@ -3163,7 +3163,9 @@ func TestWebHubMembership(t *testing.T) {
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
 	t.Skip("MM-61780")
-	th := Setup(t).InitBasic()
+	th := SetupConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableWebHubChannelIteration = true
+	}).InitBasic()
 	defer func() {
 		th.TearDown()
 		// Asserting that the error message is present in the log
