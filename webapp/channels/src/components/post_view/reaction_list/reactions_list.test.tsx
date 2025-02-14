@@ -36,6 +36,7 @@ describe('components/ReactionList', () => {
         reactions,
         canAddReactions: true,
         actions,
+        maxUniqueReactions: 50,
     };
 
     test('should render nothing when no reactions', () => {
@@ -100,7 +101,8 @@ describe('components/ReactionList', () => {
 
         const secondRender = wrapper.find(Reaction).map((node) => node.key);
 
-        expect(firstRender.length).toBe(2);
-        expect(firstRender).toEqual(secondRender);
+        expect(firstRender.length).toBe(3);
+        expect(secondRender.length).toBe(2);
+        expect(firstRender).toEqual(expect.arrayContaining(secondRender));
     });
 });
