@@ -83,7 +83,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
 
       - name: cd/setup-cosign
-        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+        uses: sigstore/cosign-installer@c56c2d3e59e4281cc41dea2217323ba5694b171e # v3.8.0
         with:
           cosign-release: v${{ env.COSIGN_VERSION }}
 
@@ -96,7 +96,7 @@ jobs:
           path: server/build/
 
       - name: cd/setup-docker-buildx
-        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3.8.0
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
 
       - name: cd/set-docker-tag
         id: set_tag

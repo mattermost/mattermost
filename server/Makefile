@@ -8,15 +8,6 @@ else
 	PLATFORM := $(shell uname)
 endif
 
-# Set an environment variable on Linux used to resolve `docker.host.internal` inconsistencies with
-# docker. This can be reworked once https://github.com/docker/for-linux/issues/264 is resolved
-# satisfactorily.
-ifeq ($(PLATFORM),Linux)
-	export IS_LINUX = -linux
-else
-	export IS_LINUX =
-endif
-
 # Detect Apple Silicon and set a flag.
 ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
   ARM_BASED_MAC = true
@@ -155,7 +146,7 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-ai-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.0.5
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.1
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.1.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
