@@ -3,7 +3,14 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
-export function clickCategoryMenuItem(categoryDisplayName, menuItemText, categoryMenuButtonName = categoryDisplayName, isSubMenu = false) {
+type ClickCategoryMenuItemProps = {
+    categoryDisplayName: string;
+    menuItemText: string;
+    categoryMenuButtonName?: string;
+    isSubMenu?: boolean;
+}
+
+export function clickCategoryMenuItem({categoryDisplayName, menuItemText, categoryMenuButtonName = categoryDisplayName, isSubMenu = false}: ClickCategoryMenuItemProps) {
     cy.get('#SidebarContainer').should('be.visible').within(() => {
         cy.findByText(categoryDisplayName).should('exist').parents('.SidebarChannelGroupHeader').within(() => {
             cy.findByLabelText(`${categoryMenuButtonName} category options`).should('exist').click({force: true});
@@ -22,7 +29,7 @@ export function clickCategoryMenuItem(categoryDisplayName, menuItemText, categor
 }
 
 export function clickSortCategoryMenuItem(categoryDisplayName, menuItemText) {
-    clickCategoryMenuItem(categoryDisplayName, 'Sort', true);
+    clickCategoryMenuItem({categoryDisplayName, menuItemText: 'Sort', isSubMenu: true});
 
     cy.wait(TIMEOUTS.HALF_SEC);
 
