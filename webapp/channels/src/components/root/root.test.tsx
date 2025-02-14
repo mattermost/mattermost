@@ -21,7 +21,7 @@ import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './acti
 import type {Props} from './root';
 import Root, {doesRouteBelongToTeamControllerRoutes} from './root';
 
-jest.mock('mattermost-redux/client/rudder', () => ({
+jest.mock('utils/rudder', () => ({
     rudderAnalytics: {
         identify: jest.fn(),
         load: jest.fn(),

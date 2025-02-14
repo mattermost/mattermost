@@ -3,11 +3,6 @@
 
 /* eslint-disable max-lines */
 
-import {
-    TrackPropertyUser,
-    TrackPropertyUserAgent, TrackScheduledPostsFeature,
-} from 'mattermost-webapp/src/packages/mattermost-redux/src/constants/telemetry';
-
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
@@ -2125,7 +2120,7 @@ export default class Client4 {
             `${this.getPostsRoute()}`,
             {method: 'post', body: JSON.stringify(post)},
         );
-        const analyticsData = {channel_id: result.channel_id, post_id: result.id, [TrackPropertyUser]: result.user_id, root_id: result.root_id} as PostAnalytics;
+        const analyticsData = {channel_id: result.channel_id, post_id: result.id, user_actual_id: result.user_id, root_id: result.root_id} as PostAnalytics;
         if (post.metadata?.priority) {
             analyticsData.priority = post.metadata.priority.priority;
             analyticsData.requested_ack = post.metadata.priority.requested_ack;
@@ -3760,7 +3755,7 @@ export default class Client4 {
             context: {
                 ...call.context,
                 track_as_submit: trackAsSubmit,
-                [TrackPropertyUserAgent]: 'webapp',
+                user_agent: 'webapp',
             },
         };
         return this.doFetch<AppCallResponse>(
@@ -3773,7 +3768,7 @@ export default class Client4 {
         const params = {
             channel_id: channelID,
             team_id: teamID,
-            [TrackPropertyUserAgent]: 'webapp',
+            user_agent: 'webapp',
         };
 
         return this.doFetch<AppBinding[]>(
@@ -4296,7 +4291,7 @@ export default class Client4 {
 
     // Schedule Post methods
     createScheduledPost = (schedulePost: PartialExcept<ScheduledPost, 'channel_id' | 'message' | 'scheduled_at'>, connectionId: string) => {
-        this.trackFeatureEvent(TrackScheduledPostsFeature, 'create_scheduled_post', {[TrackPropertyUser]: schedulePost.user_id, [TrackPropertyUserAgent]: 'desktop'});
+        this.trackFeatureEvent('scheduled_posts', 'create_scheduled_post', {actual_user_id: schedulePost.user_id, user_agent: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule`,
@@ -4313,7 +4308,7 @@ export default class Client4 {
     };
 
     updateScheduledPost = (schedulePost: ScheduledPost, connectionId: string) => {
-        this.trackFeatureEvent(TrackScheduledPostsFeature, 'update_scheduled_post', {[TrackPropertyUser]: schedulePost.user_id, [TrackPropertyUserAgent]: 'desktop'});
+        this.trackFeatureEvent('scheduled_posts', 'update_scheduled_post', {actual_user_id: schedulePost.user_id, user_agent: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePost.id}`,
@@ -4322,7 +4317,7 @@ export default class Client4 {
     };
 
     deleteScheduledPost = (userId: string, schedulePostId: string, connectionId: string) => {
-        this.trackFeatureEvent(TrackScheduledPostsFeature, 'delete_scheduled_post', {[TrackPropertyUser]: userId, [TrackPropertyUserAgent]: 'desktop'});
+        this.trackFeatureEvent('scheduled_posts', 'delete_scheduled_post', {actual_user_id: userId, user_agent: 'desktop'});
 
         return this.doFetchWithResponse<ScheduledPost>(
             `${this.getPostsRoute()}/schedule/${schedulePostId}`,

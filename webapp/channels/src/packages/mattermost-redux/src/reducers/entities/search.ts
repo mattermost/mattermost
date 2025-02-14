@@ -207,7 +207,8 @@ function current(state: any = {}, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_TERM: {
         const nextState = {...state};
-        const {teamId, params, isEnd, isFilesEnd} = action.data;
+        const {params, isEnd, isFilesEnd} = action.data;
+        const teamId = action.data.teamId || 'ALL_TEAMS';
         return {
             ...nextState,
             [teamId]: {

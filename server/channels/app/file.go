@@ -144,6 +144,10 @@ func (s *Server) exportFileReader(path string) (filestore.ReadCloseSeeker, *mode
 	return fileReader(s.ExportFileBackend(), path)
 }
 
+func (s *Server) exportZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return zipReader(s.ExportFileBackend(), path, deflate)
+}
+
 // FileReader returns a ReadCloseSeeker for path from the FileBackend.
 //
 // The caller is responsible for closing the returned ReadCloseSeeker.
@@ -163,6 +167,14 @@ func (a *App) ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppErr
 // The caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().exportFileReader(path)
+}
+
+// ExportZipReader returns a ReadCloser for path from the ExportFileBackend.
+// If deflate is true, the zip will use compression.
+//
+// The caller is responsible for closing the returned ReadCloser.
+func (a *App) ExportZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return a.Srv().exportZipReader(path, deflate)
 }
 
 func (a *App) FileExists(path string) (bool, *model.AppError) {

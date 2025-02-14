@@ -218,12 +218,6 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
         case 'monthly_active_users':
             key = Stats.MONTHLY_ACTIVE_USERS;
             break;
-        case 'file_post_count':
-            key = Stats.TOTAL_FILE_POSTS;
-            break;
-        case 'hashtag_post_count':
-            key = Stats.TOTAL_HASHTAG_POSTS;
-            break;
         case 'incoming_webhook_count':
             key = Stats.TOTAL_IHOOKS;
             break;
@@ -238,6 +232,12 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
             break;
         case 'registered_users':
             key = Stats.REGISTERED_USERS;
+            break;
+        case 'total_file_count':
+            key = Stats.TOTAL_FILE_COUNT;
+            break;
+        case 'total_file_size':
+            key = Stats.TOTAL_FILE_SIZE;
             break;
         }
 

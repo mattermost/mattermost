@@ -26,7 +26,7 @@ func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 
 func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	var user *model.User
-	if !checkDots(userArg) {
+	if !checkDots(userArg) && model.IsValidEmail(userArg) {
 		user, _, _ = c.GetUserByEmail(context.TODO(), userArg, "")
 	}
 
@@ -75,7 +75,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	var user *model.User
 	var response *model.Response
 	var err error
-	if !checkDots(userArg) {
+	if !checkDots(userArg) && model.IsValidEmail(userArg) {
 		user, response, err = c.GetUserByEmail(context.TODO(), userArg, "")
 		if err != nil {
 			nErr := ExtractErrorFromResponse(response, err)

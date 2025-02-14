@@ -121,7 +121,7 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters 
 		query = query.Where(sq.Like{"Audiences": fmt.Sprint("%", filters.Audience, "%")})
 	}
 
-	if err := s.GetReplica().SelectBuilder(&conns, query); err != nil {
+	if err := s.GetReplica().SelectBuilderCtx(c.Context(), &conns, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get OutgoingOAuthConnections")
 	}
 

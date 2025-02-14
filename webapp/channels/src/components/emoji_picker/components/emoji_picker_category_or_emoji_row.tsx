@@ -35,6 +35,7 @@ function EmojiPickerCategoryOrEmojiRow({index, style, data, cursorRowIndex, curs
         <div
             style={style}
             className='emoji-picker__row'
+            role='row'
         >
             {row.items.map((emojiColumn) => {
                 const emoji = emojiColumn.item;

@@ -6,11 +6,15 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
+import {TrackCrossTeamSearchFeature, TrackCrossTeamSearchAllTeamsEvent, TrackCrossTeamSearchCurrentTeamEvent, TrackCrossTeamSearchDifferentTeamEvent} from 'mattermost-redux/constants/telemetry';
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {updateSearchTerms, showSearchResults, updateSearchType} from 'actions/views/rhs';
+import {trackFeatureEvent} from 'actions/telemetry_actions';
+import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
 import {getSearchButtons} from 'selectors/plugins';
-import {getSearchTerms, getSearchType} from 'selectors/rhs';
+import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
 
 import Popover from 'components/widgets/popover';
 
@@ -20,6 +24,8 @@ import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
+
+import type {GlobalState} from 'types/store';
 
 import SearchBox from './search_box';
 
@@ -106,7 +112,10 @@ const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
     const searchType = useSelector(getSearchType) || '';
+    const searchTeam = useSelector(getSearchTeam);
     const pluginSearch = useSelector(getSearchButtons);
+    const currentTeamId = useSelector(getCurrentTeamId);
+    const crossTeamSearchEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ExperimentalCrossTeamSearch')) === 'true';
 
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
@@ -156,6 +165,11 @@ const NewSearch = (): JSX.Element => {
         const handleClick = (e: MouseEvent) => {
             if (searchBoxRef.current) {
                 if (e.target !== searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+                    // allow click on team selector menu
+                    if (isTargetTeamSelectorMenu(e)) {
+                        return;
+                    }
+
                     setFocused(false);
                     setCurrentChannel('');
                 }
@@ -210,11 +224,16 @@ const NewSearch = (): JSX.Element => {
     );
 
     const runSearch = useCallback(
-        (searchType: string, searchTerms: string) => {
+        (searchType: string, searchTeam: string, searchTerms: string) => {
             dispatch(updateSearchType(searchType));
             dispatch(updateSearchTerms(searchTerms));
+            dispatch(updateSearchTeam(searchTeam));
 
             if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+                if (crossTeamSearchEnabled) {
+                    trackCrossTeamSearch(currentTeamId, searchTeam);
+                }
+
                 dispatch(showSearchResults(false));
             } else {
                 pluginSearch.forEach((pluginData: any) => {
@@ -225,9 +244,17 @@ const NewSearch = (): JSX.Element => {
             }
             setFocused(false);
             setCurrentChannel('');
-        },
-        [pluginSearch],
-    );
+        }, [pluginSearch, currentTeamId, crossTeamSearchEnabled]);
+
+    const trackCrossTeamSearch = (currentTeamId: string, searchTeamId: string) => {
+        if (searchTeamId === '') {
+            trackFeatureEvent(TrackCrossTeamSearchFeature, TrackCrossTeamSearchAllTeamsEvent);
+        } else if (searchTeamId === currentTeamId) {
+            trackFeatureEvent(TrackCrossTeamSearchFeature, TrackCrossTeamSearchCurrentTeamEvent);
+        } else {
+            trackFeatureEvent(TrackCrossTeamSearchFeature, TrackCrossTeamSearchDifferentTeamEvent);
+        }
+    };
 
     const onClose = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -300,11 +327,23 @@ const NewSearch = (): JSX.Element => {
                         onSearch={runSearch}
                         initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
                         initialSearchType={searchType}
+                        initialSearchTeam={searchTeam}
+                        crossTeamSearchEnabled={crossTeamSearchEnabled}
                     />
                 </PopoverStyled>
             )}
         </NewSearchContainer>
     );
 };
+
+// The team selector dropdown is in fact a small modal rendered outside the search box
+// this allows to keep the searchbox open when the user interacts with the team selector
+function isTargetTeamSelectorMenu(event: MouseEvent) {
+    if (!document.getElementsByClassName('MuiModal-root')[0]) {
+        return false;
+    }
+
+    return document.getElementsByClassName('MuiModal-root')[0].contains(event.target as Node);
+}
 
 export default NewSearch;

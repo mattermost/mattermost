@@ -72,6 +72,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
+            EnableTesting: true,
         },
         TeamSettings: {
             EnableOpenServer: true,

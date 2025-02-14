@@ -57,10 +57,10 @@ const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: P
             inputFieldTitle={
                 <FormattedMessage
                     id='general_tab.openInviteTitle'
-                    defaultMessage='Allow only users with a specific email domain to join this team'
+                    defaultMessage='Allow any user with an account on this server to join this team'
                 />
             }
-            inputFieldData={{name: 'name'}}
+            inputFieldData={{name: 'allowOpenInvite'}}
             inputFieldValue={allowOpenInvite}
             handleChange={setAllowOpenInvite}
             title={formatMessage({

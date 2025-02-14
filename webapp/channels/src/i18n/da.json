@@ -24,7 +24,6 @@
   "accessibility.button.Info": "Info",
   "accessibility.button.Search": "Søg",
   "accessibility.button.attachment": "vedhæftning",
-  "accessibility.button.dialog": "{dialogName} dialog",
   "accessibility.sections.centerContent": "beskedliste hovedregion",
   "activity_log.activeSessions": "Aktive sessioner",
   "activity_log.browser": "Browser: {browser}",

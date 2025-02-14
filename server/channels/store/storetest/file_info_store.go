@@ -815,12 +815,15 @@ func testFileInfoStoreCountAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	count, err := ss.FileInfo().CountAll()
 	require.NoError(t, err)
 	require.Equal(t, int64(3), count)
 
 	_, err = ss.FileInfo().DeleteForPost(rctx, f1.PostId)
 	require.NoError(t, err)
+
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	count, err = ss.FileInfo().CountAll()
 	require.NoError(t, err)
 	require.Equal(t, int64(2), count)
@@ -830,6 +833,7 @@ func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store)
 	_, err := ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis(), 100000)
 	require.NoError(t, err)
 
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	usage, err := ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), usage)
@@ -857,12 +861,14 @@ func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store)
 	})
 	require.NoError(t, err)
 
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	usage, err = ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(30), usage)
 
 	_, err = ss.FileInfo().DeleteForPost(rctx, f1.PostId)
 	require.NoError(t, err)
+	require.NoError(t, ss.FileInfo().RefreshFileStats())
 	usage, err = ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(20), usage)

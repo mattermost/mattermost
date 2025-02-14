@@ -344,13 +344,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-
-	WebSocketClient.Listen()
-	time.Sleep(300 * time.Millisecond)
-	wsResp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, wsResp.Status, model.StatusOk, "expected OK from auth challenge")
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	userId := th.BasicUser.Id
 	preferences := model.Preferences{
@@ -366,7 +360,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 		},
 	}
 
-	_, err = th.Client.UpdatePreferences(context.Background(), userId, preferences)
+	_, err := th.Client.UpdatePreferences(context.Background(), userId, preferences)
 	require.NoError(t, err)
 
 	timeout := time.After(300 * time.Millisecond)
@@ -750,12 +744,7 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	_, err := th.Client.UpdatePreferences(context.Background(), userId, preferences)
 	require.NoError(t, err)
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-
-	WebSocketClient.Listen()
-	wsResp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, model.StatusOk, wsResp.Status, "should have responded OK to authentication challenge")
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	_, err = th.Client.DeletePreferences(context.Background(), userId, preferences)
 	require.NoError(t, err)

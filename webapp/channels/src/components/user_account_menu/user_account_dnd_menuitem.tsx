@@ -196,20 +196,21 @@ export default function UserAccountDndMenuItem(props: Props) {
                     </span>
                 </>
             }
-            role='menuitemradio' // Prevents menu item from closing, not a recommended solution
             aria-checked={props.isStatusDnd}
             trailingElements={trailingElement}
+            subMenuHeader={
+                <h5
+                    id='userAccountMenu_dndSubMenuTitle'
+                    className='userAccountMenu_dndMenuItem_subMenuTitle'
+                    aria-hidden={true}
+                >
+                    {formatMessage({
+                        id: 'userAccountMenu.dndSubMenu.title',
+                        defaultMessage: 'Clear after:',
+                    })}
+                </h5>
+            }
         >
-            <h5
-                id='userAccountMenu_dndSubMenuTitle'
-                className='userAccountMenu_dndMenuItem_subMenuTitle'
-                aria-hidden={true}
-            >
-                {formatMessage({
-                    id: 'userAccountMenu.dndSubMenu.title',
-                    defaultMessage: 'Clear after:',
-                })}
-            </h5>
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.DO_NOT_CLEAR}
                 labels={

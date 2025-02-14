@@ -37,8 +37,8 @@ const messages = defineMessages({
 export const noBillingHistory = (
     <div className='BillingSummary__noBillingHistory'>
         <EmptyBillingHistorySvg
-            height={167}
-            width={234}
+            height={116}
+            width={152}
         />
         <div className='BillingSummary__noBillingHistory-title'>
             <FormattedMessage

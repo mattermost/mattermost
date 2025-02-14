@@ -109,6 +109,15 @@ export const getSelectedPost = createSelector(
     },
 );
 
+export const getCurrentSearchForSearchTeam: (state: GlobalState) => Record<string, any> = createSelector(
+    'getCurrentSearchForSearchTeam',
+    (state: GlobalState) => state.entities.search.current,
+    getSearchTeam,
+    (current, teamId) => {
+        return current[teamId || 'ALL_TEAMS'];
+    },
+);
+
 export function getRhsState(state: GlobalState): RhsState {
     return state.views.rhs.rhsState;
 }

@@ -44,14 +44,6 @@ type ElasticsearchInterfaceImpl struct {
 
 	bulkProcessor *Bulk
 	Platform      *platform.PlatformService
-
-	// This flag is for indicating if channel index's mappings
-	// has been verified, and if so, what was the result.
-	//
-	// value = 0 indicates it has NOT BEEN CHECKED
-	// value = 1 indicates index has been checked and has CORRECT mappings
-	// value = 2 indicates index has been checked and it has INCORRECT mappings
-	channelIndexVerified int32
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -87,25 +79,7 @@ func (es *ElasticsearchInterfaceImpl) IsSearchEnabled() bool {
 }
 
 func (es *ElasticsearchInterfaceImpl) IsAutocompletionEnabled() bool {
-	// if we encounter the index mappings haven't been checked, we check it once and store result.
-	// While in most cases the flag would have been set in the `Start` function,
-	// There's a case if you call the update config API and enable ES and autocomplete at the same time, it's not set
-	// so we're checking if it's unset here and trying to check the index.
-	if atomic.LoadInt32(&es.channelIndexVerified) == 0 {
-		es.Platform.Log().Debug("Elasticsearch.IsAutocompletionEnabled: channel index has not been verified yet, checking index now")
-		es.checkChannelIndex()
-	}
-
-	return *es.Platform.Config().ElasticsearchSettings.EnableAutocomplete && atomic.LoadInt32(&es.channelIndexVerified) == 1
-}
-
-func (es *ElasticsearchInterfaceImpl) IsChannelsIndexVerified() bool {
-	if atomic.LoadInt32(&es.channelIndexVerified) == 0 {
-		es.Platform.Log().Debug("Elasticsearch.IsChannelsIndexVerified: channel index has not been verified yet, checking index now")
-		es.checkChannelIndex()
-	}
-
-	return atomic.LoadInt32(&es.channelIndexVerified) == 1
+	return *es.Platform.Config().ElasticsearchSettings.EnableAutocomplete
 }
 
 func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
@@ -189,10 +163,6 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		Do(ctx)
 	if err != nil {
 		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if atomic.LoadInt32(&es.channelIndexVerified) == 0 {
-		es.checkChannelIndex()
 	}
 
 	atomic.StoreInt32(&es.ready, 1)
@@ -1875,84 +1845,4 @@ func checkMaxVersion(client *elastic.TypedClient, cfg *model.Config) (string, in
 		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": elasticsearchMaxVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
 	}
 	return resp.Version.Int, major, nil
-}
-
-// checkChannelIndex checks if channel index's mapping is correct.
-// See Jira issue  https://mattermost.atlassian.net/browse/MM-49257
-func (es *ElasticsearchInterfaceImpl) checkChannelIndex() {
-	es.Platform.Log().Debug("Elasticsearch.checkChannelIndex: checking if channel index field is of correct type")
-	isCorrect, err := es.isFieldCorrect()
-	if err != nil {
-		return
-	}
-
-	if isCorrect {
-		es.Platform.Log().Debug("Elasticsearch.checkChannelIndex: channel index field is correct")
-		atomic.StoreInt32(&es.channelIndexVerified, 1)
-	} else {
-		es.Platform.Log().Debug("Elasticsearch.checkChannelIndex: channel index field is incorrect")
-		atomic.StoreInt32(&es.channelIndexVerified, 2)
-	}
-}
-
-func (es *ElasticsearchInterfaceImpl) isFieldCorrect() (bool, error) {
-	// We want to check if channel index's "type" field is of type "keyword".
-	// If the index is in incorrect state, the field would be of type "text".
-
-	es.Platform.Log().Debug("Elasticsearch.isFieldCorrect: querying ES to check if field is correct")
-
-	ctx, cancel := context.WithTimeout(
-		context.Background(),
-		time.Duration(*es.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second,
-	)
-	defer cancel()
-
-	indexName := *es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels
-	indexMappingInterface, err := es.client.Indices.GetFieldMapping("type").Index(indexName).Do(ctx)
-	if err != nil {
-		// The case of channels index not existing is fine,
-		// as whenever the index will be created, it will be created
-		// with the correct mappings.
-		elasticErr, ok := err.(*types.ElasticsearchError)
-		if ok && elasticErr.Status == http.StatusNotFound {
-			es.Platform.Logger().Debug("Elasticsearch isFieldCorrect: channel index doesn't exist", mlog.Err(err))
-			return true, nil
-		}
-
-		es.Platform.Logger().Error("Elasticsearch: Failed to fetch channels index template", mlog.Err(err))
-		return false, err
-	}
-
-	// this struct is declared here because
-	// it's not used anywhere outside this function
-	type channelsTypeFieldMapping struct {
-		Mappings struct {
-			Type struct {
-				Mapping struct {
-					Type struct {
-						Type string
-					}
-				}
-			}
-		}
-	}
-
-	mappingInterface := indexMappingInterface[indexName]
-	mappingBytes, err := json.Marshal(mappingInterface)
-	if err != nil {
-		es.Platform.Logger().Error("Elasticsearch: Failed to marshal Elasticsearch index field mapping", mlog.Err(err))
-		return false, err
-	}
-
-	es.Platform.Log().Debug("Elasticsearch.isFieldCorrect: channel index type field mapping queried successfully", mlog.String("mapping", string(mappingBytes)))
-
-	var mapping channelsTypeFieldMapping
-	err = json.Unmarshal(mappingBytes, &mapping)
-	if err != nil {
-		es.Platform.Logger().Error("Elasticsearch: Failed to unmarshal Elasticsearch index field mapping", mlog.Err(err))
-		return false, err
-	}
-
-	es.Platform.Logger().Debug("Elasticsearch: Found type of type field as", mlog.String("type", mapping.Mappings.Type.Mapping.Type.Type))
-	return mapping.Mappings.Type.Mapping.Type.Type == "keyword", nil
 }

@@ -51,7 +51,7 @@ func bookmarkWithFileInfoSliceColumns() []string {
 	}
 }
 
-func (s *SqlChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error {
+func (s *SqlChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId string, channelId string) error {
 	existingQuery := s.getSubQueryBuilder().
 		Select("FileInfoId").
 		From("ChannelBookmarks").
@@ -66,11 +66,13 @@ func (s *SqlChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId 
 		Where(sq.Or{
 			sq.Expr("Id IN (?)", existingQuery),
 			sq.And{
+				sq.Eq{"Id": fileId},
 				sq.Or{
 					sq.NotEq{"PostId": ""},
 					sq.NotEq{"CreatorId": model.BookmarkFileOwner},
+					sq.NotEq{"ChannelId": channelId},
+					sq.NotEq{"DeleteAt": 0},
 				},
-				sq.Eq{"Id": fileId},
 			},
 		})
 
@@ -139,7 +141,7 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 	}
 
 	if bookmark.FileId != "" {
-		err = s.ErrorIfBookmarkFileInfoAlreadyAttached(bookmark.FileId)
+		err = s.ErrorIfBookmarkFileInfoAlreadyAttached(bookmark.FileId, bookmark.ChannelId)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable_to_save_channel_bookmark")
 		}

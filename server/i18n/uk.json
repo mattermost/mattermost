@@ -8280,10 +8280,6 @@
     "translation": "Не вдалося оновити участь у обговореннях для згаданого користувача"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Схема індексу каналу пошуку застаріла. Ми рекомендуємо регенерувати індекс вашого каналу.\nНатисніть кнопку `Перебудувати індекс каналів` на [сторінці Elasticsearch через Системну консоль]({{.ElasticsearchSection}}), щоб вирішити цю проблему.\nДетальнішу інформацію ви можете переглянути у журналі змін Mattermost."
-  },
-  {
     "id": "api.user.create_user.user_limits.exceeded",
     "translation": "Неможливо створити користувача. Сервер перевищує ліміт безпечних користувачів. Зверніться до свого адміністратора з повідомленням: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
@@ -10286,5 +10282,73 @@
   {
     "id": "api.filter_config_error",
     "translation": "Не вдалося відфільтрувати конфігурацію."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Не вдається видалити поле користувацького атрибуту профілю"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Не вдається отримати значення користувацьких атрибутів профілю"
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Не вдалося видалити роль."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Експорт інформації про канали для {{.NumChannels}} каналів."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Довжина URL-адреси метаданих посилання становить {{ .Length }} символів, що перевищує максимальне обмеження у {{ .MaxLength }} символів."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Неправильне поле властивості: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Неправильне значення властивості: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Ваша ліцензія не підтримує користувацькі атрибути профілю."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Неможливо отримати програму для читання zip-файлів."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Підрахунок активності каналів: {{.NumCompleted}}/{{.NumChannels}} каналів завершено."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Не вдалось зареєструвати групу властивостей \"Атрибути користувацького профілю\""
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Неможливо створити поле \"Атрибут користувацького профілю\""
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Неможливо отримати поле \"Атрибут профілю користувача\""
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Досягнуто ліміт поля \"Атрибути профілю користувача\""
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Неможливо виконати команду у видаленому каналі."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Користувацьке поле атрибуту профілю не знайдено"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Не вдається оновити поле атрибуту користувацького профілю"
   }
 ]

@@ -1,16 +1,19 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import {expect, Page} from '@playwright/test';
 import {test} from '@e2e-support/test_fixture';
 import {ChannelsPage, ScheduledDraftPage} from '@e2e-support/ui/pages';
 import {duration, wait} from '@e2e-support/util';
 
-test.fixme('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
-    test.setTimeout(120000);
+test('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
+    test.setTimeout(duration.four_min);
 
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
     const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
     await setupChannelPage(channelsPage, draftMessage);
@@ -32,21 +35,18 @@ test.fixme('MM-T5643_1 should create a scheduled message from a channel', async 
     await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
     await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
     await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
-
-    await verifyNoscheduledDraftsPending(channelsPage, team, scheduledDraftPage, draftMessage);
+    await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
 
-test.fixme('MM-T5643_6 should create a scheduled message under a thread post ', async ({pw}) => {
-    test.setTimeout(120000);
-
+test('MM-T5643_6 should create a scheduled message under a thread post ', async ({pw}) => {
     const draftMessage = 'Scheduled Threaded Message';
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
 
     // # Log in as a user in new browser context
-    const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
+    const {channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
     // # Visit default channel page
     await channelsPage.goto();
@@ -94,22 +94,17 @@ test.fixme('MM-T5643_6 should create a scheduled message under a thread post ', 
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
-    await goBackToChannelAndWaitForMessageToArrive(page);
+    await scheduledDraftPage.sendScheduledMessage(draftMessage);
 
-    await replyToLastPost(post);
+    await sidebarRight.toBeVisible();
+    (await sidebarRight.getLastPost()).toContainText(draftMessage);
 
-    // * Verify the message has been sent and there's no more scheduled messages
     await expect(channelsPage.sidebarRight.scheduledDraftChannelInfoMessage).not.toBeVisible();
     await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-
-    const lastPost = channelsPage.sidebarRight.rhsPostBody.last();
-    await expect(lastPost).toHaveText(draftMessage);
-    await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
-
-    await verifyNoscheduledDraftsPending(channelsPage, team, scheduledDraftPage, draftMessage);
+    await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
 
-test.fixme('MM-T5644 should reschedule a scheduled message', async ({pw}) => {
+test('MM-T5644 should reschedule a scheduled message', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
@@ -141,7 +136,7 @@ test.fixme('MM-T5644 should reschedule a scheduled message', async ({pw}) => {
     await compareMessageTimestamps(rescheduledDraftChannelInfo, scheduledDraftPageInfo, scheduledDraftPage);
 });
 
-test.fixme('MM-T5645 should delete a scheduled message', async ({pw}) => {
+test('MM-T5645 should delete a scheduled message', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
@@ -160,7 +155,7 @@ test.fixme('MM-T5645 should delete a scheduled message', async ({pw}) => {
     await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
 });
 
-test.fixme('MM-T5643_9 should send a scheduled message immediately', async ({pw}) => {
+test('MM-T5643_9 should send a scheduled message immediately', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     await pw.skipIfNoLicense();
 
@@ -174,6 +169,7 @@ test.fixme('MM-T5643_9 should send a scheduled message immediately', async ({pw}
     await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
     await scheduledDraftPage.sendScheduledMessage(draftMessage);
+    await wait(duration.two_sec);
 
     await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
 
@@ -183,9 +179,7 @@ test.fixme('MM-T5643_9 should send a scheduled message immediately', async ({pw}
     await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
 });
 
-test.fixme('MM-T5643_3 should create a scheduled message from a DM', async ({pw}) => {
-    test.setTimeout(120000);
-
+test('MM-T5643_3 should create a scheduled message from a DM', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
@@ -207,20 +201,18 @@ test.fixme('MM-T5643_3 should create a scheduled message from a DM', async ({pw}
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
-    // # Go back and wait for message to arrive
-    await goBackToChannelAndWaitForMessageToArrive(page);
+    await scheduledDraftPage.sendScheduledMessage(draftMessage);
+    await page.waitForSelector(channelsPage.centerView.scheduledDraftChannelInfoMessageLocator, {state: 'hidden'});
 
     // * Verify the message has been sent and there's no more scheduled messages
     await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
     await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
     await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
 
-    await verifyNoscheduledDraftsPending(channelsPage, team, scheduledDraftPage, draftMessage);
+    await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
 
 test('MM-T5648 should create a draft and then schedule it', async ({pw}) => {
-    test.setTimeout(120000);
-
     const draftMessage = 'Draft to be Scheduled';
     await pw.skipIfNoLicense();
 
@@ -250,14 +242,12 @@ test('MM-T5648 should create a draft and then schedule it', async ({pw}) => {
     await scheduledDraftPage.assertscheduledDraftBody(draftMessage);
 });
 
-test.fixme('MM-T5644 should edit scheduled message', async ({pw}) => {
-    test.setTimeout(120000);
-
+test('MM-T5644 should edit scheduled message', async ({pw}) => {
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
-    const {user, team} = await pw.initSetup();
+    const {user} = await pw.initSetup();
     const {page, channelsPage, scheduledDraftPage} = await pw.testBrowser.login(user);
 
     await setupChannelPage(channelsPage, draftMessage);
@@ -275,20 +265,18 @@ test.fixme('MM-T5644 should edit scheduled message', async ({pw}) => {
     const updatedText = 'updated text';
     await scheduledDraftPage.editText(updatedText);
 
-    // # Go back and wait for message to arrive
-    await goBackToChannelAndWaitForMessageToArrive(page);
+    await scheduledDraftPage.sendScheduledMessage(updatedText);
 
     // * Verify the message has been sent and there's no more scheduled messages
+    await page.waitForSelector(channelsPage.centerView.scheduledDraftChannelInfoMessageLocator, {state: 'hidden'});
     await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
     await expect(channelsPage.sidebarLeft.scheduledDraftCountonLHS).not.toBeVisible();
-    await expect(await channelsPage.getLastPost()).toHaveText(draftMessage);
+    await expect(await channelsPage.getLastPost()).toHaveText(updatedText);
 
-    await verifyNoscheduledDraftsPending(channelsPage, team, scheduledDraftPage, draftMessage);
+    await channelsPage.sidebarLeft.assertNoPendingScheduledDraft();
 });
 
-test.fixme('MM-T5650 should copy scheduled message', async ({pw, browserName}) => {
-    test.setTimeout(120000);
-
+test('MM-T5650 should copy scheduled message', async ({pw, browserName}) => {
     // Skip this test in Firefox clipboard permissions are not supported
     test.skip(browserName === 'firefox', 'Test not supported in Firefox');
 
@@ -315,28 +303,17 @@ test.fixme('MM-T5650 should copy scheduled message', async ({pw, browserName}) =
 
     await channelsPage.centerView.postCreate.input.focus();
 
-    await page.keyboard.down('Meta');
+    await page.keyboard.down('ControlOrMeta');
     await page.keyboard.press('V');
-    await page.keyboard.up('Meta');
+    await page.keyboard.up('ControlOrMeta');
 
     // * Assert the message typed is same as the copied message
     await expect(channelsPage.centerView.postCreate.input).toHaveText(draftMessage);
 });
 
-async function verifyNoscheduledDraftsPending(
-    channelsPage: ChannelsPage,
-    team: any,
-    scheduledDraftPage: ScheduledDraftPage,
-    draftMessage: string,
-): Promise<void> {
-    await channelsPage.goto(team.name, 'scheduled_posts');
-    await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
-    await expect(scheduledDraftPage.noscheduledDraftIcon).toBeVisible();
-}
-
 async function goBackToChannelAndWaitForMessageToArrive(page: Page): Promise<void> {
     await page.goBack();
-    await wait(duration.half_min);
+    await wait(duration.two_min);
     await page.reload();
 }
 

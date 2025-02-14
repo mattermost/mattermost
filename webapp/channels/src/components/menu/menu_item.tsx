@@ -83,6 +83,8 @@ export interface Props extends MuiMenuItemProps {
 
     role?: AriaRole;
 
+    forceCloseOnSelect?: boolean;
+
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
@@ -136,6 +138,7 @@ export function MenuItem(props: Props) {
         children,
         onClick,
         role = 'menuitem',
+        forceCloseOnSelect = false,
         ...otherProps
     } = props;
 
@@ -147,8 +150,9 @@ export function MenuItem(props: Props) {
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
             // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
+            // unless forceCloseOnSelect is set to true.
             // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
-            if (isRoleCheckboxOrRadio(role)) {
+            if (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect) {
                 event.stopPropagation();
             } else {
                 // close submenu first if it is open
@@ -305,6 +309,7 @@ export const MenuItemStyled = styled(MuiMenuItem, {
                     flexWrap: 'nowrap',
                     justifyContent: 'flex-end',
                     color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--error-text)',
+                    marginInlineStart: '24px',
                     gap: '4px',
                     fontSize: '12px',
                     lineHeight: '16px',

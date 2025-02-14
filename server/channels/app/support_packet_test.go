@@ -337,6 +337,8 @@ func TestGetSupportPacketStats(t *testing.T) {
 	generateStats := func(t *testing.T) *model.SupportPacketStats {
 		t.Helper()
 
+		require.NoError(t, th.App.Srv().Store().Post().RefreshPostStats())
+
 		fileData, err := th.App.getSupportPacketStats(th.Context)
 		require.NotNil(t, fileData)
 		assert.Equal(t, "stats.yaml", fileData.Filename)

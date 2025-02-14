@@ -40,47 +40,52 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
           <ProfilePopoverController
             channelId="channel_id"
             src="/api/v4/users/user_id/image?_=0"
-            triggerComponentClass="status-wrapper"
+            triggerComponentAs="button"
+            triggerComponentClass="status-wrapper style--none"
+            triggerComponentStyle={
+              Object {
+                "borderRadius": "50%",
+                "height": "32px",
+                "width": "32px",
+              }
+            }
             userId="user_id"
             username="username"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="status-wrapper"
+              className="status-wrapper style--none"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}
               onMouseDown={[Function]}
               onPointerDown={[Function]}
+              style={
+                Object {
+                  "borderRadius": "50%",
+                  "height": "32px",
+                  "width": "32px",
+                }
+              }
             >
-              <RoundButton
-                className="style--none"
-                size="md"
+              <span
+                className="profile-icon "
               >
-                <button
-                  className="RoundButton-dvlhqG gfRzmz style--none"
+                <Avatar
                   size="md"
+                  url="/api/v4/users/user_id/image?_=0"
+                  username="username"
                 >
-                  <span
-                    className="profile-icon "
-                  >
-                    <Avatar
-                      size="md"
-                      url="/api/v4/users/user_id/image?_=0"
-                      username="username"
-                    >
-                      <img
-                        alt="username profile image"
-                        className="Avatar Avatar-md"
-                        loading="lazy"
-                        onError={[Function]}
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                    </Avatar>
-                  </span>
-                </button>
-              </RoundButton>
+                  <img
+                    alt="username profile image"
+                    className="Avatar Avatar-md"
+                    loading="lazy"
+                    onError={[Function]}
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
+                </Avatar>
+              </span>
               <Memo(StatusIcon)
                 status="status"
               >
@@ -113,7 +118,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                   </span>
                 </StatusOfflineIcon>
               </Memo(StatusIcon)>
-            </span>
+            </button>
           </ProfilePopoverController>
         </ProfilePicture>
       </div>
@@ -267,47 +272,52 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
           <ProfilePopoverController
             channelId="channel_id"
             src="/api/v4/users/user_id/image?_=0"
-            triggerComponentClass="status-wrapper"
+            triggerComponentAs="button"
+            triggerComponentClass="status-wrapper style--none"
+            triggerComponentStyle={
+              Object {
+                "borderRadius": "50%",
+                "height": "32px",
+                "width": "32px",
+              }
+            }
             userId="user_id"
             username="username"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="status-wrapper"
+              className="status-wrapper style--none"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}
               onMouseDown={[Function]}
               onPointerDown={[Function]}
+              style={
+                Object {
+                  "borderRadius": "50%",
+                  "height": "32px",
+                  "width": "32px",
+                }
+              }
             >
-              <RoundButton
-                className="style--none"
-                size="md"
+              <span
+                className="profile-icon "
               >
-                <button
-                  className="RoundButton-dvlhqG gfRzmz style--none"
+                <Avatar
                   size="md"
+                  url="/api/v4/users/user_id/image?_=0"
+                  username="username"
                 >
-                  <span
-                    className="profile-icon "
-                  >
-                    <Avatar
-                      size="md"
-                      url="/api/v4/users/user_id/image?_=0"
-                      username="username"
-                    >
-                      <img
-                        alt="username profile image"
-                        className="Avatar Avatar-md"
-                        loading="lazy"
-                        onError={[Function]}
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                    </Avatar>
-                  </span>
-                </button>
-              </RoundButton>
+                  <img
+                    alt="username profile image"
+                    className="Avatar Avatar-md"
+                    loading="lazy"
+                    onError={[Function]}
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
+                </Avatar>
+              </span>
               <Memo(StatusIcon)
                 status="status"
               >
@@ -340,7 +350,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                   </span>
                 </StatusOfflineIcon>
               </Memo(StatusIcon)>
-            </span>
+            </button>
           </ProfilePopoverController>
         </ProfilePicture>
       </div>
@@ -500,47 +510,52 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
           <ProfilePopoverController
             channelId="channel_id"
             src="/api/v4/users/user_id/image?_=0"
-            triggerComponentClass="status-wrapper"
+            triggerComponentAs="button"
+            triggerComponentClass="status-wrapper style--none"
+            triggerComponentStyle={
+              Object {
+                "borderRadius": "50%",
+                "height": "32px",
+                "width": "32px",
+              }
+            }
             userId="user_id"
             username="username"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="status-wrapper"
+              className="status-wrapper style--none"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}
               onMouseDown={[Function]}
               onPointerDown={[Function]}
+              style={
+                Object {
+                  "borderRadius": "50%",
+                  "height": "32px",
+                  "width": "32px",
+                }
+              }
             >
-              <RoundButton
-                className="style--none"
-                size="md"
+              <span
+                className="profile-icon "
               >
-                <button
-                  className="RoundButton-dvlhqG gfRzmz style--none"
+                <Avatar
                   size="md"
+                  url="/api/v4/users/user_id/image?_=0"
+                  username="username"
                 >
-                  <span
-                    className="profile-icon "
-                  >
-                    <Avatar
-                      size="md"
-                      url="/api/v4/users/user_id/image?_=0"
-                      username="username"
-                    >
-                      <img
-                        alt="username profile image"
-                        className="Avatar Avatar-md"
-                        loading="lazy"
-                        onError={[Function]}
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                    </Avatar>
-                  </span>
-                </button>
-              </RoundButton>
+                  <img
+                    alt="username profile image"
+                    className="Avatar Avatar-md"
+                    loading="lazy"
+                    onError={[Function]}
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
+                </Avatar>
+              </span>
               <Memo(StatusIcon)
                 status="status"
               >
@@ -573,7 +588,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                   </span>
                 </StatusOfflineIcon>
               </Memo(StatusIcon)>
-            </span>
+            </button>
           </ProfilePopoverController>
         </ProfilePicture>
       </div>
@@ -790,47 +805,52 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
           <ProfilePopoverController
             channelId="channel_id"
             src="/api/v4/users/user_id/image?_=0"
-            triggerComponentClass="status-wrapper"
+            triggerComponentAs="button"
+            triggerComponentClass="status-wrapper style--none"
+            triggerComponentStyle={
+              Object {
+                "borderRadius": "50%",
+                "height": "32px",
+                "width": "32px",
+              }
+            }
             userId="user_id"
             username="username"
           >
-            <span
+            <button
               aria-expanded="false"
               aria-haspopup="dialog"
-              className="status-wrapper"
+              className="status-wrapper style--none"
               onClick={[Function]}
               onKeyDown={[Function]}
               onKeyUp={[Function]}
               onMouseDown={[Function]}
               onPointerDown={[Function]}
+              style={
+                Object {
+                  "borderRadius": "50%",
+                  "height": "32px",
+                  "width": "32px",
+                }
+              }
             >
-              <RoundButton
-                className="style--none"
-                size="md"
+              <span
+                className="profile-icon "
               >
-                <button
-                  className="RoundButton-dvlhqG gfRzmz style--none"
+                <Avatar
                   size="md"
+                  url="/api/v4/users/user_id/image?_=0"
+                  username="username"
                 >
-                  <span
-                    className="profile-icon "
-                  >
-                    <Avatar
-                      size="md"
-                      url="/api/v4/users/user_id/image?_=0"
-                      username="username"
-                    >
-                      <img
-                        alt="username profile image"
-                        className="Avatar Avatar-md"
-                        loading="lazy"
-                        onError={[Function]}
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                    </Avatar>
-                  </span>
-                </button>
-              </RoundButton>
+                  <img
+                    alt="username profile image"
+                    className="Avatar Avatar-md"
+                    loading="lazy"
+                    onError={[Function]}
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
+                </Avatar>
+              </span>
               <Memo(StatusIcon)
                 status="status"
               >
@@ -863,7 +883,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                   </span>
                 </StatusOfflineIcon>
               </Memo(StatusIcon)>
-            </span>
+            </button>
           </ProfilePopoverController>
         </ProfilePicture>
       </div>

@@ -39,7 +39,7 @@ const (
 	JobTypeS3PathMigration               = "s3_path_migration"
 	JobTypeCleanupDesktopTokens          = "cleanup_desktop_tokens"
 	JobTypeDeleteEmptyDraftsMigration    = "delete_empty_drafts_migration"
-	JobTypeRefreshPostStats              = "refresh_post_stats"
+	JobTypeRefreshMaterializedViews      = "refresh_materialized_views"
 	JobTypeDeleteOrphanDraftsMigration   = "delete_orphan_drafts_migration"
 	JobTypeExportUsersToCSV              = "export_users_to_csv"
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
@@ -75,7 +75,7 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
-	JobTypeRefreshPostStats,
+	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
 }
 

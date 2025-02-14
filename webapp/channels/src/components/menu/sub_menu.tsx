@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiMenu from '@mui/material/Menu';
 import MuiMenuList from '@mui/material/MenuList';
+import MuiPopover from '@mui/material/Popover';
 import type {PopoverOrigin} from '@mui/material/Popover';
 import React, {
     useState,
@@ -33,6 +33,8 @@ import {SubMenuContext, useMenuContextValue} from './menu_context';
 import {MenuItem} from './menu_item';
 import type {Props as MenuItemProps} from './menu_item';
 
+import './menu.scss';
+
 interface Props {
     id: MenuItemProps['id'];
     leadingElement?: MenuItemProps['leadingElement'];
@@ -47,6 +49,7 @@ interface Props {
     menuAriaDescribedBy?: string;
     forceOpenOnLeft?: boolean; // Most of the times this is not needed, since submenu position is calculated and placed
 
+    subMenuHeader?: ReactNode;
     children: ReactNode;
 }
 
@@ -63,6 +66,7 @@ export function SubMenu(props: Props) {
         menuAriaDescribedBy,
         forceOpenOnLeft,
         children,
+        subMenuHeader,
         ...rest
     } = props;
 
@@ -136,6 +140,7 @@ export function SubMenu(props: Props) {
                 menuId,
                 menuAriaLabel,
                 children,
+                subMenuHeader,
             },
         }));
     }
@@ -166,35 +171,30 @@ export function SubMenu(props: Props) {
             onMouseLeave={handleMouseLeave}
             onKeyDown={handleKeyDown}
         >
-            <MuiMenu
-                anchorEl={anchorElement}
-                open={isSubMenuOpen}
-                anchorOrigin={originOfAnchorAndTransform.anchorOrigin}
-                transformOrigin={originOfAnchorAndTransform.transformOrigin}
-                sx={{pointerEvents: 'none'}}
-                className='menu_menuStyled AsSubMenu'
-            >
-                {/* This component is needed here to re enable pointer events for the submenu items which we had to disable above as */}
-                {/* pointer turns to default as soon as it leaves the parent menu */}
-                {/* Notice we dont use the below component in menu.tsx  */}
-                <MuiMenuList
-                    id={menuId}
-                    component='ul'
-                    aria-label={menuAriaLabel}
-                    aria-describedby={menuAriaDescribedBy}
-                    className={A11yClassNames.POPUP}
-                    onKeyDown={handleSubMenuKeyDown}
-                    sx={{
-                        pointerEvents: 'auto', // reset pointer events to default from here on
-                        paddingTop: 0,
-                        paddingBottom: 0,
-                    }}
+            <SubMenuContext.Provider value={providerValue}>
+                <MuiPopover
+                    anchorEl={anchorElement}
+                    open={isSubMenuOpen}
+                    anchorOrigin={originOfAnchorAndTransform.anchorOrigin}
+                    transformOrigin={originOfAnchorAndTransform.transformOrigin}
+                    className='menu_menuStyled AsSubMenu'
                 >
-                    <SubMenuContext.Provider value={providerValue}>
+                    {subMenuHeader}
+                    <MuiMenuList
+                        id={menuId}
+                        aria-label={menuAriaLabel}
+                        aria-describedby={menuAriaDescribedBy}
+                        className={A11yClassNames.POPUP}
+                        onKeyDown={handleSubMenuKeyDown}
+                        autoFocusItem={isSubMenuOpen}
+                        sx={{
+                            py: 0,
+                        }}
+                    >
                         {children}
-                    </SubMenuContext.Provider>
-                </MuiMenuList>
-            </MuiMenu>
+                    </MuiMenuList>
+                </MuiPopover>
+            </SubMenuContext.Provider>
         </MenuItem>
     );
 }
@@ -203,6 +203,7 @@ interface SubMenuModalProps {
     menuId: Props['menuId'];
     menuAriaLabel?: Props['menuAriaLabel'];
     children: Props['children'];
+    subMenuHeader?: ReactNode;
 }
 
 function SubMenuModal(props: SubMenuModalProps) {
@@ -224,9 +225,11 @@ function SubMenuModal(props: SubMenuModalProps) {
                 className='menuModal'
             >
                 <MuiMenuList
+                    component={'div'}
                     aria-hidden={true}
                     onClick={handleModalClose}
                 >
+                    {props.subMenuHeader}
                     {props.children}
                 </MuiMenuList>
             </GenericModal>

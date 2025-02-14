@@ -78,7 +78,8 @@ func SetMainHelper(mh *testlib.MainHelper) {
 }
 
 func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
-	updateConfig func(*model.Config), options []app.Option) *TestHelper {
+	updateConfig func(*model.Config), options []app.Option,
+) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
@@ -421,14 +422,16 @@ func closeBody(r *http.Response) {
 	}
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser   *model.User
-	SystemManagerUser *model.User
-	TeamAdminUser     *model.User
-	BasicUser         *model.User
-	BasicUser2        *model.User
-}
+var (
+	initBasicOnce sync.Once
+	userCache     struct {
+		SystemAdminUser   *model.User
+		SystemManagerUser *model.User
+		TeamAdminUser     *model.User
+		BasicUser         *model.User
+		BasicUser2        *model.User
+	}
+)
 
 func (th *TestHelper) InitLogin() *TestHelper {
 	th.waitForConnectivity()
@@ -555,9 +558,9 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 	}
 }
 
-func (th *TestHelper) CreateConnectedWebSocketClient(t *testing.T) *model.WebSocketClient {
+func (th *TestHelper) createConnectedWebSocketClient(t *testing.T, client *model.Client4) *model.WebSocketClient {
 	t.Helper()
-	wsClient, err := th.CreateWebSocketClient()
+	wsClient, err := th.CreateWebSocketClientWithClient(client)
 	require.NoError(t, err)
 	require.NotNil(t, wsClient, "webSocketClient should not be nil")
 	wsClient.Listen()
@@ -574,16 +577,20 @@ func (th *TestHelper) CreateConnectedWebSocketClient(t *testing.T) *model.WebSoc
 	return wsClient
 }
 
+func (th *TestHelper) CreateConnectedWebSocketClient(t *testing.T) *model.WebSocketClient {
+	return th.createConnectedWebSocketClient(t, th.Client)
+}
+
+func (th *TestHelper) CreateConnectedWebSocketClientWithClient(t *testing.T, client *model.Client4) *model.WebSocketClient {
+	return th.createConnectedWebSocketClient(t, client)
+}
+
 func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken)
 }
 
 func (th *TestHelper) CreateReliableWebSocketClient(connID string, seqNo int) (*model.WebSocketClient, error) {
 	return model.NewReliableWebSocketClientWithDialer(websocket.DefaultDialer, fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken, connID, seqNo, true)
-}
-
-func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemAdminClient.AuthToken)
 }
 
 func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, error) {
@@ -877,7 +884,6 @@ func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message 
 		Message:   message,
 		CreateAt:  createAtTime,
 	})
-
 	if err != nil {
 		panic(err)
 	}

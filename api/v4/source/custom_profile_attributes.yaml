@@ -189,7 +189,11 @@
                   id:
                     type: string
                   value:
-                    type: string
+                    oneOf:
+                      - type: string 
+                      - type: array
+                        items:
+                          type: string
       responses:
         "200":
           description: Custom Profile Attribute values patch successful
@@ -203,7 +207,11 @@
                     id:
                       type: string
                     value:
-                      type: string
+                      oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

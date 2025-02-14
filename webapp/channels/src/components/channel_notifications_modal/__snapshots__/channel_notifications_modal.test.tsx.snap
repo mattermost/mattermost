@@ -201,6 +201,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -208,7 +213,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -221,7 +226,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -233,7 +238,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -637,6 +642,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -644,7 +654,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -657,7 +667,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -669,7 +679,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -836,13 +846,18 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
                           <input
                             data-testid="MobileNotification-all"
                             id="MobileNotification-all"
-                            name="MobileNotification-all"
+                            name="push"
                             type="radio"
                             value="all"
                           />
@@ -855,7 +870,7 @@ Object {
                             checked=""
                             data-testid="MobileNotification-mention"
                             id="MobileNotification-mention"
-                            name="MobileNotification-mention"
+                            name="push"
                             type="radio"
                             value="mention"
                           />
@@ -868,7 +883,7 @@ Object {
                           <input
                             data-testid="MobileNotification-none"
                             id="MobileNotification-none"
-                            name="MobileNotification-none"
+                            name="push"
                             type="radio"
                             value="none"
                           />
@@ -1530,6 +1545,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -1537,7 +1557,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -1550,7 +1570,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -1562,7 +1582,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -2047,6 +2067,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -2054,7 +2079,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -2067,7 +2092,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -2079,7 +2104,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -2564,6 +2589,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -2571,7 +2601,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -2584,7 +2614,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -2596,7 +2626,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />

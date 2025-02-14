@@ -7,7 +7,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled, {css} from 'styled-components';
 
-import {PlusIcon, TextBoxOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {MenuVariantIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
@@ -30,6 +30,7 @@ type Props = {
 type FieldActions = {
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
+    reorderField: (field: UserPropertyField, nextOrder: number) => void;
 }
 
 export const useUserPropertiesTable = (): SectionHook => {
@@ -53,6 +54,7 @@ export const useUserPropertiesTable = (): SectionHook => {
                 data={userPropertyFields}
                 updateField={itemOps.update}
                 deleteField={itemOps.delete}
+                reorderField={itemOps.reorder}
             />
             {nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES && (
                 <LinkButton onClick={itemOps.create}>
@@ -78,13 +80,14 @@ export const useUserPropertiesTable = (): SectionHook => {
     };
 };
 
-export function UserPropertiesTable({data: collection, updateField, deleteField}: Props & FieldActions) {
+export function UserPropertiesTable({data: collection, updateField, deleteField, reorderField}: Props & FieldActions) {
     const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
     const col = createColumnHelper<UserPropertyField>();
     const columns = useMemo<Array<ColumnDef<UserPropertyField, any>>>(() => {
         return [
             col.accessor('name', {
+                size: 180,
                 header: () => {
                     return (
                         <ColHeaderLeft>
@@ -150,6 +153,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                 enableSorting: false,
             }),
             col.accessor('type', {
+                size: 100,
                 header: () => {
                     return (
                         <ColHeaderLeft>
@@ -166,7 +170,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                     if (type === 'text') {
                         type = (
                             <>
-                                <TextBoxOutlineIcon
+                                <MenuVariantIcon
                                     size={18}
                                     color={'rgba(var(--center-channel-color-rgb), 0.64)'}
                                 />
@@ -188,7 +192,16 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                 enableSorting: false,
             }),
             col.display({
+                id: 'options',
+                size: 300,
+                header: () => <></>,
+                cell: () => <></>,
+                enableHiding: false,
+                enableSorting: false,
+            }),
+            col.display({
                 id: 'actions',
+                size: 100,
                 header: () => {
                     return (
                         <ColHeaderRight>
@@ -202,7 +215,6 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                 cell: ({row}) => (
                     <Actions
                         field={row.original}
-                        updateField={updateField}
                         deleteField={deleteField}
                     />
                 ),
@@ -215,9 +227,6 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
     const table = useReactTable({
         data,
         columns,
-        initialState: {
-            sorting: [],
-        },
         getCoreRowModel: getCoreRowModel<UserPropertyField>(),
         getSortedRowModel: getSortedRowModel<UserPropertyField>(),
         enableSortingRemoval: false,
@@ -226,6 +235,9 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
         meta: {
             tableId: 'userProperties',
             disablePaginationControls: true,
+            onReorder: (prev: number, next: number) => {
+                reorderField(collection.data[collection.order[prev]], next);
+            },
         },
         manualPagination: true,
     });
@@ -283,7 +295,7 @@ const TableWrapper = styled.div`
     }
 `;
 
-const Actions = ({field, deleteField}: {field: UserPropertyField} & FieldActions) => {
+const Actions = ({field, deleteField}: {field: UserPropertyField} & Pick<FieldActions, 'deleteField'>) => {
     const {promptDelete} = useUserPropertyFieldDelete();
     const {formatMessage} = useIntl();
 

@@ -36,8 +36,8 @@ interface NoBillingHistorySectionProps {
 export const NoBillingHistorySection = (props: NoBillingHistorySectionProps) => (
     <div className='BillingHistory__noHistory'>
         <EmptyBillingHistorySvg
-            width={300}
-            height={210}
+            width={152}
+            height={116}
         />
         <div className='BillingHistory__noHistory-message'>
             <FormattedMessage

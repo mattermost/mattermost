@@ -505,6 +505,24 @@ func (_m *FileInfoStore) PermanentDeleteForPost(rctx request.CTX, postID string)
 	return r0
 }
 
+// RefreshFileStats provides a mock function with given fields:
+func (_m *FileInfoStore) RefreshFileStats() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for RefreshFileStats")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RestoreForPostByIds provides a mock function with given fields: rctx, postId, fileIDs
 func (_m *FileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
 	ret := _m.Called(rctx, postId, fileIDs)

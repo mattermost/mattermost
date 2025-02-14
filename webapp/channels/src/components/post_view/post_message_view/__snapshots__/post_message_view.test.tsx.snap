@@ -10,7 +10,6 @@ exports[`components/post_view/PostAttachment should match snapshot 1`] = `
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -47,7 +46,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show Less
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -84,7 +82,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on Show More
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -139,7 +136,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on edited po
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={
@@ -177,7 +173,6 @@ exports[`components/post_view/PostAttachment should match snapshot, on ephemeral
     dir="auto"
     id="postMessageText_post_id"
     onClick={[Function]}
-    tabIndex={0}
   >
     <Connect(PostMarkdown)
       imageProps={

@@ -46,14 +46,6 @@ type OpensearchInterfaceImpl struct {
 
 	bulkProcessor *Bulk
 	Platform      *platform.PlatformService
-
-	// This flag is for indicating if channel index's mappings
-	// has been verified, and if so, what was the result.
-	//
-	// value = 0 indicates it has NOT BEEN CHECKED
-	// value = 1 indicates index has been checked and has CORRECT mappings
-	// value = 2 indicates index has been checked and it has INCORRECT mappings
-	channelIndexVerified int32
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -89,25 +81,7 @@ func (os *OpensearchInterfaceImpl) IsSearchEnabled() bool {
 }
 
 func (os *OpensearchInterfaceImpl) IsAutocompletionEnabled() bool {
-	// if we encounter the index mappings haven't been checked, we check it once and store result.
-	// While in most cases the flag would have been set in the `Start` function,
-	// There's a case if you call the update config API and enable ES and autocomplete at the same time, it's not set
-	// so we're checking if its unset here and trying to check the index.
-	if atomic.LoadInt32(&os.channelIndexVerified) == 0 {
-		os.Platform.Log().Debug("IsAutocompletionEnabled: channel index has not been verified yet, checking index now")
-		os.checkChannelIndex()
-	}
-
-	return *os.Platform.Config().ElasticsearchSettings.EnableAutocomplete && atomic.LoadInt32(&os.channelIndexVerified) == 1
-}
-
-func (os *OpensearchInterfaceImpl) IsChannelsIndexVerified() bool {
-	if atomic.LoadInt32(&os.channelIndexVerified) == 0 {
-		os.Platform.Log().Debug("OpenSearch.IsChannelsIndexVerified: channel index has not been verified yet, checking index now")
-		os.checkChannelIndex()
-	}
-
-	return atomic.LoadInt32(&os.channelIndexVerified) == 1
+	return *os.Platform.Config().ElasticsearchSettings.EnableAutocomplete
 }
 
 func (os *OpensearchInterfaceImpl) IsIndexingSync() bool {
@@ -211,10 +185,6 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 	})
 	if err != nil {
 		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if atomic.LoadInt32(&os.channelIndexVerified) == 0 {
-		os.checkChannelIndex()
 	}
 
 	atomic.StoreInt32(&os.ready, 1)
@@ -2024,89 +1994,4 @@ func checkMaxVersion(client *opensearchapi.Client) (string, int, *model.AppError
 		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": opensearchMaxVersion, "Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusBadRequest)
 	}
 	return resp.Version.Number, major, nil
-}
-
-// checkChannelIndex checks if channel index's mapping is correct.
-// See Jira issue  https://mattermost.atlassian.net/browse/MM-49257
-func (os *OpensearchInterfaceImpl) checkChannelIndex() {
-	os.Platform.Log().Debug("Opensearch.checkChannelIndex: checking if channel index field is of correct type")
-	isCorrect, err := os.isFieldCorrect()
-	if err != nil {
-		return
-	}
-
-	if isCorrect {
-		os.Platform.Log().Debug("Opensearch.checkChannelIndex: channel index field is correct")
-		atomic.StoreInt32(&os.channelIndexVerified, 1)
-	} else {
-		os.Platform.Log().Debug("Opensearch.checkChannelIndex: channel index field is incorrect")
-		atomic.StoreInt32(&os.channelIndexVerified, 2)
-	}
-}
-
-func (os *OpensearchInterfaceImpl) isFieldCorrect() (bool, error) {
-	// We want to check if channel index's "type" field is of type "keyword".
-	// If the index is in incorrect state, the field would be of type "text".
-
-	os.Platform.Log().Debug("Opensearch.isFieldCorrect: querying ES to check if field is correct")
-
-	ctx, cancel := context.WithTimeout(
-		context.Background(),
-		time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second,
-	)
-	defer cancel()
-
-	var mappingFieldResp map[string]struct {
-		Mappings json.RawMessage `json:"mappings"`
-	}
-
-	indexName := *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels
-	httpResp, err := os.client.Client.Do(ctx, &opensearchapi.MappingFieldReq{
-		Fields:  []string{"type"},
-		Indices: []string{indexName},
-	}, &mappingFieldResp)
-	if err != nil {
-		os.Platform.Logger().Error("Opensearch: Failed to fetch channels index template", mlog.Err(err))
-		return false, err
-	}
-	// The case of channels index not existing is fine,
-	// as whenever the index will be created, it will be created
-	// with the correct mappings.
-	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound {
-		os.Platform.Logger().Debug("Opensearch isFieldCorrect: channel index doesn't exist", mlog.Err(err))
-		return true, nil
-	}
-
-	// this struct is declared here because
-	// it's not used anywhere outside this function
-	type channelsTypeFieldMapping struct {
-		Mappings struct {
-			Type struct {
-				Mapping struct {
-					Type struct {
-						Type string
-					}
-				}
-			}
-		}
-	}
-
-	mappingInterface := mappingFieldResp[indexName]
-	mappingBytes, err := json.Marshal(mappingInterface)
-	if err != nil {
-		os.Platform.Logger().Error("Opensearch: Failed to marshal Opensearch index field mapping", mlog.Err(err))
-		return false, err
-	}
-
-	os.Platform.Log().Debug("Opensearch.isFieldCorrect: channel index type field mapping queried successfully", mlog.String("mapping", string(mappingBytes)))
-
-	var mapping channelsTypeFieldMapping
-	err = json.Unmarshal(mappingBytes, &mapping)
-	if err != nil {
-		os.Platform.Logger().Error("Opensearch: Failed to unmarshal Opensearch index field mapping", mlog.Err(err))
-		return false, err
-	}
-
-	os.Platform.Logger().Debug("Opensearch: Found type of type field as", mlog.String("type", mapping.Mappings.Type.Mapping.Type.Type))
-	return mapping.Mappings.Type.Mapping.Type.Type == "keyword", nil
 }

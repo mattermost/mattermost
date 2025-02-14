@@ -330,13 +330,8 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 		builder = builder.Where(sq.LtOrEq{"Posts.UpdateAt": cursor.UntilUpdateAt})
 	}
 
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return nil, cursor, errors.Wrap(err, "unable to construct query to export messages")
-	}
-
 	cposts := []*model.MessageExport{}
-	if err := s.GetReplica().SelectCtx(c.Context(), &cposts, query, args...); err != nil {
+	if err := s.GetReplica().SelectBuilderCtx(c.Context(), &cposts, builder); err != nil {
 		return nil, cursor, errors.Wrap(err, "unable to export messages")
 	}
 	if len(cposts) > 0 {

@@ -108,11 +108,19 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 			return "", err
 		}
 		u.User = url.UserPassword("****", "****")
+
+		// Remove username and password from query string
 		params := u.Query()
 		params.Del("user")
 		params.Del("password")
 		u.RawQuery = params.Encode()
-		return u.String(), nil
+
+		// Unescape the URL to make it human-readable
+		out, err := url.QueryUnescape(u.String())
+		if err != nil {
+			return "", err
+		}
+		return out, nil
 	case model.DatabaseDriverMysql:
 		cfg, err := mysql.ParseDSN(dataSource)
 		if err != nil {

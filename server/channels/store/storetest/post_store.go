@@ -2895,6 +2895,8 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Post().Save(rctx, b1a)
 	require.NoError(t, nErr)
 
+	require.NoError(t, ss.Post().RefreshPostStats())
+
 	time.Sleep(1 * time.Second)
 
 	// summary of posts
@@ -2907,6 +2909,8 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, float64(3), r1[0].Value)
 	assert.Equal(t, float64(3), r1[1].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
+	assert.Equal(t, utils.Yesterday().Add(-48*time.Hour).Format("2006-01-02"), r1[1].Name)
 
 	// last 31 days, bots only
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: false}
@@ -2914,18 +2918,22 @@ func testPostCountsByDay(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), r1[0].Value)
 	assert.Equal(t, float64(1), r1[1].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
+	assert.Equal(t, utils.Yesterday().Add(-48*time.Hour).Format("2006-01-02"), r1[1].Name)
 
 	// yesterday only, all users (including bots)
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: true}
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
 	assert.Equal(t, float64(3), r1[0].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
 
 	// yesterday only, bots only
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: true}
 	r1, err = ss.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	require.NoError(t, err)
 	assert.Equal(t, float64(1), r1[0].Value)
+	assert.Equal(t, utils.Yesterday().Format("2006-01-02"), r1[0].Name)
 }
 
 func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3029,6 +3037,8 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Post().Save(rctx, p7)
 	require.NoError(t, nErr)
 
+	require.NoError(t, ss.Post().RefreshPostStats())
+
 	// total across all teams
 	c, err := ss.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, err)
@@ -3036,6 +3046,10 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// total for single team
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id})
+	require.NoError(t, err)
+	assert.Equal(t, int64(7), c)
+
+	c, err = ss.Post().AnalyticsPostCountByTeam(t1.Id)
 	require.NoError(t, err)
 	assert.Equal(t, int64(7), c)
 

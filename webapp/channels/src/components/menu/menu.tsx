@@ -41,7 +41,7 @@ const MENU_CLOSE_ANIMATION_DURATION = 100;
 
 type MenuButtonProps = {
     id: string;
-    dateTestId?: string;
+    dataTestId?: string;
     'aria-label'?: string;
     'aria-describedby'?: string;
     disabled?: boolean;
@@ -64,6 +64,7 @@ type MenuProps = {
      */
     id: string;
     'aria-label'?: string;
+    className?: string;
     'aria-labelledby'?: string;
 
     /**
@@ -168,6 +169,7 @@ export function Menu(props: Props) {
                         menuButtonId: props.menuButton.id,
                         menuId: props.menu.id,
                         menuAriaLabel: props.menu?.['aria-label'] ?? '',
+                        className: props.menu.className,
                         onModalClose: handleMenuModalClose,
                         children: props.children,
                         onKeyDown: props.menu.onKeyDown,
@@ -191,7 +193,7 @@ export function Menu(props: Props) {
         const triggerElement = (
             <MenuButtonComponent
                 id={props.menuButton.id}
-                data-testid={props.menuButton.dateTestId}
+                data-testid={props.menuButton.dataTestId}
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
@@ -251,6 +253,7 @@ export function Menu(props: Props) {
                     disableAutoFocusItem={disableAutoFocusItem} // This is not anti-pattern, see handleMenuButtonMouseDown
                     MenuListProps={{
                         id: props.menu.id,
+                        className: props.menu.className,
                         'aria-label': props.menu?.['aria-label'],
                         'aria-labelledby': props.menu?.['aria-labelledby'],
                         style: {
@@ -285,6 +288,7 @@ interface MenuModalProps {
     menuButtonId: MenuButtonProps['id'];
     menuId: MenuProps['id'];
     menuAriaLabel: MenuProps['aria-label'];
+    className: MenuProps['className'];
     onModalClose: (modalId: MenuProps['id']) => void;
     children: Props['children'];
     onKeyDown?: MenuProps['onKeyDown'];
@@ -331,6 +335,7 @@ function MenuModal(props: MenuModalProps) {
                     component='div'
                     aria-labelledby={props.menuButtonId}
                     onClick={handleModalClickCapture}
+                    className={props.className}
                 >
                     {props.children}
                 </MuiMenuList>

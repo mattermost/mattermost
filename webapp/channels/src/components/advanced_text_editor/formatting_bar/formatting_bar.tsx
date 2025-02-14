@@ -263,6 +263,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 timeout={250}
                 classNames='scale'
                 in={showHiddenControls}
+                unmountOnExit={true}
             >
                 <HiddenControlsContainer
                     ref={setFloating}

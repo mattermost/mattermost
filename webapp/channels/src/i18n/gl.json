@@ -25,7 +25,6 @@
   "accessibility.button.Info": "Información",
   "accessibility.button.Search": "Buscar",
   "accessibility.button.attachment": "anexo",
-  "accessibility.button.dialog": "Diálogo {dialogName}",
   "accessibility.sections.centerContent": "área principal da lista de mensaxes",
   "accessibility.sections.centerFooter": "área de cortesía de entrada de mensaxes",
   "accessibility.sections.channelHeader": "área da cabeceira da canle",

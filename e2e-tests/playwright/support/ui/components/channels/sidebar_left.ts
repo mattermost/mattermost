@@ -19,6 +19,10 @@ export default class ChannelsSidebarLeft {
         await expect(this.container).toBeVisible();
     }
 
+    async assertNoPendingScheduledDraft() {
+        await expect(this.scheduledDraftCountonLHS).not.toBeVisible();
+    }
+
     async assertscheduledDraftCountLHS(count: string) {
         await expect(this.scheduledDraftCountonLHS).toBeVisible();
         await expect(this.scheduledDraftCountonLHS).toHaveText(count);

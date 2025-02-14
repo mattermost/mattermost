@@ -50,5 +50,4 @@ type SearchEngineInterface interface {
 	PurgeIndexList(rctx request.CTX, indexes []string) *model.AppError
 	RefreshIndexes(rctx request.CTX) *model.AppError
 	DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError
-	IsChannelsIndexVerified() bool
 }
