@@ -77,7 +77,7 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
-import useEmojiPicker from './use_emoji_picker';
+import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import useOrientationHandler from './use_orientation_handler';
 import usePluginItems from './use_plugin_items';
@@ -131,6 +131,24 @@ const AdvancedTextEditor = ({
     const getChannelSelector = useMemo(makeGetChannel, []);
     const getDraftSelector = useMemo(makeGetDraft, []);
     const getDisplayName = useMemo(makeGetDisplayName, []);
+
+    let textboxId = 'textbox';
+
+    switch (location) {
+    case Locations.CENTER:
+        textboxId = 'post_textbox';
+        break;
+    case Locations.RHS_COMMENT:
+        textboxId = 'reply_textbox';
+        break;
+    case Locations.MODAL:
+        textboxId = 'modal_textbox';
+        break;
+    }
+
+    if (isInEditMode) {
+        textboxId = 'edit_textbox';
+    }
 
     const isRHS = Boolean(postId && !isThreadView);
 
@@ -310,12 +328,20 @@ const AdvancedTextEditor = ({
         isInEditMode,
     );
 
-    const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;
     const {
         emojiPicker,
         enableEmojiPicker,
         toggleEmojiPicker,
-    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox, emojiPickerOffset);
+    } = useEditorEmojiPicker(
+        textboxId,
+        isDisabled,
+        draft,
+        caretPosition,
+        setCaretPosition,
+        handleDraftChange,
+        showPreview,
+        focusTextbox,
+    );
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
@@ -652,24 +678,6 @@ const AdvancedTextEditor = ({
     }
 
     const messageValue = isDisabled ? '' : draft.message_source || draft.message;
-
-    let textboxId = 'textbox';
-
-    switch (location) {
-    case Locations.CENTER:
-        textboxId = 'post_textbox';
-        break;
-    case Locations.RHS_COMMENT:
-        textboxId = 'reply_textbox';
-        break;
-    case Locations.MODAL:
-        textboxId = 'modal_textbox';
-        break;
-    }
-
-    if (isInEditMode) {
-        textboxId = 'edit_textbox';
-    }
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
