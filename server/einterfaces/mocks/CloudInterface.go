@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	multipart "mime/multipart"
+
 	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -85,6 +87,24 @@ func (_m *CloudInterface) CheckCWSConnection(userId string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CreateAuditLoggingCert provides a mock function with given fields: userID, fileData
+func (_m *CloudInterface) CreateAuditLoggingCert(userID string, fileData *multipart.FileHeader) error {
+	ret := _m.Called(userID, fileData)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAuditLoggingCert")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *multipart.FileHeader) error); ok {
+		r0 = rf(userID, fileData)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -458,6 +478,24 @@ func (_m *CloudInterface) InvalidateCaches() error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RemoveAuditLoggingCert provides a mock function with given fields: userID
+func (_m *CloudInterface) RemoveAuditLoggingCert(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveAuditLoggingCert")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}

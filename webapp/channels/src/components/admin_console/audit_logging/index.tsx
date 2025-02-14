@@ -12,12 +12,12 @@ type Props = {
     config: any;
     license: any;
     intl: IntlShape;
+    value: any;
     onChange: (id: string, value: string) => void; 
     disabled: boolean; 
     setByEnv: boolean; 
     label: string;
     helpText: React.JSX.Element;
-    setSaveNeeded: () => void;
 };
 
 const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => {
@@ -28,21 +28,21 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
         setByEnv,
         label,
         helpText,
-        setSaveNeeded,
+        value,
     } = props;
 
     const {status: installationStatus, refetchStatus} = useGetCloudInstallationStatus(true);    
 
     const {formatMessage} = useIntl();
 
-    const [fileValue, setFileValue] = React.useState<string | null>(null); // State for the file name
+    const [fileValue, setFileValue] = React.useState<string | null>(value || null); // State for the file name
     const [fileError, setFileError] = React.useState<string | null>(null);  //State for file error
 
     React.useEffect(() => {
-        if(id){
-            setFileValue(props.config[id] || null)
+        if (value) {
+            setFileValue(value);
         }
-    },[props.config, id])
+    }, [value]);
 
     if (!id) {
         return (<></>);
@@ -61,6 +61,10 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
     }
 
     const withTooltip = <P extends object>(Component: ComponentType<P>, tooltipText: string): React.FC<P> => {
+        if (disabled || installationStatus === 'stable') {
+            return (props: P) => <Component {...props} />;
+        }
+
         return (props: P) => (
             <WithTooltip title={tooltipText}>
                 <div>
@@ -111,7 +115,6 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
             handleChange(id, filename);
             setFileValue(filename);
             setFileError(null);
-            setSaveNeeded();
             refetchStatus();
             if (callback && typeof callback === 'function') {
                 callback();
