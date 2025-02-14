@@ -3153,11 +3153,11 @@ func (s *RetryLayerChannelBookmarkStore) Delete(bookmarkID string, deleteFile bo
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileID string) error {
+func (s *RetryLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached(fileID)
+		err := s.ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached(fileID, channelID)
 		if err == nil {
 			return nil
 		}
@@ -8943,6 +8943,27 @@ func (s *RetryLayerProductNoticesStore) View(userID string, notices []string) er
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) CountForGroup(groupID string, includeDeleted bool) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.CountForGroup(groupID, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
