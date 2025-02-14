@@ -78,6 +78,8 @@ func TestCreateOAuthApp(t *testing.T) {
 }
 
 func TestUpdateOAuthApp(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-62895")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client

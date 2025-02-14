@@ -145,7 +145,7 @@ function replaceGlobalStore(getStore: () => any) {
     jest.spyOn(globalStore, 'dispatch').mockImplementation((...args) => getStore().dispatch(...args));
     jest.spyOn(globalStore, 'getState').mockImplementation(() => getStore().getState());
     jest.spyOn(globalStore, 'replaceReducer').mockImplementation((...args) => getStore().replaceReducer(...args));
-    jest.spyOn(globalStore, '@@observable').mockImplementation((...args) => getStore()['@@observable'](...args));
+    jest.spyOn(globalStore, '@@observable' as any).mockImplementation((...args: any[]) => getStore()['@@observable'](...args));
 
     // This may stop working if getStore starts to return new results
     jest.spyOn(globalStore, 'subscribe').mockImplementation((...args) => getStore().subscribe(...args));

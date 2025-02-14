@@ -2995,60 +2995,8 @@
     "translation": "Yüksek erişilebilirlik kipi etkin olduğunda, yapılandırma dosyasında salt okunur yapılandırma (ReadOnlyConfig) seçeneği kapatılmamış ise sistem panosu salt okunur olarak ayarlanır."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "{{.ExportType}} çıktı biçimi bilinmiyor"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Ek dosya zip dosyasına kopyalanamadı."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Ek dosya dışa aktarılan CSV dosyasına eklenemedi."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Dışa aktarılan geçici CSV dosyası oluşturulamadı."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Dışa aktarılan CSV dosyasına üst bilgi eklenemedi."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Zip dosyasına üst veri dosyası eklenemedi."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Üst veriler JSON biçimine dönüştürülemedi."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Bir ileti dışa aktarılamadı."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "ZIP dışa aktarma dosyası oluşturulamadı."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Yüklenen dosya gönderilmek için çok büyük olduğundan Global Relay dışa aktarmasından çıkarıldı."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Geçici dışa aktarma dosyası açılamadı."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Global Relay geçici dışa aktarma dosyası yeniden okunamadı."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Geçerli lisansta uyumluluk özelliği bulunmuyor. Lütfen Enterprise tarifesi lisansına geçmesi için sistem yöneticiniz ile görüşün."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Dışa aktarılmış kalıplar yüklenemedi. Lütfen yeniden deneyin."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3111,10 +3059,6 @@
     "translation": "{{.Backend}} başlatılmamış"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "ElasticSearch dizini silinemedi"
-  },
-  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Bu sunucu üzerine {{.Backend}} arama özelliği kapalı"
   },
@@ -3140,11 +3084,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Lisansınızda Elasticsearch özelliği bulunmuyor."
+    "translation": "Mattermost lisansınızda dizin kullanan arama özelliği bulunmuyor."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "Elasticsearch sunucusunun adresi ya da kullanıcı adı değişmiş. Bağlantıyı sınamak için lütfen Elasticsearch parolasını yeniden yazın."
+    "translation": "Arama sunucusunun adresi ya da kullanıcı adı değişmiş. Bağlantıyı sınamak için lütfen parolayı yeniden yazın."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3229,58 +3173,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "kullanıcının grupları alınırken sorun çıktı"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Ek dosya Global Relay dışa aktarma dosyasına eklenemedi."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "zip dosyası kapatılamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "eml dosyası oluşturulamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Eml dosyası verileri üretilemedi."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "E-posta Global Relay üzerine aktarılamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "E-posta kimden adresi ayarlanamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "E-posta iletisi ayarlanamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "E-posta iletisi yazılamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "E-posta bilgileri okunamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "E-posta kime adresi ayarlanamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Geçici dışa aktarma dosyasının bilgileri alınamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Geçici dosyadan bir e-posta alınamadı."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Geçici dışa aktarma dosyası açılamadı."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3712,7 +3604,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Arama EnableSearching seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
+    "translation": "{{.Searching}} seçeneği true olarak ayarlandığında, {{.EnableIndexing}} seçeneği de true olarak ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4927,14 +4819,6 @@
     "translation": "Küme yanıtı beklenirken zaman aşımı oluştu"
   },
   {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Uyarı dosyası oluşturulamadı."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Zip dosyası oluşturulamadı"
-  },
-  {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
     "translation": "İletiler için {{.Backend}} kalıbı oluşturulamadı"
   },
@@ -4960,7 +4844,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Elasticsearch dizinleri yenilenemedi"
+    "translation": "Arama dizinleri yenilenemedi"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -5360,7 +5244,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Arama EnableAutocomplete seçeneği true olarak ayarlandığında, Elasticsearch EnableIndexing seçeneği de true olarak ayarlanmalıdır"
+    "translation": "{{.Autocomplete}} true olarak ayarlandığında {{.EnableIndexing}} seçeneği de true olarak ayarlanmalıdır"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5729,10 +5613,6 @@
   {
     "id": "app.channel.get_all_channels_count.app_error",
     "translation": "Tüm kanallar sayılamadı."
-  },
-  {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Kanaldaki kullanıcılar belirtilen zaman aralığında alınamadı."
   },
   {
     "id": "model.guest.is_valid.email.app_error",
@@ -6439,10 +6319,6 @@
     "translation": " bir dosya ekledi."
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Dışa aktarılan veriler XML biçimine dönüştürülemedi."
-  },
-  {
     "id": "app.job.update.app_error",
     "translation": "Görev güncellenemedi."
   },
@@ -7023,18 +6899,6 @@
     "translation": "IncludeDeletedChannels parametrelerinin tümünün değeri aynı olmalıdır."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Bir iletinin dosya bilgileri alınamadı."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Bir iletinin dosya bilgileri alınamadı."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Bir iletinin dosya bilgileri alınamadı."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Herhangi bir LDAP kullanıcısı bulunamadı. Kullanıcı süzgecinizi ve sertifikaları denetleyin."
   },
@@ -7339,18 +7203,6 @@
     "translation": "Uç nokta keşif belgesinden alınırken sorun çıktı."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Global Relay dosyasına yazılamadı."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "CSV dosyasına yazılamadı."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Dışa aktarma dosyasına yazılamadı."
-  },
-  {
     "id": "api.file.write_file.app_error",
     "translation": "Dosyaya yazılamadı."
   },
@@ -7541,10 +7393,6 @@
   {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "Directory değeri boş olamaz."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "SMTP sunucusu ile bağlantı kurulamadı"
   },
   {
     "id": "app.export.zip_create.error",
@@ -9519,7 +9367,7 @@
   },
   {
     "id": "ent.elasticsearch.purge_index.delete_failed",
-    "translation": "Bir Elasticsearch dizini silinemedi"
+    "translation": "Bir arama dizini silinemedi"
   },
   {
     "id": "api.getUsersForReporting.invalid_team_filter",
@@ -9858,10 +9706,6 @@
     "translation": "Çalışma alanınıza erişmekte sorun mu yaşıyorsunuz?"
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Elasticsearch kanal dizini şemanız güncel değil. Kanal dizininizi yeniden oluşturmanız önerilir.\nSorunu çözmek için [Sistem panosundaki Elasticsearch bölümünden] ({{.ElasticsearchSection}}) `Kanal dizinini yeniden oluştur` düğmesine tıklayın.\nAyrıntılı bilgi almak için Mattermost değişiklik günlüğüne bakın."
-  },
-  {
     "id": "app.user.update_active.user_limit.exceeded",
     "translation": "Kullanıcı etkinleştirilemedi. Sunucu güvenli kullanıcı sayısı sınırını aşıyor. Yöneticiniz ile görüşün: ERROR_SAFETY_LIMITS_EXCEEDED."
   },
@@ -10036,14 +9880,6 @@
   {
     "id": "app.plugin.reattach.app_error",
     "translation": "Uygulama eki yeniden eklenemedi"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.close.appError",
-    "translation": "ZIP dosyası kapatılamadı"
-  },
-  {
-    "id": "ent.compliance.csv.seek.appError",
-    "translation": "Dışa aktarım dosyasının başlangıcına gidilemedi."
   },
   {
     "id": "api.context.request_body_too_large.app_error",
@@ -10442,5 +10278,125 @@
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Özel ifade görselleri için bir klasörler oluşturulamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Özel profil öznitelikleri özellik grubu kaydedilemedi"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Özel profil özniteliği alanı oluşturulamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Özel profil özniteliği değerleri alınamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Özel profil özniteliği alanı alınamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Özel profil özniteliği alan sayısı sınırına ulaşıldı"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Özel profil özniteliği alanı güncellenemedi"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_creation.app_error",
+    "translation": "Özellik değeri oluşturulamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Özel profil özniteliği alanı silinemedi"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Özel profil özniteliği alanı bulunamadı"
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Lisansınızda özel profil öznitelikleri özelliği yok."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Bir zip dosyası okuyucusu alınamadı."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_list.app_error",
+    "translation": "Özellik değerleri alınamadı"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_update.app_error",
+    "translation": "Özellik değeri güncellenemedi"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "İstenilen dosyalar veri tabanından kaldırılamadı"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "İleti düzenleme geçmişi için dosya bilgileri kimliklere göre alınamadı."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "İleti ek dosyaları geri yüklenemedi."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Rol silinemedi."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Eski ileti sürümü alınamadı."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "İzinleriniz yeterli değil."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Kanal etkinliği hesaplanıyor: {{.NumCompleted}}/{{.NumChannels}} kanal tamamlandı."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Kanal dışa aktarma verileri hesaplanamadı."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Görevin veri alanından bir değer dönüştürülemedi."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Özellik alanı geçersiz: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Özel profil özniteliği alanlarında arama yapılamaz"
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Belirtilen ileti geçmişi kimliği, belirtilen ileti için herhangi bir geçmiş ögesine karşılık gelmiyor."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Belirtilen ileti geçmişi kimliği bir ileti geçmişi ögesine karşılık gelmiyor."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "{{.NumChannels}} kanal için kanal bilgileri dışa aktarılıyor."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Bağlantı üst veri adresinin uzunluğu {{ .Length }} karakter uzunluğunda ve olabilecek en fazla {{ .MaxLength }} karakter sınırını aşıyor."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Özellik değeri geçersiz: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Silinmiş bir kanalda komut yürütülemez."
   }
 ]
