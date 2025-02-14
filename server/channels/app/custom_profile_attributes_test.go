@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -280,7 +279,7 @@ func TestPatchCPAField(t *testing.T) {
 			Name:    "Select Field",
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: map[string]any{
-				model.CustomProfileAttributesPropertyAttrsOptions: []any{
+				model.PropertyFieldAttributeOptions: []any{
 					map[string]any{
 						"name":  "Option 1",
 						"color": "#111111",
@@ -296,7 +295,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, err)
 
 		// Get the original option IDs
-		options := createdSelectField.Attrs[model.CustomProfileAttributesPropertyAttrsOptions].(model.CustomProfileAttributesSelectOptions)
+		options := createdSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
 		require.Len(t, options, 2)
 		originalID1 := options[0].ID
 		originalID2 := options[1].ID
@@ -306,7 +305,7 @@ func TestPatchCPAField(t *testing.T) {
 		// Patch the field with updated option names and colors
 		selectPatch := &model.PropertyFieldPatch{
 			Attrs: model.NewPointer(map[string]any{
-				model.CustomProfileAttributesPropertyAttrsOptions: []any{
+				model.PropertyFieldAttributeOptions: []any{
 					map[string]any{
 						"id":    originalID1,
 						"name":  "Updated Option 1",
@@ -328,7 +327,7 @@ func TestPatchCPAField(t *testing.T) {
 		updatedSelectField, err := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
 		require.Nil(t, err)
 
-		updatedOptions := updatedSelectField.Attrs[model.CustomProfileAttributesPropertyAttrsOptions].(model.CustomProfileAttributesSelectOptions)
+		updatedOptions := updatedSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
 		require.Len(t, updatedOptions, 3)
 
 		// Verify the options were updated while preserving IDs
@@ -709,7 +708,7 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 			field: &model.PropertyField{
 				Type: model.PropertyFieldTypeSelect,
 				Attrs: model.StringInterface{
-					model.CustomProfileAttributesPropertyAttrsOptions: []any{
+					model.PropertyFieldAttributeOptions: []any{
 						map[string]interface{}{
 							"name":  "Option 1",
 							"color": "#123456",
@@ -724,7 +723,7 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 			expectError: false,
 			expectedAttrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityDefault,
-				model.CustomProfileAttributesPropertyAttrsOptions: model.CustomProfileAttributesSelectOptions{
+				model.PropertyFieldAttributeOptions: model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{
 					{Name: "Option 1", Color: "#123456"},
 					{Name: "Option 2", Color: "#654321"},
 				},
@@ -735,7 +734,7 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 			field: &model.PropertyField{
 				Type: model.PropertyFieldTypeSelect,
 				Attrs: model.StringInterface{
-					model.CustomProfileAttributesPropertyAttrsOptions: []any{
+					model.PropertyFieldAttributeOptions: []any{
 						map[string]interface{}{
 							"name":  "Option 1",
 							"color": "opt1",
@@ -755,24 +754,24 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 			field: &model.PropertyField{
 				Type: model.PropertyFieldTypeSelect,
 				Attrs: model.StringInterface{
-					model.CustomProfileAttributesPropertyAttrsOptions: "not an array",
+					model.PropertyFieldAttributeOptions: "not an array",
 				},
 			},
 			expectError: true,
-			errorId:     "app.custom_profile_attributes.not_array_options.app_error",
+			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
 		},
 		{
 			name: "invalid select field with invalid option format",
 			field: &model.PropertyField{
 				Type: model.PropertyFieldTypeSelect,
 				Attrs: model.StringInterface{
-					model.CustomProfileAttributesPropertyAttrsOptions: []interface{}{
-						"not a map",
+					model.PropertyFieldAttributeOptions: []interface{}{
+						"some string",
 					},
 				},
 			},
 			expectError: true,
-			errorId:     "app.custom_profile_attributes.not_map_option.app_error",
+			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
 		},
 		{
 			name: "invalid field with unknown visibility",
@@ -791,23 +790,27 @@ func TestValidateCustomProfileAttributesField(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := validateCustomProfileAttributesField(tt.field)
 			if tt.expectError {
-				assert.NotNil(t, err)
-				assert.Equal(t, tt.errorId, err.Id)
+				require.NotNil(t, err)
+				require.Equal(t, tt.errorId, err.Id)
 			} else {
-				assert.Nil(t, err)
+				var ogErr error
+				if err != nil {
+					ogErr = err.Unwrap()
+				}
+				require.Nilf(t, err, "unexpected error: %v, with original error: %v", err, ogErr)
 				if tt.expectedAttrs != nil {
 					for key, value := range tt.expectedAttrs {
-						if key == model.CustomProfileAttributesPropertyAttrsOptions {
-							expectedOptions := value.(model.CustomProfileAttributesSelectOptions)
-							actualOptions := tt.field.Attrs[model.CustomProfileAttributesPropertyAttrsOptions].(model.CustomProfileAttributesSelectOptions)
+						if key == model.PropertyFieldAttributeOptions {
+							expectedOptions := value.(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
+							actualOptions := tt.field.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
 							// remove IDs from actualOptions to compare
 							for i := range actualOptions {
 								actualOptions[i].ID = ""
 							}
 
-							assert.ElementsMatch(t, expectedOptions, actualOptions)
+							require.ElementsMatch(t, expectedOptions, actualOptions)
 						} else {
-							assert.Equal(t, value, tt.field.Attrs[key])
+							require.Equal(t, value, tt.field.Attrs[key])
 						}
 					}
 				}

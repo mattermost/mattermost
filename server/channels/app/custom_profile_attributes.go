@@ -285,24 +285,16 @@ func validateCustomProfileAttributesField(field *model.PropertyField) *model.App
 		}
 
 	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect:
-		if options, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsOptions]; ok {
-			var finalOptions model.CustomProfileAttributesSelectOptions
-			optionsArr, ok := options.([]any)
-			if !ok {
-				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.not_array_options.app_error", nil, "", http.StatusUnprocessableEntity)
+		if options, ok := field.Attrs[model.PropertyFieldAttributeOptions]; ok {
+			finalOptions, err := model.NewPropertyOptionsFromFieldAttrs[*model.CustomProfileAttributesSelectOption](options)
+			if err != nil {
+				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 			}
-			for i, option := range optionsArr {
-				optionMap, ok := option.(map[string]any)
-				if !ok {
-					return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.not_map_option.app_error", map[string]any{"Index": i}, "", http.StatusUnprocessableEntity)
-				}
-				option := model.NewCustomProfileAttributesSelectOptionFromMap(optionMap)
-				finalOptions = append(finalOptions, option)
-			}
+
 			if err := finalOptions.IsValid(); err != nil {
 				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 			}
-			field.Attrs[model.CustomProfileAttributesPropertyAttrsOptions] = finalOptions
+			field.Attrs[model.PropertyFieldAttributeOptions] = finalOptions
 		}
 	}
 

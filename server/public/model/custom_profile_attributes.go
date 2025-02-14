@@ -5,15 +5,12 @@ package model
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 )
 
 const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
 
 const (
 	CustomProfileAttributesPropertyAttrsValueType  = "value_type"
-	CustomProfileAttributesPropertyAttrsOptions    = "options"
 	CustomProfileAttributesPropertyAttrsVisibility = "visibility"
 )
 
@@ -59,43 +56,16 @@ type CustomProfileAttributesSelectOption struct {
 	Color string `json:"color"`
 }
 
-func NewCustomProfileAttributesSelectOptionFromMap(m map[string]any) CustomProfileAttributesSelectOption {
-	id := ""
-	name := ""
-	color := ""
-
-	if v, ok := m["id"]; ok {
-		if vStr, ok := v.(string); ok {
-			id = vStr
-		}
-	}
-
-	if v, ok := m["name"]; ok {
-		if vStr, ok := v.(string); ok {
-			name = vStr
-		}
-	}
-
-	if v, ok := m["color"]; ok {
-		if vStr, ok := v.(string); ok {
-			color = vStr
-		}
-	}
-
-	return NewCustomProfileAttributesSelectOption(id, name, color)
+func (c CustomProfileAttributesSelectOption) GetID() string {
+	return c.ID
 }
 
-func NewCustomProfileAttributesSelectOption(id, name, color string) CustomProfileAttributesSelectOption {
-	optionID := strings.TrimSpace(id)
-	if optionID == "" {
-		optionID = NewId()
-	}
+func (c CustomProfileAttributesSelectOption) GetName() string {
+	return c.Name
+}
 
-	return CustomProfileAttributesSelectOption{
-		ID:    optionID,
-		Name:  strings.TrimSpace(name),
-		Color: strings.TrimSpace(color),
-	}
+func (c *CustomProfileAttributesSelectOption) SetID(id string) {
+	c.ID = id
 }
 
 func (c CustomProfileAttributesSelectOption) IsValid() error {
@@ -109,28 +79,6 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 
 	if c.Name == "" {
 		return errors.New("name cannot be empty")
-	}
-
-	return nil
-}
-
-type CustomProfileAttributesSelectOptions []CustomProfileAttributesSelectOption
-
-func (c CustomProfileAttributesSelectOptions) IsValid() error {
-	if len(c) == 0 {
-		return errors.New("options list cannot be empty")
-	}
-
-	seenNames := make(map[string]struct{})
-	for i, option := range c {
-		if err := option.IsValid(); err != nil {
-			return fmt.Errorf("invalid option at index %d: %w", i, err)
-		}
-
-		if _, exists := seenNames[option.Name]; exists {
-			return fmt.Errorf("duplicate option name found at index %d: %s", i, option.Name)
-		}
-		seenNames[option.Name] = struct{}{}
 	}
 
 	return nil
