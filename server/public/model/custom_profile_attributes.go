@@ -9,6 +9,22 @@ import (
 
 const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
 
+const CustomProfileAttributesPropertyAttrsSortOrder = "sort_order"
+
+func CustomProfileAttributesPropertySortOrder(p *PropertyField) int {
+	value, ok := p.Attrs[CustomProfileAttributesPropertyAttrsSortOrder]
+	if !ok {
+		return 0
+	}
+
+	order, ok := value.(float64)
+	if !ok {
+		return 0
+	}
+
+	return int(order)
+}
+
 const (
 	CustomProfileAttributesPropertyAttrsValueType  = "value_type"
 	CustomProfileAttributesPropertyAttrsVisibility = "visibility"

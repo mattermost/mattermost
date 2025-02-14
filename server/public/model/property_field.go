@@ -101,7 +101,7 @@ func (pf *PropertyField) SanitizeInput() {
 type PropertyFieldPatch struct {
 	Name       *string            `json:"name"`
 	Type       *PropertyFieldType `json:"type"`
-	Attrs      *map[string]any    `json:"attrs"`
+	Attrs      *StringInterface   `json:"attrs"`
 	TargetID   *string            `json:"target_id"`
 	TargetType *string            `json:"target_type"`
 }
@@ -175,6 +175,10 @@ type PropertyFieldSearchOpts struct {
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor
 	PerPage        int
+}
+
+func (pf *PropertyField) GetAttr(key string) any {
+	return pf.Attrs[key]
 }
 
 const PropertyFieldAttributeOptions = "options"
