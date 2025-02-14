@@ -60,8 +60,16 @@
     "translation": "You cannot save an acknowledgment in an archived channel."
   },
   {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": ""
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -94,6 +102,10 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP is not available."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": ""
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -7683,6 +7695,38 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
+  },
+  {
+    "id": "cloud.update_audit_logging_cert.create_request.error",
+    "translation": ""
+  },
+  {
+    "id": "cloud.update_audit_logging_cert.cws_base_url.error",
+    "translation": ""
+  },
+  {
+    "id": "cloud.update_audit_logging_cert.file_open.error",
+    "translation": ""
+  },
+  {
+    "id": "cloud.update_audit_logging_cert.file_read.error",
+    "translation": ""
+  },
+  {
+    "id": "cloud.update_audit_logging_cert.installation_id.error",
+    "translation": ""
+  },
+  {
+    "id": "cloud.update_audit_logging_cert.marshal.error",
+    "translation": ""
+  },
+  {
+    "id": "cloud.update_audit_logging_cert.request.error",
+    "translation": ""
+  },
+  {
+    "id": "cloud.update_audit_logging_cert.response.error",
+    "translation": ""
   },
   {
     "id": "common.parse_error_int64",
