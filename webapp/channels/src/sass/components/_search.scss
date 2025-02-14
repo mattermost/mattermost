@@ -335,12 +335,10 @@
     right: 0;
     font-size: 13px;
 
-    a {
-        vertical-align: top;
-    }
-
     .search-item__jump {
         position: relative;
+        display: block;
+        height: 100%;
         padding: 5px 4px 0;
         border-radius: 4px;
         color: rgba(var(--center-channel-color-rgb), 0.4);
