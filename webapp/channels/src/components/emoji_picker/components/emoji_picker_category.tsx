@@ -43,13 +43,9 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
             }
         >
             <button
-                role='tab'
-                type='button'
-                aria-selected={selected}
+                aria-pressed={selected}
                 className={classNames('style--none', className)}
-                id={`emojiPickerCategoryTab-${category.name}`}
                 onClick={handleClick}
-                aria-controls={`emojipickercat-${category.name}`}
                 aria-label={intl.formatMessage(category.label)}
             >
                 <i className={category.iconClassName}/>

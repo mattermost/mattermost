@@ -35,136 +35,94 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       <div />
     </div>
     <div
-      aria-orientation="horizontal"
       class="emoji-picker__categories"
       id="emojiPickerCategories"
-      role="tablist"
     >
       <button
-        aria-controls="emojipickercat-smileys-emotion"
         aria-label="Smileys & Emotion"
-        aria-selected="true"
+        aria-pressed="true"
         class="style--none emoji-picker__category emoji-picker__category--selected"
-        id="emojiPickerCategoryTab-smileys-emotion"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-emoticon-happy-outline"
         />
       </button>
       <button
-        aria-controls="emojipickercat-people-body"
         aria-label="People & Body"
-        aria-selected="false"
+        aria-pressed="false"
         class="style--none emoji-picker__category"
-        id="emojiPickerCategoryTab-people-body"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-account-outline"
         />
       </button>
       <button
-        aria-controls="emojipickercat-animals-nature"
         aria-label="Animals & Nature"
-        aria-selected="false"
+        aria-pressed="false"
         class="style--none emoji-picker__category"
-        id="emojiPickerCategoryTab-animals-nature"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-leaf-outline"
         />
       </button>
       <button
-        aria-controls="emojipickercat-food-drink"
         aria-label="Food & Drink"
-        aria-selected="false"
+        aria-pressed="false"
         class="style--none emoji-picker__category"
-        id="emojiPickerCategoryTab-food-drink"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-food-apple"
         />
       </button>
       <button
-        aria-controls="emojipickercat-travel-places"
         aria-label="Travel & Places"
-        aria-selected="false"
+        aria-pressed="false"
         class="style--none emoji-picker__category"
-        id="emojiPickerCategoryTab-travel-places"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-airplane-variant"
         />
       </button>
       <button
-        aria-controls="emojipickercat-activities"
         aria-label="Activities"
-        aria-selected="false"
+        aria-pressed="false"
         class="style--none emoji-picker__category"
-        id="emojiPickerCategoryTab-activities"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-basketball"
         />
       </button>
       <button
-        aria-controls="emojipickercat-objects"
         aria-label="Objects"
-        aria-selected="false"
+        aria-pressed="false"
         class="style--none emoji-picker__category"
-        id="emojiPickerCategoryTab-objects"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-lightbulb-outline"
         />
       </button>
       <button
-        aria-controls="emojipickercat-symbols"
         aria-label="Symbols"
-        aria-selected="false"
+        aria-pressed="false"
         class="style--none emoji-picker__category"
-        id="emojiPickerCategoryTab-symbols"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-heart-outline"
         />
       </button>
       <button
-        aria-controls="emojipickercat-flags"
         aria-label="Flags"
-        aria-selected="false"
+        aria-pressed="false"
         class="style--none emoji-picker__category"
-        id="emojiPickerCategoryTab-flags"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-flag-outline"
         />
       </button>
       <button
-        aria-controls="emojipickercat-custom"
         aria-label="Custom"
-        aria-selected="false"
+        aria-pressed="false"
         class="style--none emoji-picker__category"
-        id="emojiPickerCategoryTab-custom"
-        role="tab"
-        type="button"
       >
         <i
           class="icon-emoticon-custom-outline"

@@ -3,13 +3,9 @@
 exports[`EmojiPickerCategory should match snapshot 1`] = `
 <DocumentFragment>
   <button
-    aria-controls="emojipickercat-recent"
     aria-label="category name"
-    aria-selected="false"
+    aria-pressed="false"
     class="style--none emoji-picker__category"
-    id="emojiPickerCategoryTab-recent"
-    role="tab"
-    type="button"
   >
     <i
       class="categoryClass"

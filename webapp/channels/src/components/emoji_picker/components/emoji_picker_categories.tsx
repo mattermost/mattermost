@@ -70,8 +70,6 @@ function EmojiPickerCategories({
             id='emojiPickerCategories'
             className='emoji-picker__categories'
             onKeyDown={handleKeyDown}
-            role='tablist'
-            aria-orientation='horizontal'
         >
             {categoryNames.map((categoryName) => {
                 const category = categories[categoryName];
