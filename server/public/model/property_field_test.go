@@ -145,7 +145,7 @@ func TestPropertyField_Patch(t *testing.T) {
 			Type:       NewPointer(PropertyFieldTypeSelect),
 			TargetID:   NewPointer("new_target"),
 			TargetType: NewPointer("new_type"),
-			Attrs:      &map[string]any{"key": "value"},
+			Attrs:      &StringInterface{"key": "value"},
 		}
 
 		pf.Patch(patch)
