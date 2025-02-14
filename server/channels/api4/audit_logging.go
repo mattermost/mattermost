@@ -36,11 +36,10 @@ func parseAuditLogCertificateRequest(r *http.Request, maxFileSize int64) (*multi
 func addAuditLogCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Logger.Debug("addAuditLogCertificate")
 
-	// TODO: Implement this new permission
-	// if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddAuditLogCertificate) {
-	// 	c.SetPermissionError(model.PermissionAddAuditLogCertificate)
-	// 	return
-	// }
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteExperimentalFeatures) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteExperimentalFeatures)
+		return
+	}
 
 	fileData, err := parseAuditLogCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
 	if err != nil {
@@ -64,11 +63,10 @@ func addAuditLogCertificate(c *Context, w http.ResponseWriter, r *http.Request) 
 func removeAuditLogCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Logger.Debug("removeAuditLogCertificate")
 
-	// TODO: Implement this new permission
-	// if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveAuditLogCertificate) {
-	// 	c.SetPermissionError(model.PermissionAddAuditLogCertificate)
-	// 	return
-	// }
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteExperimentalFeatures) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteExperimentalFeatures)
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("removeAuditLogCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
