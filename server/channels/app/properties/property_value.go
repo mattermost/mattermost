@@ -40,6 +40,19 @@ func (ps *PropertyService) UpdatePropertyValues(values []*model.PropertyValue) (
 	return ps.valueStore.Update(values)
 }
 
+func (ps *PropertyService) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	values, err := ps.UpsertPropertyValues([]*model.PropertyValue{value})
+	if err != nil {
+		return nil, err
+	}
+
+	return values[0], nil
+}
+
+func (ps *PropertyService) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return ps.valueStore.Upsert(values)
+}
+
 func (ps *PropertyService) DeletePropertyValue(id string) error {
 	return ps.valueStore.Delete(id)
 }

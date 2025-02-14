@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"database/sql"
+	"fmt"
 	"testing"
 	"time"
 
@@ -21,6 +22,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss) })
+	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 }
 
 func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
@@ -182,8 +184,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		}
 		updatedField, err := ss.PropertyField().Update([]*model.PropertyField{field})
 		require.Zero(t, updatedField)
-		var enf *store.ErrNotFound
-		require.ErrorAs(t, err, &enf)
+		require.ErrorContains(t, err, "failed to update, some property fields were not found, got 0 of 1")
 	})
 
 	t.Run("should fail if the property field is not valid", func(t *testing.T) {
@@ -316,6 +317,46 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, groupID, updated2.GroupID)
 		require.Equal(t, originalUpdateAt2, updated2.UpdateAt)
 	})
+
+	t.Run("should not update any fields if one update points to a nonexisting one", func(t *testing.T) {
+		// Create a valid field
+		field1 := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "First field",
+			Type:    model.PropertyFieldTypeText,
+		}
+
+		_, err := ss.PropertyField().Create(field1)
+		require.NoError(t, err)
+
+		originalUpdateAt := field1.UpdateAt
+
+		// Try to update both the valid field and a nonexistent one
+		field2 := &model.PropertyField{
+			ID:         model.NewId(),
+			GroupID:    model.NewId(),
+			Name:       "Second field",
+			Type:       model.PropertyFieldTypeText,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			CreateAt:   1,
+			Attrs: map[string]any{
+				"key": "value",
+			},
+		}
+
+		field1.Name = "Updated First"
+
+		_, err = ss.PropertyField().Update([]*model.PropertyField{field1, field2})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "failed to update, some property fields were not found")
+
+		// Check that the valid field was not updated
+		updated1, err := ss.PropertyField().Get("", field1.ID)
+		require.NoError(t, err)
+		require.Equal(t, "First field", updated1.Name)
+		require.Equal(t, originalUpdateAt, updated1.UpdateAt)
+	})
 }
 
 func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
@@ -350,6 +391,97 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field, err := ss.PropertyField().Create(newField)
 		require.NoError(t, err)
 		require.NotEmpty(t, field.ID)
+	})
+}
+
+func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
+	t.Run("should return 0 for group with no properties", func(t *testing.T) {
+		count, err := ss.PropertyField().CountForGroup(model.NewId(), false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), count)
+	})
+
+	t.Run("should return correct count for group with properties", func(t *testing.T) {
+		groupID := model.NewId()
+
+		// Create 5 property fields
+		for i := 0; i < 5; i++ {
+			field := &model.PropertyField{
+				GroupID: groupID,
+				Name:    fmt.Sprintf("Field %d", i),
+				Type:    model.PropertyFieldTypeText,
+			}
+			_, err := ss.PropertyField().Create(field)
+			require.NoError(t, err)
+		}
+
+		count, err := ss.PropertyField().CountForGroup(groupID, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(5), count)
+	})
+
+	t.Run("should not count deleted properties when includeDeleted is false", func(t *testing.T) {
+		groupID := model.NewId()
+
+		// Create 5 property fields
+		for i := 0; i < 5; i++ {
+			field := &model.PropertyField{
+				GroupID: groupID,
+				Name:    fmt.Sprintf("Field %d", i),
+				Type:    model.PropertyFieldTypeText,
+			}
+			_, err := ss.PropertyField().Create(field)
+			require.NoError(t, err)
+		}
+
+		// Create one more and delete it
+		deletedField := &model.PropertyField{
+			GroupID: groupID,
+			Name:    "To be deleted",
+			Type:    model.PropertyFieldTypeText,
+		}
+		_, err := ss.PropertyField().Create(deletedField)
+		require.NoError(t, err)
+
+		err = ss.PropertyField().Delete(deletedField.ID)
+		require.NoError(t, err)
+
+		// Count should be 5 since the deleted field shouldn't be counted
+		count, err := ss.PropertyField().CountForGroup(groupID, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(5), count)
+	})
+
+	t.Run("should count deleted properties when includeDeleted is true", func(t *testing.T) {
+		groupID := model.NewId()
+
+		// Create 5 property fields
+		for i := 0; i < 5; i++ {
+			field := &model.PropertyField{
+				GroupID: groupID,
+				Name:    fmt.Sprintf("Field %d", i),
+				Type:    model.PropertyFieldTypeText,
+			}
+			_, err := ss.PropertyField().Create(field)
+			require.NoError(t, err)
+		}
+
+		// Create one more and delete it
+		deletedField := &model.PropertyField{
+			GroupID: groupID,
+			Name:    "To be deleted",
+			Type:    model.PropertyFieldTypeText,
+		}
+		_, err := ss.PropertyField().Create(deletedField)
+		require.NoError(t, err)
+
+		err = ss.PropertyField().Delete(deletedField.ID)
+		require.NoError(t, err)
+
+		// Count should be 6 since we're including deleted fields
+		count, err := ss.PropertyField().CountForGroup(groupID, true)
+		require.NoError(t, err)
+		require.Equal(t, int64(6), count)
 	})
 }
 
@@ -404,17 +536,8 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		expectedIDs   []string
 	}{
 		{
-			name: "negative page",
-			opts: model.PropertyFieldSearchOpts{
-				Page:    -1,
-				PerPage: 10,
-			},
-			expectedError: true,
-		},
-		{
 			name: "negative per_page",
 			opts: model.PropertyFieldSearchOpts{
-				Page:    0,
 				PerPage: -1,
 			},
 			expectedError: true,
@@ -423,7 +546,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by group_id",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID: groupID,
-				Page:    0,
 				PerPage: 10,
 			},
 			expectedIDs: []string{field1.ID, field2.ID},
@@ -432,7 +554,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by group_id including deleted",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:        groupID,
-				Page:           0,
 				PerPage:        10,
 				IncludeDeleted: true,
 			},
@@ -442,7 +563,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by target_type",
 			opts: model.PropertyFieldSearchOpts{
 				TargetType: "test_type",
-				Page:       0,
 				PerPage:    10,
 			},
 			expectedIDs: []string{field1.ID, field3.ID},
@@ -451,7 +571,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by target_id",
 			opts: model.PropertyFieldSearchOpts{
 				TargetID: targetID,
-				Page:     0,
 				PerPage:  10,
 			},
 			expectedIDs: []string{field1.ID, field2.ID},
@@ -460,7 +579,6 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "pagination page 0",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:        groupID,
-				Page:           0,
 				PerPage:        2,
 				IncludeDeleted: true,
 			},
@@ -469,8 +587,11 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "pagination page 1",
 			opts: model.PropertyFieldSearchOpts{
-				GroupID:        groupID,
-				Page:           1,
+				GroupID: groupID,
+				Cursor: model.PropertyFieldSearchCursor{
+					CreateAt:        field2.CreateAt,
+					PropertyFieldID: field2.ID,
+				},
 				PerPage:        2,
 				IncludeDeleted: true,
 			},
@@ -487,7 +608,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			}
 
 			require.NoError(t, err)
-			var ids = make([]string, len(results))
+			ids := make([]string, len(results))
 			for i, field := range results {
 				ids[i] = field.ID
 			}

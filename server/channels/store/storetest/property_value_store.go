@@ -22,6 +22,7 @@ func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetPropertyValue", func(t *testing.T) { testGetPropertyValue(t, rctx, ss) })
 	t.Run("GetManyPropertyValues", func(t *testing.T) { testGetManyPropertyValues(t, rctx, ss) })
 	t.Run("UpdatePropertyValue", func(t *testing.T) { testUpdatePropertyValue(t, rctx, ss) })
+	t.Run("UpsertPropertyValue", func(t *testing.T) { testUpsertPropertyValue(t, rctx, ss) })
 	t.Run("DeletePropertyValue", func(t *testing.T) { testDeletePropertyValue(t, rctx, ss) })
 	t.Run("SearchPropertyValues", func(t *testing.T) { testSearchPropertyValues(t, rctx, ss) })
 	t.Run("DeleteForField", func(t *testing.T) { testDeleteForField(t, rctx, ss) })
@@ -186,8 +187,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		}
 		updatedValue, err := ss.PropertyValue().Update([]*model.PropertyValue{value})
 		require.Zero(t, updatedValue)
-		var enf *store.ErrNotFound
-		require.ErrorAs(t, err, &enf)
+		require.ErrorContains(t, err, "failed to update, some property values were not found, got 0 of 1")
 	})
 
 	t.Run("should fail if the property value is not valid", func(t *testing.T) {
@@ -257,7 +257,7 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Greater(t, updated2.UpdateAt, updated2.CreateAt)
 	})
 
-	t.Run("should not update any fields if one update is invalid", func(t *testing.T) {
+	t.Run("should not update any values if one update is invalid", func(t *testing.T) {
 		// Create two valid values
 		groupID := model.NewId()
 		value1 := &model.PropertyValue{
@@ -302,6 +302,208 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, groupID, updated2.GroupID)
 		require.Equal(t, originalUpdateAt2, updated2.UpdateAt)
+	})
+
+	t.Run("should not update any values if one update points to a nonexisting one", func(t *testing.T) {
+		// Create a valid value
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"Value 1"`),
+		}
+
+		_, err := ss.PropertyValue().Create(value1)
+		require.NoError(t, err)
+
+		originalUpdateAt := value1.UpdateAt
+
+		// Try to update both the valid value and a nonexistent one
+		value2 := &model.PropertyValue{
+			ID:         model.NewId(),
+			TargetID:   model.NewId(),
+			CreateAt:   1,
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"Value 2"`),
+		}
+
+		value1.Value = json.RawMessage(`"Updated Value 1"`)
+
+		_, err = ss.PropertyValue().Update([]*model.PropertyValue{value1, value2})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "failed to update, some property values were not found")
+
+		// Check that the valid value was not updated
+		updated1, err := ss.PropertyValue().Get("", value1.ID)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"Value 1"`), updated1.Value)
+		require.Equal(t, originalUpdateAt, updated1.UpdateAt)
+	})
+}
+
+func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
+	t.Run("should fail if the property value is not valid", func(t *testing.T) {
+		value := &model.PropertyValue{
+			TargetID:   "",
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"test value"`),
+		}
+		updatedValue, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value})
+		require.Zero(t, updatedValue)
+		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
+
+		value.TargetID = model.NewId()
+		value.GroupID = ""
+		updatedValue, err = ss.PropertyValue().Upsert([]*model.PropertyValue{value})
+		require.Zero(t, updatedValue)
+		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
+	})
+
+	t.Run("should be able to insert new property values", func(t *testing.T) {
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value 1"`),
+		}
+
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value 2"`),
+		}
+
+		values, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value1, value2})
+		require.NoError(t, err)
+		require.Len(t, values, 2)
+		require.NotEmpty(t, values[0].ID)
+		require.NotEmpty(t, values[1].ID)
+		require.NotZero(t, values[0].CreateAt)
+		require.NotZero(t, values[1].CreateAt)
+
+		valuesFromStore, err := ss.PropertyValue().GetMany("", []string{values[0].ID, values[1].ID})
+		require.NoError(t, err)
+		require.Len(t, valuesFromStore, 2)
+	})
+
+	t.Run("should be able to update existing property values", func(t *testing.T) {
+		// Create initial value
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"initial value"`),
+		}
+		_, err := ss.PropertyValue().Create(value)
+		require.NoError(t, err)
+		valueID := value.ID
+
+		time.Sleep(10 * time.Millisecond)
+
+		// Update via upsert
+		value.ID = ""
+		value.Value = json.RawMessage(`"updated value"`)
+		values, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value})
+		require.NoError(t, err)
+		require.Len(t, values, 1)
+		require.Equal(t, valueID, values[0].ID)
+		require.Equal(t, json.RawMessage(`"updated value"`), values[0].Value)
+		require.Greater(t, values[0].UpdateAt, values[0].CreateAt)
+
+		// Verify in database
+		updated, err := ss.PropertyValue().Get("", valueID)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"updated value"`), updated.Value)
+		require.Greater(t, updated.UpdateAt, updated.CreateAt)
+	})
+
+	t.Run("should handle mixed insert and update operations", func(t *testing.T) {
+		// Create first value
+		existingValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"existing value"`),
+		}
+		_, err := ss.PropertyValue().Create(existingValue)
+		require.NoError(t, err)
+
+		// Prepare new value
+		newValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"new value"`),
+		}
+
+		// Update existing and insert new via upsert
+		existingValue.Value = json.RawMessage(`"updated existing"`)
+		values, err := ss.PropertyValue().Upsert([]*model.PropertyValue{existingValue, newValue})
+		require.NoError(t, err)
+		require.Len(t, values, 2)
+
+		// Verify both values
+		newValueUpserted, err := ss.PropertyValue().Get("", newValue.ID)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"new value"`), newValueUpserted.Value)
+		existingValueUpserted, err := ss.PropertyValue().Get("", existingValue.ID)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"updated existing"`), existingValueUpserted.Value)
+	})
+
+	t.Run("should not perform any operation if one of the fields is invalid", func(t *testing.T) {
+		// Create initial valid value
+		existingValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"existing value"`),
+		}
+		_, err := ss.PropertyValue().Create(existingValue)
+		require.NoError(t, err)
+
+		originalValue := *existingValue
+
+		// Prepare an invalid value
+		invalidValue := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    "", // Invalid: empty group ID
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"new value"`),
+		}
+
+		// Try to update existing and insert invalid via upsert
+		existingValue.Value = json.RawMessage(`"should not update"`)
+		_, err = ss.PropertyValue().Upsert([]*model.PropertyValue{existingValue, invalidValue})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "model.property_value.is_valid.app_error")
+
+		// Verify the existing value was not changed
+		retrieved, err := ss.PropertyValue().Get("", existingValue.ID)
+		require.NoError(t, err)
+		require.Equal(t, originalValue.Value, retrieved.Value)
+		require.Equal(t, originalValue.UpdateAt, retrieved.UpdateAt)
+
+		// Verify the invalid value was not inserted
+		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			TargetID: invalidValue.TargetID,
+			PerPage:  10,
+		})
+		require.NoError(t, err)
+		require.Empty(t, results)
 	})
 }
 
@@ -402,17 +604,8 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 		expectedIDs   []string
 	}{
 		{
-			name: "negative page",
-			opts: model.PropertyValueSearchOpts{
-				Page:    -1,
-				PerPage: 10,
-			},
-			expectedError: true,
-		},
-		{
 			name: "negative per_page",
 			opts: model.PropertyValueSearchOpts{
-				Page:    0,
 				PerPage: -1,
 			},
 			expectedError: true,
@@ -421,7 +614,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by group_id",
 			opts: model.PropertyValueSearchOpts{
 				GroupID: groupID,
-				Page:    0,
 				PerPage: 10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
@@ -431,7 +623,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			opts: model.PropertyValueSearchOpts{
 				GroupID:    groupID,
 				TargetType: "test_type",
-				Page:       0,
 				PerPage:    10,
 			},
 			expectedIDs: []string{value1.ID},
@@ -442,7 +633,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 				GroupID:        groupID,
 				TargetType:     "test_type",
 				IncludeDeleted: true,
-				Page:           0,
 				PerPage:        10,
 			},
 			expectedIDs: []string{value1.ID, value4.ID},
@@ -451,7 +641,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by target_id",
 			opts: model.PropertyValueSearchOpts{
 				TargetID: targetID,
-				Page:     0,
 				PerPage:  10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
@@ -461,7 +650,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			opts: model.PropertyValueSearchOpts{
 				GroupID:  groupID,
 				TargetID: targetID,
-				Page:     0,
 				PerPage:  10,
 			},
 			expectedIDs: []string{value1.ID, value2.ID},
@@ -470,7 +658,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "filter by field_id",
 			opts: model.PropertyValueSearchOpts{
 				FieldID: fieldID,
-				Page:    0,
 				PerPage: 10,
 			},
 			expectedIDs: []string{value1.ID},
@@ -480,7 +667,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			opts: model.PropertyValueSearchOpts{
 				FieldID:        fieldID,
 				IncludeDeleted: true,
-				Page:           0,
 				PerPage:        10,
 			},
 			expectedIDs: []string{value1.ID, value4.ID},
@@ -489,7 +675,6 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "pagination page 0",
 			opts: model.PropertyValueSearchOpts{
 				GroupID: groupID,
-				Page:    0,
 				PerPage: 1,
 			},
 			expectedIDs: []string{value1.ID},
@@ -498,7 +683,10 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			name: "pagination page 1",
 			opts: model.PropertyValueSearchOpts{
 				GroupID: groupID,
-				Page:    1,
+				Cursor: model.PropertyValueSearchCursor{
+					CreateAt:        value1.CreateAt,
+					PropertyValueID: value1.ID,
+				},
 				PerPage: 1,
 			},
 			expectedIDs: []string{value2.ID},
@@ -514,7 +702,7 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			}
 
 			require.NoError(t, err)
-			var ids = make([]string, len(results))
+			ids := make([]string, len(results))
 			for i, value := range results {
 				ids[i] = value.ID
 			}
