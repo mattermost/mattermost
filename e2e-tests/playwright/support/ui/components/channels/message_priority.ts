@@ -50,7 +50,7 @@ export default class MessagePriority {
     }
 
     async closePriorityMenu() {
-        await this.priorityIcon.click();
+        await this.priorityMenu.press('Escape');
         await expect(this.priorityMenu).not.toBeVisible();
     }
 
