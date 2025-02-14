@@ -67,7 +67,7 @@ type Props = {
     isFlagged?: boolean;
     handleCommentClick?: React.EventHandler<any>;
     handleDropdownOpened: (open: boolean) => void;
-    handleAddReactionClick?: () => void;
+    handleAddReactionClick?: (showEmojiPicker: boolean) => void;
     isMenuOpen?: boolean;
     isReadOnly?: boolean;
     isLicensed?: boolean; // TechDebt: Made non-mandatory while converting to typescript
@@ -209,9 +209,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleAddReactionMenuItemActivated = () => {
-        // to be safe, make sure the handler function has been defined
         if (this.props.handleAddReactionClick) {
-            this.props.handleAddReactionClick();
+            this.props.handleAddReactionClick(true);
         }
     };
 
