@@ -5035,14 +5035,6 @@
     "translation": "Unable to get custom profile attribute values"
   },
   {
-    "id": "app.custom_profile_attributes.not_array_options.app_error",
-    "translation": "The attribute options must be an array"
-  },
-  {
-    "id": "app.custom_profile_attributes.not_map_option.app_error",
-    "translation": "The attribute option #{{.Index}} must be a key value pair"
-  },
-  {
     "id": "app.custom_profile_attributes.not_string_value_type.app_error",
     "translation": "The value type must be a string"
   },
