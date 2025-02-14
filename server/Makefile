@@ -8,15 +8,6 @@ else
 	PLATFORM := $(shell uname)
 endif
 
-# Set an environment variable on Linux used to resolve `docker.host.internal` inconsistencies with
-# docker. This can be reworked once https://github.com/docker/for-linux/issues/264 is resolved
-# satisfactorily.
-ifeq ($(PLATFORM),Linux)
-	export IS_LINUX = -linux
-else
-	export IS_LINUX =
-endif
-
 # Detect Apple Silicon and set a flag.
 ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
   ARM_BASED_MAC = true
