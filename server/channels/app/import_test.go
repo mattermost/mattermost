@@ -697,7 +697,7 @@ func TestDeleteImport(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	t.Run("delete import successfull", func(t *testing.T) {
+	t.Run("delete import successful", func(t *testing.T) {
 		imports, err := th.App.ListImports()
 		require.Nil(t, err)
 		require.Equal(t, 1, len(imports))
