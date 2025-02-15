@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands/constants"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -78,7 +79,8 @@ var DeleteChannelsCmd = &cobra.Command{
 	Use:   "delete [channels]",
 	Short: "Delete channels",
 	Long: `Permanently delete some channels.
-Permanently deletes one or multiple channels along with all related information including posts from the database.`,
+Permanently deletes one or multiple channels along with all related information including posts from the database.
+In order to use this command ServiceSettings.EnableAPIChannelDeletion must be set to true. See ` + constants.CONFIG_DOCUMENTATION_URL + ` for more information.`,
 	Example: "  channel delete myteam:mychannel",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteChannelsCmdF),
