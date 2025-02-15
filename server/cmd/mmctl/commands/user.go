@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands/constants"
 	"net/http"
 	"net/url"
 	"os"
@@ -142,7 +143,8 @@ var DeleteUsersCmd = &cobra.Command{
 	Use:   "delete [users]",
 	Short: "Delete users",
 	Long: `Permanently delete some users.
-Permanently deletes one or multiple users along with all related information including posts from the database.`,
+Permanently deletes one or multiple users along with all related information including posts from the database.
+In order to use this command ServiceSettings.EnableAPIUserDeletion must be set to true. See ` + constants.CONFIG_DOCUMENTATION_URL + ` for more information.`,
 	Example: "  user delete user@example.com",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteUsersCmdF),
