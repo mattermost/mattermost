@@ -164,7 +164,7 @@ func TestDeleteImport(t *testing.T) {
 		require.Equal(t, 403, response.StatusCode)
 	})
 
-	t.Run("successful deletion", func(t *testing.T) {
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		id := uploadNewImport(th, th.SystemAdminClient, t)
 		id2 := uploadNewImport(th, th.SystemAdminClient, t)
 		response, delErr := th.SystemAdminClient.DeleteImport(context.Background(), id+"_import_test.zip")
@@ -176,11 +176,13 @@ func TestDeleteImport(t *testing.T) {
 		require.Len(t, imports, 1)
 		require.Contains(t, imports, id2+"_import_test.zip")
 		require.NotContains(t, imports, id+"_import_test.zip")
-	})
 
-	t.Run("deletion of non existent file", func(t *testing.T) {
-		response, delErr := th.SystemAdminClient.DeleteImport(context.Background(), "import_test.zip")
+		_, _ = th.SystemAdminClient.DeleteImport(context.Background(), id2+"_import_test.zip")
+	}, "successful deletion")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		response, delErr := c.DeleteImport(context.Background(), "somerandom_import_test.zip")
 		require.Error(t, delErr)
 		require.Equal(t, 404, response.StatusCode)
-	})
+	}, "deletion of non existent file")
 }
