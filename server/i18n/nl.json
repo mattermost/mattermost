@@ -10410,5 +10410,37 @@
   {
     "id": "api.custom_profile_attributes.license_error",
     "translation": "Jouw licentie ondersteunt geen Aangepaste Profielattributen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Het aanmaken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Het verwijderen van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Het bijwerken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Kan geen bladwijzers ophalen voor een gearchiveerd kanaal"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Het is niet gelukt om alle bestanden te tellen."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Het is niet gelukt om het opslaggebruik van alle bestanden op te halen."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "proberen een veld te patchen dat niet bestaat"
   }
 ]
