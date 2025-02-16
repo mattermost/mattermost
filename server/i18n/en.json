@@ -6737,6 +6737,10 @@
     "translation": "Unable to delete scheduled posts for user."
   },
   {
+    "id": "app.drafts.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete drafts for user."
+  },
+  {
     "id": "app.scheduled_post.private_channel",
     "translation": "Private channel"
   },
