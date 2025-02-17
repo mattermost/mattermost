@@ -605,6 +605,14 @@ func (h *Hub) Start() {
 					continue
 				}
 
+				// There are multiple hubs in a system. So while supporting both channel based iteration and the old
+				// method, there would be events scoped to a channel being sent to multiple hubs. And only one hub would
+				// have the targetConns. Therefore, we need to stop here if channel based iteration is enabled, and it's a
+				// channel-scoped event.
+				if channelID := msg.GetBroadcast().ChannelId; channelID != "" && *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+					continue
+				}
+
 				for webConn := range connIndex.All() {
 					broadcast(webConn)
 				}
