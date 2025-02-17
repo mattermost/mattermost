@@ -120,4 +120,31 @@ describe('components/TeamSettings', () => {
             id: defaultProps.team?.id,
         });
     });
+
+    test('MM-62891 should toggle the right checkboxes when their labels are clicked on', () => {
+        renderWithContext(<AccessTab {...defaultProps}/>);
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
+
+        userEvent.click(screen.getByText('Allow only users with a specific email domain to join this team'));
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
+
+        userEvent.click(screen.getByText('Allow only users with a specific email domain to join this team'));
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
+
+        userEvent.click(screen.getByText('Allow any user with an account on this server to join this team'));
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).toBeChecked();
+
+        userEvent.click(screen.getByText('Allow any user with an account on this server to join this team'));
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
+    });
 });
