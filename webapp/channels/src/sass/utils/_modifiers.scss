@@ -29,8 +29,8 @@ $positions: 't'top,
     }
 
     .px-#{$i} {
-        padding-left: #{$i * 4}px !important;
         padding-right: #{$i * 4}px !important;
+        padding-left: #{$i * 4}px !important;
     }
 
     .py-#{$i} {
