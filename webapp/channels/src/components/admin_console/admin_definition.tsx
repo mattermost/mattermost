@@ -2139,12 +2139,90 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
                         },
                         {
+                            type: 'dropdown',
+                            key: 'SupportSettings.ReportAProblemType',
+                            label: defineMessage({id: 'admin.support.reportAProblemLinkTitle', defaultMessage: 'Report a Problem Link:'}),
+                            help_text: '',
+                            options: [
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.defaultLink', defaultMessage: 'Default link'}),
+                                    value: 'default',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.email', defaultMessage: 'Email Address'}),
+                                    value: 'email',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.customLink', defaultMessage: 'Custom link'}),
+                                    value: 'link',
+                                },
+                                {
+                                    display_name: defineMessage({id: 'admin.support.problemType.hide', defaultMessage: 'Hide ‘Report a Problem’ link'}),
+                                    value: 'hidden',
+                                },
+                            ],
+                        },
+                        {
+                            type: 'text',
+                            key: 'defaultLicensedReportAProblemLink',
+                            label: ' ',
+                            help_text: '',
+                            default: 'https://mattermost.com/pl/report_a_problem_licensed',
+                            isDisabled: it.all(),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
+                                it.not(it.licensed),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'defaultUnlicensedReportAProblemLink',
+                            label: ' ',
+                            help_text: '',
+                            default: 'https://mattermost.com/pl/report_a_problem_unlicensed',
+                            isDisabled: it.all(),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
+                                it.licensed,
+                            ),
+                        },
+                        {
                             type: 'text',
                             key: 'SupportSettings.ReportAProblemLink',
-                            label: defineMessage({id: 'admin.support.problemTitle', defaultMessage: 'Report a Problem Link:'}),
-                            help_text: defineMessage({id: 'admin.support.problemDesc', defaultMessage: 'The URL for the Report a Problem link in the Help Menu. If this field is empty, the link is removed from the Help Menu.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
-                            isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                            label: ' ',
+                            help_text: '',
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            ),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /link/)),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'SupportSettings.ReportAProblemMail',
+                            label: ' ',
+                            help_text: '',
+                            isDisabled: (it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION))),
+                            isHidden: it.any(
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /email/)),
+                            ),
+                            validate: (value) => {
+                                if (!value) {
+                                    return new ValidationResult(false, 'Email is required');
+                                }
+                                return new ValidationResult(true, '');
+                            },
+                        },
+                        {
+                            type: 'bool',
+                            key: 'SupportSettings.AllowDownloadLogs',
+                            label: defineMessage({id: 'admin.support.problemAllowDownloadTitle', defaultMessage: 'Allow users to download app logs when available:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemLinkDescription', defaultMessage: 'The link for the Report a Problem link in the Help Menu. If Email Address is selected, clicking on Report a Problem will prompt to send an email to the configured email address.'}),
                         },
                         {
                             type: 'text',
