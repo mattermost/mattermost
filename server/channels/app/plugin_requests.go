@@ -157,11 +157,13 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		rctx = rctx.WithSession(session)
 	}
 
-	if mfaAppErr := app.MFARequired(rctx); mfaAppErr != nil {
+	appErr = app.MFARequired(rctx)
+	if appErr != nil {
 		pluginID := mux.Vars(r)["plugin_id"]
-		ch.srv.Log().Warn("MFA authentication failed for plugin request",
+		ch.srv.Log().Warn("Treating session as unauthenticated since MFA required",
 			mlog.String("plugin_id", pluginID),
-			mlog.Err(mfaAppErr),
+			mlog.String("url", r.URL.Path),
+			mlog.Err(appErr),
 		)
 		token = ""
 	}
@@ -172,7 +174,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		csrfCheckPassed := false
-		if session != nil && appErr == nil && cookieAuth && r.Method != "GET" {
+		if (session != nil && session.Id != "") && cookieAuth && r.Method != "GET" {
 			sentToken := ""
 
 			if r.Header.Get(model.HeaderCsrfToken) == "" {
@@ -222,7 +224,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 			csrfCheckPassed = true
 		}
 
-		if (session != nil && session.Id != "") && appErr == nil && csrfCheckPassed {
+		if (session != nil && session.Id != "") && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 			context.SessionId = session.Id
 
