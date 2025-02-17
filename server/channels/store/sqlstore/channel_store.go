@@ -2329,6 +2329,7 @@ func (s SqlChannelStore) GetFileCount(channelId string) (int64, error) {
 		    FileInfo
 		WHERE
 		    FileInfo.DeleteAt = 0
+			AND FileInfo.PostId != ''
             AND FileInfo.ChannelId = ?`,
 		channelId)
 	if err != nil {
@@ -2958,6 +2959,40 @@ func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType mo
 	}
 
 	return v, nil
+}
+
+func (s SqlChannelStore) AnalyticsCountAll(teamId string) (map[model.ChannelType]int64, error) {
+	query := s.getQueryBuilder().
+		Select("Type, COUNT(*) AS Count").
+		From("Channels").
+		GroupBy("Type")
+
+	if teamId != "" {
+		query = query.Where(sq.Eq{"TeamId": teamId})
+	}
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "AnalyticsCountAll_ToSql")
+	}
+
+	rows, err := s.GetReplica().Query(sql, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to count Channels by type")
+	}
+	defer rows.Close()
+
+	counts := make(map[model.ChannelType]int64)
+	for rows.Next() {
+		var channelType model.ChannelType
+		var count int64
+		if err := rows.Scan(&channelType, &count); err != nil {
+			return nil, errors.Wrap(err, "unable to scan row")
+		}
+		counts[channelType] = count
+	}
+
+	return counts, nil
 }
 
 func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error) {

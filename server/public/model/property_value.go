@@ -3,18 +3,23 @@
 
 package model
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/pkg/errors"
+)
 
 type PropertyValue struct {
-	ID         string `json:"id"`
-	TargetID   string `json:"target_id"`
-	TargetType string `json:"target_type"`
-	GroupID    string `json:"group_id"`
-	FieldID    string `json:"field_id"`
-	Value      string `json:"value"`
-	CreateAt   int64  `json:"create_at"`
-	UpdateAt   int64  `json:"update_at"`
-	DeleteAt   int64  `json:"delete_at"`
+	ID         string          `json:"id"`
+	TargetID   string          `json:"target_id"`
+	TargetType string          `json:"target_type"`
+	GroupID    string          `json:"group_id"`
+	FieldID    string          `json:"field_id"`
+	Value      json.RawMessage `json:"value"`
+	CreateAt   int64           `json:"create_at"`
+	UpdateAt   int64           `json:"update_at"`
+	DeleteAt   int64           `json:"delete_at"`
 }
 
 func (pv *PropertyValue) PreSave() {
@@ -60,12 +65,36 @@ func (pv *PropertyValue) IsValid() error {
 	return nil
 }
 
+type PropertyValueSearchCursor struct {
+	PropertyValueID string
+	CreateAt        int64
+}
+
+func (p PropertyValueSearchCursor) IsEmpty() bool {
+	return p.PropertyValueID == "" && p.CreateAt == 0
+}
+
+func (p PropertyValueSearchCursor) IsValid() error {
+	if p.IsEmpty() {
+		return nil
+	}
+
+	if p.CreateAt <= 0 {
+		return errors.New("create at cannot be negative or zero")
+	}
+
+	if !IsValidId(p.PropertyValueID) {
+		return errors.New("property field id is invalid")
+	}
+	return nil
+}
+
 type PropertyValueSearchOpts struct {
 	GroupID        string
 	TargetType     string
 	TargetID       string
 	FieldID        string
 	IncludeDeleted bool
-	Page           int
+	Cursor         PropertyValueSearchCursor
 	PerPage        int
 }
