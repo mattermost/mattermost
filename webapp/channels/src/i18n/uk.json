@@ -4816,7 +4816,6 @@
   "reaction_limit_reached_modal.body": "Упс! Схоже, ми досягли ліміту реакцій на емодзі для цього повідомлення. Будь ласка, зверніться до вашого системного адміністратора, щоб змінити цей ліміт.",
   "reaction_limit_reached_modal.body.admin": "Упс! Схоже, ми досягли ліміту реакцій на емодзі для цього повідомлення. Ми <link>встановили ліміт</link>, щоб забезпечити безперебійну роботу вашого сервера. Як системний адміністратор, ви можете налаштувати цей ліміт за допомогою <linkAdmin>системної консолі</linkAdmin>.",
   "reaction_limit_reached_modal.title": "Ви досягли ліміту реакцій",
-  "reaction_list.addReactionTooltip": "Додати реакцію",
   "remove_group_confirm_button": "Так, видалити групу та {memberCount, plural, one {учасника} other {учасників}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {учасник} few {учасники} other {учасників}}, пов’язаних із цією групою, буде видалено з команди. Ви впевнені, що хочете видалити цю групу та {memberCount} {memberCount, plural, one {учасника} few {учасників} other {учасників}}?",
   "remove_group_confirm_title": "Видалити групу та {memberCount, number} {memberCount, plural, one {учасника} few {учасників} other {учасників}}",

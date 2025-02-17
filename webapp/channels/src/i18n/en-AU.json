@@ -4847,7 +4847,6 @@
   "reaction_limit_reached_modal.body": "The maximum number of emoji reactions for a single message has been reached. Please contact your system administrator for any adjustments to this limit.",
   "reaction_limit_reached_modal.body.admin": "The maximum number of emoji reactions for a single message has been reached. A <link>limit has been set</link> to keep things running smoothly on your server. As a system administrator, you can adjust this limit from the <linkAdmin>system console</linkAdmin>.",
   "reaction_limit_reached_modal.title": "You've reached the reaction limit",
-  "reaction_list.addReactionTooltip": "Add a reaction",
   "remove_group_confirm_button": "Yes, Remove Group and {memberCount, plural, one {Member} other {Members}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {member} other {members}} associated to this group will be removed from the team. Are you sure you wish to remove this group and {memberCount} {memberCount, plural, one {member} other {members}}?",
   "remove_group_confirm_title": "Remove Group and {memberCount, number} {memberCount, plural, one {Member} other {Members}}",
