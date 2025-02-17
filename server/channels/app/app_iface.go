@@ -957,6 +957,7 @@ type AppIface interface {
 	ListTeamCommands(teamID string) ([]*model.Command, *model.AppError)
 	Log() *mlog.Logger
 	LoginByOAuth(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
+	MFARequired(rctx request.CTX) *model.AppError
 	MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError)
 	MaxPostSize() int
 	MessageExport() einterfaces.MessageExportInterface
