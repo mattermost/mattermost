@@ -65,7 +65,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 	a.ch.loginAttemptsMut.Lock()
 	defer a.ch.loginAttemptsMut.Unlock()
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		if err.Id != MissingAccountError {
 			err.StatusCode = http.StatusInternalServerError

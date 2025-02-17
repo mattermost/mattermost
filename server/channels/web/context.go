@@ -168,7 +168,7 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext.Session().UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 		return

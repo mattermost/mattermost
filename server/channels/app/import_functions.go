@@ -595,7 +595,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			if appErr = a.updateUserNotifyProps(user.Id, user.NotifyProps); appErr != nil {
 				return appErr
 			}
-			if savedUser, appErr = a.GetUser(user.Id); appErr != nil {
+			if savedUser, appErr = a.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false}); appErr != nil {
 				return appErr
 			}
 		}

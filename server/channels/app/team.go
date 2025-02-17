@@ -140,7 +140,7 @@ func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.A
 }
 
 func (a *App) CreateTeamWithUser(c request.CTX, team *model.Team, userID string) (*model.Team, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return nil, err
 	}
@@ -798,7 +798,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 
 	var actor *model.User
 	if userRequestorId != "" {
-		actor, _ = a.GetUser(userRequestorId)
+		actor, _ = a.GetUser(userRequestorId, &model.GetUserOptions{CustomProfileAttributes: false})
 	}
 
 	a.Srv().Go(func() {
@@ -1169,7 +1169,7 @@ func (a *App) RemoveUserFromTeam(c request.CTX, teamID string, userID string, re
 func (a *App) postProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMember, requestorId string) *model.AppError {
 	var actor *model.User
 	if requestorId != "" {
-		actor, _ = a.GetUser(requestorId)
+		actor, _ = a.GetUser(requestorId, &model.GetUserOptions{CustomProfileAttributes: false})
 	}
 
 	a.Srv().Go(func() {

@@ -1179,7 +1179,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "original_post_id", c.Params.PostId)
 	audit.AddEventParameter(auditRec, "to_channel_id", moveThreadParams.ChannelId)
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext.Session().UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return

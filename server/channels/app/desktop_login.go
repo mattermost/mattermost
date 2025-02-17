@@ -36,7 +36,7 @@ func (a *App) ValidateDesktopToken(token string, expiryTime int64) (*model.User,
 	}
 
 	// Get the user profile
-	user, userErr := a.GetUser(*userId)
+	user, userErr := a.GetUser(*userId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if userErr != nil {
 		// Delete the token if the user is invalid somehow
 		if deleteErr := a.Srv().Store().DesktopTokens().Delete(token); deleteErr != nil {

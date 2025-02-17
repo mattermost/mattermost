@@ -1303,7 +1303,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot()
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(bot.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(botUser, th.BasicTeam)
@@ -1334,7 +1334,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot()
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(bot.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(botUser, th.BasicTeam)

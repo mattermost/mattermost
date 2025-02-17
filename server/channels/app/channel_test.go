@@ -1827,7 +1827,7 @@ func TestAddUserToChannel(t *testing.T) {
 		require.Nil(t, appErr)
 	}()
 	bot := th.CreateBot()
-	botUser, _ := th.App.GetUser(bot.UserId)
+	botUser, _ := th.App.GetUser(bot.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
 		require.Nil(t, appErr)
@@ -1922,7 +1922,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	}()
 
 	bot := th.CreateBot()
-	botUser, _ := th.App.GetUser(bot.UserId)
+	botUser, _ := th.App.GetUser(bot.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
 		require.Nil(t, appErr)

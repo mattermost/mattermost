@@ -76,7 +76,7 @@ func (api *PluginAPI) UnregisterCommand(teamID, trigger string) error {
 }
 
 func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
-	user, appErr := api.app.GetUser(commandArgs.UserId)
+	user, appErr := api.app.GetUser(commandArgs.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -234,7 +234,7 @@ func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError
 }
 
 func (api *PluginAPI) DeleteUser(userID string) *model.AppError {
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return err
 	}
@@ -251,7 +251,7 @@ func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.App
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
-	return api.app.GetUser(userID)
+	return api.app.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 }
 
 func (api *PluginAPI) GetUserByEmail(email string) (*model.User, *model.AppError) {
@@ -415,7 +415,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return nil, err
 	}
@@ -752,7 +752,7 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 }
 
 func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
-	user, err := api.app.GetUser(userID)
+	user, err := api.app.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		return nil, err
 	}
@@ -762,7 +762,7 @@ func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppError {
-	if _, err := api.app.GetUser(userID); err != nil {
+	if _, err := api.app.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false}); err != nil {
 		return err
 	}
 
@@ -1021,7 +1021,7 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		bot.OwnerId = api.id
 	}
 	// Bots cannot be owners of other bots
-	if user, err := api.app.GetUser(bot.OwnerId); err == nil {
+	if user, err := api.app.GetUser(bot.OwnerId, &model.GetUserOptions{CustomProfileAttributes: false}); err == nil {
 		if user.IsBot {
 			return nil, model.NewAppError("CreateBot", "plugin_api.bot_cant_create_bot", nil, "", http.StatusBadRequest)
 		}

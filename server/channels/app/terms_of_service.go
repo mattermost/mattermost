@@ -17,7 +17,7 @@ func (a *App) CreateTermsOfService(text, userID string) (*model.TermsOfService, 
 		UserId: userID,
 	}
 
-	if _, appErr := a.GetUser(userID); appErr != nil {
+	if _, appErr := a.GetUser(userID, &model.GetUserOptions{CustomProfileAttributes: false}); appErr != nil {
 		return nil, appErr
 	}
 

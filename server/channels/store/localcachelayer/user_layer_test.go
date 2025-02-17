@@ -93,6 +93,8 @@ func TestUserStoreCache(t *testing.T) {
 			originalProps[i] = storedUsers[i].NotifyProps
 			storedUsers[i].NotifyProps = map[string]string{}
 			storedUsers[i].NotifyProps["key"] = "somevalue"
+			storedUsers[i].CustomProfileAttributes = map[string]string{}
+			storedUsers[i].CustomProfileAttributes["attribute"] = "somevalue"
 		}
 
 		cachedUsers, err := cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
@@ -112,6 +114,7 @@ func TestUserStoreCache(t *testing.T) {
 				assert.Fail(t, "should be different pointers")
 			}
 			cachedUsers[i].NotifyProps["key"] = "othervalue"
+			storedUsers[i].CustomProfileAttributes["attribute"] = "othervalue"
 			assert.NotEqual(t, storedUsers[i], cachedUsers[i])
 		}
 
@@ -306,6 +309,9 @@ func TestUserStoreGetCache(t *testing.T) {
 		storedUser.NotifyProps = map[string]string{}
 		storedUser.NotifyProps["key"] = "somevalue"
 
+		storedUser.CustomProfileAttributes = map[string]string{}
+		storedUser.CustomProfileAttributes["attribute"] = "somevalue"
+
 		cachedUser, err := cachedStore.User().Get(context.Background(), fakeUserId)
 		require.NoError(t, err)
 		assert.Equal(t, storedUser, cachedUser)
@@ -319,6 +325,8 @@ func TestUserStoreGetCache(t *testing.T) {
 			assert.Fail(t, "should be different pointers")
 		}
 		cachedUser.NotifyProps["key"] = "othervalue"
+		cachedUser.CustomProfileAttributes["attribute"] = "othervalue"
+
 		assert.NotEqual(t, storedUser, cachedUser)
 
 		storedUser.NotifyProps = originalProps

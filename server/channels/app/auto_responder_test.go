@@ -77,13 +77,13 @@ func TestDisableAutoResponder(t *testing.T) {
 	err := th.App.DisableAutoResponder(th.Context, user.Id, true)
 	require.Nil(t, err)
 
-	userUpdated1, err := th.App.GetUser(user.Id)
+	userUpdated1, err := th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 	require.Nil(t, err)
 	assert.Equal(t, userUpdated1.NotifyProps["auto_responder_active"], "false")
 
 	err = th.App.DisableAutoResponder(th.Context, user.Id, true)
 	require.Nil(t, err)
-	userUpdated2, err := th.App.GetUser(user.Id)
+	userUpdated2, err := th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 
 	require.Nil(t, err)
 	assert.Equal(t, userUpdated2.NotifyProps["auto_responder_active"], "false")
@@ -191,7 +191,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		})
 		assert.Nil(t, err)
 
-		botUser, err := th.App.GetUser(bot.UserId)
+		botUser, err := th.App.GetUser(bot.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 		assert.Nil(t, err)
 
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{

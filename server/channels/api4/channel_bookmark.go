@@ -78,7 +78,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
+		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 		if gAppErr != nil {
 			c.Err = gAppErr
 			return
@@ -179,7 +179,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
+		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 		if gAppErr != nil {
 			c.Err = gAppErr
 			return
@@ -271,7 +271,7 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 			return
 		}
 
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
+		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 		if gAppErr != nil {
 			c.Err = gAppErr
 			return
@@ -356,7 +356,7 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
+		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 		if gAppErr != nil {
 			c.Err = gAppErr
 			return

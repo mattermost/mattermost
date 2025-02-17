@@ -56,7 +56,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 
 		roles := user.Roles
 
-		u, err2 := s.th.App.GetUser(user.Id)
+		u, err2 := s.th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err2)
 		s.Require().True(u.IsInRole(model.SystemManagerRoleId))
 
@@ -97,7 +97,7 @@ func (s *MmctlE2ETestSuite) TestUnassignUsersCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		u, err2 := s.th.App.GetUser(user.Id)
+		u, err2 := s.th.App.GetUser(user.Id, &model.GetUserOptions{CustomProfileAttributes: false})
 		s.Require().Nil(err2)
 		s.Require().False(u.IsInRole(model.SystemManagerRoleId))
 	})

@@ -907,7 +907,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// if user cannot invite guests, check if any users are guest users.
 		if !canInviteGuests {
-			user, err := c.App.GetUser(member.UserId)
+			user, err := c.App.GetUser(member.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 			if err != nil {
 				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
 				return
@@ -985,7 +985,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	audit.AddEventParameterAuditable(auditRec, "team", team)
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.Params.UserId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if err != nil {
 		c.Err = err
 		return

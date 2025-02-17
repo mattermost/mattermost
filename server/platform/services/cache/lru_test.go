@@ -281,6 +281,9 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 		IsBot:                  true,
 		TermsOfServiceId:       "TermsOfServiceId",
 		TermsOfServiceCreateAt: 111111,
+		CustomProfileAttributes: map[string]string{
+			"attribute0": "value0",
+		},
 	}
 
 	err = l.SetWithDefaultExpiry("user", user)
@@ -440,6 +443,18 @@ func BenchmarkLRU(b *testing.B) {
 		BotLastIconUpdate:      111111,
 		TermsOfServiceId:       "TermsOfServiceId",
 		TermsOfServiceCreateAt: 111111,
+		CustomProfileAttributes: map[string]string{
+			"attribute0": "value0",
+			"attribute1": "value value1",
+			"attribute2": "value value value2",
+			"attribute3": "value value value value3",
+			"attribute4": "value value value value value4",
+			"attribute5": "value value value value value value5",
+			"attribute6": "value value value value value value value6",
+			"attribute7": "value value value value value value value value7",
+			"attribute8": "value value value value value value value value value8",
+			"attribute9": "value value value value value value value value value value9",
+		},
 	}
 
 	b.Run("User=new", func(b *testing.B) {

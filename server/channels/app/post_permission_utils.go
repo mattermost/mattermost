@@ -12,7 +12,7 @@ import (
 )
 
 func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority, rootId string) *model.AppError {
-	user, appErr := a.GetUser(userId)
+	user, appErr := a.GetUser(userId, &model.GetUserOptions{CustomProfileAttributes: false})
 	if appErr != nil {
 		return appErr
 	}
