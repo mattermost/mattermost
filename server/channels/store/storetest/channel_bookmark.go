@@ -34,7 +34,11 @@ func TestChannelBookmarkStore(t *testing.T, rctx request.CTX, ss store.Store, s 
 
 func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := model.NewId()
+	otherChannelID := model.NewId()
 	userID := model.NewId()
+
+	createAt := time.Now().Add(-1 * time.Minute)
+	deleteAt := createAt.Add(1 * time.Second)
 
 	bookmark1 := &model.ChannelBookmark{
 		ChannelId:   channelID,
@@ -47,6 +51,7 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
+		ChannelId:       channelID,
 		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
@@ -80,6 +85,7 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	file2 := &model.FileInfo{
 		Id:              model.NewId(),
+		ChannelId:       channelID,
 		CreatorId:       userID,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
@@ -102,6 +108,60 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		Emoji:       ":smile:",
 	}
 
+	deletedFile := &model.FileInfo{
+		Id:              model.NewId(),
+		ChannelId:       channelID,
+		CreatorId:       model.BookmarkFileOwner,
+		Path:            "somepath",
+		ThumbnailPath:   "thumbpath",
+		PreviewPath:     "prevPath",
+		Name:            "test file",
+		Extension:       "png",
+		MimeType:        "images/png",
+		Size:            873182,
+		Width:           3076,
+		Height:          2200,
+		HasPreviewImage: true,
+		CreateAt:        createAt.UnixMilli(),
+		UpdateAt:        createAt.UnixMilli(),
+		DeleteAt:        deleteAt.UnixMilli(),
+	}
+
+	bookmarkFileDeleted := &model.ChannelBookmark{
+		ChannelId:   channelID,
+		OwnerId:     userID,
+		DisplayName: "file deleted",
+		FileId:      deletedFile.Id,
+		Type:        model.ChannelBookmarkFile,
+		Emoji:       ":smile:",
+	}
+
+	// another channel
+	anotherChannelFile := &model.FileInfo{
+		Id:              model.NewId(),
+		ChannelId:       otherChannelID,
+		CreatorId:       model.BookmarkFileOwner,
+		Path:            "somepath",
+		ThumbnailPath:   "thumbpath",
+		PreviewPath:     "prevPath",
+		Name:            "test file",
+		Extension:       "png",
+		MimeType:        "images/png",
+		Size:            873182,
+		Width:           3076,
+		Height:          2200,
+		HasPreviewImage: true,
+	}
+
+	bookmarkFileAnotherChannel := &model.ChannelBookmark{
+		ChannelId:   channelID,
+		OwnerId:     userID,
+		DisplayName: "file another channel",
+		FileId:      anotherChannelFile.Id,
+		Type:        model.ChannelBookmarkFile,
+		Emoji:       ":smile:",
+	}
+
 	_, err := ss.FileInfo().Save(rctx, file)
 	require.NoError(t, err)
 	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
@@ -112,6 +172,14 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	err = ss.FileInfo().AttachToPost(rctx, file2.Id, model.NewId(), channelID, userID)
 	require.NoError(t, err)
+
+	_, err = ss.FileInfo().Save(rctx, deletedFile)
+	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(rctx, deletedFile.Id)
+
+	_, err = ss.FileInfo().Save(rctx, anotherChannelFile)
+	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(rctx, anotherChannelFile.Id)
 
 	t.Run("save bookmarks", func(t *testing.T) {
 		bookmarkResp, err := ss.ChannelBookmark().Save(bookmark1.Clone(), true)
@@ -137,6 +205,12 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		_, err = ss.ChannelBookmark().Save(bookmark4.Clone(), true)
 		assert.Error(t, err) // Error as the file is attached to a post
+
+		_, err = ss.ChannelBookmark().Save(bookmarkFileDeleted.Clone(), true)
+		assert.Error(t, err) // Error as the file is deleted
+
+		_, err = ss.ChannelBookmark().Save(bookmarkFileAnotherChannel.Clone(), true)
+		assert.Error(t, err) // Error as the file is from another channel
 	})
 }
 
@@ -204,6 +278,7 @@ func testUpdateSortOrderChannelBookmark(t *testing.T, rctx request.CTX, ss store
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
+		ChannelId:       channelID,
 		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
@@ -391,6 +466,7 @@ func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	file := &model.FileInfo{
 		Id:              model.NewId(),
+		ChannelId:       channelID,
 		CreatorId:       model.BookmarkFileOwner,
 		Path:            "somepath",
 		ThumbnailPath:   "thumbpath",
