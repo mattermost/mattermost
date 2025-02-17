@@ -4850,7 +4850,6 @@
   "reaction_limit_reached_modal.body": "Oeps! Het lijkt erop dat we het maximum aantal emoji-reacties voor dit bericht hebben bereikt. Neem contact op met jouw systeembeheerder voor eventuele aanpassingen aan deze limiet.",
   "reaction_limit_reached_modal.body.admin": "Oeps! Het lijkt erop dat we het maximum aantal emoji-reacties voor dit bericht hebben bereikt. We hebben <link>een limiet ingesteld</link> om alles soepel te laten verlopen op je server. Als systeembeheerder kan je deze limiet aanpassen via de <linkAdmin>systeemconsole</linkAdmin>.",
   "reaction_limit_reached_modal.title": "Je hebt de limiet voor het aantal reacties bereikt",
-  "reaction_list.addReactionTooltip": "Reactie toevoegen",
   "remove_group_confirm_button": "Ja, verwijder groep en {memberCount, plural, one {lid} other {leden}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {lid} other {leden}} verbonden met deze groep worden verwijderd van het groep. Ben je zeker dat je deze groep wil verwijderen {memberCount} {memberCount, plural, one {lid} other {leden}}?",
   "remove_group_confirm_title": "Verwijder Groep en {memberCount, number} {memberCount, plural, one {Member} other {Members}}",

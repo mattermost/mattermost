@@ -4848,7 +4848,6 @@
   "reaction_limit_reached_modal.body": "Ups! Wygląda na to, że osiągnęliśmy limit reakcji emoji dla tej wiadomości. Prosimy o kontakt z administratorem systemu w celu dostosowania tego limitu.",
   "reaction_limit_reached_modal.body.admin": "Ups! Wygląda na to, że osiągnęliśmy limit reakcji emoji dla tej wiadomości. <link>Ustawiliśmy limit</link> , aby zapewnić płynne działanie serwera. Jako administrator systemu możesz dostosować ten limit z <linkAdmin>konsoli systemowej</linkAdmin> .",
   "reaction_limit_reached_modal.title": "Osiągnąłeś limit reakcji",
-  "reaction_list.addReactionTooltip": "Dodaj reakcję",
   "remove_group_confirm_button": "Tak, Usuń Grupę oraz {memberCount, plural, one {Członka} other {Członków}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {użytkownik} other {użytkowników}} przypisanych do tej grupy zostanie usuniętych z zespołu. Czy na pewno chcesz usunąć tą grupę i {memberCount} {memberCount, plural, one {użytkownika} other {użytkowników}}?",
   "remove_group_confirm_title": "Usuń grupę i {memberCount, number} {memberCount, plural, one {Członka} other {Członków}}",

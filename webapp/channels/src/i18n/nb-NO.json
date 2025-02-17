@@ -2876,7 +2876,6 @@
   "reaction_limit_reached_modal.body": "Oops! Det ser ut til at vi har truffet et tak for emoji-reaksjoner for denne meldingen. Kontakt systemadministratoren din for justeringer av denne grensen.",
   "reaction_limit_reached_modal.body.admin": "Oops! Det ser ut til at vi har truffet et tak for emoji-reaksjoner for denne meldingen. Vi har <link>satt en grense</link> for at ting skal fungere problemfritt på serveren din. Som systemadministrator kan du justere denne grensen fra <linkAdmin>systemkonsollen</linkAdmin>.",
   "reaction_limit_reached_modal.title": "Du har nådd reaksjonsgrensen",
-  "reaction_list.addReactionTooltip": "Legg til en reaksjon",
   "removed_channel.channelName": "kanalen",
   "removed_channel.from": "Fjernet fra ",
   "removed_channel.okay": "Ok",

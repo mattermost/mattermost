@@ -4843,7 +4843,6 @@
   "reaction_limit_reached_modal.body": "Hoppsan! Det verkar som om vi har nått ett tak för emoji-reaktioner för det här meddelandet. Kontakta din systemadministratör för eventuella justeringar av gränsen.",
   "reaction_limit_reached_modal.body.admin": "Hoppsan! Det verkar som om vi har nått ett tak för emoji-reaktioner för detta meddelande. Vi har <link>satt en gräns</link> för att din server ska hinna med allt. Som systemadministratör kan du i <linkAdmin>systemkonsolen</linkAdmin> justera denna gräns.",
   "reaction_limit_reached_modal.title": "Du har nått begränsningen på antal reaktioner",
-  "reaction_list.addReactionTooltip": "Lägg till reaktion",
   "remove_group_confirm_button": "Ja, ta bort grupp och {memberCount, plural, one {medlem} other {medlemmar}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {medlem} other {medlemmar}} som är kopplade till denna grupp kommer plocaks bort från teamet. Är du säker på att du vill ta bort guppen och {memberCount} {memberCount, plural, one {medlem} other {medlemmar}}?",
   "remove_group_confirm_title": "Ta bort grupp och {memberCount, number} {memberCount, plural, one {Member} other {Members}}",

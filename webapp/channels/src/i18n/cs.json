@@ -4850,7 +4850,6 @@
   "reaction_limit_reached_modal.body": "Jejda! Zdá se, že jsme u této zprávy narazili na strop reakcí na emotikony. Obraťte se na správce systému ohledně jakýchkoli úprav tohoto limitu.",
   "reaction_limit_reached_modal.body.admin": "Jejda! Zdá se, že jsme u této zprávy narazili na strop reakcí na emotikony. <link>Nastavili jsme limit</link>, abychom na vašem serveru zajistili hladký chod. Jako správce systému můžete tento limit upravit z <linkAdmin>systémové konzole</linkAdmin>.",
   "reaction_limit_reached_modal.title": "Dosáhli jste limitu reakcí",
-  "reaction_list.addReactionTooltip": "Přidat reakci",
   "remove_group_confirm_button": "Ano, odstranit skupinu a {memberCount, plural, one {člena} other {členy}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {člen} other {členů}} přidružených k této skupině budou odstraněni z týmu při další synchronizaci AD/LDAP. Jste si jisti, že chcete odstranit tuto skupinu a {memberCount} {memberCount, plural, one {člena} other {členy}}?",
   "remove_group_confirm_title": "Odstranit skupinu a {memberCount, number} {memberCount, plural, one {člen} other {členy}}",

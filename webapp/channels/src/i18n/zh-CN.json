@@ -4850,7 +4850,6 @@
   "reaction_limit_reached_modal.body": "哎呀！看来我们达到此消息的表情符反应上限了。请联系您的系统管理员以调整此限制。",
   "reaction_limit_reached_modal.body.admin": "哎呀！看来我们达到此消息的表情符反应上限了。我们对此<link>设置了限制</link>以保持您的服务器运行流畅。作为系统管理员，您可以在<linkAdmin>系统控制台</linkAdmin>中调整此限制。",
   "reaction_limit_reached_modal.title": "您已达到反应上限",
-  "reaction_list.addReactionTooltip": "添加反应",
   "remove_group_confirm_button": "是，移除组和{memberCount, plural, other {成员}}",
   "remove_group_confirm_message": "关联到此群组的 {memberCount, number} {memberCount, plural, other {位成员}}将被从此团队移除。您确定要移除此群组以及 {memberCount} {memberCount, plural, other {位成员}}吗？",
   "remove_group_confirm_title": "移除群组以及 {memberCount, number} {memberCount, plural, other {位成员}}",
