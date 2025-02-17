@@ -3478,7 +3478,6 @@
   "reaction.usersAndOthersReacted": "{users} and {otherUsers, number} other {otherUsers, plural, one {user} other {users}}",
   "reaction.usersReacted": "{users} و {lastUser}",
   "reaction.you": "شما",
-  "reaction_list.addReactionTooltip": "یک واکنش اضافه کنید",
   "remove_group_confirm_button": "بله، حذف گروه و {memberCount, plural, one {Member} سایر {Members}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {member} {members}} دیگر مرتبط با این گروه از تیم حذف خواهد شد. آیا مطمئن هستید که می خواهید این گروه و {memberCount} {memberCount, plural, one {member} other {members}} را حذف کنید؟",
   "remove_group_confirm_title": "حذف گروه و {memberCount, number} {memberCount, plural, one {Member} سایر {Members}}",

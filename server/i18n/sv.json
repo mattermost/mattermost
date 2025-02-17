@@ -10296,10 +10296,6 @@
     "translation": "Det går inte att ta bort det anpassade profilattributfältet"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Det går inte att uppdatera egenskapens värde"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Det går inte att söka efter fälten för anpassade profilattribut"
   },
@@ -10360,10 +10356,6 @@
     "translation": "Det går inte att uppdatera anpassade profilattribut-fältet"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Det går inte att skapa ett egenskaps-värde"
-  },
-  {
     "id": "app.file_info.undelete_for_post_ids.app_error",
     "translation": "Misslyckades med att återställa bilagor till postfiler."
   },
@@ -10382,10 +10374,6 @@
   {
     "id": "app.file_info.get_by_ids.app_error",
     "translation": "Det går inte att få filinformationen genom id för postredigeringshistorik."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Det går inte att hämta värden för egenskaper"
   },
   {
     "id": "api.custom_profile_attributes.license_error",
