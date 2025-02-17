@@ -188,7 +188,7 @@ describe('components/ProfilePopover', () => {
         const [props, initialState] = getBasePropsAndState();
 
         renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
-        expect(await screen.findByLabelText('Add to a Channel dialog')).toBeInTheDocument();
+        expect(await screen.findByLabelText('Add to a Channel')).toBeInTheDocument();
     });
 
     test('should hide add-to-channel option if not on team', async () => {
