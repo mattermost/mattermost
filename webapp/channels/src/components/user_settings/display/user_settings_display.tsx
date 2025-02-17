@@ -1179,7 +1179,11 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             </div>);
 
         return (
-            <div id='displaySettings'>
+            <div
+                id='displaySettings'
+                aria-labelledby='displayButton'
+                role='tabpanel'
+            >
                 <SettingMobileHeader
                     closeModal={this.props.closeModal}
                     collapseModal={this.props.collapseModal}

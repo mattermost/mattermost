@@ -442,6 +442,7 @@
                         background-color: rgba(255, 255, 255, 0.05);
                         overflow-y: hidden;
                         transition: all 0.4s ease-out;
+                        visibility: hidden;
 
                         @include mixins.pie-clearfix;
 
@@ -449,6 +450,7 @@
                             max-height: 1200px;
                             padding: 24px 0 0 24px;
                             margin: 0 20px 0 0;
+                            visibility: visible;
                         }
                     }
 
@@ -569,30 +571,29 @@
             background-color: rgba(0, 0, 0, 0.1);
         }
 
-        .nav-pills > li button {
-            color: rgba(var(--center-channel-color-rgb), 0.75);
+        .nav-pills {
+            &__tab {
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+            }
         }
     }
 
     .nav-pills {
-        > li {
+        &__tab {
+            overflow: hidden;
+            width: 100%;
+            padding: 6px 15px;
+            border-radius: 4px;
             margin-bottom: 8px;
+            color: variables.$gray;
+            font-weight: 600;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
 
-            button {
-                overflow: hidden;
-                width: 100%;
-                padding: 6px 15px;
-                border-radius: 4px;
-                color: variables.$gray;
-                font-weight: 600;
-                text-align: left;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-
-                &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.04);
-                    color: rgba(var(--center-channel-color-rgb), 0.8);
-                }
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                color: rgba(var(--center-channel-color-rgb), 0.8);
             }
 
             img {
@@ -604,7 +605,6 @@
 
             .icon {
                 position: relative;
-                top: 1px;
                 width: 16px;
                 margin-right: 8px;
                 font-size: 18px;
@@ -612,6 +612,10 @@
             }
 
             &.active {
+                position: relative;
+                background: rgba(var(--button-bg-rgb), 0.08);
+                color: functions.v(button-bg);
+
                 div {
                     background-color: #e1e1e1;
                     color: #111;
@@ -625,17 +629,6 @@
                         background: variables.$black;
                         content: '';
                     }
-                }
-
-                button,
-                button:hover,
-                button:focus {
-                    position: relative;
-                }
-
-                button {
-                    background: rgba(var(--button-bg-rgb), 0.08);
-                    color: functions.v(button-bg);
                 }
             }
         }

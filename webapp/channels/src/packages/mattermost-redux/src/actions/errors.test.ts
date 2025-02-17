@@ -3,11 +3,11 @@
 
 import nock from 'nock';
 
-import {logError} from 'mattermost-redux/actions/errors';
+import {logError, LogErrorBarMode, shouldShowErrorBar} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';
-import configureStore from '../../test/test_store';
+import configureStore, {makeInitialState} from '../../test/test_store';
 
 describe('Actions.Errors', () => {
     let store = configureStore();
@@ -59,4 +59,27 @@ describe('Actions.Errors', () => {
             throw new Error('should not add session expired errors to the reducer');
         }
     });
+});
+
+test('shouldShowErrorBar', () => {
+    function makeTestState(enableDevMode: boolean) {
+        return makeInitialState({
+            entities: {
+                general: {
+                    config: {
+                        EnableDeveloper: enableDevMode.toString(),
+                    },
+                },
+            },
+        });
+    }
+
+    expect(shouldShowErrorBar(makeTestState(false), {})).toBe(false);
+    expect(shouldShowErrorBar(makeTestState(true), {})).toBe(false);
+    expect(shouldShowErrorBar(makeTestState(false), {errorBarMode: LogErrorBarMode.Never})).toBe(false);
+    expect(shouldShowErrorBar(makeTestState(true), {errorBarMode: LogErrorBarMode.Never})).toBe(false);
+    expect(shouldShowErrorBar(makeTestState(false), {errorBarMode: LogErrorBarMode.Always})).toBe(true);
+    expect(shouldShowErrorBar(makeTestState(true), {errorBarMode: LogErrorBarMode.Always})).toBe(true);
+    expect(shouldShowErrorBar(makeTestState(false), {errorBarMode: LogErrorBarMode.InDevMode})).toBe(false);
+    expect(shouldShowErrorBar(makeTestState(true), {errorBarMode: LogErrorBarMode.InDevMode})).toBe(true);
 });
