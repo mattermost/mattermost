@@ -265,12 +265,16 @@ func testPermanentDeleteDraftsByUser(t *testing.T, rctx request.CTX, ss store.St
 		_, err = ss.Draft().Upsert(draft2)
 		require.NoError(t, err)
 
+		draftsResp, err := ss.Draft().GetDraftsForUser(userId, "")
+		assert.NoError(t, err)
+		assert.Len(t, draftsResp, 2)
+
 		// Delete draft for the user
 		err = ss.Draft().PermanentDeleteByUser(userId)
 		assert.NoError(t, err)
 
 		// Verify that no drafts exist for the user
-		draftsResp, err := ss.Draft().GetDraftsForUser(userId, "")
+		draftsResp, err = ss.Draft().GetDraftsForUser(userId, "")
 		assert.NoError(t, err)
 		assert.Len(t, draftsResp, 0)
 	})
