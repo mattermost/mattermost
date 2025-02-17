@@ -55,6 +55,7 @@ import Constants, {
     AdvancedTextEditor as AdvancedTextEditorConst,
     UserStatuses,
     ModalIdentifiers,
+    AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
@@ -132,22 +133,17 @@ const AdvancedTextEditor = ({
     const getDraftSelector = useMemo(makeGetDraft, []);
     const getDisplayName = useMemo(makeGetDisplayName, []);
 
-    let textboxId = 'textbox';
-
-    switch (location) {
-    case Locations.CENTER:
-        textboxId = 'post_textbox';
-        break;
-    case Locations.RHS_COMMENT:
-        textboxId = 'reply_textbox';
-        break;
-    case Locations.MODAL:
-        textboxId = 'modal_textbox';
-        break;
-    }
-
+    let textboxId: string;
     if (isInEditMode) {
-        textboxId = 'edit_textbox';
+        textboxId = AdvancedTextEditorTextboxIds.InEditMode;
+    } else if (location === Locations.CENTER) {
+        textboxId = AdvancedTextEditorTextboxIds.InCenter;
+    } else if (location === Locations.RHS_COMMENT) {
+        textboxId = AdvancedTextEditorTextboxIds.InRHSComment;
+    } else if (location === Locations.MODAL) {
+        textboxId = AdvancedTextEditorTextboxIds.InModal;
+    } else {
+        textboxId = AdvancedTextEditorTextboxIds.Default;
     }
 
     const isRHS = Boolean(postId && !isThreadView);
