@@ -43,7 +43,7 @@ export default class WebSocketClient {
     // server-sent event stream.
     private serverSequence: number;
     private connectFailCount: number;
-    private responseCallbacks: { [x: number]: ((msg: any) => void) };
+    private responseCallbacks: {[x: number]: ((msg: any) => void)};
 
     /**
      * @deprecated Use messageListeners instead
@@ -400,7 +400,7 @@ export default class WebSocketClient {
             this.reconnectTimeout = null;
         }
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
-            this.conn.onclose = () => { };
+            this.conn.onclose = () => {};
             this.conn.close();
             this.conn = null;
             console.log('websocket closed'); //eslint-disable-line no-console
