@@ -10298,18 +10298,6 @@
     "translation": "无法更新自定义个人资料属性字段"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "无法创建属性值"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "无法获取属性值"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "无法更新属性值"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "无法搜索自定义个人资料属性字段"
   },

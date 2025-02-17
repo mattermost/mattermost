@@ -10324,10 +10324,6 @@
     "translation": "Kan aangepast profielattribuutveld niet bijwerken"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Kan eigenschap waarde niet creëren"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Kan niet zoeken in aangepaste profielattribuutvelden"
   },
@@ -10390,14 +10386,6 @@
   {
     "id": "model.property_value.is_valid.app_error",
     "translation": "Ongeldige waarde voor de eigenschap: {{.FieldName}} ({{.Reason}})."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Kan de waarden van eigenschappen niet ophalen"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Kan de waarde van de eigenschap niet bijwerken"
   },
   {
     "id": "api.command.execute_command.deleted.error",

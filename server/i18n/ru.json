@@ -10080,18 +10080,6 @@
     "translation": "У вас нет разрешения на удаление этого ресурса."
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Невозможно создать значение свойства"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Невозможно обновить значение свойства"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Невозможно получить значения свойств"
-  },
-  {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Невозможно выполнить команду в удаленном канале."
   }

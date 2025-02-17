@@ -10312,20 +10312,8 @@
     "translation": "Nie można zaktualizować pola atrybutu profilu niestandardowego"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Nie można utworzyć wartości właściwości"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Nie znaleziono pola atrybutu profilu niestandardowego"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Nie można pobrać wartości właściwości"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Nie można zaktualizować wartości właściwości"
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",

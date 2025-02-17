@@ -10312,18 +10312,6 @@
     "translation": "Benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Eigenschaftswerte können nicht abgerufen werden"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Kann keinen Eigenschaftswert erstellen"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Eigenschaftswert kann nicht aktualisiert werden"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Benutzerdefinierte Profilattributfelder können nicht durchsucht werden"
   },

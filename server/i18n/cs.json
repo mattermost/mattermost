@@ -10316,18 +10316,6 @@
     "translation": "Nepodařilo se aktualizovat pole vlastního atributu profilu"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Nelze vytvořit hodnotu vlastnosti"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Nepodařilo se načíst hodnoty vlastností"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Nelze aktualizovat hodnotu vlastnosti"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Nepodařilo se vyhledat pole vlastních atributů profilu"
   },
