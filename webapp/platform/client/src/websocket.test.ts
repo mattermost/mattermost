@@ -10,7 +10,7 @@ if (typeof WebSocket === 'undefined') {
     };
 }
 
-export class MockWebSocket {
+class MockWebSocket {
     readonly binaryType: BinaryType = 'blob';
     readonly bufferedAmount: number = 0;
     readonly extensions: string = '';
