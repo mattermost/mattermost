@@ -840,7 +840,7 @@ test-migration:
 	# run pgloader and save the logs
 	pgloader --debug tests/temp.load > migration.log
 
-	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
+	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@9324978963
 	# compare two database contents
 	# db_migrations differ due to a typo in the 92. migration name
 	# for now we exclude plugins such as playbooks and focalboard
