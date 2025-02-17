@@ -78,7 +78,7 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
-import useEmojiPicker from './use_emoji_picker';
+import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import useOrientationHandler from './use_orientation_handler';
 import usePluginItems from './use_plugin_items';
@@ -132,6 +132,19 @@ const AdvancedTextEditor = ({
     const getChannelSelector = useMemo(makeGetChannel, []);
     const getDraftSelector = useMemo(makeGetDraft, []);
     const getDisplayName = useMemo(makeGetDisplayName, []);
+
+    let textboxId: string;
+    if (isInEditMode) {
+        textboxId = AdvancedTextEditorTextboxIds.InEditMode;
+    } else if (location === Locations.CENTER) {
+        textboxId = AdvancedTextEditorTextboxIds.InCenter;
+    } else if (location === Locations.RHS_COMMENT) {
+        textboxId = AdvancedTextEditorTextboxIds.InRHSComment;
+    } else if (location === Locations.MODAL) {
+        textboxId = AdvancedTextEditorTextboxIds.InModal;
+    } else {
+        textboxId = AdvancedTextEditorTextboxIds.Default;
+    }
 
     const isRHS = Boolean(postId && !isThreadView);
 
@@ -311,12 +324,20 @@ const AdvancedTextEditor = ({
         isInEditMode,
     );
 
-    const emojiPickerOffset = isInEditMode ? {right: 40} : undefined;
     const {
         emojiPicker,
         enableEmojiPicker,
         toggleEmojiPicker,
-    } = useEmojiPicker(isDisabled, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox, emojiPickerOffset);
+    } = useEditorEmojiPicker(
+        textboxId,
+        isDisabled,
+        draft,
+        caretPosition,
+        setCaretPosition,
+        handleDraftChange,
+        showPreview,
+        focusTextbox,
+    );
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
@@ -653,24 +674,6 @@ const AdvancedTextEditor = ({
     }
 
     const messageValue = isDisabled ? '' : draft.message_source || draft.message;
-
-    let textboxId = AdvancedTextEditorTextboxIds.Default;
-
-    switch (location) {
-    case Locations.CENTER:
-        textboxId = AdvancedTextEditorTextboxIds.InCenter;
-        break;
-    case Locations.RHS_COMMENT:
-        textboxId = AdvancedTextEditorTextboxIds.InRHSComment;
-        break;
-    case Locations.MODAL:
-        textboxId = AdvancedTextEditorTextboxIds.InModal;
-        break;
-    }
-
-    if (isInEditMode) {
-        textboxId = AdvancedTextEditorTextboxIds.InEditMode;
-    }
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
