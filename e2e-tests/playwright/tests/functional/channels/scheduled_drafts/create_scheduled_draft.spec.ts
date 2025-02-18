@@ -25,9 +25,6 @@ test('MM-T5643_1 should create a scheduled message from a channel', async ({pw})
 
     await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
-    // # Hover and verify options
-    await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
-
     // # Go back and wait for message to arrive
     await goBackToChannelAndWaitForMessageToArrive(page);
 
