@@ -2819,7 +2819,7 @@ func (s *OpenTracingLayerChannelBookmarkStore) Delete(bookmarkID string, deleteF
 	return err
 }
 
-func (s *OpenTracingLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileID string) error {
+func (s *OpenTracingLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached")
 	s.Root.Store.SetContext(newCtx)
@@ -2828,7 +2828,7 @@ func (s *OpenTracingLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAtt
 	}()
 
 	defer span.Finish()
-	err := s.ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached(fileID)
+	err := s.ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached(fileID, channelID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
