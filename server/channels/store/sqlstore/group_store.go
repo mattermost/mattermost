@@ -1313,9 +1313,8 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 }
 
 func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts model.GroupSearchOpts) sq.SelectBuilder {
-	query := s.getQueryBuilder().
-		Select("gc.ChannelId, UserGroups.*, gc.SchemeAdmin AS SyncableSchemeAdmin").
-		From("UserGroups").
+	query := s.userGroupsSelectQuery.
+		Columns("gc.ChannelId", "gc.SchemeAdmin AS SyncableSchemeAdmin").
 		LeftJoin(`
 			(SELECT
 				GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin
@@ -1331,8 +1330,8 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts 
 		OrderBy("UserGroups.DisplayName")
 
 	if opts.IncludeMemberCount {
-		query = s.getQueryBuilder().
-			Select("gc.ChannelId, UserGroups.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin").
+		query = s.userGroupsSelectQuery.
+			Columns("gc.ChannelId", "coalesce(Members.MemberCount, 0) AS MemberCount", "gc.SchemeAdmin AS SyncableSchemeAdmin").
 			From("UserGroups").
 			LeftJoin(`
 				(SELECT
