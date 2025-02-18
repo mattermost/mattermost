@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, createRandomUser} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 test('MM-T53377 Profile popover should show correct fields after at-mention autocomplete', async ({pw}) => {
     // # Initialize with specific config and get admin client
@@ -15,7 +15,7 @@ test('MM-T53377 Profile popover should show correct fields after at-mention auto
     });
 
     // # Create and add another user using admin client
-    const testUser2 = await adminClient.createUser(createRandomUser(), '', '');
+    const testUser2 = await adminClient.createUser(pw.random.user(), '', '');
     await adminClient.addToTeam(team.id, testUser2.id);
 
     // # Log in as user in new browser context

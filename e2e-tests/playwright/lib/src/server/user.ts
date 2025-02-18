@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from 'mmtest_types/users';
+import {UserProfile} from '@mattermost/types/users';
 
 import {getRandomId} from '@/util';
-import testConfig from '@/test_config';
+import {testConfig} from '@/test_config';
 
 export function createRandomUser(prefix = 'user') {
     const randomId = getRandomId();

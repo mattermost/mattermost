@@ -1,12 +1,18 @@
 {
-  "name": "@mattermost/playwright-lib",
-  "version": "0.0.2",
+  "name": "mmtest_playwright-lib",
+  "version": "0.0.3",
   "type": "commonjs",
   "files": [
     "dist"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "keywords": [
     "mattermost",
     "e2e",
@@ -20,7 +26,7 @@
     "build-tsc:watch": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf dist node_modules *.tsbuildinfo",
     "tsc": "tsc -b",
-    "publish": "npm publish --access=public"
+    "publish:public": "npm publish --access=public"
   },
   "dependencies": {
     "@axe-core/playwright": "4.10.1",
@@ -31,8 +37,8 @@
     "deepmerge": "4.3.1",
     "dotenv": "16.4.7",
     "mime-types": "2.1.35",
-    "mmtest_client": "10.5.0",
-    "mmtest_types": "10.5.0",
+    "@mattermost/client": "10.6.0-0",
+    "@mattermost/types": "10.6.0-0",
     "uuid": "11.0.5"
   },
   "devDependencies": {
@@ -42,5 +48,21 @@
     "@types/react": "19.0.8",
     "rollup": "4.34.6",
     "rollup-plugin-copy": "3.5.0"
+  },
+  "peerDependencies": {
+    "@playwright/test": "1.50.1",
+    "mmtest_client": "10.5.0",
+    "mmtest_types": "10.5.0"
+  },
+  "peerDependenciesMeta": {
+    "@playwright/test": {
+      "optional": false
+    },
+    "mmtest_client": {
+      "optional": true
+    },
+    "mmtest_types": {
+      "optional": true
+    }
   }
 }

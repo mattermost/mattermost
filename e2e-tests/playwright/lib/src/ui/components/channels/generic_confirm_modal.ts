@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
 /**
  * This is the generic confirm modal that is used in the app.
@@ -41,5 +41,3 @@ export default class GenericConfirmModal {
         await expect(this.container).not.toBeVisible();
     }
 }
-
-export {GenericConfirmModal};

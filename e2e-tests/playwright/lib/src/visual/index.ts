@@ -4,13 +4,13 @@
 import os from 'node:os';
 
 import chalk from 'chalk';
-import {expect, TestInfo} from '@playwright/test';
-
-import {duration, illegalRe, wait} from '@/util';
-import testConfig from '@/test_config';
-import {ScreenshotOptions, TestArgs} from '@/types';
+import {TestInfo, expect} from '@playwright/test';
 
 import snapshotWithPercy from './percy';
+
+import {duration, illegalRe, wait} from '@/util';
+import {testConfig} from '@/test_config';
+import {ScreenshotOptions, TestArgs} from '@/types';
 
 export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs, options: ScreenshotOptions = {}) {
     if (os.platform() !== 'linux') {

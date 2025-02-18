@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, duration} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 import {Page} from '@playwright/test';
 
 // Helper function to intercept API request and modify the response
@@ -40,7 +40,7 @@ test('MM-T5640_2 should see landing page', async ({pw, page}) => {
     await page.goto('/');
 
     // Wait until the URL contains '/landing'
-    await page.waitForURL(/.*\/landing.*/, {timeout: duration.ten_sec});
+    await page.waitForURL(/.*\/landing.*/, {timeout: pw.duration.ten_sec});
 
     // At this point, the URL should contain '/landing'
     expect(page.url()).toContain('/landing');

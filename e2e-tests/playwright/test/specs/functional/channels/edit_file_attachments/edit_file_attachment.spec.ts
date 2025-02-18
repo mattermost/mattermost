@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, duration, wait} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 import {Page} from '@playwright/test';
 
 test('MM-T5654_1 should be able to add attachments while editing a post', async ({pw}) => {
@@ -80,9 +80,9 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
     await channelsPage.sidebarRight.postEdit.toBeVisible();
     await channelsPage.sidebarRight.postEdit.writeMessage('Edited reply message with files');
     await channelsPage.sidebarRight.postEdit.addFiles(['sample_text_file.txt', 'mattermost.png']);
-    await wait(duration.half_sec);
+    await pw.wait(pw.duration.half_sec);
     await channelsPage.sidebarRight.postEdit.sendMessage();
-    await wait(duration.half_sec);
+    await pw.wait(pw.duration.half_sec);
     await channelsPage.sidebarRight.postEdit.toNotBeVisible();
     await updatedReplyPost.toBeVisible();
     await updatedReplyPost.toContainText('Edited reply message with files');
@@ -98,9 +98,9 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.sidebarRight.postEdit.toBeVisible();
     await channelsPage.sidebarRight.postEdit.removeFile('sample_text_file.txt');
-    await wait(duration.half_sec);
+    await pw.wait(pw.duration.half_sec);
     await channelsPage.sidebarRight.postEdit.removeFile('mattermost.png');
-    await wait(duration.half_sec);
+    await pw.wait(pw.duration.half_sec);
     await channelsPage.sidebarRight.postEdit.sendMessage();
 
     updatedReplyPost = await channelsPage.sidebarRight.getLastPost();

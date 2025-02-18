@@ -3,12 +3,12 @@
 
 import path from 'node:path';
 
-import {expect, Locator} from '@playwright/test';
-
-import {assetPath} from '@/file';
+import {Locator, expect} from '@playwright/test';
 
 import DeletePostConfirmationDialog from './delete_post_confirmation_dialog';
 import RestorePostConfirmationDialog from './restore_post_confirmation_dialog';
+
+import {assetPath} from '@/file';
 
 export default class ChannelsPostEdit {
     readonly container: Locator;
@@ -93,5 +93,3 @@ export default class ChannelsPostEdit {
         await expect(this.container).toContainText(text);
     }
 }
-
-export {ChannelsPostEdit};

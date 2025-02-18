@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, duration, wait, ChannelsPage, ScheduledDraftPage} from '@mattermost/playwright-lib';
+import {expect, pages, PlaywrightExtended, test} from '@mattermost/playwright-lib';
 import {Page} from '@playwright/test';
 
 test('MM-T5643_1 should create a scheduled message from a channel', async ({pw}) => {
-    test.setTimeout(duration.four_min);
+    test.setTimeout(pw.duration.four_min);
 
     const draftMessage = 'Scheduled Draft';
     // # Skip test if no license
@@ -26,8 +26,8 @@ test('MM-T5643_1 should create a scheduled message from a channel', async ({pw})
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
-    // # Go back and wait for message to arrive
-    await goBackToChannelAndWaitForMessageToArrive(page);
+    // # Go back and pw.wait for message to arrive
+    await goBackToChannelAndWaitForMessageToArrive(pw, page);
 
     // * Verify the message has been sent and there's no more scheduled messages
     await expect(channelsPage.centerView.scheduledDraftChannelInfoMessage).not.toBeVisible();
@@ -167,7 +167,7 @@ test('MM-T5643_9 should send a scheduled message immediately', async ({pw}) => {
     await verifyScheduledDraft(channelsPage, scheduledDraftPage, draftMessage, postBoxIndicator);
 
     await scheduledDraftPage.sendScheduledMessage(draftMessage);
-    await wait(duration.two_sec);
+    await pw.wait(pw.duration.two_sec);
 
     await expect(scheduledDraftPage.scheduledDraftPanel(draftMessage)).not.toBeVisible();
 
@@ -309,9 +309,9 @@ test('MM-T5650 should copy scheduled message', async ({pw, browserName}) => {
     await expect(channelsPage.centerView.postCreate.input).toHaveText(draftMessage);
 });
 
-async function goBackToChannelAndWaitForMessageToArrive(page: Page): Promise<void> {
+async function goBackToChannelAndWaitForMessageToArrive(pw: PlaywrightExtended, page: Page): Promise<void> {
     await page.goBack();
-    await wait(duration.two_min);
+    await pw.wait(pw.duration.two_min);
     await page.reload();
 }
 
@@ -322,7 +322,7 @@ async function replyToLastPost(post: any): Promise<void> {
 }
 
 async function setupChannelPage(
-    channelsPage: ChannelsPage,
+    channelsPage: pages.ChannelsPage,
     draftMessage: string,
     teamName?: string,
     channelName?: string,
@@ -337,22 +337,22 @@ async function setupChannelPage(
 /**
  * Schedules a draft message by selecting a custom time and confirming.
  */
-async function scheduleMessage(pageObject: ChannelsPage): Promise<void> {
-    await pageObject.scheduledDraftDropdown.toBeVisible();
-    await pageObject.scheduledDraftDropdown.selectCustomTime();
+async function scheduleMessage(channelsPage: pages.ChannelsPage): Promise<void> {
+    await channelsPage.scheduledDraftDropdown.toBeVisible();
+    await channelsPage.scheduledDraftDropdown.selectCustomTime();
 
-    await pageObject.scheduledDraftModal.toBeVisible();
-    await pageObject.scheduledDraftModal.selectDay();
-    await pageObject.scheduledDraftModal.selectTime();
-    await pageObject.scheduledDraftModal.confirm();
+    await channelsPage.scheduledDraftModal.toBeVisible();
+    await channelsPage.scheduledDraftModal.selectDay();
+    await channelsPage.scheduledDraftModal.selectTime();
+    await channelsPage.scheduledDraftModal.confirm();
 }
 
 /**
  * Extracts and verifies the scheduled message on the scheduled page and in the channel.
  */
 async function verifyScheduledDraft(
-    channelsPage: ChannelsPage,
-    scheduledDraftPage: ScheduledDraftPage,
+    channelsPage: pages.ChannelsPage,
+    scheduledDraftPage: pages.ScheduledDraftPage,
     draftMessage: string,
     postBoxIndicator: string,
 ): Promise<void> {
@@ -368,7 +368,7 @@ async function verifyScheduledDraft(
 /**
  * Verifies the scheduled message count on the sidebar.
  */
-async function verifyscheduledDraftCount(page: ChannelsPage, expectedCount: string): Promise<void> {
+async function verifyscheduledDraftCount(page: pages.ChannelsPage, expectedCount: string): Promise<void> {
     await page.centerView.clickOnSeeAllscheduledDrafts();
     await page.sidebarLeft.assertscheduledDraftCountLHS(expectedCount);
 }
@@ -379,7 +379,7 @@ async function verifyscheduledDraftCount(page: ChannelsPage, expectedCount: stri
 async function compareMessageTimestamps(
     timeInChannel: string,
     scheduledDraftPageInfo: string,
-    scheduledDraftPage: ScheduledDraftPage,
+    scheduledDraftPage: pages.ScheduledDraftPage,
 ): Promise<void> {
     // Extract time from channel using the same date pattern
     const matchedTimeInChannel = timeInChannel.match(scheduledDraftPage.datePattern);
@@ -399,7 +399,10 @@ async function compareMessageTimestamps(
 /**
  * Removes HTML tags from the scheduled message content and extracts the time pattern.
  */
-function extractTimeFromHtml(htmlContent: string, scheduledDraftPage: ScheduledDraftPage): RegExpMatchArray | null {
+function extractTimeFromHtml(
+    htmlContent: string,
+    scheduledDraftPage: pages.ScheduledDraftPage,
+): RegExpMatchArray | null {
     // Remove all HTML tags and match the expected time pattern using the datePattern from scheduledDraftPage
     const cleanedText = htmlContent.replace(/<\/?[^>]+(>|$)/g, '');
 

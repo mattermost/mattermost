@@ -3,7 +3,7 @@
 
 import path from 'node:path';
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
 import {duration} from '@/util';
 import {assetPath} from '@/file';
@@ -141,5 +141,3 @@ export default class ChannelsPostCreate {
         );
     }
 }
-
-export {ChannelsPostCreate};

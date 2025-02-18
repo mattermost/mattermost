@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import merge from 'deepmerge';
-
 import {
     AdminConfig,
     ClusterSettings,
@@ -14,9 +13,9 @@ import {
     PluginSettings,
     ServiceSettings,
     TeamSettings,
-} from 'mmtest_types/config';
+} from '@mattermost/types/config';
 
-import testConfig from '@/test_config';
+import {testConfig} from '@/test_config';
 
 export function getOnPremServerConfig(): AdminConfig {
     return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);
@@ -200,6 +199,7 @@ const defaultServerConfig: AdminConfig = {
         MaximumPayloadSizeBytes: 300000,
         MaximumURLLength: 2048,
         ScheduledPosts: true,
+        EnableOpenTracing: false,
     },
     TeamSettings: {
         SiteName: 'Mattermost',

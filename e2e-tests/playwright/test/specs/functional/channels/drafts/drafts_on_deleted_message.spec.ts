@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test, expect, createRandomPost} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another user deleted root post and user removes the deleted post ', async ({
     pw,
@@ -17,7 +17,7 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
 
     // # Create a post in the channel by admin
     const adminPost = await adminClient.createPost(
-        createRandomPost({
+        pw.random.post({
             channel_id: channel.id,
             user_id: adminUser.id,
         }),

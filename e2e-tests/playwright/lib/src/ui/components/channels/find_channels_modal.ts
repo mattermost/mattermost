@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
 export default class FindChannelsModal {
     readonly container: Locator;
@@ -19,5 +19,3 @@ export default class FindChannelsModal {
         await expect(this.container).toBeVisible();
     }
 }
-
-export {FindChannelsModal};

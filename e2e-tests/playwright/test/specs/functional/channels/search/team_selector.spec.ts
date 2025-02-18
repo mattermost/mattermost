@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, createRandomTeam} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 test('team selector must show all my teams', async ({pw}) => {
     pw.skipIfFeatureFlagNotSet('ExperimentalCrossTeamSearch', true);
@@ -11,7 +11,7 @@ test('team selector must show all my teams', async ({pw}) => {
     // # create 2 more teams and add the user to them
     const teams = [team];
     for (let i = 0; i < 2; i++) {
-        const newTeam = await adminClient.createTeam(createRandomTeam('team', 'Team', 'O', true));
+        const newTeam = await adminClient.createTeam(pw.random.team('team', 'Team', 'O', true));
         await adminClient.addUsersToTeam(newTeam.id, [user.id]);
         teams.push(newTeam);
     }
@@ -47,7 +47,7 @@ test('team selector must show all my teams', async ({pw}) => {
 
     // now create and join 3 more teams
     for (let i = 0; i < 3; i++) {
-        const newTeam = await adminClient.createTeam(createRandomTeam('team', 'Team', 'O', true));
+        const newTeam = await adminClient.createTeam(pw.random.team('team', 'Team', 'O', true));
         await adminClient.addUsersToTeam(newTeam.id, [user.id]);
         teams.push(newTeam);
     }

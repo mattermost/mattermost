@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, createRandomChannel} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 test('MM-T5424 Find channel search returns only 50 results when there are more than 50 channels with similar names', async ({
     pw,
@@ -17,7 +17,7 @@ test('MM-T5424 Find channel search returns only 50 results when there are more t
         if (i < 10) {
             suffix = `0${i}`;
         }
-        const channel = createRandomChannel({
+        const channel = pw.random.channel({
             teamId: team.id,
             name: `${commonName}_${suffix}`,
             displayName: `Test Channel ${suffix}`,

@@ -3,11 +3,11 @@
 
 import {writeFile} from 'node:fs/promises';
 
-import {request, Browser, BrowserContext} from '@playwright/test';
-import {UserProfile} from 'mmtest_types/users';
+import {Browser, BrowserContext, request} from '@playwright/test';
+import {UserProfile} from '@mattermost/types/users';
 
-import testConfig from './test_config';
-import pages from './ui/pages';
+import {testConfig} from './test_config';
+import {pages} from './ui/pages';
 
 export class TestBrowser {
     readonly browser: Browser;

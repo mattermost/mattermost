@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, getRandomId, createRandomPost} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
-const keywords = [`AB${getRandomId()}`, `CD${getRandomId()}`, `EF${getRandomId()}`, `Highlight me ${getRandomId()}`];
-
+let keywords: string[];
 const highlightWithoutNotificationClass = 'non-notification-highlight';
+
+test.beforeAll(async ({pw}) => {
+    keywords = [`AB${pw.random.id()}`, `CD${pw.random.id()}`, `EF${pw.random.id()}`, `Highlight me ${pw.random.id()}`];
+});
 
 test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on the textbox', async ({pw}) => {
     // # Skip test if no license
@@ -232,7 +235,7 @@ test('MM-T5465-5 Should highlight keywords in message sent from another user', a
 
     // # Create a post containing the keyword in the channel by admin
     await adminClient.createPost(
-        createRandomPost({
+        pw.random.post({
             message: messageWithKeyword,
             channel_id: channel.id,
             user_id: adminUser.id,

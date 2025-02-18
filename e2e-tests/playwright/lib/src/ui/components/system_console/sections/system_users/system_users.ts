@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
 /**
  * System Console -> User Management -> Users
@@ -130,5 +130,3 @@ export default class SystemUsers {
         await expect(foundUser).not.toBeVisible();
     }
 }
-
-export {SystemUsers};

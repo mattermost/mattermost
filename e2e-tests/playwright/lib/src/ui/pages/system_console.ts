@@ -3,9 +3,9 @@
 
 import {Page} from '@playwright/test';
 
-import components from '@/ui/components';
+import {components} from '@/ui/components';
 
-class SystemConsolePage {
+export default class SystemConsolePage {
     readonly page: Page;
 
     readonly sidebar;
@@ -77,5 +77,3 @@ class SystemConsolePage {
         await this.saveChangesModal.container.locator('button.btn-primary:has-text("Reset")').click();
     }
 }
-
-export {SystemConsolePage};

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test, createRandomUser, getRandomId} from '@mattermost/playwright-lib';
+import {test} from '@mattermost/playwright-lib';
 
 test('MM-T5521-1 Should be able to search users with their first names', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
@@ -14,8 +14,8 @@ test('MM-T5521-1 Should be able to search users with their first names', async (
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(createRandomUser(), '', '');
-    const user2 = await adminClient.createUser(createRandomUser(), '', '');
+    const user1 = await adminClient.createUser(pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -46,8 +46,8 @@ test('MM-T5521-2 Should be able to search users with their last names', async ({
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(createRandomUser(), '', '');
-    const user2 = await adminClient.createUser(createRandomUser(), '', '');
+    const user1 = await adminClient.createUser(pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -78,8 +78,8 @@ test('MM-T5521-3 Should be able to search users with their emails', async ({pw})
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(createRandomUser(), '', '');
-    const user2 = await adminClient.createUser(createRandomUser(), '', '');
+    const user1 = await adminClient.createUser(pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -110,8 +110,8 @@ test('MM-T5521-4 Should be able to search users with their usernames', async ({p
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(createRandomUser(), '', '');
-    const user2 = await adminClient.createUser(createRandomUser(), '', '');
+    const user1 = await adminClient.createUser(pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -142,8 +142,8 @@ test('MM-T5521-5 Should be able to search users with their nick names', async ({
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
-    const user1 = await adminClient.createUser(createRandomUser(), '', '');
-    const user2 = await adminClient.createUser(createRandomUser(), '', '');
+    const user1 = await adminClient.createUser(pw.random.user(), '', '');
+    const user2 = await adminClient.createUser(pw.random.user(), '', '');
 
     // # Visit system console
     await systemConsolePage.goto();
@@ -180,7 +180,7 @@ test('MM-T5521-6 Should show no user is found when user doesnt exists', async ({
     await systemConsolePage.sidebar.goToItem('Users');
 
     // # Enter random text in the search box
-    await systemConsolePage.systemUsers.enterSearchText(`!${getRandomId(15)}_^^^_${getRandomId(15)}!`);
+    await systemConsolePage.systemUsers.enterSearchText(`!${pw.random.id(15)}_^^^_${pw.random.id(15)}!`);
 
     await systemConsolePage.systemUsers.verifyRowWithTextIsFound('No data');
 });

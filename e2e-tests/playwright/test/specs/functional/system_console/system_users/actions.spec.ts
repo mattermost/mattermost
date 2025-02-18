@@ -1,11 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mmtest_client';
-import {UserProfile} from 'mmtest_types/users';
-
-import {expect, test, createRandomTeam, createRandomUser, getRandomId} from '@mattermost/playwright-lib';
-import type {TestBrowser} from '@mattermost/playwright-lib';
+import {type PlaywrightExtended, expect, test} from '@mattermost/playwright-lib';
 
 /**
  * Setup a new random user, and search for it such that it's the first row in the list
@@ -13,10 +9,7 @@ import type {TestBrowser} from '@mattermost/playwright-lib';
  * @param pages
  * @returns A function to get the refreshed user, and the System Console page for navigation
  */
-async function setupAndGetRandomUser(pw: {
-    testBrowser: TestBrowser;
-    initSetup: () => Promise<{adminUser: UserProfile | null; adminClient: Client4}>;
-}) {
+async function setupAndGetRandomUser(pw: PlaywrightExtended) {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -27,8 +20,8 @@ async function setupAndGetRandomUser(pw: {
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a random user to edit for
-    const user = await adminClient.createUser(createRandomUser(), '', '');
-    const team = await adminClient.createTeam(createRandomTeam());
+    const user = await adminClient.createUser(pw.random.user(), '', '');
+    const team = await adminClient.createTeam(pw.random.team());
     await adminClient.addToTeam(team.id, user.id);
 
     // # Visit system console
@@ -163,7 +156,7 @@ test('MM-T5520-4 should reset the users password', async ({pw}) => {
 
     // # Enter a random password and click Save
     const passwordInput = systemConsolePage.page.locator('input[type="password"]');
-    await passwordInput.fill(getRandomId());
+    await passwordInput.fill(pw.random.id());
     await systemConsolePage.clickResetButton();
 
     // * Verify that the modal closed and no error showed
@@ -172,7 +165,7 @@ test('MM-T5520-4 should reset the users password', async ({pw}) => {
 
 test('MM-T5520-5 should change the users email', async ({pw}) => {
     const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
-    const newEmail = `${getRandomId()}@example.com`;
+    const newEmail = `${pw.random.id()}@example.com`;
 
     // # Open menu and click Update Email
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();

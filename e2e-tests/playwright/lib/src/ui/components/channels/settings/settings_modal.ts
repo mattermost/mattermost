@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
-import {NotificationsSettings} from './notification_settings';
+import NotificationsSettings from './notification_settings';
 
 export default class SettingsModal {
     readonly container: Locator;
@@ -35,5 +35,3 @@ export default class SettingsModal {
         await expect(this.container).not.toBeVisible();
     }
 }
-
-export {SettingsModal};

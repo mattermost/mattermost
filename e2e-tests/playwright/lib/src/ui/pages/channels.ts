@@ -3,7 +3,7 @@
 
 import {Page} from '@playwright/test';
 
-import components from '@/ui/components';
+import {components} from '@/ui/components';
 
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -90,5 +90,3 @@ export default class ChannelsPage {
         await this.centerView.postCreate.postMessage(message);
     }
 }
-
-export {ChannelsPage};

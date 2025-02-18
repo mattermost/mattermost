@@ -4,6 +4,7 @@
         "moduleResolution": "node",
         "target": "es2022",
         "declaration": true,
+        "declarationDir": "dist",
         "strict": true,
         "resolveJsonModule": true,
         "isolatedModules": true,

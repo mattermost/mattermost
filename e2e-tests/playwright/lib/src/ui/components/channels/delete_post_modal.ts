@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
 export default class DeletePostModal {
     readonly container: Locator;
@@ -24,5 +24,3 @@ export default class DeletePostModal {
         await expect(this.container).not.toBeVisible();
     }
 }
-
-export {DeletePostModal};

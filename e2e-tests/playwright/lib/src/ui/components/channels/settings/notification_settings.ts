@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
 type NotificationSettingsSection = 'keysWithHighlight' | 'keysWithNotification';
 
@@ -52,5 +52,3 @@ export default class NotificationsSettings {
         await this.container.getByText('Save').click();
     }
 }
-
-export {NotificationsSettings};

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
 import PostMenu from './post_menu';
 import ThreadFooter from './thread_footer';
@@ -73,5 +73,3 @@ export default class ChannelsPost {
         await expect(this.container).toContainText(text);
     }
 }
-
-export {ChannelsPost};

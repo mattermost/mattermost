@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {expect} from '@playwright/test';
-import {Client4} from 'mmtest_client';
-import {UserProfile} from 'mmtest_types/users';
-import {PreferenceType} from 'mmtest_types/preferences';
+import {Client4} from '@mattermost/client';
+import {UserProfile} from '@mattermost/types/users';
+import {PreferenceType} from '@mattermost/types/preferences';
 
 import {defaultTeam} from './util';
 import {createRandomTeam, getAdminClient, getDefaultAdminUser, makeClient} from './server';

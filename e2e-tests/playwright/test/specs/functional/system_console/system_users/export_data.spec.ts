@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, duration} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 test.fixme('MM-T5522 Should begin export of data when export button is pressed', async ({pw}) => {
     test.slow();
@@ -25,7 +25,7 @@ test.fixme('MM-T5522 Should begin export of data when export button is pressed',
     await systemConsolePage.sidebar.goToItem('Users');
     await systemConsolePage.systemUsers.toBeVisible();
 
-    // # Change the export duration to 30 days
+    // # Change the export pw.duration to 30 days
     await systemConsolePage.systemUsers.dateRangeSelectorMenuButton.click();
     await systemConsolePage.systemUsersDateRangeMenu.clickMenuItem('All time');
 
@@ -33,7 +33,7 @@ test.fixme('MM-T5522 Should begin export of data when export button is pressed',
     await systemConsolePage.systemUsers.exportButton.click();
     await systemConsolePage.exportModal.confirm();
 
-    // # Change the export duration to all time
+    // # Change the export pw.duration to all time
     await systemConsolePage.systemUsers.dateRangeSelectorMenuButton.click();
     await systemConsolePage.systemUsersDateRangeMenu.clickMenuItem('Last 30 days');
 
@@ -58,11 +58,11 @@ test.fixme('MM-T5522 Should begin export of data when export button is pressed',
     expect(postText).toContain('export of user data for the last 30 days');
 
     // * Wait until the first export finishes
-    await channelsPage.centerView.waitUntilLastPostContains('contains user data for all time', duration.half_min);
+    await channelsPage.centerView.waitUntilLastPostContains('contains user data for all time', pw.duration.half_min);
 
     // * Wait until the second export finishes
     await channelsPage.centerView.waitUntilLastPostContains(
         'contains user data for the last 30 days',
-        duration.half_min,
+        pw.duration.half_min,
     );
 });

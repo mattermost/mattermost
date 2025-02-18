@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
 import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
@@ -98,5 +98,3 @@ export default class ChannelsSidebarRight {
         await this.restorePreviousPostVersionIcon.click();
     }
 }
-
-export {ChannelsSidebarRight};

@@ -21,10 +21,12 @@ export default [
     {
         ignores: ['**/node_modules', '**/dist', '**/playwright-report', '**/test-results', '**/results'],
     },
-    ...compat.extends('eslint:recommended', 'plugin:@typescript-eslint/recommended').map((config) => ({
-        ...config,
-        files: ['**/*.ts', '**/*.js'],
-    })),
+    ...compat
+        .extends('eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:import/recommended')
+        .map((config) => ({
+            ...config,
+            files: ['**/*.ts', '**/*.js'],
+        })),
     {
         files: ['**/*.ts', '**/*.js'],
         plugins: {
@@ -39,6 +41,12 @@ export default [
             ecmaVersion: 5,
             sourceType: 'module',
         },
+        settings: {
+            'import/resolver': {
+                typescript: true,
+                node: true,
+            },
+        },
         rules: {
             '@typescript-eslint/explicit-module-boundary-types': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
@@ -50,6 +58,14 @@ export default [
                 ' Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.\n See LICENSE.txt for license information.',
                 2,
             ],
+            'import/order': [
+                'error',
+                {
+                    'newlines-between': 'always',
+                    groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+                },
+            ],
+            'import/no-unresolved': 'off',
         },
     },
 ];

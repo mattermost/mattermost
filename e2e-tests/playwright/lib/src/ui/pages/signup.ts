@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Page} from '@playwright/test';
+import {Page, expect} from '@playwright/test';
 
 import {duration, wait} from '@/util';
-import components from '@/ui/components';
+import {components} from '@/ui/components';
 
 export default class SignupPage {
     readonly page: Page;
@@ -86,5 +86,3 @@ export default class SignupPage {
         }
     }
 }
-
-export {SignupPage};

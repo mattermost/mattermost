@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Page} from '@playwright/test';
-import {UserProfile} from 'mmtest_types/users';
+import {Page, expect} from '@playwright/test';
+import {UserProfile} from '@mattermost/types/users';
 
-import components from '@/ui/components';
+import {components} from '@/ui/components';
 
 export default class LoginPage {
     readonly page: Page;
@@ -66,5 +66,3 @@ export default class LoginPage {
         await Promise.all([this.page.waitForNavigation(), this.signInButton.click()]);
     }
 }
-
-export {LoginPage};

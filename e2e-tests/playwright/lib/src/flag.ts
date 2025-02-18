@@ -3,7 +3,7 @@
 
 import os from 'node:os';
 
-import {test, expect} from '@playwright/test';
+import {expect, test} from '@playwright/test';
 
 import {callsPluginId} from './constant';
 import {getAdminClient} from './server/init';

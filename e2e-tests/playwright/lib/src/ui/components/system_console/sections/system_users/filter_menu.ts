@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {Locator, expect} from '@playwright/test';
 
 /**
  * The dropdown menu which appears for both Role and Status filter.
@@ -42,5 +42,3 @@ export default class SystemUsersFilterMenu {
         await this.container.press('Escape');
     }
 }
-
-export {SystemUsersFilterMenu};

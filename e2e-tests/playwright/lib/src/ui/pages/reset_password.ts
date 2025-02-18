@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Page} from '@playwright/test';
+import {Page, expect} from '@playwright/test';
 
-import components from '@/ui/components';
+import {components} from '@/ui/components';
 
 export default class ResetPasswordPage {
     readonly page: Page;
@@ -47,5 +47,3 @@ export default class ResetPasswordPage {
         await Promise.all([this.page.waitForNavigation(), this.resetButton.click()]);
     }
 }
-
-export {ResetPasswordPage};

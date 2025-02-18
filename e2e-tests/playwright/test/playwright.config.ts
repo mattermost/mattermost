@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {defineConfig, devices} from '@playwright/test';
-
 import {duration, testConfig} from '@mattermost/playwright-lib';
 
 export default defineConfig({

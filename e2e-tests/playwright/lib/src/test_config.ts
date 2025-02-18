@@ -41,5 +41,3 @@ function parseBool(actualValue: string | undefined, defaultValue: boolean) {
 function parseNumber(actualValue: string | undefined, defaultValue: number) {
     return actualValue ? parseInt(actualValue, 10) : defaultValue;
 }
-
-export default testConfig;

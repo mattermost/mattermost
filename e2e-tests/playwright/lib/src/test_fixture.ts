@@ -1,25 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test as base, Browser, Page} from '@playwright/test';
+import {Browser, Page, test as base} from '@playwright/test';
 import {AxeResults} from 'axe-core';
-import AxeBuilder from '@axe-core/playwright';
+import {AxeBuilder} from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
 import {
+    ensureLicense,
     shouldHaveCallsEnabled,
     shouldHaveFeatureFlag,
     shouldRunInLinux,
-    ensureLicense,
-    skipIfNoLicense,
     skipIfFeatureFlagNotSet,
+    skipIfNoLicense,
 } from './flag';
-import {initSetup, getAdminClient} from './server';
+import {getBlobFromAsset, getFileFromAsset} from './file';
+import {
+    createRandomChannel,
+    createRandomPost,
+    createRandomTeam,
+    createRandomUser,
+    getAdminClient,
+    initSetup,
+} from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
-import pages from './ui/pages';
+import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
 import {stubNotification, waitForNotification} from './mock_browser_api';
-import {duration} from './util';
+import {duration, getRandomId, simpleEmailRe, wait} from './util';
 
 export {expect} from '@playwright/test';
 
@@ -58,6 +66,10 @@ export class PlaywrightExtended {
     readonly skipIfNoLicense;
     readonly skipIfFeatureFlagNotSet;
 
+    // ./file
+    readonly getBlobFromAsset;
+    readonly getFileFromAsset;
+
     // ./server
     readonly getAdminClient;
     readonly initSetup;
@@ -67,18 +79,26 @@ export class PlaywrightExtended {
     readonly waitForAnimationEnd;
     readonly waitUntil;
 
+    // ./mock_browser_api
+    readonly stubNotification;
+    readonly waitForNotification;
+
+    // ./visual
+    readonly matchSnapshot;
+
+    // ./util
+    readonly duration;
+    readonly simpleEmailRe;
+    readonly wait;
+
+    // random
+    readonly random;
+
     // unauthenticated page
     readonly loginPage;
     readonly landingLoginPage;
     readonly signupPage;
     readonly resetPasswordPage;
-
-    // ./visual
-    readonly matchSnapshot;
-
-    // ./mock_browser_api
-    readonly stubNotification;
-    readonly waitForNotification;
 
     readonly hasSeenLandingPage;
 
@@ -93,6 +113,10 @@ export class PlaywrightExtended {
         this.ensureLicense = ensureLicense;
         this.skipIfNoLicense = skipIfNoLicense;
         this.skipIfFeatureFlagNotSet = skipIfFeatureFlagNotSet;
+
+        // ./file
+        this.getBlobFromAsset = getBlobFromAsset;
+        this.getFileFromAsset = getFileFromAsset;
 
         // ./server
         this.initSetup = initSetup;
@@ -109,12 +133,25 @@ export class PlaywrightExtended {
         this.signupPage = new pages.SignupPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
 
-        // ./visual
-        this.matchSnapshot = matchSnapshot;
-
         // ./mock_browser_api
         this.stubNotification = stubNotification;
         this.waitForNotification = waitForNotification;
+
+        // ./visual
+        this.matchSnapshot = matchSnapshot;
+
+        // ./util
+        this.duration = duration;
+        this.wait = wait;
+        this.simpleEmailRe = simpleEmailRe;
+
+        this.random = {
+            id: getRandomId,
+            channel: createRandomChannel,
+            post: createRandomPost,
+            team: createRandomTeam,
+            user: createRandomUser,
+        };
 
         this.hasSeenLandingPage = async () => {
             // Visit the base URL to be able to set the localStorage

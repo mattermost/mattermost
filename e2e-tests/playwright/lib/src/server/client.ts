@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mmtest_client';
-import {UserProfile} from 'mmtest_types/users';
+import {Client4} from '@mattermost/client';
+import {UserProfile} from '@mattermost/types/users';
 
-import testConfig from '@/test_config';
+import {testConfig} from '@/test_config';
 
 // Variable to hold cache
 const clients: Record<string, ClientCache> = {};
 
-async function makeClient(
+export async function makeClient(
     userRequest?: UserRequest,
     opts: {useCache?: boolean; skipLog?: boolean} = {useCache: true, skipLog: false},
 ): Promise<ClientCache> {
@@ -56,5 +56,3 @@ type ClientCache = {
     client: Client4;
     user: UserProfile | null;
 };
-
-export {makeClient};

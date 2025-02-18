@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
-
-import {waitUntil} from '@/test_action';
-import {duration} from '@/util';
+import {Locator, expect} from '@playwright/test';
 
 import ChannelsHeader from './header';
 import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
 import ChannelsPost from './post';
+
+import {duration} from '@/util';
+import {waitUntil} from '@/test_action';
 
 export default class ChannelsCenterView {
     readonly container: Locator;
@@ -140,5 +140,3 @@ export default class ChannelsCenterView {
         }
     }
 }
-
-export {ChannelsCenterView};

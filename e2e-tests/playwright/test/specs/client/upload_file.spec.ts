@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mmtest_client';
-
-import {expect, test, getBlobFromAsset, getFileFromAsset, getRandomId} from '@mattermost/playwright-lib';
-
-import {FileUploadResponse} from 'mmtest_types/files';
-import {ServerChannel} from 'mmtest_types/channels';
-import {Team} from 'mmtest_types/teams';
-import {UserProfile} from 'mmtest_types/users';
+import {Client4} from '@mattermost/client';
+import {expect, test} from '@mattermost/playwright-lib';
+import {ServerChannel} from '@mattermost/types/channels';
+import {FileUploadResponse} from '@mattermost/types/files';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
 
 import {FileUploadResponseSchema} from './schema';
 
@@ -18,17 +16,22 @@ let team: Team;
 let townSquareChannel: ServerChannel;
 
 const filename = 'mattermost-icon_128x128.png';
-const file = getFileFromAsset(filename);
-const blob = getBlobFromAsset(filename);
+let file: File;
+let blob: Blob;
+
+test.beforeAll(async ({pw}) => {
+    file = pw.getFileFromAsset(filename);
+    blob = pw.getBlobFromAsset(filename);
+});
 
 test.beforeEach(async ({pw}) => {
     ({userClient, user, team} = await pw.initSetup());
     townSquareChannel = await userClient.getChannelByName(team.id, 'town-square');
 });
 
-test('should succeed with File', async () => {
+test('should succeed with File', async ({pw}) => {
     // # Prepare data with File
-    const clientId = getRandomId();
+    const clientId = pw.random.id();
     const formData = new FormData();
     formData.set('channel_id', townSquareChannel.id);
     formData.set('client_ids', clientId);
@@ -36,13 +39,12 @@ test('should succeed with File', async () => {
 
     // # Do upload then validate the response
     const data = await userClient.uploadFile(formData);
-    // @ts-expect-error - fixed on @mattermost/types > 10.5.0
     validateFileUploadResponse(data, clientId, user.id, townSquareChannel.id);
 });
 
-test('should succeed with Blob', async () => {
+test('should succeed with Blob', async ({pw}) => {
     // # Prepare data with Blob
-    const clientId = getRandomId();
+    const clientId = pw.random.id();
     const formData = new FormData();
     formData.set('channel_id', townSquareChannel.id);
     formData.set('client_ids', clientId);
@@ -50,7 +52,6 @@ test('should succeed with Blob', async () => {
 
     // # Do upload then validate the response
     const data = await userClient.uploadFile(formData);
-    // @ts-expect-error - fixed on @mattermost/types > 10.5.0
     validateFileUploadResponse(data, clientId, user.id, townSquareChannel.id);
 });
 
@@ -71,8 +72,8 @@ test('should succeed even with channel_id only', async () => {
     expect(data.file_infos.length).toBe(0);
 });
 
-test('should fail on invalid channel ID', async () => {
-    const clientId = getRandomId();
+test('should fail on invalid channel ID', async ({pw}) => {
+    const clientId = pw.random.id();
 
     // # Set with invalid channel ID
     let formData = new FormData();
@@ -94,8 +95,8 @@ test('should fail on invalid channel ID', async () => {
     );
 });
 
-test('should fail on missing files', async () => {
-    const clientId = getRandomId();
+test('should fail on missing files', async ({pw}) => {
+    const clientId = pw.random.id();
 
     // # Set with invalid channel ID
     const formData = new FormData();
@@ -107,8 +108,8 @@ test('should fail on missing files', async () => {
     );
 });
 
-test('should fail on incorrect order setting up FormData', async () => {
-    const clientId = getRandomId();
+test('should fail on incorrect order setting up FormData', async ({pw}) => {
+    const clientId = pw.random.id();
 
     // # Set with files before client_ids
     const formData = new FormData();

@@ -15,12 +15,12 @@
         "clean": "rm -rf dist node_modules *.tsbuildinfo logs results storage_state test-results"
     },
     "dependencies": {
-        "@types/node": "22.13.1",
         "@axe-core/playwright": "4.10.1",
         "@mattermost/playwright-lib": "*",
-        "@mattermost/types": "10.3.0",
+        "@mattermost/types": "10.6.0-0",
         "@percy/cli": "1.30.7",
         "@percy/playwright": "1.0.7",
+        "@types/node": "22.13.1",
         "async-wait-until": "2.0.23",
         "axe-core": "4.10.2",
         "chalk": "4.1.2",
@@ -29,7 +29,6 @@
         "dotenv": "16.4.7",
         "form-data-encoder": "4.0.2",
         "formdata-node": "6.0.3",
-        "mmtest_types": "10.5.0",
         "uuid": "11.0.5",
         "zod": "3.24.1"
     },

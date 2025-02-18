@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team, TeamType} from 'mmtest_types/teams';
+import {Team, TeamType} from '@mattermost/types/teams';
 
 import {getRandomId} from '@/util';
 

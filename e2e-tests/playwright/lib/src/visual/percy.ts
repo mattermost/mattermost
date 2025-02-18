@@ -3,7 +3,7 @@
 
 import percySnapshot from '@percy/playwright';
 
-import testConfig from '@/test_config';
+import {testConfig} from '@/test_config';
 import {TestArgs} from '@/types';
 
 export default async function snapshotWithPercy(name: string, testArgs: TestArgs) {

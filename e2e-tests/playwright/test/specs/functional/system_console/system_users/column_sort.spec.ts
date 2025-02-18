@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, createRandomUser, simpleEmailRe} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
@@ -15,7 +15,7 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
 
     // # Create 10 random users
     for (let i = 0; i < 10; i++) {
-        await adminClient.createUser(createRandomUser(), '', '');
+        await adminClient.createUser(pw.random.user(), '', '');
     }
 
     // # Visit system console
@@ -33,7 +33,7 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
 
     // # Store the first row's email before sorting
     const firstRowWithoutSort = await systemConsolePage.systemUsers.getNthRow(1);
-    const firstRowEmailWithoutSort = await firstRowWithoutSort.getByText(simpleEmailRe).allInnerTexts();
+    const firstRowEmailWithoutSort = await firstRowWithoutSort.getByText(pw.simpleEmailRe).allInnerTexts();
 
     // # Click on the 'Email' column header to sort
     await systemConsolePage.systemUsers.clickSortOnColumn('Email');
@@ -41,7 +41,7 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
 
     // # Store the first row's email after sorting
     const firstRowWithSort = await systemConsolePage.systemUsers.getNthRow(1);
-    const firstRowEmailWithSort = await firstRowWithSort.getByText(simpleEmailRe).allInnerTexts();
+    const firstRowEmailWithSort = await firstRowWithSort.getByText(pw.simpleEmailRe).allInnerTexts();
 
     // * Verify that the first row is now different
     expect(firstRowEmailWithoutSort).not.toBe(firstRowEmailWithSort);
@@ -59,7 +59,7 @@ test('MM-T5523-2 Non sortable columns should not sort the list when clicked', as
 
     // # Create 10 random users
     for (let i = 0; i < 10; i++) {
-        await adminClient.createUser(createRandomUser(), '', '');
+        await adminClient.createUser(pw.random.user(), '', '');
     }
 
     // # Visit system console
@@ -77,14 +77,14 @@ test('MM-T5523-2 Non sortable columns should not sort the list when clicked', as
 
     // # Store the first row's email without sorting
     const firstRowWithoutSort = await systemConsolePage.systemUsers.getNthRow(1);
-    const firstRowEmailWithoutSort = await firstRowWithoutSort.getByText(simpleEmailRe).allInnerTexts();
+    const firstRowEmailWithoutSort = await firstRowWithoutSort.getByText(pw.simpleEmailRe).allInnerTexts();
 
     // # Try to click on the 'Last login' column header to sort
     await systemConsolePage.systemUsers.clickSortOnColumn('Last login');
 
     // # Store the first row's email after sorting
     const firstRowWithSort = await systemConsolePage.systemUsers.getNthRow(1);
-    const firstRowEmailWithSort = await firstRowWithSort.getByText(simpleEmailRe).allInnerTexts();
+    const firstRowEmailWithSort = await firstRowWithSort.getByText(pw.simpleEmailRe).allInnerTexts();
 
     // * Verify that the first row's email is still the same
     expect(firstRowEmailWithoutSort).toEqual(firstRowEmailWithSort);
