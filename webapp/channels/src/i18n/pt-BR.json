@@ -3754,7 +3754,6 @@
   "reaction.usersAndOthersReacted": "{users} e {otherUsers, number} {otherUsers, plural, one {outro usuário} other {outros usuários}}",
   "reaction.usersReacted": "{users} e {lastUser}",
   "reaction.you": "Você",
-  "reaction_list.addReactionTooltip": "Adicionar uma reação",
   "remove_group_confirm_button": "Sim, Remover Grupo e {memberCount, plural, one {Membro} other {Membros}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {membro} other {membros}} associados a este grupo serão removidos da equipe. Você tem certeza que deseja remover este grupo e {memberCount} {memberCount, plural, one {membro} other {membros}}?",
   "remove_group_confirm_title": "Remove Grupo e {memberCount, number} {memberCount, plural, one {Membro} other {Membros}}",

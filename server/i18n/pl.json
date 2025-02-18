@@ -10312,20 +10312,8 @@
     "translation": "Nie można zaktualizować pola atrybutu profilu niestandardowego"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Nie można utworzyć wartości właściwości"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "Nie znaleziono pola atrybutu profilu niestandardowego"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Nie można pobrać wartości właściwości"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Nie można zaktualizować wartości właściwości"
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
@@ -10398,5 +10386,41 @@
   {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Nie można pobrać czytnika plików zip."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się utworzyć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować kolejności sortowania zakładki kanału."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "próba załatania pola, które nie istnieje"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Nie można pobrać zakładek dla zarchiwizowanego kanału"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Nie udało się uzyskać liczby wszystkich plików."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Nie udało się uzyskać użycia pamięci masowej dla wszystkich plików."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się usunąć zakładki kanału."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nie udało się zaktualizować zakładki kanału."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Nie można uruchomić polecenia w usuniętym kanale."
   }
 ]
