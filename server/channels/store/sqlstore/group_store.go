@@ -1275,7 +1275,7 @@ func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.Chan
 
 func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) sq.SelectBuilder {
 	selectStrs := map[selectType]string{
-		selectGroups:      "ug.*, gs.SchemeAdmin AS SyncableSchemeAdmin",
+		selectGroups:      "UserGroups.*, gs.SchemeAdmin AS SyncableSchemeAdmin",
 		selectCountGroups: "COUNT(*)",
 	}
 
@@ -1292,21 +1292,21 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	query := s.getQueryBuilder().
 		Select(selectStrs[t]).
 		From(fmt.Sprintf("%s gs", table)).
-		LeftJoin("UserGroups ug ON gs.GroupId = ug.Id").
-		Where(fmt.Sprintf("ug.DeleteAt = 0 AND gs.%s = ? AND gs.DeleteAt = 0", idCol), syncableID)
+		LeftJoin("UserGroups ug ON gs.GroupId = UserGroups.Id").
+		Where(fmt.Sprintf("UserGroups.DeleteAt = 0 AND gs.%s = ? AND gs.DeleteAt = 0", idCol), syncableID)
 
 	if opts.IncludeMemberCount && t == selectGroups {
 		query = s.getQueryBuilder().
-			Select(fmt.Sprintf("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, Group%ss.SchemeAdmin AS SyncableSchemeAdmin", st)).
+			Select(fmt.Sprintf("UserGroups.*, coalesce(Members.MemberCount, 0) AS MemberCount, Group%ss.SchemeAdmin AS SyncableSchemeAdmin", st)).
 			From("UserGroups ug").
-			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
-			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = ug.Id", table)).
-			Where(fmt.Sprintf("ug.DeleteAt = 0 AND %[1]s.DeleteAt = 0 AND %[1]s.%[2]s = ?", table, idCol), syncableID).
-			OrderBy("ug.DisplayName")
+			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = UserGroups.Id").
+			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = UserGroups.Id", table)).
+			Where(fmt.Sprintf("UserGroups.DeleteAt = 0 AND %[1]s.DeleteAt = 0 AND %[1]s.%[2]s = ?", table, idCol), syncableID).
+			OrderBy("UserGroups.DisplayName")
 	}
 
 	if opts.FilterAllowReference && t == selectGroups {
-		query = query.Where("ug.AllowReference = true")
+		query = query.Where("UserGroups.AllowReference = true")
 	}
 
 	if opts.Q != "" {
@@ -1315,7 +1315,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 		if s.DriverName() == model.DatabaseDriverMysql {
 			operatorKeyword = "LIKE"
 		}
-		query = query.Where(fmt.Sprintf("(ug.Name %[1]s ? OR ug.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
+		query = query.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
 
 	return query
