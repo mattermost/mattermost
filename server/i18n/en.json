@@ -1706,6 +1706,10 @@
     "translation": "Sorry, we could not find the page."
   },
   {
+    "id": "api.context.get_session.app_error",
+    "translation": "Session not found."
+  },
+  {
     "id": "api.context.get_user.app_error",
     "translation": "Unable to get user from session UserID."
   },
@@ -10338,11 +10342,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 130+"
+    "translation": "Version 132+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
