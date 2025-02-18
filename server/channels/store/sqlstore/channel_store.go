@@ -115,7 +115,6 @@ func channelSliceColumns(prefix string) []string {
 		prefix + "CreateAt",
 		prefix + "UpdateAt",
 		prefix + "DeleteAt",
-		prefix + "DeleteAt",
 		prefix + "TeamId",
 		prefix + "Type",
 		prefix + "DisplayName",
@@ -1261,8 +1260,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 	channels := model.ChannelList{}
 	err := s.GetReplica().Select(&channels, `
 		SELECT
-			`
-	strings.Join(channelSliceColumns("Channels"), ", ") + `
+			`+strings.Join(channelSliceColumns("Channels"), ", ")+`
 		FROM
 			Channels
 		JOIN
@@ -1322,8 +1320,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 	channels := model.ChannelList{}
 	err := s.GetReplica().Select(&channels, `
 		SELECT
-			`
-	strings.Join(channelSliceColumns("Channels"), ", ") + `
+			`+strings.Join(channelSliceColumns("Channels"), ", ")+`
 		FROM
 			Channels
 		JOIN
@@ -2933,7 +2930,7 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	if err := s.GetReplica().Get(
 		&channel,
 		`SELECT
-			`+ strings.Join(channelSliceColumns("Channels"), ", ") +`
+			`+strings.Join(channelSliceColumns("Channels"), ", ")+`
 		FROM
 			Channels,
 			Posts
@@ -3091,7 +3088,6 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 		"t.Name AS TeamName",
 		"t.UpdateAt AS TeamUpdateAt",
 	)
-
 
 	query := s.getQueryBuilder().Select(columns...).
 		From("Channels c, Teams t, TeamMembers tm").
