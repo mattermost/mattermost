@@ -90,6 +90,9 @@ type GetUserThreadsOpts struct {
 	IncludeIsUrgent bool
 
 	ExcludeDirect bool
+
+	// TODO: This isn't something the enduser should set.
+	ExcludeArchivedChannels bool
 }
 
 func (o *Thread) Etag() string {
