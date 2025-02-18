@@ -1102,7 +1102,6 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, opts *model.C
 }
 
 func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, error) {
-	// LOL
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns("Channels")...).
 		From("Channels, ChannelMembers").
