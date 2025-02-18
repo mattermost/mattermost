@@ -30,7 +30,7 @@ export default class FileUploadSetting extends React.PureComponent<Props, State>
     fileInputRef = React.createRef<HTMLInputElement>();
 
     // Helps prevent setting state after component is unmounted, for usage when this component is wrapped by a custom setting
-    _isMounted = false;
+    isMounted = false;
 
     constructor(props: Props) {
         super(props);
@@ -44,11 +44,11 @@ export default class FileUploadSetting extends React.PureComponent<Props, State>
     }
 
     componentDidMount() {
-        this._isMounted = true;
+        this.isMounted = true;
     }
 
     componentWillUnmount() {
-        this._isMounted = false;
+        this.isMounted = false;
     }
 
     handleChooseClick = () => {
@@ -69,7 +69,7 @@ export default class FileUploadSetting extends React.PureComponent<Props, State>
         const file = this.fileInputRef.current?.files?.[0];
         if (file) {
             this.props.onSubmit(this.props.id, file, (error) => {
-                if (this._isMounted) {
+                if (this.isMounted) {
                     this.setState({uploading: false});
                     if (error && this.fileInputRef.current) {
                         Utils.clearFileInput(this.fileInputRef.current);

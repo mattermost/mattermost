@@ -3380,14 +3380,14 @@ export default class Client4 {
                 body: formData,
             },
         );
-    }
+    };
 
     removeAuditLogCertificate = () => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/audit_logs/certificate`,
             {method: 'delete'},
         );
-    }
+    };
 
     deletePublicSamlCertificate = () => {
         return this.doFetch<StatusOK>(

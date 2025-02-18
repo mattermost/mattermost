@@ -1,11 +1,18 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import type {ComponentType} from 'react';
 import React from 'react';
-import FileUploadSetting from '../file_upload_setting';
-import RemoveFileSetting from '../remove_file_setting'; 
-import { IntlShape, useIntl } from 'react-intl'; 
-import { removeAuditCertificate, uploadAuditCertificate } from 'actions/admin_actions';
+import type {IntlShape} from 'react-intl';
+import {useIntl} from 'react-intl';
+
+import {removeAuditCertificate, uploadAuditCertificate} from 'actions/admin_actions';
+
 import useGetCloudInstallationStatus from 'components/common/hooks/useGetCloudInstallationStatus';
 import WithTooltip from 'components/with_tooltip';
-import {ComponentType} from 'react';
+
+import FileUploadSetting from '../file_upload_setting';
+import RemoveFileSetting from '../remove_file_setting';
 
 type Props = {
     id?: string;
@@ -13,9 +20,9 @@ type Props = {
     license: any;
     intl: IntlShape;
     value: any;
-    onChange: (id: string, value: string) => void; 
-    disabled: boolean; 
-    setByEnv: boolean; 
+    onChange: (id: string, value: string) => void;
+    disabled: boolean;
+    setByEnv: boolean;
     label: string;
     helpText: React.JSX.Element;
 };
@@ -31,12 +38,12 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
         value,
     } = props;
 
-    const {status: installationStatus, refetchStatus} = useGetCloudInstallationStatus(true);    
+    const {status: installationStatus, refetchStatus} = useGetCloudInstallationStatus(true);
 
     const {formatMessage} = useIntl();
 
     const [fileValue, setFileValue] = React.useState<string | null>(value || null); // State for the file name
-    const [fileError, setFileError] = React.useState<string | null>(null);  //State for file error
+    const [fileError, setFileError] = React.useState<string | null>(null); //State for file error
 
     React.useEffect(() => {
         if (value) {
@@ -52,23 +59,23 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
         onChange(id, value);
     };
 
-    const remove_action = (successCallback: () => void, errorCallback: (error: any) => void) => {
+    const removeAction = (successCallback: () => void, errorCallback: (error: any) => void) => {
         removeAuditCertificate(successCallback, errorCallback);
-    }
+    };
 
-    const upload_action = (file: File, successCallback: (filename: string) => void, errorCallback: (error: any) => void) => {
+    const uploadAction = (file: File, successCallback: (filename: string) => void, errorCallback: (error: any) => void) => {
         uploadAuditCertificate(file, successCallback, errorCallback);
-    }
+    };
 
     const withTooltip = <P extends object>(Component: ComponentType<P>, tooltipText: string): React.FC<P> => {
         if (disabled || installationStatus === 'stable') {
-            return (props: P) => <Component {...props} />;
+            return (props: P) => <Component {...props}/>;
         }
 
         return (props: P) => (
             <WithTooltip title={tooltipText}>
                 <div>
-                    <Component {...props} />
+                    <Component {...props}/>
                 </div>
             </WithTooltip>
         );
@@ -90,10 +97,10 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
             const errorCallback = (error: any) => {
                 callback();
                 setFileValue(null);
-                setFileError(error.message)
+                setFileError(error.message);
                 refetchStatus();
             };
-            remove_action(successCallback, errorCallback);
+            removeAction(successCallback, errorCallback);
         };
         return (
             <WrappedRemoveFileSetting
@@ -125,7 +132,7 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
                 callback(error.message);
             }
         };
-        upload_action(file, successCallback, errorCallback);
+        uploadAction(file, successCallback, errorCallback);
     };
 
     return (
@@ -141,6 +148,5 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
         />
     );
 };
-
 
 export default AuditLoggingCertificateUploadSetting;
