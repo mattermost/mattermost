@@ -849,6 +849,3 @@ test-migration:
 
 test-local-filestore: # Run tests for local filestore
 	$(GO) test ./platform/shared/filestore -run '^TestLocalFileBackend' -v
-
-benchmark-local-filestore: # Run benchmarks for local filestore
-	$(GO) test -benchmem -run '^$$' -bench '^BenchmarkLocalWriteFile' ./platform/shared/filestore -v
