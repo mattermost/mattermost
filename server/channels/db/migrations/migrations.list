@@ -261,8 +261,6 @@ channels/db/migrations/mysql/000131_create_index_pagination_on_property_values.d
 channels/db/migrations/mysql/000131_create_index_pagination_on_property_values.up.sql
 channels/db/migrations/mysql/000132_create_index_pagination_on_property_fields.down.sql
 channels/db/migrations/mysql/000132_create_index_pagination_on_property_fields.up.sql
-channels/db/migrations/mysql/000133_add_channel_banner_fields.down.sql
-channels/db/migrations/mysql/000133_add_channel_banner_fields.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -525,5 +523,3 @@ channels/db/migrations/postgres/000131_create_index_pagination_on_property_value
 channels/db/migrations/postgres/000131_create_index_pagination_on_property_values.up.sql
 channels/db/migrations/postgres/000132_create_index_pagination_on_property_fields.down.sql
 channels/db/migrations/postgres/000132_create_index_pagination_on_property_fields.up.sql
-channels/db/migrations/postgres/000133_add_channel_banner_fields.down.sql
-channels/db/migrations/postgres/000133_add_channel_banner_fields.up.sql
