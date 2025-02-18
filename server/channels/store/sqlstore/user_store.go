@@ -1711,7 +1711,6 @@ func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, error) {
 			sq.Gt{"Users.DeleteAt": 0},
 		})
 	}
-
 	var count int64
 	err := us.GetReplica().GetBuilder(&count, query)
 	if err != nil {
