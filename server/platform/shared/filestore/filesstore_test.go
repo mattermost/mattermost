@@ -44,9 +44,34 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 
 	mlog.InitGlobalLogger(logger)
 
-	dir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
+	var dir string
+
+	// If MM_FILESETTINGS_DIRECTORY is set, use it as the directory for the local file backend.
+	// We don't remove the directory after the test since it's provided by the user.
+	if val := os.Getenv("MM_FILESETTINGS_DIRECTORY"); val != "" {
+		dir = val
+		info, err := os.Stat(dir)
+		require.False(t, os.IsNotExist(err))
+		require.True(t, info.IsDir())
+
+		t.Cleanup(func() {
+			entries, err := os.ReadDir(dir)
+			require.NoError(t, err)
+			for _, entry := range entries {
+				p := filepath.Join(dir, entry.Name())
+				require.NoError(t, os.RemoveAll(p))
+			}
+		})
+	} else {
+		var err error
+		dir, err = os.MkdirTemp("", "")
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			err := os.RemoveAll(dir)
+			require.NoError(t, err)
+		})
+	}
 
 	suite.Run(t, &FileBackendTestSuite{
 		settings: FileBackendSettings{
@@ -585,6 +610,84 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 		s.NotEmpty(modTime2)
 		s.True(modTime2.After(modTime))
 	})
+}
+
+func BenchmarkLocalWriteFile(b *testing.B) {
+	fileSizes := []int{
+		1024 * 100,          // 100KB
+		1024 * 1024,         // 1MB
+		1024 * 1024 * 10,    // 10MB
+		1024 * 1024 * 100,   // 100MB
+		1024 * 1024 * 1000,  // 1GB
+		1024 * 1024 * 10000, // 10GB
+	}
+
+	var dir string
+
+	// If MM_FILESETTINGS_DIRECTORY is set, use it as the directory for the local file backend.
+	// We don't remove the directory after the test since it's provided by the user.
+	if val := os.Getenv("MM_FILESETTINGS_DIRECTORY"); val != "" {
+		dir = val
+		info, err := os.Stat(dir)
+		require.False(b, os.IsNotExist(err))
+		require.True(b, info.IsDir())
+
+		b.Cleanup(func() {
+			entries, err := os.ReadDir(dir)
+			require.NoError(b, err)
+			for _, entry := range entries {
+				p := filepath.Join(dir, entry.Name())
+				require.NoError(b, os.RemoveAll(p))
+			}
+		})
+	} else {
+		var err error
+		dir, err = os.MkdirTemp("", "")
+		require.NoError(b, err)
+
+		b.Cleanup(func() {
+			err := os.RemoveAll(dir)
+			require.NoError(b, err)
+		})
+	}
+
+	settings := FileBackendSettings{
+		DriverName: driverLocal,
+		Directory:  dir,
+	}
+
+	backend, err := NewFileBackend(settings)
+	require.NoError(b, err)
+
+	bufferSize := 1024 * 1024 // 1MB
+	buffer := make([]byte, bufferSize)
+
+	for _, size := range fileSizes {
+		b.Run(fmt.Sprintf("FileSize-%dMB", int(math.Round(float64(size)/1024/1024))), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				rd, wr := io.Pipe()
+				go func() {
+					defer wr.Close()
+					for i := 0; i < size; i += bufferSize {
+						b := buffer
+						if size < bufferSize {
+							b = b[:size]
+						}
+						wr.Write(b)
+					}
+				}()
+				path := "tests/" + randomString()
+				b.StartTimer()
+				written, err := backend.WriteFile(rd, path)
+				b.StopTimer()
+				require.NoError(b, err)
+				require.Equal(b, size, int(written))
+				err = backend.RemoveFile(path)
+				require.NoError(b, err)
+			}
+		})
+	}
 }
 
 func BenchmarkS3WriteFile(b *testing.B) {
