@@ -3004,8 +3004,25 @@ func TestPermanentDeletePost(t *testing.T) {
 }
 
 func TestWebHubMembership(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	t.Run("WithChannelIteration", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableWebHubChannelIteration = true
+		}).InitBasic()
+		defer th.TearDown()
+
+		_testWebHubMembership(th, t)
+	})
+
+	t.Run("WithoutChannelIteration", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		_testWebHubMembership(th, t)
+	})
+}
+
+func _testWebHubMembership(th *TestHelper, t *testing.T) {
+	t.Helper()
 
 	u1 := th.CreateUser()
 	th.LinkUserToTeam(u1, th.BasicTeam)
@@ -3129,7 +3146,9 @@ func TestWebHubMembership(t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := SetupConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableWebHubChannelIteration = true
+	}).InitBasic()
 	defer func() {
 		th.TearDown()
 		// Asserting that the error message is present in the log
