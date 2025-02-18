@@ -25,6 +25,7 @@ func TestDraftStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) 
 	t.Run("GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration", func(t *testing.T) { testGetLastCreateAtAndUserIDValuesForEmptyDraftsMigration(t, rctx, ss) })
 	t.Run("DeleteEmptyDraftsByCreateAtAndUserId", func(t *testing.T) { testDeleteEmptyDraftsByCreateAtAndUserID(t, rctx, ss) })
 	t.Run("DeleteOrphanDraftsByCreateAtAndUserId", func(t *testing.T) { testDeleteOrphanDraftsByCreateAtAndUserID(t, rctx, ss) })
+	t.Run("PermanentDeleteByUser", func(t *testing.T) { testPermanentDeleteDraftsByUser(t, rctx, ss) })
 }
 
 func testSaveDraft(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -215,6 +216,86 @@ func testDeleteDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Draft().Get(user.Id, channel2.Id, "", false)
 		assert.Error(t, err)
 		assert.IsType(t, &store.ErrNotFound{}, err)
+	})
+}
+
+func testPermanentDeleteDraftsByUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should delete all drafts for a given user", func(t *testing.T) {
+		userId := model.NewId()
+		channel1Id := model.NewId()
+		channel2Id := model.NewId()
+
+		member1 := &model.ChannelMember{
+			ChannelId:   channel1Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+
+		member2 := &model.ChannelMember{
+			ChannelId:   channel2Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+
+		_, err := ss.Channel().SaveMember(rctx, member1)
+		require.NoError(t, err)
+
+		_, err = ss.Channel().SaveMember(rctx, member2)
+		require.NoError(t, err)
+
+		draft1 := &model.Draft{
+			CreateAt:  model.GetMillis(),
+			UpdateAt:  model.GetMillis(),
+			UserId:    userId,
+			ChannelId: channel1Id,
+			Message:   "draft1",
+		}
+
+		draft2 := &model.Draft{
+			CreateAt:  model.GetMillis(),
+			UpdateAt:  model.GetMillis(),
+			UserId:    userId,
+			ChannelId: channel2Id,
+			Message:   "draft2",
+		}
+
+		_, err = ss.Draft().Upsert(draft1)
+		require.NoError(t, err)
+
+		_, err = ss.Draft().Upsert(draft2)
+		require.NoError(t, err)
+
+		draftsResp, err := ss.Draft().GetDraftsForUser(userId, "")
+		assert.NoError(t, err)
+		assert.Len(t, draftsResp, 2)
+
+		// Delete draft for the user
+		err = ss.Draft().PermanentDeleteByUser(userId)
+		assert.NoError(t, err)
+
+		// Verify that no drafts exist for the user
+		draftsResp, err = ss.Draft().GetDraftsForUser(userId, "")
+		assert.NoError(t, err)
+		assert.Len(t, draftsResp, 0)
+	})
+
+	t.Run("should not fail if no drafts exist for the user", func(t *testing.T) {
+		userId := model.NewId()
+
+		// Attempt to delete drafts for a user with no drafts
+		err := ss.Draft().PermanentDeleteByUser(userId)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should handle empty user id", func(t *testing.T) {
+		err := ss.Draft().PermanentDeleteByUser("")
+		assert.NoError(t, err)
+	})
+
+	t.Run("should handle non-existing user id", func(t *testing.T) {
+		nonExistingUserId := model.NewId()
+		err := ss.Draft().PermanentDeleteByUser(nonExistingUserId)
+		assert.NoError(t, err)
 	})
 }
 
