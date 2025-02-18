@@ -2598,6 +2598,9 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 }
 
 func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
+	// options.ExcludeArchivedChannels = !*a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	options.ExcludeArchivedChannels = true
+
 	var result model.Threads
 	var eg errgroup.Group
 	postPriorityIsEnabled := a.IsPostPriorityEnabled()

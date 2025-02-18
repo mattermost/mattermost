@@ -169,9 +169,9 @@ func (_m *ThreadStore) GetMembershipsForUser(userID string, teamID string) ([]*m
 	return r0, r1
 }
 
-// GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs, includeUrgentMentionCount
-func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
-	ret := _m.Called(userID, teamIDs, includeUrgentMentionCount)
+// GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs, includeUrgentMentionCount, excludeArchivedChannels
+func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool, excludeArchivedChannels bool) (map[string]*model.TeamUnread, error) {
+	ret := _m.Called(userID, teamIDs, includeUrgentMentionCount, excludeArchivedChannels)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTeamsUnreadForUser")
@@ -179,19 +179,19 @@ func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, in
 
 	var r0 map[string]*model.TeamUnread
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, []string, bool) (map[string]*model.TeamUnread, error)); ok {
-		return rf(userID, teamIDs, includeUrgentMentionCount)
+	if rf, ok := ret.Get(0).(func(string, []string, bool, bool) (map[string]*model.TeamUnread, error)); ok {
+		return rf(userID, teamIDs, includeUrgentMentionCount, excludeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(string, []string, bool) map[string]*model.TeamUnread); ok {
-		r0 = rf(userID, teamIDs, includeUrgentMentionCount)
+	if rf, ok := ret.Get(0).(func(string, []string, bool, bool) map[string]*model.TeamUnread); ok {
+		r0 = rf(userID, teamIDs, includeUrgentMentionCount, excludeArchivedChannels)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]*model.TeamUnread)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, []string, bool) error); ok {
-		r1 = rf(userID, teamIDs, includeUrgentMentionCount)
+	if rf, ok := ret.Get(1).(func(string, []string, bool, bool) error); ok {
+		r1 = rf(userID, teamIDs, includeUrgentMentionCount, excludeArchivedChannels)
 	} else {
 		r1 = ret.Error(1)
 	}
