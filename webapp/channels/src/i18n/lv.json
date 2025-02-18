@@ -7,7 +7,6 @@
   "about.version": "Mattermost versija:",
   "accessibility.button.Search": "Meklēt",
   "accessibility.button.attachment": "pielikums",
-  "accessibility.button.dialog": "{dialogName} dialogs",
   "accessibility.sidebar.types.public": "publisks kanāls",
   "activity_log.activeSessions": "Aktīvās sesijas",
   "activity_log.browser": "Pārlūks: {browser}",

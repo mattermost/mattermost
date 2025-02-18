@@ -91,7 +91,11 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
             className='emoji-picker__items'
             style={{height: EMOJI_CONTAINER_HEIGHT}}
         >
-            <div className='emoji-picker__container'>
+            <div
+                className='emoji-picker__container'
+                role='grid'
+                aria-labelledby='emojiPickerSearch'
+            >
                 <AutoSizer>
                     {({height, width}) => (
                         <InfiniteLoader
