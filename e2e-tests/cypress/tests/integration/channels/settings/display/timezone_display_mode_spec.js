@@ -182,13 +182,11 @@ function setTimezoneDisplayTo(isAutomatic, value) {
 
         // * Verify Change timezone is disabled
         cy.get('@changeTimezone').should('be.disabled');
+        cy.uiSave();
     } else {
-        // # Manually type new timezone
+        // # Manually type new timezone and save
         cy.get('@changeTimezone').typeWithForce(`${value}{enter}`);
     }
-
-    // # Click Save button
-    cy.uiSave();
 
     // * Verify timezone description is correct
     cy.get('#timezoneDesc').should('be.visible').invoke('text').then((timezoneDesc) => {
