@@ -856,6 +856,8 @@ export type BleveSettings = {
     BatchSize: number;
 };
 
+export type SystemPropertiesSettings = null;
+
 export type DataRetentionSettings = {
     EnableMessageDeletion: boolean;
     EnableFileDeletion: boolean;
@@ -1000,6 +1002,7 @@ export type AdminConfig = {
     ExportSettings: ExportSettings;
     WranglerSettings: WranglerSettings;
     ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
+    SystemPropertiesSettings: SystemPropertiesSettings;
 };
 
 export type ReplicaLagSetting = {
