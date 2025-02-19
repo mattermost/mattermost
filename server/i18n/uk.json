@@ -10378,5 +10378,41 @@
   {
     "id": "api.custom_profile_attributes.field_not_found",
     "translation": "спроба змінити поле, яке не існує"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Неможливо отримати закладки для заархівованого каналу"
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Не вдалося підрахувати кількість полів для групи атрибутів користувацького профілю"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Не вдалося додати поля користувацьких атрибутів профілю"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Невірний ідентифікатор користувача на стороні клієнта: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Кількість елементів у ClientSideUserIds {{.CurrentLength}} перевищує максимальне значення {{.MaxLength}}."
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Не вдалося видалити запитувані файли з бази даних"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Не вдалося виконати пошук полів атрибутів користувацького профілю"
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Наданий ідентифікатор історії допису не відповідає жодному елементу історії для вказаного допису."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Ви не маєте відповідних дозволів."
   }
 ]
