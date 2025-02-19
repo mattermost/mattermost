@@ -130,6 +130,7 @@ func channelSliceColumns(prefix string) []string {
 		prefix + "Shared",
 		prefix + "TotalMsgCountRoot",
 		prefix + "LastRootPostAt",
+		prefix + "BannerInfo",
 	}
 }
 
@@ -711,12 +712,12 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 		insert = `INSERT IGNORE INTO Channels
 		(` + strings.Join(channelSliceColumns(""), ", ") + `)
 		VALUES
-		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, :SchemeId, :GroupConstrained, :Shared, :TotalMsgCountRoot, :LastRootPostAt)`
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, :SchemeId, :GroupConstrained, :Shared, :TotalMsgCountRoot, :LastRootPostAt, :BannerInfo)`
 	} else {
 		insert = `INSERT INTO Channels
 		(` + strings.Join(channelSliceColumns(""), ", ") + `)
 		VALUES
-		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, :SchemeId, :GroupConstrained, :Shared, :TotalMsgCountRoot, :LastRootPostAt)
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, :SchemeId, :GroupConstrained, :Shared, :TotalMsgCountRoot, :LastRootPostAt, :BannerInfo)
 		ON CONFLICT (TeamId, Name) DO NOTHING`
 	}
 
@@ -799,7 +800,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			GroupConstrained=:GroupConstrained,
 			Shared=:Shared,
 			TotalMsgCountRoot=:TotalMsgCountRoot,
-			LastRootPostAt=:LastRootPostAt
+			LastRootPostAt=:LastRootPostAt,
+		    BannerInfo=:BannerInfo
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {

@@ -365,6 +365,9 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// channel banner is not allowed for DMs and GM, so resetting the patch data
+		patch.BannerInfo = nil
+
 	default:
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
