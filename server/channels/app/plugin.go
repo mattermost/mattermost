@@ -285,17 +285,9 @@ func (ch *Channels) syncPlugins() *model.AppError {
 
 			logger := ch.srv.Log().With(mlog.String("plugin_id", pluginID))
 
-			// Only handle managed plugins with .filestore flag file.
-			_, err := os.Stat(filepath.Join(*ch.cfgSvc.Config().PluginSettings.Directory, pluginID, managedPluginFileName))
-			if os.IsNotExist(err) {
-				logger.Warn("Skipping sync for unmanaged plugin")
-			} else if err != nil {
-				logger.Error("Skipping sync for plugin after failure to check if managed", mlog.Err(err))
-			} else {
-				logger.Info("Removing local installation of managed plugin before sync")
-				if err := ch.removePluginLocally(pluginID); err != nil {
-					logger.Error("Failed to remove local installation of managed plugin before sync", mlog.Err(err))
-				}
+			logger.Info("Removing local installation of managed plugin before sync")
+			if err := ch.removePluginLocally(pluginID); err != nil {
+				logger.Error("Failed to remove local installation of managed plugin before sync", mlog.Err(err))
 			}
 		}(plugin.Manifest.Id)
 	}
