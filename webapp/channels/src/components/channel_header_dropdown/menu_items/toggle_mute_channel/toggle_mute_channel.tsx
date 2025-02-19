@@ -4,6 +4,7 @@
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -61,8 +62,8 @@ export default function MenuItemToggleMuteChannel({
     let text;
     if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
         text = isMuted ?
-            intl.formatMessage({id: 'channel_header.unmuteConversation', defaultMessage: 'Unmute Conversation'}) :
-            intl.formatMessage({id: 'channel_header.muteConversation', defaultMessage: 'Mute Conversation'});
+            intl.formatMessage({id: 'channel_header.unmuteConversation', defaultMessage: 'Unmute'}) :
+            intl.formatMessage({id: 'channel_header.muteConversation', defaultMessage: 'Mute'});
     } else {
         text = isMuted ?
             intl.formatMessage({id: 'channel_header.unmute', defaultMessage: 'Unmute Channel'}) :
@@ -74,6 +75,7 @@ export default function MenuItemToggleMuteChannel({
             id={id}
             onClick={handleClick}
             text={text}
+            icon={<BellOffOutlineIcon size={18}/>}
         />
     );
 }

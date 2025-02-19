@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {AccountOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import Menu from 'components/widgets/menu/menu';
@@ -46,6 +47,7 @@ const ToggleChannelMembersRHS = ({
             id={id}
             onClick={openRHSIfNotOpen}
             text={text}
+            icon={<AccountOutlineIcon size={18}/>}
         />
     );
 };
