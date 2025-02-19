@@ -49,7 +49,9 @@ if (DEV) {
 const buildTimestamp = Date.now();
 
 var config = {
-    entry: ['./src/root.tsx'],
+    entry: [
+        './src/root.tsx',
+    ],
     output: {
         publicPath,
         filename: '[name].[contenthash].js',
@@ -198,6 +200,7 @@ var config = {
                 {from: 'src/images/purchase_alert.png', to: 'images'},
                 {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
                 {from: 'src/components/initial_loading_screen/initial_loading_screen.css', to: 'css'},
+                {from: 'src/workers/sw.js', to: ''},
             ],
         }),
 
