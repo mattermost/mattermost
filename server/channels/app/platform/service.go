@@ -166,12 +166,17 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	if *cacheConfig.CacheType == model.CacheTypeLRU {
 		ps.cacheProvider = cache.NewProvider()
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
+		maxFlushDelay := 250 * time.Microsecond
+		if ps.forceEnableRedis {
+			maxFlushDelay = 0
+		}
 		ps.cacheProvider, err = cache.NewRedisProvider(
 			&cache.RedisOptions{
 				RedisAddr:     *cacheConfig.RedisAddress,
 				RedisPassword: *cacheConfig.RedisPassword,
 				RedisDB:       *cacheConfig.RedisDB,
 				DisableCache:  *cacheConfig.DisableClientCache,
+				MaxFlushDelay: maxFlushDelay,
 			},
 		)
 	}

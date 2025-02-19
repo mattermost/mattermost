@@ -83,6 +83,7 @@ type RedisOptions struct {
 	RedisPassword string
 	RedisDB       int
 	DisableCache  bool
+	MaxFlushDelay time.Duration
 }
 
 // NewProvider creates a new CacheProvider
@@ -99,7 +100,7 @@ func NewRedisProvider(opts *RedisOptions) (Provider, error) {
 		// It's a tradeoff we are willing to make because Redis is only
 		// meant to be used at very high scales. The docs suggest 20us,
 		// but going as high as 250us doesn't make any material difference.
-		MaxFlushDelay: 250 * time.Microsecond,
+		MaxFlushDelay: opts.MaxFlushDelay,
 		DisableRetry:  true,
 		// The default is 10s, which is a bit too high
 		ConnWriteTimeout: 5 * time.Second,
