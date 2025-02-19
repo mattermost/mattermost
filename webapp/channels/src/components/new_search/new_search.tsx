@@ -229,7 +229,7 @@ const NewSearch = (): JSX.Element => {
             dispatch(updateSearchTerms(searchTerms));
             dispatch(updateSearchTeam(searchTeam));
 
-            if (searchType === '' || searchType === 'messages' || searchType === 'files') {
+            if (searchType === '' || searchType === 'messages' || searchType === 'files' || searchType === 'omnisearch') {
                 if (crossTeamSearchEnabled) {
                     trackCrossTeamSearch(currentTeamId, searchTeam);
                 }

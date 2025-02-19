@@ -181,6 +181,10 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
         props.actions.getMoreFilesForSearch(searchTeam);
     }, [searchTeam, props.actions]);
 
+    const getMoreOmnisearchForSearch = useCallback(() => {
+        props.actions.getMoreOmnisearchForSearch();
+    }, [props.actions]);
+
     // handle cloding of rhs-flyout
     const handleClose = (): void => actions.closeRightHandSide();
 
@@ -584,6 +588,7 @@ const Search: React.FC<Props> = (props: Props): JSX.Element => {
                     isSideBarExpanded={props.isRhsExpanded}
                     getMorePostsForSearch={getMorePostsForSearch}
                     getMoreFilesForSearch={getMoreFilesForSearch}
+                    getMoreOmnisearchForSearch={getMoreOmnisearchForSearch}
                     setSearchFilterType={handleSetSearchFilter}
                     searchFilterType={searchFilterType}
                     setSearchType={(value: SearchType) => actions.updateSearchType(value)}

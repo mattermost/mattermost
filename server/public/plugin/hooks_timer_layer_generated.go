@@ -291,3 +291,10 @@ func (hooks *hooksTimerLayer) GenerateSupportData(c *Context) ([]*model.FileData
 	hooks.recordTime(startTime, "GenerateSupportData", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) OnOmniSearch(c *Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.OnOmniSearch(c, terms, userID, isOrSearch, timeZoneOffset, page, perPage)
+	hooks.recordTime(startTime, "OnOmniSearch", _returnsB == nil)
+	return _returnsA, _returnsB
+}
