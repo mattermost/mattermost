@@ -20,7 +20,7 @@
     "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
   },
   "dependencies": {
-    "react-intl": "6.6.2",
+    "react-intl": "6.8.9",
     "typescript": "5.6.3"
   },
   "devDependencies": {
