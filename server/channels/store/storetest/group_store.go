@@ -3693,6 +3693,10 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	u3 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewUsername(),
+		Timezone: model.StringMap{
+			"useAutomaticTimezone": "false",
+			"manualTimezone":       "UTC",
+		},
 	}
 	user3, err := ss.User().Save(rctx, u3)
 	require.NoError(t, err)
@@ -3718,6 +3722,30 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 	_, err = ss.Channel().SaveMember(rctx, &m1)
+	require.NoError(t, err)
+
+	m2 := model.ChannelMember{
+		ChannelId:   channel1.Id,
+		UserId:      user2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(rctx, &m2)
+	require.NoError(t, err)
+
+	m3 := model.ChannelMember{
+		ChannelId:   channel2.Id,
+		UserId:      user2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(rctx, &m3)
+	require.NoError(t, err)
+
+	m4 := model.ChannelMember{
+		ChannelId:   channel2.Id,
+		UserId:      user3.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(rctx, &m4)
 	require.NoError(t, err)
 
 	user2.DeleteAt = 1
@@ -4088,6 +4116,145 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 			PerPage: 1,
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 0
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel1 member count",
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: channel1.Id},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					fmt.Println(group.Id, group.ChannelMemberCount)
+					var channelMemberCount int
+					if group.ChannelMemberCount != nil {
+						channelMemberCount = *group.ChannelMemberCount
+					}
+					if group.Id == group1.Id && channelMemberCount != 2 {
+						fmt.Println("group1", group.Id, channelMemberCount)
+						return false
+					}
+					if group.Id == group2.Id && channelMemberCount != 1 {
+						fmt.Println("group2", group.Id, channelMemberCount)
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel2 member count",
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: channel2.Id},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberCount int
+					if group.ChannelMemberCount != nil {
+						channelMemberCount = *group.ChannelMemberCount
+					}
+					if group.Id == group1.Id && channelMemberCount != 1 {
+						fmt.Println("group1", group.Id, channelMemberCount)
+						return false
+					}
+					if group.Id == group2.Id && channelMemberCount != 2 {
+						fmt.Println("group2", group.Id, channelMemberCount)
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel member count for non-existent channel",
+			Page:    0,
+			PerPage: 100,
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: model.NewId()},
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberCount int
+					if group.ChannelMemberCount != nil {
+						channelMemberCount = *group.ChannelMemberCount
+					}
+
+					if channelMemberCount != 0 {
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel1 member count, with timezones",
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: channel1.Id, IncludeTimezones: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberTimezonesCount int
+					if group.ChannelMemberTimezonesCount != nil {
+						channelMemberTimezonesCount = *group.ChannelMemberTimezonesCount
+					}
+					if group.Id == group1.Id && channelMemberTimezonesCount != 0 {
+						return false
+					}
+					if group.Id == group2.Id && channelMemberTimezonesCount != 0 {
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel2 member count, with timezones",
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: channel2.Id, IncludeTimezones: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberTimezonesCount int
+					if group.ChannelMemberTimezonesCount != nil {
+						channelMemberTimezonesCount = *group.ChannelMemberTimezonesCount
+					}
+					if group.Id == group1.Id && channelMemberTimezonesCount != 0 {
+						return false
+					}
+					if group.Id == group2.Id && channelMemberTimezonesCount != 1 {
+						return false
+					}
+				}
+
+				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include channel member count for non-existent channel, with timezones",
+			Page:    0,
+			PerPage: 100,
+			Opts:    model.GroupSearchOpts{IncludeChannelMemberCount: model.NewId(), IncludeTimezones: true},
+			Resultf: func(groups []*model.Group) bool {
+				for _, group := range groups {
+					var channelMemberTimezonesCount int
+					if group.ChannelMemberTimezonesCount != nil {
+						channelMemberTimezonesCount = *group.ChannelMemberCount
+					}
+
+					if channelMemberTimezonesCount != 0 {
+						return false
+					}
+				}
+
+				return true
 			},
 			Restrictions: nil,
 		},
