@@ -4,9 +4,12 @@
 package app
 
 import (
-	"net/http"
-
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+
+	"net/http"
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.
@@ -92,7 +95,7 @@ func (ch *Channels) getClusterPluginStatuses() (model.PluginStatuses, *model.App
 	return pluginStatuses, nil
 }
 
-func (ch *Channels) notifyPluginStatusesChanged() error {
+func (ch *Channels) notifyPluginStatusesChanged(c request.CTX) error {
 	pluginStatuses, err := ch.getClusterPluginStatuses()
 	if err != nil {
 		return err
@@ -103,6 +106,13 @@ func (ch *Channels) notifyPluginStatusesChanged() error {
 	message.Add("plugin_statuses", pluginStatuses)
 	message.GetBroadcast().ContainsSensitiveData = true
 	ch.srv.platform.Publish(message)
+
+	ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		if err := hooks.OnPluginStatusesChanged(pluginContext(c)); err != nil {
+			ch.srv.Log().Error("Plugin OnPluginStatusesChanged hook failed", mlog.Err(err))
+		}
+		return true
+	}, plugin.OnPluginStatusesChangedID)
 
 	return nil
 }

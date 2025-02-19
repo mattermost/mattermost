@@ -1312,6 +1312,13 @@ type API interface {
 	// @tag Plugin
 	// Minimum server version: 10.1
 	GetPluginID() string
+
+	// GetPluginStatuses returns the statuses of all plugins of the server.
+	//
+	// @tag Plugin
+	// @tag Status
+	// Minimum server version: 10.7
+	GetPluginStatuses() ([]*model.PluginStatus, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

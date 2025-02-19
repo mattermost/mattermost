@@ -1161,6 +1161,41 @@ func (s *hooksRPCServer) GenerateSupportData(args *Z_GenerateSupportDataArgs, re
 	return nil
 }
 
+func init() {
+	hookNameToId["OnPluginStatusesChanged"] = OnPluginStatusesChangedID
+}
+
+type Z_OnPluginStatusesChangedArgs struct {
+	A *Context
+}
+
+type Z_OnPluginStatusesChangedReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnPluginStatusesChanged(c *Context) error {
+	_args := &Z_OnPluginStatusesChangedArgs{c}
+	_returns := &Z_OnPluginStatusesChangedReturns{}
+	if g.implemented[OnPluginStatusesChangedID] {
+		if err := g.client.Call("Plugin.OnPluginStatusesChanged", _args, _returns); err != nil {
+			g.log.Error("RPC call OnPluginStatusesChanged to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) OnPluginStatusesChanged(args *Z_OnPluginStatusesChangedArgs, returns *Z_OnPluginStatusesChangedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnPluginStatusesChanged(c *Context) error
+	}); ok {
+		returns.A = hook.OnPluginStatusesChanged(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnPluginStatusesChanged called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -6654,6 +6689,34 @@ func (s *apiRPCServer) GetPluginID(args *Z_GetPluginIDArgs, returns *Z_GetPlugin
 		returns.A = hook.GetPluginID()
 	} else {
 		return encodableError(fmt.Errorf("API GetPluginID called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetPluginStatusesArgs struct {
+}
+
+type Z_GetPluginStatusesReturns struct {
+	A []*model.PluginStatus
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPluginStatuses() ([]*model.PluginStatus, *model.AppError) {
+	_args := &Z_GetPluginStatusesArgs{}
+	_returns := &Z_GetPluginStatusesReturns{}
+	if err := g.client.Call("Plugin.GetPluginStatuses", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPluginStatuses API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPluginStatuses(args *Z_GetPluginStatusesArgs, returns *Z_GetPluginStatusesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPluginStatuses() ([]*model.PluginStatus, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPluginStatuses()
+	} else {
+		return encodableError(fmt.Errorf("API GetPluginStatuses called but not implemented."))
 	}
 	return nil
 }
