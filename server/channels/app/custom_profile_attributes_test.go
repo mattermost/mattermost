@@ -51,7 +51,7 @@ func TestGetCPAField(t *testing.T) {
 			GroupID: cpaGroupID,
 			Name:    "Test Field",
 			Type:    model.PropertyFieldTypeText,
-			Attrs:   model.StringInterface{"visibility": "hidden"},
+			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 		}
 
 		createdField, err := th.App.CreateCPAField(field)
@@ -62,7 +62,7 @@ func TestGetCPAField(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, createdField.ID, fetchedField.ID)
 		require.Equal(t, "Test Field", fetchedField.Name)
-		require.Equal(t, model.StringInterface{"visibility": "hidden"}, fetchedField.Attrs)
+		require.Equal(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden}, fetchedField.Attrs)
 	})
 }
 
@@ -144,14 +144,14 @@ func TestCreateCPAField(t *testing.T) {
 			GroupID: cpaGroupID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
-			Attrs:   model.StringInterface{"visibility": "hidden"},
+			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 		}
 
 		createdField, err := th.App.CreateCPAField(field)
 		require.Nil(t, err)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, cpaGroupID, createdField.GroupID)
-		require.Equal(t, model.StringInterface{"visibility": "hidden"}, createdField.Attrs)
+		require.Equal(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden}, createdField.Attrs)
 
 		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField(createdField.ID)
 		require.NoError(t, gErr)
@@ -224,14 +224,14 @@ func TestPatchCPAField(t *testing.T) {
 		GroupID: cpaGroupID,
 		Name:    model.NewId(),
 		Type:    model.PropertyFieldTypeText,
-		Attrs:   model.StringInterface{"visibility": "hidden"},
+		Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 	}
 	createdField, err := th.App.CreateCPAField(newField)
 	require.Nil(t, err)
 
 	patch := &model.PropertyFieldPatch{
 		Name:       model.NewPointer("Patched name"),
-		Attrs:      model.NewPointer(model.StringInterface{"visibility": "default"}),
+		Attrs:      model.NewPointer(model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet}),
 		TargetID:   model.NewPointer(model.NewId()),
 		TargetType: model.NewPointer(model.NewId()),
 	}
@@ -264,10 +264,81 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, createdField.ID, updatedField.ID)
 		require.Equal(t, "Patched name", updatedField.Name)
-		require.Equal(t, "default", updatedField.Attrs["visibility"])
+		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, updatedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
 		require.Empty(t, updatedField.TargetID, "CPA should not allow to patch the field's target ID")
 		require.Empty(t, updatedField.TargetType, "CPA should not allow to patch the field's target type")
 		require.Greater(t, updatedField.UpdateAt, createdField.UpdateAt)
+	})
+
+	t.Run("should preserve option IDs when patching select field options", func(t *testing.T) {
+		// Create a select field with options
+		selectField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Select Field",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: map[string]any{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{
+						"name":  "Option 1",
+						"color": "#111111",
+					},
+					map[string]any{
+						"name":  "Option 2",
+						"color": "#222222",
+					},
+				},
+			},
+		}
+		createdSelectField, err := th.App.CreateCPAField(selectField)
+		require.Nil(t, err)
+
+		// Get the original option IDs
+		options := createdSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
+		require.Len(t, options, 2)
+		originalID1 := options[0].ID
+		originalID2 := options[1].ID
+		require.NotEmpty(t, originalID1)
+		require.NotEmpty(t, originalID2)
+
+		// Patch the field with updated option names and colors
+		selectPatch := &model.PropertyFieldPatch{
+			Attrs: model.NewPointer(model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{
+						"id":    originalID1,
+						"name":  "Updated Option 1",
+						"color": "#333333",
+					},
+					map[string]any{
+						"name":  "New Option 1.5",
+						"color": "#353535",
+					},
+					map[string]any{
+						"id":    originalID2,
+						"name":  "Updated Option 2",
+						"color": "#444444",
+					},
+				},
+			}),
+		}
+
+		updatedSelectField, err := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
+		require.Nil(t, err)
+
+		updatedOptions := updatedSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
+		require.Len(t, updatedOptions, 3)
+
+		// Verify the options were updated while preserving IDs
+		require.Equal(t, originalID1, updatedOptions[0].ID)
+		require.Equal(t, "Updated Option 1", updatedOptions[0].Name)
+		require.Equal(t, "#333333", updatedOptions[0].Color)
+		require.Equal(t, originalID2, updatedOptions[2].ID)
+		require.Equal(t, "Updated Option 2", updatedOptions[2].Name)
+		require.Equal(t, "#444444", updatedOptions[2].Color)
+
+		// Check the new option
+		require.Equal(t, "New Option 1.5", updatedOptions[1].Name)
+		require.Equal(t, "#353535", updatedOptions[1].Color)
 	})
 }
 
@@ -428,6 +499,63 @@ func TestGetCPAValue(t *testing.T) {
 	})
 }
 
+func TestListCPAValues(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	cpaGroupID, cErr := th.App.cpaGroupID()
+	require.NoError(t, cErr)
+
+	userID := model.NewId()
+
+	t.Run("should return empty list when user has no values", func(t *testing.T) {
+		values, appErr := th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Empty(t, values)
+	})
+
+	t.Run("should list all values for a user", func(t *testing.T) {
+		var expectedValues []json.RawMessage
+
+		for i := 1; i <= CustomProfileAttributesFieldLimit; i++ {
+			field := &model.PropertyField{
+				GroupID: cpaGroupID,
+				Name:    fmt.Sprintf("Field %d", i),
+				Type:    model.PropertyFieldTypeText,
+			}
+			_, err := th.App.Srv().propertyService.CreatePropertyField(field)
+			require.NoError(t, err)
+
+			value := &model.PropertyValue{
+				TargetID:   userID,
+				TargetType: "user",
+				GroupID:    cpaGroupID,
+				FieldID:    field.ID,
+				Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
+			}
+			_, err = th.App.Srv().propertyService.CreatePropertyValue(value)
+			require.NoError(t, err)
+			expectedValues = append(expectedValues, value.Value)
+		}
+
+		// List values for original user
+		values, appErr := th.App.ListCPAValues(userID)
+		require.Nil(t, appErr)
+		require.Len(t, values, CustomProfileAttributesFieldLimit)
+
+		actualValues := make([]json.RawMessage, len(values))
+		for i, value := range values {
+			require.Equal(t, userID, value.TargetID)
+			require.Equal(t, "user", value.TargetType)
+			require.Equal(t, cpaGroupID, value.GroupID)
+			actualValues[i] = value.Value
+		}
+		require.ElementsMatch(t, expectedValues, actualValues)
+	})
+}
+
 func TestPatchCPAValue(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
@@ -516,59 +644,175 @@ func TestPatchCPAValue(t *testing.T) {
 	})
 }
 
-func TestListCPAValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+func TestValidateCustomProfileAttributesField(t *testing.T) {
+	tests := []struct {
+		name          string
+		field         *model.PropertyField
+		expectError   bool
+		errorId       string
+		expectedAttrs model.StringInterface
+	}{
+		{
+			name: "valid text field with no value type",
+			field: &model.PropertyField{
+				Type:  model.PropertyFieldTypeText,
+				Attrs: model.StringInterface{},
+			},
+			expectError: false,
+			expectedAttrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: "when_set",
+			},
+		},
+		{
+			name: "valid text field with valid value type and whitespace",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeText,
+				Attrs: model.StringInterface{
+					model.CustomProfileAttributesPropertyAttrsValueType: " email ",
+				},
+			},
+			expectError: false,
+			expectedAttrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: "when_set",
+				model.CustomProfileAttributesPropertyAttrsValueType:  model.CustomProfileAttributesValueTypeEmail,
+			},
+		},
+		{
+			name: "valid text field with visibility and whitespace",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeText,
+				Attrs: model.StringInterface{
+					model.CustomProfileAttributesPropertyAttrsVisibility: " hidden ",
+				},
+			},
+			expectError: false,
+			expectedAttrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden,
+			},
+		},
+		{
+			name: "invalid text field with invalid value type",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeText,
+				Attrs: model.StringInterface{
+					model.CustomProfileAttributesPropertyAttrsValueType: "invalid_type",
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.unknown_value_type.app_error",
+		},
+		{
+			name: "valid select field with valid options",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttributeOptions: []any{
+						map[string]interface{}{
+							"name":  "Option 1",
+							"color": "#123456",
+						},
+						map[string]interface{}{
+							"name":  "Option 2",
+							"color": "#654321",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityDefault,
+				model.PropertyFieldAttributeOptions: model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{
+					{Name: "Option 1", Color: "#123456"},
+					{Name: "Option 2", Color: "#654321"},
+				},
+			},
+		},
+		{
+			name: "invalid select field with duplicate option names",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttributeOptions: []any{
+						map[string]interface{}{
+							"name":  "Option 1",
+							"color": "opt1",
+						},
+						map[string]interface{}{
+							"name":  "Option 1",
+							"color": "opt2",
+						},
+					},
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
+		},
+		{
+			name: "invalid select field with non-array options",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttributeOptions: "not an array",
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
+		},
+		{
+			name: "invalid select field with invalid option format",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeSelect,
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttributeOptions: []interface{}{
+						"some string",
+					},
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
+		},
+		{
+			name: "invalid field with unknown visibility",
+			field: &model.PropertyField{
+				Type: model.PropertyFieldTypeText,
+				Attrs: model.StringInterface{
+					model.CustomProfileAttributesPropertyAttrsVisibility: "unknown",
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.unknown_visibility.app_error",
+		},
+	}
 
-	cpaGroupID, cErr := th.App.cpaGroupID()
-	require.NoError(t, cErr)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateCustomProfileAttributesField(tt.field)
+			if tt.expectError {
+				require.NotNil(t, err)
+				require.Equal(t, tt.errorId, err.Id)
+			} else {
+				var ogErr error
+				if err != nil {
+					ogErr = err.Unwrap()
+				}
+				require.Nilf(t, err, "unexpected error: %v, with original error: %v", err, ogErr)
+				if tt.expectedAttrs != nil {
+					for key, value := range tt.expectedAttrs {
+						if key == model.PropertyFieldAttributeOptions {
+							expectedOptions := value.(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
+							actualOptions := tt.field.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
+							// remove IDs from actualOptions to compare
+							for i := range actualOptions {
+								actualOptions[i].ID = ""
+							}
 
-	userID := model.NewId()
-
-	t.Run("should return empty list when user has no values", func(t *testing.T) {
-		values, appErr := th.App.ListCPAValues(userID)
-		require.Nil(t, appErr)
-		require.Empty(t, values)
-	})
-
-	t.Run("should list all values for a user", func(t *testing.T) {
-		var expectedValues []json.RawMessage
-
-		for i := 1; i <= CustomProfileAttributesFieldLimit; i++ {
-			field := &model.PropertyField{
-				GroupID: cpaGroupID,
-				Name:    fmt.Sprintf("Field %d", i),
-				Type:    model.PropertyFieldTypeText,
+							require.ElementsMatch(t, expectedOptions, actualOptions)
+						} else {
+							require.Equal(t, value, tt.field.Attrs[key])
+						}
+					}
+				}
 			}
-			_, err := th.App.Srv().propertyService.CreatePropertyField(field)
-			require.NoError(t, err)
-
-			value := &model.PropertyValue{
-				TargetID:   userID,
-				TargetType: "user",
-				GroupID:    cpaGroupID,
-				FieldID:    field.ID,
-				Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
-			}
-			_, err = th.App.Srv().propertyService.CreatePropertyValue(value)
-			require.NoError(t, err)
-			expectedValues = append(expectedValues, value.Value)
-		}
-
-		// List values for original user
-		values, appErr := th.App.ListCPAValues(userID)
-		require.Nil(t, appErr)
-		require.Len(t, values, CustomProfileAttributesFieldLimit)
-
-		actualValues := make([]json.RawMessage, len(values))
-		for i, value := range values {
-			require.Equal(t, userID, value.TargetID)
-			require.Equal(t, "user", value.TargetType)
-			require.Equal(t, cpaGroupID, value.GroupID)
-			actualValues[i] = value.Value
-		}
-		require.ElementsMatch(t, expectedValues, actualValues)
-	})
+		})
+	}
 }
