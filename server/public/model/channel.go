@@ -40,9 +40,9 @@ const (
 )
 
 type ChannelBannerInfo struct {
-	Enabled *bool   `json:"enabled"`
-	Text    *string `json:"text"`
-	Color   *string `json:"color"`
+	Enabled         *bool   `json:"enabled"`
+	Text            *string `json:"text"`
+	BackgroundColor *string `json:"background_color"`
 }
 
 func (c *ChannelBannerInfo) Scan(value interface{}) error {
@@ -362,8 +362,8 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 			o.BannerInfo.Text = patch.BannerInfo.Text
 		}
 
-		if patch.BannerInfo.Color != nil {
-			o.BannerInfo.Color = patch.BannerInfo.Color
+		if patch.BannerInfo.BackgroundColor != nil {
+			o.BannerInfo.BackgroundColor = patch.BannerInfo.BackgroundColor
 		}
 	}
 }
