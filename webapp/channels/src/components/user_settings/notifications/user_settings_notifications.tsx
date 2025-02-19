@@ -228,6 +228,19 @@ function getDefaultStateFromProps(props: Props): State {
     };
 }
 
+const Input = (props: InputProps) => {
+    const ariaProps = {
+        'aria-labelledby': 'settingTitle',
+        'aria-describedby': 'extraInfo',
+    };
+
+    return (
+        <components.Input
+            {...props}
+            {...ariaProps}
+        />);
+};
+
 class NotificationsTab extends React.PureComponent<Props, State> {
     static defaultProps = {
         activeSection: '',
@@ -493,19 +506,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.props.closeModal();
     };
 
-    Input = (props: InputProps) => {
-        const ariaProps = {
-            'aria-labelledby': 'settingTitle',
-            'aria-describedby': 'extraInfo',
-        };
-
-        return (
-            <components.Input
-                {...props}
-                {...ariaProps}
-            />);
-    };
-
     createKeywordsWithNotificationSection = () => {
         const serverError = this.state.serverError;
         const user = this.props.user;
@@ -610,7 +610,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             DropdownIndicator: () => null,
                             Menu: () => null,
                             MenuList: () => null,
-                            Input: this.Input,
+                            Input,
                         }}
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
