@@ -211,7 +211,7 @@ func (a *App) RemoveAuditLogCertificate(rctx request.CTX) *model.AppError {
 	*cfg.ExperimentalAuditSettings.Certificate = ""
 
 	if err := cfg.IsValid(); err != nil {
-		return err
+		return model.NewAppError("RemoveAuditLogCertificate", "api.admin.remove_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
