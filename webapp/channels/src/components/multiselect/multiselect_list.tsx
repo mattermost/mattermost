@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import type {getOptionValue} from 'react-select/src/builtins';
+import type {GetOptionValue} from 'react-select';
 
 import LoadingScreen from 'components/loading_screen';
 
@@ -13,7 +13,7 @@ import {cmdOrCtrlPressed} from 'utils/keyboard';
 import type {Value} from './multiselect';
 
 export type Props<T extends Value> = {
-    ariaLabelRenderer: getOptionValue<T>;
+    ariaLabelRenderer: GetOptionValue<T>;
     loading?: boolean;
     onAdd: (value: T) => void;
     onPageChange?: (newPage: number, currentPage: number) => void;

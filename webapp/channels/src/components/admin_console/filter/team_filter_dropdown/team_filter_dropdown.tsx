@@ -3,7 +3,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import type {ActionMeta, OptionsType, ValueType} from 'react-select';
+import type {ActionMeta, Options, OnChangeValue} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {PagedTeamSearchOpts, Team} from '@mattermost/types/teams';
@@ -28,7 +28,7 @@ export interface Props extends PropsFromRedux {
 function TeamFilterDropdown(props: Props) {
     const {formatMessage} = useIntl();
 
-    const [list, setList] = useState<OptionsType<TeamSelectOption>>([]);
+    const [list, setList] = useState<Options<TeamSelectOption>>([]);
     const [pageNumber, setPageNumber] = useState(0);
 
     async function loadListInPageNumber(page: number) {
@@ -55,7 +55,7 @@ function TeamFilterDropdown(props: Props) {
         }
     }
 
-    async function searchInList(term: string, callBack: (options: OptionsType<{label: string; value: string}>) => void) {
+    async function searchInList(term: string) {
         try {
             const response = await props.searchTeams(term, {page: 0, per_page: TEAMS_PER_PAGE} as PagedTeamSearchOpts);
             if (response && response.data && response.data.teams && response.data.teams.length > 0) {
@@ -64,13 +64,13 @@ function TeamFilterDropdown(props: Props) {
                     label: team.display_name,
                 }));
 
-                callBack(teams);
+                return teams;
             }
 
-            callBack([]);
+            return [];
         } catch (error) {
             console.error(error); // eslint-disable-line no-console
-            callBack([]);
+            return [];
         }
     }
 
@@ -78,7 +78,7 @@ function TeamFilterDropdown(props: Props) {
         loadListInPageNumber(pageNumber);
     }
 
-    function handleOnChange(value: ValueType<TeamSelectOption>, actionMeta: ActionMeta<TeamSelectOption>) {
+    function handleOnChange(value: OnChangeValue<TeamSelectOption, true>, actionMeta: ActionMeta<TeamSelectOption>) {
         if (!actionMeta.action) {
             return;
         }
