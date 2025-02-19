@@ -10298,18 +10298,6 @@
     "translation": "无法更新自定义个人资料属性字段"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "无法创建属性值"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "无法获取属性值"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "无法更新属性值"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "无法搜索自定义个人资料属性字段"
   },
@@ -10388,5 +10376,37 @@
   {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "无法获取 zip 文件读取器。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "更新频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "更新频道书签的排列顺序失败。"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "无法获取已归档频道的书签"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "创建频道书签失败。"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "删除频道书签失败。"
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "尝试更新一个不存在的字段"
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "获取文件总存储占用失败。"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "获取文件总数量失败。"
   }
 ]

@@ -4656,7 +4656,6 @@
   "reaction_limit_reached_modal.body": "Упс! Похоже, мы превысили лимит реакций эмодзи для этого сообщения. Пожалуйста, обратитесь к системному администратору, чтобы узнать о корректировке этого лимита.",
   "reaction_limit_reached_modal.body.admin": "Упс! Похоже, что мы достигли максимального количества реакций эмодзи для этого сообщения. Мы <link>установили лимит</link>, чтобы обеспечить бесперебойную работу вашего сервера. Как системный администратор, вы можете настроить этот лимит в <linkAdmin>системной консоли</linkAdmin> .",
   "reaction_limit_reached_modal.title": "Вы достигли предела реакции",
-  "reaction_list.addReactionTooltip": "Добавить реакцию",
   "remove_group_confirm_button": "Да, удалить группу и {memberCount, plural, one {участника} other {участников}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {участник} few {участника} other {участников}} связанных с этой группой будут удалены из команды.Вы уверены, что хотите удалить эту группу и {memberCount} {memberCount, plural, one {участника} other {участников}}?",
   "remove_group_confirm_title": "Удалить группу и {memberCount, number} {memberCount, plural, one {участника} other {участников}}",
