@@ -10374,5 +10374,9 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Сеанс не знайдено."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "спроба змінити поле, яке не існує"
   }
 ]
