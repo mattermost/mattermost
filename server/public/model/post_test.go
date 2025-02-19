@@ -1155,18 +1155,6 @@ func TestPost_PropsIsValid(t *testing.T) {
 			},
 			wantErr: "force_notification prop must be a boolean",
 		},
-		"invalid requested_ack type": {
-			props: StringInterface{
-				PostPropsRequestedAck: "true",
-			},
-			wantErr: "requested_ack prop must be a boolean",
-		},
-		"invalid persistent_notifications type": {
-			props: StringInterface{
-				PostPropsPersistentNotifications: "true",
-			},
-			wantErr: "persistent_notifications prop must be a boolean",
-		},
 	}
 
 	for name, tc := range tests {

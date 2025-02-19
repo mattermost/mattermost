@@ -83,9 +83,6 @@ const (
 	PostPropsChannelMentions          = "channel_mentions"
 	PostPropsUnsafeLinks              = "unsafe_links"
 
-	PostPropsRequestedAck            = "requested_ack"
-	PostPropsPersistentNotifications = "persistent_notifications"
-
 	PostPriorityUrgent = "urgent"
 )
 
@@ -793,17 +790,6 @@ func (o *Post) propsIsValid() error {
 	if props[PostPropsForceNotification] != nil {
 		if _, ok := props[PostPropsForceNotification].(bool); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("force_notification prop must be a boolean"))
-		}
-	}
-
-	if props[PostPropsRequestedAck] != nil {
-		if _, ok := props[PostPropsRequestedAck].(bool); !ok {
-			multiErr = multierror.Append(multiErr, fmt.Errorf("requested_ack prop must be a boolean"))
-		}
-	}
-	if props[PostPropsPersistentNotifications] != nil {
-		if _, ok := props[PostPropsPersistentNotifications].(bool); !ok {
-			multiErr = multierror.Append(multiErr, fmt.Errorf("persistent_notifications prop must be a boolean"))
 		}
 	}
 
