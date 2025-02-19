@@ -1269,20 +1269,26 @@ components:
       properties:
         id:
           type: string
+          description: The unique identifier for the audit record
         create_at:
-          description: The time in milliseconds a audit was created
           type: integer
           format: int64
+          description: The timestamp when this audit record was created
         user_id:
           type: string
+          description: The ID of the user who performed the audited action
         action:
           type: string
+          description: The action that was performed
         extra_info:
           type: string
+          description: Additional information about the action
         ip_address:
           type: string
+          description: The IP address from which the action was performed
         session_id:
           type: string
+          description: The session ID associated with the audit event
     Config:
       type: object
       properties:
