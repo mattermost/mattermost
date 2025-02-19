@@ -475,10 +475,7 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		metrics:  metrics,
 	}
 
-	s.tableSelectQuery = s.getQueryBuilder().Select("Id", "CreateAt", "UpdateAt", "DeleteAt", "TeamId", "Type", "DisplayName",
-		"Name", "Header", "Purpose", "LastPostAt", "TotalMsgCount", "ExtraUpdateAt", "CreatorId", "SchemeId", "GroupConstrained",
-		"Shared", "TotalMsgCountRoot", "LastRootPostAt",
-	).From("Channels")
+	s.tableSelectQuery = s.getQueryBuilder().Select(channelSliceColumns("")...).From("Channels")
 
 	s.initializeQueries()
 
@@ -713,12 +710,12 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 	var insert string
 	if s.DriverName() == model.DatabaseDriverMysql {
 		insert = `INSERT IGNORE INTO Channels
-		(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, SchemeId, GroupConstrained, Shared, TotalMsgCountRoot, LastRootPostAt)
+		(` + strings.Join(channelSliceColumns(""), ", ") + `)
 		VALUES
 		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, :SchemeId, :GroupConstrained, :Shared, :TotalMsgCountRoot, :LastRootPostAt)`
 	} else {
 		insert = `INSERT INTO Channels
-		(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, SchemeId, GroupConstrained, Shared, TotalMsgCountRoot, LastRootPostAt)
+		(` + strings.Join(channelSliceColumns(""), ", ") + `)
 		VALUES
 		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :TeamId, :Type, :DisplayName, :Name, :Header, :Purpose, :LastPostAt, :TotalMsgCount, :ExtraUpdateAt, :CreatorId, :SchemeId, :GroupConstrained, :Shared, :TotalMsgCountRoot, :LastRootPostAt)
 		ON CONFLICT (TeamId, Name) DO NOTHING`
