@@ -18,7 +18,7 @@ describe('i18n', () => {
         // with experimental languages
         expect(getAllLanguages(true)).toStrictEqual({
             cc: {
-                name: 'CC Language',
+                name: 'CC Language (Experimental)',
                 value: 'cc',
                 order: 22,
                 url: 'cc.json',
@@ -44,7 +44,7 @@ describe('i18n', () => {
         state.entities.general.config.EnableExperimentalLocales = 'true';
         expect(getLanguages(state)).toStrictEqual({
             cc: {
-                name: 'CC Language',
+                name: 'CC Language (Experimental)',
                 value: 'cc',
                 order: 22,
                 url: 'cc.json',
@@ -64,7 +64,7 @@ describe('i18n', () => {
 
         // experimental language (e.g. in progress)
         expect(getLanguageInfo('cc')).toStrictEqual({
-            name: 'CC Language',
+            name: 'CC Language (Experimental)',
             value: 'cc',
             order: 22,
             url: 'cc.json',
