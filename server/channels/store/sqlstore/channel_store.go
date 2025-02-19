@@ -130,6 +130,7 @@ func channelSliceColumns(prefix string) []string {
 		prefix + "Shared",
 		prefix + "TotalMsgCountRoot",
 		prefix + "LastRootPostAt",
+		prefix + "BannerInfo",
 	}
 }
 

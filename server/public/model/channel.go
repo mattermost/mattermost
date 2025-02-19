@@ -7,6 +7,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -37,28 +38,48 @@ const (
 	ChannelSortByStatus   = "status"
 )
 
+type ChannelBannerInfo struct {
+	Enabled bool   `json:"enabled"`
+	Text    string `json:"text"`
+	Color   string `json:"color"`
+}
+
+func (c *ChannelBannerInfo) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("expected []byte, got %T", value)
+	}
+
+	return json.Unmarshal(b, c)
+}
+
 type Channel struct {
-	Id                string         `json:"id"`
-	CreateAt          int64          `json:"create_at"`
-	UpdateAt          int64          `json:"update_at"`
-	DeleteAt          int64          `json:"delete_at"`
-	TeamId            string         `json:"team_id"`
-	Type              ChannelType    `json:"type"`
-	DisplayName       string         `json:"display_name"`
-	Name              string         `json:"name"`
-	Header            string         `json:"header"`
-	Purpose           string         `json:"purpose"`
-	LastPostAt        int64          `json:"last_post_at"`
-	TotalMsgCount     int64          `json:"total_msg_count"`
-	ExtraUpdateAt     int64          `json:"extra_update_at"`
-	CreatorId         string         `json:"creator_id"`
-	SchemeId          *string        `json:"scheme_id"`
-	Props             map[string]any `json:"props"`
-	GroupConstrained  *bool          `json:"group_constrained"`
-	Shared            *bool          `json:"shared"`
-	TotalMsgCountRoot int64          `json:"total_msg_count_root"`
-	PolicyID          *string        `json:"policy_id"`
-	LastRootPostAt    int64          `json:"last_root_post_at"`
+	Id                string             `json:"id"`
+	CreateAt          int64              `json:"create_at"`
+	UpdateAt          int64              `json:"update_at"`
+	DeleteAt          int64              `json:"delete_at"`
+	TeamId            string             `json:"team_id"`
+	Type              ChannelType        `json:"type"`
+	DisplayName       string             `json:"display_name"`
+	Name              string             `json:"name"`
+	Header            string             `json:"header"`
+	Purpose           string             `json:"purpose"`
+	LastPostAt        int64              `json:"last_post_at"`
+	TotalMsgCount     int64              `json:"total_msg_count"`
+	ExtraUpdateAt     int64              `json:"extra_update_at"`
+	CreatorId         string             `json:"creator_id"`
+	SchemeId          *string            `json:"scheme_id"`
+	Props             map[string]any     `json:"props"`
+	GroupConstrained  *bool              `json:"group_constrained"`
+	Shared            *bool              `json:"shared"`
+	TotalMsgCountRoot int64              `json:"total_msg_count_root"`
+	PolicyID          *string            `json:"policy_id"`
+	LastRootPostAt    int64              `json:"last_root_post_at"`
+	BannerInfo        *ChannelBannerInfo `json:"banner_info"`
 }
 
 func (o *Channel) Auditable() map[string]interface{} {
