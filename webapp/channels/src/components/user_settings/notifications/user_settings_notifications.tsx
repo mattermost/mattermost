@@ -7,7 +7,8 @@ import React from 'react';
 import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
+import type {InputProps, Styles as ReactSelectStyles, ValueType} from 'react-select';
+import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
@@ -492,6 +493,19 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.props.closeModal();
     };
 
+    Input = (props: InputProps) => {
+        const ariaProps = {
+            'aria-labelledby': 'settingTitle',
+            'aria-describedby': 'extraInfo',
+        };
+
+        return (
+            <components.Input
+                {...props}
+                {...ariaProps}
+            />);
+    };
+
     createKeywordsWithNotificationSection = () => {
         const serverError = this.state.serverError;
         const user = this.props.user;
@@ -596,8 +610,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             DropdownIndicator: () => null,
                             Menu: () => null,
                             MenuList: () => null,
+                            Input: this.Input,
                         }}
-                        aria-labelledby='notificationTriggerCustom'
                         onChange={this.handleChangeForCustomKeysWithNotificationInput}
                         value={this.state.customKeysWithNotification}
                         inputValue={this.state.customKeysWithNotificationInputValue}
