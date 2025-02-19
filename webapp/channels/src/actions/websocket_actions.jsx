@@ -1435,6 +1435,30 @@ function handleGroupUpdatedEvent(msg) {
     );
 }
 
+function handleMyGroupUpdate() {
+    dispatch(batchActions([
+        {
+            type: GroupTypes.ADD_MY_GROUP,
+            id: groupInfo.group_id,
+        },
+        {
+            type: GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP,
+            data: groupInfo,
+            id: groupInfo.group_id,
+        },
+    ]));
+    const receivedProfile = getUser(state, groupInfo.user_id);
+    if (receivedProfile) {
+        dispatch(
+            {
+                type: UserTypes.RECEIVED_PROFILES_FOR_GROUP,
+                data: [receivedProfile],
+                id: groupInfo.group_id,
+            },
+        )
+    }
+}
+
 export function handleGroupAddedMemberEvent(msg) {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1444,38 +1468,14 @@ export function handleGroupAddedMemberEvent(msg) {
         if (currentUserId === groupInfo.user_id) {
             const group = getGroup(state, groupInfo.group_id);
             if (group) {
-                dispatch(
-                    {
-                        type: GroupTypes.ADD_MY_GROUP,
-                        id: groupInfo.group_id,
-                    },
-                );
+                handleMyGroupUpdate()
             } else {
                 const {error} = await doDispatch(fetchGroup(groupInfo.group_id, true));
                 if (!error) {
-                    dispatch(
-                        {
-                            type: GroupTypes.ADD_MY_GROUP,
-                            id: groupInfo.group_id,
-                        },
-                    );
+                    handleMyGroupUpdate()
                 }
             }
         }
-        const receivedProfile = getUser(state, groupInfo.user_id);
-        dispatch(batchActions([
-            {
-                type: GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP,
-                data: groupInfo,
-                id: groupInfo.group_id,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_FOR_GROUP,
-                data: [receivedProfile].filter(Boolean),
-                id: groupInfo.group_id,
-            },
-        ]),
-        );
     };
 }
 
@@ -1486,27 +1486,24 @@ function handleGroupDeletedMemberEvent(msg) {
         const data = JSON.parse(msg.data.group_member);
 
         if (currentUserId === data.user_id) {
-            dispatch(
+            dispatch(batchActions([
                 {
                     type: GroupTypes.REMOVE_MY_GROUP,
                     data,
                     id: data.group_id,
                 },
-            );
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST_TO_REMOVE_FROM_GROUP,
+                    data: [data],
+                    id: data.group_id,
+                },
+                {
+                    type: GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP,
+                    data,
+                    id: data.group_id,
+                },
+            ]));
         }
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_TO_REMOVE_FROM_GROUP,
-                data: [data],
-                id: data.group_id,
-            },
-            {
-                type: GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP,
-                data,
-                id: data.group_id,
-            },
-        ]),
-        );
     };
 }
 
