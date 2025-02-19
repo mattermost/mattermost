@@ -158,6 +158,10 @@ const useKeyHandler = (
             }
         }
 
+        if ((Keyboard.isKeyPressed(e, KeyCodes.PAGE_UP) || Keyboard.isKeyPressed(e, KeyCodes.PAGE_DOWN)) && location === Locations.CENTER) {
+            (document.getElementById('post-list-virtualized') as HTMLElement).focus();
+        }
+
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             handleDraftChange({
