@@ -672,7 +672,6 @@ func (o *Post) ValidateProps(logger mlog.LoggerIFace) {
 			mlog.Err(err),
 		)
 	}
-
 }
 
 func (o *Post) propsIsValid() error {
