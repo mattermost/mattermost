@@ -142,7 +142,9 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // # Close Dialog
-        cy.get('#quickSwitchModalLabel > .close').click();
+        cy.get('#quickSwitchModal').within(() => {
+            cy.get('button.close[aria-label="Close"]').click();
+        });
     });
 
     it('MM-T1377 Verify Guest Badge in DM Search dialog', () => {
