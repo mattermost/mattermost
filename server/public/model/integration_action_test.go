@@ -32,6 +32,16 @@ func TestPostAction_IsValid(t *testing.T) {
 			},
 			wantErr: "",
 		},
+		"valid button action with http URL without Id": {
+			action: &PostAction{
+				Name: "Test Button",
+				Type: PostActionTypeButton,
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
+		},
 		"valid button action with plugin path": {
 			action: &PostAction{
 				Id:   "validid",
@@ -112,6 +122,18 @@ func TestPostAction_IsValid(t *testing.T) {
 				},
 			},
 			wantErr: "invalid style 'invalid' - must be one of [default, primary, success, good, warning, danger] or a hex color",
+		},
+		"valid style": {
+			action: &PostAction{
+				Id:    "validid",
+				Name:  "Test Button",
+				Type:  PostActionTypeButton,
+				Style: "primary",
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "",
 		},
 		"button with options": {
 			action: &PostAction{
