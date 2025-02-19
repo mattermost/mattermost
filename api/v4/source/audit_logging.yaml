@@ -65,4 +65,4 @@
         "403":
           $ref: "#/components/responses/Forbidden"
         "501":
-          $ref: "#/components/responses/NotImplemented" 
+          $ref: "#/components/responses/NotImplemented"
