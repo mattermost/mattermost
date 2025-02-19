@@ -160,6 +160,44 @@ func TestCreateChannel(t *testing.T) {
 		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("Can create channel with banner info", func(t *testing.T) {
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("color"),
+			},
+		}
+
+		createdChannel, resp, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.True(t, *createdChannel.BannerInfo.Enabled)
+		require.Equal(t, "banner text", *createdChannel.BannerInfo.Text)
+		require.Equal(t, "color", *createdChannel.BannerInfo.BackgroundColor)
+	})
+
+	t.Run("Can create channel with banner enabled but oot configured", func(t *testing.T) {
+		channel := &model.Channel{
+			DisplayName: "",
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled: model.NewPointer(true),
+			},
+		}
+
+		_, resp, err := client.CreateChannel(context.Background(), channel)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestUpdateChannel(t *testing.T) {
@@ -517,6 +555,91 @@ func TestPatchChannel(t *testing.T) {
 		_, resp, err = client.PatchChannel(context.Background(), directChannel.Id, directChannelPatch3)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Should be able to configure channel banner on a channel", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginBasic()
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("color"),
+			},
+		}
+
+		patchedChannel, resp, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, patchedChannel.BannerInfo)
+		require.True(t, *patchedChannel.BannerInfo.Enabled)
+		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
+		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+	})
+
+	t.Run("Cannot enable channel banner without configuring it", func(t *testing.T) {
+		client.Logout(context.Background())
+		th.LoginBasic()
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled: model.NewPointer(true),
+			},
+		}
+
+		_, resp, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		// now we will configure it first, then enable it
+		patch = &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         nil,
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("color"),
+			},
+		}
+
+		patchedChannel, resp, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, patchedChannel.BannerInfo)
+		require.Nil(t, patchedChannel.BannerInfo.Enabled)
+		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
+		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
+
+		patch = &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled: model.NewPointer(true),
+			},
+		}
+
+		patchedChannel, resp, err = client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, patchedChannel.BannerInfo)
+		require.True(t, *patchedChannel.BannerInfo.Enabled)
+		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
+		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
 	})
 }
 
