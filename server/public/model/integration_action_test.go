@@ -101,6 +101,21 @@ func TestPostAction_IsValid(t *testing.T) {
 			},
 			wantErr: "",
 		},
+		"select action with nil option": {
+			action: &PostAction{
+				Id:   "validid",
+				Name: "Test Select",
+				Type: PostActionTypeSelect,
+				Options: []*PostActionOptions{
+					nil,
+					{Text: "Opt1", Value: "opt1"},
+				},
+				Integration: &PostActionIntegration{
+					URL: "http://localhost:8065",
+				},
+			},
+			wantErr: "select action contains nil option",
+		},
 		"missing name": {
 			action: &PostAction{
 				Id:   "validid",
@@ -405,6 +420,44 @@ func TestPostActionIntegrationEquals(t *testing.T) {
 
 		require.True(t, pa1.Equals(pa2))
 	})
+}
+
+func TestPostActionOptions_IsValid(t *testing.T) {
+	tests := map[string]struct {
+		options *PostActionOptions
+		wantErr string
+	}{
+		"valid options": {
+			options: &PostActionOptions{
+				Text:  "Option 1",
+				Value: "opt1",
+			},
+			wantErr: "",
+		},
+		"missing text": {
+			options: &PostActionOptions{
+				Value: "opt1",
+			},
+			wantErr: "text is required",
+		},
+		"missing value": {
+			options: &PostActionOptions{
+				Text: "Option 1",
+			},
+			wantErr: "value is required",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.options.IsValid()
+			if tc.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tc.wantErr)
+			}
+		})
+	}
 }
 
 func TestOpenDialogRequestIsValid(t *testing.T) {

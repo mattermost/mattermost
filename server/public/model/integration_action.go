@@ -125,8 +125,20 @@ func (p *PostAction) IsValid() error {
 			if len(p.Options) > 0 {
 				multiErr = multierror.Append(multiErr, fmt.Errorf("select action cannot have both DataSource and Options set"))
 			}
-		} else if len(p.Options) == 0 {
-			multiErr = multierror.Append(multiErr, fmt.Errorf("select action must have either DataSource or Options set"))
+		} else {
+			if len(p.Options) == 0 {
+				multiErr = multierror.Append(multiErr, fmt.Errorf("select action must have either DataSource or Options set"))
+			} else {
+				for i, opt := range p.Options {
+					if opt == nil {
+						multiErr = multierror.Append(multiErr, fmt.Errorf("select action contains nil option"))
+						continue
+					}
+					if err := opt.IsValid(); err != nil {
+						multiErr = multierror.Append(multiErr, multierror.Prefix(err, fmt.Sprintf("option at index %d is invalid:", i)))
+					}
+				}
+			}
 		}
 	default:
 		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid action type: must be '%s' or '%s'", PostActionTypeButton, PostActionTypeSelect))
@@ -248,6 +260,19 @@ type PostActionCookie struct {
 type PostActionOptions struct {
 	Text  string `json:"text"`
 	Value string `json:"value"`
+}
+
+func (o *PostActionOptions) IsValid() error {
+	var multiErr *multierror.Error
+
+	if o.Text == "" {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("text is required"))
+	}
+	if o.Value == "" {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("value is required"))
+	}
+
+	return multiErr.ErrorOrNil()
 }
 
 type PostActionIntegration struct {
