@@ -1054,9 +1054,8 @@ function handleUserAddedEvent(msg) {
         }
 
         // Load the channel so that it appears in the sidebar
-        const currentTeamId = getCurrentTeamId(doGetState());
         const currentUserId = getCurrentUserId(doGetState());
-        if (currentTeamId === msg.data.team_id && currentUserId === msg.data.user_id) {
+        if (currentUserId === msg.data.user_id) {
             doDispatch(fetchChannelAndAddToSidebar(msg.broadcast.channel_id));
         }
 
