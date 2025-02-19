@@ -5,6 +5,7 @@ package model
 
 import (
 	"crypto/sha1"
+	"database/sql/driver"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -39,9 +40,9 @@ const (
 )
 
 type ChannelBannerInfo struct {
-	Enabled bool   `json:"enabled"`
-	Text    string `json:"text"`
-	Color   string `json:"color"`
+	Enabled *bool   `json:"enabled"`
+	Text    *string `json:"text"`
+	Color   *string `json:"color"`
 }
 
 func (c *ChannelBannerInfo) Scan(value interface{}) error {
@@ -55,6 +56,18 @@ func (c *ChannelBannerInfo) Scan(value interface{}) error {
 	}
 
 	return json.Unmarshal(b, c)
+}
+
+func (c ChannelBannerInfo) Value() (driver.Value, error) {
+	if c == (ChannelBannerInfo{}) {
+		return nil, nil
+	}
+
+	j, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+	return string(j), nil
 }
 
 type Channel struct {
@@ -120,11 +133,12 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName      *string `json:"display_name"`
-	Name             *string `json:"name"`
-	Header           *string `json:"header"`
-	Purpose          *string `json:"purpose"`
-	GroupConstrained *bool   `json:"group_constrained"`
+	DisplayName      *string            `json:"display_name"`
+	Name             *string            `json:"name"`
+	Header           *string            `json:"header"`
+	Purpose          *string            `json:"purpose"`
+	GroupConstrained *bool              `json:"group_constrained"`
+	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]interface{} {
@@ -332,6 +346,25 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 	if patch.GroupConstrained != nil {
 		o.GroupConstrained = patch.GroupConstrained
+	}
+
+	// patching channel banner info
+	if patch.BannerInfo != nil {
+		if o.BannerInfo == nil {
+			o.BannerInfo = &ChannelBannerInfo{}
+		}
+
+		if patch.BannerInfo.Enabled != nil {
+			o.BannerInfo.Enabled = patch.BannerInfo.Enabled
+		}
+
+		if patch.BannerInfo.Text != nil {
+			o.BannerInfo.Text = patch.BannerInfo.Text
+		}
+
+		if patch.BannerInfo.Color != nil {
+			o.BannerInfo.Color = patch.BannerInfo.Color
+		}
 	}
 }
 
