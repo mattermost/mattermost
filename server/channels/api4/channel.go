@@ -62,7 +62,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channel.Handle("/members_minus_group_members", api.APISessionRequired(channelMembersMinusGroupMembers)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("/move", api.APISessionRequired(moveChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("/member_counts_by_group", api.APISessionRequired(channelMemberCountsByGroup)).Methods(http.MethodGet)
-	api.BaseRoutes.Channel.Handle("/common_teams", api.APISessionRequired(getGroupMessageMembersCommonTeams)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("/common_teams", api.APISessionRequired(getDirectOrGroupMessageMembersCommonTeams)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("/convert_to_channel", api.APISessionRequired(convertGroupMessageToChannel)).Methods(http.MethodPost)
 
 	api.BaseRoutes.ChannelForUser.Handle("/unread", api.APISessionRequired(getChannelUnread)).Methods(http.MethodGet)
@@ -2352,7 +2352,7 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *http.Request) {
+func getDirectOrGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
@@ -2364,7 +2364,7 @@ func getGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 	if user.IsGuest() {
-		c.Err = model.NewAppError("Api4.getGroupMessageMembersCommonTeams", "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.getDirectOrGroupMessageMembersCommonTeams", "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error", nil, "userId="+c.AppContext.Session().UserId, http.StatusForbidden)
 		return
 	}
 
@@ -2373,14 +2373,14 @@ func getGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	teams, appErr := c.App.GetGroupMessageMembersCommonTeams(c.AppContext, c.Params.ChannelId)
+	teams, appErr := c.App.GetDirectOrGroupMessageMembersCommonTeams(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(teams); err != nil {
-		c.Logger.Warn("Error while writing response from getGroupMessageMembersCommonTeams", mlog.Err(err))
+		c.Logger.Warn("Error while writing response from getDirectOrGroupMessageMembersCommonTeams", mlog.Err(err))
 	}
 }
 
