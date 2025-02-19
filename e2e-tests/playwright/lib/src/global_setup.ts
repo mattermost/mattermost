@@ -4,6 +4,7 @@
 import {expect} from '@playwright/test';
 import {Client4} from '@mattermost/client';
 import {UserProfile} from '@mattermost/types/users';
+import {PluginManifest} from '@mattermost/types/plugins';
 import {PreferenceType} from '@mattermost/types/preferences';
 
 import {defaultTeam} from './util';
@@ -119,7 +120,7 @@ export async function ensurePluginsLoaded(client: Client4) {
             return;
         }
 
-        const isActive = plugins.active.some((plugin) => plugin.id === pluginId);
+        const isActive = plugins.active.some((plugin: PluginManifest) => plugin.id === pluginId);
         if (!isActive) {
             await client.enablePlugin(pluginId);
 
@@ -140,7 +141,7 @@ async function printPluginDetails(client: Client4) {
         console.log('Active plugins:');
     }
 
-    plugins.active.forEach((plugin) => {
+    plugins.active.forEach((plugin: PluginManifest) => {
         // eslint-disable-next-line no-console
         console.log(`  - ${plugin.id}@${plugin.version} | min_server@${plugin.min_server_version}`);
     });
@@ -150,7 +151,7 @@ async function printPluginDetails(client: Client4) {
         console.log('Inactive plugins:');
     }
 
-    plugins.inactive.forEach((plugin) => {
+    plugins.inactive.forEach((plugin: PluginManifest) => {
         // eslint-disable-next-line no-console
         console.log(`  - ${plugin.id}@${plugin.version} | min_server@${plugin.min_server_version}`);
     });

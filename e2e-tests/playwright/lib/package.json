@@ -1,6 +1,6 @@
 {
-  "name": "mmtest_playwright-lib",
-  "version": "0.0.3",
+  "name": "@mattermost/playwright-lib",
+  "version": "0.0.4",
   "type": "commonjs",
   "files": [
     "dist"
@@ -50,18 +50,18 @@
     "rollup-plugin-copy": "3.5.0"
   },
   "peerDependencies": {
-    "@playwright/test": "1.50.1",
-    "mmtest_client": "10.5.0",
-    "mmtest_types": "10.5.0"
+    "@playwright/test": "^1.50.1",
+    "@mattermost/client": "10.6.x",
+    "@mattermost/types": "10.6.x"
   },
   "peerDependenciesMeta": {
     "@playwright/test": {
       "optional": false
     },
-    "mmtest_client": {
+    "@mattermost/client": {
       "optional": true
     },
-    "mmtest_types": {
+    "@mattermost/types": {
       "optional": true
     }
   }

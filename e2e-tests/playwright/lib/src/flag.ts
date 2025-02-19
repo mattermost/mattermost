@@ -56,7 +56,6 @@ export async function ensureLicense() {
 export async function requestTrialLicense() {
     const {adminClient} = await getAdminClient();
     try {
-        // @ts-expect-error This may fail requesting for trial license
         await adminClient.requestTrialLicense({
             receive_emails_accepted: true,
             terms_accepted: true,
