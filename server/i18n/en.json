@@ -7697,38 +7697,6 @@
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
-    "id": "cloud.update_audit_logging_cert.create_request.error",
-    "translation": ""
-  },
-  {
-    "id": "cloud.update_audit_logging_cert.cws_base_url.error",
-    "translation": ""
-  },
-  {
-    "id": "cloud.update_audit_logging_cert.file_open.error",
-    "translation": ""
-  },
-  {
-    "id": "cloud.update_audit_logging_cert.file_read.error",
-    "translation": ""
-  },
-  {
-    "id": "cloud.update_audit_logging_cert.installation_id.error",
-    "translation": ""
-  },
-  {
-    "id": "cloud.update_audit_logging_cert.marshal.error",
-    "translation": ""
-  },
-  {
-    "id": "cloud.update_audit_logging_cert.request.error",
-    "translation": ""
-  },
-  {
-    "id": "cloud.update_audit_logging_cert.response.error",
-    "translation": ""
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": "Failed to parse the value:{{.Value}} to int64"
   },
