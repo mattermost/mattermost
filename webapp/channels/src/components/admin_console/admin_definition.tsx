@@ -95,6 +95,7 @@ import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
 import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
+import SystemPropertiesSettings from './system_properties_settings';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
 import SystemUserDetail from './system_user_detail';
@@ -6502,6 +6503,14 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'BleveSettings',
                     component: BleveSettings,
+                },
+            },
+            system_properties: {
+                url: 'experimental/system_properties',
+                title: 'System Properties',
+                schema: {
+                    id: 'SystemPropertiesSettings',
+                    component: SystemPropertiesSettings,
                 },
             },
             audit_logging: {
