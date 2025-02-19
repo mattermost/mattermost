@@ -514,8 +514,20 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.read_body_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	var response model.SubmitDialogResponse
-	json.NewDecoder(resp.Body).Decode(&response) // Don't fail, an empty response is acceptable
+	if len(body) == 0 {
+		return &response, nil
+	}
+
+	err = json.Unmarshal(body, &response) // Don't fail, an empty response is acceptable
+	if err != nil {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	return &response, nil
 }
