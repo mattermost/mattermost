@@ -4777,7 +4777,6 @@
   "reaction_limit_reached_modal.body": "哎呀！看來我們對此訊息的表情符號反應已達到上限。如需對此限制進行任何調整，請聯絡您的系統管理員。",
   "reaction_limit_reached_modal.body.admin": "哎呀！看來我們對此訊息的表情符號反應已達到上限。我們<link>設定了限制</link>，以保持伺服器順利運作。身為系統管理員，您可以從 <linkAdmin>系統控制台</linkAdmin> 調整此限制。",
   "reaction_limit_reached_modal.title": "您已達到反應上限",
-  "reaction_list.addReactionTooltip": "新增反應",
   "remove_group_confirm_button": "是的，移除群組跟 {memberCount, plural, one {位成員} other {位成員}}",
   "remove_group_confirm_message": "連結至此群組的 {memberCount, number} 位成員將一併被移除，確定移除此群組和 {memberCount} 位成員？",
   "remove_group_confirm_title": "移除群組跟 {memberCount, number} 位成員",

@@ -10297,14 +10297,6 @@
     "translation": "Unable to get custom profile attribute values"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Cannot create property value"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Unable to retrieve property values"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
     "translation": "Unable to delete Custom Profile Attribute field"
   },
@@ -10323,10 +10315,6 @@
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Failed to remove the requested files from database"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Cannot update property value"
   },
   {
     "id": "app.file_info.undelete_for_post_ids.app_error",
