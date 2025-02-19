@@ -330,8 +330,6 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
         collapsedThreads,
         team,
         isPartOfOnlyOneTeam,
-
-        // id: 'quickSwitchInput',
     };
 }
 
