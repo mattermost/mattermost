@@ -476,6 +476,24 @@ export function getMe(): ActionFuncAsync<UserProfile> {
     };
 }
 
+export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync<Record<string, string>> {
+    return async (dispatch) => {
+        let data;
+        try {
+            data = await Client4.getUserCustomProfileAttributesValues(userID);
+        } catch (error) {
+            return {error};
+        }
+
+        dispatch({
+            type: UserTypes.RECEIVED_CPA_VALUES,
+            data: {userID, customAttributeValues: data},
+        });
+
+        return {data};
+    };
+}
+
 export function updateMyTermsOfServiceStatus(termsOfServiceId: string, accepted: boolean): ActionFuncAsync {
     return async (dispatch, getState) => {
         const response = await dispatch(bindClientFunc({
