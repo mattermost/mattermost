@@ -46,6 +46,11 @@ type DoPostActionRequest struct {
 	Cookie         string `json:"cookie,omitempty"`
 }
 
+const (
+	PostActionDataSourceUsers    = "users"
+	PostActionDataSourceChannels = "channels"
+)
+
 type PostAction struct {
 	// A unique Action ID. If not set, generated automatically.
 	Id string `json:"id,omitempty"`
@@ -112,7 +117,7 @@ func (p *PostAction) IsValid() error {
 		}
 	case PostActionTypeSelect:
 		if p.DataSource != "" {
-			validSources := []string{"users", "channels"}
+			validSources := []string{PostActionDataSourceUsers, PostActionDataSourceChannels}
 			if !slices.Contains(validSources, p.DataSource) {
 				multiErr = multierror.Append(multiErr, fmt.Errorf("invalid data_source '%s' for select action", p.DataSource))
 			}

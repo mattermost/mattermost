@@ -97,7 +97,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 							{
 								Type:       model.PostActionTypeSelect,
 								Name:       "action",
-								DataSource: "users",
+								DataSource: model.PostActionDataSourceUsers,
 								Integration: &model.PostActionIntegration{
 									Context: model.StringInterface{
 										"s": "foo",
@@ -141,7 +141,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 							{
 								Type:       model.PostActionTypeSelect,
 								Name:       "action",
-								DataSource: "users",
+								DataSource: model.PostActionDataSourceUsers,
 								Integration: &model.PostActionIntegration{
 									Context: model.StringInterface{
 										"s": "foo",
@@ -224,7 +224,7 @@ func TestPostAction(t *testing.T) {
 				if request.Type == model.PostActionTypeSelect {
 					if selectedOption, ok := request.Context["selected_option"]; ok {
 						// If something was selected, confirm that the data source and selected option are present
-						assert.Equal(t, "users", request.DataSource)
+						assert.Equal(t, model.PostActionDataSourceUsers, request.DataSource)
 						assert.Equal(t, "selected", selectedOption)
 					} else {
 						assert.Empty(t, request.DataSource)
@@ -251,7 +251,7 @@ func TestPostAction(t *testing.T) {
 								{
 									Type:       model.PostActionTypeSelect,
 									Name:       "action",
-									DataSource: "users",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -288,7 +288,7 @@ func TestPostAction(t *testing.T) {
 								{
 									Type:       model.PostActionTypeSelect,
 									Name:       "action",
-									DataSource: "users",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -346,7 +346,7 @@ func TestPostAction(t *testing.T) {
 								{
 									Type:       model.PostActionTypeSelect,
 									Name:       "action",
-									DataSource: "users",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -394,7 +394,7 @@ func TestPostAction(t *testing.T) {
 								{
 									Type:       model.PostActionTypeSelect,
 									Name:       "action",
-									DataSource: "users",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -436,7 +436,7 @@ func TestPostAction(t *testing.T) {
 								{
 									Type:       model.PostActionTypeSelect,
 									Name:       "action",
-									DataSource: "users",
+									DataSource: model.PostActionDataSourceUsers,
 									Integration: &model.PostActionIntegration{
 										Context: model.StringInterface{
 											"s": "foo",
@@ -508,7 +508,7 @@ func TestPostActionProps(t *testing.T) {
 						{
 							Type:       model.PostActionTypeSelect,
 							Name:       "action",
-							DataSource: "users",
+							DataSource: model.PostActionDataSourceUsers,
 							Integration: &model.PostActionIntegration{
 								Context: model.StringInterface{
 									"s": "foo",

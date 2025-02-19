@@ -70,7 +70,7 @@ func TestPostAction_IsValid(t *testing.T) {
 				Id:         "validid",
 				Name:       "Test Select",
 				Type:       PostActionTypeSelect,
-				DataSource: "users",
+				DataSource: PostActionDataSourceUsers,
 				Integration: &PostActionIntegration{
 					URL: "http://localhost:8065",
 				},
@@ -132,7 +132,7 @@ func TestPostAction_IsValid(t *testing.T) {
 				Id:         "validid",
 				Name:       "Test Button",
 				Type:       PostActionTypeButton,
-				DataSource: "users",
+				DataSource: PostActionDataSourceUsers,
 				Integration: &PostActionIntegration{
 					URL: "http://localhost:8065",
 				},
@@ -155,7 +155,7 @@ func TestPostAction_IsValid(t *testing.T) {
 				Id:         "validid",
 				Name:       "Test Select",
 				Type:       PostActionTypeSelect,
-				DataSource: "users",
+				DataSource: PostActionDataSourceUsers,
 				Options: []*PostActionOptions{
 					{Text: "Opt1", Value: "opt1"},
 				},
