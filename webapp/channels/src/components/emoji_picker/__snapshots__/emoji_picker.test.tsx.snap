@@ -27,7 +27,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
           class="emoji-picker__search"
           data-testid="emojiInputSearch"
           id="emojiPickerSearch"
-          placeholder="Search Emoji"
+          placeholder="Search emojis"
           type="text"
           value=""
         />
@@ -134,7 +134,9 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       style="height: 290px;"
     >
       <div
+        aria-labelledby="emojiPickerSearch"
         class="emoji-picker__container"
+        role="grid"
       >
         <div
           style="overflow: visible; height: 0px; width: 0px;"

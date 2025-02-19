@@ -7,7 +7,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled, {css} from 'styled-components';
 
-import {PlusIcon, TextBoxOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {MenuVariantIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
@@ -19,7 +19,7 @@ import {DangerText, FieldDeleteButton, FieldInput, LinkButton} from './controls'
 import type {SectionHook} from './section_utils';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import type {UserPropertyFields} from './user_properties_utils';
-import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameUnique} from './user_properties_utils';
+import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
 
 import {AdminConsoleListTable} from '../list_table';
 
@@ -30,10 +30,12 @@ type Props = {
 type FieldActions = {
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
+    reorderField: (field: UserPropertyField, nextOrder: number) => void;
 }
 
 export const useUserPropertiesTable = (): SectionHook => {
     const [userPropertyFields, readIO, pendingIO, itemOps] = useUserPropertyFields();
+    const nonDeletedCount = Object.values(userPropertyFields.data).filter((f) => f.delete_at === 0).length;
 
     const save = async () => {
         const newData = await pendingIO.commit();
@@ -52,8 +54,9 @@ export const useUserPropertiesTable = (): SectionHook => {
                 data={userPropertyFields}
                 updateField={itemOps.update}
                 deleteField={itemOps.delete}
+                reorderField={itemOps.reorder}
             />
-            {userPropertyFields.order.length < Constants.MAX_CUSTOM_ATTRIBUTES && (
+            {nonDeletedCount < Constants.MAX_CUSTOM_ATTRIBUTES && (
                 <LinkButton onClick={itemOps.create}>
                     <PlusIcon size={16}/>
                     <FormattedMessage
@@ -77,12 +80,14 @@ export const useUserPropertiesTable = (): SectionHook => {
     };
 };
 
-export function UserPropertiesTable({data: collection, updateField, deleteField}: Props & FieldActions) {
+export function UserPropertiesTable({data: collection, updateField, deleteField, reorderField}: Props & FieldActions) {
+    const {formatMessage} = useIntl();
     const data = collectionToArray(collection);
     const col = createColumnHelper<UserPropertyField>();
     const columns = useMemo<Array<ColumnDef<UserPropertyField, any>>>(() => {
         return [
             col.accessor('name', {
+                size: 180,
                 header: () => {
                     return (
                         <ColHeaderLeft>
@@ -115,6 +120,14 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                                 defaultMessage='Property names must be unique.'
                             />
                         );
+                    } else if (warningId === ValidationWarningNameTaken) {
+                        warning = (
+                            <FormattedMessage
+                                tagName={DangerText}
+                                id='admin.system_properties.user_properties.table.validation.name_taken'
+                                defaultMessage='Property name already taken.'
+                            />
+                        );
                     }
 
                     return (
@@ -122,8 +135,10 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                             <EditableValue
                                 strong={true}
                                 value={getValue()}
+                                label={formatMessage({id: 'admin.system_properties.user_properties.table.property_name.input.name', defaultMessage: 'Property Name'})}
                                 deleted={toDelete}
                                 borderless={!warning}
+                                testid='property-field-input'
                                 autoFocus={isCreatePending(row.original)}
                                 setValue={(value: string) => {
                                     updateField({...row.original, name: value.trim()});
@@ -138,6 +153,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                 enableSorting: false,
             }),
             col.accessor('type', {
+                size: 100,
                 header: () => {
                     return (
                         <ColHeaderLeft>
@@ -154,7 +170,7 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                     if (type === 'text') {
                         type = (
                             <>
-                                <TextBoxOutlineIcon
+                                <MenuVariantIcon
                                     size={18}
                                     color={'rgba(var(--center-channel-color-rgb), 0.64)'}
                                 />
@@ -176,7 +192,16 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                 enableSorting: false,
             }),
             col.display({
+                id: 'options',
+                size: 300,
+                header: () => <></>,
+                cell: () => <></>,
+                enableHiding: false,
+                enableSorting: false,
+            }),
+            col.display({
                 id: 'actions',
+                size: 100,
                 header: () => {
                     return (
                         <ColHeaderRight>
@@ -190,7 +215,6 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
                 cell: ({row}) => (
                     <Actions
                         field={row.original}
-                        updateField={updateField}
                         deleteField={deleteField}
                     />
                 ),
@@ -203,9 +227,6 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
     const table = useReactTable({
         data,
         columns,
-        initialState: {
-            sorting: [],
-        },
         getCoreRowModel: getCoreRowModel<UserPropertyField>(),
         getSortedRowModel: getSortedRowModel<UserPropertyField>(),
         enableSortingRemoval: false,
@@ -214,6 +235,9 @@ export function UserPropertiesTable({data: collection, updateField, deleteField}
         meta: {
             tableId: 'userProperties',
             disablePaginationControls: true,
+            onReorder: (prev: number, next: number) => {
+                reorderField(collection.data[collection.order[prev]], next);
+            },
         },
         manualPagination: true,
     });
@@ -271,7 +295,7 @@ const TableWrapper = styled.div`
     }
 `;
 
-const Actions = ({field, deleteField}: {field: UserPropertyField} & FieldActions) => {
+const Actions = ({field, deleteField}: {field: UserPropertyField} & Pick<FieldActions, 'deleteField'>) => {
     const {promptDelete} = useUserPropertyFieldDelete();
     const {formatMessage} = useIntl();
 
@@ -331,6 +355,8 @@ const ActionsRoot = styled.div`
 
 type EditableValueProps = {
     value: string;
+    label?: string;
+    testid?: string;
     setValue: (value: string) => void;
     autoFocus?: boolean;
     disabled?: boolean;
@@ -351,7 +377,8 @@ const EditableValue = (props: EditableValueProps) => {
         <>
             <FieldInput
                 type='text'
-                data-testid='property-field-input'
+                aria-label={props.label}
+                data-testid={props.testid}
                 disabled={props.disabled ?? props.deleted}
                 $deleted={props.deleted}
                 $strong={props.strong}

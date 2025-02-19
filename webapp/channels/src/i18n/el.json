@@ -24,7 +24,6 @@
   "accessibility.button.Info": "Πληροφορίες",
   "accessibility.button.Search": "Αναζήτηση",
   "accessibility.button.attachment": "συνημμένο",
-  "accessibility.button.dialog": "Διάλογος {dialogName}",
   "accessibility.sections.centerContent": "λίστα μηνυμάτων κύρια περιοχή",
   "accessibility.sections.centerFooter": "εισαγωγή μηνύματος συμπληρωματική περιοχή",
   "activity_log.activeSessions": "Ενεργές Συνεδρίες",
