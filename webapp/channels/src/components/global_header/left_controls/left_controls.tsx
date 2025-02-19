@@ -2,30 +2,30 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
+import {useSelector} from 'react-redux';
+
+import {getIsMobileView} from 'selectors/views/browser';
 
 import {isDesktopApp} from 'utils/user_agent';
 
 import HistoryButtons from './history_buttons';
-import ProductMenu from './product_menu';
+import ProductBranding from './product_branding';
+import ProductSwitcherMenu from './product_switcher_menu';
 
-const LeftControlsContainer = styled.div`
-    display: flex;
-    align-items: center;
-    height: 40px;
-    flex-shrink: 0;
-    flex-basis: 30%;
+import './left_controls.scss';
 
-    > * + * {
-        margin-left: 12px;
+export default function LeftControls() {
+    const isMobileView = useSelector(getIsMobileView);
+
+    if (isMobileView) {
+        return null;
     }
-`;
 
-const LeftControls = (): JSX.Element => (
-    <LeftControlsContainer>
-        <ProductMenu/>
-        {isDesktopApp() && <HistoryButtons/>}
-    </LeftControlsContainer>
-);
-
-export default LeftControls;
+    return (
+        <div className='globalHeader-left-controls-container'>
+            <ProductSwitcherMenu/>
+            <ProductBranding/>
+            {isDesktopApp() && <HistoryButtons/>}
+        </div>
+    );
+}

@@ -8,24 +8,19 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+    title="Help"
   >
-    <ForwardRef
-      active={false}
+    <button
       aria-controls="AddChannelDropdown"
       aria-expanded={false}
+      aria-haspopup={true}
       aria-label="Help"
-      compact={true}
-      icon="help-circle-outline"
-      inverted={true}
-      onClick={[Function]}
-      size="sm"
-    />
+      className="btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader"
+    >
+      <HelpCircleOutlineIcon
+        size={18}
+      />
+    </button>
   </WithTooltip>
   <Menu
     ariaLabel="Add Channel Dropdown"
@@ -83,24 +78,19 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+    title="Help"
   >
-    <ForwardRef
-      active={false}
+    <button
       aria-controls="AddChannelDropdown"
       aria-expanded={false}
+      aria-haspopup={true}
       aria-label="Help"
-      compact={true}
-      icon="help-circle-outline"
-      inverted={true}
-      onClick={[Function]}
-      size="sm"
-    />
+      className="btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader"
+    >
+      <HelpCircleOutlineIcon
+        size={18}
+      />
+    </button>
   </WithTooltip>
   <Menu
     ariaLabel="Add Channel Dropdown"
@@ -150,24 +140,19 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   onToggle={[Function]}
 >
   <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+    title="Help"
   >
-    <ForwardRef
-      active={false}
+    <button
       aria-controls="AddChannelDropdown"
       aria-expanded={false}
+      aria-haspopup={true}
       aria-label="Help"
-      compact={true}
-      icon="help-circle-outline"
-      inverted={true}
-      onClick={[Function]}
-      size="sm"
-    />
+      className="btn btn-icon btn-quaternary btn-inverted btn-sm buttons-in-globalHeader"
+    >
+      <HelpCircleOutlineIcon
+        size={18}
+      />
+    </button>
   </WithTooltip>
   <Menu
     ariaLabel="Add Channel Dropdown"

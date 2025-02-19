@@ -73,6 +73,8 @@ type MenuProps = {
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
+    minWidth?: string;
+    maxWidth?: string;
 }
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -258,6 +260,8 @@ export function Menu(props: Props) {
                         'aria-labelledby': props.menu?.['aria-labelledby'],
                         style: {
                             width: props.menu?.width,
+                            minWidth: props.menu?.minWidth,
+                            maxWidth: props.menu?.maxWidth,
                         },
                     }}
                     TransitionProps={{
