@@ -3997,7 +3997,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Недійсний ідентифікатор."
+    "translation": "Невірний ідентифікатор: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -10358,5 +10358,21 @@
   {
     "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
     "translation": "Не вдалося видалити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося створити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося оновити закладку каналу."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Не вдалося оновити порядок сортування закладок каналів."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Сеанс не знайдено."
   }
 ]
