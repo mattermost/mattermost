@@ -34,6 +34,7 @@ const (
 	ChannelHeaderMaxRunes      = 1024
 	ChannelPurposeMaxRunes     = 250
 	ChannelCacheSize           = 25000
+	ChannelBannerInfoMaxLength = 1024
 
 	ChannelSortByUsername = "username"
 	ChannelSortByStatus   = "status"
@@ -293,6 +294,22 @@ func (o *Channel) IsValid() *AppError {
 		userIds := strings.Split(o.Name, "__")
 		if ok := gmNameRegex.MatchString(o.Name); ok || (o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1])) {
 			return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if o.BannerInfo != nil && o.BannerInfo.Enabled != nil && *o.BannerInfo.Enabled {
+		if o.Type != ChannelTypeOpen && o.Type != ChannelTypePrivate {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.channel_type.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if o.BannerInfo.Text == nil || len(*o.BannerInfo.Text) == 0 {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.text.empty.app_error", nil, "", http.StatusBadRequest)
+		} else if len(*o.BannerInfo.Text) > ChannelBannerInfoMaxLength {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.text.invalid_length.app_error", map[string]any{"maxLength": ChannelBannerInfoMaxLength}, "", http.StatusBadRequest)
+		}
+
+		if o.BannerInfo.BackgroundColor == nil || len(*o.BannerInfo.BackgroundColor) == 0 {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.banner_info.background_color.empty.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

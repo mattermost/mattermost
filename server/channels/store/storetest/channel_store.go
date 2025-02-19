@@ -206,6 +206,24 @@ func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Channel().Save(rctx, &o2, -1)
 	require.Error(t, nErr, "should have failed to save a duplicate of an archived channel")
 	require.True(t, errors.As(nErr, &cErr))
+
+	o1 = model.Channel{}
+	o1.TeamId = teamID
+	o1.DisplayName = "Name"
+	o1.Name = NewTestID()
+	o1.Type = model.ChannelTypeOpen
+	o1.BannerInfo = &model.ChannelBannerInfo{
+		Enabled:         model.NewPointer(true),
+		Text:            model.NewPointer("banner text"),
+		BackgroundColor: model.NewPointer("#000000"),
+	}
+
+	savedChannel, nErr := ss.Channel().Save(rctx, &o1, -1)
+	require.NoError(t, nErr, "should have saved channel")
+	require.NotNil(t, savedChannel.BannerInfo)
+	require.True(t, *savedChannel.BannerInfo.Enabled)
+	require.Equal(t, "banner text", *savedChannel.BannerInfo.Text)
+	require.Equal(t, "#000000", *savedChannel.BannerInfo.BackgroundColor)
 }
 
 func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -369,6 +387,48 @@ func testChannelStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	var uniqueConstraintErr *store.ErrUniqueConstraint
 	require.ErrorAs(t, err, &uniqueConstraintErr)
 	require.Contains(t, uniqueConstraintErr.Columns, "Name")
+
+	channel := model.Channel{}
+	channel.TeamId = model.NewId()
+	channel.DisplayName = "Name"
+	channel.Name = NewTestID()
+	channel.Type = model.ChannelTypeOpen
+
+	_, nErr = ss.Channel().Save(rctx, &channel, -1)
+	require.NoError(t, nErr)
+
+	time.Sleep(100 * time.Millisecond)
+
+	channel.BannerInfo = &model.ChannelBannerInfo{
+		Enabled:         model.NewPointer(true),
+		Text:            model.NewPointer("banner text"),
+		BackgroundColor: model.NewPointer("#000000"),
+	}
+
+	updatedChannel, err := ss.Channel().Update(rctx, &channel)
+	require.NoError(t, err, err)
+	require.NotNil(t, updatedChannel.BannerInfo)
+	require.True(t, *updatedChannel.BannerInfo.Enabled)
+	require.Equal(t, "banner text", *updatedChannel.BannerInfo.Text)
+	require.Equal(t, "#000000", *updatedChannel.BannerInfo.BackgroundColor)
+
+	// can turn off channel banners
+	channel.BannerInfo.Enabled = model.NewPointer(false)
+
+	updatedChannel, err = ss.Channel().Update(rctx, &channel)
+	require.NoError(t, err, err)
+	require.NotNil(t, updatedChannel.BannerInfo)
+	require.False(t, *updatedChannel.BannerInfo.Enabled)
+
+	// can update text and color of channel banners
+	channel.BannerInfo.Text = model.NewPointer("updated text")
+	channel.BannerInfo.BackgroundColor = model.NewPointer("#FFFFFF")
+
+	updatedChannel, err = ss.Channel().Update(rctx, &channel)
+	require.NoError(t, err, err)
+	require.NotNil(t, updatedChannel.BannerInfo)
+	require.Equal(t, "updated text", *updatedChannel.BannerInfo.Text)
+	require.Equal(t, "#FFFFFF", *updatedChannel.BannerInfo.BackgroundColor)
 }
 
 func testGetChannelUnread(t *testing.T, rctx request.CTX, ss store.Store) {
