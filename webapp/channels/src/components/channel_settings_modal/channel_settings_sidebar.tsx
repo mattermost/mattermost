@@ -1,11 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
+// channels/src/components/channel_settings_modal/channel_settings_sidebar.tsx
+
 import React from 'react';
+import classNames from 'classnames';
 import {useIntl} from 'react-intl';
 
-// A simple type for each tab the sidebar will display.
+// IMPORTANT: Import the SCSS so the styling actually applies
+import './channel_settings_sidebar.scss';
+
 type TabOption = {
     id: string;
     label: string;
@@ -20,9 +24,8 @@ type ChannelSettingsSidebarProps = {
 /**
  * ChannelSettingsSidebar
  *
- * Renders a vertical list of tabs (e.g., "Info", "Configuration", "Archive Channel") on the left side.
- * Selecting a tab calls `setActiveTab(id)`, which your parent component (ChannelSettingsModal)
- * will use to show the right content.
+ * Renders a vertical list of tabs (e.g. "Info", "Configuration", "Archive Channel") on the left side.
+ * Each tab is a <button> in a <li>, styled to match other Mattermost sidebars.
  */
 export default function ChannelSettingsSidebar(props: ChannelSettingsSidebarProps) {
     const {formatMessage} = useIntl();
@@ -36,18 +39,15 @@ export default function ChannelSettingsSidebar(props: ChannelSettingsSidebarProp
             <ul className='ChannelSettingsSidebar__list'>
                 {tabs.map((tab) => {
                     const isActive = tab.id === activeTab;
-
                     return (
                         <li
                             key={tab.id}
-                            className={classNames('ChannelSettingsSidebar__tabItem', {
-                                active: isActive,
-                            })}
+                            className={classNames('ChannelSettingsSidebar__tabItem', {active: isActive})}
                         >
                             <button
                                 type='button'
-                                onClick={() => setActiveTab(tab.id)}
                                 className='ChannelSettingsSidebar__tabButton'
+                                onClick={() => setActiveTab(tab.id)}
                                 aria-current={isActive ? 'page' : undefined}
                             >
                                 {tab.label}
@@ -59,3 +59,4 @@ export default function ChannelSettingsSidebar(props: ChannelSettingsSidebarProp
         </nav>
     );
 }
+

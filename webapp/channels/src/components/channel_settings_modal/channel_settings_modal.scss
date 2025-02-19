@@ -5,25 +5,30 @@
     /* Roughly the same top offset used by UserSettingsModal */
     margin-top: 5vh !important;
 
-    /* The outer modal wrapper, akin to .UserSettingsModal .GenericModal__wrapper */
     .GenericModal__wrapper {
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        // Remove or override 'overflow: hidden;'
+        // overflow: hidden;
+        // Let it scroll vertically if needed:
+        overflow-y: auto;
         max-height: 90vh;
         border: var(--border-default);
         border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
 
+        // Increase or remove this if your content is wider
+        max-width: 1200px;
         .modal-body {
             display: flex;
-            width: 100%;
-            max-width: 1024px;
-            min-height: 150px;
             flex-direction: column;
-            padding: 28px 32px;  /* Similar to user_settings_modal.scss */
+            // remove or bump up:
+            // max-width: 1024px;
+            width: auto;
+            min-height: 150px;
+            padding: 28px 32px;
             gap: 24px;
-            overflow-x: hidden;
+            overflow-x: hidden; // or remove if you want horizontal scroll
             overflow-y: auto;
         }
     }
@@ -47,6 +52,11 @@
             /* The left sidebar (tab list) */
             min-width: 200px;
             margin-right: 32px; /* spacing between sidebar and content */
+            ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
         }
 
         .settings-content {

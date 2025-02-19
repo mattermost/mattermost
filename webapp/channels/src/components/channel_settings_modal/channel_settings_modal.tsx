@@ -457,10 +457,11 @@ function ChannelSettingsModal(props: ChannelSettingsModalProps) {
                 className='ChannelSettingsModal__bodyWrapper'
             >
                 <div className='settings-table'>
+                    {/* Left Sidebar */}
                     <div className='settings-links'>
                         <ChannelSettingsSidebar
-                            setActiveTab={(id: string) => updateTab(id)}
                             activeTab={activeTab}
+                            setActiveTab={(id: string) => updateTab(id)}
                             tabs={[
                                 {id: ChannelSettingsTabs.INFO, label: formatMessage({id: 'channel_settings.tab.info', defaultMessage: 'Info'})},
                                 {id: ChannelSettingsTabs.CONFIGURATION, label: formatMessage({id: 'channel_settings.tab.configuration', defaultMessage: 'Configuration'})},
@@ -468,6 +469,7 @@ function ChannelSettingsModal(props: ChannelSettingsModalProps) {
                             ]}
                         />
                     </div>
+                    {/* Main content on the right */}
                     <div className='settings-content minimize-settings'>
                         {renderTabContent()}
                     </div>

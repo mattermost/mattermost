@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+
+// channels/src/components/channel_settings_modal/channel_settings_sidebar.scss
+
 .ChannelSettingsSidebar {
     width: 100%;
-    /* Match the styling approach from user_settings_modal.scss and new_channel_modal.scss.
-       Typically, the parent container will control the overall width and spacing. */
 
     &__list {
-        list-style: none;
+        list-style: none;    // Removes default bullets
         margin: 0;
         padding: 0;
     }
@@ -18,8 +19,6 @@
             .ChannelSettingsSidebar__tabButton {
                 font-weight: 600;
                 color: var(--button-bg);
-
-                /* Optionally give an active background */
                 background: rgba(var(--button-bg-rgb), 0.08);
             }
         }
@@ -48,3 +47,4 @@
         }
     }
 }
+
