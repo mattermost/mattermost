@@ -1011,6 +1011,106 @@ func TestPost_PropsIsValid(t *testing.T) {
 			},
 			wantErr: "",
 		},
+		"valid added_user_id": {
+			props: StringInterface{
+				PostPropsAddedUserId: NewId(),
+			},
+			wantErr: "",
+		},
+		"valid delete_by": {
+			props: StringInterface{
+				PostPropsDeleteBy: NewId(),
+			},
+			wantErr: "",
+		},
+		"valid override_icon_url": {
+			props: StringInterface{
+				PostPropsOverrideIconURL: "https://example.com/icon.png",
+			},
+			wantErr: "",
+		},
+		"valid override_icon_emoji": {
+			props: StringInterface{
+				PostPropsOverrideIconEmoji: ":smile:",
+			},
+			wantErr: "",
+		},
+		"valid override_username": {
+			props: StringInterface{
+				PostPropsOverrideUsername: "testuser",
+			},
+			wantErr: "",
+		},
+		"valid from_webhook": {
+			props: StringInterface{
+				PostPropsFromWebhook: "true",
+			},
+			wantErr: "",
+		},
+		"valid from_bot": {
+			props: StringInterface{
+				PostPropsFromBot: "true",
+			},
+			wantErr: "",
+		},
+		"valid from_oauth_app": {
+			props: StringInterface{
+				PostPropsFromOAuthApp: "true",
+			},
+			wantErr: "",
+		},
+		"valid from_plugin": {
+			props: StringInterface{
+				PostPropsFromPlugin: "true",
+			},
+			wantErr: "",
+		},
+		"valid unsafe_links": {
+			props: StringInterface{
+				PostPropsUnsafeLinks: "true",
+			},
+			wantErr: "",
+		},
+		"valid webhook_display_name": {
+			props: StringInterface{
+				PostPropsWebhookDisplayName: "My Webhook",
+			},
+			wantErr: "",
+		},
+		"valid mention_highlight_disabled": {
+			props: StringInterface{
+				PostPropsMentionHighlightDisabled: true,
+			},
+			wantErr: "",
+		},
+		"valid disable_group_highlight": {
+			props: StringInterface{
+				PostPropsGroupHighlightDisabled: true,
+			},
+			wantErr: "",
+		},
+		"valid previewed_post": {
+			props: StringInterface{
+				PostPropsPreviewedPost: NewId(),
+			},
+			wantErr: "",
+		},
+		"valid force_notification": {
+			props: StringInterface{
+				PostPropsForceNotification: true,
+			},
+			wantErr: "",
+		},
+		"valid multiple props": {
+			props: StringInterface{
+				PostPropsFromWebhook:              "true",
+				PostPropsOverrideUsername:         "webhook-user",
+				PostPropsOverrideIconURL:          "https://example.com/icon.png",
+				PostPropsWebhookDisplayName:       "My Webhook",
+				PostPropsMentionHighlightDisabled: true,
+			},
+			wantErr: "",
+		},
 		"invalid added_user_id type": {
 			props: StringInterface{
 				PostPropsAddedUserId: 123,
