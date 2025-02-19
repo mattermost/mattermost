@@ -52,6 +52,8 @@ export type Props = {
     selectedPostCardId: string;
     isSavedPosts?: boolean;
     isRecentMentions?: boolean;
+    ariaLabel?: string;
+    ariaLabeledby?: string;
     actions: {
         setRhsExpanded: (expanded: boolean) => void;
         showPinnedPosts: (channelId: string) => void;
@@ -339,6 +341,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                     id='sidebar-right'
                     role='region'
                     rightWidthHolderRef={this.sidebarRightWidthHolder}
+                    ariaLabel={this.props.ariaLabel}
+                    ariaLabeledby={this.props.ariaLabeledby}
                 >
                     <div
                         tabIndex={-1}

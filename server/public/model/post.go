@@ -673,15 +673,6 @@ func (o *Post) ValidateProps(logger mlog.LoggerIFace) {
 		)
 	}
 
-	for i, a := range o.Attachments() {
-		if err := a.IsValid(); err != nil {
-			logger.Warn(
-				"Invalid messsage attachment. In a future version this will result in an error. Please update your integration to be compliant.",
-				mlog.String("post_id", o.Id),
-				mlog.Int("attachment_index", i),
-				mlog.Err(err))
-		}
-	}
 }
 
 func (o *Post) propsIsValid() error {
@@ -790,6 +781,12 @@ func (o *Post) propsIsValid() error {
 	if props[PostPropsForceNotification] != nil {
 		if _, ok := props[PostPropsForceNotification].(bool); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("force_notification prop must be a boolean"))
+		}
+	}
+
+	for i, a := range o.Attachments() {
+		if err := a.IsValid(); err != nil {
+			multiErr = multierror.Append(multiErr, multierror.Prefix(err, fmt.Sprintf("message attachtment at index %d is invalid:", i)))
 		}
 	}
 

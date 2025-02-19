@@ -229,7 +229,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		if parentPostList != nil {
 			rootPost := parentPostList.Posts[parentPostList.Order[0]]
 			if rootPost.GetProp(model.PostPropsFromWebhook) != "true" {
-				threadParticipants[rootPost.UserId] = true
+				if _, ok := profileMap[rootPost.UserId]; ok {
+					threadParticipants[rootPost.UserId] = true
+				}
 			}
 			if channel.Type != model.ChannelTypeDirect {
 				rootMentions = getExplicitMentions(rootPost, keywords)
