@@ -525,8 +525,8 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("latestVersion", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
