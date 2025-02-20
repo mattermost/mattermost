@@ -173,7 +173,6 @@ export interface CPASelectOption {
     Color: string;
 }
 
-type CPASelectOptions = CPASelectOption[];
 export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     public submitActive = false;
 
@@ -519,9 +518,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             attributeValues[fieldID] = '';
         } else if (Array.isArray(selectedOption)) {
             // Handle multi-select
-            const values = selectedOption
-                .filter((option): option is SelectOption => Boolean(option && 'value' in option && option.value))
-                .map((option) => option.value);
+            const values = selectedOption.filter((option): option is SelectOption => Boolean(option && 'value' in option && option.value)).map((option) => option.value);
 
             // Store as comma-separated string for consistency with backend
             attributeValues[fieldID] = values;
