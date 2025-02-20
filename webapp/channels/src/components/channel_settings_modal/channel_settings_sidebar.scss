@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// channels/src/components/channel_settings_modal/channel_settings_sidebar.scss
-
 .ChannelSettingsSidebar {
     width: 100%;
 
     &__list {
-        list-style: none;    // Removes default bullets
+        list-style: none;
         margin: 0;
         padding: 0;
     }

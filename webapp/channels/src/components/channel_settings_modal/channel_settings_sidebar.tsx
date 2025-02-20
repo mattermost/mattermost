@@ -1,13 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// channels/src/components/channel_settings_modal/channel_settings_sidebar.tsx
-
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 import {useIntl} from 'react-intl';
 
-// IMPORTANT: Import the SCSS so the styling actually applies
 import './channel_settings_sidebar.scss';
 
 type TabOption = {
@@ -25,7 +22,7 @@ type ChannelSettingsSidebarProps = {
  * ChannelSettingsSidebar
  *
  * Renders a vertical list of tabs (e.g. "Info", "Configuration", "Archive Channel") on the left side.
- * Each tab is a <button> in a <li>, styled to match other Mattermost sidebars.
+ * Each tab is a <button> in a <li>.
  */
 export default function ChannelSettingsSidebar(props: ChannelSettingsSidebarProps) {
     const {formatMessage} = useIntl();
