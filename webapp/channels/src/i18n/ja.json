@@ -4847,7 +4847,6 @@
   "reaction_limit_reached_modal.body": "おっと！このメッセージに対する絵文字リアクションの上限に達したようです。この制限を変更する場合、システム管理者にお問い合わせください。",
   "reaction_limit_reached_modal.body.admin": "おっと！このメッセージの絵文字リアクションの上限に達したようです。サーバーのスムーズな稼動を維持するため、<link>上限が設定されています</link>。システム管理者として、<linkAdmin>システムコンソール</linkAdmin> からこの上限を調整することができます。",
   "reaction_limit_reached_modal.title": "リアクションの上限に達しました",
-  "reaction_list.addReactionTooltip": "リアクションを追加する",
   "remove_group_confirm_button": "はい、グループと {memberCount, plural, one {メンバー} other {メンバー}}を削除します",
   "remove_group_confirm_message": "このグループに関連づけられた {memberCount, number} {memberCount, plural, one {メンバー} other {メンバー}} は、このチームから削除されます。本当にこのグループと{memberCount} {memberCount, plural, one {メンバー} other {メンバー}} をこのグループから削除しますか？",
   "remove_group_confirm_title": "グループと{memberCount, number} {memberCount, plural, one {メンバー} other {メンバー}} を削除します",

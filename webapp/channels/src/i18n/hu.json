@@ -3709,7 +3709,6 @@
   "reaction.usersAndOthersReacted": "{users} és {otherUsers, number} további felhasználó",
   "reaction.usersReacted": "{users} és {lastUser}",
   "reaction.you": "Ön",
-  "reaction_list.addReactionTooltip": "Reakció hozzáadása",
   "remove_group_confirm_button": "Igen, távolítsa el a csoportot és a {memberCount, plural, one {tagját} other {tagjait}}",
   "remove_group_confirm_message": "Ehhez a csoporthoz rendelt {memberCount, number} tag el lesz távolítva a csapatból. Biztosan el akarja távolítani ezt a csoportot és {memberCount} tagot?",
   "remove_group_confirm_title": "Csoport és {memberCount, number} tag eltávolítása",
