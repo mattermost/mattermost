@@ -401,12 +401,8 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 
 		tagPermissions := strings.Split(structField.Tag.Get("access"), ",")
 
-		// If there are no access tag values and the role has manage_system, no need to continue
-		// checking permissions.
-		if len(tagPermissions) == 0 {
-			if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-				return true
-			}
+		if c.AppContext.Session().IsUnrestricted() {
+			return true
 		}
 
 		// one iteration for write_restrictable value, it could be anywhere in the order of values
