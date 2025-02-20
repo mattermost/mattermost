@@ -152,6 +152,29 @@ func channelMemberToSlice(member *model.ChannelMember) []any {
 	return resultSlice
 }
 
+func channelToSlice(channel *model.Channel) []any {
+	resultSlice := []any{}
+	resultSlice = append(resultSlice, channel.Id)
+	resultSlice = append(resultSlice, channel.CreatorId)
+	resultSlice = append(resultSlice, channel.UpdateAt)
+	resultSlice = append(resultSlice, channel.TeamId)
+	resultSlice = append(resultSlice, channel.Type)
+	resultSlice = append(resultSlice, channel.DisplayName)
+	resultSlice = append(resultSlice, channel.Name)
+	resultSlice = append(resultSlice, channel.Header)
+	resultSlice = append(resultSlice, channel.Purpose)
+	resultSlice = append(resultSlice, channel.LastPostAt)
+	resultSlice = append(resultSlice, channel.TotalMsgCount)
+	resultSlice = append(resultSlice, channel.ExtraUpdateAt)
+	resultSlice = append(resultSlice, channel.CreatorId)
+	resultSlice = append(resultSlice, channel.SchemeId)
+	resultSlice = append(resultSlice, channel.GroupConstrained)
+	resultSlice = append(resultSlice, channel.Shared)
+	resultSlice = append(resultSlice, channel.TotalMsgCountRoot)
+	resultSlice = append(resultSlice, channel.LastRootPostAt)
+	return resultSlice
+}
+
 type channelMemberWithSchemeRolesList []channelMemberWithSchemeRoles
 
 func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole string,
