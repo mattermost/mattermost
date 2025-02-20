@@ -278,6 +278,7 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                 saving={this.state.isSaving}
                 inputs={[input]}
                 updateSection={this.props.updateSection}
+                disableEnterSubmit={true}
             />
         );
     }
