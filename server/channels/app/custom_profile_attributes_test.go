@@ -523,9 +523,12 @@ func TestPatchCPAValue(t *testing.T) {
 }
 
 func TestListCPAValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES")
-	th := Setup(t).InitBasic()
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic()
 	defer th.TearDown()
 
 	cpaGroupID, cErr := th.App.cpaGroupID()
