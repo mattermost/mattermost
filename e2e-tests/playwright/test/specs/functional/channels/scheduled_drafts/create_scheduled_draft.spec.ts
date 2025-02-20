@@ -26,7 +26,7 @@ test.skip('MM-T5643_1 should create a scheduled message from a channel', async (
     // # Hover and verify options
     await scheduledDraftPage.verifyOnHoverActionItems(draftMessage);
 
-    // # Go back and pw.wait for message to arrive
+    // # Go back and wait for message to arrive
     await goBackToChannelAndWaitForMessageToArrive(pw, page);
 
     // * Verify the message has been sent and there's no more scheduled messages

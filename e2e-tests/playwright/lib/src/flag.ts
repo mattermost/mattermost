@@ -55,11 +55,17 @@ export async function ensureLicense() {
 
 export async function requestTrialLicense() {
     const {adminClient} = await getAdminClient();
+    const admin = await adminClient.getMe();
     try {
         await adminClient.requestTrialLicense({
             receive_emails_accepted: true,
             terms_accepted: true,
             users: 100,
+            contact_name: admin.first_name + ' ' + admin.last_name,
+            contact_email: admin.email,
+            company_name: 'Mattermost Playwright E2E Tests',
+            company_size: '101-250',
+            company_country: 'United States',
         });
     } catch (error) {
         expect(error, 'Failed to request trial license').toBeFalsy();
