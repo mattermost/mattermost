@@ -6652,6 +6652,25 @@ func TestConvertUserToBot(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, bot)
 	})
+
+	t.Run("user cannot login after being converted to bot", func(t *testing.T) {
+		// Create a new user
+		user := th.CreateUser()
+
+		// Login as the new user to verify login works initially
+		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
+		// Convert user to bot
+		_, _, err = th.SystemAdminClient.ConvertUserToBot(context.Background(), user.Id)
+		require.NoError(t, err)
+
+		// Try to login again - should fail
+		_, resp, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestGetChannelMembersWithTeamData(t *testing.T) {
