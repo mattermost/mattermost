@@ -138,7 +138,7 @@ function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
 
     return (
         <GenericModal
-            className='ThreeDaysLeftTrialModal'
+            className='ThreeDaysLeftTrialModal three-days-left-generic-modal'
             id='threeDaysLeftTrialModal'
             onExited={handleOnClose}
             modalHeaderText={headerText}
