@@ -15,7 +15,6 @@ const ProfilePopoverUrl = ({url}: Props) => {
         <div
             title={url}
             className='user-profile-popover__url'
-
         >
             <i
                 className='icon icon-url-outline'

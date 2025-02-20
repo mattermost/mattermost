@@ -15,7 +15,6 @@ const ProfilePopoverPhone = ({phone}: Props) => {
         <div
             title={phone}
             className='user-profile-popover__phone'
-
         >
             <i
                 className='icon icon-phone-outline'

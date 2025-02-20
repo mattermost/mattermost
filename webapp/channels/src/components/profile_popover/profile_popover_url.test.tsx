@@ -4,25 +4,25 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithIntl} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import ProfilePopoverUrl from './profile_popover_url';
 
 describe('components/ProfilePopoverUrl', () => {
     test('should not render when url is undefined', () => {
-        renderWithIntl(<ProfilePopoverUrl/>);
+        renderWithContext(<ProfilePopoverUrl/>);
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
     test('should not render when url is empty', () => {
-        renderWithIntl(<ProfilePopoverUrl url=""/>);
+        renderWithContext(<ProfilePopoverUrl url=''/>);
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
     test('should render url with icon', () => {
         const url = 'https://example.com';
-        renderWithIntl(<ProfilePopoverUrl url={url}/>);
-        
+        renderWithContext(<ProfilePopoverUrl url={url}/>);
+
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('href', url);
         expect(link).toHaveTextContent(url);
@@ -31,8 +31,8 @@ describe('components/ProfilePopoverUrl', () => {
 
     test('should render long url correctly', () => {
         const url = 'https://really-long-subdomain.example.com/path/to/resource?param=value';
-        renderWithIntl(<ProfilePopoverUrl url={url}/>);
-        
+        renderWithContext(<ProfilePopoverUrl url={url}/>);
+
         const container = screen.getByTitle(url);
         expect(container).toBeInTheDocument();
         expect(screen.getByRole('link')).toHaveTextContent(url);
