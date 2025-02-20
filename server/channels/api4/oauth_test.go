@@ -81,9 +81,12 @@ func TestCreateOAuthApp(t *testing.T) {
 }
 
 func TestUpdateOAuthApp(t *testing.T) {
+	t.Skip("https://mattermost.atlassian.net/browse/MM-62895")
+
 	if mainHelper.Options.RunParallel {
 		t.Parallel()
 	}
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client

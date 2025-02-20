@@ -3445,8 +3445,33 @@ func TestWebHubMembership(t *testing.T) {
 		t.Parallel()
 	}
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	t.Run("WithChannelIteration", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
+
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableWebHubChannelIteration = true
+		}).InitBasic()
+		defer th.TearDown()
+
+		_testWebHubMembership(th, t)
+	})
+
+	t.Run("WithoutChannelIteration", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		_testWebHubMembership(th, t)
+	})
+}
+
+func _testWebHubMembership(th *TestHelper, t *testing.T) {
+	t.Helper()
 
 	u1 := th.CreateUser()
 	th.LinkUserToTeam(u1, th.BasicTeam)
@@ -3570,7 +3595,9 @@ func TestWebHubCloseConnOnDBFail(t *testing.T) {
 		t.Parallel()
 	}
 
-	th := Setup(t).InitBasic()
+	th := SetupConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableWebHubChannelIteration = true
+	}).InitBasic()
 	defer func() {
 		th.TearDown()
 		_, err := th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE dummy RENAME to ChannelMembers`)
