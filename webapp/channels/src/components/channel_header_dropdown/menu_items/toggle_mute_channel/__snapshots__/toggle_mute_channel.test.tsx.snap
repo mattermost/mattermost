@@ -2,6 +2,11 @@
 
 exports[`components/ChannelHeaderDropdown/MenuItemToggleMuteChannel should match snapshot 1`] = `
 <MenuItemAction
+  icon={
+    <BellOffOutlineIcon
+      color="#808080"
+    />
+  }
   onClick={[Function]}
   show={true}
   text="Mute Channel"

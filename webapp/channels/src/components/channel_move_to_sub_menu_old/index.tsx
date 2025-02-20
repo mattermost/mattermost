@@ -60,7 +60,6 @@ const ChannelMoveToSubMenuOld = (props: Props) => {
             trackEvent('ui', 'ui_sidebar_channel_menu_moveToExistingCategory');
         }
     }
-
     function handleMoveToNewCategory() {
         dispatch(openModal({
             modalId: ModalIdentifiers.EDIT_CATEGORY,
@@ -155,9 +154,10 @@ const ChannelMoveToSubMenuOld = (props: Props) => {
                 subMenu={getMoveToCategorySubmenuItems(categories)}
                 text={formatMessage({id: 'sidebar_left.sidebar_channel_menu.moveTo', defaultMessage: 'Move to...'})}
                 direction={'right'}
-                icon={props.inHeaderDropdown ? null : <FolderMoveOutlineIcon size={16}/>}
+                icon={<FolderMoveOutlineIcon
+                    size={18}
+                />}
                 openUp={props.openUp}
-                styleSelectableItem={true}
                 selectedValueText={currentCategory?.display_name}
                 renderSelected={false}
             />

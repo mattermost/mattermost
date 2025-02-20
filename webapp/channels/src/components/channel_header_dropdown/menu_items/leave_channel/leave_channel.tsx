@@ -4,6 +4,7 @@
 import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import {LogoutVariantIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
@@ -71,6 +72,7 @@ const LeaveChannel = ({
             onClick={handleLeave}
             text={intl.formatMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'})}
             isDangerous={true}
+            icon={<LogoutVariantIcon size={18}/>}
         />
     );
 };

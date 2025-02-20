@@ -2,6 +2,11 @@
 
 exports[`components/ChannelHeaderDropdown/MenuItem.CloseMessage should match snapshot for DM Channel 1`] = `
 <MenuItemAction
+  icon={
+    <CloseIcon
+      color="#808080"
+    />
+  }
   onClick={[Function]}
   show={true}
   text="Close Direct Message"
@@ -10,6 +15,11 @@ exports[`components/ChannelHeaderDropdown/MenuItem.CloseMessage should match sna
 
 exports[`components/ChannelHeaderDropdown/MenuItem.CloseMessage should match snapshot for GM Channel 1`] = `
 <MenuItemAction
+  icon={
+    <CloseIcon
+      color="#808080"
+    />
+  }
   onClick={[Function]}
   show={true}
   text="Close Group Message"

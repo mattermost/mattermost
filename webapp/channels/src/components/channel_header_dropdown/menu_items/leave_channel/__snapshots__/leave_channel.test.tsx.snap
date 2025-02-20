@@ -2,6 +2,7 @@
 
 exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should be hidden if the channel is default channel 1`] = `
 <MenuItemAction
+  icon={<LogoutVariantIcon />}
   isDangerous={true}
   onClick={[Function]}
   show={false}
@@ -11,6 +12,7 @@ exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should be hidden
 
 exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should be hidden if the channel type is DM or GM 1`] = `
 <MenuItemAction
+  icon={<LogoutVariantIcon />}
   isDangerous={true}
   onClick={[Function]}
   show={false}
@@ -20,6 +22,7 @@ exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should be hidden
 
 exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should be hidden if the channel type is DM or GM 2`] = `
 <MenuItemAction
+  icon={<LogoutVariantIcon />}
   isDangerous={true}
   onClick={[Function]}
   show={false}
@@ -29,6 +32,7 @@ exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should be hidden
 
 exports[`components/ChannelHeaderDropdown/MenuItem.LeaveChannel should match snapshot 1`] = `
 <MenuItemAction
+  icon={<LogoutVariantIcon />}
   isDangerous={true}
   onClick={[Function]}
   show={true}
