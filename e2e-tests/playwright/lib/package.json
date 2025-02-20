@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/playwright-lib",
-  "version": "0.0.4",
+  "version": "10.6.0",
   "type": "commonjs",
   "files": [
     "dist"
@@ -25,8 +25,10 @@
     "build-tsc": "tsc --build --verbose",
     "build-tsc:watch": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf dist node_modules *.tsbuildinfo",
-    "tsc": "tsc -b",
-    "publish:public": "npm publish --access=public"
+    "tsc": "tsc -b"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@axe-core/playwright": "4.10.1",
