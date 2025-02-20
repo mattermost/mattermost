@@ -4,6 +4,7 @@
 package model
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 )
@@ -98,7 +99,7 @@ func (pf *PropertyField) SanitizeInput() {
 type PropertyFieldPatch struct {
 	Name       *string            `json:"name"`
 	Type       *PropertyFieldType `json:"type"`
-	Attrs      *map[string]any    `json:"attrs"`
+	Attrs      *StringInterface   `json:"attrs"`
 	TargetID   *string            `json:"target_id"`
 	TargetType *string            `json:"target_type"`
 }
@@ -141,11 +142,39 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
 	}
 }
 
+type PropertyFieldSearchCursor struct {
+	PropertyFieldID string
+	CreateAt        int64
+}
+
+func (p PropertyFieldSearchCursor) IsEmpty() bool {
+	return p.PropertyFieldID == "" && p.CreateAt == 0
+}
+
+func (p PropertyFieldSearchCursor) IsValid() error {
+	if p.IsEmpty() {
+		return nil
+	}
+
+	if p.CreateAt <= 0 {
+		return errors.New("create at cannot be negative or zero")
+	}
+
+	if !IsValidId(p.PropertyFieldID) {
+		return errors.New("property field id is invalid")
+	}
+	return nil
+}
+
 type PropertyFieldSearchOpts struct {
 	GroupID        string
 	TargetType     string
 	TargetID       string
 	IncludeDeleted bool
-	Page           int
+	Cursor         PropertyFieldSearchCursor
 	PerPage        int
+}
+
+func (pf *PropertyField) GetAttr(key string) any {
+	return pf.Attrs[key]
 }
