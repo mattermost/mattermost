@@ -41,14 +41,14 @@ func TestSaveStatus(t *testing.T) {
 
 func TestTruncateDNDEndTime(t *testing.T) {
 	// 2025-Jan-20 at 17:13:32 GMT becomes 17:13:00
-	assert.Equal(t, int64(1737393180000), truncateDNDEndTime(1737393212000))
+	assert.Equal(t, int64(1737393180), truncateDNDEndTime(1737393212))
 
 	// 2025-Jan-20 at 17:13:00 GMT remains unchanged
-	assert.Equal(t, int64(1737393180000), truncateDNDEndTime(1737393180000))
+	assert.Equal(t, int64(1737393180), truncateDNDEndTime(1737393180))
 
 	// 2025-Jan-20 at 00:00:10 GMT becomes 00:00:00
-	assert.Equal(t, int64(1737331200000), truncateDNDEndTime(1737331210000))
+	assert.Equal(t, int64(1737331200), truncateDNDEndTime(1737331210))
 
 	// 2025-Jan-20 at 00:00:10 GMT remains unchanged
-	assert.Equal(t, int64(1737331200000), truncateDNDEndTime(1737331200000))
+	assert.Equal(t, int64(1737331200), truncateDNDEndTime(1737331200))
 }

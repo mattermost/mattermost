@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -425,15 +426,17 @@ func (ps *PlatformService) SetStatusDoNotDisturbTimed(userID string, endtime int
 	}
 }
 
-// truncateDNDEndTime takes a user-provided timestamp for when their DND expiry should end and truncates it to line up
-// with the DND expiry job so that the user's DND time doesn't expire late by an interval. The job to expire statuses
-// runs every minute currently, so this trims the seconds and milliseconds off the given timestamp.
+// truncateDNDEndTime takes a user-provided timestamp (in seconds) for when their DND expiry should end and truncates
+// it to line up with the DND expiry job so that the user's DND time doesn't expire late by an interval. The job to
+// expire statuses runs every minute currently, so this trims the seconds and milliseconds off the given timestamp.
 //
 // This will result in statuses expiring slightly earlier than specified in the UI, but the status will expire at
 // the correct time on the wall clock. For example, if the time is currently 13:04:29 and the user sets the expiry to
-// to 5 minutes, truncating will make the status will expire at 13:09:00 instead of at 13:10:00.
+// 5 minutes, truncating will make the status will expire at 13:09:00 instead of at 13:10:00.
+//
+// Note that the timestamps used by this are in seconds, not milliseconds. This matches UserStatus.DNDEndTime.
 func truncateDNDEndTime(endtime int64) int64 {
-	return model.GetMillisForTime(model.GetTimeForMillis(endtime).Truncate(model.DNDExpiryInterval))
+	return time.Unix(endtime, 0).Truncate(model.DNDExpiryInterval).Unix()
 }
 
 func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {

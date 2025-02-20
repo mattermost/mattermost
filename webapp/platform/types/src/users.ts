@@ -99,6 +99,11 @@ export type UserStatus = {
     manual?: boolean;
     last_activity_at?: number;
     active_channel?: string;
+
+    /**
+     * The time when a user's timed DND status will expire. Unlike other timestamps in the app, this is in seconds
+     * instead of milliseconds.
+     */
     dnd_end_time?: number;
 };
 
