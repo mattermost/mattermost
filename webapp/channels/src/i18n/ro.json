@@ -3104,7 +3104,6 @@
   "reaction.usersAndOthersReacted": "{users} și {otherUsers, number} alți {otherUsers, plural, one {membru} other {membri}}",
   "reaction.usersReacted": "{users} și {lastUser}",
   "reaction.you": "Tu",
-  "reaction_list.addReactionTooltip": "Adăugați reacție",
   "remove_group_confirm_button": "Da, eliminați grupul și {memberCount, plural, one {Member} other {Members}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {membru} other {membrii}} asociați acestui grup vor fi eliminate din echipă la următoarea sincronizare programată AD/LDAP. Sigur doriți să eliminați acest grup și {memberCount} {memberCount, plural, one {membru} other {membrii}}?",
   "remove_group_confirm_title": "Eliminați grupul și {memberCount, number} {memberCount, plural, one {Member} other {Members}}",

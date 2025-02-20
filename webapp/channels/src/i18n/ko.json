@@ -2703,7 +2703,6 @@
   "reaction.usersAndOthersReacted": "{users}와 {otherUsers, number}명의 {otherUsers, plural, one {user} other {users}}",
   "reaction.usersReacted": "{users} 및 {lastUser}",
   "reaction.you": "당신",
-  "reaction_list.addReactionTooltip": "반응 추가",
   "removed_channel.channelName": "채널",
   "removed_channel.okay": "확인",
   "removed_channel.remover": "{remover}님이 {channel}에서 당신을 내보냈습니다",

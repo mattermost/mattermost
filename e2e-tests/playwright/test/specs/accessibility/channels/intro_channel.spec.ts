@@ -42,24 +42,20 @@ test('Post actions tab support', async ({pw, axe}) => {
     await post.postMenu.toBeVisible();
 
     // # Open the dot menu
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.dotMenuButton.press('Enter');
 
     // * Dot menu should be visible and have focused
     await channelsPage.postDotMenu.toBeVisible();
-    await expect(channelsPage.postDotMenu.container).toBeFocused();
+    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
 
     // # Analyze the page
     const accessibilityScanResults = await axe
         .builder(page, {disableColorContrast: true})
-        .include('.MuiMenu-list')
+        .include('.MuiList-root.MuiList-padding')
         .analyze();
 
     // * Should have no violation
     expect(accessibilityScanResults.violations).toHaveLength(0);
-
-    // * Should move focus to Reply after arrow down
-    await channelsPage.postDotMenu.container.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
 
     // * Should move focus to Forward after arrow down
     await channelsPage.postDotMenu.replyMenuItem.press('ArrowDown');

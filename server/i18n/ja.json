@@ -10302,18 +10302,6 @@
     "translation": "カスタムプロフィール属性のフィールドを更新できませんでした"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "プロパティ値を作成できません"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "プロパティ値を取得できませんでした"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "プロパティ値を更新できません"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "カスタムプロフィール属性のフィールドを検索できませんでした"
   },
