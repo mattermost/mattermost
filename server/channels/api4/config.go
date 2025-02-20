@@ -100,13 +100,8 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReloadConfig) {
+	if !c.App.SessionHasPermissionToCheckRestrictedAdmin(*c.AppContext.Session(), model.PermissionReloadConfig) {
 		c.SetPermissionError(model.PermissionReloadConfig)
-		return
-	}
-
-	if !c.AppContext.Session().IsUnrestricted() && *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("configReload", "api.restricted_system_admin", nil, "", http.StatusBadRequest)
 		return
 	}
 
