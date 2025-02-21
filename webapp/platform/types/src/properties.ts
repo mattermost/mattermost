@@ -26,6 +26,13 @@ export type PropertyValue<T> = {
 }
 
 export type UserPropertyFieldType = 'text';
+export type UserDatePropertyFieldType = 'date';
+export type UserBinaryImagePropertyFieldType = 'image';
+export type UserSelectPropertyFieldType = 'select';
+export type UserMultiSelectPropertyFieldType = 'multiselect';
+export type UserUserReferencePropertyFieldType = 'user';
+export type UserMultiUserReferencePropertyFieldType = 'multiuser';
+
 export type UserPropertyFieldGroupID = 'custom_profile_attributes';
 
 export type UserPropertyField = PropertyField & {
@@ -33,4 +40,35 @@ export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
     attrs?: {sort_order?: number};
 }
-export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type' | 'attrs'>>;
+
+export type UserBinaryImagePropertyField = PropertyField & {
+    type: UserBinaryImagePropertyFieldType;
+    group_id: UserPropertyFieldGroupID;
+}
+
+export type UserDatePropertyField = PropertyField & {
+    type: UserDatePropertyFieldType;
+    group_id: UserPropertyFieldGroupID;
+}
+
+export type UserSelectPropertyField = PropertyField & {
+    type: UserSelectPropertyFieldType;
+    group_id: UserPropertyFieldGroupID;
+}
+
+export type UserMultiSelectPropertyField = PropertyField & {
+    type: UserMultiSelectPropertyFieldType;
+    group_id: UserPropertyFieldGroupID;
+}
+
+export type UserUserReferencePropertyField = PropertyField & {
+    type: UserUserReferencePropertyFieldType;
+    group_id: UserPropertyFieldGroupID;
+}
+
+export type UserMultiUserReferencePropertyField = PropertyField & {
+    type: UserMultiUserReferencePropertyFieldType;
+    group_id: UserPropertyFieldGroupID;
+}
+
+export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;

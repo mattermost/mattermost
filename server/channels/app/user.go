@@ -1048,6 +1048,8 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		if err := a.userDeactivated(c, ruser.Id); err != nil {
 			return nil, err
 		}
+
+		//TODO(CIT) - remove the property values associated to this user - there is no DeleteCPAValueForUser() func
 	}
 
 	if appErr := a.invalidateUserChannelMembersCaches(c, user.Id); appErr != nil {
