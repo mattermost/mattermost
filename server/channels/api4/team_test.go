@@ -1965,7 +1965,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 				continue
 			}
 
-			require.NotEmpty(t, rteam.Email, "should have sanitized email")
+			require.NotEmpty(t, rteam.Email, "should have not sanitized email")
 			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
 	})
