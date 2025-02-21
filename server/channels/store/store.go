@@ -1034,7 +1034,7 @@ type PostPersistentNotificationStore interface {
 	DeleteByTeam(teamIds []string) error
 }
 type ChannelBookmarkStore interface {
-	ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error
+	ErrorIfBookmarkFileInfoAlreadyAttached(fileID string, channelID string) error
 	Get(Id string, includeDeleted bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Update(bookmark *model.ChannelBookmark) error
