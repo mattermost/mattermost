@@ -183,7 +183,7 @@ func TestCreateChannel(t *testing.T) {
 		require.Equal(t, "color", *createdChannel.BannerInfo.BackgroundColor)
 	})
 
-	t.Run("Can create channel with banner enabled but oot configured", func(t *testing.T) {
+	t.Run("Cannot create channel with banner enabled but not configured", func(t *testing.T) {
 		channel := &model.Channel{
 			DisplayName: "",
 			Name:        GenerateTestChannelName(),
