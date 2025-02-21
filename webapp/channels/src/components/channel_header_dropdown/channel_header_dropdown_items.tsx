@@ -30,7 +30,7 @@ import MobileChannelHeaderPlug from 'plugins/mobile_channel_header_plug';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
-import type {PluginComponent} from 'types/store/plugins';
+import type {ChannelHeaderAction} from 'types/store/plugins';
 
 import MenuItemCloseChannel from './menu_items/close_channel';
 import MenuItemCloseMessage from './menu_items/close_message';
@@ -51,7 +51,7 @@ export type Props = {
     isArchived: boolean;
     isMobile: boolean;
     penultimateViewedChannelName: string;
-    pluginMenuItems: PluginComponent[];
+    pluginMenuItems: ChannelHeaderAction[];
     isLicensedForLDAPGroups: boolean;
     isChannelBookmarksEnabled: boolean;
 }
@@ -155,7 +155,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         permissions={[channelMembersPermission]}
                     >
                         <Menu.ItemToggleModalRedux
-                            id='channelAddMembers'
+                            id='channelInviteMembers'
                             show={channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived && !isDefault && !isGroupConstrained}
                             modalId={ModalIdentifiers.CHANNEL_INVITE}
                             dialogType={ChannelInviteModal}
@@ -167,7 +167,7 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                             show={channel.type === Constants.GM_CHANNEL && !isArchived && !isGroupConstrained}
                             modalId={ModalIdentifiers.CREATE_DM_CHANNEL}
                             dialogType={MoreDirectChannels}
-                            dialogProps={{isExistingChannel: true}}
+                            dialogProps={{isExistingChannel: true, focusOriginElement: 'channel_header.menuAriaLabel'}}
                             text={localizeMessage({id: 'navbar.addMembers', defaultMessage: 'Add Members'})}
                         />
                     </ChannelPermissionGate>

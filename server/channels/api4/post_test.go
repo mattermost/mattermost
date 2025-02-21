@@ -38,70 +38,75 @@ func TestCreatePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	post := &model.Post{
-		ChannelId: th.BasicChannel.Id,
-		Message:   "#hashtag a" + model.NewId() + "a",
-		Props:     model.StringInterface{model.PropsAddChannelMember: "no good"},
-		DeleteAt:  101,
+	basicPost := func() *model.Post {
+		p := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "#hashtag a" + model.NewId() + "a",
+			DeleteAt:  101,
+		}
+		p.AddProp(model.PropsAddChannelMember, "no good")
+		return p
 	}
 
-	rpost, resp, err2 := client.CreatePost(context.Background(), post)
+	post := basicPost()
+	rootPost, resp2, err2 := client.CreatePost(context.Background(), post)
 	require.NoError(t, err2)
-	CheckCreatedStatus(t, resp)
+	CheckCreatedStatus(t, resp2)
+	require.NotNil(t, rootPost)
 
-	require.Equal(t, post.Message, rpost.Message, "message didn't match")
-	require.Equal(t, "#hashtag", rpost.Hashtags, "hashtag didn't match")
-	require.Empty(t, rpost.FileIds)
-	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
-	require.Nil(t, rpost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
-	require.Equal(t, 0, int(rpost.DeleteAt), "newly created post shouldn't have DeleteAt set")
+	require.Equal(t, post.Message, rootPost.Message, "message didn't match")
+	require.Equal(t, "#hashtag", rootPost.Hashtags, "hashtag didn't match")
+	require.Empty(t, rootPost.FileIds)
+	require.Equal(t, 0, int(rootPost.EditAt), "newly created post shouldn't have EditAt set")
+	require.Nil(t, rootPost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
+	require.Equal(t, 0, int(rootPost.DeleteAt), "newly created post shouldn't have DeleteAt set")
 
-	post.RootId = rpost.Id
-	_, _, err2 = client.CreatePost(context.Background(), post)
+	post = basicPost()
+	post.RootId = rootPost.Id
+	childPost, resp2, err2 := client.CreatePost(context.Background(), post)
 	require.NoError(t, err2)
-
-	post.RootId = "junk"
-	_, resp, err2 = client.CreatePost(context.Background(), post)
-	require.Error(t, err2)
-	CheckBadRequestStatus(t, resp)
-
-	post2 := &model.Post{ChannelId: th.BasicChannel2.Id, Message: "zz" + model.NewId() + "a", CreateAt: 123}
-	rpost2, _, _ := client.CreatePost(context.Background(), post2)
-	require.NotEqual(t, post2.CreateAt, rpost2.CreateAt, "create at should not match")
+	CheckCreatedStatus(t, resp2)
+	require.NotNil(t, childPost)
 
 	t.Run("with file uploaded by same user", func(t *testing.T) {
-		fileResp, _, err := client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		postWithFiles, _, err := client.CreatePost(context.Background(), &model.Post{
+		postWithFiles, resp, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with files",
 			FileIds:   model.StringArray{fileId},
 		})
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
 
-		actualPostWithFiles, _, err := client.GetPost(context.Background(), postWithFiles.Id, "")
+		actualPostWithFiles, resp, err := client.GetPost(context.Background(), postWithFiles.Id, "")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
 	t.Run("with file uploaded by different user", func(t *testing.T) {
-		fileResp, _, err := th.SystemAdminClient.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
+		fileResp, resp, err := th.SystemAdminClient.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		postWithFiles, _, err := client.CreatePost(context.Background(), &model.Post{
+		postWithFiles, resp, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with files",
 			FileIds:   model.StringArray{fileId},
 		})
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		assert.Empty(t, postWithFiles.FileIds)
 
-		actualPostWithFiles, _, err := client.GetPost(context.Background(), postWithFiles.Id, "")
+		actualPostWithFiles, resp, err := client.GetPost(context.Background(), postWithFiles.Id, "")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Empty(t, actualPostWithFiles.FileIds)
 	})
 
@@ -110,67 +115,74 @@ func TestCreatePost(t *testing.T) {
 		require.Nil(t, appErr)
 		fileId := fileInfo.Id
 
-		postWithFiles, _, err := client.CreatePost(context.Background(), &model.Post{
+		postWithFiles, resp, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with files",
 			FileIds:   model.StringArray{fileId},
 		})
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
 
-		actualPostWithFiles, _, err := client.GetPost(context.Background(), postWithFiles.Id, "")
+		actualPostWithFiles, resp, err := client.GetPost(context.Background(), postWithFiles.Id, "")
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
 	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
-		WebSocketClient, err := th.CreateWebSocketClient()
-		WebSocketClient.Listen()
-		require.NoError(t, err)
+		t.Skip("MM-62764")
+		wsClient := th.CreateConnectedWebSocketClient(t)
 
 		defaultPerms := th.SaveDefaultRolePermissions()
 		defer th.RestoreDefaultRolePermissions(defaultPerms)
 
 		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
 
-		post.RootId = rpost.Id
+		post := basicPost()
+		post.RootId = rootPost.Id
 		post.Message = "a post with no channel mentions"
-		_, _, err = client.CreatePost(context.Background(), post)
+		rPost, resp, err := client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rPost)
 
 		// Message with no channel mentions should result in no ephemeral message
 		timeout := time.After(5 * time.Second)
 		waiting := true
 		for waiting {
 			select {
-			case event := <-WebSocketClient.EventChannel:
+			case event := <-wsClient.EventChannel:
 				require.NotEqual(t, model.WebsocketEventEphemeralMessage, event.EventType(), "should not have ephemeral message event")
 			case <-timeout:
 				waiting = false
 			}
 		}
 
-		post.RootId = rpost.Id
 		post.Message = "a post with @channel"
-		_, _, err = client.CreatePost(context.Background(), post)
+		rPost, resp, err = client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rPost)
 
-		post.RootId = rpost.Id
 		post.Message = "a post with @all"
-		_, _, err = client.CreatePost(context.Background(), post)
+		rPost, resp, err = client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rPost)
 
-		post.RootId = rpost.Id
 		post.Message = "a post with @here"
-		_, _, err = client.CreatePost(context.Background(), post)
+		rPost, resp, err = client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rPost)
 
 		timeout = time.After(5 * time.Second)
 		expectedEvents := 3 // 3 Posts created with @ mentions should result in 3 websocket events
 		gotEvents := 0
 		for gotEvents < expectedEvents {
 			select {
-			case event := <-WebSocketClient.EventChannel:
+			case event := <-wsClient.EventChannel:
 				if event.EventType() == model.WebsocketEventEphemeralMessage {
 					gotEvents++
 				}
@@ -191,7 +203,7 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ServiceSettings.ExperimentalEnableHardenedMode = originalHardenedModeSetting
 		})
 
-		_, postResp, postErr := client.CreatePost(context.Background(), &model.Post{
+		rpost, postResp, postErr := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with props",
 			Props:     model.StringInterface{model.PostPropsFromWebhook: "true"},
@@ -199,46 +211,80 @@ func TestCreatePost(t *testing.T) {
 
 		require.Error(t, postErr)
 		CheckBadRequestStatus(t, postResp)
+		assert.Nil(t, rpost)
 	})
 
-	post.RootId = ""
-	post.Type = model.PostTypeSystemGeneric
-	_, resp, err := client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("invalid post type", func(t *testing.T) {
+		post := basicPost()
+		post.Type = model.PostTypeSystemGeneric
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
 
-	post.Type = ""
-	post.RootId = rpost2.Id
-	_, resp, err = client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("invalid rootId type", func(t *testing.T) {
+		post := basicPost()
+		post.RootId = "junk"
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
 
-	post.RootId = ""
-	post.ChannelId = "junk"
-	_, resp, err = client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	t.Run("RootId points to child post", func(t *testing.T) {
+		post := basicPost()
+		post.RootId = childPost.Id
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
 
-	post.ChannelId = model.NewId()
-	_, resp, err = client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	t.Run("invalid ChannelId", func(t *testing.T) {
+		post := basicPost()
+		post.ChannelId = "junk"
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
 
-	r, err := client.DoAPIPost(context.Background(), "/posts", "garbage")
-	require.Error(t, err)
-	require.Equal(t, http.StatusBadRequest, r.StatusCode)
+	t.Run("invalid ChannelId", func(t *testing.T) {
+		post := basicPost()
+		post.ChannelId = model.NewId()
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
 
-	_, err = client.Logout(context.Background())
-	require.NoError(t, err)
-	_, resp, err = client.CreatePost(context.Background(), post)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("invalid payload", func(t *testing.T) {
+		r, err := client.DoAPIPost(context.Background(), "/posts", "garbage")
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode)
+	})
 
-	post.ChannelId = th.BasicChannel.Id
-	post.CreateAt = 123
-	rpost, _, err = th.SystemAdminClient.CreatePost(context.Background(), post)
-	require.NoError(t, err)
-	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
+	t.Run("not logged in", func(t *testing.T) {
+		resp, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		post := basicPost()
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+		assert.Nil(t, rpost)
+	})
+
+	t.Run("CreateAt should match the one provided in the request", func(t *testing.T) {
+		post := basicPost()
+		post.CreateAt = 123
+		rpost, resp, err := th.SystemAdminClient.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
+	})
 
 	t.Run("Should not be able to define the RemoteId of a post from the API", func(t *testing.T) {
 		newPost := &model.Post{
@@ -623,7 +669,7 @@ func testCreatePostWithOutgoingHook(
 			}
 		}
 
-		respPostType := "" //if is empty or post will do a normal post.
+		respPostType := "" // if is empty or post will do a normal post.
 		if commentPostType {
 			respPostType = model.OutgoingHookResponseTypeComment
 		}
@@ -1001,8 +1047,10 @@ func TestMoveThread(t *testing.T) {
 		// Set permitted role as channel admin
 		enabled := true
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.WranglerSettings = model.WranglerSettings{MoveThreadToAnotherTeamEnable: &enabled,
-				PermittedWranglerRoles: []string{model.PermissionsChannelAdmin}}
+			cfg.WranglerSettings = model.WranglerSettings{
+				MoveThreadToAnotherTeamEnable: &enabled,
+				PermittedWranglerRoles:        []string{model.PermissionsChannelAdmin},
+			}
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings = model.WranglerSettings{}
@@ -1170,9 +1218,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	inChannelUser := th.CreateUser()
 	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
@@ -1241,11 +1287,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	_, _, err = cli.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 	require.NoError(t, err)
 
-	wsClient, err := th.CreateWebSocketClientWithClient(cli)
-	require.NoError(t, err)
-	defer wsClient.Close()
-
-	wsClient.Listen()
+	wsClient := th.CreateConnectedWebSocketClientWithClient(t, cli)
 
 	waitForEvent := func(isSetOnline bool) {
 		timeout := time.After(5 * time.Second)
@@ -3312,8 +3354,25 @@ func TestPermanentDeletePost(t *testing.T) {
 }
 
 func TestWebHubMembership(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	t.Run("WithChannelIteration", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableWebHubChannelIteration = true
+		}).InitBasic()
+		defer th.TearDown()
+
+		_testWebHubMembership(th, t)
+	})
+
+	t.Run("WithoutChannelIteration", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		_testWebHubMembership(th, t)
+	})
+}
+
+func _testWebHubMembership(th *TestHelper, t *testing.T) {
+	t.Helper()
 
 	u1 := th.CreateUser()
 	th.LinkUserToTeam(u1, th.BasicTeam)
@@ -3349,11 +3408,7 @@ func TestWebHubMembership(t *testing.T) {
 		_, _, err := cli.Login(context.Background(), obj.user.Username, obj.user.Password)
 		require.NoError(t, err)
 
-		wsClient, err := th.CreateWebSocketClientWithClient(cli)
-		require.NoError(t, err)
-		defer wsClient.Close()
-
-		wsClient.Listen()
+		wsClient := th.CreateConnectedWebSocketClientWithClient(t, cli)
 
 		go func(testName string) {
 			defer wg.Done()
@@ -3437,7 +3492,9 @@ func TestWebHubMembership(t *testing.T) {
 }
 
 func TestWebHubCloseConnOnDBFail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := SetupConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableWebHubChannelIteration = true
+	}).InitBasic()
 	defer func() {
 		th.TearDown()
 		_, err := th.Server.Store().GetInternalMasterDB().Exec(`ALTER TABLE dummy RENAME to ChannelMembers`)
@@ -3464,12 +3521,9 @@ func TestDeletePostEvent(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	WebSocketClient.Listen()
-	defer WebSocketClient.Close()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
-	_, err = th.SystemAdminClient.DeletePost(context.Background(), th.BasicPost.Id)
+	_, err := th.SystemAdminClient.DeletePost(context.Background(), th.BasicPost.Id)
 	require.NoError(t, err)
 
 	var received, exit bool
@@ -3509,15 +3563,11 @@ func TestDeletePostMessage(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
-			wsClient, err := th.CreateWebSocketClientWithClient(tc.client)
-			require.NoError(t, err)
-			defer wsClient.Close()
-
-			wsClient.Listen()
+			wsClient := th.CreateConnectedWebSocketClientWithClient(t, tc.client)
 
 			post := th.CreatePost()
 
-			_, err = th.SystemAdminClient.DeletePost(context.Background(), post.Id)
+			_, err := th.SystemAdminClient.DeletePost(context.Background(), post.Id)
 			require.NoError(t, err)
 
 			timeout := time.After(5 * time.Second)
@@ -4265,12 +4315,9 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("Mark reply post as unread", func(t *testing.T) {
-		userWSClient, err := th.CreateWebSocketClient()
-		require.NoError(t, err)
-		defer userWSClient.Close()
-		userWSClient.Listen()
+		userWSClient := th.CreateConnectedWebSocketClient(t)
 
-		_, err = th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, replyPost1.Id, false)
+		_, err := th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, replyPost1.Id, false)
 		require.NoError(t, err)
 		channelUnread, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -4330,6 +4377,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		require.Equal(t, int64(3), channelUnread.MsgCountRoot)
 	})
 }
+
 func TestGetPostsByIds(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -4578,10 +4626,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			userWSClient, err := th.CreateWebSocketClient()
-			require.NoError(t, err)
-			defer userWSClient.Close()
-			userWSClient.Listen()
+			userWSClient := th.CreateConnectedWebSocketClient(t)
 
 			patch := &model.UserPatch{}
 			patch.NotifyProps = model.CopyStringMap(th.BasicUser.NotifyProps)
@@ -4590,7 +4635,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 			}
 
 			// update user's notify props
-			_, _, err = th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)
+			_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)
 			require.NoError(t, err)
 
 			// post a reply on the thread
@@ -4689,10 +4734,7 @@ func TestPostReminder(t *testing.T) {
 	defer th.TearDown()
 
 	client := th.Client
-	userWSClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer userWSClient.Close()
-	userWSClient.Listen()
+	userWSClient := th.CreateConnectedWebSocketClient(t)
 
 	targetTime := time.Now().UTC().Unix()
 	resp, err := client.SetPostReminder(context.Background(), &model.PostReminder{

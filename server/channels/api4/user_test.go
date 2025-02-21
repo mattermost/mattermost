@@ -770,15 +770,8 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		_, _, err := guestClient.Login(context.Background(), guest.Email, guestPassword)
 		require.NoError(t, err)
 
-		guestWSClient, err := th.CreateWebSocketClientWithClient(guestClient)
-		require.NoError(t, err)
-		defer guestWSClient.Close()
-		guestWSClient.Listen()
-
-		userWSClient, err := th.CreateWebSocketClient()
-		require.NoError(t, err)
-		defer userWSClient.Close()
-		userWSClient.Listen()
+		guestWSClient := th.CreateConnectedWebSocketClientWithClient(t, guestClient)
+		userWSClient := th.CreateConnectedWebSocketClient(t)
 
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
@@ -2410,7 +2403,8 @@ func TestUserUnicodeNames(t *testing.T) {
 			Nickname:  "Ender\u2028 Wiggin",
 			Password:  "hello1",
 			Username:  "\ufeffwiggin77",
-			Roles:     model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+			Roles:     model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+		}
 
 		ruser, resp, err := client.CreateUser(context.Background(), &user)
 		require.NoError(t, err)
@@ -2655,6 +2649,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.Greater(t, len(users), 0)
 
+		require.NoError(t, th.App.Srv().Store().Post().RefreshPostStats())
 		postCount, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 		require.NoError(t, err)
 		require.Greater(t, postCount, int64(0))
@@ -2668,6 +2663,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, users, 0)
 
+		require.NoError(t, th.App.Srv().Store().Post().RefreshPostStats())
 		postCount, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 		require.NoError(t, err)
 		require.Equal(t, postCount, int64(0))
@@ -2801,25 +2797,12 @@ func TestUpdateUserActive(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = true })
 
-		webSocketClient, err := th.CreateWebSocketClient()
-		assert.NoError(t, err)
-		defer webSocketClient.Close()
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		webSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
 		resp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
-		assert.NoError(t, err)
-		defer adminWebSocketClient.Close()
-
-		adminWebSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
-		resp = <-adminWebSocketClient.ResponseChannel
-		require.Equal(t, model.StatusOk, resp.Status)
+		adminWebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
 		// Verify that both admins and regular users see the email when privacy settings allow same,
 		// and confirm event is fired for SystemAdmin and Local mode
@@ -6214,7 +6197,7 @@ func TestLoginLockout(t *testing.T) {
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 
-	//Check if lock is active
+	// Check if lock is active
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 
@@ -6236,7 +6219,7 @@ func TestLoginLockout(t *testing.T) {
 	err = th.Server.Store().User().UpdateMfaActive(th.BasicUser2.Id, false)
 	require.NoError(t, err)
 
-	//Check if lock is active
+	// Check if lock is active
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 }
@@ -6287,27 +6270,13 @@ func TestDemoteUserToGuest(t *testing.T) {
 	}, "demote a user to guest")
 
 	t.Run("websocket update user event", func(t *testing.T) {
-		webSocketClient, err := th.CreateWebSocketClient()
-		assert.NoError(t, err)
-		defer webSocketClient.Close()
-
-		webSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 		resp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
-		assert.NoError(t, err)
-		defer adminWebSocketClient.Close()
+		adminWebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
-		adminWebSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
-		resp = <-adminWebSocketClient.ResponseChannel
-		require.Equal(t, model.StatusOk, resp.Status)
-
-		_, _, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		_, _, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
 		require.NoError(t, err)
 		_, err = th.SystemAdminClient.DemoteUserToGuest(context.Background(), user.Id)
 		require.NoError(t, err)
@@ -6357,28 +6326,14 @@ func TestPromoteGuestToUser(t *testing.T) {
 	}, "promote a guest to user")
 
 	t.Run("websocket update user event", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-61736")
-		webSocketClient, err := th.CreateWebSocketClient()
-		assert.NoError(t, err)
-		defer webSocketClient.Close()
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		webSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
 		resp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, resp.Status)
 
-		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
-		assert.NoError(t, err)
-		defer adminWebSocketClient.Close()
+		adminWebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
-		adminWebSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
-		resp = <-adminWebSocketClient.ResponseChannel
-		require.Equal(t, model.StatusOk, resp.Status)
-
-		_, _, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
+		_, _, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
 		require.NoError(t, err)
 		_, err = th.SystemAdminClient.PromoteGuestToUser(context.Background(), user.Id)
 		require.NoError(t, err)
@@ -6583,17 +6538,12 @@ func TestPublishUserTyping(t *testing.T) {
 	})
 
 	t.Run("should send typing event via websocket when triggering a typing event for a user with a common channel", func(t *testing.T) {
-		webSocketClient, err := th.CreateWebSocketClient()
-		assert.NoError(t, err)
-		defer webSocketClient.Close()
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		webSocketClient.Listen()
-
-		time.Sleep(300 * time.Millisecond)
 		wsResp := <-webSocketClient.ResponseChannel
 		require.Equal(t, model.StatusOk, wsResp.Status)
 
-		_, err = th.SystemAdminClient.PublishUserTyping(context.Background(), th.BasicUser2.Id, tr)
+		_, err := th.SystemAdminClient.PublishUserTyping(context.Background(), th.BasicUser2.Id, tr)
 		require.NoError(t, err)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventTyping, func(resp *model.WebSocketEvent) {
@@ -6651,6 +6601,25 @@ func TestConvertUserToBot(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, bot)
 	})
+
+	t.Run("user cannot login after being converted to bot", func(t *testing.T) {
+		// Create a new user
+		user := th.CreateUser()
+
+		// Login as the new user to verify login works initially
+		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
+		// Convert user to bot
+		_, _, err = th.SystemAdminClient.ConvertUserToBot(context.Background(), user.Id)
+		require.NoError(t, err)
+
+		// Try to login again - should fail
+		_, resp, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestGetChannelMembersWithTeamData(t *testing.T) {
@@ -6695,6 +6664,7 @@ func TestMigrateAuthToSAML(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 }
+
 func TestUpdatePassword(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -7238,10 +7208,7 @@ func TestThreadSocketEvents(t *testing.T) {
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
-	userWSClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer userWSClient.Close()
-	userWSClient.Listen()
+	userWSClient := th.CreateConnectedWebSocketClient(t)
 
 	client := th.Client
 
@@ -7407,7 +7374,8 @@ func TestThreadSocketEvents(t *testing.T) {
 				preMentions: 2,
 				replies:     0,
 				mentions:    0,
-			}, {
+			},
+			{
 				post:        &model.Post{ChannelId: th.BasicChannel.Id, Message: "simple reply", UserId: th.BasicUser2.Id, RootId: rpost.Id},
 				preReplies:  0,
 				preMentions: 0,
@@ -8270,25 +8238,20 @@ func TestGetUsersWithInvalidEmails(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 }
+
 func TestUserUpdateEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	client1 := th.CreateClient()
 	th.LoginBasicWithClient(client1)
-	WebSocketClient, err := th.CreateWebSocketClientWithClient(client1)
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client1)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
 	client2 := th.CreateClient()
 	th.LoginBasic2WithClient(client2)
-	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
-	require.NoError(t, err)
-	defer WebSocketClient2.Close()
-	WebSocketClient2.Listen()
+	WebSocketClient2 := th.CreateConnectedWebSocketClientWithClient(t, client2)
 	resp = <-WebSocketClient2.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
@@ -8974,6 +8937,60 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 		// Attempt to revoke sessions of the primary user using a non-admin client
 		resp, err := nonAdminClient.RevokeAllSessions(context.Background(), user.Id)
 		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestSearchUsersWithMfaEnforced(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+		*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+	})
+
+	t.Run("user with MFA active can search users", func(t *testing.T) {
+		userWithMFAOK := th.BasicUser
+		secret, appErr := th.App.GenerateMfaSecret(userWithMFAOK.Id)
+		assert.Nil(t, appErr)
+
+		// Fake user has MFA enabled
+		err := th.Server.Store().User().UpdateMfaActive(userWithMFAOK.Id, true)
+		require.NoError(t, err)
+
+		err = th.Server.Store().User().UpdateMfaSecret(userWithMFAOK.Id, secret.Secret)
+		require.NoError(t, err)
+
+		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
+
+		client := th.CreateClient()
+		user, _, err := client.LoginWithMFA(context.Background(), th.BasicUser.Email, th.BasicUser.Password, fmt.Sprintf("%06d", code))
+		require.NoError(t, err)
+		assert.NotNil(t, user)
+
+		_, _, err = client.SearchUsers(context.Background(), &model.UserSearch{
+			Term: "user",
+		})
+
+		require.NoError(t, err)
+	})
+
+	t.Run("user with MFA not active can't search users", func(t *testing.T) {
+		userWithMFANotOk := th.BasicUser2
+		err := th.Server.Store().User().UpdateMfaActive(userWithMFANotOk.Id, false)
+		require.NoError(t, err)
+
+		client := th.CreateClient()
+		_, _, err = client.Login(context.Background(), userWithMFANotOk.Email, userWithMFANotOk.Password)
+		require.NoError(t, err)
+
+		_, resp, err := client.SearchUsers(context.Background(), &model.UserSearch{
+			Term: "user",
+		})
+		CheckErrorID(t, err, "api.context.mfa_required.app_error")
 		CheckForbiddenStatus(t, resp)
 	})
 }

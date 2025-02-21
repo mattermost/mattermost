@@ -23,11 +23,11 @@ describe('components/Menu', () => {
       <div
         aria-label="test-label"
         className="a11y__popup Menu"
-        role="menu"
       >
         <ul
           className="Menu__content dropdown-menu"
           onClick={[Function]}
+          role="menu"
           style={Object {}}
         >
           text
@@ -51,11 +51,11 @@ describe('components/Menu', () => {
         aria-label="test-label"
         className="a11y__popup Menu"
         id="test-id"
-        role="menu"
       >
         <ul
           className="Menu__content dropdown-menu"
           onClick={[Function]}
+          role="menu"
           style={Object {}}
         >
           text
@@ -79,11 +79,11 @@ describe('components/Menu', () => {
       <div
         aria-label="test-label"
         className="a11y__popup Menu"
-        role="menu"
       >
         <ul
           className="Menu__content dropdown-menu openLeft openUp"
           onClick={[Function]}
+          role="menu"
           style={Object {}}
         >
           text

@@ -4,6 +4,8 @@
 package storetest
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -18,4 +20,17 @@ func NewTestID() string {
 	}
 
 	return string(newID)
+}
+
+// Adds backtiks to the column name for MySQL, this is required if
+// the column name is a reserved keyword.
+//
+//	`ColumnName` -  MySQL
+//	ColumnName   -  Postgres
+func quoteColumnName(driver string, columnName string) string {
+	if driver == model.DatabaseDriverMysql {
+		return fmt.Sprintf("`%s`", columnName)
+	}
+
+	return columnName
 }
