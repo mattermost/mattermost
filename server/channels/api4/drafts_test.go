@@ -5,7 +5,6 @@ package api4
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -75,8 +74,6 @@ func TestUpsertDraft(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// try to upsert draft without config setting set to true
-	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
-	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 
 	_, resp, err = client.UpsertDraft(context.Background(), draft)
@@ -147,8 +144,6 @@ func TestGetDrafts(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// try to get drafts when config is turned off
-	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
-	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 	_, resp, err = client.GetDrafts(context.Background(), user.Id, team.Id)
 	require.Error(t, err)
