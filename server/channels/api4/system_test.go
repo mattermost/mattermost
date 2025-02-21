@@ -628,8 +628,8 @@ func TestGetAnalyticsOld(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
 	assert.Equal(t, float64(1), rows2[5].Value)
-
 	WebSocketClient.Close()
+	<-WebSocketClient.EventChannel
 
 	rows2, _, err = th.SystemAdminClient.GetAnalyticsOld(context.Background(), "standard", "")
 	require.NoError(t, err)
