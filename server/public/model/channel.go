@@ -328,12 +328,6 @@ func (o *Channel) PreSave() {
 	}
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
-
-	if o.BannerInfo == nil {
-		o.BannerInfo = &ChannelBannerInfo{
-			Enabled: NewPointer(false),
-		}
-	}
 }
 
 func (o *Channel) PreUpdate() {

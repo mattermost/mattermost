@@ -10433,6 +10433,10 @@
     "translation": "Failed to parse media incoming webhook {{.hook_id}}."
   },
   {
+    "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
+    "translation": "Channel banner can only be configured on Public and Private channels."
+  },
+  {
     "id": "web.incoming_webhook.parse.app_error",
     "translation": "Unable to parse incoming data."
   },

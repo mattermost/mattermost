@@ -397,8 +397,6 @@ func testChannelStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Channel().Save(rctx, &channel, -1)
 	require.NoError(t, nErr)
 
-	time.Sleep(100 * time.Millisecond)
-
 	channel.BannerInfo = &model.ChannelBannerInfo{
 		Enabled:         model.NewPointer(true),
 		Text:            model.NewPointer("banner text"),
@@ -494,11 +492,6 @@ func testChannelStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 
 	c1, err := ss.Channel().Get(o1.Id, false)
 	require.NoError(t, err, err)
-
-	o1.BannerInfo = &model.ChannelBannerInfo{
-		Enabled: model.NewPointer(false),
-	}
-
 	require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, c1), "invalid returned channel")
 
 	_, err = ss.Channel().Get("", false)

@@ -1,1 +1,1 @@
-ALTER TABLE channels ADD COLUMN IF NOT EXISTS bannerinfo jsonb NOT NULL DEFAULT '{}';
+ALTER TABLE channels ADD COLUMN IF NOT EXISTS bannerinfo jsonb;

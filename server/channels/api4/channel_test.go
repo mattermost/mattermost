@@ -381,13 +381,15 @@ func TestPatchChannel(t *testing.T) {
 	client := th.Client
 	team := th.BasicTeam
 
-	t.Run("base case", func(t *testing.T) {
+	t.Run("should be unable to apply a null patch", func(t *testing.T) {
 		var nullPatch *model.ChannelPatch
 
 		_, nullResp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, nullPatch)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, nullResp)
+	})
 
+	t.Run("should be able to patch values", func(t *testing.T) {
 		patch := &model.ChannelPatch{
 			Name:        new(string),
 			DisplayName: new(string),
@@ -406,13 +408,29 @@ func TestPatchChannel(t *testing.T) {
 		require.Equal(t, *patch.DisplayName, channel.DisplayName, "do not match")
 		require.Equal(t, *patch.Header, channel.Header, "do not match")
 		require.Equal(t, *patch.Purpose, channel.Purpose, "do not match")
+	})
 
-		patch.Name = nil
-		oldName := channel.Name
-		channel, _, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+	t.Run("should be able to patch with no name", func(t *testing.T) {
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		var err error
+		channel, _, err = client.CreateChannel(context.Background(), channel)
 		require.NoError(t, err)
 
-		require.Equal(t, oldName, channel.Name, "should not have updated")
+		patch := &model.ChannelPatch{
+			Header:  new(string),
+			Purpose: new(string),
+		}
+
+		oldName := channel.Name
+		patchedChannel, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+
+		require.Equal(t, oldName, patchedChannel.Name, "should not have updated")
 	})
 
 	t.Run("Test updating default channel's name and returns error", func(t *testing.T) {
@@ -663,17 +681,20 @@ func TestPatchChannel(t *testing.T) {
 
 		patch := &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
-				Enabled: model.NewPointer(true),
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("color"),
 			},
 		}
 
 		patchedChannel, resp, err := client.PatchChannel(context.Background(), dmChannel.Id, patch)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.False(t, *patchedChannel.BannerInfo.Enabled)
+		require.Error(t, err)
+		require.Equal(t, "Channel banner can only be configured on Public and Private channels.", err.Error())
+		CheckBadRequestStatus(t, resp)
+		require.Nil(t, patchedChannel)
 	})
 
-	t.Run("Cannot configure channel banner on a HM channel", func(t *testing.T) {
+	t.Run("Cannot configure channel banner on a GM channel", func(t *testing.T) {
 		client.Logout(context.Background())
 		th.LoginBasic()
 
@@ -684,14 +705,17 @@ func TestPatchChannel(t *testing.T) {
 
 		patch := &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
-				Enabled: model.NewPointer(true),
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("color"),
 			},
 		}
 
 		patchedChannel, resp, err := client.PatchChannel(context.Background(), gmChannel.Id, patch)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.False(t, *patchedChannel.BannerInfo.Enabled)
+		require.Error(t, err)
+		require.Equal(t, "Channel banner can only be configured on Public and Private channels.", err.Error())
+		CheckBadRequestStatus(t, resp)
+		require.Nil(t, patchedChannel)
 	})
 }
 
