@@ -634,7 +634,7 @@ func TestPatchChannel(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, patchedChannel.BannerInfo)
-		require.Nil(t, patchedChannel.BannerInfo.Enabled)
+		require.False(t, *patchedChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
 		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
 
@@ -670,7 +670,7 @@ func TestPatchChannel(t *testing.T) {
 		patchedChannel, resp, err := client.PatchChannel(context.Background(), dmChannel.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Nil(t, patchedChannel.BannerInfo)
+		require.False(t, *patchedChannel.BannerInfo.Enabled)
 	})
 
 	t.Run("Cannot configure channel banner on a HM channel", func(t *testing.T) {
@@ -691,7 +691,7 @@ func TestPatchChannel(t *testing.T) {
 		patchedChannel, resp, err := client.PatchChannel(context.Background(), gmChannel.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Nil(t, patchedChannel.BannerInfo)
+		require.False(t, *patchedChannel.BannerInfo.Enabled)
 	})
 }
 
