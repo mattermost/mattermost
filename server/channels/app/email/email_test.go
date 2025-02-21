@@ -4,7 +4,6 @@
 package email
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -93,12 +92,10 @@ func TestSendInviteEmails(t *testing.T) {
 		originalPort := *th.service.config().EmailSettings.SMTPPort
 		originalTimeout := *th.service.config().EmailSettings.SMTPServerTimeout
 		th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", "5432")
 			*cfg.EmailSettings.SMTPPort = "5432"
 			*cfg.EmailSettings.SMTPServerTimeout = 4
 		})
 		defer th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", originalPort)
 			*cfg.EmailSettings.SMTPPort = originalPort
 			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
@@ -136,12 +133,10 @@ func TestSendInviteEmails(t *testing.T) {
 		originalTimeout := *th.service.config().EmailSettings.SMTPServerTimeout
 		originalPort := *th.service.config().EmailSettings.SMTPPort
 		th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", "5432")
 			*cfg.EmailSettings.SMTPPort = "5432"
 			*cfg.EmailSettings.SMTPServerTimeout = 4
 		})
 		defer th.UpdateConfig(func(cfg *model.Config) {
-			os.Setenv("MM_EMAILSETTINGS_SMTPPORT", originalPort)
 			*cfg.EmailSettings.SMTPPort = originalPort
 			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})

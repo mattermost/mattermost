@@ -7124,9 +7124,6 @@ func TestUpdatePassword(t *testing.T) {
 }
 
 func TestUpdatePasswordAudit(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
 	logFile, err := os.CreateTemp("", "adv.log")
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
