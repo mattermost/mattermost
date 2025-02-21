@@ -494,6 +494,11 @@ func testChannelStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 
 	c1, err := ss.Channel().Get(o1.Id, false)
 	require.NoError(t, err, err)
+
+	o1.BannerInfo = &model.ChannelBannerInfo{
+		Enabled: model.NewPointer(false),
+	}
+
 	require.Equal(t, channelToJSON(t, &o1), channelToJSON(t, c1), "invalid returned channel")
 
 	_, err = ss.Channel().Get("", false)
@@ -7564,54 +7569,17 @@ func testMaterializedPublicChannels(t *testing.T, rctx request.CTX, ss store.Sto
 
 	// o3 is a public channel on the team that already existed in the PublicChannels table.
 	o3 := model.Channel{
-		Id:          model.NewId(),
 		TeamId:      teamID,
 		DisplayName: "Open Channel 3",
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-
-	_, execerr := s.GetMaster().NamedExec(`
-		INSERT INTO
-		    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
-		VALUES
-		    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose);
-	`, map[string]any{
-		"id":          o3.Id,
-		"deleteat":    o3.DeleteAt,
-		"teamid":      o3.TeamId,
-		"displayname": o3.DisplayName,
-		"name":        o3.Name,
-		"header":      o3.Header,
-		"purpose":     o3.Purpose,
-	})
-	require.NoError(t, execerr)
+	_, nErr = ss.Channel().Save(rctx, &o3, -1)
+	require.NoError(t, nErr)
 
 	o3.DisplayName = "Open Channel 3 - Modified"
-
-	_, execerr = s.GetMaster().NamedExec(`
-		INSERT INTO
-		    Channels(Id, CreateAt, UpdateAt, DeleteAt, TeamId, Type, DisplayName, Name, Header, Purpose, LastPostAt, LastRootPostAt, TotalMsgCount, ExtraUpdateAt, CreatorId, TotalMsgCountRoot)
-		VALUES
-				(:id, :createat, :updateat, :deleteat, :teamid, :type, :displayname, :name, :header, :purpose, :lastpostat, :lastrootpostat, :totalmsgcount, :extraupdateat, :creatorid, 0);
-	`, map[string]any{
-		"id":             o3.Id,
-		"createat":       o3.CreateAt,
-		"updateat":       o3.UpdateAt,
-		"deleteat":       o3.DeleteAt,
-		"teamid":         o3.TeamId,
-		"type":           o3.Type,
-		"displayname":    o3.DisplayName,
-		"name":           o3.Name,
-		"header":         o3.Header,
-		"purpose":        o3.Purpose,
-		"lastpostat":     o3.LastPostAt,
-		"lastrootpostat": o3.LastRootPostAt,
-		"totalmsgcount":  o3.TotalMsgCount,
-		"extraupdateat":  o3.ExtraUpdateAt,
-		"creatorid":      o3.CreatorId,
-	})
-	require.NoError(t, execerr)
+	_, err = ss.Channel().Update(rctx, &o3)
+	require.NoError(t, err)
 
 	t.Run("verify o3 INSERT converted to UPDATE", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamID, "", true)
@@ -7630,7 +7598,7 @@ func testMaterializedPublicChannels(t *testing.T, rctx request.CTX, ss store.Sto
 	_, nErr = ss.Channel().Save(rctx, &o4, -1)
 	require.NoError(t, nErr)
 
-	_, execerr = s.GetMaster().Exec(`
+	_, execerr := s.GetMaster().Exec(`
 		DELETE FROM
 		    PublicChannels
 		WHERE

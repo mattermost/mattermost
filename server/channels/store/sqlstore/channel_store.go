@@ -134,25 +134,6 @@ func channelSliceColumns(prefix string) []string {
 	}
 }
 
-func channelMemberToSlice(member *model.ChannelMember) []any {
-	resultSlice := []any{}
-	resultSlice = append(resultSlice, member.ChannelId)
-	resultSlice = append(resultSlice, member.UserId)
-	resultSlice = append(resultSlice, member.ExplicitRoles)
-	resultSlice = append(resultSlice, member.LastViewedAt)
-	resultSlice = append(resultSlice, member.MsgCount)
-	resultSlice = append(resultSlice, member.MsgCountRoot)
-	resultSlice = append(resultSlice, member.MentionCount)
-	resultSlice = append(resultSlice, member.MentionCountRoot)
-	resultSlice = append(resultSlice, member.UrgentMentionCount)
-	resultSlice = append(resultSlice, model.MapToJSON(member.NotifyProps))
-	resultSlice = append(resultSlice, member.LastUpdateAt)
-	resultSlice = append(resultSlice, member.SchemeUser)
-	resultSlice = append(resultSlice, member.SchemeAdmin)
-	resultSlice = append(resultSlice, member.SchemeGuest)
-	return resultSlice
-}
-
 func channelToSlice(channel *model.Channel) []interface{} {
 	resultSlice := []interface{}{}
 	resultSlice = append(resultSlice, channel.Id)
@@ -175,6 +156,25 @@ func channelToSlice(channel *model.Channel) []interface{} {
 	resultSlice = append(resultSlice, channel.TotalMsgCountRoot)
 	resultSlice = append(resultSlice, channel.LastRootPostAt)
 	resultSlice = append(resultSlice, channel.BannerInfo)
+	return resultSlice
+}
+
+func channelMemberToSlice(member *model.ChannelMember) []any {
+	resultSlice := []any{}
+	resultSlice = append(resultSlice, member.ChannelId)
+	resultSlice = append(resultSlice, member.UserId)
+	resultSlice = append(resultSlice, member.ExplicitRoles)
+	resultSlice = append(resultSlice, member.LastViewedAt)
+	resultSlice = append(resultSlice, member.MsgCount)
+	resultSlice = append(resultSlice, member.MsgCountRoot)
+	resultSlice = append(resultSlice, member.MentionCount)
+	resultSlice = append(resultSlice, member.MentionCountRoot)
+	resultSlice = append(resultSlice, member.UrgentMentionCount)
+	resultSlice = append(resultSlice, model.MapToJSON(member.NotifyProps))
+	resultSlice = append(resultSlice, member.LastUpdateAt)
+	resultSlice = append(resultSlice, member.SchemeUser)
+	resultSlice = append(resultSlice, member.SchemeAdmin)
+	resultSlice = append(resultSlice, member.SchemeGuest)
 	return resultSlice
 }
 
