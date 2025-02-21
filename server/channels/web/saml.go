@@ -173,6 +173,18 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	pluginContext := &plugin.Context{
+		RequestId:      c.AppContext.RequestId(),
+		SessionId:      c.AppContext.Session().Id,
+		IPAddress:      c.AppContext.IPAddress(),
+		AcceptLanguage: c.AppContext.AcceptLanguage(),
+		UserAgent:      c.AppContext.UserAgent(),
+	}
+	c.App.Channels().RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+		err := hooks.OnSAMLLogin(pluginContext, user, encodedXML)
+		return err == nil
+	}, plugin.OnSAMLLoginID)
+
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
@@ -213,17 +225,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
-
-	pluginContext := &plugin.Context{
-		RequestId:      c.AppContext.RequestId(),
-		SessionId:      c.AppContext.Session().Id,
-		IPAddress:      c.AppContext.IPAddress(),
-		AcceptLanguage: c.AppContext.AcceptLanguage(),
-		UserAgent:      c.AppContext.UserAgent(),
-	}
-	c.App.Channels().RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
-		return hooks.OnSAMLLogin(pluginContext, user) == nil
-	}, plugin.OnSAMLLoginID)
 
 	if hasRedirectURL {
 		if isMobile {

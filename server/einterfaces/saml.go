@@ -4,6 +4,7 @@
 package einterfaces
 
 import (
+	"github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -14,4 +15,5 @@ type SamlInterface interface {
 	DoLogin(c request.CTX, encodedXML string, relayState map[string]string) (*model.User, *model.AppError)
 	GetMetadata(c request.CTX) (string, *model.AppError)
 	CheckProviderAttributes(c request.CTX, SS *model.SamlSettings, ouser *model.User, patch *model.UserPatch) string
+	ValidateResponse(rctx request.CTX, encodedXML string) (*saml2.AssertionInfo, *model.AppError)
 }

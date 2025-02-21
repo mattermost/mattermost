@@ -11,6 +11,7 @@ import (
 	"net/http"
 	timePkg "time"
 
+	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -1488,4 +1489,11 @@ func (api *apiTimerLayer) SyncRolesAndMembership(syncableID string, syncableType
 	startTime := timePkg.Now()
 	api.apiImpl.SyncRolesAndMembership(syncableID, syncableType, includeRemovedMembers, since)
 	api.recordTime(startTime, "SyncRolesAndMembership", true)
+}
+
+func (api *apiTimerLayer) ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ValidateSAMLResponse(encodedXML)
+	api.recordTime(startTime, "ValidateSAMLResponse", _returnsB == nil)
+	return _returnsA, _returnsB
 }
