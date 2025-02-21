@@ -4825,11 +4825,11 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Tapahtui virhe poistettaessa OAuth2 appia."
+    "translation": "Varmennetta poistettaessa tapahtui virhe."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "Kuvien tallennuksen asetuksia ei ole tehty."
+    "translation": "Kuvien tallennustilaa ei ole määritetty."
   },
   {
     "id": "api.admin.file_read_error",
@@ -4837,7 +4837,7 @@
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Brandikuvaa ei pystytty poistamaan, ei löydy."
+    "translation": "Tuotekuvaa ei voi poistaa, ei löytynyt."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
@@ -4849,11 +4849,11 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Ei tiedostoa pyynnön kohdassa 'certificate'."
+    "translation": "Pyynnössä ei ole tiedostoa 'varmenne':n alla."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Ei tiedostoa pyynnön kohdassa 'certificate'."
+    "translation": "Pyynnössä ei ole tiedostoa 'varmenne':n alla."
   },
   {
     "id": "September",
@@ -5017,15 +5017,15 @@
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
-    "translation": "AuthData kentän asettaminen Sähköpostiksi epäonnistui."
+    "translation": "AuthData-kentän nollaaminen sähköpostiin epäonnistui."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Identity Providerilta toimitettujen metatietojen tulkinnassa sertifikaatiksi ilmeni virhe."
+    "translation": "Epäonnistuminen havaittu jäsennettäessä identiteetin tarjoajalta saatuja metadatatietoja varmenteeseen."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Metatietojen saanti Indentity Provider URL:stä epäonnistui."
+    "translation": "Metatietojen saanti identiteetintarjoajan URL-osoitteesta epäonnistui."
   },
   {
     "id": "api.admin.ldap.not_available.app_error",
@@ -5033,6 +5033,6 @@
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
-    "translation": "Virhe multiform pyynnön tulkinnassa"
+    "translation": "Virhe jäsennettäessä monimuotoista pyyntöä"
   }
 ]
