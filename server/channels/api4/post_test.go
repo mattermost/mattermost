@@ -3615,6 +3615,13 @@ func TestWebHubCloseConnOnDBFail(t *testing.T) {
 
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
 	require.NoError(t, err)
+
+	wsClient.Listen()
+	select {
+	case <-wsClient.EventChannel: // event channel should be closed on failure
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "timed out waiting for event")
+	}
 	wsClient.Close()
 
 	require.NoError(t, th.TestLogger.Flush())

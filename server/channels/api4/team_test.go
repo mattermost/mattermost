@@ -27,9 +27,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
-	if mainHelper.Options.RunParallel {
-		t.Parallel()
-	}
+	// Test cannot easily run in parallel because it relies on (and mutates) i18n package translations.
 	th := Setup(t)
 	defer th.TearDown()
 
