@@ -274,7 +274,7 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: get-test-coverage-logs
-      fullyparallel: false
+      fullyparallel: true
       enablecoverage: true
   test-mmctl:
     name: Run mmctl tests

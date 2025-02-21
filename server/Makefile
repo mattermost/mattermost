@@ -44,7 +44,7 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 # Go test coverage
 ENABLE_COVERAGE ?= false
 ifeq ($(ENABLE_COVERAGE),true)
-COVERAGE_FLAG = -coverprofile=cover.out
+COVERAGE_FLAG = -coverprofile=cover.out -covermode=atomic
 endif
 
 # mmctl
