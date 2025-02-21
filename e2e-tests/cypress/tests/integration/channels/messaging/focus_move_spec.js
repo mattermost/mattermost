@@ -142,7 +142,7 @@ function verifyFocusInAddChannelMemberModal() {
     cy.get('#channelLeaveChannel').should('be.visible');
 
     // # Click 'Add Members'
-    cy.get('#channelAddMembers').click();
+    cy.get('#channelInviteMembers').click();
 
     // * Assert that modal appears
     cy.get('#addUsersToChannelModal').should('be.visible');
