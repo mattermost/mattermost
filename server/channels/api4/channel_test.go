@@ -652,7 +652,7 @@ func TestPatchChannel(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, patchedChannel.BannerInfo)
-		require.False(t, *patchedChannel.BannerInfo.Enabled)
+		require.Nil(t, patchedChannel.BannerInfo.Enabled)
 		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
 		require.Equal(t, "color", *patchedChannel.BannerInfo.BackgroundColor)
 
