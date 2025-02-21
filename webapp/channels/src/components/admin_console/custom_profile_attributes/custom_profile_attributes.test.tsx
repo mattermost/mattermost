@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
+import {screen, fireEvent} from '@testing-library/react';
 import {act} from 'react-dom/test-utils';
 
-import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldGroupID} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -23,21 +23,34 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         unRegisterSaveAction: jest.fn(),
     };
 
-    const baseField = {type: 'text' as const, group_id: 'custom_profile_attributes' as UserPropertyFieldGroupID, create_at: 1736541716295, delete_at: 0, update_at: 0};
-    const attr1: UserPropertyField = {...baseField, id: 'attr1', name: 'Department', attrs: {ldap: 'department'}};
-    const attr2: UserPropertyField = {...baseField, id: 'attr2', name: 'Location', attrs: {ldap: 'location'}};
-    const samlAttr: UserPropertyField = {...baseField, id: 'attr3', name: 'Title', attrs: {saml: 'title'}};
+    const baseField: Omit<UserPropertyField, 'id' | 'name' | 'attrs'> = {
+        type: 'text',
+        group_id: 'custom_profile_attributes' as UserPropertyFieldGroupID,
+        create_at: 1736541716295,
+        delete_at: 0,
+        update_at: 0,
+    };
 
-    const initialState = {
+    const createAttribute = (id: string, name: string, attrs: Record<string, string>): UserPropertyField => ({
+        ...baseField,
+        id,
+        name,
+        attrs,
+    });
+
+    const attr1 = createAttribute('attr1', 'Department', {ldap: 'department'});
+    const attr2 = createAttribute('attr2', 'Location', {ldap: 'location'});
+    const samlAttr = createAttribute('attr3', 'Title', {saml: 'title'});
+
+    const createInitialState = (attributes: Record<string, UserPropertyField>) => ({
         entities: {
             general: {
-                customProfileAttributes: {
-                    attr1,
-                    attr2,
-                },
+                customProfileAttributes: attributes,
             },
         },
-    };
+    });
+
+    const initialState = createInitialState({attr1, attr2});
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -100,15 +113,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     describe('SAML attributes', () => {
-        const samlInitialState = {
-            entities: {
-                general: {
-                    customProfileAttributes: {
-                        samlAttr,
-                    },
-                },
-            },
-        };
+        const samlInitialState = createInitialState({samlAttr});
         test('should render SAML attributes with correct help text', async () => {
             (Client4.getCustomProfileAttributeFields as jest.Mock).mockImplementation(async () => {
                 return [samlAttr];
@@ -163,20 +168,12 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     test('should show warning for non-text attributes', async () => {
-        const newAttr = {...attr1, type: 'select' as UserPropertyFieldType};
-        const selectInitialState = {
-            entities: {
-                general: {
-                    customProfileAttributes: {
-                        newAttr,
-                    },
-                },
-            },
-        };
+        const selectAttr = {...attr1, type: 'select'};
+        const selectInitialState = createInitialState({selectAttr});
 
         renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
-            selectInitialState,
+            emptyInitialState,
         );
 
         const warning = await screen.findByText((content) => content.includes('This attribute will be converted to a TEXT attribute'));
@@ -218,20 +215,12 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     test('should handle empty attribute values', async () => {
-        const emptyAttr = {...attr1, attrs: {ldap: ''}};
-        const selectInitialState = {
-            entities: {
-                general: {
-                    customProfileAttributes: {
-                        emptyAttr,
-                    },
-                },
-            },
-        };
+        const emptyAttr = createAttribute('attr1', 'Department', {ldap: ''});
+        const emptyInitialState = createInitialState({emptyAttr});
 
         renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
-            selectInitialState,
+            invalidInitialState,
         );
 
         const input = await screen.findByDisplayValue('');
@@ -257,16 +246,8 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     test('should handle invalid attribute types', async () => {
-        const invalidAttr = {...attr1, type: 'invalid_type' as any};
-        const selectInitialState = {
-            entities: {
-                general: {
-                    customProfileAttributes: {
-                        invalidAttr,
-                    },
-                },
-            },
-        };
+        const invalidAttr = {...attr1, type: 'invalid_type'};
+        const invalidInitialState = createInitialState({invalidAttr});
 
         renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
