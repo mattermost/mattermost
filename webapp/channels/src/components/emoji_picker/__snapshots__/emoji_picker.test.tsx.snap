@@ -27,7 +27,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
           class="emoji-picker__search"
           data-testid="emojiInputSearch"
           id="emojiPickerSearch"
-          placeholder="Search Emoji"
+          placeholder="Search emojis"
           type="text"
           value=""
         />
@@ -38,103 +38,105 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       class="emoji-picker__categories"
       id="emojiPickerCategories"
     >
-      <a
+      <button
         aria-label="Smileys & Emotion"
-        class="emoji-picker__category emoji-picker__category--selected"
-        href="#"
+        aria-pressed="true"
+        class="style--none emoji-picker__category emoji-picker__category--selected"
       >
         <i
           class="icon-emoticon-happy-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
         aria-label="People & Body"
-        class="emoji-picker__category"
-        href="#"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-account-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
         aria-label="Animals & Nature"
-        class="emoji-picker__category"
-        href="#"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-leaf-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
         aria-label="Food & Drink"
-        class="emoji-picker__category"
-        href="#"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-food-apple"
         />
-      </a>
-      <a
+      </button>
+      <button
         aria-label="Travel & Places"
-        class="emoji-picker__category"
-        href="#"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-airplane-variant"
         />
-      </a>
-      <a
+      </button>
+      <button
         aria-label="Activities"
-        class="emoji-picker__category"
-        href="#"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-basketball"
         />
-      </a>
-      <a
+      </button>
+      <button
         aria-label="Objects"
-        class="emoji-picker__category"
-        href="#"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-lightbulb-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
         aria-label="Symbols"
-        class="emoji-picker__category"
-        href="#"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-heart-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
         aria-label="Flags"
-        class="emoji-picker__category"
-        href="#"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-flag-outline"
         />
-      </a>
-      <a
+      </button>
+      <button
         aria-label="Custom"
-        class="emoji-picker__category"
-        href="#"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-emoticon-custom-outline"
         />
-      </a>
+      </button>
     </div>
     <div
       class="emoji-picker__items"
       style="height: 290px;"
     >
       <div
+        aria-labelledby="emojiPickerSearch"
         class="emoji-picker__container"
+        role="grid"
       >
         <div
           style="overflow: visible; height: 0px; width: 0px;"

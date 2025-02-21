@@ -11,7 +11,7 @@ Object {
       aria-hidden="true"
     />
     <div
-      role="dialog"
+      role="none"
     >
       <div
         class="fade modal-backdrop"
@@ -36,7 +36,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -52,6 +51,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -63,83 +63,96 @@ Object {
             <main
               class="channel-notifications-settings-modal__body"
             >
-              <section
-                class="mm-modal-generic-section"
+              <fieldset
+                aria-labelledby="channel-notifications-settings-modal-legend"
               >
-                <div
-                  class="modalSectionHeader"
-                >
-                  <h4
-                    class="modalSectionTitle"
-                  >
-                    Mute or ignore
-                  </h4>
-                </div>
-                <div
-                  class="modalSectionContent"
+                <section
+                  class="mm-modal-generic-section"
                 >
                   <div
-                    class="mm-modal-generic-section-item"
+                    class="modalSectionHeader"
+                  >
+                    <h4
+                      class="modalSectionTitle"
+                    >
+                      <legend
+                        id="channel-notifications-settings-modal-legend"
+                        style="all: unset;"
+                      >
+                        Mute or ignore
+                      </legend>
+                    </h4>
+                  </div>
+                  <div
+                    class="modalSectionContent"
                   >
                     <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
+                      class="mm-modal-generic-section-item"
                     >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="muteChannel"
+                            id="mute-channel"
                             name="mute channel"
                             type="checkbox"
                           />
-                          Mute channel
-                        </label>
-                      </fieldset>
-                    </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
-                    </p>
-                  </div>
-                  <div
-                    class="mm-modal-generic-section-item"
-                  >
-                    <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
-                    >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="mute-channel"
+                          >
+                            Mute channel
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        Turns off notifications for this channel. You'll still see badges if you're mentioned.
+                      </p>
+                    </div>
+                    <div
+                      class="mm-modal-generic-section-item"
+                    >
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
+                      >
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="ignoreMentions"
+                            id="ignore-mentions"
                             name="ignore mentions"
                             type="checkbox"
                           />
-                          Ignore mentions for @channel, @here and @all
-                        </label>
-                      </fieldset>
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="ignore-mentions"
+                          >
+                            Ignore mentions for @channel, @here and @all
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
+                      >
+                        When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                      </p>
                     </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
-                    </p>
                   </div>
-                </div>
-              </section>
+                </section>
+              </fieldset>
               <div
                 class="channel-notifications-settings-modal__divider"
               />
@@ -188,6 +201,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -195,7 +213,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -208,7 +226,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -220,7 +238,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -270,22 +288,24 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          checked=""
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="sameMobileSettingsDesktop"
+                          id="same-mobile-settings-as-Desktop"
+                          name="same mobile settings as Desktop"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="same-mobile-settings-as-Desktop"
                         >
-                          <input
-                            checked=""
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="sameMobileSettingsDesktop"
-                            name="same mobile settings as Desktop"
-                            type="checkbox"
-                          />
                           Use the same notification settings as desktop
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -320,21 +340,23 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="autoFollowThreads"
+                          id="auto-follow-threads"
+                          name="auto follow threads"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="auto-follow-threads"
                         >
-                          <input
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="autoFollowThreads"
-                            name="auto follow threads"
-                            type="checkbox"
-                          />
                           Automatically follow threads in this channel
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -430,7 +452,7 @@ Object {
       aria-hidden="true"
     />
     <div
-      role="dialog"
+      role="none"
     >
       <div
         class="fade modal-backdrop"
@@ -455,7 +477,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -471,6 +492,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -482,83 +504,96 @@ Object {
             <main
               class="channel-notifications-settings-modal__body"
             >
-              <section
-                class="mm-modal-generic-section"
+              <fieldset
+                aria-labelledby="channel-notifications-settings-modal-legend"
               >
-                <div
-                  class="modalSectionHeader"
-                >
-                  <h4
-                    class="modalSectionTitle"
-                  >
-                    Mute or ignore
-                  </h4>
-                </div>
-                <div
-                  class="modalSectionContent"
+                <section
+                  class="mm-modal-generic-section"
                 >
                   <div
-                    class="mm-modal-generic-section-item"
+                    class="modalSectionHeader"
+                  >
+                    <h4
+                      class="modalSectionTitle"
+                    >
+                      <legend
+                        id="channel-notifications-settings-modal-legend"
+                        style="all: unset;"
+                      >
+                        Mute or ignore
+                      </legend>
+                    </h4>
+                  </div>
+                  <div
+                    class="modalSectionContent"
                   >
                     <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
+                      class="mm-modal-generic-section-item"
                     >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="muteChannel"
+                            id="mute-channel"
                             name="mute channel"
                             type="checkbox"
                           />
-                          Mute channel
-                        </label>
-                      </fieldset>
-                    </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
-                    </p>
-                  </div>
-                  <div
-                    class="mm-modal-generic-section-item"
-                  >
-                    <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
-                    >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="mute-channel"
+                          >
+                            Mute channel
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        Turns off notifications for this channel. You'll still see badges if you're mentioned.
+                      </p>
+                    </div>
+                    <div
+                      class="mm-modal-generic-section-item"
+                    >
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
+                      >
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="ignoreMentions"
+                            id="ignore-mentions"
                             name="ignore mentions"
                             type="checkbox"
                           />
-                          Ignore mentions for @channel, @here and @all
-                        </label>
-                      </fieldset>
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="ignore-mentions"
+                          >
+                            Ignore mentions for @channel, @here and @all
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
+                      >
+                        When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                      </p>
                     </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
-                    </p>
                   </div>
-                </div>
-              </section>
+                </section>
+              </fieldset>
               <div
                 class="channel-notifications-settings-modal__divider"
               />
@@ -607,6 +642,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -614,7 +654,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -627,7 +667,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -639,7 +679,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -770,21 +810,23 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="sameMobileSettingsDesktop"
+                          id="same-mobile-settings-as-Desktop"
+                          name="same mobile settings as Desktop"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="same-mobile-settings-as-Desktop"
                         >
-                          <input
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="sameMobileSettingsDesktop"
-                            name="same mobile settings as Desktop"
-                            type="checkbox"
-                          />
                           Use the same notification settings as desktop
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                   <div
@@ -804,13 +846,18 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
                           <input
                             data-testid="MobileNotification-all"
                             id="MobileNotification-all"
-                            name="MobileNotification-all"
+                            name="push"
                             type="radio"
                             value="all"
                           />
@@ -823,7 +870,7 @@ Object {
                             checked=""
                             data-testid="MobileNotification-mention"
                             id="MobileNotification-mention"
-                            name="MobileNotification-mention"
+                            name="push"
                             type="radio"
                             value="mention"
                           />
@@ -836,7 +883,7 @@ Object {
                           <input
                             data-testid="MobileNotification-none"
                             id="MobileNotification-none"
-                            name="MobileNotification-none"
+                            name="push"
                             type="radio"
                             value="none"
                           />
@@ -877,21 +924,23 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="autoFollowThreads"
+                          id="auto-follow-threads"
+                          name="auto follow threads"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="auto-follow-threads"
                         >
-                          <input
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="autoFollowThreads"
-                            name="auto follow threads"
-                            type="checkbox"
-                          />
                           Automatically follow threads in this channel
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -987,7 +1036,7 @@ Object {
       aria-hidden="true"
     />
     <div
-      role="dialog"
+      role="none"
     >
       <div
         class="fade modal-backdrop"
@@ -1012,7 +1061,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -1028,6 +1076,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -1039,83 +1088,96 @@ Object {
             <main
               class="channel-notifications-settings-modal__body"
             >
-              <section
-                class="mm-modal-generic-section"
+              <fieldset
+                aria-labelledby="channel-notifications-settings-modal-legend"
               >
-                <div
-                  class="modalSectionHeader"
-                >
-                  <h4
-                    class="modalSectionTitle"
-                  >
-                    Mute or ignore
-                  </h4>
-                </div>
-                <div
-                  class="modalSectionContent"
+                <section
+                  class="mm-modal-generic-section"
                 >
                   <div
-                    class="mm-modal-generic-section-item"
+                    class="modalSectionHeader"
+                  >
+                    <h4
+                      class="modalSectionTitle"
+                    >
+                      <legend
+                        id="channel-notifications-settings-modal-legend"
+                        style="all: unset;"
+                      >
+                        Mute or ignore
+                      </legend>
+                    </h4>
+                  </div>
+                  <div
+                    class="modalSectionContent"
                   >
                     <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
+                      class="mm-modal-generic-section-item"
                     >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="muteChannel"
+                            id="mute-channel"
                             name="mute channel"
                             type="checkbox"
                           />
-                          Mute channel
-                        </label>
-                      </fieldset>
-                    </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
-                    </p>
-                  </div>
-                  <div
-                    class="mm-modal-generic-section-item"
-                  >
-                    <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
-                    >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="mute-channel"
+                          >
+                            Mute channel
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        Turns off notifications for this channel. You'll still see badges if you're mentioned.
+                      </p>
+                    </div>
+                    <div
+                      class="mm-modal-generic-section-item"
+                    >
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
+                      >
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="ignoreMentions"
+                            id="ignore-mentions"
                             name="ignore mentions"
                             type="checkbox"
                           />
-                          Ignore mentions for @channel, @here and @all
-                        </label>
-                      </fieldset>
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="ignore-mentions"
+                          >
+                            Ignore mentions for @channel, @here and @all
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
+                      >
+                        When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                      </p>
                     </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
-                    </p>
                   </div>
-                </div>
-              </section>
+                </section>
+              </fieldset>
               <div
                 class="AlertBanner info AlertBanner--app"
                 data-testid="channelNotificationsMutedBanner"
@@ -1181,21 +1243,23 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="autoFollowThreads"
+                          id="auto-follow-threads"
+                          name="auto follow threads"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="auto-follow-threads"
                         >
-                          <input
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="autoFollowThreads"
-                            name="auto follow threads"
-                            type="checkbox"
-                          />
                           Automatically follow threads in this channel
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1291,7 +1355,7 @@ Object {
       aria-hidden="true"
     />
     <div
-      role="dialog"
+      role="none"
     >
       <div
         class="fade modal-backdrop"
@@ -1316,7 +1380,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -1332,6 +1395,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -1343,83 +1407,96 @@ Object {
             <main
               class="channel-notifications-settings-modal__body"
             >
-              <section
-                class="mm-modal-generic-section"
+              <fieldset
+                aria-labelledby="channel-notifications-settings-modal-legend"
               >
-                <div
-                  class="modalSectionHeader"
-                >
-                  <h4
-                    class="modalSectionTitle"
-                  >
-                    Mute or ignore
-                  </h4>
-                </div>
-                <div
-                  class="modalSectionContent"
+                <section
+                  class="mm-modal-generic-section"
                 >
                   <div
-                    class="mm-modal-generic-section-item"
+                    class="modalSectionHeader"
+                  >
+                    <h4
+                      class="modalSectionTitle"
+                    >
+                      <legend
+                        id="channel-notifications-settings-modal-legend"
+                        style="all: unset;"
+                      >
+                        Mute or ignore
+                      </legend>
+                    </h4>
+                  </div>
+                  <div
+                    class="modalSectionContent"
                   >
                     <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
+                      class="mm-modal-generic-section-item"
                     >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="muteChannel"
+                            id="mute-channel"
                             name="mute channel"
                             type="checkbox"
                           />
-                          Mute channel
-                        </label>
-                      </fieldset>
-                    </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
-                    </p>
-                  </div>
-                  <div
-                    class="mm-modal-generic-section-item"
-                  >
-                    <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
-                    >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="mute-channel"
+                          >
+                            Mute channel
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        Turns off notifications for this channel. You'll still see badges if you're mentioned.
+                      </p>
+                    </div>
+                    <div
+                      class="mm-modal-generic-section-item"
+                    >
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
+                      >
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="ignoreMentions"
+                            id="ignore-mentions"
                             name="ignore mentions"
                             type="checkbox"
                           />
-                          Ignore mentions for @channel, @here and @all
-                        </label>
-                      </fieldset>
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="ignore-mentions"
+                          >
+                            Ignore mentions for @channel, @here and @all
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
+                      >
+                        When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                      </p>
                     </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
-                    </p>
                   </div>
-                </div>
-              </section>
+                </section>
+              </fieldset>
               <div
                 class="channel-notifications-settings-modal__divider"
               />
@@ -1468,6 +1545,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -1475,7 +1557,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -1488,7 +1570,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -1500,7 +1582,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -1631,22 +1713,24 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          checked=""
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="sameMobileSettingsDesktop"
+                          id="same-mobile-settings-as-Desktop"
+                          name="same mobile settings as Desktop"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="same-mobile-settings-as-Desktop"
                         >
-                          <input
-                            checked=""
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="sameMobileSettingsDesktop"
-                            name="same mobile settings as Desktop"
-                            type="checkbox"
-                          />
                           Use the same notification settings as desktop
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1681,21 +1765,23 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="autoFollowThreads"
+                          id="auto-follow-threads"
+                          name="auto follow threads"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="auto-follow-threads"
                         >
-                          <input
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="autoFollowThreads"
-                            name="auto follow threads"
-                            type="checkbox"
-                          />
                           Automatically follow threads in this channel
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1791,7 +1877,7 @@ Object {
       aria-hidden="true"
     />
     <div
-      role="dialog"
+      role="none"
     >
       <div
         class="fade modal-backdrop"
@@ -1816,7 +1902,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -1832,6 +1917,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -1843,83 +1929,96 @@ Object {
             <main
               class="channel-notifications-settings-modal__body"
             >
-              <section
-                class="mm-modal-generic-section"
+              <fieldset
+                aria-labelledby="channel-notifications-settings-modal-legend"
               >
-                <div
-                  class="modalSectionHeader"
-                >
-                  <h4
-                    class="modalSectionTitle"
-                  >
-                    Mute or ignore
-                  </h4>
-                </div>
-                <div
-                  class="modalSectionContent"
+                <section
+                  class="mm-modal-generic-section"
                 >
                   <div
-                    class="mm-modal-generic-section-item"
+                    class="modalSectionHeader"
+                  >
+                    <h4
+                      class="modalSectionTitle"
+                    >
+                      <legend
+                        id="channel-notifications-settings-modal-legend"
+                        style="all: unset;"
+                      >
+                        Mute or ignore
+                      </legend>
+                    </h4>
+                  </div>
+                  <div
+                    class="modalSectionContent"
                   >
                     <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
+                      class="mm-modal-generic-section-item"
                     >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="muteChannel"
+                            id="mute-channel"
                             name="mute channel"
                             type="checkbox"
                           />
-                          Mute channel
-                        </label>
-                      </fieldset>
-                    </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
-                    </p>
-                  </div>
-                  <div
-                    class="mm-modal-generic-section-item"
-                  >
-                    <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
-                    >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="mute-channel"
+                          >
+                            Mute channel
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        Turns off notifications for this channel. You'll still see badges if you're mentioned.
+                      </p>
+                    </div>
+                    <div
+                      class="mm-modal-generic-section-item"
+                    >
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
+                      >
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="ignoreMentions"
+                            id="ignore-mentions"
                             name="ignore mentions"
                             type="checkbox"
                           />
-                          Ignore mentions for @channel, @here and @all
-                        </label>
-                      </fieldset>
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="ignore-mentions"
+                          >
+                            Ignore mentions for @channel, @here and @all
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
+                      >
+                        When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                      </p>
                     </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
-                    </p>
                   </div>
-                </div>
-              </section>
+                </section>
+              </fieldset>
               <div
                 class="channel-notifications-settings-modal__divider"
               />
@@ -1968,6 +2067,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -1975,7 +2079,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -1988,7 +2092,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -2000,7 +2104,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -2131,22 +2235,24 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          checked=""
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="sameMobileSettingsDesktop"
+                          id="same-mobile-settings-as-Desktop"
+                          name="same mobile settings as Desktop"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="same-mobile-settings-as-Desktop"
                         >
-                          <input
-                            checked=""
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="sameMobileSettingsDesktop"
-                            name="same mobile settings as Desktop"
-                            type="checkbox"
-                          />
                           Use the same notification settings as desktop
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2181,21 +2287,23 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="autoFollowThreads"
+                          id="auto-follow-threads"
+                          name="auto follow threads"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="auto-follow-threads"
                         >
-                          <input
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="autoFollowThreads"
-                            name="auto follow threads"
-                            type="checkbox"
-                          />
                           Automatically follow threads in this channel
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2291,7 +2399,7 @@ Object {
       aria-hidden="true"
     />
     <div
-      role="dialog"
+      role="none"
     >
       <div
         class="fade modal-backdrop"
@@ -2316,7 +2424,6 @@ Object {
               <h1
                 class="mm-modal-header__title"
                 id="mm-modal-header-channelNotificationModalLabel"
-                tabindex="0"
               >
                 Notification Preferences
               </h1>
@@ -2332,6 +2439,7 @@ Object {
                 class="mm-modal-header__ctr"
               >
                 <button
+                  aria-label="Close"
                   class="btn btn-icon"
                 >
                   <i
@@ -2343,83 +2451,96 @@ Object {
             <main
               class="channel-notifications-settings-modal__body"
             >
-              <section
-                class="mm-modal-generic-section"
+              <fieldset
+                aria-labelledby="channel-notifications-settings-modal-legend"
               >
-                <div
-                  class="modalSectionHeader"
-                >
-                  <h4
-                    class="modalSectionTitle"
-                  >
-                    Mute or ignore
-                  </h4>
-                </div>
-                <div
-                  class="modalSectionContent"
+                <section
+                  class="mm-modal-generic-section"
                 >
                   <div
-                    class="mm-modal-generic-section-item"
+                    class="modalSectionHeader"
+                  >
+                    <h4
+                      class="modalSectionTitle"
+                    >
+                      <legend
+                        id="channel-notifications-settings-modal-legend"
+                        style="all: unset;"
+                      >
+                        Mute or ignore
+                      </legend>
+                    </h4>
+                  </div>
+                  <div
+                    class="modalSectionContent"
                   >
                     <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
+                      class="mm-modal-generic-section-item"
                     >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="muteChannel"
+                            id="mute-channel"
                             name="mute channel"
                             type="checkbox"
                           />
-                          Mute channel
-                        </label>
-                      </fieldset>
-                    </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      Turns off notifications for this channel. You'll still see badges if you're mentioned.
-                    </p>
-                  </div>
-                  <div
-                    class="mm-modal-generic-section-item"
-                  >
-                    <div
-                      class="mm-modal-generic-section-item__content"
-                      data-testid="mm-modal-generic-section-item__content"
-                    >
-                      <fieldset
-                        class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="mute-channel"
+                          >
+                            Mute channel
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
                       >
-                        <label
-                          class="mm-modal-generic-section-item__fieldset-checkbox"
+                        Turns off notifications for this channel. You'll still see badges if you're mentioned.
+                      </p>
+                    </div>
+                    <div
+                      class="mm-modal-generic-section-item"
+                    >
+                      <div
+                        class="mm-modal-generic-section-item__content"
+                        data-testid="mm-modal-generic-section-item__content"
+                      >
+                        <div
+                          class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                         >
                           <input
                             class="mm-modal-generic-section-item__input-checkbox"
                             data-testid="ignoreMentions"
+                            id="ignore-mentions"
                             name="ignore mentions"
                             type="checkbox"
                           />
-                          Ignore mentions for @channel, @here and @all
-                        </label>
-                      </fieldset>
+                          <label
+                            class="mm-modal-generic-section-item__fieldset-checkbox"
+                            for="ignore-mentions"
+                          >
+                            Ignore mentions for @channel, @here and @all
+                          </label>
+                        </div>
+                      </div>
+                      <p
+                        class="mm-modal-generic-section-item__description"
+                        data-testid="mm-modal-generic-section-item__description"
+                      >
+                        When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+                      </p>
                     </div>
-                    <p
-                      class="mm-modal-generic-section-item__description"
-                      data-testid="mm-modal-generic-section-item__description"
-                    >
-                      When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
-                    </p>
                   </div>
-                </div>
-              </section>
+                </section>
+              </fieldset>
               <div
                 class="channel-notifications-settings-modal__divider"
               />
@@ -2468,6 +2589,11 @@ Object {
                       <fieldset
                         class="mm-modal-generic-section-item__fieldset-radio"
                       >
+                        <legend
+                          class="hidden-label"
+                        >
+                          Notify me about…
+                        </legend>
                         <label
                           class="mm-modal-generic-section-item__label-radio"
                         >
@@ -2475,7 +2601,7 @@ Object {
                             checked=""
                             data-testid="desktopNotification-all"
                             id="desktopNotification-all"
-                            name="desktopNotification-all"
+                            name="desktop"
                             type="radio"
                             value="all"
                           />
@@ -2488,7 +2614,7 @@ Object {
                           <input
                             data-testid="desktopNotification-mention"
                             id="desktopNotification-mention"
-                            name="desktopNotification-mention"
+                            name="desktop"
                             type="radio"
                             value="mention"
                           />
@@ -2500,7 +2626,7 @@ Object {
                           <input
                             data-testid="desktopNotification-none"
                             id="desktopNotification-none"
-                            name="desktopNotification-none"
+                            name="desktop"
                             type="radio"
                             value="none"
                           />
@@ -2631,22 +2757,24 @@ Object {
                       class="mm-modal-generic-section-item__content"
                       data-testid="mm-modal-generic-section-item__content"
                     >
-                      <fieldset
+                      <div
                         class="mm-modal-generic-section-item__fieldset-checkbox-ctr"
                       >
+                        <input
+                          checked=""
+                          class="mm-modal-generic-section-item__input-checkbox"
+                          data-testid="sameMobileSettingsDesktop"
+                          id="same-mobile-settings-as-Desktop"
+                          name="same mobile settings as Desktop"
+                          type="checkbox"
+                        />
                         <label
                           class="mm-modal-generic-section-item__fieldset-checkbox"
+                          for="same-mobile-settings-as-Desktop"
                         >
-                          <input
-                            checked=""
-                            class="mm-modal-generic-section-item__input-checkbox"
-                            data-testid="sameMobileSettingsDesktop"
-                            name="same mobile settings as Desktop"
-                            type="checkbox"
-                          />
                           Use the same notification settings as desktop
                         </label>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>

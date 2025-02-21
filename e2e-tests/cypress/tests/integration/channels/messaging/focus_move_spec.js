@@ -68,7 +68,7 @@ describe('Messaging', () => {
         cy.get('#quickSwitchHint').should('be.visible');
 
         // # Type channel name and select it
-        cy.findByRole('textbox', {name: 'quick switch input'}).type(testChannelName).wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        cy.findByRole('combobox', {name: 'quick switch input'}).type(testChannelName).wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
         // * Verify that it redirected into selected channel
         cy.get('#channelHeaderTitle').should('be.visible').should('contain', testChannelName);
@@ -142,7 +142,7 @@ function verifyFocusInAddChannelMemberModal() {
     cy.get('#channelLeaveChannel').should('be.visible');
 
     // # Click 'Add Members'
-    cy.get('#channelAddMembers').click();
+    cy.get('#channelInviteMembers').click();
 
     // * Assert that modal appears
     cy.get('#addUsersToChannelModal').should('be.visible');

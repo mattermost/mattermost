@@ -131,6 +131,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                     onClick={() => this.hideSkinTonePicker(skin)}
                 >
                     <img
+                        alt={skinTone.label.defaultMessage}
                         src={imgTrans}
                         className={spriteClassName}
                     />
@@ -144,6 +145,9 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                         className='skin-tones__close-icon style--none'
                         onClick={() => this.hideSkinTonePicker(this.props.userSkinTone)}
                         aria-label={closeButtonLabel}
+                        aria-expanded={this.state.pickerExtended}
+                        tabIndex={0}
+                        aria-controls='skin-tones-icons'
                     >
                         <CloseIcon
                             size={16}
@@ -156,7 +160,12 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                         />
                     </div>
                 </div>
-                <div className='skin-tones__icons'>
+                <div
+                    className='skin-tones__icons'
+                    id='skin-tones-icons'
+                    aria-label='Skin tone icons'
+                    role='region'
+                >
                     {choices}
                 </div>
             </>
@@ -173,8 +182,6 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
 
         return (
             <WithTooltip
-                id='emojiPickerSkinTooltip'
-                placement='top'
                 title={expandButtonLabel}
             >
                 <button
@@ -182,6 +189,8 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                     className='style--none skin-tones__icon skin-tones__expand-icon'
                     onClick={this.showSkinTonePicker}
                     aria-label={expandButtonLabel}
+                    aria-controls='skin-tones-icons'
+                    aria-expanded={this.state.pickerExtended}
                 >
                     <img
                         alt={'emoji skin tone picker'}
@@ -201,8 +210,11 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                 timeout={200}
             >
                 <div className={classNames('skin-tones', {'skin-tones--active': this.state.pickerExtended})}>
-                    <div className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerExtended})}>
-                        {this.state.pickerExtended ? this.extended() : this.collapsed()}
+                    <div
+                        className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerExtended})}
+                        aria-orientation='horizontal'
+                    >
+                        {this.state.pickerExtended ? this.extended() : this.collapsed() }
                     </div>
                 </div>
             </CSSTransition>

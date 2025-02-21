@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -66,19 +67,31 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filterMasked, _ := strconv.ParseBool(r.URL.Query().Get("remove_masked"))
+	filterDefaults, _ := strconv.ParseBool(r.URL.Query().Get("remove_defaults"))
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+
+	filterOpts := model.ConfigFilterOptions{
+		GetConfigOptions: model.GetConfigOptions{
+			RemoveDefaults: filterDefaults,
+			RemoveMasked:   filterMasked,
+		},
+	}
 	if c.App.Channels().License().IsCloud() {
-		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
-		if jsonErr != nil {
-			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-			return
-		}
-		w.Write(js)
+		filterOpts.TagFilters = append(filterOpts.TagFilters, model.FilterTag{
+			TagType: model.ConfigAccessTagType,
+			TagName: model.ConfigAccessTagCloudRestrictable,
+		})
+	}
+	m, err := model.FilterConfig(cfg, filterOpts)
+	if err != nil {
+		c.Err = model.NewAppError("getConfig", "api.filter_config_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+
+	if err := json.NewEncoder(w).Encode(m); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

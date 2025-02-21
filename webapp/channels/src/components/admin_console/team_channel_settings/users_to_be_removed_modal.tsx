@@ -82,7 +82,7 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
             onHide={handleHide}
             onExited={onExited}
             id='confirmModal'
-            role='dialog'
+            role='none'
             aria-labelledby='confirmModalLabel'
         >
             <Modal.Header closeButton={true}>

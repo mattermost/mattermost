@@ -1,21 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MenuList from '@mui/material/MenuList';
 import React from 'react';
 import styled from 'styled-components';
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
 
+import {MenuItem} from 'components/menu/menu_item';
 import Toggle from 'components/toggle';
-import MenuGroup from 'components/widgets/menu/menu_group';
-import menuItem from 'components/widgets/menu/menu_items/menu_item';
-
-type ItemProps = {
-    ariaLabel: string;
-    isSelected: boolean;
-    onClick: () => void;
-    text: React.ReactNode;
-}
 
 type ToggleProps = {
     ariaLabel?: string;
@@ -27,39 +20,19 @@ type ToggleProps = {
     toggled: boolean;
 }
 
-const ItemButton = styled.button`
-    display: flex !important;
-    align-items: center !important;
-`;
-
-const Wrapper = styled.div`
+const Wrapper = styled(MenuItem)`
     cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
 
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.1);
-    }
-`;
-
-const ToggleMain = styled.div`
-    display: flex !important;
-    align-items: center !important;
-    padding: 8px 16px 4px;
-`;
-
-const Text = styled.div`
-    padding-left: 10px;
+    }>
 `;
 
 const Description = styled.div`
-    padding: 0 44px 6px;
     font-size: 12px;
     color: rgba(var(--center-channel-color-rgb), 0.75);
-`;
-
-const ToggleWrapper = styled.div`
-    flex-shrink: 0;
-    width: 32px;
-    margin-left: auto;
+    max-width: 200px;
+    text-wrap: wrap;
 `;
 
 const StyledCheckIcon = styled(CheckIcon)`
@@ -68,7 +41,7 @@ const StyledCheckIcon = styled(CheckIcon)`
     fill: var(--button-bg);
 `;
 
-const Menu = styled.ul`
+const Menu = styled(MenuList)`
     &&& {
         display: block;
         position: relative;
@@ -83,25 +56,48 @@ const Menu = styled.ul`
     }
 `;
 
-function Item({
-    onClick,
-    ariaLabel,
-    text,
-    isSelected,
-}: ItemProps) {
-    return (
-        <ItemButton
-            aria-label={ariaLabel}
-            className='style--none'
-            onClick={onClick}
-        >
-            {text && <span className='MenuItem__primary-text'>{text}</span>}
-            {isSelected && (
-                <StyledCheckIcon size={18}/>
-            )}
-        </ItemButton>
-    );
-}
+const Header = styled.h4`
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 20px;
+    padding: 14px 20px;
+    text-align: left;
+    color: var(--center-channel-color);
+`;
+
+const Footer = styled.div`
+    align-items: center;
+    display: flex;
+    font-family: Open Sans;
+    justify-content: flex-end;
+    padding: 16px;
+    gap: 8px;
+`;
+
+const UrgentIcon = styled(AlertOutlineIcon)`
+    fill: rgb(var(--semantic-color-danger));
+`;
+
+const ImportantIcon = styled(AlertCircleOutlineIcon)`
+    fill: rgb(var(--semantic-color-info));
+`;
+
+const StandardIcon = styled(MessageTextOutlineIcon)`
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
+`;
+
+const AcknowledgementIcon = styled(CheckCircleOutlineIcon)`
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
+`;
+
+const PersistentNotificationsIcon = styled(BellRingOutlineIcon)`
+    fill: rgba(var(--center-channel-color-rgb), 0.75);
+`;
 
 function ToggleItem({
     ariaLabel,
@@ -116,33 +112,34 @@ function ToggleItem({
         <Wrapper
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
-            role='button'
-        >
-            <ToggleMain>
-                {icon}
-                <Text>
+            leadingElement={icon}
+            tabIndex={-1}
+            role='menuitemcheckbox'
+            aria-checked={toggled}
+            aria-label={ariaLabel}
+            trailingElements={<>
+                <Toggle
+                    ariaLabel={ariaLabel}
+                    size='btn-sm'
+                    disabled={disabled}
+                    onToggle={onClick}
+                    toggled={toggled}
+                    toggleClassName='btn-toggle-primary'
+                    tabIndex={-1}
+                />
+            </>}
+            labels={<>
+                <div>
                     {text}
-                </Text>
-                <ToggleWrapper>
-                    <Toggle
-                        aria-label={ariaLabel}
-                        size='btn-sm'
-                        disabled={disabled}
-                        onToggle={onClick}
-                        toggled={toggled}
-                        toggleClassName='btn-toggle-primary'
-                    />
-                </ToggleWrapper>
-            </ToggleMain>
-            <Description>
-                {description}
-            </Description>
-        </Wrapper>
+                </div>
+                <Description>
+                    {description}
+                </Description>
+            </>}
+        />
     );
 }
 
-const MenuItem = menuItem(Item);
-
-export {MenuItem, ToggleItem, MenuGroup};
+export {MenuItem, ToggleItem, StyledCheckIcon, Header, UrgentIcon, ImportantIcon, StandardIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer};
 
 export default Menu;

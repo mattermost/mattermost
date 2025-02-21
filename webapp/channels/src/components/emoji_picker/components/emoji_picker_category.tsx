@@ -38,20 +38,18 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
 
     return (
         <WithTooltip
-            id={`emojiPickerCategoryTooltip-${category.name}`}
-            placement='bottom'
             title={
                 <FormattedMessage {...category.label}/>
             }
         >
-            <a
-                className={className}
-                href='#'
+            <button
+                aria-pressed={selected}
+                className={classNames('style--none', className)}
                 onClick={handleClick}
                 aria-label={intl.formatMessage(category.label)}
             >
                 <i className={category.iconClassName}/>
-            </a>
+            </button>
         </WithTooltip>
     );
 }
