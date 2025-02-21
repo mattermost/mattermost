@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, fireEvent} from '@testing-library/react';
+import React from 'react';
 import {act} from 'react-dom/test-utils';
 
-import type {UserPropertyField, UserPropertyFieldGroupID} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -168,12 +168,12 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     test('should show warning for non-text attributes', async () => {
-        const selectAttr = {...attr1, type: 'select'};
+        const selectAttr = {...attr1, type: 'select' as UserPropertyFieldType};
         const selectInitialState = createInitialState({selectAttr});
 
         renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
-            emptyInitialState,
+            selectInitialState,
         );
 
         const warning = await screen.findByText((content) => content.includes('This attribute will be converted to a TEXT attribute'));
@@ -220,7 +220,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
 
         renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
-            invalidInitialState,
+            emptyInitialState,
         );
 
         const input = await screen.findByDisplayValue('');
@@ -246,12 +246,12 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     test('should handle invalid attribute types', async () => {
-        const invalidAttr = {...attr1, type: 'invalid_type'};
+        const invalidAttr = {...attr1, type: 'invalid_type' as any};
         const invalidInitialState = createInitialState({invalidAttr});
 
         renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
-            selectInitialState,
+            invalidInitialState,
         );
 
         const warning = await screen.findByText((content) => content.includes('This attribute will be converted to a TEXT attribute'));
