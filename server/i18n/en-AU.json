@@ -10421,10 +10421,6 @@
     "translation": "Unable to count the number of fields for the custom profile attribute group"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": ""
-  },
-  {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
     "translation": "Invalid client side user ID: {{.Id}}"
   },
