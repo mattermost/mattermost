@@ -56,6 +56,7 @@ export type DispatchProps = {
         autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
         updateRhsState: (rhsState: string) => void;
         getMorePostsForSearch: (teamId: string) => void;
+        getMoreOmnisearchForSearch: () => void;
         openRHSSearch: () => void;
         getMoreFilesForSearch: (teamId: string) => void;
         filterFilesSearchByExt: (extensions: string[]) => void;

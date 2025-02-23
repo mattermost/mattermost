@@ -5,10 +5,11 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
 import type {PostList, PostSearchResults} from '@mattermost/types/posts';
-import type {SearchParameter} from '@mattermost/types/search';
+import type {SearchParameter, OmniSearchResult} from '@mattermost/types/search';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
@@ -116,6 +117,19 @@ export function searchPosts(teamId: string, terms: string, isOrSearch: boolean, 
     return searchPostsWithParams(teamId, {terms, is_or_search: isOrSearch, include_deleted_channels: includeDeletedChannels, page: 0, per_page: WEBAPP_SEARCH_PER_PAGE});
 }
 
+export function getMoreOmnisearchForSearch(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const teamId = getCurrentTeamId(getState());
+        const {params, isOmniSearchAtEnd} = getState().entities.search.current[teamId];
+        if (!isOmniSearchAtEnd) {
+            const newParams = Object.assign({}, params);
+            newParams.page += 1;
+            return dispatch(searchInOmniSearch(newParams));
+        }
+        return {data: true};
+    };
+}
+
 export function getMorePostsForSearch(teamId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const {params, isEnd} = getState().entities.search.current[teamId || 'ALL_TEAMS'];
@@ -132,6 +146,7 @@ export function clearSearch(): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: SearchTypes.REMOVE_SEARCH_POSTS});
         dispatch({type: SearchTypes.REMOVE_SEARCH_FILES});
+        dispatch({type: SearchTypes.REMOVE_SEARCH_OMNISEARCH});
 
         return {data: true};
     };
@@ -177,6 +192,47 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
         ], 'SEARCH_FILE_BATCH'));
 
         return {data: files};
+    };
+}
+
+export function searchInOmniSearch(params: SearchParameter): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const teamId = getCurrentTeamId(getState());
+        const isGettingMore = params.page > 0;
+        dispatch({
+            type: SearchTypes.SEARCH_OMNISEARCH_REQUEST,
+            isGettingMore,
+        });
+
+        let results: OmniSearchResult[];
+        try {
+            results = await Client4.searchInOmniSearch(params);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch(batchActions([
+            {
+                type: SearchTypes.RECEIVED_OMNISEARCH_RESULTS,
+                data: results,
+                isGettingMore,
+            },
+            {
+                type: SearchTypes.RECEIVED_SEARCH_TERM,
+                data: {
+                    teamId,
+                    params,
+                    isOmniSearchAtEnd: results.length === 0,
+                },
+            },
+            {
+                type: SearchTypes.SEARCH_OMNISEARCH_SUCCESS,
+            },
+        ], 'SEARCH_OMNISEARCH_BATCH'));
+
+        return {data: results};
     };
 }
 
