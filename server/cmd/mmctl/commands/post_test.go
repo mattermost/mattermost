@@ -5,10 +5,12 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -30,7 +32,30 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		cmd.Flags().String("message", msgArg, "")
 
 		err := postCreateCmdF(s.client, cmd, []string{"", msgArg})
-		s.Require().EqualError(err, "Unable to find channel ''")
+		s.Require().EqualError(err, "unable to find channel \"\"")
+	})
+
+	s.Run("no user arg specified", func() {
+		msgArg := "some text"
+		wrongUserArg := "@"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.EXPECT().GetMe(context.TODO(), "").Times(1)
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), "", "").Times(1)
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), "", "").
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), "", "").Times(1)
+
+		err := postCreateCmdF(s.client, cmd, []string{wrongUserArg, msgArg})
+		s.Require().EqualError(err, fmt.Errorf("unable to find user %q", wrongUserArg).Error())
 	})
 
 	s.Run("wrong reply msg", func() {
@@ -102,6 +127,54 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 			Times(1)
 
 		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("create a dm", func() {
+		msgArg := "some direct message"
+		userArg := "@some-user"
+		userFromArg := "some-user"
+		mockUser := model.User{Username: userFromArg, Id: uuid.New()}
+		mockDMChannel := model.Channel{
+			Type:      model.ChannelTypeDirect,
+			CreatorId: model.Me,
+		}
+
+		mockPost := model.Post{Message: msgArg}
+		data, err := mockPost.ToJSON()
+		s.Require().NoError(err)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.EXPECT().GetMe(context.TODO(), "").Return(&model.User{
+			Id: model.Me,
+		}, &model.Response{}, nil).Times(1)
+
+		s.client.EXPECT().
+			GetUserByEmail(context.TODO(), userFromArg, "").Times(1)
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userFromArg, "").
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), userFromArg, "").Return(&mockUser, &model.Response{}, nil).Times(1)
+
+		s.client.
+			EXPECT().CreateDirectChannel(context.TODO(), model.Me, mockUser.Id).
+			Return(&mockDMChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			Return(nil, nil).
+			Times(1)
+
+		err = postCreateCmdF(s.client, cmd, []string{userArg, msgArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
