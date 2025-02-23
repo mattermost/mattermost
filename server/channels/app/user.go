@@ -2922,3 +2922,12 @@ func (a *App) UserIsFirstAdmin(rctx request.CTX, user *model.User) bool {
 
 	return true
 }
+
+func (a *App) ResetPasswordFailedAttempts(c request.CTX, user *model.User) *model.AppError {
+	err := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
+	if err != nil {
+		return model.NewAppError("ResetPasswordFailedAttempts", "app.user.reset_password_failed_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
