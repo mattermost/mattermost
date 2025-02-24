@@ -5295,6 +5295,10 @@
     "translation": "invalid id property for group."
   },
   {
+    "id": "app.group.license_error",
+    "translation": "LDAP license required."
+  },
+  {
     "id": "app.group.no_rows",
     "translation": "no matching group found"
   },
@@ -6657,6 +6661,14 @@
   {
     "id": "app.role.save.invalid_role.app_error",
     "translation": "The role was not valid."
+  },
+  {
+    "id": "app.saml.disabled.app_error",
+    "translation": "SAML not configured."
+  },
+  {
+    "id": "app.saml.license_error",
+    "translation": "SAML license required."
   },
   {
     "id": "app.save_config.app_error",

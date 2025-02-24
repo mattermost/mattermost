@@ -9,7 +9,7 @@ import {General} from '../constants';
 import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 
 export function isSyncableSource(source: string): boolean {
-    return source === GroupSource.Ldap || source.startsWith(PluginGroupSourcePrefix.Plugin);
+    return source.toLowerCase() === GroupSource.Ldap || source.toLowerCase().startsWith(PluginGroupSourcePrefix.Plugin);
 }
 
 export function filterGroupsMatchingTerm(groups: Group[], term: string): Group[] {
