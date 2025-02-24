@@ -171,7 +171,7 @@ export function getGroups(opts: GetGroupsParams) {
     });
 }
 
-export function getGroupsNotAssociatedToTeam(teamID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, source = GroupSource.Ldap, includeSyncableSources = false) {
+export function getGroupsNotAssociatedToTeam(teamID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, source: GroupSource | string = GroupSource.Ldap, includeSyncableSources = false) {
     return bindClientFunc({
         clientFunc: Client4.getGroupsNotAssociatedToTeam,
         onSuccess: [GroupTypes.RECEIVED_GROUPS],
@@ -186,7 +186,7 @@ export function getGroupsNotAssociatedToTeam(teamID: string, q = '', page = 0, p
     });
 }
 
-export function getGroupsNotAssociatedToChannel(channelID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, filterParentTeamPermitted = false, source = GroupSource.Ldap, includeSyncableSources = false) {
+export function getGroupsNotAssociatedToChannel(channelID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, filterParentTeamPermitted = false, source: GroupSource | string = GroupSource.Ldap, includeSyncableSources = false) {
     return bindClientFunc({
         clientFunc: Client4.getGroupsNotAssociatedToChannel,
         onSuccess: [GroupTypes.RECEIVED_GROUPS],
