@@ -166,18 +166,18 @@ func (s *Server) onAuditError(err error) {
 func (a *App) AddAuditLogCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
 	file, err := fileData.Open()
 	if err != nil {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("AddAuditLogCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("AddAuditLogCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	err = a.Srv().platform.SetConfigFile(AuditCertificateFilename, data)
 	if err != nil {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("AddAuditLogCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	cfg := a.Config().Clone()
