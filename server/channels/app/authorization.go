@@ -210,20 +210,20 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 		return true
 	}
 
-	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
-		user, err := a.GetUser(userID)
-		if err != nil {
-			return false
-		}
-
-		if user.IsSystemAdmin() {
-			return false
-		}
-
-		return true
+	if !a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
+		return false
 	}
 
-	return false
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return false
+	}
+
+	if user.IsSystemAdmin() {
+		return false
+	}
+
+	return true
 }
 
 func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Session, userID string) bool {
