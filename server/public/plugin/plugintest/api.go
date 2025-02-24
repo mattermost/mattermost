@@ -4817,11 +4817,6 @@ func (_m *API) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, erro
 	return r0, r1
 }
 
-// SyncRolesAndMembership provides a mock function with given fields: syncableID, syncableType, includeRemovedMembers, since
-func (_m *API) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64) {
-	_m.Called(syncableID, syncableType, includeRemovedMembers, since)
-}
-
 // SyncSharedChannel provides a mock function with given fields: channelID
 func (_m *API) SyncSharedChannel(channelID string) error {
 	ret := _m.Called(channelID)

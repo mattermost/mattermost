@@ -394,12 +394,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		lastJob, _ := c.App.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
-		var since int64
-		if lastJob != nil {
-			since = lastJob.StartAt
-		}
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false, since)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
 	})
 
 	w.WriteHeader(http.StatusCreated)
@@ -584,12 +579,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
-		lastJob, _ := c.App.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
-		var since int64
-		if lastJob != nil {
-			since = lastJob.StartAt
-		}
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false, since)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
 	})
 
 	b, err := json.Marshal(groupSyncable)
@@ -651,12 +641,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.Srv().Go(func() {
-		lastJob, _ := c.App.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
-		var since int64
-		if lastJob != nil {
-			since = lastJob.StartAt
-		}
-		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false, since)
+		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
 	})
 
 	auditRec.Success()
@@ -1040,13 +1025,6 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	includeSyncableSources := r.URL.Query().Get("include_syncable_sources") == "true"
 
-	var sources []model.GroupSource
-	var sourcePrefixes []model.GroupSource
-	if includeSyncableSources {
-		sources = model.GetSyncableGroupSources()
-		sourcePrefixes = model.GetSyncableGroupSourcePrefixes()
-	}
-
 	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
 		teamID = id
 	}
@@ -1066,9 +1044,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If they don't specify a source and custom groups are disabled, ensure they only get ldap groups in the response
+	// If they don't specify a source and custom groups are disabled, ensure they only get the other sources
 	if !*c.App.Config().ServiceSettings.EnableCustomGroups {
-		source = model.GroupSourceLdap
+		includeSyncableSources = true
 	}
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
@@ -1087,8 +1065,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeTimezones:          includeTimezones,
 		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
 		IncludeArchived:           includeArchived,
-		Sources:                   sources,
-		SourcePrefixes:            sourcePrefixes,
+		IncludeSyncableSources:    includeSyncableSources,
 	}
 
 	if teamID != "" {

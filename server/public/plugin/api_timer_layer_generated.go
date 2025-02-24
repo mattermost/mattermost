@@ -1485,12 +1485,6 @@ func (api *apiTimerLayer) GetGroups(page, perPage int, opts model.GroupSearchOpt
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64) {
-	startTime := timePkg.Now()
-	api.apiImpl.SyncRolesAndMembership(syncableID, syncableType, includeRemovedMembers, since)
-	api.recordTime(startTime, "SyncRolesAndMembership", true)
-}
-
 func (api *apiTimerLayer) ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.ValidateSAMLResponse(encodedXML)

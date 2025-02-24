@@ -1305,81 +1305,81 @@ type API interface {
 	//
 	// @tag Group
 	// @tag User
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 
 	// UpsertGroupMembers adds multiple users to a group or updates their existing memberships.
 	//
 	// @tag Group
 	// @tag User
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
 
 	// GetGroupByRemoteID gets a group by its remote ID.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 
 	// CreateGroup creates a new group.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	CreateGroup(group *model.Group) (*model.Group, *model.AppError)
 
 	// UpdateGroup updates a group.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
 
 	// DeleteGroup soft deletes a group.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	DeleteGroup(groupID string) (*model.Group, *model.AppError)
 
 	// RestoreGroup restores a soft deleted group.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	RestoreGroup(groupID string) (*model.Group, *model.AppError)
 
 	// DeleteGroupMember removes a user from a group.
 	//
 	// @tag Group
 	// @tag User
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 
 	// GetGroupSyncable gets a group syncable.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 
 	// GetGroupSyncables gets all group syncables for the given group.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)
 
 	// UpsertGroupSyncable creates or updates a group syncable.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 
 	// UpdateGroupSyncable updates a group syncable.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 
 	// DeleteGroupSyncable deletes a group syncable.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 
 	// UpdateUserRoles updates the role for a user.
@@ -1398,22 +1398,15 @@ type API interface {
 	// GetGroups returns a list of all groups with the given options and restrictions.
 	//
 	// @tag Group
-	// Minimum server version: 10.5
+	// Minimum server version: 10.7
 	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError)
-
-	// SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
-	// syncable.
-	//
-	// @tag Group
-	// Minimum server version: 10.5
-	SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64)
 
 	// ValidateSAMLResponse validates a SAML response.
 	// Requires SAML feature to be licensed and enabled.
 	//
 	// @tag User
 	// @tag SAML
-	// Minimum server version: 10.6
+	// Minimum server version: 10.7
 	ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, *model.AppError)
 }
 

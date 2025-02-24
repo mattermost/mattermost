@@ -399,6 +399,6 @@ type Hooks interface {
 
 	// OnSAMLLogin is invoked after a successful SAML login.
 	//
-	// Minimum server version: 10.6
+	// Minimum server version: 10.7
 	OnSAMLLogin(c *Context, user *model.User, encodedXML string) error
 }

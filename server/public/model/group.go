@@ -153,11 +153,8 @@ type GroupSearchOpts struct {
 	// Only return archived groups
 	FilterArchived bool
 
-	// Sources is a list of specific group sources to filter by
-	Sources []GroupSource
-
-	// SourcePrefixes is a list of group source prefixes to filter by
-	SourcePrefixes []GroupSource
+	// IncludeSyncableSources filters the groups to only those that are syncable
+	IncludeSyncableSources bool
 }
 
 type GetGroupOpts struct {

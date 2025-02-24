@@ -7114,36 +7114,6 @@ func (s *apiRPCServer) GetGroups(args *Z_GetGroupsArgs, returns *Z_GetGroupsRetu
 	return nil
 }
 
-type Z_SyncRolesAndMembershipArgs struct {
-	A string
-	B model.GroupSyncableType
-	C bool
-	D int64
-}
-
-type Z_SyncRolesAndMembershipReturns struct {
-}
-
-func (g *apiRPCClient) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64) {
-	_args := &Z_SyncRolesAndMembershipArgs{syncableID, syncableType, includeRemovedMembers, since}
-	_returns := &Z_SyncRolesAndMembershipReturns{}
-	if err := g.client.Call("Plugin.SyncRolesAndMembership", _args, _returns); err != nil {
-		log.Printf("RPC call to SyncRolesAndMembership API failed: %s", err.Error())
-	}
-
-}
-
-func (s *apiRPCServer) SyncRolesAndMembership(args *Z_SyncRolesAndMembershipArgs, returns *Z_SyncRolesAndMembershipReturns) error {
-	if hook, ok := s.impl.(interface {
-		SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool, since int64)
-	}); ok {
-		hook.SyncRolesAndMembership(args.A, args.B, args.C, args.D)
-	} else {
-		return encodableError(fmt.Errorf("API SyncRolesAndMembership called but not implemented."))
-	}
-	return nil
-}
-
 type Z_ValidateSAMLResponseArgs struct {
 	A string
 }

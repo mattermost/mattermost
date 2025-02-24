@@ -269,7 +269,7 @@ func (u *UserService) UpdateRoles(userID, newRoles string) (*model.User, error) 
 //
 // @tag User
 // @tag SAML
-// Minimum server version: 10.6
+// Minimum server version: 10.7
 func (u *UserService) ValidateSAMLResponse(encodedXML string) (*saml2.AssertionInfo, error) {
 	info, appErr := u.api.ValidateSAMLResponse(encodedXML)
 	return info, normalizeAppErr(appErr)
