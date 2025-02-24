@@ -96,7 +96,7 @@ Cypress.Commands.add('goToDm', (username) => {
     // # Start typing part of a username that matches previously created users
     cy.get('#selectItems input').typeWithForce(username);
     cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
-    cy.findByRole('textbox', {name: 'Search for people'}).
+    cy.findByRole('combobox', {name: 'Search for people'}).
         typeWithForce(username).
         wait(TIMEOUTS.ONE_SEC).
         typeWithForce('{enter}');

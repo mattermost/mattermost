@@ -50,7 +50,7 @@ export function makeUserASystemRole(testUsers, role) {
     cy.findByRole('button', {name: 'Add People'}).click().wait(TIMEOUTS.HALF_SEC);
 
     // # Type in user name
-    cy.findByRole('textbox', {name: 'Search for people'}).typeWithForce(`${testUsers[role].email}`);
+    cy.findByRole('combobox', {name: 'Search for people'}).typeWithForce(`${testUsers[role].email}`);
 
     // # Find the user and click on him
     cy.get('#multiSelectList').should('be.visible').children().first().click({force: true});

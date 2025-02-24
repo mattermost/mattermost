@@ -4,7 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
-import type {ValueType} from 'react-select';
+import type {OnChangeValue} from 'react-select';
 
 import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
@@ -149,7 +149,7 @@ export default function ChannelNotificationsModal(props: Props) {
         </>
     );
 
-    const handleChangeForMessageNotificationSoundSelect = (selectedOption: ValueType<Option>) => {
+    const handleChangeForMessageNotificationSoundSelect = (selectedOption: OnChangeValue<Option, boolean>) => {
         stopTryNotificationRing();
 
         if (selectedOption && 'value' in selectedOption) {
