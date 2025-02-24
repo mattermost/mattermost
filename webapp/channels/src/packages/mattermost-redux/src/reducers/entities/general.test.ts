@@ -93,13 +93,13 @@ describe('reducers.entities.general', () => {
             expect(actualState.customProfileAttributes).toEqual(expectedState);
         });
 
-        it('CUSTOM_PROFILE_ATTRIBUTES_FIELD_PATCHED', () => {
+        it('CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED', () => {
             const testAttributeOne = {id: '123', name: 'test attribute', type: 'text'};
             const state = {[testAttributeOne.id]: testAttributeOne};
 
             const renamedAttributeOne = {...testAttributeOne, name: 'renamed attribute'};
             const action = {
-                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_FIELD_PATCHED,
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
                 data: renamedAttributeOne,
             };
             const expectedState = {[testAttributeOne.id]: renamedAttributeOne} as ReducerState['customProfileAttributes'];

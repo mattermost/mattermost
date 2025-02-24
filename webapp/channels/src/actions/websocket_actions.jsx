@@ -37,7 +37,7 @@ import {
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
-import {setServerVersion, getClientConfig} from 'mattermost-redux/actions/general';
+import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
 import {
     getCustomEmojiForReaction,
@@ -284,6 +284,9 @@ export function reconnect() {
             handler();
         }
     });
+
+    // Refresh custom profile attributes on reconnect
+    dispatch(getCustomProfileAttributeFields());
 
     if (state.websocket.lastDisconnectAt) {
         dispatch(checkForModifiedUsers());

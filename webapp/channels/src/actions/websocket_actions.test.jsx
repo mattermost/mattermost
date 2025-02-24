@@ -4,6 +4,7 @@
 import {CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
+import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
@@ -62,6 +63,11 @@ jest.mock('mattermost-redux/actions/channel_categories', () => ({
 jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
     ...jest.requireActual('mattermost-redux/actions/status_profile_polling'),
     batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({type: ''})),
+}));
+
+jest.mock('mattermost-redux/actions/general', () => ({
+    ...jest.requireActual('mattermost-redux/actions/general'),
+    getCustomProfileAttributeFields: jest.fn(() => ({type: 'CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED'})),
 }));
 
 jest.mock('mattermost-redux/actions/groups', () => ({
@@ -668,6 +674,11 @@ describe('reconnect', () => {
     test('should call fetchAllMyTeamsChannels when socket reconnects', () => {
         reconnect();
         expect(fetchAllMyTeamsChannels).toHaveBeenCalled();
+    });
+
+    test('should reload custom profile attribute fields on reconnect', () => {
+        reconnect();
+        expect(getCustomProfileAttributeFields).toHaveBeenCalled();
     });
 });
 
