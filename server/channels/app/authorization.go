@@ -211,6 +211,15 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 	}
 
 	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
+		user, err := a.GetUser(userID)
+		if err != nil {
+			return false
+		}
+
+		if user.IsSystemAdmin() && !a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return false
+		}
+
 		return true
 	}
 
