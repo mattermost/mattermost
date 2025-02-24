@@ -131,7 +131,7 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
-		t.Skip("MM-62764")
+		// t.Skip("MM-62764")
 		wsClient := th.CreateConnectedWebSocketClient(t)
 
 		defaultPerms := th.SaveDefaultRolePermissions()
@@ -148,7 +148,7 @@ func TestCreatePost(t *testing.T) {
 		require.NotNil(t, rPost)
 
 		// Message with no channel mentions should result in no ephemeral message
-		timeout := time.After(5 * time.Second)
+		timeout := time.After(2 * time.Second)
 		waiting := true
 		for waiting {
 			select {
