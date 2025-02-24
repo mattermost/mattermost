@@ -172,7 +172,7 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                         ),
                     }}
                 />
-            )
+            );
         }
 
         if (this.props.source?.startsWith(PluginGroupSourcePrefix.Plugin)) {

@@ -197,7 +197,7 @@ export function getGroupsNotAssociatedToChannel(channelID: string, q = '', page 
             perPage,
             filterParentTeamPermitted,
             source,
-            includeSyncableSources
+            includeSyncableSources,
         ],
     });
 }

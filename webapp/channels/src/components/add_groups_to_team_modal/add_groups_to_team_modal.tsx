@@ -7,8 +7,8 @@ import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
-import type {Group, SyncablePatch} from '@mattermost/types/groups';
-import {GroupSource, SyncableType} from '@mattermost/types/groups';
+import type {Group, SyncablePatch, GroupSource} from '@mattermost/types/groups';
+import {SyncableType} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
