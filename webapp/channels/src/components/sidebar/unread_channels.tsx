@@ -42,10 +42,15 @@ export default function UnreadChannels({
         return null;
     }
 
+    const unreadsTranslatedMessage = intl.formatMessage({id: 'sidebar.types.unreads', defaultMessage: 'UNREADS'});
+
     return (
         <div className='SidebarChannelGroup dropDisabled a11y__section'>
-            <SidebarCategoryHeaderStatic displayName={intl.formatMessage({id: 'sidebar.types.unreads', defaultMessage: 'UNREADS'})}>
-                <SidebarCategoryGenericMenu id='unreads'>
+            <SidebarCategoryHeaderStatic displayName={unreadsTranslatedMessage}>
+                <SidebarCategoryGenericMenu
+                    id='unreads'
+                    name={unreadsTranslatedMessage.toLowerCase()}
+                >
                     <MarkAsReadMenuItem
                         id={'unreads'}
                         handleViewCategory={handleViewCategory}
