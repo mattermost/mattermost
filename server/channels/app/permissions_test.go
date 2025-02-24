@@ -25,6 +25,9 @@ func (tw testWriter) Write(p []byte) (int, error) {
 }
 
 func TestExportPermissions(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -92,6 +95,9 @@ func TestExportPermissions(t *testing.T) {
 }
 
 func TestImportPermissions(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -169,6 +175,9 @@ func TestImportPermissions(t *testing.T) {
 }
 
 func TestImportPermissions_idempotentScheme(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -211,6 +220,9 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 }
 
 func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -252,6 +264,9 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 }
 
 func TestMigration(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 

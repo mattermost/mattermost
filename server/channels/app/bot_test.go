@@ -15,6 +15,9 @@ import (
 )
 
 func TestCreateBot(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("invalid bot", func(t *testing.T) {
 		t.Run("relative to user", func(t *testing.T) {
 			th := Setup(t).InitBasic()
@@ -116,6 +119,9 @@ func TestCreateBot(t *testing.T) {
 }
 
 func TestEnsureBot(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("ensure bot should pass if already exist bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -190,6 +196,9 @@ func TestEnsureBot(t *testing.T) {
 }
 
 func TestPatchBot(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("invalid patch for user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -306,6 +315,9 @@ func TestPatchBot(t *testing.T) {
 }
 
 func TestGetBot(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -376,6 +388,9 @@ func TestGetBot(t *testing.T) {
 }
 
 func TestGetBots(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).DeleteBots()
 	defer th.TearDown()
 
@@ -586,6 +601,9 @@ func TestGetBots(t *testing.T) {
 }
 
 func TestUpdateBotActive(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("unknown bot", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -631,6 +649,9 @@ func TestUpdateBotActive(t *testing.T) {
 }
 
 func TestPermanentDeleteBot(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -649,6 +670,9 @@ func TestPermanentDeleteBot(t *testing.T) {
 }
 
 func TestDisableUserBots(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -710,6 +734,9 @@ func TestDisableUserBots(t *testing.T) {
 }
 
 func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -727,7 +754,8 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Nickname: "nn_sysadmin1",
 		Password: "hello1",
 		Username: "un_sysadmin1",
-		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+	}
 	_, err := th.App.CreateUser(th.Context, &sysadmin1)
 	require.Nil(t, err, "failed to create user")
 	_, err = th.App.UpdateUserRoles(th.Context, sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
@@ -738,7 +766,8 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Nickname: "nn_sysadmin2",
 		Password: "hello1",
 		Username: "un_sysadmin2",
-		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
+		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
+	}
 	_, err = th.App.CreateUser(th.Context, &sysadmin2)
 	require.Nil(t, err, "failed to create user")
 	_, err = th.App.UpdateUserRoles(th.Context, sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
@@ -846,6 +875,9 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 }
 
 func TestConvertUserToBot(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("invalid user", func(t *testing.T) {
 		t.Run("invalid user id", func(t *testing.T) {
 			th := Setup(t).InitBasic()
@@ -904,6 +936,9 @@ func TestConvertUserToBot(t *testing.T) {
 }
 
 func TestGetSystemBot(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("An error should be returned if there are no sysadmins in the instance", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

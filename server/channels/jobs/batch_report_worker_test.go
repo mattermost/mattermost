@@ -20,17 +20,24 @@ type ReportMockApp struct{}
 func (rma *ReportMockApp) SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError {
 	return nil
 }
+
 func (rma *ReportMockApp) CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) *model.AppError {
 	return nil
 }
+
 func (rma *ReportMockApp) SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError {
 	return nil
 }
+
 func (rma *ReportMockApp) CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError {
 	return nil
 }
 
 func TestBatchReportWorker(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
+
 	setupBatchWorker := func(
 		t *testing.T,
 		th *TestHelper,
@@ -83,6 +90,10 @@ func TestBatchReportWorker(t *testing.T) {
 	}
 
 	t.Run("should finish when the report is done, incrementing file count along the way", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
+
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -114,6 +125,9 @@ func TestBatchReportWorker(t *testing.T) {
 	})
 
 	t.Run("should fail job when get data throws an error", func(t *testing.T) {
+		if mainHelper.Options.RunParallel {
+			t.Parallel()
+		}
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 

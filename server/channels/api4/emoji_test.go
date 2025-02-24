@@ -22,6 +22,9 @@ import (
 )
 
 func TestCreateEmoji(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -42,7 +45,7 @@ func TestCreateEmoji(t *testing.T) {
 	emojiHeight := app.MaxEmojiHeight * 2
 	// check that emoji gets resized correctly, respecting proportions, and is of expected type
 	checkEmojiFile := func(id, expectedImageType string) {
-		path, _ := fileutils.FindDir("data")
+		path := *th.App.Config().FileSettings.Directory
 		file, fileErr := os.Open(filepath.Join(path, "/emoji/"+id+"/image"))
 		require.NoError(t, fileErr)
 		defer file.Close()
@@ -212,6 +215,9 @@ func TestCreateEmoji(t *testing.T) {
 }
 
 func TestGetEmojiList(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -281,6 +287,9 @@ func TestGetEmojiList(t *testing.T) {
 }
 
 func TestGetEmojisByNames(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -353,6 +362,9 @@ func TestGetEmojisByNames(t *testing.T) {
 }
 
 func TestDeleteEmoji(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -382,7 +394,7 @@ func TestDeleteEmoji(t *testing.T) {
 	_, _, err = client.GetEmoji(context.Background(), newEmoji.Id)
 	require.Error(t, err, "expected error fetching deleted emoji")
 
-	//Admin can delete other users emoji
+	// Admin can delete other users emoji
 	newEmoji, _, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.NoError(t, err)
 
@@ -397,17 +409,17 @@ func TestDeleteEmoji(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	//Try to delete non-existing emoji
+	// Try to delete non-existing emoji
 	resp, err = client.DeleteEmoji(context.Background(), model.NewId())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	//Try to delete without Id
+	// Try to delete without Id
 	resp, err = client.DeleteEmoji(context.Background(), "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	//Try to delete my custom emoji without permissions
+	// Try to delete my custom emoji without permissions
 	newEmoji, _, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.NoError(t, err)
 
@@ -417,7 +429,7 @@ func TestDeleteEmoji(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 
-	//Try to delete other user's custom emoji without DELETE_EMOJIS permissions
+	// Try to delete other user's custom emoji without DELETE_EMOJIS permissions
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
@@ -444,7 +456,7 @@ func TestDeleteEmoji(t *testing.T) {
 	require.NoError(t, err)
 	th.LoginBasic()
 
-	//Try to delete other user's custom emoji without DELETE_OTHERS_EMOJIS permissions
+	// Try to delete other user's custom emoji without DELETE_OTHERS_EMOJIS permissions
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
@@ -465,7 +477,7 @@ func TestDeleteEmoji(t *testing.T) {
 	require.NoError(t, err)
 	th.LoginBasic()
 
-	//Try to delete other user's custom emoji with permissions
+	// Try to delete other user's custom emoji with permissions
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
@@ -488,7 +500,7 @@ func TestDeleteEmoji(t *testing.T) {
 	require.NoError(t, err)
 	th.LoginBasic()
 
-	//Try to delete my custom emoji with permissions at team level
+	// Try to delete my custom emoji with permissions at team level
 	newEmoji, _, err = client.CreateEmoji(context.Background(), emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	require.NoError(t, err)
 
@@ -499,7 +511,7 @@ func TestDeleteEmoji(t *testing.T) {
 	th.AddPermissionToRole(model.PermissionDeleteEmojis.Id, model.SystemUserRoleId)
 	th.RemovePermissionFromRole(model.PermissionDeleteEmojis.Id, model.TeamUserRoleId)
 
-	//Try to delete other user's custom emoji with permissions at team level
+	// Try to delete other user's custom emoji with permissions at team level
 	emoji = &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
@@ -523,6 +535,9 @@ func TestDeleteEmoji(t *testing.T) {
 }
 
 func TestGetEmoji(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -551,6 +566,9 @@ func TestGetEmoji(t *testing.T) {
 }
 
 func TestGetEmojiByName(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -581,6 +599,9 @@ func TestGetEmojiByName(t *testing.T) {
 }
 
 func TestGetEmojiImage(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -676,6 +697,9 @@ func TestGetEmojiImage(t *testing.T) {
 }
 
 func TestSearchEmoji(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -758,6 +782,9 @@ func TestSearchEmoji(t *testing.T) {
 }
 
 func TestAutocompleteEmoji(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client

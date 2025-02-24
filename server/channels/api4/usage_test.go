@@ -15,6 +15,9 @@ import (
 )
 
 func TestGetPostsUsage(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("unauthenticated users can not access", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -54,6 +57,9 @@ func TestGetPostsUsage(t *testing.T) {
 }
 
 func TestGetStorageUsage(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("unauthenticated users cannot access", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -69,6 +75,9 @@ func TestGetStorageUsage(t *testing.T) {
 }
 
 func TestGetTeamsUsage(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("unauthenticated users can not access", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()

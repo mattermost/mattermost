@@ -14,6 +14,9 @@ import (
 )
 
 func TestGetAncillaryPermissions(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
