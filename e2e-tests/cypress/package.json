@@ -101,5 +101,8 @@
     "uniq-meta": "grep -r \"^// $META:\" cypress | grep -ow '@\\w*' | sort | uniq",
     "check": "eslint --ext .js,.ts . --quiet --cache",
     "fix": "eslint --ext .js,.ts . --quiet --fix --cache"
+  },
+  "dependencies": {
+    "cypress-real-events": "^1.14.0"
   }
 }
