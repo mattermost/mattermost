@@ -8,6 +8,11 @@ import type {GroupChannel, GroupSyncablesState, GroupTeam, Group} from '@matterm
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {GroupTypes} from 'mattermost-redux/action_types';
 
+interface GroupMemberInfo {
+    group_id: string;
+    user_id: string;
+}
+
 function syncables(state: Record<string, GroupSyncablesState> = {}, action: MMReduxAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_GROUP_TEAMS: {
@@ -242,6 +247,46 @@ function groups(state: Record<string, Group> = {}, action: MMReduxAction) {
         }
 
         return nextState;
+    }
+    case GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP: {
+        const dataInfo: GroupMemberInfo = action.data;
+
+        const group = state[dataInfo.group_id];
+
+        if (Array.isArray(group?.member_ids)) {
+            const newMemberIds = new Set(group.member_ids);
+            newMemberIds.delete(dataInfo.user_id);
+            const newGroup = {...group,
+                member_ids: [...newMemberIds],
+                member_count: newMemberIds.size,
+            };
+            return {
+                ...state,
+                [group.id]: newGroup,
+            };
+        }
+
+        return state;
+    }
+    case GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP: {
+        const {group_id: groupId, user_id: userId}: GroupMemberInfo = action.data;
+
+        const group = state[groupId];
+
+        if (Array.isArray(group?.member_ids)) {
+            const newMemberIds = new Set(group.member_ids);
+            newMemberIds.add(userId);
+            const newGroup = {...group,
+                member_ids: [...newMemberIds],
+                member_count: newMemberIds.size,
+            };
+            return {
+                ...state,
+                [group.id]: newGroup,
+            };
+        }
+
+        return state;
     }
     default:
         return state;
