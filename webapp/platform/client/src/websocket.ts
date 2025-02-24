@@ -205,6 +205,12 @@ export default class WebSocketClient {
             this.closeCallback?.(this.connectFailCount);
             this.closeListeners.forEach((listener) => listener(this.connectFailCount));
 
+            // Make sure we stop pinging if the connection is closed
+            if (this.pingInterval) {
+                clearInterval(this.pingInterval);
+                this.pingInterval = null;
+            }
+
             // If we've failed a bunch of connections then start backing off
             let retryTime = this.config.minWebSocketRetryTime;
             if (this.connectFailCount > this.config.maxWebSocketFails) {
