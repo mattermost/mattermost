@@ -80,7 +80,7 @@ tags:
       #### Session Token
 
 
-      Make an HTTP POST to `your-mattermost-url.com/api/v4/users/login` with a JSON body indicating the user’s `login_id`, `password` and optionally the MFA `token`. The `login_id` can be an email, username or an AD/LDAP ID depending on the system's configuration.
+      Make an HTTP POST to `your-mattermost-url.com/api/v4/users/login` with a JSON body indicating the user's `login_id`, `password` and optionally the MFA `token`. The `login_id` can be an email, username or an AD/LDAP ID depending on the system's configuration.
 
 
       ```
@@ -561,6 +561,8 @@ tags:
     description: Endpoints related to export files.
   - name: metrics
     description: Endpoints related to metrics, including the Client Performance Monitoring feature.
+  - name: audit_logs
+    description: Endpoints for managing audit log certificates and configuration.
 x-tagGroups:
   - name: Overview
     tags:
@@ -618,6 +620,7 @@ x-tagGroups:
       - reports
       - custom profile attributes
       - metrics
+      - audit_logs
 servers:
   - url: http://your-mattermost-url.com
   - url: https://your-mattermost-url.com
