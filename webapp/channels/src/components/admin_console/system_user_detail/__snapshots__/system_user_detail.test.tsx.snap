@@ -766,6 +766,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
             </button>
             <button
               class="manageUserSettingsBtn btn btn-tertiary"
+              id="manageUserSettingsBtn"
             >
               Manage User Settings
             </button>
