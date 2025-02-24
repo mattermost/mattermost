@@ -202,7 +202,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 	if userID == "" {
 		return false
 	}
-	if session.IsUnrestricted() {
+	if session.IsUnrestricted() || a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 		return true
 	}
 
@@ -216,7 +216,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 			return false
 		}
 
-		if user.IsSystemAdmin() && !a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+		if user.IsSystemAdmin() {
 			return false
 		}
 
