@@ -104,6 +104,11 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 this.props.goToLastViewedChannel();
             }
         }
+
+        // If we're restricting direct messages and the value is not yet set, fetch it
+        if (this.props.canRestrictDirectMessage && this.props.restrictDirectMessage === undefined) {
+            this.props.fetchIsRestrictedDM(this.props.channelId);
+        }
     }
 
     render() {
@@ -159,6 +164,35 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         >
                             <FormattedMessage
                                 id='center_panel.archived.closeChannel'
+                                defaultMessage='Close Channel'
+                            />
+                        </button>
+                    </div>
+                </div>
+            );
+        } else if (this.props.restrictDirectMessage) {
+            createPost = (
+                <div
+                    className='post-create__container'
+                    id='post-create'
+                >
+                    <div
+                        id='noSharedTeamMessage'
+                        className='channel-archived__message'
+                    >
+                        <FormattedMessage
+                            id='channelView.noSharedTeam'
+                            defaultMessage='You no longer have any teams in common with this user. New messages cannot be posted.'
+                            values={{
+                                b: (chunks: string) => <b>{chunks}</b>,
+                            }}
+                        />
+                        <button
+                            className='btn btn-primary channel-archived__close-btn'
+                            onClick={this.onClickCloseChannel}
+                        >
+                            <FormattedMessage
+                                id='center_panel.noSharedTeam.closeChannel'
                                 defaultMessage='Close Channel'
                             />
                         </button>
