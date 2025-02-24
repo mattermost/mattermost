@@ -655,7 +655,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		return appErr
 	}
 
-	if group.Source != model.GroupSourceLdap {
+	if !group.IsSyncable() {
 		return model.NewAppError("Api4.linkGroupSyncable", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 	}
 
@@ -1023,6 +1023,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	source := c.Params.GroupSource
 
+	includeSyncableSources := r.URL.Query().Get("include_syncable_sources") == "true"
+
 	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
 		teamID = id
 	}
@@ -1042,9 +1044,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If they don't specify a source and custom groups are disabled, ensure they only get ldap groups in the response
+	// If they don't specify a source and custom groups are disabled, ensure they only get the other sources
 	if !*c.App.Config().ServiceSettings.EnableCustomGroups {
-		source = model.GroupSourceLdap
+		includeSyncableSources = true
 	}
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
@@ -1063,6 +1065,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeTimezones:          includeTimezones,
 		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
 		IncludeArchived:           includeArchived,
+		IncludeSyncableSources:    includeSyncableSources,
 	}
 
 	if teamID != "" {
@@ -1458,6 +1461,10 @@ func licensedAndConfiguredForGroupBySource(app *app.App, source model.GroupSourc
 	}
 
 	if source == model.GroupSourceLdap && !*lic.Features.LDAPGroups {
+		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+	}
+
+	if strings.HasPrefix(string(source), string(model.GroupSourcePluginPrefix)) && !*lic.Features.LDAPGroups {
 		return model.NewAppError("", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 

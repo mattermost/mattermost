@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -171,6 +172,18 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		})
 	}
+
+	pluginContext := &plugin.Context{
+		RequestId:      c.AppContext.RequestId(),
+		SessionId:      c.AppContext.Session().Id,
+		IPAddress:      c.AppContext.IPAddress(),
+		AcceptLanguage: c.AppContext.AcceptLanguage(),
+		UserAgent:      c.AppContext.UserAgent(),
+	}
+	c.App.Channels().RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+		err := hooks.OnSAMLLogin(pluginContext, user, encodedXML)
+		return err == nil
+	}, plugin.OnSAMLLoginID)
 
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
