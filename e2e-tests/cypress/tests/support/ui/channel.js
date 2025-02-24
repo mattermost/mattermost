@@ -55,6 +55,19 @@ Cypress.Commands.add('uiAddUsersToCurrentChannel', (usernameList) => {
     }
 });
 
+Cypress.Commands.add('uiInviteUsersToCurrentChannel', (usernameList) => {
+    if (usernameList.length) {
+        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelInviteMembers').click();
+        cy.get('#addUsersToChannelModal').should('be.visible');
+        usernameList.forEach((username) => {
+            cy.get('#selectItems input').typeWithForce(`@${username}{enter}`);
+        });
+        cy.get('#saveItems').click();
+        cy.get('#addUsersToChannelModal').should('not.exist');
+    }
+});
+
 Cypress.Commands.add('uiArchiveChannel', () => {
     cy.get('#channelHeaderTitle').click();
     cy.get('#channelArchiveChannel').click();

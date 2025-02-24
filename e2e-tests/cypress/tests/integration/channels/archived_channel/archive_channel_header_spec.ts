@@ -72,7 +72,8 @@ describe('Archive channel header spec', () => {
         cy.get('#channelNotificationPreferences').should('be.visible');
 
         // # Close the channel dropdown menu
-        cy.get('body').type('{esc}{esc}');
+        // cy.get('body').typeWithForce('{esc}{esc}');
+        cy.get('body').click();
 
         // # Archive the channel
         cy.uiArchiveChannel();
