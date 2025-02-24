@@ -181,6 +181,24 @@ func (_m *DraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(crea
 	return r0, r1, r2
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userId
+func (_m *DraftStore) PermanentDeleteByUser(userId string) error {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Upsert provides a mock function with given fields: d
 func (_m *DraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 	ret := _m.Called(d)
