@@ -33,7 +33,7 @@ jobs:
       - update-initial-status
     steps:
       - name: cd/configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials@4fc4975a852c8cd99761e2de1f4ba73402e44dd9 # v4.0.3
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID }}
@@ -83,7 +83,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
 
       - name: cd/setup-cosign
-        uses: sigstore/cosign-installer@c56c2d3e59e4281cc41dea2217323ba5694b171e # v3.8.0
+        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a # v3.8.1
         with:
           cosign-release: v${{ env.COSIGN_VERSION }}
 
