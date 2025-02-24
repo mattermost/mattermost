@@ -1920,21 +1920,21 @@ export function handleCustomAttributeValuesUpdated(msg) {
 
 export function handleCustomAttributesCreated(msg) {
     return {
-        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_CREATED,
+        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED,
         data: msg.data.field,
     };
 }
 
 export function handleCustomAttributesUpdated(msg) {
     return {
-        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_PATCHED,
+        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
         data: msg.data.field,
     };
 }
 
 export function handleCustomAttributesDeleted(msg) {
     return {
-        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_DELETED,
+        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
         data: msg.data.field_id,
     };
 }

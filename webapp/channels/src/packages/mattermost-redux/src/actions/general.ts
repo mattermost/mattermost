@@ -46,7 +46,7 @@ export function getLicenseConfig() {
 export function getCustomProfileAttributeFields() {
     return bindClientFunc({
         clientFunc: Client4.getCustomProfileAttributeFields,
-        onSuccess: [GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_RECEIVED],
+        onSuccess: [GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED],
     });
 }
 

@@ -52,11 +52,11 @@ describe('reducers.entities.general', () => {
             expect(actualState.firstAdminVisitMarketplaceStatus).toEqual(expectedState);
         });
 
-        it('CUSTOM_PROFILE_ATTRIBUTES_RECEIVED, empty initial state', () => {
+        it('CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED, empty initial state', () => {
             const state = {};
             const testAttributeOne = {id: '123', name: 'test attribute', type: 'text'};
             const action = {
-                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_RECEIVED,
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED,
                 data: [testAttributeOne],
             };
             const expectedState = {[testAttributeOne.id]: testAttributeOne} as ReducerState['customProfileAttributes'];
@@ -64,7 +64,7 @@ describe('reducers.entities.general', () => {
             expect(actualState.customProfileAttributes).toEqual(expectedState);
         });
 
-        it('CUSTOM_PROFILE_ATTRIBUTES_RECEIVED, attributes are completely replaced', () => {
+        it('CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED, attributes are completely replaced', () => {
             const testAttributeOne = {id: '123', name: 'test attribute', type: 'text'};
             const testAttributeTwo = {id: '456', name: 'test attribute two', type: 'text'};
             const state = {[testAttributeOne.id]: testAttributeOne, [testAttributeTwo.id]: testAttributeTwo};
@@ -72,7 +72,7 @@ describe('reducers.entities.general', () => {
             const updatedAttributeOne = {id: '123', name: 'new name value', type: 'text'};
 
             const action = {
-                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_RECEIVED,
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED,
                 data: [updatedAttributeOne],
             };
             const expectedState = {[updatedAttributeOne.id]: updatedAttributeOne};
@@ -81,11 +81,11 @@ describe('reducers.entities.general', () => {
             expect(actualState.customProfileAttributes).toEqual(expectedState);
         });
 
-        it('CUSTOM_PROFILE_ATTRIBUTES_CREATED', () => {
+        it('CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED', () => {
             const state = {};
             const testAttributeOne = {id: '123', name: 'test attribute', type: 'text'};
             const action = {
-                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_CREATED,
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED,
                 data: testAttributeOne,
             };
             const expectedState = {[testAttributeOne.id]: testAttributeOne} as ReducerState['customProfileAttributes'];
@@ -93,13 +93,13 @@ describe('reducers.entities.general', () => {
             expect(actualState.customProfileAttributes).toEqual(expectedState);
         });
 
-        it('CUSTOM_PROFILE_ATTRIBUTES_PATCHED', () => {
+        it('CUSTOM_PROFILE_ATTRIBUTES_FIELD_PATCHED', () => {
             const testAttributeOne = {id: '123', name: 'test attribute', type: 'text'};
             const state = {[testAttributeOne.id]: testAttributeOne};
 
             const renamedAttributeOne = {...testAttributeOne, name: 'renamed attribute'};
             const action = {
-                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_PATCHED,
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_FIELD_PATCHED,
                 data: renamedAttributeOne,
             };
             const expectedState = {[testAttributeOne.id]: renamedAttributeOne} as ReducerState['customProfileAttributes'];
@@ -107,12 +107,12 @@ describe('reducers.entities.general', () => {
             expect(actualState.customProfileAttributes).toEqual(expectedState);
         });
 
-        it('CUSTOM_PROFILE_ATTRIBUTES_DELETED', () => {
+        it('CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED', () => {
             const testAttributeOne = {id: '123', name: 'test attribute', type: 'text'};
             const state = {[testAttributeOne.id]: testAttributeOne};
 
             const action = {
-                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_DELETED,
+                type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
                 data: testAttributeOne.id,
             };
             const expectedState = {} as ReducerState['customProfileAttributes'];
