@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"sync"
@@ -3137,6 +3138,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		assert.NotNil(t, appErr)
 	})
 }
+
 func TestGetChannelFileCount(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3188,4 +3190,146 @@ func TestGetChannelFileCount(t *testing.T) {
 	count, appErr := th.App.GetChannelFileCount(th.Context, channel.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(2), count)
+}
+
+func TestUpdateChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should be able to update banner info", func(t *testing.T) {
+		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+
+		channel.BannerInfo = &model.ChannelBannerInfo{
+			Enabled:         model.NewPointer(true),
+			Text:            model.NewPointer("banner text"),
+			BackgroundColor: model.NewPointer("#000000"),
+		}
+
+		updatedChannel, appErr := th.App.UpdateChannel(th.Context, channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, updatedChannel.BannerInfo)
+		require.True(t, *updatedChannel.BannerInfo.Enabled)
+		require.Equal(t, "banner text", *updatedChannel.BannerInfo.Text)
+		require.Equal(t, "#000000", *updatedChannel.BannerInfo.BackgroundColor)
+
+		channel.BannerInfo.Enabled = model.NewPointer(false)
+		updatedChannel, appErr = th.App.UpdateChannel(th.Context, channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, updatedChannel.BannerInfo)
+		require.False(t, *updatedChannel.BannerInfo.Enabled)
+	})
+}
+
+func TestPatchChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should be able to patch banner info", func(t *testing.T) {
+		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled:         model.NewPointer(true),
+				Text:            model.NewPointer("banner text"),
+				BackgroundColor: model.NewPointer("#000000"),
+			},
+		}
+
+		patchedChannel, appErr := th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedChannel.BannerInfo)
+		require.True(t, *patchedChannel.BannerInfo.Enabled)
+		require.Equal(t, "banner text", *patchedChannel.BannerInfo.Text)
+		require.Equal(t, "#000000", *patchedChannel.BannerInfo.BackgroundColor)
+
+		patch = &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Text: model.NewPointer("text 1"),
+			},
+		}
+
+		patchedChannel, appErr = th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedChannel.BannerInfo)
+		require.True(t, *patchedChannel.BannerInfo.Enabled)
+		require.Equal(t, "text 1", *patchedChannel.BannerInfo.Text)
+		require.Equal(t, "#000000", *patchedChannel.BannerInfo.BackgroundColor)
+
+		patch = &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				BackgroundColor: model.NewPointer("#FF00FF"),
+			},
+		}
+
+		patchedChannel, appErr = th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedChannel.BannerInfo)
+		require.True(t, *patchedChannel.BannerInfo.Enabled)
+		require.Equal(t, "text 1", *patchedChannel.BannerInfo.Text)
+		require.Equal(t, "#FF00FF", *patchedChannel.BannerInfo.BackgroundColor)
+
+		// should be able to unset fields as well
+		patch = &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled: model.NewPointer(false),
+			},
+		}
+
+		patchedChannel, appErr = th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.NotNil(t, patchedChannel.BannerInfo)
+		require.False(t, *patchedChannel.BannerInfo.Enabled)
+	})
+
+	t.Run("should not allow saving channel with invalid background info", func(t *testing.T) {
+		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+
+		// enabling banner without data is invalid
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled: model.NewPointer(true),
+			},
+		}
+
+		patchedChannel, appErr := th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, patchedChannel)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.Equal(t, "model.channel.is_valid.banner_info.text.empty.app_error", appErr.Id)
+	})
+
+	t.Run("cannot configure channel banner on DMs", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		// enabling banner without data is invalid
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled: model.NewPointer(true),
+			},
+		}
+
+		patchedChannel, appErr := th.App.PatchChannel(th.Context, dmChannel, patch, dmChannel.CreatorId)
+		require.Nil(t, patchedChannel)
+		require.NotNil(t, appErr)
+		require.Equal(t, appErr.StatusCode, http.StatusBadRequest)
+		require.Equal(t, "model.channel.is_valid.banner_info.channel_type.app_error", appErr.Id)
+	})
+
+	t.Run("cannot configure channel banner on GMs", func(t *testing.T) {
+		user3 := th.CreateUser()
+		gmChannel := th.CreateGroupChannel(th.Context, th.BasicUser2, user3)
+
+		// enabling banner without data is invalid
+		patch := &model.ChannelPatch{
+			BannerInfo: &model.ChannelBannerInfo{
+				Enabled: model.NewPointer(true),
+			},
+		}
+
+		patchedChannel, appErr := th.App.PatchChannel(th.Context, gmChannel, patch, gmChannel.CreatorId)
+		require.Nil(t, patchedChannel)
+		require.NotNil(t, appErr)
+		require.Equal(t, appErr.StatusCode, http.StatusBadRequest)
+		require.Equal(t, "model.channel.is_valid.banner_info.channel_type.app_error", appErr.Id)
+	})
 }
