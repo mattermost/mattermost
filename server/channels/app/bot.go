@@ -614,5 +614,7 @@ func (a *App) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, 
 			return nil, model.NewAppError("CreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+	a.InvalidateCacheForUser(user.Id)
+
 	return bot, nil
 }
