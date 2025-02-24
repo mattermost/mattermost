@@ -29,14 +29,14 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3.28.9
+      uses: github/codeql-action/init@v3.28.10
       with:
         languages: ${{ matrix.language }}
         debug: false
         config-file: ./.github/codeql/codeql-config.yml
 
     - name: Build JavaScript
-      uses: github/codeql-action/autobuild@v3.28.9
+      uses: github/codeql-action/autobuild@v3.28.10
       if: ${{ matrix.language  == 'javascript' }}
 
     - name: Setup go
@@ -55,4 +55,4 @@ jobs:
 
     # Perform Analysis
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3.28.9
+      uses: github/codeql-action/analyze@v3.28.10
