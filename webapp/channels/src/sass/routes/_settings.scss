@@ -371,6 +371,11 @@
                             white-space: nowrap;
                         }
 
+                        .premadeThemeButton{
+                            border: none;
+                            background: none;
+                        }
+
                         label {
                             width: 100%;
                         }
@@ -407,12 +412,21 @@
                     }
 
                     .theme-elements__header {
-                        padding: 1px 0 10px;
                         border-bottom: 1px solid;
                         margin: 10px 20px 0 0;
                         cursor: pointer;
                         font-size: functions.em(13.5px);
                         font-weight: 600;
+
+                        button {
+                            display: flex;
+                            width: 100%;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 10px 1px;
+                            border: none;
+                            background: none;
+                        }
 
                         .fa-minus {
                             display: none;
