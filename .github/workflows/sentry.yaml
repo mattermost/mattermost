@@ -20,5 +20,5 @@ jobs:
       - name: cd/Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: cd/Create Sentry release
-        uses: getsentry/action-release@12bba0bd9c0f65f9f80d4965db646a1aed373d36 # v1.10.3
+        uses: getsentry/action-release@e3542deb6dd46200cca4bd79d4096d4bdb92e1b7 # v2.0.0
 
