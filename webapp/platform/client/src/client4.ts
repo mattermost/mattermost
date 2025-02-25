@@ -2130,6 +2130,14 @@ export default class Client4 {
         return result;
     };
 
+    createPostEphemeral = async (userID: string, post: PartialExcept<Post, 'channel_id' | 'message'>) => {
+        const result = await this.doFetch<Post>(
+            `${this.getPostsRoute()}/ephemeral`,
+            {method: 'post', body: JSON.stringify({user_id: userID, post})},
+        );
+        return result;
+    };
+
     updatePost = (post: Post) => {
         return this.doFetch<Post>(
             `${this.getPostRoute(post.id)}`,
