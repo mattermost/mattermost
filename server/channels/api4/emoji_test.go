@@ -364,6 +364,14 @@ func TestGetEmojisByNames(t *testing.T) {
 		assert.Contains(t, emojiIds, emoji2.Id)
 	})
 
+	t.Run("should return an empty array when no emojis are found", func(t *testing.T) {
+		emojis, _, err := client.GetEmojisByNames(context.Background(), []string{model.NewId(), model.NewId()})
+
+		require.NoError(t, err)
+		assert.NotNil(t, emojis)
+		assert.Equal(t, []*model.Emoji{}, emojis)
+	})
+
 	t.Run("should return an error when too many emojis are requested", func(t *testing.T) {
 		names := make([]string, GetEmojisByNamesMax+1)
 		for i := 0; i < len(names); i++ {
