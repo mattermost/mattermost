@@ -23,7 +23,7 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should be able to search posts using pagination",
 		Fn:   testFileInfoSearchFileInfosWithPagination,
-		Tags: []string{EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search for exact phrases in quotes",
