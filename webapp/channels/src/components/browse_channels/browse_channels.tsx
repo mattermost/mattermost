@@ -372,7 +372,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         return (
             <GenericModal
                 id='browseChannelsModal'
-                aria-labelledby='browseChannelsModalLabel'
+                ariaLabeledBy='genericModalLabel'
                 onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}

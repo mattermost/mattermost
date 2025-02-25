@@ -152,6 +152,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "update_at": 0,
             "username": "some-user",
           },
+          "focusOriginElement": "channelHeaderMenuButton",
         }
       }
       dialogType={
@@ -280,7 +281,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
-            "focusOriginElement": "channel_header.menuAriaLabel",
+            "focusOriginElement": "channelHeaderMenuButton",
             "isExistingChannel": true,
           }
         }
@@ -985,6 +986,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "update_at": 0,
             "username": "some-user",
           },
+          "focusOriginElement": "channelHeaderMenuButton",
         }
       }
       dialogType={
@@ -1113,7 +1115,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
-            "focusOriginElement": "channel_header.menuAriaLabel",
+            "focusOriginElement": "channelHeaderMenuButton",
             "isExistingChannel": true,
           }
         }
