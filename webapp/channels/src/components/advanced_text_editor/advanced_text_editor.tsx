@@ -547,10 +547,10 @@ const AdvancedTextEditor = ({
     // Update the caret position in the input box when changed by a side effect
     useEffect(() => {
         const textbox: HTMLInputElement | HTMLTextAreaElement | undefined = textboxRef.current?.getInputBox();
-        if (textbox && (textbox.selectionStart !== caretPosition || draft.message.length === 0)) {
+        if (textbox && textbox.selectionStart !== caretPosition) {
             Utils.setCaretPosition(textbox, caretPosition);
         }
-    }, [caretPosition, draft.message.length]);
+    }, [caretPosition]);
 
     // Handle width change when there is no message.
     useEffect(() => {
@@ -570,6 +570,13 @@ const AdvancedTextEditor = ({
             focusTextbox();
         }
     }, [showPreview]);
+
+    useEffect(() => {
+        focusTextbox();
+
+        // Focus on the editor at fisrt render
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Focus textbox when selectedPostFocussedAt changes
     useEffect(() => {
