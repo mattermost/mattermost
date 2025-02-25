@@ -3136,17 +3136,6 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -3838,17 +3827,6 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />
@@ -4601,17 +4579,6 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
-                />
-              }
-            />
           </AdminSidebarCategory>
         </ul>
       </SearchKeywordMarking>
@@ -5303,17 +5270,6 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />
@@ -6205,17 +6161,6 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />
@@ -7193,17 +7138,6 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
-                />
-              }
-            />
-            <AdminSidebarSection
-              definitionKey="experimental.bleve"
-              key="experimental.bleve"
-              name="experimental/blevesearch"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Bleve"
-                  id="admin.sidebar.blevesearch"
                 />
               }
             />
