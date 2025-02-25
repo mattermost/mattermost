@@ -26,7 +26,7 @@ const AddGroupMembers = (): JSX.Element => {
                     openModal({
                         modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
                         dialogType: MoreDirectChannels,
-                        dialogProps: {isExistingChannel: true},
+                        dialogProps: {isExistingChannel: true, focusOriginElement: 'channelInfoRHSAddPeopleButton'},
                     }),
                 );
             }}
