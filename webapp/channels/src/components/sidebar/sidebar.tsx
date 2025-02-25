@@ -204,6 +204,7 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                 <MoreDirectChannels
                     onModalDismissed={this.hideMoreDirectChannelsModal}
                     isExistingChannel={false}
+                    focusOriginElement='newDirectMessageButton'
                 />
             );
         }
