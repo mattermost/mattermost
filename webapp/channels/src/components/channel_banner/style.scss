@@ -1,0 +1,14 @@
+.channel_banner {
+    width: 100%;
+    padding-inline: 24px;
+    padding-block: 6px;
+    white-space: nowrap;
+
+    .channel_banner_text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 100%;
+        text-align: center;
+    }
+}
