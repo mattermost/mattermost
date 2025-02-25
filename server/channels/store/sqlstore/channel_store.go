@@ -135,26 +135,8 @@ func channelSliceColumns(prefix ...string) []string {
 		p + "Shared",
 		p + "TotalMsgCountRoot",
 		p + "LastRootPostAt",
+		p + "BannerInfo",
 	}
-}
-
-func channelMemberToSlice(member *model.ChannelMember) []any {
-	resultSlice := []any{}
-	resultSlice = append(resultSlice, member.ChannelId)
-	resultSlice = append(resultSlice, member.UserId)
-	resultSlice = append(resultSlice, member.ExplicitRoles)
-	resultSlice = append(resultSlice, member.LastViewedAt)
-	resultSlice = append(resultSlice, member.MsgCount)
-	resultSlice = append(resultSlice, member.MsgCountRoot)
-	resultSlice = append(resultSlice, member.MentionCount)
-	resultSlice = append(resultSlice, member.MentionCountRoot)
-	resultSlice = append(resultSlice, member.UrgentMentionCount)
-	resultSlice = append(resultSlice, model.MapToJSON(member.NotifyProps))
-	resultSlice = append(resultSlice, member.LastUpdateAt)
-	resultSlice = append(resultSlice, member.SchemeUser)
-	resultSlice = append(resultSlice, member.SchemeAdmin)
-	resultSlice = append(resultSlice, member.SchemeGuest)
-	return resultSlice
 }
 
 func channelToSlice(channel *model.Channel) []interface{} {
@@ -178,7 +160,27 @@ func channelToSlice(channel *model.Channel) []interface{} {
 		channel.Shared,
 		channel.TotalMsgCountRoot,
 		channel.LastRootPostAt,
+		channel.BannerInfo,
 	}
+}
+
+func channelMemberToSlice(member *model.ChannelMember) []any {
+	resultSlice := []any{}
+	resultSlice = append(resultSlice, member.ChannelId)
+	resultSlice = append(resultSlice, member.UserId)
+	resultSlice = append(resultSlice, member.ExplicitRoles)
+	resultSlice = append(resultSlice, member.LastViewedAt)
+	resultSlice = append(resultSlice, member.MsgCount)
+	resultSlice = append(resultSlice, member.MsgCountRoot)
+	resultSlice = append(resultSlice, member.MentionCount)
+	resultSlice = append(resultSlice, member.MentionCountRoot)
+	resultSlice = append(resultSlice, member.UrgentMentionCount)
+	resultSlice = append(resultSlice, model.MapToJSON(member.NotifyProps))
+	resultSlice = append(resultSlice, member.LastUpdateAt)
+	resultSlice = append(resultSlice, member.SchemeUser)
+	resultSlice = append(resultSlice, member.SchemeAdmin)
+	resultSlice = append(resultSlice, member.SchemeGuest)
+	return resultSlice
 }
 
 type channelMemberWithSchemeRolesList []channelMemberWithSchemeRoles
@@ -834,7 +836,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			GroupConstrained=:GroupConstrained,
 			Shared=:Shared,
 			TotalMsgCountRoot=:TotalMsgCountRoot,
-			LastRootPostAt=:LastRootPostAt
+			LastRootPostAt=:LastRootPostAt,
+		    BannerInfo=:BannerInfo
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
