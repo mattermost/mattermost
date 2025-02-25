@@ -32,11 +32,7 @@ func TestActiveEngine(t *testing.T) {
 	assert.Equal(t, "elasticsearch", b.ActiveEngine())
 
 	b.ElasticsearchEngine = nil
-	b.BleveEngine = bleveMock
-	assert.Equal(t, "bleve", b.ActiveEngine())
 
-	b.BleveEngine = nil
 	*b.cfg.SqlSettings.DisableDatabaseSearch = true
-
 	assert.Equal(t, "none", b.ActiveEngine())
 }

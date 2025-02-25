@@ -98,7 +98,6 @@ type SupportPacketJobList struct {
 	MessageExportJobs          []*Job `yaml:"message_export_jobs"`
 	ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
 	ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
-	BlevePostIndexingJobs      []*Job `yaml:"bleve_post_indexin_jobs"`
 	MigrationJobs              []*Job `yaml:"migration_jobs"`
 }
 
