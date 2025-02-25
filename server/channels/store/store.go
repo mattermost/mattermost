@@ -1104,6 +1104,7 @@ type PropertyValueStore interface {
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(id string) error
 	DeleteForField(id string) error
+	DeleteForTarget(groupID string, targetType string, targetID string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.
