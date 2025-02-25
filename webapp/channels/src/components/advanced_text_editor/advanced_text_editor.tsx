@@ -547,10 +547,10 @@ const AdvancedTextEditor = ({
     // Update the caret position in the input box when changed by a side effect
     useEffect(() => {
         const textbox: HTMLInputElement | HTMLTextAreaElement | undefined = textboxRef.current?.getInputBox();
-        if (textbox && textbox.selectionStart !== caretPosition) {
+        if (textbox && (textbox.selectionStart !== caretPosition || draft.message.length === 0)) {
             Utils.setCaretPosition(textbox, caretPosition);
         }
-    }, [caretPosition]);
+    }, [caretPosition, draft.message.length]);
 
     // Handle width change when there is no message.
     useEffect(() => {
