@@ -31,41 +31,50 @@ describe('views/admin reducers', () => {
     describe('team reducer', () => {
         const newState = {
             pageIndex: 2,
-            searchTerms: 'hello',
+            searchTerm: 'hello',
             searchOpts: {},
         };
 
         test('set state to new state', () => {
             const actual = adminConsoleTeamManagementTableProperties(adminConsoleTeamManagementTablePropertiesInitialState, {type: ActionTypes.SET_ADMIN_CONSOLE_TEAM_MANAGEMENT_TABLE_PROPERTIES, data: newState});
-            expect(actual).toBe(newState);
+            expect(actual).toStrictEqual(newState);
         });
 
         test('clear state', () => {
             const actual = adminConsoleTeamManagementTableProperties(adminConsoleTeamManagementTablePropertiesInitialState, {type: ActionTypes.CLEAR_ADMIN_CONSOLE_TEAM_MANAGEMENT_TABLE_PROPERTIES, data: newState});
-            expect(actual).toBe(adminConsoleTeamManagementTablePropertiesInitialState);
+            expect(actual).toStrictEqual(adminConsoleTeamManagementTablePropertiesInitialState);
         });
     });
 
     describe('channel reducer', () => {
         const newState = {
             pageIndex: 2,
-            searchTerms: 'hello',
+            searchTerm: 'hello',
             searchOpts: {},
         };
 
         test('set state to new state', () => {
             const actual = adminConsoleChannelManagementTableProperties(adminConsoleChannelManagementTablePropertiesInitialState, {type: ActionTypes.SET_ADMIN_CONSOLE_CHANNEL_MANAGEMENT_TABLE_PROPERTIES, data: newState});
-            expect(actual).toBe(newState);
+            expect(actual).toStrictEqual(newState);
         });
 
         test('clear state', () => {
             const actual = adminConsoleChannelManagementTableProperties(adminConsoleChannelManagementTablePropertiesInitialState, {type: ActionTypes.CLEAR_ADMIN_CONSOLE_CHANNEL_MANAGEMENT_TABLE_PROPERTIES, data: newState});
-            expect(actual).toBe(adminConsoleChannelManagementTablePropertiesInitialState);
+            expect(actual).toStrictEqual(adminConsoleChannelManagementTablePropertiesInitialState);
         });
     });
 
     describe('user reducer', () => {
         const newState = {
+            columnVisibility: {},
+            cursorColumnValue: '',
+            cursorDirection: 'next',
+            cursorUserId: '',
+            filterRole: '',
+            filterStatus: '',
+            filterTeam: '',
+            filterTeamLabel: '',
+            pageSize: 0,
             pageIndex: 10,
             searchTerm: 'hello',
             sortColumn: 'id',
@@ -74,12 +83,12 @@ describe('views/admin reducers', () => {
 
         test('set state to new state', () => {
             const actual = adminConsoleUserManagementTableProperties(adminConsoleUserManagementTablePropertiesInitialState, {type: ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES, data: newState});
-            expect(actual).toBe(newState);
+            expect(actual).toStrictEqual(newState);
         });
 
         test('clear state', () => {
             const actual = adminConsoleUserManagementTableProperties(adminConsoleUserManagementTablePropertiesInitialState, {type: ActionTypes.CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES, data: newState});
-            expect(actual).toBe(adminConsoleUserManagementTablePropertiesInitialState);
+            expect(actual).toStrictEqual(adminConsoleUserManagementTablePropertiesInitialState);
         });
     });
 });

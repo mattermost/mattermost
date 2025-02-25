@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {combineReducers} from 'redux';
+import type {AnyAction} from 'redux';
 
 import {CursorPaginationDirection} from '@mattermost/types/reports';
 
