@@ -76,8 +76,6 @@ const ChannelHeaderTitle = ({
                     size='sm'
                 />
                 <strong
-                    role='heading'
-                    aria-level={2}
                     id='channelHeaderTitle'
                     className='heading'
                 >
