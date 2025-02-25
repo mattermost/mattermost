@@ -1161,6 +1161,48 @@ func (s *hooksRPCServer) GenerateSupportData(args *Z_GenerateSupportDataArgs, re
 	return nil
 }
 
+func init() {
+	hookNameToId["OnOmniSearch"] = OnOmniSearchID
+}
+
+type Z_OnOmniSearchArgs struct {
+	A *Context
+	B string
+	C string
+	D bool
+	E int
+	F int
+	G int
+}
+
+type Z_OnOmniSearchReturns struct {
+	A []*model.OmniSearchResult
+	B error
+}
+
+func (g *hooksRPCClient) OnOmniSearch(c *Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error) {
+	_args := &Z_OnOmniSearchArgs{c, terms, userID, isOrSearch, timeZoneOffset, page, perPage}
+	_returns := &Z_OnOmniSearchReturns{}
+	if g.implemented[OnOmniSearchID] {
+		if err := g.client.Call("Plugin.OnOmniSearch", _args, _returns); err != nil {
+			g.log.Error("RPC call OnOmniSearch to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) OnOmniSearch(args *Z_OnOmniSearchArgs, returns *Z_OnOmniSearchReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnOmniSearch(c *Context, terms string, userID string, isOrSearch bool, timeZoneOffset int, page int, perPage int) ([]*model.OmniSearchResult, error)
+	}); ok {
+		returns.A, returns.B = hook.OnOmniSearch(args.A, args.B, args.C, args.D, args.E, args.F, args.G)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnOmniSearch called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

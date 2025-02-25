@@ -115,6 +115,7 @@ import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Scheme} from '@mattermost/types/schemes';
+import type {OmniSearchResult} from '@mattermost/types/search';
 import type {Session} from '@mattermost/types/sessions';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {SharedChannelRemote} from '@mattermost/types/shared_channels';
@@ -2365,6 +2366,17 @@ export default class Client4 {
         return this.doFetch<Reaction[]>(
             `${this.getPostRoute(postId)}/reactions`,
             {method: 'get'},
+        );
+    };
+
+    searchInOmniSearch = (params: any) => {
+        this.trackEvent('api', 'api_omnisearch_search');
+
+        const route = `${this.getBaseRoute()}/omnisearch/search`;
+
+        return this.doFetch<OmniSearchResult[]>(
+            route,
+            {method: 'post', body: JSON.stringify(params)},
         );
     };
 
