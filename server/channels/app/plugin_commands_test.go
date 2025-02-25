@@ -106,7 +106,7 @@ func TestPluginCommand(t *testing.T) {
 			require.NotEqual(t, "plugin", commands.Trigger)
 		}
 
-		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0], nil)
 		require.Nil(t, appErr)
 	})
 
@@ -208,7 +208,7 @@ func TestPluginCommand(t *testing.T) {
 			killed = true
 		}
 
-		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0], nil)
 		require.Nil(t, appErr)
 		require.False(t, killed, "execute command appears to have deadlocked")
 	})
@@ -287,7 +287,7 @@ func TestPluginCommand(t *testing.T) {
 		require.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
 
-		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0], nil)
 		require.Nil(t, appErr)
 	})
 	t.Run("plugin has crashed before execution of command", func(t *testing.T) {
@@ -332,7 +332,7 @@ func TestPluginCommand(t *testing.T) {
 		require.Nil(t, resp)
 		require.NotNil(t, err)
 		require.Equal(t, err.Id, "model.plugin_command_error.error.app_error")
-		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0], nil)
 		require.Nil(t, appErr)
 	})
 
@@ -378,7 +378,7 @@ func TestPluginCommand(t *testing.T) {
 		require.Nil(t, resp)
 		require.NotNil(t, err)
 		require.Equal(t, err.Id, "model.plugin_command_crash.error.app_error")
-		appErr := th.App.ch.RemovePlugin(pluginIDs[0])
+		appErr := th.App.ch.RemovePlugin(pluginIDs[0], nil)
 		require.Nil(t, appErr)
 	})
 
