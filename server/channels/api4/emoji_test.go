@@ -222,6 +222,14 @@ func TestGetEmojiList(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
+	t.Run("should return an empty array when there are no custom emoijs", func(t *testing.T) {
+		listEmoji, _, err := client.GetEmojiList(context.Background(), 0, 100)
+		require.NoError(t, err)
+
+		require.NotEqual(t, nil, listEmoji)
+		require.Equal(t, []*model.Emoji{}, listEmoji)
+	})
+
 	emojis := []*model.Emoji{
 		{
 			CreatorId: th.BasicUser.Id,
@@ -237,47 +245,63 @@ func TestGetEmojiList(t *testing.T) {
 		},
 	}
 
-	for idx, emoji := range emojis {
-		newEmoji, _, err := client.CreateEmoji(context.Background(), emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
-		require.NoError(t, err)
-		emojis[idx] = newEmoji
-	}
+	t.Run("should return an array of emojis", func(t *testing.T) {
+		for idx, emoji := range emojis {
+			newEmoji, _, err := client.CreateEmoji(context.Background(), emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+			require.NoError(t, err)
+			emojis[idx] = newEmoji
+		}
 
-	listEmoji, _, err := client.GetEmojiList(context.Background(), 0, 100)
-	require.NoError(t, err)
-	for _, emoji := range emojis {
+		listEmoji, _, err := client.GetEmojiList(context.Background(), 0, 100)
+		require.NoError(t, err)
+		for _, emoji := range emojis {
+			found := false
+			for _, savedEmoji := range listEmoji {
+				if emoji.Id == savedEmoji.Id {
+					found = true
+					break
+				}
+			}
+			require.Truef(t, found, "failed to get emoji with id %v, %v", emoji.Id, len(listEmoji))
+		}
+	})
+
+	t.Run("should return an empty array when past the maximum page count", func(t *testing.T) {
+		listEmoji, _, err := client.GetEmojiList(context.Background(), 1, 100)
+		require.NoError(t, err)
+
+		require.NotEqual(t, nil, listEmoji)
+		require.Equal(t, []*model.Emoji{}, listEmoji)
+	})
+
+	t.Run("should not return a deleted emoji", func(t *testing.T) {
+		_, err := client.DeleteEmoji(context.Background(), emojis[0].Id)
+		require.NoError(t, err)
+		listEmoji, _, err := client.GetEmojiList(context.Background(), 0, 100)
+		require.NoError(t, err)
 		found := false
 		for _, savedEmoji := range listEmoji {
-			if emoji.Id == savedEmoji.Id {
+			if savedEmoji.Id == emojis[0].Id {
 				found = true
 				break
 			}
 		}
-		require.Truef(t, found, "failed to get emoji with id %v, %v", emoji.Id, len(listEmoji))
-	}
+		require.Falsef(t, found, "should not get a deleted emoji %v", emojis[0].Id)
+	})
 
-	_, err = client.DeleteEmoji(context.Background(), emojis[0].Id)
-	require.NoError(t, err)
-	listEmoji, _, err = client.GetEmojiList(context.Background(), 0, 100)
-	require.NoError(t, err)
-	found := false
-	for _, savedEmoji := range listEmoji {
-		if savedEmoji.Id == emojis[0].Id {
-			found = true
-			break
-		}
-	}
-	require.Falsef(t, found, "should not get a deleted emoji %v", emojis[0].Id)
+	t.Run("should return fewer results based on the provided page size", func(t *testing.T) {
+		listEmoji, _, err := client.GetEmojiList(context.Background(), 0, 1)
+		require.NoError(t, err)
 
-	listEmoji, _, err = client.GetEmojiList(context.Background(), 0, 1)
-	require.NoError(t, err)
+		require.Len(t, listEmoji, 1, "should only return 1")
+	})
 
-	require.Len(t, listEmoji, 1, "should only return 1")
+	t.Run("should return a sorted emoji list", func(t *testing.T) {
+		listEmoji, _, err := client.GetSortedEmojiList(context.Background(), 0, 100, model.EmojiSortByName)
+		require.NoError(t, err)
 
-	listEmoji, _, err = client.GetSortedEmojiList(context.Background(), 0, 100, model.EmojiSortByName)
-	require.NoError(t, err)
-
-	require.Greater(t, len(listEmoji), 0, "should return more than 0")
+		require.Greater(t, len(listEmoji), 0, "should return more than 0")
+	})
 }
 
 func TestGetEmojisByNames(t *testing.T) {
