@@ -21,6 +21,8 @@ import * as Utils from 'utils/utils';
 
 import './team_list.scss';
 
+import type {AdminConsoleTeamManagementTableProperties} from 'types/store/views';
+
 const ROW_HEIGHT = 80;
 
 type Props = {
@@ -29,8 +31,10 @@ type Props = {
     actions: {
         searchTeams(term: string, opts: TeamSearchOpts): Promise<ActionResult<TeamsWithCount>>;
         getData(page: number, size: number): void;
+        setAdminConsoleTeamsManagementTableProperties(data?: Partial<AdminConsoleTeamManagementTableProperties>): void;
     };
     isLicensedForLDAPGroups?: boolean;
+    tableProperties: AdminConsoleTeamManagementTableProperties;
 }
 
 type State = {
@@ -40,24 +44,24 @@ type State = {
     page: number;
     total: number;
     searchErrored: boolean;
-    filters: TeamSearchOpts;
+    searchOpts: TeamSearchOpts;
 }
 export default class TeamList extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
             loading: false,
-            term: '',
+            term: props.tableProperties.searchTerm,
             teams: [],
-            page: 0,
+            page: props.tableProperties.pageIndex,
             total: 0,
             searchErrored: false,
-            filters: {},
+            searchOpts: props.tableProperties.searchOpts,
         };
     }
 
     componentDidMount() {
-        this.loadPage();
+        this.loadPage(this.state.page, this.state.term, this.state.searchOpts);
     }
 
     isSearching = (term: string, filters: TeamSearchOpts) => {
@@ -65,22 +69,27 @@ export default class TeamList extends React.PureComponent<Props, State> {
     };
 
     getPaginationProps = () => {
-        const {page, term, filters} = this.state;
-        const total = this.isSearching(term, filters) ? this.state.total : this.props.total;
+        const {page, term, searchOpts} = this.state;
+        const total = this.isSearching(term, searchOpts) ? this.state.total : this.props.total;
         const startCount = (page * PAGE_SIZE) + 1;
         let endCount = (page + 1) * PAGE_SIZE;
         endCount = endCount > total ? total : endCount;
         return {startCount, endCount, total};
     };
 
-    loadPage = async (page = 0, term = '', filters = {}) => {
-        this.setState({loading: true, term, filters});
-
-        if (this.isSearching(term, filters)) {
+    loadPage = async (page = 0, term = '', searchOpts = {}) => {
+        this.setState({loading: true, term, searchOpts});
+        this.props.actions.setAdminConsoleTeamsManagementTableProperties({
+            pageIndex: page,
+            searchTerm: term,
+            searchOpts,
+        });
+        const optimizedFilters = this.optimizeFilters(searchOpts);
+        if (this.isSearching(term, optimizedFilters)) {
             if (page > 0) {
-                this.searchTeams(page, term, filters);
+                this.searchTeams(page, term, optimizedFilters);
             } else {
-                this.searchTeamsDebounced(page, term, filters);
+                this.searchTeamsDebounced(page, term, optimizedFilters);
             }
             return;
         }
@@ -105,31 +114,31 @@ export default class TeamList extends React.PureComponent<Props, State> {
     searchTeamsDebounced = debounce((page, term, filters = {}) => this.searchTeams(page, term, filters), 300, false, () => {});
 
     nextPage = () => {
-        this.loadPage(this.state.page + 1, this.state.term, this.state.filters);
+        this.loadPage(this.state.page + 1, this.state.term, this.state.searchOpts);
     };
 
     previousPage = () => {
         this.setState({page: this.state.page - 1});
+        this.props.actions.setAdminConsoleTeamsManagementTableProperties({
+            pageIndex: this.state.page - 1,
+        });
     };
 
     onSearch = (term = '') => {
-        this.loadPage(0, term, this.state.filters);
+        this.loadPage(0, term, this.state.searchOpts);
     };
 
-    onFilter = ({management}: FilterOptions) => {
+    optimizeFilters = (stateFilters: TeamSearchOpts) => {
         const filters: TeamSearchOpts = {};
 
-        let groupConstrained;
-
-        const {
-            allow_open_invite: {value: allowOpenInvite},
-            invite_only: {value: inviteOnly},
-        } = management.values;
+        const allowOpenInvite = stateFilters.allow_open_invite === true;
+        const inviteOnly = stateFilters.invite_only === true;
 
         const filtersList = [allowOpenInvite, inviteOnly];
 
+        let groupConstrained;
         if (this.props.isLicensedForLDAPGroups) {
-            groupConstrained = management.values.group_constrained.value;
+            groupConstrained = stateFilters.group_constrained === true;
             filtersList.push(groupConstrained);
         }
 
@@ -150,7 +159,18 @@ export default class TeamList extends React.PureComponent<Props, State> {
                 }
             }
         }
+        return filters;
+    };
 
+    onFilter = ({management}: FilterOptions) => {
+        const filters: TeamSearchOpts = {};
+        if (management) {
+            filters.allow_open_invite = Boolean(management.values.allow_open_invite.value);
+            filters.invite_only = Boolean(management.values.invite_only.value);
+            if (this.props.isLicensedForLDAPGroups) {
+                filters.group_constrained = Boolean(management.values.group_constrained.value);
+            }
+        }
         this.loadPage(0, this.state.term, filters);
     };
 
@@ -215,9 +235,9 @@ export default class TeamList extends React.PureComponent<Props, State> {
 
     getRows = () => {
         const {data} = this.props;
-        const {term, teams, filters} = this.state;
+        const {term, teams, searchOpts} = this.state;
         const {startCount, endCount} = this.getPaginationProps();
-        let teamsToDisplay = this.isSearching(term, filters) ? teams : data;
+        let teamsToDisplay = this.isSearching(term, searchOpts) ? teams : data;
         teamsToDisplay = teamsToDisplay.slice(startCount - 1, endCount);
 
         return teamsToDisplay.map((team) => {
@@ -341,7 +361,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
                                 defaultMessage='Anyone Can Join'
                             />
                         ),
-                        value: false,
+                        value: this.state.searchOpts.allow_open_invite || false,
                     },
                     invite_only: {
                         name: (
@@ -350,7 +370,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
                                 defaultMessage='Invite Only'
                             />
                         ),
-                        value: false,
+                        value: this.state.searchOpts.invite_only || false,
                     },
                 },
                 keys: ['allow_open_invite', 'invite_only'],
@@ -365,9 +385,8 @@ export default class TeamList extends React.PureComponent<Props, State> {
                         defaultMessage='Group Sync'
                     />
                 ),
-                value: false,
+                value: this.state.searchOpts.group_constrained || false,
             };
-            filterOptions.management.keys.push('group_constrained');
         }
 
         const filterProps = {

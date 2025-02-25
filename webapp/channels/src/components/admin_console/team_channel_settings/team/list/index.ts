@@ -9,6 +9,9 @@ import {getTeams as fetchTeams, searchTeams} from 'mattermost-redux/actions/team
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getTeams} from 'mattermost-redux/selectors/entities/teams';
 
+import {setAdminConsoleTeamsManagementTableProperties} from 'actions/views/admin';
+import {getAdminConsoleTeamManagementTableProperties} from 'selectors/views/admin';
+
 import type {GlobalState} from 'types/store';
 
 import TeamList from './team_list';
@@ -20,10 +23,13 @@ const getSortedListOfTeams = createSelector(
 );
 
 function mapStateToProps(state: GlobalState) {
+    const tableProperties = getAdminConsoleTeamManagementTableProperties(state);
+
     return {
         data: getSortedListOfTeams(state),
         total: state.entities.teams.totalCount || 0,
         isLicensedForLDAPGroups: state.entities.general.license.LDAPGroups === 'true',
+        tableProperties,
     };
 }
 
@@ -32,6 +38,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             getData: (page: number, pageSize: number) => fetchTeams(page, pageSize, true),
             searchTeams,
+            setAdminConsoleTeamsManagementTableProperties,
         }, dispatch),
     };
 }

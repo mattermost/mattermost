@@ -87,7 +87,7 @@ class Filter extends React.PureComponent<Props, State> {
             options,
             keys,
             optionsModified: false,
-            filterCount: 0,
+            filterCount: this.calculateFilterCount(options),
         };
 
         this.filterRef = React.createRef();
@@ -141,8 +141,7 @@ class Filter extends React.PureComponent<Props, State> {
         this.setState({optionsModified: false, show: false, filterCount: this.calculateFilterCount()});
     };
 
-    calculateFilterCount = () => {
-        const options = this.state.options;
+    calculateFilterCount = (options: FilterOptions = this.state.options) => {
         let filterCount = 0;
         this.props.keys.forEach((key) => {
             const {values, keys} = options[key];
@@ -158,7 +157,20 @@ class Filter extends React.PureComponent<Props, State> {
     };
 
     resetFilters = () => {
-        this.setState({options: {...this.props.options}}, this.onFilter);
+        const defaultProps = this.props.options;
+        this.props.keys.forEach((key) => {
+            const {values, keys} = defaultProps[key];
+            keys.forEach((filterKey: string) => {
+                if (values[filterKey].value instanceof Array) {
+                    defaultProps[key].values[filterKey].value = [];
+                } else if (typeof values[filterKey].value === 'string') {
+                    defaultProps[key].values[filterKey].value = '';
+                } else if (values[filterKey].value) {
+                    defaultProps[key].values[filterKey].value = false;
+                }
+            });
+        });
+        this.setState({options: {...defaultProps}}, this.onFilter);
     };
 
     renderFilterOptions = () => {
