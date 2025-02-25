@@ -443,6 +443,18 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handleResetPasswordClick}
                 />
             }
+            {showResetFailedAttempts() && (
+                <Menu.Item
+                    id={`${menuItemIdPrefix}-resetAttempts`}
+                    labels={
+                        <FormattedMessage
+                            id='admin.system_users.list.actions.menu.resetAttempts'
+                            defaultMessage='Reset login attempts'
+                        />
+                    }
+                    onClick={handleResetAttemptsClick}
+                />
+            )}
             {user.mfa_active && config.ServiceSettings?.EnableMultifactorAuthentication &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-removeMFA`}
@@ -531,18 +543,6 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     />
                 }
             </SystemPermissionGate>
-            {showResetFailedAttempts() && (
-                <Menu.Item
-                    id={`${menuItemIdPrefix}-resetAttempts`}
-                    labels={
-                        <FormattedMessage
-                            id='admin.system_users.list.actions.menu.resetAttempts'
-                            defaultMessage='Reset login attempts'
-                        />
-                    }
-                    onClick={handleResetAttemptsClick}
-                />
-            )}
             {user.delete_at === 0 && (
                 <Menu.Item
                     id={`${menuItemIdPrefix}-deactivate`}

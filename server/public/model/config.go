@@ -4101,6 +4101,10 @@ func (s *LdapSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_server", nil, "", http.StatusBadRequest)
 		}
 
+		if *s.MaximumLoginAttempts <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_max_login_attempts.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if *s.BaseDN == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_basedn", nil, "", http.StatusBadRequest)
 		}

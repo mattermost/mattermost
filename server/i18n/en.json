@@ -9001,6 +9001,10 @@
     "translation": "AD/LDAP field \"Login ID Attribute\" is required."
   },
   {
+    "id": "model.config.is_valid.ldap_max_login_attempts.app_error",
+    "translation": "Invalid maximum login attempts for ldap settings. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
     "translation": "Invalid max page size value."
   },
