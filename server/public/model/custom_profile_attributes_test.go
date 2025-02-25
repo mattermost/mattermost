@@ -289,3 +289,186 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 		})
 	}
 }
+
+func TestCPAField_Sanitize(t *testing.T) {
+	tests := []struct {
+		name           string
+		field          *CPAField
+		expectError    bool
+		errorId        string
+		expectedAttrs  CPAAttrs
+		checkOptionsID bool
+	}{
+		{
+			name: "valid text field with no value type",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: "when_set",
+			},
+		},
+		{
+			name: "valid text field with valid value type and whitespace",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					ValueType: " email ",
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: "when_set",
+				ValueType:  CustomProfileAttributesValueTypeEmail,
+			},
+		},
+		{
+			name: "valid text field with visibility and whitespace",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Visibility: " hidden ",
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityHidden,
+			},
+		},
+		{
+			name: "invalid text field with invalid value type",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					ValueType: "invalid_type",
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.unknown_value_type.app_error",
+		},
+		{
+			name: "valid select field with valid options",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeSelect,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+						{
+							Name:  "Option 2",
+							Color: "#654321",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+					{Name: "Option 1", Color: "#123456"},
+					{Name: "Option 2", Color: "#654321"},
+				},
+			},
+		},
+		{
+			name: "valid select field with valid options with ids",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeSelect,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							ID:    "t9ceh651eir4zkhyh4m54s5r7w",
+							Name:  "Option 1",
+							Color: "#123456",
+						},
+					},
+				},
+			},
+			expectError: false,
+			expectedAttrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityDefault,
+				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
+					{ID: "t9ceh651eir4zkhyh4m54s5r7w", Name: "Option 1", Color: "#123456"},
+				},
+			},
+			checkOptionsID: true,
+		},
+		{
+			name: "invalid select field with duplicate option names",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeSelect,
+				},
+				Attrs: CPAAttrs{
+					Options: []*CustomProfileAttributesSelectOption{
+						{
+							Name:  "Option 1",
+							Color: "opt1",
+						},
+						{
+							Name:  "Option 1",
+							Color: "opt2",
+						},
+					},
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
+		},
+		{
+			name: "invalid field with unknown visibility",
+			field: &CPAField{
+				PropertyField: PropertyField{
+					Type: PropertyFieldTypeText,
+				},
+				Attrs: CPAAttrs{
+					Visibility: "unknown",
+				},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.unknown_visibility.app_error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.field.Sanitize()
+			if tt.expectError {
+				require.NotNil(t, err)
+				require.Equal(t, tt.errorId, err.Id)
+			} else {
+				var ogErr error
+				if err != nil {
+					ogErr = err.Unwrap()
+				}
+				require.Nilf(t, err, "unexpected error: %v, with original error: %v", err, ogErr)
+
+				assert.Equal(t, tt.expectedAttrs.Visibility, tt.field.Attrs.Visibility)
+				assert.Equal(t, tt.expectedAttrs.ValueType, tt.field.Attrs.ValueType)
+
+				for i := range tt.expectedAttrs.Options {
+					if tt.checkOptionsID {
+						assert.Equal(t, tt.expectedAttrs.Options[i].ID, tt.field.Attrs.Options[i].ID)
+					}
+					assert.Equal(t, tt.expectedAttrs.Options[i].Name, tt.field.Attrs.Options[i].Name)
+					assert.Equal(t, tt.expectedAttrs.Options[i].Color, tt.field.Attrs.Options[i].Color)
+				}
+			}
+		})
+	}
+}

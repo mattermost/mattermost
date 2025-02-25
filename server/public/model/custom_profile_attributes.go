@@ -128,7 +128,7 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	return &pf
 }
 
-func (c *CPAField) Validate() *AppError {
+func (c *CPAField) Sanitize() *AppError {
 	switch c.Type {
 	case PropertyFieldTypeText:
 		if valueType := strings.TrimSpace(c.Attrs.ValueType); valueType != "" {
@@ -140,6 +140,14 @@ func (c *CPAField) Validate() *AppError {
 
 	case PropertyFieldTypeSelect, PropertyFieldTypeMultiselect:
 		options := c.Attrs.Options
+
+		// add an ID to options with no ID
+		for i := range options {
+			if options[i].ID == "" {
+				options[i].ID = NewId()
+			}
+		}
+
 		if err := options.IsValid(); err != nil {
 			return NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 		}

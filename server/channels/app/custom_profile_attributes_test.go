@@ -47,12 +47,13 @@ func TestGetCPAField(t *testing.T) {
 	})
 
 	t.Run("should get an existing CPA field", func(t *testing.T) {
-		field := &model.PropertyField{
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaGroupID,
 			Name:    "Test Field",
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
-		}
+		})
+		require.Nil(t, err)
 
 		createdField, err := th.App.CreateCPAField(field)
 		require.Nil(t, err)
@@ -120,7 +121,8 @@ func TestCreateCPAField(t *testing.T) {
 	require.NoError(t, cErr)
 
 	t.Run("should fail if the field is not valid", func(t *testing.T) {
-		field := &model.PropertyField{Name: model.NewId()}
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{Name: model.NewId()})
+		require.Nil(t, err)
 
 		createdField, err := th.App.CreateCPAField(field)
 		require.NotNil(t, err)
@@ -128,11 +130,12 @@ func TestCreateCPAField(t *testing.T) {
 	})
 
 	t.Run("should not be able to create a property field for a different feature", func(t *testing.T) {
-		field := &model.PropertyField{
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: model.NewId(),
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
-		}
+		})
+		require.NoError(t, err)
 
 		createdField, appErr := th.App.CreateCPAField(field)
 		require.Nil(t, appErr)
@@ -140,12 +143,13 @@ func TestCreateCPAField(t *testing.T) {
 	})
 
 	t.Run("should correctly create a CPA field", func(t *testing.T) {
-		field := &model.PropertyField{
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaGroupID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
-		}
+		})
+		require.NoError(t, err)
 
 		createdField, err := th.App.CreateCPAField(field)
 		require.Nil(t, err)
@@ -170,19 +174,23 @@ func TestCreateCPAField(t *testing.T) {
 		t.Run("should not be able to create CPA fields above the limit", func(t *testing.T) {
 			// we create the rest of the fields required to reach the limit
 			for i := 1; i <= CustomProfileAttributesFieldLimit; i++ {
-				field := &model.PropertyField{
+				field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 					Name: model.NewId(),
 					Type: model.PropertyFieldTypeText,
-				}
+				})
+				require.NoError(t, err)
+
 				createdField, err := th.App.CreateCPAField(field)
 				require.Nil(t, err)
 				require.NotZero(t, createdField.ID)
 			}
 
 			// then, we create a last one that would exceed the limit
-			field := &model.PropertyField{
-				Name: model.NewId(),
-				Type: model.PropertyFieldTypeText,
+			field := &model.CPAField{
+				PropertyField: model.PropertyField{
+					Name: model.NewId(),
+					Type: model.PropertyFieldTypeText,
+				},
 			}
 			createdField, err := th.App.CreateCPAField(field)
 			require.NotNil(t, err)
@@ -200,9 +208,11 @@ func TestCreateCPAField(t *testing.T) {
 			require.Nil(t, th.App.DeleteCPAField(fields[0].ID))
 
 			// creating a new one should work now
-			field := &model.PropertyField{
-				Name: model.NewId(),
-				Type: model.PropertyFieldTypeText,
+			field := &model.CPAField{
+				PropertyField: model.PropertyField{
+					Name: model.NewId(),
+					Type: model.PropertyFieldTypeText,
+				},
 			}
 			createdField, err := th.App.CreateCPAField(field)
 			require.Nil(t, err)
@@ -220,12 +230,14 @@ func TestPatchCPAField(t *testing.T) {
 	cpaGroupID, cErr := th.App.cpaGroupID()
 	require.NoError(t, cErr)
 
-	newField := &model.PropertyField{
+	newField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		GroupID: cpaGroupID,
 		Name:    model.NewId(),
 		Type:    model.PropertyFieldTypeText,
 		Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
-	}
+	})
+	require.NoError(t, err)
+
 	createdField, err := th.App.CreateCPAField(newField)
 	require.Nil(t, err)
 
@@ -248,6 +260,7 @@ func TestPatchCPAField(t *testing.T) {
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
+
 		field, err := th.App.Srv().propertyService.CreatePropertyField(newField)
 		require.NoError(t, err)
 
@@ -272,7 +285,7 @@ func TestPatchCPAField(t *testing.T) {
 
 	t.Run("should preserve option IDs when patching select field options", func(t *testing.T) {
 		// Create a select field with options
-		selectField := &model.PropertyField{
+		selectField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaGroupID,
 			Name:    "Select Field",
 			Type:    model.PropertyFieldTypeSelect,
@@ -288,7 +301,9 @@ func TestPatchCPAField(t *testing.T) {
 					},
 				},
 			},
-		}
+		})
+		require.NoError(t, err)
+
 		createdSelectField, err := th.App.CreateCPAField(selectField)
 		require.Nil(t, err)
 
@@ -351,11 +366,13 @@ func TestDeleteCPAField(t *testing.T) {
 	cpaGroupID, cErr := th.App.cpaGroupID()
 	require.NoError(t, cErr)
 
-	newField := &model.PropertyField{
+	newField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		GroupID: cpaGroupID,
 		Name:    model.NewId(),
 		Type:    model.PropertyFieldTypeText,
-	}
+	})
+	require.NoError(t, err)
+
 	createdField, err := th.App.CreateCPAField(newField)
 	require.Nil(t, err)
 
@@ -642,177 +659,4 @@ func TestPatchCPAValue(t *testing.T) {
 		require.Equal(t, []string{"newOption1", "newOption2"}, arrayValues)
 		require.Equal(t, userID, updatedValue.TargetID)
 	})
-}
-
-func TestValidateCustomProfileAttributesField(t *testing.T) {
-	tests := []struct {
-		name          string
-		field         *model.PropertyField
-		expectError   bool
-		errorId       string
-		expectedAttrs model.StringInterface
-	}{
-		{
-			name: "valid text field with no value type",
-			field: &model.PropertyField{
-				Type:  model.PropertyFieldTypeText,
-				Attrs: model.StringInterface{},
-			},
-			expectError: false,
-			expectedAttrs: model.StringInterface{
-				model.CustomProfileAttributesPropertyAttrsVisibility: "when_set",
-			},
-		},
-		{
-			name: "valid text field with valid value type and whitespace",
-			field: &model.PropertyField{
-				Type: model.PropertyFieldTypeText,
-				Attrs: model.StringInterface{
-					model.CustomProfileAttributesPropertyAttrsValueType: " email ",
-				},
-			},
-			expectError: false,
-			expectedAttrs: model.StringInterface{
-				model.CustomProfileAttributesPropertyAttrsVisibility: "when_set",
-				model.CustomProfileAttributesPropertyAttrsValueType:  model.CustomProfileAttributesValueTypeEmail,
-			},
-		},
-		{
-			name: "valid text field with visibility and whitespace",
-			field: &model.PropertyField{
-				Type: model.PropertyFieldTypeText,
-				Attrs: model.StringInterface{
-					model.CustomProfileAttributesPropertyAttrsVisibility: " hidden ",
-				},
-			},
-			expectError: false,
-			expectedAttrs: model.StringInterface{
-				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden,
-			},
-		},
-		{
-			name: "invalid text field with invalid value type",
-			field: &model.PropertyField{
-				Type: model.PropertyFieldTypeText,
-				Attrs: model.StringInterface{
-					model.CustomProfileAttributesPropertyAttrsValueType: "invalid_type",
-				},
-			},
-			expectError: true,
-			errorId:     "app.custom_profile_attributes.unknown_value_type.app_error",
-		},
-		{
-			name: "valid select field with valid options",
-			field: &model.PropertyField{
-				Type: model.PropertyFieldTypeSelect,
-				Attrs: model.StringInterface{
-					model.PropertyFieldAttributeOptions: []any{
-						map[string]interface{}{
-							"name":  "Option 1",
-							"color": "#123456",
-						},
-						map[string]interface{}{
-							"name":  "Option 2",
-							"color": "#654321",
-						},
-					},
-				},
-			},
-			expectError: false,
-			expectedAttrs: model.StringInterface{
-				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityDefault,
-				model.PropertyFieldAttributeOptions: model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{
-					{Name: "Option 1", Color: "#123456"},
-					{Name: "Option 2", Color: "#654321"},
-				},
-			},
-		},
-		{
-			name: "invalid select field with duplicate option names",
-			field: &model.PropertyField{
-				Type: model.PropertyFieldTypeSelect,
-				Attrs: model.StringInterface{
-					model.PropertyFieldAttributeOptions: []any{
-						map[string]interface{}{
-							"name":  "Option 1",
-							"color": "opt1",
-						},
-						map[string]interface{}{
-							"name":  "Option 1",
-							"color": "opt2",
-						},
-					},
-				},
-			},
-			expectError: true,
-			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
-		},
-		{
-			name: "invalid select field with non-array options",
-			field: &model.PropertyField{
-				Type: model.PropertyFieldTypeSelect,
-				Attrs: model.StringInterface{
-					model.PropertyFieldAttributeOptions: "not an array",
-				},
-			},
-			expectError: true,
-			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
-		},
-		{
-			name: "invalid select field with invalid option format",
-			field: &model.PropertyField{
-				Type: model.PropertyFieldTypeSelect,
-				Attrs: model.StringInterface{
-					model.PropertyFieldAttributeOptions: []interface{}{
-						"some string",
-					},
-				},
-			},
-			expectError: true,
-			errorId:     "app.custom_profile_attributes.invalid_options.app_error",
-		},
-		{
-			name: "invalid field with unknown visibility",
-			field: &model.PropertyField{
-				Type: model.PropertyFieldTypeText,
-				Attrs: model.StringInterface{
-					model.CustomProfileAttributesPropertyAttrsVisibility: "unknown",
-				},
-			},
-			expectError: true,
-			errorId:     "app.custom_profile_attributes.unknown_visibility.app_error",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := validateCustomProfileAttributesField(tt.field)
-			if tt.expectError {
-				require.NotNil(t, err)
-				require.Equal(t, tt.errorId, err.Id)
-			} else {
-				var ogErr error
-				if err != nil {
-					ogErr = err.Unwrap()
-				}
-				require.Nilf(t, err, "unexpected error: %v, with original error: %v", err, ogErr)
-				if tt.expectedAttrs != nil {
-					for key, value := range tt.expectedAttrs {
-						if key == model.PropertyFieldAttributeOptions {
-							expectedOptions := value.(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
-							actualOptions := tt.field.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
-							// remove IDs from actualOptions to compare
-							for i := range actualOptions {
-								actualOptions[i].ID = ""
-							}
-
-							require.ElementsMatch(t, expectedOptions, actualOptions)
-						} else {
-							require.Equal(t, value, tt.field.Attrs[key])
-						}
-					}
-				}
-			}
-		})
-	}
 }

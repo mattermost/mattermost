@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"sort"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -92,16 +91,12 @@ func (a *App) CreateCPAField(field *model.CPAField) (*model.PropertyField, *mode
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.limit_reached.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 	}
 
-	if appErr := field.Validate(); appErr != nil {
+	field.GroupID = groupID
+
+	if appErr := field.Sanitize(); appErr != nil {
 		return nil, appErr
 	}
 
-	field.GroupID = groupID
-	
-	if appErr := field.Validate(); appErr != nil {
-		return nil, appErr
-	}
-	
 	newField, err := a.Srv().propertyService.CreatePropertyField(field.ToPropertyField())
 	if err != nil {
 		var appErr *model.AppError
@@ -136,7 +131,7 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 		return nil, model.NewAppError("UpdateCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := cpaField.Validate(); appErr != nil {
+	if appErr := cpaField.Sanitize(); appErr != nil {
 		return nil, appErr
 	}
 
@@ -278,4 +273,3 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 
 	return updatedValues, nil
 }
-
