@@ -181,6 +181,20 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "convert CPA field with empty attributes",
+			cpaField: &CPAField{
+				PropertyField: PropertyField{
+					ID:       NewId(),
+					GroupID:  CustomProfileAttributesPropertyGroupName,
+					Name:     "Empty Field",
+					Type:     PropertyFieldTypeText,
+					CreateAt: GetMillis(),
+					UpdateAt: GetMillis(),
+				},
+				Attrs: CPAAttrs{},
+			},
+		},
 	}
 
 	for _, tt := range tests {
