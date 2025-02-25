@@ -152,11 +152,11 @@ function waitForServerStatus(pluginId, version, state = {}) {
     const checkFn = () => {
         cy.log(`Waiting for ${pluginId}`);
         return cy.apiGetPluginStatus(pluginId, version).then((status) => {
-            if (state.hasOwnProperty('isActive')) {
+            if (Object.hasOwn(state, 'isActive')) {
                 return state.isActive === status.isActive;
             }
 
-            if (state.hasOwnProperty('isInstalled')) {
+            if (Object.hasOwn(state, 'isInstalled')) {
                 return state.isInstalled === status.isInstalled;
             }
 

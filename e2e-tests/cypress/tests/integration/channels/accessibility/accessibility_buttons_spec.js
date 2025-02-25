@@ -35,11 +35,7 @@ describe('Verify Accessibility Support in different Buttons', () => {
             within(() => {
                 // * Verify accessibility support in Sidebar Expand and Shrink icon
                 cy.get('button.sidebar--right__expand').
-                    should('have.attr', 'aria-label', 'Expand').
-                    within(() => {
-                        cy.get('.icon-arrow-expand').should('have.attr', 'aria-label', 'Expand Sidebar Icon');
-                        cy.get('.icon-arrow-collapse').should('have.attr', 'aria-label', 'Collapse Sidebar Icon');
-                    });
+                    should('have.attr', 'aria-label', 'Expand Sidebar Icon');
 
                 // * Verify accessibility support in Close icon
                 cy.get('#rhsCloseButton').

@@ -122,7 +122,10 @@ const EmojiPicker = ({
 
         const [updatedCategoryOrEmojisRows, updatedEmojiPositions] = createCategoryAndEmojiRows(allEmojis, categories, filter, userSkinTone);
 
-        selectFirstEmoji(updatedEmojiPositions);
+        if (activeCategory !== 'custom') {
+            selectFirstEmoji(updatedEmojiPositions);
+        }
+
         setCategoryOrEmojisRows(updatedCategoryOrEmojisRows);
         setEmojiPositionsArray(updatedEmojiPositions);
         throttledSearchCustomEmoji.current(filter, customEmojisEnabled);
@@ -337,6 +340,7 @@ const EmojiPicker = ({
             return;
         }
 
+        searchInputRef.current?.setAttribute('aria-activedescendant', newCursorEmoji.name.toLocaleLowerCase().replaceAll(' ', '_'));
         setCursor({
             rowIndex: newCursor.rowIndex,
             emojiId: newCursor.emojiId,

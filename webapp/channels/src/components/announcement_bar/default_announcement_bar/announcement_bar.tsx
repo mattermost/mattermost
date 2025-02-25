@@ -12,6 +12,8 @@ import WithTooltip from 'components/with_tooltip';
 import {AnnouncementBarTypes} from 'utils/constants';
 import {isStringContainingUrl} from 'utils/url';
 
+import './default_announcement_bar.scss';
+
 type Props = {
     id?: string;
     showCloseButton: boolean;
@@ -41,8 +43,6 @@ type State = {
     showTooltip: boolean;
     isStringContainingUrl: boolean;
 }
-
-const OVERLAY_ANNOUNCEMENT_HIDE_DELAY = 600;
 
 export default class AnnouncementBar extends React.PureComponent<Props, State> {
     messageRef: React.RefObject<HTMLDivElement>;
@@ -194,10 +194,9 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
         if (this.state.showTooltip) {
             barContent = (
                 <WithTooltip
-                    id='announcement-bar__tooltip'
                     title={this.props.tooltipMsg ? this.props.tooltipMsg : message}
-                    placement='bottom'
-                    delayHide={this.state.isStringContainingUrl ? OVERLAY_ANNOUNCEMENT_HIDE_DELAY : 0}
+                    className='announcementBarTooltip'
+                    delayClose={true}
                 >
                     {barContent}
 

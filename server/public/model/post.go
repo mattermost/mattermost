@@ -105,7 +105,7 @@ type Post struct {
 	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids,omitempty"`
+	FileIds       StringArray     `json:"file_ids"`
 	PendingPostId string          `json:"pending_post_id"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 	RemoteId      *string         `json:"remote_id,omitempty"`
@@ -205,6 +205,21 @@ type SearchParameter struct {
 	Page                   *int    `json:"page"`
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
+}
+
+func (sp SearchParameter) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"terms":                    sp.Terms,
+		"is_or_search":             sp.IsOrSearch,
+		"time_zone_offset":         sp.TimeZoneOffset,
+		"page":                     sp.Page,
+		"per_page":                 sp.PerPage,
+		"include_deleted_channels": sp.IncludeDeletedChannels,
+	}
+}
+
+func (sp SearchParameter) LogClone() any {
+	return sp.Auditable()
 }
 
 type AnalyticsPostCountsOptions struct {
@@ -399,8 +414,11 @@ type PostCountOptions struct {
 	UsersPostsOnly     bool
 	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
 	AllowFromCache bool
-	SincePostID    string
-	SinceUpdateAt  int64
+
+	// retrieves posts in the inclusive range: [SinceUpdateAt + LastPostId, UntilUpdateAt]
+	SincePostID   string
+	SinceUpdateAt int64
+	UntilUpdateAt int64
 }
 
 func (o *Post) Etag() string {
@@ -437,7 +455,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	}
 
 	if utf8.RuneCountInString(o.Message) > maxPostSize {
-		return NewAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		return NewAppError("Post.IsValid", "model.post.is_valid.message_length.app_error",
+			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxPostSize}, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Hashtags) > PostHashtagsMaxRunes {
@@ -935,6 +954,10 @@ func (o *Post) IsUrgent() bool {
 		return false
 	}
 
+	if postPriority.Priority == nil {
+		return false
+	}
+
 	return *postPriority.Priority == PostPriorityUrgent
 }
 
@@ -944,4 +967,16 @@ func (o *Post) CleanPost() *Post {
 	o.UpdateAt = 0
 	o.EditAt = 0
 	return o
+}
+
+type UpdatePostOptions struct {
+	SafeUpdate    bool
+	IsRestorePost bool
+}
+
+func DefaultUpdatePostOptions() *UpdatePostOptions {
+	return &UpdatePostOptions{
+		SafeUpdate:    false,
+		IsRestorePost: false,
+	}
 }

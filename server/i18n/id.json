@@ -800,14 +800,6 @@
     "translation": "Masuk dengan SAML gagal karena enkripsi tidak diaktifkan. Silakan hubungi Administrator Sistem Anda."
   },
   {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
     "id": "ent.ldap.validate_guest_filter.app_error",
     "translation": "Filter LDAP tidak valid"
   },
@@ -886,18 +878,6 @@
   {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Fungsi LDAP dinonaktifkan oleh lisensi saat ini. Silakan hubungi administrator sistem untuk meningkatkan lisensi enterprise Anda."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Tidak dapat memuat kiriman"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Tidak dapat memuat kiriman"
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -1438,10 +1418,6 @@
   {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "ID asli tidak valid"
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Pesan tidak valid"
   },
   {
     "id": "model.post.is_valid.id.app_error",

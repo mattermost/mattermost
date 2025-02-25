@@ -152,6 +152,24 @@ func (_m *ScheduledPostStore) GetScheduledPostsForUser(userId string, teamId str
 	return r0, r1
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userId
+func (_m *ScheduledPostStore) PermanentDeleteByUser(userId string) error {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PermanentlyDeleteScheduledPosts provides a mock function with given fields: scheduledPostIDs
 func (_m *ScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error {
 	ret := _m.Called(scheduledPostIDs)

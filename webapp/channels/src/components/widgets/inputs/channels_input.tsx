@@ -130,11 +130,11 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
             icon = <PrivateChannelIcon className='private-channel-icon'/>;
         }
         return (
-            <React.Fragment>
+            <>
                 {icon}
                 {channel.display_name}
                 <span className='channel-name'>{channel.name}</span>
-            </React.Fragment>
+            </>
         );
     };
 

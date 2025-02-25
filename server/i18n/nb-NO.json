@@ -29,7 +29,7 @@
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Группын товч тайлбар/уриаг өөрчлөх"
+    "translation": "Rediger kanaloverskriften"
   },
   {
     "id": "api.command.invite_people.name",
@@ -178,5 +178,89 @@
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
     "translation": "Kan ikke legge til bruker til denne kanaltypen."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Last ned"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke opprette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke slette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke slette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke slette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalbokmerket."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket er påkrevd"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Tilbake til {{.SiteName}}"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Kan ikke sende meldingen"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Tråden har blitt slettet"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Ukjent feil"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Ukjent kanal"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Kontakt support"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privat kanal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Kontakt salgsavdelingen"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Feil ved henting av gjeldende kanal."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "borte"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Du er nå borte"
   }
 ]

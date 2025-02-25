@@ -186,9 +186,12 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='more-modal__actions'>
-                    <div className='more-modal__actions--round'>
+                    <button
+                        className='more-modal__actions--round'
+                        aria-label='Select channel'
+                    >
                         <i className='icon icon-plus'/>
-                    </div>
+                    </button>
                 </div>
             </div>
         );
@@ -226,7 +229,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
-                role='dialog'
+                role='none'
                 aria-labelledby='channelSelectorModalLabel'
             >
                 <Modal.Header closeButton={true}>

@@ -70,7 +70,7 @@ describe('Channels', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Go to LHS and click 'Browse channels'
-        cy.uiBrowseOrCreateChannel('Browse channels').click();
+        cy.uiBrowseOrCreateChannel('Browse channels');
 
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // * Dropdown should be visible, defaulting to "All Channels"
@@ -113,7 +113,7 @@ describe('Channels', () => {
         });
 
         // # Go to LHS and click 'Browse channels'
-        cy.uiBrowseOrCreateChannel('Browse channels').click();
+        cy.uiBrowseOrCreateChannel('Browse channels');
 
         cy.get('#browseChannelsModal').should('be.visible');
 
@@ -167,7 +167,7 @@ describe('Channels', () => {
         });
 
         // # Go to LHS and click 'Browse channels'
-        cy.uiBrowseOrCreateChannel('Browse channels').click();
+        cy.uiBrowseOrCreateChannel('Browse channels');
 
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // * Verify that channel has zero members
@@ -233,7 +233,7 @@ describe('Channels', () => {
         });
 
         // # Go to LHS and click 'Browse channels'
-        cy.uiBrowseOrCreateChannel('Browse channels').click();
+        cy.uiBrowseOrCreateChannel('Browse channels');
 
         // * Dropdown should be visible, defaulting to "All channels"
         cy.get('#menuWrapper').should('be.visible').within((el) => {
@@ -288,7 +288,7 @@ function verifyBrowseChannelsModalWithArchivedSelection(isEnabled, testUser, tes
 
 function verifyBrowseChannelsModal(isEnabled) {
     // # Go to LHS and click 'Browse channels'
-    cy.uiBrowseOrCreateChannel('Browse channels').click();
+    cy.uiBrowseOrCreateChannel('Browse channels');
 
     // * Verify that the browse channels modal is open and with or without option to view archived channels
     cy.get('#browseChannelsModal').should('be.visible').within(() => {

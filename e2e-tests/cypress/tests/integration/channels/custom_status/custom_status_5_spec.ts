@@ -27,7 +27,7 @@ describe('Custom Status - Verifying Where Custom Status Appears', () => {
     });
 
     it('MM-T3850_1 set a status', () => {
-        cy.uiOpenUserMenu('Set a Custom Status');
+        cy.uiOpenUserMenu('Set custom status');
 
         // # Type the custom status text in the custom status modal input
         cy.findByPlaceholderText('Set a status').type(customStatus.text, {force: true});

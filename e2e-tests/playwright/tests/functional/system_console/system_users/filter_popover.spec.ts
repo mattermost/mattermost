@@ -4,7 +4,7 @@
 import {test} from '@e2e-support/test_fixture';
 import {createRandomTeam, createRandomUser} from '@e2e-support/server';
 
-test('MM-T5521-7 Should be able to filter users with team filter', async ({pw, pages}) => {
+test('MM-T5521-7 Should be able to filter users with team filter', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -12,7 +12,7 @@ test('MM-T5521-7 Should be able to filter users with team filter', async ({pw, p
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a team with a user
     const team1 = await adminClient.createTeam(createRandomTeam());
@@ -25,7 +25,6 @@ test('MM-T5521-7 Should be able to filter users with team filter', async ({pw, p
     await adminClient.addToTeam(team2.id, user2.id);
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -53,7 +52,7 @@ test('MM-T5521-7 Should be able to filter users with team filter', async ({pw, p
     await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-T5521-8 Should be able to filter users with role filter', async ({pw, pages}) => {
+test('MM-T5521-8 Should be able to filter users with role filter', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -61,7 +60,7 @@ test('MM-T5521-8 Should be able to filter users with role filter', async ({pw, p
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a guest user
     const guestUser = await adminClient.createUser(createRandomUser(), '', '');
@@ -71,7 +70,6 @@ test('MM-T5521-8 Should be able to filter users with role filter', async ({pw, p
     const regularUser = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -109,7 +107,7 @@ test('MM-T5521-8 Should be able to filter users with role filter', async ({pw, p
     await systemConsolePage.systemUsers.verifyRowWithTextIsFound('No data');
 });
 
-test('MM-T5521-9 Should be able to filter users with status filter', async ({pw, pages}) => {
+test('MM-T5521-9 Should be able to filter users with status filter', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -117,7 +115,7 @@ test('MM-T5521-9 Should be able to filter users with status filter', async ({pw,
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a user and then deactivate it
     const deactivatedUser = await adminClient.createUser(createRandomUser(), '', '');
@@ -127,7 +125,6 @@ test('MM-T5521-9 Should be able to filter users with status filter', async ({pw,
     const regularUser = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 

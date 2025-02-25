@@ -267,7 +267,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             dialogClassName='a11y__modal'
             show={show}
             id='StartTrialFormModal'
-            role='dialog'
+            role='none'
             onHide={handleOnClose}
         >
             <Modal.Header closeButton={true}>

@@ -32,13 +32,30 @@
     "react/style-prop-object": [2, {
       "allow": ["Timestamp"]
     }],
-    "formatjs/no-multiple-whitespaces": 2
+    "formatjs/no-multiple-whitespaces": 2,
+    "react/jsx-fragments": ["error", "syntax"]
   },
   "overrides": [
     {
       "files": ["*.test.*", "src/tests/**"],
       "rules": {
         "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}]
+      }
+    },
+    {
+      "files": ["*"],
+      "excludedFiles": ["src/packages/mattermost-redux/**"],
+      "rules": {
+        "@typescript-eslint/no-restricted-imports": [
+          "error",
+          {
+            "paths": [{
+              "name": "mattermost-redux/types/actions",
+              "importNames": ["DispatchFunc", "GetStateFunc", "ActionFunc", "ActionFuncAsync", "ThunkActionFunc"],
+              "message": "Use the web app version of it from types/store"
+            }]
+          }
+        ]
       }
     }
   ]

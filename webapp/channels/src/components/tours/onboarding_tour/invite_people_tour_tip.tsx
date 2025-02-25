@@ -8,7 +8,7 @@ import {useMeasurePunchouts} from '@mattermost/components';
 
 import OnboardingTourTip from './onboarding_tour_tip';
 
-const translate = {x: 0, y: -18};
+const translate = {x: -3, y: -25};
 
 export const InvitePeopleTour = () => {
     const title = (
@@ -26,7 +26,7 @@ export const InvitePeopleTour = () => {
         </p>
     );
 
-    const overlayPunchOut = useMeasurePunchouts(['invitePeople'], [], {y: -8, height: 16, x: 0, width: 0});
+    const overlayPunchOut = useMeasurePunchouts(['browserOrAddChannelMenu'], [], {x: -2.5, y: -2.5, width: 5, height: 5});
 
     return (
         <OnboardingTourTip

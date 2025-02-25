@@ -13,6 +13,7 @@ type Props = {
     id?: string;
     children?: React.ReactNode;
     status?: 'warning' | 'error';
+    formatter?: (value: number) => string;
 }
 
 const StatisticCount = ({
@@ -22,6 +23,7 @@ const StatisticCount = ({
     id,
     children,
     status,
+    formatter,
 }: Props) => {
     const loading = (
         <FormattedMessage
@@ -29,6 +31,9 @@ const StatisticCount = ({
             defaultMessage='Loading...'
         />
     );
+
+    const result = formatter ? formatter(count ?? 0) : count;
+    const displayValue = typeof count === 'undefined' || isNaN(count) ? loading : result;
 
     return (
         <div className='grid-statistics__card'>
@@ -57,7 +62,7 @@ const StatisticCount = ({
                         'team_statistics--error': status === 'error',
                     })}
                 >
-                    {typeof count === 'undefined' || isNaN(count) ? loading : count}
+                    {displayValue}
                 </div>
             </div>
             {children}

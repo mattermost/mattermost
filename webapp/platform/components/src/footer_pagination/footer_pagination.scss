@@ -1,7 +1,49 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
+// These mixins are from `src/sass/utils/_mixins.scss in the web app. They've been copied because rollup-plugin-sass
+// that we use doesn't properly support @use.
 
-@import '../../../../channels/src/sass/utils/mixins';
+@mixin button-small {
+    height: 32px;
+    padding: 0 16px;
+    font-size: 12px;
+    line-height: 10px;
+}
+
+@mixin tertiary-button {
+    display: inline-flex;
+    align-items: center;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(var(--button-bg-rgb), 0.08);
+    color: var(--button-bg);
+    font-weight: 600;
+    transition: all 0.15s ease-out;
+
+    &:disabled {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+
+    &:hover:enabled {
+        background: rgba(var(--button-bg-rgb), 0.12);
+    }
+
+    &:active:enabled {
+        background: rgba(var(--button-bg-rgb), 0.16);
+    }
+
+    i {
+        display: flex;
+        font-size: 18px;
+
+        &:first-child::before {
+            margin: 0 7px 0 0;
+        }
+
+        &:last-child::before {
+            margin: 0 0 0 7px;
+        }
+    }
+}
 
 .footer-pagination {
     display: flex;

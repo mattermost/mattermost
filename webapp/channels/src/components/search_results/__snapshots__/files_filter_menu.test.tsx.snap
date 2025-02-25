@@ -9,8 +9,6 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
     className=""
   >
     <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -107,8 +105,6 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
     className=""
   >
     <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -208,8 +204,6 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
     className=""
   >
     <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -309,8 +303,6 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
     className=""
   >
     <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -410,8 +402,6 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
     className=""
   >
     <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -511,8 +501,6 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
     className=""
   >
     <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -612,8 +600,6 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
     className=""
   >
     <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"
@@ -713,8 +699,6 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
     className=""
   >
     <WithTooltip
-      id="files-filter-tooltip"
-      placement="top"
       title={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Filter"

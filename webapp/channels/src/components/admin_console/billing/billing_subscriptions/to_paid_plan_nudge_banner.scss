@@ -1,4 +1,4 @@
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .ToPaidNudgeBanner {
     &__actions {
@@ -8,7 +8,7 @@
     &__primary {
         font-size: 12px;
 
-        @include primary-button;
+        @include mixins.primary-button;
 
         &:hover {
             color: var(--button-color);
@@ -19,7 +19,7 @@
         margin-left: 4px;
         font-size: 12px;
 
-        @include tertiary-button;
+        @include mixins.tertiary-button;
 
         &:hover {
             color: var(--button-bg);

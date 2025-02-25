@@ -24,6 +24,7 @@ describe('Leaving channel', () => {
     let post1;
 
     beforeEach(() => {
+        cy.visit('/');
         cy.apiAdminLogin();
         cy.apiInitSetup().then(({team, channel, user}) => {
             testUser = user;

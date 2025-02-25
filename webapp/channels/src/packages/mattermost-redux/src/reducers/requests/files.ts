@@ -35,7 +35,7 @@ export function handleUploadFilesRequest(
         let error = action.error;
 
         if (error instanceof Error) {
-            error = error.hasOwnProperty('intl') ? {...error} : error.toString();
+            error = Object.hasOwn(error, 'intl') ? {...error} : error.toString();
         }
 
         return {

@@ -229,7 +229,9 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		if parentPostList != nil {
 			rootPost := parentPostList.Posts[parentPostList.Order[0]]
 			if rootPost.GetProp("from_webhook") != "true" {
-				threadParticipants[rootPost.UserId] = true
+				if _, ok := profileMap[rootPost.UserId]; ok {
+					threadParticipants[rootPost.UserId] = true
+				}
 			}
 			if channel.Type != model.ChannelTypeDirect {
 				rootMentions = getExplicitMentions(rootPost, keywords)
@@ -395,7 +397,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 
-			//If email verification is required and user email is not verified don't send email.
+			// If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeEmail, model.NotificationReasonEmailNotVerified, model.NotificationNoPlatform)
 				a.NotificationsLog().Debug("Email not verified",
@@ -619,7 +621,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if statusReason := DoesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId, true); statusReason == "" {
+			if statusReason := doesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId, true); statusReason == "" {
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
@@ -696,7 +698,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
 		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
 
-		if ShouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
+		if shouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
 			usersToAck = append(usersToAck, id)
 		}
 	}
@@ -1755,7 +1757,7 @@ func shouldChannelMemberNotifyCRT(userNotifyProps model.StringMap, channelMember
 	return
 }
 
-func ShouldAckWebsocketNotification(channelType model.ChannelType, userNotificationLevel, channelNotificationLevel string) bool {
+func shouldAckWebsocketNotification(channelType model.ChannelType, userNotificationLevel, channelNotificationLevel string) bool {
 	if channelNotificationLevel == model.ChannelNotifyAll {
 		// Should ACK on if we notify for all messages in the channel
 		return true

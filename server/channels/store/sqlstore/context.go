@@ -48,7 +48,7 @@ func HasMaster(ctx context.Context) bool {
 // DBXFromContext is a helper utility that returns the sqlx DB handle from a given context.
 func (ss *SqlStore) DBXFromContext(ctx context.Context) *sqlxDBWrapper {
 	if HasMaster(ctx) {
-		return ss.GetMasterX()
+		return ss.GetMaster()
 	}
-	return ss.GetReplicaX()
+	return ss.GetReplica()
 }

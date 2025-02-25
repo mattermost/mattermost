@@ -456,12 +456,14 @@ func TestSetExtraSessionProps(t *testing.T) {
 
 	resetSession := func(session *model.Session) {
 		session.AddProp("testProp", "")
-		th.Server.Store().Session().UpdateProps(session)
+		err := th.Server.Store().Session().UpdateProps(session)
+		require.NoError(t, err)
 		th.App.ClearSessionCacheForUser(session.UserId)
 	}
 	t.Run("do not update the session if there are no props", func(t *testing.T) {
 		defer resetSession(session)
-		th.App.SetExtraSessionProps(session, map[string]string{})
+		appErr := th.App.SetExtraSessionProps(session, map[string]string{})
+		require.Nil(t, appErr)
 		updatedSession, _ := th.App.GetSession(session.Token)
 		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
 		assert.Equal(t, session, updatedSession)
@@ -469,7 +471,8 @@ func TestSetExtraSessionProps(t *testing.T) {
 	})
 	t.Run("update the session with the selected prop", func(t *testing.T) {
 		defer resetSession(session)
-		th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		appErr := th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		require.Nil(t, appErr)
 		updatedSession, _ := th.App.GetSession(session.Token)
 		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
 		assert.Equal(t, "true", updatedSession.Props["testProp"])
@@ -478,10 +481,12 @@ func TestSetExtraSessionProps(t *testing.T) {
 	t.Run("do not update the session if the prop is the same", func(t *testing.T) {
 		defer resetSession(session)
 		session.AddProp("testProp", "true")
-		th.Server.Store().Session().UpdateProps(session)
+		err := th.Server.Store().Session().UpdateProps(session)
+		require.NoError(t, err)
 		th.App.ClearSessionCacheForUser(session.UserId)
 
-		th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		appErr := th.App.SetExtraSessionProps(session, map[string]string{"testProp": "true"})
+		require.Nil(t, appErr)
 		updatedSession, _ := th.App.GetSession(session.Token)
 		storeSession, _ := th.Server.Store().Session().Get(th.Context, session.Id)
 		assert.Equal(t, session, updatedSession)

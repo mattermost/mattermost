@@ -240,22 +240,22 @@ export default function ChannelNotificationsModal(props: Props) {
                         handleChange={(e) => handleChange({push: e.target.value})}
                     />
                     {props.collapsedReplyThreads && settings.push === 'mention' &&
-                    <CheckboxSettingItem
-                        dataTestId='mobile-reply-threads-checkbox-section'
-                        title={formatMessage({
-                            id: 'channel_notifications.ThreadsReplyTitle',
-                            defaultMessage: 'Thread reply notifications',
-                        })}
-                        inputFieldTitle={
-                            <FormattedMessage
-                                id='channel_notifications.checkbox.threadsReplyTitle'
-                                defaultMessage="Notify me about replies to threads I\'m following"
-                            />
-                        }
-                        inputFieldValue={settings.push_threads === 'all'}
-                        inputFieldData={utils.MobileReplyThreadsInputFieldData}
-                        handleChange={(e) => handleChange({push_threads: e ? 'all' : 'mention'})}
-                    />}
+                        <CheckboxSettingItem
+                            dataTestId='mobile-reply-threads-checkbox-section'
+                            title={formatMessage({
+                                id: 'channel_notifications.ThreadsReplyTitle',
+                                defaultMessage: 'Thread reply notifications',
+                            })}
+                            inputFieldTitle={
+                                <FormattedMessage
+                                    id='channel_notifications.checkbox.threadsReplyTitle'
+                                    defaultMessage="Notify me about replies to threads I\'m following"
+                                />
+                            }
+                            inputFieldValue={settings.push_threads === 'all'}
+                            inputFieldData={utils.MobileReplyThreadsInputFieldData}
+                            handleChange={(e) => handleChange({push_threads: e ? 'all' : 'mention'})}
+                        />}
                 </>
             )}
         </>
@@ -350,7 +350,7 @@ export default function ChannelNotificationsModal(props: Props) {
             show={show}
             onHide={handleHide}
             onExited={props.onExited}
-            role='dialog'
+            role='none'
             aria-labelledby='channelNotificationModalLabel'
             style={{display: 'flex', placeItems: 'center'}}
         >
@@ -364,13 +364,22 @@ export default function ChannelNotificationsModal(props: Props) {
                 handleClose={handleHide}
             />
             <main className='channel-notifications-settings-modal__body'>
-                <ModalSection
-                    title={formatMessage({
-                        id: 'channel_notifications.muteAndIgnore',
-                        defaultMessage: 'Mute or ignore',
-                    })}
-                    content={muteOrIgnoreSectionContent}
-                />
+                <fieldset aria-labelledby='channel-notifications-settings-modal-legend'>
+                    <ModalSection
+                        title={
+                            <legend
+                                style={{all: 'unset'}}
+                                id='channel-notifications-settings-modal-legend'
+                            >
+                                {formatMessage({
+                                    id: 'channel_notifications.muteAndIgnore',
+                                    defaultMessage: 'Mute or ignore',
+                                })}
+                            </legend>
+                        }
+                        content={muteOrIgnoreSectionContent}
+                    />
+                </fieldset>
                 {desktopAndMobileNotificationSectionContent}
                 {props.collapsedReplyThreads &&
                     <>
@@ -391,7 +400,10 @@ export default function ChannelNotificationsModal(props: Props) {
             </main>
             <footer className='channel-notifications-settings-modal__footer'>
                 {serverError &&
-                    <span className='channel-notifications-settings-modal__server-error'>
+                    <span
+                        role='alert'
+                        className='channel-notifications-settings-modal__server-error'
+                    >
                         {serverError}
                     </span>
                 }

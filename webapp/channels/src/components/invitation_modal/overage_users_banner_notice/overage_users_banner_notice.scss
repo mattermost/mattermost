@@ -1,4 +1,4 @@
-@import 'utils/mixins';
+@use 'utils/mixins';
 
 .overage_users_banner {
     margin-top: 16px;
@@ -11,7 +11,7 @@
     }
 
     &__button {
-        @include link;
+        @include mixins.link;
 
         background: transparent;
         font-size: 14px;

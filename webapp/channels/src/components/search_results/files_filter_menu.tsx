@@ -25,13 +25,11 @@ export default function FilesFilterMenu(props: Props): JSX.Element {
         <div className='FilesFilterMenu'>
             <MenuWrapper>
                 <WithTooltip
-                    id='files-filter-tooltip'
                     title={
                         <FormattedMessage
                             id='channel_info_rhs.menu.files.filter'
                             defaultMessage='Filter'
                         />}
-                    placement='top'
                 >
                     <IconContainer
                         id='filesFilterButton'

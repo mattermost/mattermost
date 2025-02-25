@@ -37,6 +37,13 @@ export type AdminConsoleUserManagementTableProperties = {
     dateRange?: ReportDuration;
 };
 
+export type EditingPostDetails = {
+    postId: string;
+    refocusId: string;
+    isRHS: boolean;
+    show: boolean;
+};
+
 export type ViewsState = {
     admin: {
         navigationBlock: {
@@ -92,11 +99,7 @@ export type ViewsState = {
     rhsSuppressed: boolean;
 
     posts: {
-        editingPost: {
-            postId: string;
-            show: boolean;
-            isRHS: boolean;
-        };
+        editingPost: EditingPostDetails;
         menuActions: {
             [postId: string]: {
                 [actionId: string]: {
@@ -189,14 +192,6 @@ export type ViewsState = {
         newCategoryIds: string[];
         multiSelectedChannelIds: string[];
         lastSelectedChannel: string;
-    };
-
-    statusDropdown: {
-        isOpen: boolean;
-    };
-
-    addChannelDropdown: {
-        isOpen: boolean;
     };
 
     addChannelCtaDropdown: {

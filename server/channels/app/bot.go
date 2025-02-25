@@ -308,7 +308,7 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 	a.InvalidateCacheForUser(user.Id)
 
 	ruser := userUpdate.New
-	a.sendUpdatedUserEvent(*ruser)
+	a.sendUpdatedUserEvent(ruser)
 
 	bot, nErr = a.Srv().Store().Bot().Update(bot)
 	if nErr != nil {
@@ -614,5 +614,10 @@ func (a *App) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, 
 			return nil, model.NewAppError("CreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+	if err := a.RevokeAllSessions(rctx, user.Id); err != nil {
+		return nil, err
+	}
+	a.InvalidateCacheForUser(user.Id)
+
 	return bot, nil
 }

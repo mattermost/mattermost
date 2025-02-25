@@ -1,5 +1,3 @@
-@charset 'UTF-8';
-
 @use 'sass:color';
 
 // Color Variables
@@ -38,3 +36,34 @@ $elevation-3: var(--elevation-3);
 $elevation-4: var(--elevation-4);
 $elevation-5: var(--elevation-5);
 $elevation-6: var(--elevation-6);
+
+// ********************
+// Z-Index Management
+// Central place to manage z-index values for the app, providing a consistent way to manage the stacking order.
+// Great care should be taken before making changes, followed by extensive UI testing.
+// Note : not all defined here are being imported, check usages
+// ********************
+
+// Since they can be used on any modal, menu or popover for now they are highest
+$z-index-tooltip: 1350;
+
+// Tour tips also open on menus, so they should be higher than menus
+// Since tippy requires passing zIndex as prop, we have it as constant DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER
+$z-index-tour-tips-popover: 1300;
+// Since tour tips are in package/components, we have also defined this in its own scss file
+// backdrop are dark screen behind the tour tips with a cutout for the highlighted element
+$z-index-tour-tips-backdrop: 1250;
+
+// Since menus can appear on either popovers or modal, make it higher than them
+$z-index-menu: 1100;
+
+// Modals require attention and should be layered above other popovers
+$z-index-modal: 1050;
+
+$z-index-popover: 1200;
+// Lower than popover because user group popover can open user's popover over it
+$z-index-user-group-popover: 1150;
+
+$z-index-global-header: 99;
+
+$z-index-channel-header: 15;

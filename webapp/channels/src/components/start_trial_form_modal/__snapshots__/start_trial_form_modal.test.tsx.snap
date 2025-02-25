@@ -11,7 +11,7 @@ Object {
       aria-hidden="true"
     />
     <div
-      role="dialog"
+      role="none"
     >
       <div
         class="fade modal-backdrop in"

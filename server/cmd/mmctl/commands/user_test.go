@@ -113,12 +113,6 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[1], "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), emailArgs[1], "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
@@ -325,12 +319,6 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 			EXPECT().
 			GetUserByEmail(context.TODO(), emailArgs[0], "").
 			Return(&mockUser0, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), emailArgs[1], "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		s.client.
@@ -682,12 +670,6 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), usernameArg, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), usernameArg, "").
 			Return(nil, &model.Response{}, errors.New("Error while getting user by username")).
 			Times(1)
@@ -702,12 +684,6 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 	s.Run("Error while getting user", func() {
 		printer.Clean()
 		userArg := "exampleUser"
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -1551,12 +1527,6 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), userArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("no user found with the given username")).
 			Times(1)
@@ -1580,12 +1550,6 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 		emailArg := "example@example.com"
 
 		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("no user found with the given email")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -1613,12 +1577,6 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
 		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("no user found with the given email")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -1680,12 +1638,6 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), userArg, "").
 			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("no user found with the given username")).
 			Times(1)
@@ -1716,7 +1668,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "userId", "").
+			GetUserByUsername(context.TODO(), "userId", "").
 			Return(&model.User{Id: "userId"}, nil, nil).
 			Times(1)
 
@@ -1734,12 +1686,6 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 	s.Run("Cannot find one user", func() {
 		printer.Clean()
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), "userId", "").
-			Return(nil, nil, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -1774,7 +1720,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), "userId", "").
+			GetUserByUsername(context.TODO(), "userId", "").
 			Return(&model.User{Id: "userId"}, nil, nil).
 			Times(1)
 
@@ -1805,12 +1751,6 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			if user == "notfounduser" {
 				s.client.
 					EXPECT().
-					GetUserByEmail(context.TODO(), user, "").
-					Return(nil, nil, nil).
-					Times(1)
-
-				s.client.
-					EXPECT().
 					GetUserByUsername(context.TODO(), user, "").
 					Return(nil, nil, nil).
 					Times(1)
@@ -1823,7 +1763,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			} else {
 				s.client.
 					EXPECT().
-					GetUserByEmail(context.TODO(), user, "").
+					GetUserByUsername(context.TODO(), user, "").
 					Return(&model.User{Id: user}, nil, nil).
 					Times(1)
 			}
@@ -2232,12 +2172,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), usernameArg, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), usernameArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
@@ -2257,12 +2191,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 	s.Run("Deactivate an existing user by id", func() {
 		printer.Clean()
 		mockUser := model.User{Id: "userId1", Username: "ExampleUser", Email: "example@exam.com"}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), mockUser.Id, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -2384,12 +2312,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		// mockUser1
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), argsDelete[0], "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), argsDelete[0], "").
 			Return(nil, &model.Response{}, nil).
 			Times(1)
@@ -2408,11 +2330,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 			Times(1)
 
 		// mockUser3
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), argsDelete[2], "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByUsername(context.TODO(), argsDelete[2], "").
@@ -2506,12 +2423,6 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 	s.Run("Couldn't find the user", func() {
 		printer.Clean()
 		userArg := "bad-user-id"
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userArg, "").
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("")).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -2620,12 +2531,6 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.TODO(), userNameArg, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUserByUsername(context.TODO(), userNameArg, "").
 			Return(&mockBotUser, &model.Response{}, nil).
 			Times(1)
@@ -2697,12 +2602,6 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		cmd.Flags().String("password", "password", "")
 		cmd.Flags().String("email", "example@example.com", "")
 		cmd.Flags().String("username", "example-user", "")
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(context.TODO(), userNameArg, "").
-			Return(nil, &model.Response{}, nil).
-			Times(1)
 
 		s.client.
 			EXPECT().

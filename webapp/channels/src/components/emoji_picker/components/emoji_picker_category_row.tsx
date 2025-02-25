@@ -17,6 +17,7 @@ function EmojiPickerCategoryRow({categoryName, style}: Props) {
         <div
             className='emoji-picker-items__container'
             style={style}
+            role='row'
         >
             <div
                 className='emoji-picker__category-header'

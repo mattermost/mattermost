@@ -103,7 +103,7 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
 	}
 	if err != nil {
-		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("FileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	nErr := backend.TestConnection()
 	if nErr != nil {
@@ -124,22 +124,57 @@ func fileReader(backend filestore.FileBackend, path string) (filestore.ReadClose
 	return result, nil
 }
 
+func zipReader(backend filestore.FileBackend, path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	result, err := backend.ZipReader(path, deflate)
+	if err != nil {
+		return nil, model.NewAppError("ZipReader", "api.file.zip_file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return result, nil
+}
+
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.FileBackend(), path)
+}
+
+func (s *Server) zipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return zipReader(s.FileBackend(), path, deflate)
 }
 
 func (s *Server) exportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return fileReader(s.ExportFileBackend(), path)
 }
 
-// Caller must close the first return value
+func (s *Server) exportZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return zipReader(s.ExportFileBackend(), path, deflate)
+}
+
+// FileReader returns a ReadCloseSeeker for path from the FileBackend.
+//
+// The caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().fileReader(path)
 }
 
-// Caller must close the first return value
+// ZipReader returns a ReadCloser for path. If deflate is true, the zip will use compression.
+//
+// The caller is responsible for closing the returned ReadCloser.
+func (a *App) ZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return a.Srv().zipReader(path, deflate)
+}
+
+// ExportFileReader returns a ReadCloseSeeker for path from the ExportFileBackend.
+//
+// The caller is responsible for closing the returned ReadCloseSeeker.
 func (a *App) ExportFileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	return a.Srv().exportFileReader(path)
+}
+
+// ExportZipReader returns a ReadCloser for path from the ExportFileBackend.
+// If deflate is true, the zip will use compression.
+//
+// The caller is responsible for closing the returned ReadCloser.
+func (a *App) ExportZipReader(path string, deflate bool) (io.ReadCloser, *model.AppError) {
+	return a.Srv().exportZipReader(path, deflate)
 }
 
 func (a *App) FileExists(path string) (bool, *model.AppError) {
@@ -399,8 +434,10 @@ func (a *App) findTeamIdForFilename(rctx request.CTX, post *model.Post, id, file
 	return ""
 }
 
-var fileMigrationLock sync.Mutex
-var oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+var (
+	fileMigrationLock   sync.Mutex
+	oldFilenameMatchExp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
+)
 
 // Parse the path from the Filename of the form /{channelID}/{userID}/{uid}/{nameWithExtension}
 func parseOldFilenames(rctx request.CTX, filenames []string, channelID, userID string) [][]string {
@@ -422,7 +459,7 @@ func parseOldFilenames(rctx request.CTX, filenames []string, channelID, userID s
 	return parsed
 }
 
-// Creates and stores FileInfos for a post created before the FileInfos table existed.
+// MigrateFilenamesToFileInfos creates and stores FileInfos for a post created before the FileInfos table existed.
 func (a *App) MigrateFilenamesToFileInfos(rctx request.CTX, post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
 		rctx.Logger().Warn("Unable to migrate post to use FileInfos with an empty Filenames field", mlog.String("post_id", post.Id))
@@ -1039,7 +1076,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 
 	var rejectionError *model.AppError
 	pluginContext := pluginContext(c)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		var newBytes bytes.Buffer
 		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext, info, bytes.NewReader(data), &newBytes)
 		if rejectionReason != "" {
@@ -1397,7 +1434,6 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 			Method:   zip.Deflate,
 			Modified: time.Now(),
 		})
-
 		if err != nil {
 			return err
 		}
@@ -1511,7 +1547,7 @@ func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
 
 	lastAccessibleFileTime, err := strconv.ParseInt(system.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
+		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]any{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return lastAccessibleFileTime, nil

@@ -527,7 +527,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               onHide={[Function]}
               renderBackdrop={[Function]}
               restoreFocus={true}
-              role="dialog"
+              role="none"
               show={false}
             >
               <Modal
@@ -1114,7 +1114,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               onHide={[Function]}
               renderBackdrop={[Function]}
               restoreFocus={true}
-              role="dialog"
+              role="none"
               show={false}
             >
               <Modal

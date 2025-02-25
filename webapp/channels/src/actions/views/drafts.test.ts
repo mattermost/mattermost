@@ -172,6 +172,7 @@ describe('draft actions', () => {
                 message: '',
                 fileInfos: [],
                 uploadsInProgress: [],
+                metadata: {},
             }));
 
             expect(store.getActions()).toEqual(testStore.getActions());

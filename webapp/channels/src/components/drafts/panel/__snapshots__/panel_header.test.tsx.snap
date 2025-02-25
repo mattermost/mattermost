@@ -138,8 +138,6 @@ exports[`components/drafts/panel/panel_header should show sync icon when draft i
         className="PanelHeader__sync-icon"
       >
         <WithTooltip
-          id="drafts-sync-tooltip"
-          placement="top"
           title={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Updated from another device"

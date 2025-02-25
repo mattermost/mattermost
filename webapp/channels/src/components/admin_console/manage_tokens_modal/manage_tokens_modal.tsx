@@ -185,7 +185,7 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
                 onHide={this.onModalDismissed}
                 onExited={this.props.onExited}
                 dialogClassName='a11y__modal manage-teams'
-                role='dialog'
+                role='none'
                 aria-labelledby='manageTokensModalLabel'
             >
                 <Modal.Header closeButton={true}>

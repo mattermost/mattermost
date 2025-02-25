@@ -18,6 +18,8 @@ import (
 
 type SqlRoleStore struct {
 	*SqlStore
+
+	tableSelectQuery sq.SelectBuilder
 }
 
 type Role struct {
@@ -83,7 +85,15 @@ func (role Role) ToModel() *model.Role {
 }
 
 func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
-	return &SqlRoleStore{sqlStore}
+	s := SqlRoleStore{
+		SqlStore: sqlStore,
+	}
+
+	s.tableSelectQuery = s.getQueryBuilder().
+		Select("Id", "Name", "DisplayName", "Description", "CreateAt", "UpdateAt", "DeleteAt", "Permissions", "SchemeManaged", "BuiltIn").
+		From("Roles")
+
+	return &s
 }
 
 func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
@@ -93,7 +103,7 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 	}
 
 	if role.Id == "" {
-		transaction, terr := s.GetMasterX().Beginx()
+		transaction, terr := s.GetMaster().Beginx()
 		if terr != nil {
 			return nil, errors.Wrap(terr, "begin_transaction")
 		}
@@ -111,7 +121,7 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 	dbRole := NewRoleFromModel(role)
 	dbRole.UpdateAt = model.GetMillis()
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE Roles
+	res, err := s.GetMaster().NamedExec(`UPDATE Roles
 		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, CreateAt=:CreateAt,  Name=:Name, DisplayName=:DisplayName,
 		Description=:Description, Permissions=:Permissions, SchemeManaged=:SchemeManaged, BuiltIn=:BuiltIn
 		 WHERE Id=:Id`, &dbRole)
@@ -156,8 +166,9 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *sqlxTxWrapper) 
 
 func (s *SqlRoleStore) Get(roleId string) (*model.Role, error) {
 	dbRole := Role{}
+	query := s.tableSelectQuery.Where(sq.Eq{"Id": roleId})
 
-	if err := s.GetReplicaX().Get(&dbRole, "SELECT * from Roles WHERE Id = ?", roleId); err != nil {
+	if err := s.GetReplica().GetBuilder(&dbRole, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", roleId)
 		}
@@ -169,8 +180,9 @@ func (s *SqlRoleStore) Get(roleId string) (*model.Role, error) {
 
 func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 	dbRoles := []Role{}
+	query := s.tableSelectQuery
 
-	if err := s.GetReplicaX().Select(&dbRoles, "SELECT * from Roles"); err != nil {
+	if err := s.GetReplica().SelectBuilder(&dbRoles, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
 
@@ -183,7 +195,9 @@ func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 
 func (s *SqlRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	dbRole := Role{}
-	if err := s.DBXFromContext(ctx).Get(&dbRole, "SELECT * from Roles WHERE Name = ?", name); err != nil {
+	query := s.tableSelectQuery.Where(sq.Eq{"Name": name})
+
+	if err := s.DBXFromContext(ctx).GetBuilder(&dbRole, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", fmt.Sprintf("name=%s", name))
 		}
@@ -198,16 +212,13 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 		return []*model.Role{}, nil
 	}
 
-	query := s.getQueryBuilder().
-		Select("Id, Name, DisplayName, Description, CreateAt, UpdateAt, DeleteAt, Permissions, SchemeManaged, BuiltIn").
-		From("Roles").
-		Where(sq.Eq{"Name": names})
+	query := s.tableSelectQuery.Where(sq.Eq{"Name": names})
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "role_tosql")
 	}
 
-	rows, err := s.GetReplicaX().DB.Query(queryString, args...)
+	rows, err := s.GetReplica().DB.Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
@@ -235,7 +246,9 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 func (s *SqlRoleStore) Delete(roleId string) (*model.Role, error) {
 	// Get the role.
 	var role Role
-	if err := s.GetReplicaX().Get(&role, "SELECT * from Roles WHERE Id = ?", roleId); err != nil {
+	query := s.tableSelectQuery.Where(sq.Eq{"Id": roleId})
+
+	if err := s.GetReplica().GetBuilder(&role, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", roleId)
 		}
@@ -246,7 +259,7 @@ func (s *SqlRoleStore) Delete(roleId string) (*model.Role, error) {
 	role.DeleteAt = time
 	role.UpdateAt = time
 
-	res, err := s.GetMasterX().NamedExec(`UPDATE Roles
+	res, err := s.GetMaster().NamedExec(`UPDATE Roles
 		SET UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, CreateAt=:CreateAt,  Name=:Name, DisplayName=:DisplayName,
 		Description=:Description, Permissions=:Permissions, SchemeManaged=:SchemeManaged, BuiltIn=:BuiltIn
 		 WHERE Id=:Id`, &role)
@@ -268,7 +281,7 @@ func (s *SqlRoleStore) Delete(roleId string) (*model.Role, error) {
 }
 
 func (s *SqlRoleStore) PermanentDeleteAll() error {
-	if _, err := s.GetMasterX().Exec("DELETE FROM Roles"); err != nil {
+	if _, err := s.GetMaster().Exec("DELETE FROM Roles"); err != nil {
 		return errors.Wrap(err, "failed to delete Roles")
 	}
 
@@ -353,7 +366,7 @@ func (s *SqlRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[s
 	query := s.channelHigherScopedPermissionsQuery(roleNames)
 
 	rolesPermissions := []*channelRolesPermissions{}
-	if err := s.GetReplicaX().Select(&rolesPermissions, query); err != nil {
+	if err := s.GetReplica().Select(&rolesPermissions, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find RolePermissions")
 	}
 
@@ -383,7 +396,7 @@ func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 	}
 
 	dbRoles := []*Role{}
-	if err = s.GetReplicaX().Select(&dbRoles, queryString, args...); err != nil {
+	if err = s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
 
@@ -420,7 +433,7 @@ func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role
 	}
 
 	dbRoles := []*Role{}
-	if err = s.GetReplicaX().Select(&dbRoles, queryString, args...); err != nil {
+	if err = s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
 

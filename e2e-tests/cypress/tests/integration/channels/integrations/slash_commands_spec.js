@@ -152,7 +152,7 @@ describe('Integrations', () => {
         cy.uiWaitUntilMessagePostedIncludes(firstMessage);
 
         // * The user stays in the same team
-        cy.get(`#${team1.name}TeamButton`).parent().should('have.class', 'active');
+        cy.get(`#${team1.name}TeamButton`).children().should('have.class', 'active');
 
         // * The user is in the DM channel with user2
         cy.get(`#sidebarItem_${Cypress._.sortBy([user1.id, user2.id]).join('__')}`).parent().should('be.visible').and('have.class', 'active');
@@ -168,7 +168,7 @@ describe('Integrations', () => {
         cy.uiWaitUntilMessagePostedIncludes(secondMessage);
 
         // * The user stays in the same team
-        cy.get(`#${team2.name}TeamButton`).parent().should('have.class', 'active');
+        cy.get(`#${team2.name}TeamButton`).children().should('have.class', 'active');
 
         // * The user is in the DM channel with user2
         cy.get(`#sidebarItem_${Cypress._.sortBy([user1.id, user2.id]).join('__')}`).parent().should('be.visible').and('have.class', 'active');

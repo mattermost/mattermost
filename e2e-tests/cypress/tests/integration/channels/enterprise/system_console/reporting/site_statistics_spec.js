@@ -128,25 +128,30 @@ describe('System Console > Site Statistics', () => {
                     cy.visit('/admin_console');
                     cy.wait('@resources');
 
-                    // * Find site statistics and click it
-                    cy.findByTestId('reporting.system_analytics', {timeout: TIMEOUTS.ONE_MIN}).click();
+                    cy.dbRefreshPostStats().then(() => {
+                        // * Find site statistics and click it
+                        cy.findByTestId('reporting.system_analytics', {timeout: TIMEOUTS.ONE_MIN}).click();
 
-                    let totalPostsDataSet;
-                    let totalPostsFromBots;
-                    let activeUsersWithPosts;
+                        // * Expand the details
+                        cy.findByTestId('details-expander', {timeout: TIMEOUTS.ONE_MIN}).click();
 
-                    // # Grab all data from the 3 charts from there data labels
-                    cy.findByTestId('totalPostsLineChart').then((el) => {
-                        totalPostsDataSet = el[0].dataset.labels;
-                        cy.findByTestId('totalPostsFromBotsLineChart').then((el2) => {
-                            totalPostsFromBots = el2[0].dataset.labels;
-                            cy.findByTestId('activeUsersWithPostsLineChart').then((el3) => {
-                                activeUsersWithPosts = el3[0].dataset.labels;
+                        let totalPostsDataSet;
+                        let totalPostsFromBots;
+                        let activeUsersWithPosts;
 
-                                // * Assert that all the dates are the same
-                                expect(totalPostsDataSet).equal(totalPostsFromBots);
-                                expect(totalPostsDataSet).equal(activeUsersWithPosts);
-                                expect(totalPostsFromBots).equal(activeUsersWithPosts);
+                        // # Grab all data from the 3 charts from there data labels
+                        cy.findByTestId('totalPostsLineChart').then((el) => {
+                            totalPostsDataSet = el[0].dataset.labels;
+                            cy.findByTestId('totalPostsFromBotsLineChart').then((el2) => {
+                                totalPostsFromBots = el2[0].dataset.labels;
+                                cy.findByTestId('activeUsersWithPostsLineChart').then((el3) => {
+                                    activeUsersWithPosts = el3[0].dataset.labels;
+
+                                    // * Assert that all the dates are the same
+                                    expect(totalPostsDataSet).equal(totalPostsFromBots);
+                                    expect(totalPostsDataSet).equal(activeUsersWithPosts);
+                                    expect(totalPostsFromBots).equal(activeUsersWithPosts);
+                                });
                             });
                         });
                     });

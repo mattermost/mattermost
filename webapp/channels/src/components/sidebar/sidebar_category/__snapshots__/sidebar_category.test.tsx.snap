@@ -56,7 +56,6 @@ exports[`components/sidebar/sidebar_category should match snapshot 2`] = `
   >
     <ul
       className="NavGroupContent"
-      role="list"
     >
       <Connect(SidebarChannel)
         channelId="channel_id"
@@ -129,7 +128,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when collapse
   >
     <ul
       className="NavGroupContent"
-      role="list"
     >
       <Connect(SidebarChannel)
         channelId="channel_id"
@@ -208,7 +206,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
   >
     <ul
       className="NavGroupContent"
-      role="list"
     >
       <PublicDraggable
         draggableId="NEW_CHANNEL_SPACER__category1"
@@ -298,8 +295,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       handleOpenDirectMessagesModal={[Function]}
     />
     <WithTooltip
-      id="new-group-tooltip"
-      placement="top"
       title={
         <React.Fragment>
           Create new direct message
@@ -325,6 +320,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       <button
         aria-label="Create new direct message"
         className="SidebarChannelGroupHeader_addButton"
+        id="newDirectMessageButton"
         onClick={[Function]}
       >
         <i
@@ -338,7 +334,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
   >
     <ul
       className="NavGroupContent"
-      role="list"
     >
       <Connect(SidebarChannel)
         channelId="channel_id"
@@ -411,8 +406,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       handleOpenDirectMessagesModal={[Function]}
     />
     <WithTooltip
-      id="new-group-tooltip"
-      placement="top"
       title={
         <React.Fragment>
           Create new direct message
@@ -438,6 +431,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       <button
         aria-label="Create new direct message"
         className="SidebarChannelGroupHeader_addButton"
+        id="newDirectMessageButton"
         onClick={[Function]}
       >
         <i
@@ -451,7 +445,6 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
   >
     <ul
       className="NavGroupContent"
-      role="list"
     />
   </div>
 </div>

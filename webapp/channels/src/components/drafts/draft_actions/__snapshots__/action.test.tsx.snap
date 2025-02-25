@@ -5,8 +5,6 @@ exports[`components/drafts/draft_actions/action should match snapshot 1`] = `
   className="DraftAction"
 >
   <WithTooltip
-    id="drafts_action_tooltip_"
-    placement="top"
     title=""
   >
     <button

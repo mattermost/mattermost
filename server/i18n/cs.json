@@ -1,7 +1,7 @@
 [
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Nemohu najít uživatele."
+    "translation": "Nepodařilo se najít uživatele {{.user}}"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
@@ -9,7 +9,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Nedostatečná oprávnění ke kanálu."
+    "translation": "Uživatel {{.user}} nemá odpovídající oprávnění pro kanál {{.channel}}"
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
@@ -33,11 +33,11 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Neporozuměl jsem příchozím datům."
+    "translation": "Nepodařilo se zpracovat příchozí data pro webhook {{.hook_id}}."
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Tento příkaz nelze najít."
+    "translation": "Nepodařilo se najít příkaz {{.command_id}}."
   },
   {
     "id": "system.message.name",
@@ -109,7 +109,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Podmínky užívání GitLabu byly změněny. Prosím přihlašte se na gitlab.com, akceptujte je a potom se zkuste přihlásit do Mattermostu znovu."
+    "translation": "Podmínky služby GitLab byly aktualizovány. Přejděte na {{.URL}}, abyste je přijali, a poté se pokuste znovu přihlásit do Mattermostu."
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -354,10 +354,6 @@
   {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Neplatné původní ID."
-  },
-  {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Neplatná zpráva."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -749,7 +745,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Vyhledávání pomocí Elasticsearch není a tomto serveru povoleno"
+    "translation": "{{.Backend}} vyhledávání je na tomto serveru zakázáno"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
@@ -761,19 +757,15 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Vyhledávání pomocí Elasticsearch není na tomto serveru povoleno"
+    "translation": "{{.Backend}} vyhledávání je na tomto serveru zakázáno"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Nepodařilo se načíst Elasticsearch indexy"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Nepodařilo se smazat index pro Elasticsearch"
+    "translation": "Nepodařilo se obnovit vyhledávací indexy"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch neběží"
+    "translation": "{{.Backend}} není spuštěn"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
@@ -781,11 +773,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Indexovacímu procesu Elasticsearch se nepodařilo pročíst čas začátku"
+    "translation": "Indexační proces {{.Backend}} nedokázal zpracovat čas začátku"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Indexovacímu procesu Elasticsearch se nepodařilo pročíst čas konce"
+    "translation": "Indexační proces {{.Backend}} nedokázal zpracovat čas ukončení"
   },
   {
     "id": "ent.elasticsearch.index_user.error",
@@ -801,7 +793,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Vyhledávání pomocí Elasticsearch není povoleno na tomto serveru"
+    "translation": "Hledání pomocí {{.Backend}} není na tomto serveru povoleno"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
@@ -817,43 +809,43 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Nepodařilo se načíst Elasticsearch indexy"
+    "translation": "Nepodařilo se získat {{.Backend}} indexy"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Nepodařilo se smazat Elasticsearch index"
+    "translation": "Nepodařilo se smazat{{.Backend}} index"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Selhala tvorba šablony Elasticsearch pro uživatele"
+    "translation": "Nepodařilo se vytvořit {{.Backend}} šablonu pro uživatele"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Selhala tvorba Elasticsearch šablony pro příspěvky"
+    "translation": "Nepodařilo se vytvořit {{.Backend}} šablonu pro příspěvky"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Selhala tvoba šablony Elasticsearch pro kanály"
+    "translation": "Nepodařilo se vytvořit {{.Backend}} šablonu pro kanály"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Nastavení Elasticsearch klienta selhalo"
+    "translation": "Nastavení {{.Backend}} klienta selhalo"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Agregátor Elasticsearch selhal protože indexovací úloha selhala"
+    "translation": "Agregátor {{.Backend}} selhal protože indexovací úloha selhala"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Agregátoru Elasticsearch se nezdařilo načíst indexy"
+    "translation": "Agregátoru {{.Backend}} se nezdařilo načíst indexy"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Agregátoru Elasticsearch se nezdařilo smazat indexy"
+    "translation": "Agregátoru {{.Backend}} se nepodařilo smazat indexy"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Agregátoru Elasticsearch se nezdařilo vytvoření indexovací úlohy"
+    "translation": "Agregátoru {{.Backend}} se nepodařilo vytvořit úlohu pro indexování"
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -864,68 +856,8 @@
     "translation": "Pro úlohu '{{.JobName}}' v '{{.FilePath}}' se nezdařil export"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Nepodařilo se načíst šablony exportu. Prosím zkuste to znova."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funkce splnění požadavků je zakázána aktuální licencí. Obraťte se na správce systému o inovaci podnikové licence."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Nepodařilo se přečíst dočasný soubor Global Relay exportu."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Nepodařilo se otevřít dočasný soubor exportu."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Nahraný soubor byl odstraněn z exportu Global Relay protože byl moc velký."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Nepodařilo se vytvořit zip soubor pro export."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Nepodařilo se vytvořit eml soubor."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Nepodařilo se exportovat příspěvek."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Nepodařilo se vytvořit zip soubor"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Nepodařilo se zkonvertovat metadata do JSON."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Nepodařilo se přidat metadata soubor do zip souboru."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Nepodařilo se přidat hlavičku do CSV exportu."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Nepodařilo se vytvořit dočasný CSV soubor."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Nepodařilo se přidat přílohu do CSV exportu."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Nepodařilo se skopírovat přílohu do zip souboru."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Neznámý formát {{.ExportType}}"
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -933,7 +865,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Konfigurace clusteru id={{.id}} se změnila. Cluster může být nestabilní a může vyžadovat restart. Pro zajišťění správného chování by ste měli ihned provést rolling restart."
+    "translation": "Konfigurace clusteru byla změněna pro id={{ .id }}. Cluster může být nestabilní a je vyžadován restart. Aby byla konfigurace clusteru správná, měli byste okamžitě provést postupný restart."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -1257,15 +1189,15 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nové upozornění v {{ .TeamName}} z {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Notifikace v {{ .TeamName}} dne {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nová skupinová zpráva z {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Nová skupinová zpráva dne {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nová skupinová zpráva v {{ .ChannelName}} z {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Nová skupinová zpráva v {{ .ChannelName}} dne {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -1761,7 +1693,7 @@
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
-    "translation": "Nevalidní {{.Name}} parametr."
+    "translation": "Neplatný {{.Name}} parametr."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -1770,10 +1702,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Nepovedlo se aktualizovat webhooky napříč teamy."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Nelze dekódovat multipart payload příchozího webhooku."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
@@ -1809,7 +1737,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Nelze aktualizovat připojení přes websocket."
+    "translation": "URL blokována kvůli CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -1905,7 +1833,7 @@
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "Nemůžete se sami deaktivovat, protože tato funkce není povolena. Obraťte se na správce systému."
+    "translation": "Nemůžete si deaktivovat účet, protože tato funkce není povolena. Obraťte se na správce systému."
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
@@ -2033,31 +1961,31 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout musí být minimálně 1 vteřina."
+    "translation": "Search Request Timeout musí být alespoň 1 sekunda."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime musí být časový údaj ve formátu \"hh:mm\"."
+    "translation": "Nastavení Search PostsAggregatorJobStartTime musí být čas ve formátu \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size musí být nastaveno minimálně na 1."
+    "translation": "Velikost dávky Search Live Indexing musí být alespoň 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Nastavení indexace pro Elasticsearch musí být povoleno pokud hodnota Elasticsearch EnableSearching je také povolena"
+    "translation": "Nastavení {{.EnableIndexing}} musí být nastaveno na hodnotu true, pokud je {{.Searching}} nastaveno na hodnotu true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Nastavení indexace pro Elasticsearch musí být povoleno pokud hodnota Elasticsearch EnableAutocomplete je také povolena"
+    "translation": "Nastavení {{.EnableIndexing}} musí být nastaveno na hodnotu true, pokud je {{.Autocomplete}} nastaveno na hodnotu true"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl nastavení musí být zadáno když je Elastic Search index zapnutý."
+    "translation": "Nastavení Search ConnectionUrl musí být poskytnuto, když je indexování povoleno."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays musí být číslo větší nebo rovno 1."
+    "translation": "Nastavení Search AggregatePostsAfterDays musí být číslo větší nebo rovno 1."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -2425,7 +2353,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID pro interaktivní dialog vypršel. ID triggeru existuje maximálně po dobu {{.Seconds}} vteřin."
+    "translation": "ID spouštěče pro interaktivní dialog vypršelo. ID spouštěčů mají maximální platnost {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -2500,58 +2428,6 @@
     "translation": "Nelze migrovat uživatele AD / LDAP se zadaným polem. Byl zjištěn duplicitní záznam. Odeberte prosím všechny duplikáty a zkuste to znovu."
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Nelze otevřít dočasný soubor exportu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Nelze získat e-mail z dočasného souboru."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Nezdařilo se získat informace o dočasném souboru pro export."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Nepodařilo se nastavit emailovou adresu To:."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Nepodařilo se pročíst informace emailu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Nepodařilo se zapsat emailovou zprávu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Nepodařilo se nastavit emailovou zprávu."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Nepodařilo se nastavit emailovou adresu From:."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Nepodařilo se doručit email na Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Nepodařilo se vygenerovat eml data."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Nepodařilo se vytvořit eml soubor."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Nepodařilo se zavřít zip soubor."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Nepodařilo se přidat přílohu do Global Relay exportu."
-  },
-  {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "Chyba při načítání skupin uživatele"
   },
@@ -2585,7 +2461,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Překročen limit. Zkuste zkontrolovat [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Překročen limit velikosti. Zkuste zvýšit nastavení maximální velikosti stránky. Další podrobnosti najdete na: https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded."
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -2653,27 +2529,27 @@
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "URL nemo uživatelské jméno Elasticsearch serveru se změnilo. Zadejte prosím znovu heslo."
+    "translation": "URL serveru pro vyhledávání nebo uživatelské jméno se změnily. Prosím, zadejte znovu heslo pro otestování připojení."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Vaše licence nepodporuje Elasticsearch."
+    "translation": "Vaše licence Mattermost nepodporuje indexované vyhledávání."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch je vypnutý."
+    "translation": "{{.Backend}} je zakázán."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch je už zastaven."
+    "translation": "{{.Backend}} je již zastaven."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Nepodařilo se zpracovat verzi Elasticsearch serveru."
+    "translation": "Nepodařilo se zpracovat verzi {{.Backend}} serveru."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Nepodařilo se získat verzi Elasticsearch serveru."
+    "translation": "Nepodařilo se získat verzi {{.Backend}} serveru."
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
@@ -2693,7 +2569,7 @@
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Zadejte správný email nebo uživatelské jméno a/nebo heslo, nebo se přihlašte jiným způsobem."
+    "translation": "Zadejte správný email nebo uživatelské jméno a/nebo heslo, nebo se přihlaste jiným způsobem."
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
@@ -2821,7 +2697,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Nelze zpracovat auth data z uživatelského objektu {{.Service}}."
+    "translation": "Nelze zpracovat data z uživatelského objektu {{.Service}}."
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
@@ -2885,11 +2761,11 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Připojili jste se k {{ .ServerURL }}"
+    "translation": "Vítejte v týmu"
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Ověřte prosím svou e-mailovou adresu níže."
+    "translation": "Tato e-mailová adresa byla použita k vytvoření účtu v Mattermostu."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -2901,27 +2777,27 @@
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .SiteName }}] Ověření Emailu"
+    "translation": "[{{ .SiteName }}] Ověření E-mailu"
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Jste připojeni k {{ .ServerURL }}"
+    "translation": "Ověřte svou e-mailovou adresu"
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Ověřte prosím svou e-mailovou adresu kliknutím níže."
+    "translation": "Tato e-mailová adresa byla použita k vytvoření účtu v Mattermostu."
   },
   {
     "id": "api.templates.verify_body.button",
-    "translation": "Ověření emailu"
+    "translation": "Ověřit E-mail"
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "[{{.SiteName}}] Vaše uživatelské jméno se změnilo"
+    "translation": "[{{ .SiteName }}] Vaše uživatelské jméno bylo změněno"
   },
   {
     "id": "api.templates.username_change_body.title",
-    "translation": "Aktualizovali jste uživatelské jméno"
+    "translation": "Aktualizovali jste své uživatelské jméno"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2929,7 +2805,7 @@
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{.SiteName}}] Osobní přístupový token byl přidán do vašeho účtu"
+    "translation": "[{{ .SiteName }}] Osobní přístupový token byl přidán do vašeho účtu"
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -2937,43 +2813,43 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Do účtu {{.SiteURL}} byl do účtu přidán osobní přístupový token. Mohou být použity pro přístup k účtu {{.SiteName}}."
+    "translation": "Na váš účet na {{ .SiteURL }} byl přidán osobní přístupový token. Tento token můžete použít k přístupu na {{.SiteName}} s vaším účtem."
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{.SiteName}}] Vaše přihlašovací metoda byla aktualizována"
+    "translation": "[{{ .SiteName }}] Vaše metoda přihlášení byla aktualizována"
   },
   {
     "id": "api.templates.signin_change_email.body.title",
-    "translation": "Aktualizoval jste svou metodu přihlášení"
+    "translation": "Aktualizovali jste svou metodu přihlášení"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
-    "translation": "email a heslo"
+    "translation": "e-mail a heslo"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Aktualizoval jste svou metodu přihlášení na {{.SiteName}} na {{.Method}}."
+    "translation": "Aktualizovali jste svou metodu přihlášení na {{ .SiteName }} na {{.Method}}."
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "[{{ .SiteName }}] Resetujte své heslo"
+    "translation": "[{{ .SiteName }}] Obnovte své heslo"
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Bylo požádáno o nastavení nového hesla"
+    "translation": "Obnovte Své Heslo"
   },
   {
     "id": "api.templates.reset_body.button",
-    "translation": "Obnovit heslo"
+    "translation": "Obnovit Heslo"
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Přejít na příspěvek"
+    "translation": "Odpovědět v Mattermostu"
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{.SiteName}}] Vaše heslo bylo aktualizováno"
+    "translation": "[{{ .SiteName }}] Vaše heslo bylo aktualizováno"
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -2981,35 +2857,35 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Vaše heslo pro {{.TeamDisplayName}} bylo aktualizováno na {{.TeamURL}} do {{.Method}}."
+    "translation": "Vaše heslo pro {{.TeamDisplayName}} na {{ .TeamURL }} bylo aktualizováno metodou {{.Method}}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Autentizace více faktory byla odstraněna"
+    "translation": "Více-faktorová autentizace byla odstraněna"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Víceúrovňové přihlášení bylo odstraněno z vašeho účtu na {{ .SiteURL }}."
+    "translation": "Více-faktorové přihlášení bylo odstraněno z vašeho účtu na {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{.SiteName}}] Vaše MFA bylo aktualizováno"
+    "translation": "[{{ .SiteName }}] Vaše MFA bylo aktualizováno"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Vícefázové ověření bylo přidáno"
+    "translation": "Více-faktorové ověření bylo přidáno"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Do účtu {{.SiteURL}} bylo přidáno vícestupňové ověřování."
+    "translation": "Do vašeho účtu na {{ .SiteURL }} bylo přidáno vícefaktorové ověřování."
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} vás zve do skupiny {{.TeamDisplayName}}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval(a), abyste se připojil(a) k týmu {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_guest_subject",
-    "translation": "[{{.SiteName}}] {{.SenderName}} vás zve do skupiny {{.TeamDisplayName}} jako hosta"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval(a), abyste se připojil(a) k týmu {{ .TeamDisplayName }} jako host"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -3025,11 +2901,11 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Nelze odebrat uživatele z kanálu pro omezený Tým."
+    "translation": "Nepodařilo se odebrat uživatele z týmu s omezeným přístupem."
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "Tento kanál byl přesunut týmem z %v."
+    "translation": "Tento kanál byl přesunut k tomuto týmu z %v."
   },
   {
     "id": "api.team.move_channel.post.error",
@@ -3065,11 +2941,11 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Chyba při zneplatňování emailových pozvánek."
+    "translation": "Chyba při zneplatnění pozvánek na e-mail."
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Chybná požadavek: velikost souboru není k známa."
+    "translation": "Chybný požadavek: pole filesize není k dispozici."
   },
   {
     "id": "api.team.import_team.parse.app_error",
@@ -3097,7 +2973,7 @@
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Nelze přečíst soubor s ikonou týmu."
+    "translation": "Nelze načíst soubor s ikonou týmu."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
@@ -3113,7 +2989,7 @@
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "vaše licence nepodporuje účty typu Host"
+    "translation": "Vaše licence nepodporuje účty typu Host"
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -3129,11 +3005,11 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v přidal do týmu od %v."
+    "translation": "%v byl přidán do týmu uživatelem %v."
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Tento tým je spravován skupinami. Tento uživatel není členem skupiny, která je synchronizována do tohoto týmu."
+    "translation": "Tento tým je spravován skupinami. Tento uživatel není členem skupiny, která je připojena k tomuto týmu."
   },
   {
     "id": "api.team.add_members.error",
@@ -3149,87 +3025,87 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "Název souboru {{.Filename}} v zip archivu je příliš dlouhý, není možno ho proto importovat do Slacku.\r\n"
+    "translation": "Soubor {{.Filename}} v zip archivu je příliš velký, není možno ho proto importovat do Slacku.\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Nelze otevřít komprimovaný zip soubor Slacku.\r\n"
+    "translation": "Nelze otevřít komprimovaný zip soubor Slacku.\n"
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Nepodařilo se získat tým do importu.\r\n"
+    "translation": "Nepodařilo se získat tým do importu.\n"
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Nelze otevřít soubor: {{.Filename}}.\r\n"
+    "translation": "Nelze otevřít soubor: {{.Filename}}.\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nPoznámky:\r\n"
+    "translation": "\nPoznámky:\n"
   },
   {
     "id": "api.slackimport.slack_import.note3",
-    "translation": "- Další chyby lze nalézt v logu serveru.\r\n"
+    "translation": "- Další chyby lze nalézt v logu serveru.\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
-    "translation": "- zprávy Slack botu nejsou momentálně podporovány.\r\n"
+    "translation": "- zprávy Slack botu nejsou momentálně podporovány.\n"
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- Některé zprávy nemusejí být importovány, protože nebyly podporovány tímto importem.\r\n"
+    "translation": "- Některé zprávy nemusejí být importovány, protože nebyly podporovány tímto importem.\n"
   },
   {
     "id": "api.slackimport.slack_import.log",
-    "translation": "Log importu ze Slacku do Mattermostu\r\n"
+    "translation": "Log importu ze Slacku do Mattermostu\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Nelze importovat uživatele Slack: {{.Username}}.\r\n"
+    "translation": "Nelze importovat uživatele Slack: {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Uživatel {{.Username}} nemá e-mailovou adresu v exportu Slacku. Používáte {{.Email}} jako zástupný symbol. Uživatel by měl aktualizovat svou e-mailovou adresu po přihlášení do systému.\r\n"
+    "translation": "Uživatel {{.Username}} nemá e-mailovou adresu v exportu Slacku. Používáte {{.Email}} jako zástupný symbol. Uživatel by měl aktualizovat svou e-mailovou adresu po přihlášení do systému.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}, avšak nemohl být přidán do týmu.\r\n"
+    "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}, avšak nemohl být přidán do týmu.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}.\r\n"
+    "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack uživatel s emailem {{.Email}} a heslem {{.Password}} byl naimportován.\r\n"
+    "translation": "Slack uživatel s emailem {{.Email}} a heslem {{.Password}} byl naimportován.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nVytvořeno uživatelů:\r\n"
+    "translation": "\nVytvořeno uživatelů:\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slack kanál {{.DisplayName}} již existuje jako aktivní kanál Mattermostu. Oba kanály byly sloučeny.\r\n"
+    "translation": "Slack kanál {{.DisplayName}} již existuje jako aktivní kanál Mattermostu. Oba kanály byly sloučeny.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Nepodařilo se importovat Slack kanál {{.DisplayName}}.\r\n"
+    "translation": "Nepodařilo se importovat Slack kanál {{.DisplayName}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Do kanálu se nepodařilo přidat Slack uživatele {{.Username}}.\r\n"
+    "translation": "Do kanálu se nepodařilo přidat Slack uživatele {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nKanály přidány:\r\n"
+    "translation": "\nPřidané kanály:\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Nepodařilo se naimportovat Integration/Slack Bot uživatele {{.Username}}.\r\n"
+    "translation": "Nepodařilo se naimportovat Integration/Slack Bot uživatele {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Integration/Slack Bot uživatel s emailem {{.Email}} and heslem {{.Password}} byl naimportován.\r\n"
+    "translation": "Integration/Slack Bot uživatel s emailem {{.Email}} and heslem {{.Password}} byl naimportován.\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -3241,7 +3117,7 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Nepodařilo se inicializovat rate limiting memory store. Zkontrolujte nastavení MemoryStoreSize v konfiguraci."
+    "translation": "Nelze inicializovat paměťové úložiště s omezením rychlosti. Zkontrolujte nastavení MemoryStoreSize v konfiguraci."
   },
   {
     "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
@@ -3253,7 +3129,7 @@
   },
   {
     "id": "api.scheme.patch_scheme.license.error",
-    "translation": "Vaše licence nepodporuje aktualizování opravňovacích schémat"
+    "translation": "Vaše licence nepodporuje schémata oprávnění k aktualizaci"
   },
   {
     "id": "api.scheme.get_teams_for_scheme.scope.error",
@@ -3265,11 +3141,11 @@
   },
   {
     "id": "api.scheme.delete_scheme.license.error",
-    "translation": "Vaše licence nepodporuje mazání opravňovacích schémat"
+    "translation": "Vaše licence nepodporuje mazání schémat oprávnění"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
-    "translation": "Vaše licence nepodporuje vytváření opravňovacích schémat."
+    "translation": "Vaše licence nepodporuje vytváření schémat oprávnění."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -3297,7 +3173,7 @@
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "Chyba při vytváření push upozornění."
+    "translation": "Při vytváření potvrzovací zprávy pro push notifikaci došlo k chybě."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -3305,11 +3181,11 @@
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": "Chyba při vytváření push upozornění."
+    "translation": "Při vytváření zprávy pro push notifikaci došlo k chybě."
   },
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
-    "translation": "Došlo k chybě při získávání push nofikace založené na ID (identifikátoru)."
+    "translation": "Při načítání push notifikace s ID došlo k chybě."
   },
   {
     "id": "api.push_notification.id_loaded.default_message",
@@ -3317,7 +3193,7 @@
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Push upozornění jsou vypnuty na tomto servru."
+    "translation": "Push upozornění jsou vypnuty na tomto serveru."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
@@ -3357,7 +3233,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": "vám poslal zprávu."
+    "translation": "Vám poslal zprávu."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
@@ -3390,15 +3266,15 @@
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "few": "{{.Count}} obrázek odeslán: {{.Filenames}}",
-      "one": "{{.Count}} obrázků odesláno: {{.Filenames}}",
+      "few": "{{.Count}} obrázky odeslány: {{.Filenames}}",
+      "one": "{{.Count}} obrázek odeslán: {{.Filenames}}",
       "other": "{{.Count}} obrázků odesláno: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "few": "{{.Count}} souborů odeslán: {{.Filenames}}",
+      "few": "{{.Count}} soubory odeslány: {{.Filenames}}",
       "one": "{{.Count}} soubor odeslán: {{.Filenames}}",
       "other": "{{.Count}} souborů odesláno: {{.Filenames}}"
     }
@@ -3409,7 +3285,7 @@
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": "Neplatná id akce."
+    "translation": "Neplatné id akce."
   },
   {
     "id": "api.post.disabled_here",
@@ -3433,7 +3309,7 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Nepodařilo se načíst původní příspěvek, po deduplikaci klient vrátil stejný požadavek."
+    "translation": "Nepodařilo se načíst původní příspěvek po deduplikaci opakované žádosti od klienta."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -3445,15 +3321,15 @@
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
-    "translation": "Neplatný parametr ChannelId pro parametr RootId."
+    "translation": "Neplatný ChannelId pro parametr RootId."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
-    "translation": "Nelze zaslat příspěvek do smazáného kanálu."
+    "translation": "Nelze zaslat příspěvek do smazaného kanálu."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} nebyl upozorněnt, protože není členem kanálu."
+    "translation": "@{{.Username}} nebyl upozorněn, protože není členem kanálu."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -3469,7 +3345,7 @@
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Nelze ověřit podpis zásuvného modulu."
+    "translation": "Nelze ověřit podpis modulu."
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
@@ -3485,7 +3361,7 @@
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "Při stahování zásuvného modulu nastala chyba."
+    "translation": "Při stahování modulu nastala chyba."
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
@@ -3705,11 +3581,11 @@
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
-    "translation": "Chyba při mazání tokenu z databáze DB."
+    "translation": "Chyba při mazání tokenu z databáze."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
-    "translation": "Chyba při mazání sezení z databáze DB."
+    "translation": "Chyba při mazání relace z databáze."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -3737,11 +3613,11 @@
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "server_error: Došlo k chybě při čtení uživatských dat z databáze."
+    "translation": "server_error: Došlo k chybě při čtení uživatelských dat z databáze."
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "server_error: Došlo k chybě při ukládání sezení do databáze."
+    "translation": "server_error: Došlo k chybě při ukládání relace do databáze."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
@@ -3789,7 +3665,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Chyba serializace."
+    "translation": "Nepodařilo se serializovat."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -3797,7 +3673,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "Nový formát klientské licence ještě není podporován. Doplňte do dotazu: format=old."
+    "translation": "Nový formát pro klientskou licenci není zatím podporován. Prosím, uveďte format=old v řetězci dotazu."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
@@ -3813,11 +3689,11 @@
   },
   {
     "id": "api.license.add_license.open.app_error",
-    "translation": "Nelze otevřít soubor s licencí."
+    "translation": "Nelze otevřít licenční soubor."
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": "Žádný soubor pod 'license' v žádosti."
+    "translation": "Žádný soubor pod 'licence' v žádosti."
   },
   {
     "id": "api.license.add_license.invalid_count.app_error",
@@ -3829,11 +3705,11 @@
   },
   {
     "id": "api.license.add_license.expired.app_error",
-    "translation": "Licence uplynula nebo ještě nezačala."
+    "translation": "Licence buď uplynula nebo ještě nezačala."
   },
   {
     "id": "api.license.add_license.array.app_error",
-    "translation": "Prázdné pole pod 'license' v žádosti."
+    "translation": "Prázdné pole pod 'licence' v žádosti."
   },
   {
     "id": "api.ldap_groups.license_error",
@@ -3841,7 +3717,7 @@
   },
   {
     "id": "api.ldap_groups.existing_group_name_error",
-    "translation": "člen skupiny už existuje"
+    "translation": "Název skupiny již existuje"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -3861,15 +3737,15 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Soubor(y) nelze nahrát. {{.Length}}B překračuje maximální povolenou velikost {{.Limit}}B."
+    "translation": "Nepodařilo se nahrát soubor {{.Filename}}. Velikost {{.Length}} bajtů překračuje maximální povolenou velikost {{.Limit}} bajtů."
   },
   {
     "id": "api.file.upload_file.storage.app_error",
-    "translation": "Nelze nahrát obrázek. Uložiště obrázků není nakonfigurováno."
+    "translation": "Nelze nahrát soubor. Uložiště obrázků není nakonfigurováno."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Soubor(y) nelze nahrát. Chyba při čtení nebo parsování dat."
+    "translation": "Soubor(y) nelze nahrát. Chyba při čtení nebo zpracování dat."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
@@ -3877,15 +3753,15 @@
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Soubor(y) nelze nahrát. Několik konfliktních channel_ids."
+    "translation": "Nelze nahrát soubor(y). Více konfliktujících channel_id."
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} rozměry ({{.Width}} x {{.Height}} pixelů) překračují povolené limity."
+    "translation": "Rozměry souboru {{.Filename}} ({{.Width}} x {{.Height}} pixelů) překračují stanovené limity."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "Soubor větší než povolený rozměr nemohl být nahrán: {{.Filename}}"
+    "translation": "Soubor přesahující maximální rozměry nemohl být nahrán: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -3893,63 +3769,63 @@
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
-    "translation": "Nastala chyba při čtení z lokálního úložiště."
+    "translation": "Nastala chyba při čtení z lokálního úložiště serveru."
   },
   {
     "id": "api.file.no_driver.app_error",
-    "translation": "Není vybrán ovladač souboru."
+    "translation": "Není vybrán žádný ovladač souboru."
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "K souboru nelze zajistit veřejný odkaz. Soubor musí být přiložen ke zprávě, která je čitelná aktuálnímu uživateli."
+    "translation": "Nelze získat veřejný odkaz na soubor. Soubor musí být připojen k příspěvku, který může aktuální uživatel číst."
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
-    "translation": "Vkládání veřejných odkazů ze deaktivované."
+    "translation": "Veřejné odkazy byli zakázány."
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
-    "translation": "Souboru nemá náhled."
+    "translation": "Soubor nemá náhledový obrázek."
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
-    "translation": "Souboru nemá náhled."
+    "translation": "Soubor nemá obrázek náhledu."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
-    "translation": "Tento veřejný odkaz se nezdá být v pořádku."
+    "translation": "Veřejný odkaz se nezdá být platný."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
-    "translation": "Přidávání příloh je na tomto serveru zakázáno."
+    "translation": "Přílohy souborů byly na tomto serveru zakázány."
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Nelze vytvořit emoji, jelikož vznikla chyba při pokusu otevřít přiložený obrázek."
+    "translation": "Nelze vytvořit emotikon. Vyskytla se chyba při pokusu otevřít přiložený obrázek."
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Emoji nelze vytvořit. Obrázek musí být menší než {{.MaxWidth}} od {{.MaxHeight}}."
+    "translation": "Nelze vytvořit emotikon. Obrázek musí být menší než {{.MaxWidth}} x {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o zakódování souboru GIF."
+    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o kódování obrázku GIF."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o dékódování souboru GIF."
+    "translation": "Nelze vytvořit emotikon. Nastala chyba při pokusu o dekódování obrázku GIF."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o zakódování souboru."
+    "translation": "Nelze vytvořit emotikonu. Došlo k chybě při pokusu o kódování obrázku."
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o dékódování souboru."
+    "translation": "Nemohu vytvořit emotikon. Nastala chyba při pokusu o dekódování souboru obrázku."
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Nemohu vytvořit emotikon. Soubor musí být fomrátu PNG, JPEG, nebo GIF."
+    "translation": "Nemohu vytvořit emotikon. Soubor musí být ve formátu PNG, JPEG, nebo GIF."
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -3957,11 +3833,11 @@
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Nemohu přečíst soubor s emotikonem."
+    "translation": "Nelze přečíst soubor obrázku pro emotikon."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Nedaří se mi převést soubor s obrázkem na emotikon."
+    "translation": "Nelze dekódovat soubor obrázku pro emotikon."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -3969,15 +3845,15 @@
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Nemohu vytvořit emotikon. Obrázek musí bát menší než 1 MB."
+    "translation": "Nelze vytvořit emoji. Obraz musí mít velikost menší než 512 KiB."
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Nemohu vytvořit emotikon. Nerozumím požadavku."
+    "translation": "Nelze vytvořit emotikon. Požadavek nelze pochopit."
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": "Neplatná ID uživatele."
+    "translation": "Neplatné ID uživatele."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -3986,18 +3862,18 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "few": "[{{.SiteName}}] Nová upozornění k datu {{.Day}}. {{.Month}} {{.Year}}",
-      "one": "[{{.SiteName}}] Nové upozornění k datu {{.Day}}. {{.Month}} {{.Year}}",
-      "other": "[{{.SiteName}}] Nová upozornění k datu {{.Day}}. {{.Month}} {{.Year}}"
+      "few": "[{{.SiteName}}] Nová upozornění k {{.Day}}. {{.Month}} {{.Year}}",
+      "one": "[{{.SiteName}}] Nové upozornění k {{.Day}}. {{.Month}} {{.Year}}",
+      "other": "[{{.SiteName}}] Nových upozornění k {{.Day}}. {{.Month}} {{.Year}}"
     }
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Dávkování emailů bylo správcem systému zakázáno."
+    "translation": "Dávkování e-mailů bylo zakázáno systémovým administrátorem."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "Dávkovací úloha pro emaily přijímacího kanálu byla moc velká. Prosím zvyšte nastavení EmailBatchingBufferSize."
+    "translation": "Přijímací kanál pro dávkování e-mailů byl plný. Zvyšte prosím hodnotu EmailBatchingBufferSize."
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
@@ -4009,15 +3885,15 @@
   },
   {
     "id": "api.context.token_provided.app_error",
-    "translation": "Sezení není OAuth ale v dotazu byl poskytnut token."
+    "translation": "Relace není OAuth, ale v řetězci dotazu byl poskytnut token."
   },
   {
     "id": "api.context.session_expired.app_error",
-    "translation": "Chybná session, prosím přihlaste se znova."
+    "translation": "Neplatná nebo vypršená relace, prosím přihlaste se znovu."
   },
   {
     "id": "api.context.server_busy.app_error",
-    "translation": "Servr je vytížen. Nekritické služby jsou dočasně nedostupné."
+    "translation": "Server je zaneprázdněn, nekritické služby jsou dočasně nedostupné."
   },
   {
     "id": "api.context.permissions.app_error",
@@ -4025,7 +3901,7 @@
   },
   {
     "id": "api.context.mfa_required.app_error",
-    "translation": "Tento server vyžaduje multi-faktorovou autentizaci."
+    "translation": "Na tomto serveru je vyžadována vícefaktorová autentifikace."
   },
   {
     "id": "api.context.invalid_url_param.app_error",
@@ -4033,7 +3909,7 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Neplatný token sezení={{.Token}}, err={{.Error}}"
+    "translation": "Neplatný token relace={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -4045,11 +3921,11 @@
   },
   {
     "id": "api.context.404.app_error",
-    "translation": "Sorry jako, takovou stránku nemám."
+    "translation": "Omlouváme se, stránku se nepodařilo najít."
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
-    "translation": "Nepodařilo se sloučit konfiguraci."
+    "translation": "Nepodařilo se sloučit danou konfiguraci."
   },
   {
     "id": "api.config.client.old_format.app_error",
@@ -4069,11 +3945,11 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "Funkce zkratek není na vašem zařízení podporována."
+    "translation": "Příkaz zkratek není na vašem zařízení podporován."
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "Klávesové zkratky"
+    "translation": "zkratky"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -4081,7 +3957,7 @@
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "Změna nastavení není na vašem zařízení podporována."
+    "translation": "Příkaz nastavení není na vašem zařízení podporován."
   },
   {
     "id": "api.command_settings.name",
@@ -4089,15 +3965,15 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Otevřít dialog s uživatelským nastavením"
+    "translation": "Otevřít dialogové okno Nastavení"
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "Funkce vyhledávání není na vašem zařízení podporována."
+    "translation": "Příkaz pro vyhledávání není na vašem zařízení podporován."
   },
   {
     "id": "api.command_search.name",
-    "translation": "hledej"
+    "translation": "vyhledat"
   },
   {
     "id": "api.command_search.hint",
@@ -4125,7 +4001,7 @@
   },
   {
     "id": "api.command_remove.message.app_error",
-    "translation": "Příkaz /remove nebo /kick vyžaduje zadanou zprávu."
+    "translation": "Musíte zadat zprávu s příkazem /remove nebo /kick."
   },
   {
     "id": "api.command_remove.hint",
@@ -4133,11 +4009,11 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "Uživatel nemůže být odstraněn z tohoto kanálu, protože je členem skupiny, která je na tento kanál navázána. Pro odstranění uživatele z tohoto kanálu musíte odstranit uživatele ze skupiny svázané s tímto kanálem."
+    "translation": "Uživatele nemůžete z kanálu odstranit, protože je členem skupin propojených s tímto kanálem. Chcete-li jej z kanálu odstranit, musíte jej odebrat z propojených skupin."
   },
   {
     "id": "api.command_remove.direct_group.app_error",
-    "translation": "Nemůžeš odstranit uživatele ze soukromé komunikace."
+    "translation": "Nemůžete někoho odstranit z kanálu přímých zpráv."
   },
   {
     "id": "api.command_remove.desc",
@@ -4293,7 +4169,7 @@
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Při připojování k kanálu došlo k chybě."
+    "translation": "Došlo k chybě při připojování ke kanálu."
   },
   {
     "id": "api.command_join.desc",
@@ -4310,9 +4186,9 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": {
-      "few": "{{.User}} již jsou v kanálu.",
-      "one": "{{.User}} již je v kanálu.",
-      "other": ""
+      "few": "{{.User}} jsou již v kanálu.",
+      "one": "{{.User}} je již v kanálu.",
+      "other": "{{.User}} je již v kanálu."
     }
   },
   {
@@ -4321,7 +4197,7 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Nelze najít kanál {{.Channel}}. K identifikaci použijte název kanálu."
+    "translation": "Nelze najít kanál {{.Channel}}. K identifikaci kanálů prosím použijte [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)."
   },
   {
     "id": "api.command_invite.permission.app_error",
@@ -4333,11 +4209,11 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Nelze najít uživatele {{.User}}. Mohl být deaktivován správcem."
+    "translation": "Uživatele {{.User}} jsme nemohli najít. Mohl být deaktivován správcem systému."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Chybí uživatelské jméno a kanál."
+    "translation": "Chybí uživatelské jméno a/nebo kanál."
   },
   {
     "id": "api.command_invite.hint",
@@ -4361,15 +4237,15 @@
   },
   {
     "id": "api.command_invite.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při získávání aktuálního kanálu."
   },
   {
     "id": "api.command_help.name",
-    "translation": "Nápověda"
+    "translation": "nápověda"
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Otevřít stránku s nápovědou Mattermost"
+    "translation": "Zobrazit nápovědu k Mattermostu"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -4381,18 +4257,18 @@
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Hromadné zprávy jsou omezeny na minimum {{.MinUsers}} uživatelů."
+    "translation": "Hromadné zprávy jsou omezeny na minimálně {{.MinUsers}} uživatelů."
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Hromadné zprávy jsou omezeny na maximum {{.MaxUsers}} uživatelů."
+    "translation": "Hromadné zprávy jsou omezeny na maximálně {{.MaxUsers}} uživatelů."
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "few": "Nelze najít uživatele: {{.Users}}",
+      "few": "Nepodařilo se najít uživatele: {{.Users}}",
       "one": "Nelze najít uživatele: {{.Users}}",
-      "other": "Nelze najít uživatele: {{.Users}}"
+      "other": "Nepodařilo se najít uživatele: {{.Users}}"
     }
   },
   {
@@ -4409,7 +4285,7 @@
   },
   {
     "id": "api.command_groupmsg.desc",
-    "translation": "Odešle hromadnou zprávu vybraným uživatelům"
+    "translation": "Odešle skupinovou zprávu vybraným uživatelům"
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
@@ -4417,11 +4293,11 @@
   },
   {
     "id": "api.command_expand.success",
-    "translation": "Odkazy na obrázky se nyní standartně rozbalují"
+    "translation": "Odkazy na obrázky se nyní ve výchozím nastavení rozbalí"
   },
   {
     "id": "api.command_expand.name",
-    "translation": "Rozbalit"
+    "translation": "rozbalit"
   },
   {
     "id": "api.command_expand.desc",
@@ -4433,19 +4309,19 @@
   },
   {
     "id": "api.command_echo.message.app_error",
-    "translation": "Příkaz /echo vyžaduje zadanou zprávu."
+    "translation": "Je nutné zadat zprávu s příkazem /echo."
   },
   {
     "id": "api.command_echo.hint",
-    "translation": "'zpráva' [delay in seconds]"
+    "translation": "'zpráva' [prodleva v sekundách]"
   },
   {
     "id": "api.command_echo.high_volume.app_error",
-    "translation": "Vysoké množství požadavků na echo. Nemohu zpracovat požadavek."
+    "translation": "Vysoký objem požadavků na echo, nelze zpracovat požadavek."
   },
   {
     "id": "api.command_echo.desc",
-    "translation": "Vypíše zpět text, bude odeslaný z vašeho účtu"
+    "translation": "Zpětně odešle text z vašeho účtu"
   },
   {
     "id": "api.command_echo.delay.app_error",
@@ -4461,15 +4337,15 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Připojit se k týmu"
+    "translation": "Připojit se teď"
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "Pokud jste neudělali tuto změnu, kontaktujte správce."
+    "translation": "Pokud jste neudělali tuto změnu, kontaktujte svého správce systému."
   },
   {
     "id": "api.templates.email_organization",
-    "translation": "Odeslal/a "
+    "translation": "Odesláno uživatelem "
   },
   {
     "id": "api.templates.email_info3",
@@ -4477,11 +4353,11 @@
   },
   {
     "id": "api.templates.email_info2",
-    "translation": "Srdečně zdravím,"
+    "translation": "S přáním všeho nejlepšího,"
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "Jakékoli dotazy nám posílejte e-mailem: "
+    "translation": "Pokud máte jakékoliv otázky, neváhejte nám napsat na e-mail: "
   },
   {
     "id": "api.templates.email_footer",
@@ -4493,7 +4369,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Aktualizovali jste svůj e-mail"
+    "translation": "Úspěšně jste aktualizovali svůj e-mail"
   },
   {
     "id": "api.templates.email_change_verify_body.info",
@@ -4501,7 +4377,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.button",
-    "translation": "Ověřit email"
+    "translation": "Ověřit e-mail"
   },
   {
     "id": "api.templates.email_change_subject",
@@ -4521,11 +4397,11 @@
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "Pokud tato změna nebyla iniciována vámi, nebo chcete znovu aktivovat svůj účet, kontaktujte svého správce."
+    "translation": "Pokud tato změna nebyla iniciována vámi, nebo chcete znovu aktivovat svůj účet, kontaktujte svého správce systému."
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Váš účet byl deaktivován na {{ .SiteURL }}"
+    "translation": "Váš účet byl deaktivován na {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -4545,11 +4421,11 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Omezení týmu na {{ .Domain }} není povoleno v configuraci systému. Kontaktujte prosím správce systému."
+    "translation": "Omezení týmu na {{ .Domain }} není povoleno nastavením systému. Prosím, kontaktujte svého správce systému."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
-    "translation": "Specifikovaný uživatel není čen specifikovaného týmu."
+    "translation": "Uvedený uživatel není členem zadaného týmu."
   },
   {
     "id": "api.team.team_icon.update.app_error",
@@ -4597,7 +4473,7 @@
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-    "translation": "Pro vyhledávání pouze veřejných týmů není stránkování implementováno."
+    "translation": "Stránkování není implementováno pro vyhledávání pouze veřejných týmů."
   },
   {
     "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
@@ -4613,7 +4489,7 @@
   },
   {
     "id": "api.command_collapse.success",
-    "translation": "Odkazy na obrázky se standardně sbalují"
+    "translation": "Odkazy na obrázky se nyní ve výchozím nastavení sbalí"
   },
   {
     "id": "api.command_collapse.name",
@@ -4629,7 +4505,7 @@
   },
   {
     "id": "api.command_code.message.app_error",
-    "translation": "Příkaz /code vyžaduje zadanou zprávu."
+    "translation": "Je nutné zadat zprávu s příkazem /code."
   },
   {
     "id": "api.command_code.hint",
@@ -4641,7 +4517,7 @@
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při aktualizaci aktuálního kanálu."
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
@@ -4649,7 +4525,7 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Název kanálu nesmí mít více než {{.Length}} znaků."
+    "translation": "Název kanálu musí mít {{.Length}} znaků nebo méně."
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
@@ -4657,11 +4533,11 @@
   },
   {
     "id": "api.command_channel_rename.name",
-    "translation": "přejmenuj"
+    "translation": "přejmenovat"
   },
   {
     "id": "api.command_channel_rename.message.app_error",
-    "translation": "Příkaz /rename vyžaduje zadanou zprávu."
+    "translation": "Je nutné zadat zprávu s příkazem /rename."
   },
   {
     "id": "api.command_channel_rename.hint",
@@ -4669,7 +4545,7 @@
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "Nelze přejmenovat kanál přímých zpráv."
+    "translation": "Nelze přejmenovat kanály přímých zpráv."
   },
   {
     "id": "api.command_channel_rename.desc",
@@ -4677,15 +4553,15 @@
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při načítání aktuálního kanálu."
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Nepodařilo se načíst aktuální kanál."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při aktualizaci účelu kanálu."
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
@@ -4693,11 +4569,11 @@
   },
   {
     "id": "api.command_channel_purpose.name",
-    "translation": "Účel"
+    "translation": "účel"
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
-    "translation": "Příkaz /purpose vyžaduje zadanou zprávu."
+    "translation": "Je nutné zadat zprávu s příkazem /purpose."
   },
   {
     "id": "api.command_channel_purpose.hint",
@@ -4709,15 +4585,15 @@
   },
   {
     "id": "api.command_channel_purpose.desc",
-    "translation": "Úprava účelu kanálu"
+    "translation": "Upravit účel kanálu"
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při načítání aktuálního kanálu."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Chyba při pokusu změnit aktuální kanál."
+    "translation": "Chyba při aktualizaci záhlaví kanálu."
   },
   {
     "id": "api.command_channel_header.permission.app_error",
@@ -4725,11 +4601,11 @@
   },
   {
     "id": "api.command_channel_header.name",
-    "translation": "hlavička"
+    "translation": "záhlaví"
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "Text musí být uvozen příkazem /echo."
+    "translation": "Text musí být zadán s příkazem /header."
   },
   {
     "id": "api.command_channel_header.hint",
@@ -4737,15 +4613,15 @@
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Upravit záhlaví kanálu"
+    "translation": "Upravit Záhlaví kanálu"
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Nelze načíst tento kanál."
+    "translation": "Chyba při načítání aktuálního kanálu."
   },
   {
     "id": "api.command_away.success",
-    "translation": "Momentálně jsi pryč"
+    "translation": "Nyní jste \"Pryč\""
   },
   {
     "id": "api.command_away.name",
@@ -4753,19 +4629,19 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Nastav status pryč"
+    "translation": "Nastavte si status na \"Pryč\""
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Nelze aktualizovat příkazy jiných týmů."
+    "translation": "Nepodařilo se aktualizovat příkazy napříč týmy."
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "Pozvánky emailem byly odeslány"
+    "translation": "Pozvánky e-mailem byly odeslány"
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Prosím zadejte jednu nebo více emailových adres"
+    "translation": "Prosím zadejte jednu nebo více platných e-mailových adres"
   },
   {
     "id": "api.command.invite_people.name",
@@ -4773,7 +4649,7 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "Na serveru je zakázáno zakládání nových uživatelů, pozvánka nebyla poslána"
+    "translation": "Vytváření uživatelů bylo na tomto serveru zakázáno, žádné pozvánky nebyly odeslány"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -4793,27 +4669,27 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Poslat email s pozvánkou do Mattermost teamu"
+    "translation": "Odešlete e-mailovou pozvánku do svého týmu v Mattermostu"
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "Trigger příkazu nebyl nalezen."
+    "translation": "Nebylo nalezeno žádné spouštěcí slovo příkazu."
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Přepínač '{{.Trigger}}' nebyl nalezen. Pokud chceš poslat zprávu začínající znakem \"/\", vlož před tento znak nejprve mezeru."
+    "translation": "Příkaz s triggerem '{{.Trigger}}' nebyl nalezen. Pokud chcete odeslat zprávu začínající znakem \"/\", zkuste přidat mezeru na začátek zprávy."
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "Příkaz aktivovaný '{{.Trigger}}' vrátil odpověď {{.Status}}."
+    "translation": "Příkaz s triggerem '{{.Trigger}}' vrátil odpověď {{.Status}}."
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "Příkaz aktivovaný '{{.Trigger}}' vrátil prázdnou odpověď."
+    "translation": "Příkaz s triggerem '{{.Trigger}}' vrátil prázdnou odpověď."
   },
   {
     "id": "api.command.execute_command.failed.app_error",
-    "translation": "Příkaz aktivovaný '{{.Trigger}}' se nezdařil."
+    "translation": "Příkaz s triggerem '{{.Trigger}}' selhal."
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
@@ -4821,7 +4697,7 @@
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
-    "translation": "Toto klíčové slovo se již používá. Vyberte si prosím jiné slovo."
+    "translation": "Toto klíčové slovo je již používáno. Prosím, vyberte jiné slovo."
   },
   {
     "id": "api.command.disabled.app_error",
@@ -4829,11 +4705,11 @@
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "Specifikovaný uživatel není členem specifikovaného týmu."
+    "translation": "Uvedený uživatel není členem uvedeného kanálu."
   },
   {
     "id": "api.command.admin_only.app_error",
-    "translation": "Integrace byly omezeny na administrátory."
+    "translation": "Integrace byly omezeny pouze na správce."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -4841,11 +4717,11 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Neplatná aktualizace členství týmu: Nelze ručně přidat nebo odebrat roli návštěvníka."
+    "translation": "Neplatná aktualizace člena týmu: Roli hosta nelze přidávat ani odebírat ručně."
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
-    "translation": "Nelze nastavit schéma kanálu, protože schéma není schéma kanálu."
+    "translation": "Nelze nastavit schéma kanálu, protože dodané schéma není schématem kanálu."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -4853,7 +4729,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "Výchozí kanál nemůže být nastaven jako soukromý/privátní."
+    "translation": "Výchozí kanál nemůže být nastaven jako soukromý."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
@@ -5273,11 +5149,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Licence Mattermost Enterprise byla zastavena."
+    "translation": "Licence na Mattermost Enterprise byla deaktivována."
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Platnost Vaší licence Enterprise vypršela a některé funkce mohou být vypnuty. Obnovte licenci."
+    "translation": "Vaše licence na Enterprise Edition vypršela a některé funkce mohou být deaktivovány. Obnovte prosím svou licenci nyní."
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
@@ -5293,11 +5169,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
-    "translation": "@{{.GroupName}} nemá členy z tohoto týmu"
+    "translation": "@{{.GroupName}} nemá žádné členy v tomto týmu"
   },
   {
     "id": "api.license.request_trial_license.app_error",
-    "translation": "Zkušební licenci nelze získat, zkuste to znovu nebo se obraťte na support@mattermost.com."
+    "translation": "Nelze získat zkušební licenci, prosím zkuste to znovu nebo kontaktujte support@mattermost.com."
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -5309,11 +5185,11 @@
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": "tento název skupiny už existuje jako uživatelské jméno"
+    "translation": "název skupiny již existuje jako uživatelské jméno"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "tento název skupiny je rezervován"
+    "translation": "Název skupiny již existuje jako rezervovaný název"
   },
   {
     "id": "api.invalid_channel",
@@ -5321,7 +5197,7 @@
   },
   {
     "id": "api.image.get.app_error",
-    "translation": "Požadovanou adresu URL obrázku nelze zpracovat."
+    "translation": "Zadanou URL adresu obrázku nelze zpracovat."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -5329,7 +5205,7 @@
   },
   {
     "id": "api.emoji.create.internal_error",
-    "translation": "server_error: Při vytváření smajlíku došlo k interní chybě serveru."
+    "translation": "server_error: Při vytváření emotikonu došlo k interní chybě serveru."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -5353,7 +5229,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Platnost relace vypršela: Chcete-li nadále dostávat oznámení, přihlaste se. Relace na webu {{.siteName}} jsou konfigurovány vaším správcem systému tak, aby vypršely každý(ch) {{.daysCount}} den/dnů."
+    "translation": "Platnost relace vypršela: Pro pokračování v přijímání notifikací se prosím přihlaste. Relace pro {{.siteName}} jsou nakonfigurovány vaším správcem systému tak, aby vypršely každých {{.hoursCount}} hodinu/hodiny."
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
@@ -5381,7 +5257,7 @@
   },
   {
     "id": "api.config.migrate_config.app_error",
-    "translation": "Migrace úložiště konfigurace se nezdařila."
+    "translation": "Nepodařilo se migrovat úložiště konfigurace."
   },
   {
     "id": "api.admin.ldap.not_available.app_error",
@@ -5405,23 +5281,23 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 11+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Verze 14.1+"
+    "translation": "Verze 17.4+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Verze 91+"
+    "translation": "Verze 119+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Verze 95+"
+    "translation": "Verze 130+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verze 106+"
+    "translation": "Verze 130+"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -5689,7 +5565,7 @@
   },
   {
     "id": "app.channel.delete.app_error",
-    "translation": "Nemohu smazat kanál."
+    "translation": "Nepodařilo se smazat kanál."
   },
   {
     "id": "app.channel.permanent_delete.app_error",
@@ -5821,7 +5697,7 @@
   },
   {
     "id": "api.context.local_origin_required.app_error",
-    "translation": "Tento endpoint vyžaduje lokální request origin."
+    "translation": "Tento endpoint vyžaduje místní původ požadavku."
   },
   {
     "id": "api.config.get_config.restricted_merge.app_error",
@@ -5837,7 +5713,7 @@
   },
   {
     "id": "api.cloud.app_error",
-    "translation": "Interní chyba bězem požadavku na cloud api."
+    "translation": "Vnitřní chyba během požadavku na cloudové API."
   },
   {
     "id": "model.group_syncable.group_id.app_error",
@@ -6049,11 +5925,11 @@
   },
   {
     "id": "api.upload.upload_data.invalid_content_type",
-    "translation": "Nevalidní Content-Type pro víceobsahový upload."
+    "translation": "Neplatná hodnota Content-Type pro víceobsahový upload."
   },
   {
     "id": "api.upload.upload_data.invalid_content_length",
-    "translation": "Nevalidní Content-Length."
+    "translation": "Neplatná hodnota Content-Length."
   },
   {
     "id": "app.upload.get.app_error",
@@ -6065,11 +5941,11 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
-    "translation": "Mattermost nemohl bý aktualizován na Enterprise edici. Digitální podpis staženého binárního souboru nemohl být ověřen."
+    "translation": "Mattermost nemohl být aktualizován na Enterprise edici. Digitální podpis staženého souboru nemohl být ověřen."
   },
   {
     "id": "api.upgrade_to_enterprise_status.app_error",
-    "translation": "Mattermost nemohl bý aktualizován na Enterprise edici."
+    "translation": "Mattermost nemohl být aktualizován na Enterprise edici."
   },
   {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
@@ -6077,23 +5953,23 @@
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícícho příkazu na serveru, kde je Mattermost instalován:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícího příkazu na serveru, kde je Mattermost instalován:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícícho příkazu na serveru, kde je Mattermost instalován:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícího příkazu na serveru, kde je Mattermost instalován:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
-    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícícho příkazu na serveru, kde je Mattermost instalován:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Nepodařilo se aktualizovat Mattermost na Enterprise edici. Systémový uživatel {{.MattermostUsername}} nemá oprávnění zápisu do patřičného binárního souboru. Systémový administrátor může upravit oprávnění k souboru spuštěním následujícího příkazu na serveru, kde je Mattermost instalován:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nPo změně oprávnění se pokuste provést aktualizaci Mattermostu ještě jednou. Poté, co bude aktualizace dokončena a server restartován, nezapomeňte vrátit oprávnění k souboru na původní hodnotu:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
-    "translation": "Mattermost nemohl bý aktualizován na Enterprise edici."
+    "translation": "Mattermost nemohl být aktualizován na Enterprise edici."
   },
   {
     "id": "api.upgrade_to_enterprise.app_error",
-    "translation": "Aktualizace na Mattermost Enterprise edici je již v běhu."
+    "translation": "Aktualizace na Mattermost Enterprise edici již běží."
   },
   {
     "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
@@ -6101,11 +5977,11 @@
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
-    "translation": "Již jste aktualizovali na Mattermost Enterprise edici. Prosím restartujte server k dokončení aktualizace."
+    "translation": "Již jste upgradovali na Mattermost Enterprise Edition. Prosím, restartujte server, aby byl upgrade dokončen."
   },
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
-    "translation": "Selhalo zprasování těla požadavku."
+    "translation": "Nepodařilo se analyzovat tělo žádosti."
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -6353,7 +6229,7 @@
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Nelze najít daný kanál."
+    "translation": "Nepodařilo se najít existující kanál {{.channel_id}}."
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
@@ -6361,7 +6237,7 @@
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
-    "translation": "Jedna nebo více změn v oprávněních, které se pokušíte nastavit, není povolena"
+    "translation": "Jedna nebo více změn v oprávněních, které se pokoušíte nastavit, není povolena"
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -6665,7 +6541,7 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Při hledání kanálu došlo k chybě."
+    "translation": "Při hledání kanálu {{.channel_id}} došlo k chybě."
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
@@ -6696,20 +6572,8 @@
     "translation": "Nelze získat počet příspěvků za den."
   },
   {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Nemohu zapsat soubor global relay."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Nemohu zapsat CSV soubor."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Nemohu zapsat exportní soubor."
-  },
-  {
     "id": "api.file.write_file.app_error",
-    "translation": "Soubor nelze zapsat."
+    "translation": "Nelze zapsat soubor."
   },
   {
     "id": "api.file.test_connection.app_error",
@@ -6733,7 +6597,7 @@
   },
   {
     "id": "api.file.list_directory.app_error",
-    "translation": "Nelze vylistovat adresář."
+    "translation": "Nelze vypsat obsah adresáře."
   },
   {
     "id": "api.file.file_size.app_error",
@@ -6745,11 +6609,11 @@
   },
   {
     "id": "api.file.file_exists.app_error",
-    "translation": "Nelze ověřit existenci souboru."
+    "translation": "Nelze ověřit zda soubor existuje."
   },
   {
     "id": "api.file.append_file.app_error",
-    "translation": "Nelze přidat do souboru data."
+    "translation": "Nelze připojit data k souboru."
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -6833,7 +6697,7 @@
   },
   {
     "id": "api.unable_to_read_file_from_backend",
-    "translation": "Chyba při čtení souboru ze serveru"
+    "translation": "Chyba při čtení souboru z backendu"
   },
   {
     "id": "api.unable_to_create_zip_file",
@@ -6845,7 +6709,7 @@
   },
   {
     "id": "api.oauth.close_browser",
-    "translation": "Nyní můžete zavřít tab prohlížeče."
+    "translation": "Nyní můžete zavřít tuto kartu prohlížeče."
   },
   {
     "id": "api.oauth.auth_complete",
@@ -6853,7 +6717,7 @@
   },
   {
     "id": "api.no_license",
-    "translation": "Licence E10 nebo E20 jsou vyžadovány pro tento endpoint."
+    "translation": "Licence E10 nebo E20 jsou vyžadovány pro tento koncový bod."
   },
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
@@ -6861,19 +6725,19 @@
   },
   {
     "id": "api.invalid_redirect_url",
-    "translation": "Bylo zadáno nevalidní url pro přesměrování"
+    "translation": "Byla zadána neplatná URL adresa pro přesměrování"
   },
   {
     "id": "api.invalid_custom_url_scheme",
-    "translation": "Bylo zadáno nevalidní url schéma"
+    "translation": "Bylo zadáno neplatné vlastní URL schéma"
   },
   {
     "id": "api.file.file_mod_time.app_error",
-    "translation": "Nemohu zjistit čas poslední změny souboru."
+    "translation": "Nelze zjistit čas poslední změny souboru."
   },
   {
     "id": "api.export.export_not_found.app_error",
-    "translation": "Nemohu najít soubor s exportem."
+    "translation": "Nepodařilo se najít exportovaný soubor."
   },
   {
     "id": "api.config.update_config.not_allowed_security.app_error",
@@ -6909,15 +6773,15 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": "Vložený text je příliš dlouhý. Délka textu účelu kanálu je omezena na maximálně {{.MaxLength}} znaky/ů."
+    "translation": "Zadaný text překračuje povolený limit znaků. Účel kanálu je omezen na {{.MaxLength}} znaků."
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": "Vložený text je příliš dlouhý. Délka textu záhlaví kanálu je omezena na maximálně {{.MaxLength}} znaky/ů."
+    "translation": "Zadaný text přesahuje maximální povolenou délku. Záhlaví kanálu je omezeno na {{.MaxLength}} znaků."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
-    "translation": "Událost z webhooku nebyla zpracována. Chybí, nebo není platná."
+    "translation": "Událost webhooku nebyla zpracována. Buď chybí, nebo není platná."
   },
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
@@ -6985,11 +6849,11 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Tento webhook nemá povoleno přispívat na požadovaný kanál."
+    "translation": "Tento webhook nemá povolení odesílat zprávy do požadovaného kanálu {{.channel_id}}"
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "V archivovaném kanálu nemůžete potvrdit potvrzení."
+    "translation": "Nemůžete uložit potvrzení v archivovaném kanálu."
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
@@ -7005,7 +6869,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Zabezpečené připojení | Zobrazované jméno | ID připojení | Adresa URL webu | Přijatá pozvánka | Online | Poslední odezva|"
+    "translation": "| Bezpečné připojení | Zobrazované jméno | ID připojení | URL stránky | Výchozí tým | Pozvánka přijata | Online | Poslední ping | Smazáno |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -7113,7 +6977,7 @@
   },
   {
     "id": "api.command_custom_status.name",
-    "translation": "status"
+    "translation": "stav"
   },
   {
     "id": "api.command_exportlink.driver.app_error",
@@ -7121,11 +6985,11 @@
   },
   {
     "id": "api.command_exportlink.hint",
-    "translation": "[job-id|zip jmenosouboru|{{.LatestMsg}}]"
+    "translation": "[job-id|názevsouboru zip|{{.LatestMsg}}"
   },
   {
     "id": "api.command_remote.site_url_not_set",
-    "translation": "Adresa URL webu není nastavena. Nastavte to v System Console > Environment > Web Server."
+    "translation": "URL webu není nastavena. Nastavte ji v System Console > Environment > Web Server."
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
@@ -7241,15 +7105,15 @@
   },
   {
     "id": "api.command_share.channel_status.help",
-    "translation": "Zobrazí stav pro tento sdílený kanál"
+    "translation": "Zobrazuje stav tohoto sdíleného kanálu"
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "Stav kanálu `{{.ChannelId}}`"
+    "translation": "Stav pro ID kanálu {{.ChannelId}}"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Nastala chyba při kontrole, zda kanál {{.ChannelID}} existuje: {{.Error}}"
+    "translation": "Chyba při ověřování, zda existuje sdílený kanál {{.ChannelID}}: {{.Error}}"
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -7257,7 +7121,7 @@
   },
   {
     "id": "api.command_share.desc",
-    "translation": "Nastaví sdílení aktuálního kanálu s externí Mattermost instancí."
+    "translation": "Nastaví sdílení aktuálního kanálu s externí instancí Mattermostu."
   },
   {
     "id": "api.command_remote.status.help",
@@ -7265,15 +7129,15 @@
   },
   {
     "id": "api.command_remote.unknown_action",
-    "translation": "Neznámý úkon `{{.Action}}`"
+    "translation": "Neznámá akce `{{.Action}}`"
   },
   {
     "id": "api.command_share.available_actions",
-    "translation": "Dosupné úkony: {{.Actions}}"
+    "translation": "Dotsupné akce: {{.Actions}}"
   },
   {
     "id": "api.command_share.channel_invite.error",
-    "translation": "Chyba při zvaní uživatele `{{.Name}}` do kanálu: {{.Error}}"
+    "translation": "Chyba při pozvání uživatele {{.Name}} do tohoto kanálu: {{.Error}}"
   },
   {
     "id": "api.command_remote.confirm_invitation.error",
@@ -7281,11 +7145,11 @@
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
-    "translation": "Nelze zastavit sdílení kanálu, který není sdílený."
+    "translation": "Nelze zrušit sdílení kanálu, který není sdílený."
   },
   {
     "id": "api.command_share.permission_required",
-    "translation": "Je vyžadováno oprávnění `{{.Permission}}` pro editaci sdílené kanálu."
+    "translation": "K řízení sdílených kanálů potřebujete oprávnění {{.Permission}}."
   },
   {
     "id": "api.command_share.invalid_value.error",
@@ -7293,7 +7157,7 @@
   },
   {
     "id": "api.command_share.name",
-    "translation": "sdilet-kanal"
+    "translation": "sdílet-kanál"
   },
   {
     "id": "api.command_share.no_remote_invited",
@@ -7305,11 +7169,11 @@
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Chcete-li zrušit pozvánku, musíte zadat platné ID zabezpečeného připojení"
+    "translation": "Musíte zadat platné ID zabezpečeného připojení pro zrušení pozvání"
   },
   {
     "id": "api.command_share.remote_table_header",
-    "translation": "| Bezpečné připojení | URL webu | Pouze pro čtení | Pozvánka přijata | Online | Poslední synchronizace |"
+    "translation": "| Zabezpečené připojení | URL webu | Pouze pro čtení | Pozvánka přijata | Online | Poslední synchronizace |"
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
@@ -7329,7 +7193,7 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "Invites an external Mattermost instance to the current shared channel"
+    "translation": "Pozve externí instanci Mattermost do aktuálního sdíleného kanálu"
   },
   {
     "id": "api.command_share.missing_action",
@@ -7357,7 +7221,7 @@
   },
   {
     "id": "api.plugin.upload.file_too_large.app_error",
-    "translation": "Velikost nahraného pluginu překračuje limit. Tento limit lze změnit v System Console pod položkou Úložiště souborů > Maximální velikost souboru"
+    "translation": "Velikost nahraného pluginu překračuje limit. Tento limit lze změnit v systémové konzoli pod položkou Úložiště souborů > Maximální velikost souboru"
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
@@ -7561,7 +7425,7 @@
   },
   {
     "id": "api.license_error",
-    "translation": "API koncový bod vyžaduje licenci"
+    "translation": "koncový bod API vyžaduje licenci"
   },
   {
     "id": "api.oauth.click_redirect",
@@ -7585,7 +7449,7 @@
   },
   {
     "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
-    "translation": "Trvalé oznámení musí mít prioritu „Urgent“."
+    "translation": "Trvalá oznámení musí mít prioritu „Urgent“."
   },
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
@@ -7605,7 +7469,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
-    "translation": "Odpovědět v Přímé Zprávě"
+    "translation": "Odpovědět v soukromé zprávě"
   },
   {
     "id": "api.remote_cluster.delete.app_error",
@@ -7625,7 +7489,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Vaše pracovní prostor je připraven k použití!"
+    "translation": "Vaše pracovní prostředí je připraveno k použití!"
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -7653,15 +7517,15 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} vás pozval(a) k připojení k kanálu {{ .ChannelName }} na týmu {{ .TeamDisplayName }}"
+    "translation": "{{ .SenderName }} vás pozval(a) k připojení do kanálu {{ .ChannelName }} v týmu {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval(a) k připojení k kanálu {{ .ChannelName }} na týmu {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval(a) k připojení do kanálu {{ .ChannelName }} v týmu {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": "{{ .SenderName }} vás pozval(a) k připojení k {{ .ChannelsLen }} kanálům na týmu {{ .TeamDisplayName }}"
+    "translation": "{{ .SenderName }} vás pozval(a) k připojení k {{ .ChannelsLen }} kanálům v týmu {{ .TeamDisplayName }}"
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
@@ -7709,7 +7573,7 @@
   },
   {
     "id": "api.context.ip_filtering.get_ip_filters.app_error",
-    "translation": "Při načítání IP filtrů došlo k chybě"
+    "translation": "Při načítání filtrů IP došlo k chybě"
   },
   {
     "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
@@ -7733,7 +7597,7 @@
   },
   {
     "id": "api.context.ip_filtering.apply_ip_filters.app_error",
-    "translation": "Při aplikaci IP filtrů došlo k chybě"
+    "translation": "Při aplikaci filtrů IP došlo k chybě"
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
@@ -7749,7 +7613,7 @@
   },
   {
     "id": "api.templates.reset_body.info",
-    "translation": "Odkaz pro resetování hesla vyprší za 24 hodin."
+    "translation": "Odkaz pro obnovení hesla vyprší za 24 hodin."
   },
   {
     "id": "api.templates.reset_body.subTitle",
@@ -7757,7 +7621,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_button",
-    "translation": "Ke stažení"
+    "translation": "Stáhnout"
   },
   {
     "id": "api.templates.welcome_body.subTitle1",
@@ -7797,7 +7661,7 @@
   },
   {
     "id": "api.templates.verify_body.info1",
-    "translation": "Pokud jste o to nežádali vy, můžete tento e-mail bez obav ignorovat."
+    "translation": "Pokud jste o změnu nežádali vy, můžete tento e-mail bez obav ignorovat."
   },
   {
     "id": "api.user.create_user.bad_token_email_data.app_error",
@@ -7837,7 +7701,7 @@
   },
   {
     "id": "api.templates.verify_body.subTitle2",
-    "translation": "Klikněte níže pro ověření své e-mailové adresy."
+    "translation": "Klikněte níže pro ověření vaší e-mailové adresy."
   },
   {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
@@ -7869,7 +7733,7 @@
   },
   {
     "id": "api.unmarshal_error",
-    "translation": "Chyba při zpracování."
+    "translation": "Nepodařilo se deserializovat."
   },
   {
     "id": "api.upload.create.upload_too_large.app_error",
@@ -7944,10 +7808,6 @@
     "translation": "Nelze přidat uživatele jako člena kanálu."
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Vaše schéma indexu kanálu Elasticsearch je zastaralé. Doporučuje se znovu vytvořit index kanálu.\nChcete-li problém vyřešit, klikněte na tlačítko `Rebuild Channels Index` v [sekce Elasticsearch v systémové konzole]{{.ElasticsearchSection}}.\nDalší informace najdete v seznamu změn Mattermost."
-  },
-  {
     "id": "app.channel.bookmark.save.app_error",
     "translation": "Nepodařilo se uložit záložku."
   },
@@ -7985,7 +7845,7 @@
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": "V nastavení emailu jsou prázdné hodnoty."
+    "translation": "Nastavení e-mailu obsahuje nevyplněné hodnoty."
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
@@ -8017,7 +7877,7 @@
   },
   {
     "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
-    "translation": "Přihlaste se do zákaznického portálu pro resetování IP filtrování"
+    "translation": "Přihlaste se do zákaznického portálu pro reset IP filtrování"
   },
   {
     "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
@@ -8025,27 +7885,27 @@
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
-    "translation": "Není možné uložit rozepsanou zprávu do smazaného kanálu"
+    "translation": "Koncept není možné uložit do smazaného kanálu"
   },
   {
     "id": "api.drafts.disabled.app_error",
-    "translation": "Ukládání rozepsaných zpráv je vypnuto."
+    "translation": "Funkce konceptů je zakázána."
   },
   {
     "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Nemohu se připojit k S3. Zkontrolujte vaše autorizační parametry a nastavení autentifikace pro připojení k Amazon S3."
+    "translation": "Nelze se připojit k S3. Zkontrolujte vaše autorizační parametry a nastavení autentifikace pro připojení k Amazon S3."
   },
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "V nastavení úložného prostoru jsou chybějící hodnoty."
+    "translation": "Nastavení úložiště souborů obsahuje nevyplněné hodnoty."
   },
   {
     "id": "api.getUsersForReporting.invalid_active_filter",
-    "translation": "Nemohu skrýt zároveň aktivní i neaktivní uživatele."
+    "translation": "Nelze skrýt zároveň aktivní i neaktivní uživatele."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
-    "translation": "Neplatný pracovní email pro zkušební verzi"
+    "translation": "Neplatný firemní e-mail pro zkušební verzi"
   },
   {
     "id": "api.saml.invalid_email_token.app_error",
@@ -8053,11 +7913,11 @@
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",
-    "translation": "Služba je k dispozici pouze v Mattermost Enterprise edition"
+    "translation": "Služba je k dispozici pouze v edici Enterprise"
   },
   {
     "id": "api.server.cws.disabled",
-    "translation": "Interakce s portálem uživatelské podpory Mattermostu byly vypnuty uživatelem system admin."
+    "translation": "Interakce s portálem uživatelské podpory Mattermostu byly vypnuty systémovým administrátorem."
   },
   {
     "id": "api.server.cws.health_check.app_error",
@@ -8085,7 +7945,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
-    "translation": "Neplatná úprava člena týmu: Návštěvnický účet nemůže být členem týmu, nebo administrátorem týmu, prosím nejprve změňte na běžného uživatele."
+    "translation": "Neplatná aktualizace člena týmu: Host nemůže být přidělen jako člen týmu nebo administrátor týmu, nejprve jej prosím povyšte na uživatele."
   },
   {
     "id": "api.templates.cloud_welcome_email.info2",
@@ -8105,7 +7965,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.subject",
-    "translation": "Gratulace!"
+    "translation": "Gratulujeme!"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.contact_support",
@@ -8125,15 +7985,15 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.info",
-    "translation": "Díky za vytvoření "
+    "translation": "Děkujeme za vytvoření "
   },
   {
     "id": "api.templates.cloud_welcome_email.download_mm_info",
-    "translation": "Stáhněte aplikaci Mattermost"
+    "translation": "Stáhněte si aplikaci Mattermost"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
-    "translation": "Odešlete email na {{ .InitiatingUserEmail }}"
+    "translation": "Odešlete e-mail na {{ .InitiatingUserEmail }}"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",
@@ -8153,7 +8013,7 @@
   },
   {
     "id": "api.getUsersForReporting.invalid_team_filter",
-    "translation": "Zadáno neplatné team id."
+    "translation": "Bylo zadáno neplatné ID týmu."
   },
   {
     "id": "api.getUsersForReporting.invalid_page_size",
@@ -8161,14 +8021,2406 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.messageButton",
-    "translation": "Prohlédnout tuto zprávu"
+    "translation": "Zobrazit tuto zprávu"
   },
   {
     "id": "api.context.request_body_too_large.app_error",
-    "translation": "Požadavek nelze zpracovat. Požadavek je příliš obsáhlý."
+    "translation": "Nelze zpracovat požadavek. Tělo požadavku je příliš velké."
   },
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
-    "translation": "Chyba nebylo poskytnuto jméno organizace pro svépomocné nasazení."
+    "translation": "Chyba: Nebylo poskytnuto jméno organizace pro onboarding na vlastním hostingu."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Nelze vytvořit skupinový kanál se vzdálenými uživateli"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Nelze vytvořit přímý kanál se vzdáleným uživatelem"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Nahrávání přes mmctl na cloudovou instanci není podporováno. Prosím, podívejte se na dokumentaci zde: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Parametry OnlyThreads a OnlyTotals pro getThreadsForUser jsou vzájemně neslučitelné"
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Nepodařilo se zapsat záznamy do vyrovnávací paměti"
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Neshoda ID zabezpečeného připojení."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Chybí ID zabezpečeného připojení."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id musí být prázdné pro vlastní skupiny"
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "Funkce vlastního stavu byla deaktivována. Pro podrobnosti kontaktujte svého správce systému."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Nepodařilo se smazat poslední stav. Zkuste nejprve přidat stav nebo kontaktujte svého správce systému pro podrobnosti."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Nepodařilo se aktualizovat vlastní stav. Emoji s daným názvem neexistuje."
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Nepodařilo se odeslat e-maily o obnově licence"
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Neplatný filtr záznamů"
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Špatný požadavek."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "funkce naplánovaných příspěvků je deaktivována"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "Funkce naplánovaných příspěvků vyžaduje licenci"
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Nepodařilo se získat URL adresu instance"
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Nelze vygenerovat kód pozvánky pro potvrzený cluster"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Neplatná aktualizace člena týmu: Host nemůže být přiřazen k jednotlivému týmu, systémový administrátor musí uživatele povýšit nebo degradovat na hosta."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Při ověřování přihlašovacích údajů pro odchozí OAuth připojení došlo k chybě."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Unable to seek to file start."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Přidejte aplikace do svého pracovního prostoru"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
+    "translation": "Zjednodušte svou práci s nástroji jako GitHub, Jira a Zoom. Prozkoumejte všechny integrace, které máme na našem"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "funkce vlastních skupin je deaktivována"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference musí být 'true' pro vlastní skupiny"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Nepodařilo se aktualizovat vlastní stav. Přidejte buď emoji, vlastní textový stav, nebo obojí."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Nastavení Elasticsearch obsahuje nevyplněné hodnoty."
+  },
+  {
+    "id": "api.error_set_first_admin_visit_marketplace_status",
+    "translation": "Chyba při pokusu o uložení stavu první návštěvy administrátora na marketplace do obchodu."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Parametry Před a Po pro getThreadsForUser jsou vzájemně neslučitelné"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portál není k dispozici pro registraci na self-hosted verzi."
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Nelze smazat příspěvek, ServiceSettings.EnableAPIPostDeletion není povoleno."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Chyba při pokusu o získání prvního nastavení administrátora z úložiště."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Chyba při pokusu o uložení dokončení nastavení prvního administrátora do obchodu."
+  },
+  {
+    "id": "api.job.retrieve.nopermissions",
+    "translation": "Typy úloh, které se pokoušíte získat, neobsahují oprávnění"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.app_market_place",
+    "translation": "marketplace aplikací."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Nepodařilo se uložit příspěvek do mezipaměti po odstranění duplicity klienta, který opakoval stejný požadavek."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Nepodařilo se získat přihlašovací údaje s uvedenou konfigurací připojení."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Ujistěte se, že váš Amazon S3 bucket je dostupný, a ověřte oprávnění k vašemu bucketu."
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "není licencováno pro vlastní skupiny"
+  },
+  {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "Typ úlohy, kterou se pokoušíte vytvořit, je neplatný"
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "Chyba při pokusu o získání stavu první návštěvy administrátora na marketplace z obchodu."
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Nepodařilo se zkopírovat obsah licenčního souboru do vyrovnávací paměti"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Nepodařilo se vytvořit pozvánku pro vzdálený cluster"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Neplatně nastavený stav"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Nemáte oprávnění spravovat tento typ úlohy"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Nepodařilo se načíst vzdálené kanály sdíleného kanálu"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Nepodařilo se zjistit, zda je kanál sdílený s vzdáleným serverem"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Nepodařilo se pozvat vzdáleného uživatele do kanálu"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Nepodařilo se odvolat pozvání vzdálenému uživateli do kanálu"
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Nepodařilo se získat prioritu pro příspěvky"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Nepodařilo se nahrát soubor. Nahrávací kanál není sdílený s vzdáleným účastníkem."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Nepodařilo se aktualizovat člena kanálu."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Nelze načíst soubor, protože překročil limit cloudového plánu."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Při získávání týmu došlo k chybě."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Nepodporovaný formát zprávy."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Chyba při přidávání souboru do zip archivu během exportu."
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Chcete změnit nastavení upozornění?"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Nepodařilo se získat prioritu příspěvku"
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Nelze získat počet souborů pro kanál"
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Nepodařilo se dekódovat gif."
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Nelze odstranit OAuth data."
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "Import datového řádku má typ \"role\", ale objekt role je nulový."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} vám poslal/a novou zprávu"
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} členů pracovního prostoru {{.WorkspaceName}} požádalo o zahájení zkušební verze Enterprise pro přístup k: "
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Nepodařilo se znovu připojit plugin"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Nelze aktualizovat bota."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Nepodařilo se smazat naplánovaný příspěvek z databáze."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Nemáte oprávnění smazat tento zdroj."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Naplánovaný příspěvek neexistuje."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Nelze najít vlastníka bota"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Nepodařilo se načíst existující naplánovaný příspěvek z databáze."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Došlo k chybě při načítání naplánovaných příspěvků."
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "Majitel bota chybí"
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "Import datového řádku má typ \"bot\", ale objekt bota je nulový"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Zatímco jsi byli pryč, {{.SenderName}} vás zmínil v kanálu {{.ChannelName}} ."
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Nelze nastavit vlastní stav."
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Nepodařilo se analyzovat subcestu SiteURL"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Tato akce vyžaduje použití specializovaného exportního úložiště."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Nelze získat systémového bota"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "Příspěvek nelze vytvořit"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Nelze získat přímou zprávu od systémového bota"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Pokud jste obdrželi tuto testovací notifikaci, funguje to!"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Nelze získat uživatele"
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Nelze zkontrolovat nepřečtené zprávy a zmínky"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Nelze najít počet členů."
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " a přejděte do Nastavení > Oznámení"
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Nepodařilo se přesunout na začátek dat GIF."
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Přihlášení do Mattermost"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Nepodařilo se odstranit stávající kategorie postranního panelu pro převedenou skupinovou zprávu."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Funkce konceptů je zakázaná."
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Nelze získat všechny úkoly podle typu a stavu."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Nelze získat příspěvek, protože přesáhl limit plánu cloudu."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_info",
+    "translation": "Pozvěte lidi do svého pracovního prostoru"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Sdílejte tento odkaz a pozvěte své členy, aby se připojili k {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.signin_sub_info",
+    "translation": "Přihlaste se do svého pracovního prostoru na našem"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle",
+    "translation": "Nastavte svůj pracovní prostor"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.subtitle_info",
+    "translation": "Pro maximální využití svého pracovního prostoru postupujte podle následujících kroků a vytvořte své týmy."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} vás pozval k připojení do {{ .ChannelsLen }} kanálů v týmu {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Kontaktujte prodej"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Máte problém s přístupem do svého pracovního prostoru?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Vaše licence je na obnovu"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Chyba při čtení stavu souboru: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Chyba při hledání souboru: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Nepodařilo se získat počet uživatelů"
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Nelze uložit data pro notifikace."
+  },
+  {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Nelze získat dávku souborů pro indexování."
+  },
+  {
+    "id": "app.post.update.app_error",
+    "translation": "Nepodařilo se aktualizovat příspěvek."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Nepodařilo se smazat trvalé notifikace podle kanálu."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Nelze najít počet členů pro zadané kanály."
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "Zadané ID týmu v požadavku na konverzi neobsahuje všechny členy skupinové zprávy"
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Nelze najít členství uživatele v kanálu"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "Kanál, který se pokoušíte převést, není skupinová zpráva. Převádět lze pouze skupinové zprávy"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Nepodařilo se vytvořit příspěvek pro převod skupinové zprávy na kanál"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Nepodařilo se aktualizovat tolik členů kanálu. Lze aktualizovat maximálně {{.Max}} členů kanálu najednou."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Nepodařilo se aktualizovat vlastnosti upozornění členů kanálu."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Nepodařilo se aktualizovat člena kanálu, překročený limit velikosti vlastností upozornění."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} členů pracovního prostoru {{.WorkspaceName}} požádalo o upgrade pracovního prostoru pro: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} člen pracovního prostoru {{.WorkspaceName}} požádal o zahájení zkušební verze Enterprise pro přístup k: "
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "Název skupiny není unikátní"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Nepodařilo se smazat koncept."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Nelze načíst soubory pro koncept."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Nelze uložit koncept."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Váš ovladač exportního úložiště nepodporuje generování presign URL."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Tato funkce je omezena pomocí konfiguračního přepínače."
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Nepodařilo se nastavit vyhledatelný obsah souboru."
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Operaci pro tento typ zdroje nelze provést."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Neplatná autentizační služba: {{.AuthService}}"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Chyba při načítání posledního přístupného souboru"
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Chyba při načítání posledního přístupného příspěvku"
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Zatímco jsi byli pryč, {{.SenderName}} vám poslal/a novou přímou zprávu."
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Zatímco jste byli pryč, {{.SenderName}} poslal zprávu do vaší skupiny."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}}vám poslal/a novou zprávu"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} vás zmínil ve zprávě"
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} odpověděl/a ve vlákně"
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Zatímco jste byli pryč, {{.SenderName}} odpověděl/a na vlákno ve vaší skupině."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Zatímco jste byli pryč, {{.SenderName}} odpověděl na vlákno ve vaší přímé zprávě."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Nelze odeslat notifikační příspěvek."
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Nepodařilo se najít soubory pro příspěvek."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Nepodařilo se trvale smazat soubor pro příspěvek."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Nepodařilo se trvale smazat příspěvek."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Nepodařilo se smazat trvalé notifikace podle týmu."
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} změnil nastavení filtrů IP pro váš pracovní prostor na adrese: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Změny ve filtrech IP vašeho pracovního prostoru"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Změny filtrů IP pro váš pracovní prostor"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Kanál není skupinová zpráva."
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Nepodařilo se načíst společné týmy."
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Token neexistuje nebo vypršela jeho platnost"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "Soubor pro export nebyl nalezen."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "Uživatel s uživatelským jménem \"{{.Username}}\" již existuje."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Nelze archivovat importovaný kanál."
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Zatímco jste byli pryč, {{.SenderName}} odpověděl/a na vlákno, které sledujete, v {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Zatímco jste byli pryč, {{.SenderName}} odpověděl/a na ve vlákně, které sledujete."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "Chyba při získávání počtu členů"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Nepodařilo se aktualizovat časový údaj o posledním přihlášení"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Přeskočeno instalování pluginu {{.Id}}, protože existující verze je stejná nebo novější."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Nepodařilo se získat údaje o využití týmů"
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Nelze načíst koncepty uživatele."
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Chyba při generování hesla."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Chyba během provádění úkolu."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Nemůžete upravit stav uživatele. Uživatel je spravován pomocí LDAP"
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Nepodařilo se resetovat pozici pro čtení na začátek balíčku pluginu."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Nepodařilo se zpracovat příspěvek."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} člen pracovního prostoru {{.WorkspaceName}} požádal o upgrade pracovního prostoru pro: "
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Nepodařilo se zapsat hlavičky CSV."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Nelze načíst koncept."
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token není platný nebo vypršela jeho platnost"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Nepodařilo se najít uživatele pro tento token"
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Nepodařilo se smazat trvalou notifikační zprávu"
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Nepodařilo se zkontrolovat, zda soubor existuje."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Nepodařilo se vygenerovat předpodepsanou URL."
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Nelze vytvořit příspěvek v přímé nebo skupinové zprávě s vzdálenými uživateli"
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Nelze aktualizovat stav úkolu. Nastavený stav je neplatný"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Nepodařilo se získat členy kanálu pro přímý kanál"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Pro přímý kanál nejsou žádní členové"
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Nepodařilo se uložit členství vlákna pro příspěvek."
+  },
+  {
+    "id": "app.preference.delete.app_error",
+    "translation": "Při mazání preferencí došlo k chybě."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Ahoj, tady je tvoje připomenutí o této zprávě od @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.preference.get.app_error",
+    "translation": "Narazili jsme na chybu při vyhledávání předvoleb."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Váš export je připraven. Soubor CSV obsahuje uživatelská data za období {{.DateRange}}. Klikněte na odkaz níže pro stažení zprávy."
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Nepodařilo se uložit informace o souboru."
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "po celou dobu"
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Export dávkového reportu je dostupný pouze pro verze Pro a Enterprise."
+  },
+  {
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Nelze získat reakce na příspěvek."
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Nelze odstranit reakce uživatele."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Chybí ID uživatele pro odeslání reportu"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Chybí časové období"
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "Začali jste export uživatelských dat pro období {{.DateRange}}. Jakmile bude export dokončen, CSV soubor vám bude doručen v této přímé zprávě."
+  },
+  {
+    "id": "app.reaction.get_for_post.app_error",
+    "translation": "Nelze získat reakce na příspěvek."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Byl dosažen limit reakcí pro tento příspěvek."
+  },
+  {
+    "id": "app.preference.get_all.app_error",
+    "translation": "Narazili jsme na chybu při vyhledávání předvoleb."
+  },
+  {
+    "id": "app.preference.get_category.app_error",
+    "translation": "Narazili jsme na chybu při vyhledávání předvoleb."
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Nepodařilo se načíst počet uživatelů."
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Nepodařilo se načíst uživatelskou zprávu."
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "předchozí měsíc"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "posledních 6 měsíců"
+  },
+  {
+    "id": "app.preference.permanent_delete_by_user.app_error",
+    "translation": "Narazili jsme na chybu při mazání předvoleb."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Verzi předinstalovaného pluginu se nepodařilo analyzovat."
+  },
+  {
+    "id": "app.preference.save.updating.app_error",
+    "translation": "Narazili jsme na chybu při aktualizaci předvoleb."
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Úloha pro tohoto uživatele a daný časový rozsah již existuje."
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "posledních 30 dní"
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": "Role je neplatná."
+  },
+  {
+    "id": "app.role.save.insert.app_error",
+    "translation": "Nepodařilo se uložit novou roli."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Nelze získat všechny role."
+  },
+  {
+    "id": "app.role.permanent_delete_all.app_error",
+    "translation": "Nepodařilo se trvale smazat všechny role."
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Nelze naplánovat příspěvek v archivovaném kanálu."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Při ukládání naplánovaného příspěvku došlo k chybě."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "Kanál je archivován"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Neplatný obsah příspěvku"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Kanál Nenalezen"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Nejste členem kanálu"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "Uživatel neexistuje"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "{{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}",
+      "one": "{{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}",
+      "other": "{{.Count}} v kanálu {{.ChannelName}}. Důvod: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Nelze odeslat zprávu"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Neznámá Chyba"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "Uživatelský účet je smazán"
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Nepodařilo se smazat naplánované příspěvky pro uživatele."
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "few": "Nepodařilo se odeslat {{.Count}} naplánované příspěvky.",
+      "one": "Nepodařilo se odeslat {{.Count}} naplánovaný příspěvek.",
+      "other": "Nepodařilo se odeslat {{.Count}} naplánovaných příspěvků."
+    }
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Soukromý kanál"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Neznámý Kanál"
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Nepodporovaný formát zprávy."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Nemáte oprávnění přispívat do kanálu"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Vlákno bylo smazáno"
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Nepodařilo se zapsat část CSV."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Nastala chyba při spuštění hooku pluginu při ukládání konfigurace."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Nepodařilo se aktualizovat dodatečné vlastnosti relace."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Nepodařilo se uložit tým."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Nepodařilo se najít existující tým."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Nepodařilo se získat všechny týmy."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Nepodařilo se získat všechny soukromé týmy."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "Naplánovaný příspěvek neexistuje."
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Nepodařilo se načíst existující naplánovaný příspěvek z databáze."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Nepodařilo se resetovat schémata týmu."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Nepodařilo se dekódovat úplný požadavek na zahájení procesu."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Chyba při vymazání cache členů týmu"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Nepodařilo se získat seznam týmů uživatele."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Vyskytla se chyba při aktualizaci týmu."
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Nepodařilo se získat stránku schémat."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "Nepodařilo se vytvořit nové členství v týmu"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Pro stávající tým je nutné provést aktualizaci."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Nepodařilo se uložit člena týmu."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Vyskytla se chyba při vyhledávání soukromých týmů."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Nepodařilo se najít existující tým k aktualizaci."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Nelze získat počet týmů"
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "Nepodařilo se trvale smazat schémata."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "Onboarding může být dokončeno pouze Administrátorem Systému."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Nepodařilo se načíst členy týmu."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Nepodařilo se spočítat členy týmu."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Nepodařilo se najít existující tým."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Nepodařilo se získat členy týmu."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Nepodařilo se získat členy týmu."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "Nepodařilo se vytvořit nové členství v týmu, protože již existuje"
+  },
+  {
+    "id": "app.terms_of_service.get.app_error",
+    "translation": "Nepodařilo se načíst podmínky služby."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Nepodařilo se spočítat týmy."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Nepodařilo se spočítat členy týmu."
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Nepodařilo se prodloužit délku relace"
+  },
+  {
+    "id": "app.session.get.app_error",
+    "translation": "Vyskytla se chyba při hledání relace."
+  },
+  {
+    "id": "app.system.permanent_delete_by_name.app_error",
+    "translation": "Nepodařilo se trvale smazat záznam v systémové tabulce."
+  },
+  {
+    "id": "app.system.get_by_name.app_error",
+    "translation": "Nelze najít systémovou proměnnou."
+  },
+  {
+    "id": "app.system.save.app_error",
+    "translation": "Došlo k chybě při ukládání systémového nastavení."
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Nepodařilo se získat stav dokončení onboardingového procesu."
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Nepodařilo se aktualizovat člena týmu."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Nepodařilo se smazat existující tým."
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Nepodařilo se odstranit člena týmu."
+  },
+  {
+    "id": "app.session.get_sessions.app_error",
+    "translation": "Vyskytla se chyba při hledání relací uživatele."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Při hledání týmu došlo k chybě."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Nepodařilo se najít existující tým."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Vyskytla se chyba při vyhledávání týmů."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Vyskytla se chyba při vyhledávání otevřených týmů."
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Nepodařilo se získat nejméně používané relace."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Nepodařilo se označit všechna vlákna jako přečtená pro kanál"
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Nelze získat běžné ID týmů."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Nepodařilo se získat člena týmu."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Pro zadané ID uživatele a ID týmu nebyl nalezen žádný člen týmu."
+  },
+  {
+    "id": "app.session.remove_all_sessions_for_team.app_error",
+    "translation": "Nepodařilo se odebrat všechny relace."
+  },
+  {
+    "id": "app.terms_of_service.create.app_error",
+    "translation": "Nelze uložit podmínky služby."
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Pro stávající podmínky služby není možné provést uložení."
+  },
+  {
+    "id": "app.session.update_device_id.app_error",
+    "translation": "Nepodařilo se aktualizovat ID zařízení."
+  },
+  {
+    "id": "app.status.get.missing.app_error",
+    "translation": "Pro tento stav neexistuje žádný záznam."
+  },
+  {
+    "id": "app.status.get.app_error",
+    "translation": "Došlo k chybě při získávání stavu."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Nepodařilo se najít existující tým."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Nepodařilo se získat všechny týmy."
+  },
+  {
+    "id": "app.session.permanent_delete_sessions_by_user.app_error",
+    "translation": "Nepodařilo se odebrat všechny relace pro uživatele."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "Nepodařilo se vytvořit nové členství v týmu, protože tým dosáhl limitu členů"
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Nelze určit, zda uživatel patří do seznamu týmů."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Systém"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Nepodařilo se získat kanály pro poskytnutý schéma."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Nepodařilo se získat nepřečtené zprávy týmu."
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Nepodařilo se získat členy vlákna pro export."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Nepodařilo se získat počet vláken pro uživatele."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Nepodařilo se zavřít index souboru."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Neplatné ID vlastníka."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Při získávání odchozího OAuth připojení pro obecenstvo došlo k chybě."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Neplatné ID nadřazeného prvku."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Byl překročen limit velikosti vlastností notifikace."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Neplatná hodnota časového limitu {{.Value}}. Měla by to být kladná číslice."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Hodiny uchovávání souborů nemohou být menší než 0"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "Heslo je neplatné"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Nepodařilo se indexovat dávku souborů."
+  },
+  {
+    "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+    "translation": " připojil soubor."
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": "Nejstarší entita (uživatel, kanál nebo příspěvek) se nepodařila načíst z databáze"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Při získávání odchozího OAuth připojení došlo k chybě."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "Odchozí OAuth připojení pro zadané obecenstvo nebylo nalezeno."
+  },
+  {
+    "id": "error",
+    "translation": "Chyba"
+  },
+  {
+    "id": "migrations.system.save.app_error",
+    "translation": "Při ukládání systémového nastavení došlo k chybě."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Chybí zobrazované jméno."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "\"Vytvořeno\" musí být platný čas."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "ID souboru chybí nebo je neplatné."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Nelze nastavit odkaz a soubor ve stejném záložce."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "Neplatná URL obrázku."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Neplatný typ."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Nelze nahrát do smazaného kanálu."
+  },
+  {
+    "id": "app.webhooks.analytics_outgoing_count.app_error",
+    "translation": "Nelze spočítat odchozí webhooky."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "Nelze načíst podmínky služby."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Nepodařilo se indexovat soubor."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Nepodařilo se zpracovat hodnotu: {{.Value}} na int64"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Neplatná hodnota konkurence dekodéru {{.Value}}. Měla by to být kladná číslice nebo -1."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Neplatná hodnota pro časový limit metadat odkazu. Musí to být kladné číslo."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Nepodařilo se uložit aktualizovaný naplánovaný příspěvek do databáze."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Nemáte oprávnění k aktualizaci tohoto zdroje."
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "Nelze nahrát do určeného kanálu."
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "Nepodařilo se získat nahrané soubory pro uživatele."
+  },
+  {
+    "id": "app.webhooks.save_incoming.app_error",
+    "translation": "Nelze uložit příchozíWebhook."
+  },
+  {
+    "id": "ent.ldap_id_migrate.app_error",
+    "translation": "Nelze migrovat."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Pro zadané obecenstvo již existuje odchozí OAuth připojení: {{ .Audience }}"
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "Nepodařilo se aktualizovat relaci nahrávání."
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "Nepodařilo se přečíst soubor."
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Nepodařilo se odstranit soubor"
+  },
+  {
+    "id": "app.user_access_token.delete.app_error",
+    "translation": "Nelze odstranit osobní přístupový token."
+  },
+  {
+    "id": "app.user_access_token.get_all.app_error",
+    "translation": "Nelze získat všechny osobní přístupové tokeny."
+  },
+  {
+    "id": "app.webhooks.update_outgoing.app_error",
+    "translation": "Nelze aktualizovat webhook."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Nepodařilo se odstranit soubory."
+  },
+  {
+    "id": "ent.cluster.timeout.error",
+    "translation": "Vypršel časový limit při čekání na odpověď clusteru"
+  },
+  {
+    "id": "ent.jobs.start_synchronize_job.timeout",
+    "translation": "Byl dosažen časový limit synchronizace AD/LDAP úlohy."
+  },
+  {
+    "id": "ent.saml.save_user.email_exists.saml_app_error",
+    "translation": "Tento účet nepoužívá autentifikaci pomocí SAML. Přihlaste se prosím pomocí e-mailu a hesla."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow musí být nastaveno na true, aby bylo možné povolit SbalenáVlákna"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Počet dní uchovávání zpráv a počet hodin uchovávání zpráv nemohou být oba větší než 0."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Neplatná hodnota pro RetentionDays. Hodnota by měla být větší než 0"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Neplatný vyhledávací backend. Musí to být buď Elasticsearch, nebo OpenSearch."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Nelze získat členství uživatele ve vláknech"
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Nepodařilo se odstranit soubory příspěvku."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.app_error",
+    "translation": "Nelze uložit OdchozíWebhook."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Pro zadané obecenstvo již existuje odchozí OAuth připojení."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Pro zadané obecenstvo neexistuje odchozí OAuth připojení."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Při mazání odchozího OAuth připojení došlo k chybě."
+  },
+  {
+    "id": "ent.saml.save_user.username_exists.saml_app_error",
+    "translation": "Účet s tímto uživatelským jménem již existuje. Kontaktujte prosím svého administrátora."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Neplatné ID."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Neplatné ID příspěvku."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Nepodařilo se zpracovat JSON: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Neplatný formát: {{.Error}}"
+  },
+  {
+    "id": "app.user_access_token.search.app_error",
+    "translation": "Došlo k chybě při vyhledávání uživatelských přístupových tokenů."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.override.app_error",
+    "translation": "Nemůžete přepsat existující OdchozíWebhook."
+  },
+  {
+    "id": "bleveengine.create_user_index.error",
+    "translation": "Chyba při vytváření Bleve indexu uživatele."
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "Funkce vyčištění seznamu není pro Bleve dostupná."
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "Došlo k chybě při serializaci JSON požadavku"
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Nepodařilo se odstranit index vyhledávání"
+  },
+  {
+    "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Nelze dokončit SAML přihlášení s prázdnou e-mailovou adresou."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Neplatné původní ID."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Dny uchovávání zpráv a hodiny uchovávání zpráv nemohou být oba nastaveny na 0."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Neplatná doména pro nastavení přesunu vlákna"
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "Rozměry souboru {{.Filename}} ({{.Width}} x {{.Height}} pixelů) překračují limity."
+  },
+  {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "Nepodařilo se uložit informace o souboru."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Nepodařilo se získat využití úložiště."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Členství uživatele ve vláknech neexistuje"
+  },
+  {
+    "id": "app.user_access_token.update_token_disable.app_error",
+    "translation": "Nelze deaktivovat přístupový token."
+  },
+  {
+    "id": "app.webhooks.update_incoming.app_error",
+    "translation": "Nelze aktualizovat PříchozíWebhook."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Nepodařilo se smazat soubory uživatele."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Nepodařilo se odstranit soubor."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.engine_inactive",
+    "translation": "Nepodařilo se spustit úlohu indexace Bleve: engine je neaktivní."
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Kontrola limitů obrázku selhala. Rozlišení je příliš vysoké."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Došlo k chybě při provádění požadované operace."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Zásada je neplatná."
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Úloha uchovávání dat selhala."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Nepodařilo se otevřít soubor CA pro {{.Backend}}"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Dekódování klientského certifikátu pro {{.Backend}} selhalo"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Nepodařilo se otevřít soubor klientského certifikátu pro {{.Backend}}"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Nepodařilo se vytvořit šablonu {{.Backend}} pro soubory"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Nepodařilo se odstranit soubory příspěvku"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Nelze získat dávku kanálů pro indexaci."
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Nepodařilo se indexovat soubor"
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "Verze {{.Backend}} {{.Version}} je vyšší než maximálně podporovaná verze {{.MaxVersion}}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Při autentizaci odchozího OAuth připojení došlo k chybě: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Odchozí OAuth připojení nejsou na tomto serveru k dispozici."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Odchozí OAuth připojení nebylo nalezeno."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Vaše licence nepodporuje odchozí OAuth připojení."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Při získávání odchozích OAuth připojení došlo k chybě."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Při aktualizaci odchozího OAuth připojení došlo k chybě: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Pro zadané obecenstvo již existuje odchozí OAuth připojení: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Zadané obecenstvo je neplatné: {{ .Error }}"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML se nepodařilo úspěšně načíst veřejný certifikát poskytovatele identity, kontaktujte prosím svého systémového administrátora."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Skupina nemůže být přiřazena k kanálu, dokud nebude nejprve přiřazena k nadřazenému týmu synchronizovanému se skupinou."
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": "Nepodařilo se aktualizovat aktivní stav MFA pro uživatele."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Jméno musí obsahovat alespoň jedno malé písmeno nebo alfanumerický znak."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Neplatné role členů kanálu, které mají více než {{.Limit}} znaků."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.filename.app_error",
+    "translation": "Nastavení Bleve IndexingDir musí být definováno, když je nastaveno Bleve EnableIndexing na hodnotu true"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Dny uchovávání souborů a hodiny uchovávání souborů nemohou být oba nastaveny na 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Dny uchovávání souborů a hodiny uchovávání souborů nemohou být oba větší než 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Hodiny uchovávání zpráv nemohou být menší než 0"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignorované indexy pro vyčištění by neměly začínat pomlčkou."
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Hodnota pro adresář by neměla být prázdná."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Pokud je GlobalRelaySettings.CustomerType nastaven na 'CUSTOM', musí být nastaveny GlobalRelaySettings.CustomSMTPServerName a GlobalRelaySettings.CustomSMTPPort."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Při ukládání odchozího OAuth připojení došlo k chybě: {{ .Error }}"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Neplatná hodnota pro channel-auto-follow-threads."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Nepodařilo se získat počet odznaků pro uživatele."
+  },
+  {
+    "id": "app.webhooks.save_incoming.existing.app_error",
+    "translation": "Nemůžete přepsat existující PříchozíWebhook."
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Nepodařilo se odstranit uživatelské soubory"
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": "Nepodařilo se aktualizovat stav aktivace MFA pro uživatele."
+  },
+  {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "Nelze nahrát data z více než jednoho požadavku."
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "Nepodařilo se nahrát data. První část musí mít alespoň {{.Size}} bajtů."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Velikost dávky pro hromadné indexování Bleve musí být alespoň {{.BatchSize}}."
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Nepodařilo se generovat informace o souboru z nahraných dat."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Vlákno uživatele neexistuje nebo není sledováno"
+  },
+  {
+    "id": "bleveengine.create_channel_index.error",
+    "translation": "Chyba při vytváření Bleve indexu kanálu."
+  },
+  {
+    "id": "bleveengine.create_post_index.error",
+    "translation": "Chyba při vytváření Bleve indexu příspěvku."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Chyba při vytváření Bleve indexu souboru."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Hledání souboru nebylo úspěšně dokončeno."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Nepodařilo se otevřít soubor klientského klíče pro {{.Backend}}"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Nepodařilo se získat všechny členy týmu"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Nepodařilo se získat všechny členy kanálu"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Nepodařilo se dekódovat výsledky vyhledávání"
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "Chyba při načítání souboru certifikátu LDAP TLS."
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "Nebyl nalezen žádný uživatel LDAP, zkontrolujte filtr uživatelů a certifikáty."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Zadané obecenstvo je neplatné: {{ .Error }}"
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "V odpovědi od poskytovatele identity byla obdržena neplatná časová hodnota. Kontaktujte prosím svého systémového administrátora."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "V odpovědi od poskytovatele identity byla přijata neplatná signatura. Kontaktujte prosím svého systémového administrátora."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Nepodařilo se najít adresář pro místní soketový soubor."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Dostupné jazyky musí obsahovat výchozí jazyk klienta."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Neplatná maximální velikost payloadu pro nastavení služby. Musí to být celé číslo větší než nula."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Aktualizováno\" musí být platný čas."
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Neplatný adresář pro místní úložiště. Musí to být neprázdný řetězec."
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "Nepodařilo se vybrat exportní data zprávy."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "Neplatné ID kanálu."
+  },
+  {
+    "id": "app.user_access_token.get_by_user.app_error",
+    "translation": "Nelze získat osobní přístupové tokeny podle uživatele."
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Nelze odstranit podmínky služby."
+  },
+  {
+    "id": "app.user.convert_bot_to_user.app_error",
+    "translation": "Nepodařilo se konvertovat bota na uživatele."
+  },
+  {
+    "id": "app.user_access_token.update_token_enable.app_error",
+    "translation": "Nelze aktivovat přístupový token."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Nelze získat dávku souborů pro indexaci."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Neplatné post_id"
+  },
+  {
+    "id": "app.user_access_token.save.app_error",
+    "translation": "Nelze uložit osobní přístupový token."
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "Nelze uložit podmínky služby."
+  },
+  {
+    "id": "app.webhooks.analytics_incoming_count.app_error",
+    "translation": "Nelze spočítat příchozí webhooky."
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Nepodařilo se odstranit zadaný neznámý index"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Hledání souborů {{.Backend}} je na tomto serveru zakázáno"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Vyhledávání se nepodařilo dokončit"
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "Chyba při načítání souboru klíče LDAP TLS."
+  },
+  {
+    "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+    "translation": "Tento účet nepoužívá autentifikaci přes AD/LDAP. Přihlaste se prosím pomocí e-mailu a hesla."
+  },
+  {
+    "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+    "translation": "Účet s tímto uživatelským jménem již existuje. Kontaktujte prosím svého administrátora."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Neplatné ID uživatele."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Nejstarší entitu (uživatel, kanál nebo příspěvek) se nepodařilo načíst z databáze."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Nepodařilo se vyčistit indexy souborů."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Nelze aktivovat uživatele. Server překračuje bezpečný limit uživatelů. Kontaktujte svého administrátora s kódem: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Nelze získat dávku příspěvků pro indexaci."
+  },
+  {
+    "id": "model.config.is_valid.email_batching_interval.app_error",
+    "translation": "Neplatný interval dávkování e-mailů pro nastavení e-mailu. Musí být alespoň 30 sekund."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Neplatná maximální délka URL pro nastavení služby. Musí to být celé číslo větší než nula."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "URL odkazu chybí nebo je neplatné."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Velikost dávky pro hromadnou indexaci vyhledávání musí být alespoň {{.BatchSize}}."
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Chyba při určování počtu účtů správců systému."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Nelze degradovat posledního správce systému."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Nelze určit, zda toto uživatelské jméno již existuje"
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Nelze odeslat automatickou odpověď od uživatele."
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Nepodařilo se ověřit, zda je úložiště uživatele prázdné."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "Typ cache musí být buď lru, nebo redis."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress musí být specifikována pro typ cache Redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "Redis DB musí mít hodnotu větší nebo rovnou nule."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Nelze získat webhook pro teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} a {{.LastItem}}"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "URL publika je neplatná: {{ .Url }}"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Neplatné ID klienta."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Neplatný klientský tajný klíč."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Neplatné vlastnosti (vlastní status)"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Nelze rozdělit vlastnosti webhooku na části o délce {{.Max}} znaků."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Neplatný atribut hosta. Musí mít formát 'field=value'."
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Název kanálu není platný"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "Stáhnout aplikaci"
+  },
+  {
+    "id": "searchengine.bleve.disabled.error",
+    "translation": "Chyba při čištění indexů Bleve: engine je deaktivován"
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Neplatné ID souborů."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.empty_post.app_error",
+    "translation": "Nelze naplánovat prázdný příspěvek. Naplánovaný příspěvek musí obsahovat alespoň zprávu nebo přílohy souborů."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.id.app_error",
+    "translation": "Naplánovaný příspěvek musí mít ID."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Neplatný čas naplánování."
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "Jeden nebo více příspěvků nebylo možné doručit na vzdálený server {{.Remote}}, protože je offline. Příspěvky budou doručeny, jakmile bude server online."
+  },
+  {
+    "id": "model.user.pre_save.password_too_long.app_error",
+    "translation": "Vaše heslo nesmí obsahovat více než 72 znaků."
+  },
+  {
+    "id": "model.draft.is_valid.message_length.app_error",
+    "translation": "Vlastnost konceptu zprávy je delší než maximálně povolená délka."
+  },
+  {
+    "id": "model.post.is_valid.message_length.app_error",
+    "translation": "Vlastnost zprávy příspěvku je delší než maximálně povolená délka."
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
+    "translation": "Byl proveden pokus vytvořit jiný než přímý kanál pomocí SaveDirectChannel."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Název se shoduje s názvem existujícího systémového emoji."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.processed_at.app_error",
+    "translation": "Neplatný čas zpracování."
+  },
+  {
+    "id": "model.user.pre_save.password_hash.app_error",
+    "translation": "Při ukládání hesla došlo k interní chybě."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Vyhledávání souborů bylo na tomto serveru zakázáno. Kontaktujte svého systémového administrátora."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Neplatný maximální počet příjemců pro trvalá oznámení. Musí to být kladné číslo."
+  },
+  {
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
+    "translation": "Neplatná hodnota pro soubor TLS klíče – použijte LetsEncrypt nebo nastavte cestu k existujícímu souboru s klíčem."
+  },
+  {
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
+    "translation": "Neplatná hodnota pro soubor TLS certifikátu – použijte LetsEncrypt nebo nastavte cestu k existujícímu certifikátu."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Neplatné ID uživatele."
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "Neplatná vlastnost „display name“ pro skupinu."
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Neplatná hodnota bajtů při nahrávání licence."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Maximální délka MattermostAppID je 32 znaků."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Hodnota „Aktualizuj v“ musí být platný čas."
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": "Neplatné role člena týmu delší než {{.Limit}} znaků."
+  },
+  {
+    "id": "model.user.is_valid.pwd_max_length.app_error",
+    "translation": "Vaše heslo nesmí obsahovat více než 72 znaků."
+  },
+  {
+    "id": "model.user.is_valid.pwd_min_length.app_error",
+    "translation": "Vaše heslo musí obsahovat alespoň {{.Min}} znaků."
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "Stáhněte si aplikaci Mattermost nebo použijte podporovaný prohlížeč pro lepší zážitek."
+  },
+  {
+    "id": "model.config.is_valid.storage_class.app_error",
+    "translation": "Neplatná třída úložiště {{.Value}}."
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Neplatná priorita"
+  },
+  {
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "Neplatná hodnota pro přepsání šifry TLS – prosím, odkazujte se na dokumentaci pro platné hodnoty."
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "Stáhnout aplikaci"
+  },
+  {
+    "id": "store.sql_channel.save_channel.limit.app_error",
+    "translation": "Dosáhli jste limitu povoleného počtu kanálů."
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "Tato verze vašeho prohlížeče již není Mattermostem podporována"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Neplatný časový limit pro odchozí integrace v nastavení služby. Musí to být kladné číslo."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Neplatné id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Neplatný typ udělení oprávnění."
+  },
+  {
+    "id": "model.scheme.is_valid.app_error",
+    "translation": "Neplatné schéma."
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": "Neplatné role relace delší než {{.Limit}} znaků."
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": "Neplatné role uživatele delší než {{.Limit}} znaků."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Poskytnutý sloupec pro řazení není platný."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Neplatný celkový počet trvalých oznámení na příspěvek. Musí to být kladné číslo."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Neplatná frekvence trvalých oznámení. Musí být alespoň dvě minuty."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
+    "translation": "Neplatná maximální doba života připojení pro SQL nastavení. Musí to být nezáporné číslo."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Neplatná hodnota pro časový limit stavu uživatele „nepřítomný“. Musí to být kladné číslo."
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Neplatná hodnota pro zabezpečení připojení webového serveru."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Neplatné vlastnosti."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Neplatné root ID."
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "Neplatná vlastnost „create at“ pro skupinu."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "Název skupiny již existuje jako rezervovaný název"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Seznam e-mailů je prázdný"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Hodnota „Create at“ musí být platný čas."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Neplatné ID tvůrce."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Neplatné přihlašovací údaje k heslu."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Neplatné jméno."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Neplatná URL adresa tokenu OAuth."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Hodnota „Aktualizovat v“ musí být platný čas."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Zadané časové období je neplatné."
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": "Neplatné pole UserId pro relaci."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Aktualizovat musí být platný čas."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.manifest.app_error",
+    "translation": "Chybí manifest"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Neplatný algoritmus podpisu."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Neplatný maximální nečinný čas připojení pro SQL nastavení. Musí to být nezáporné číslo."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Publikum nesmí být prázdné."
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": "Neplatné pole CreateAt pro relaci."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Nepodařilo se zakódovat pole do formátu JSON"
+  },
+  {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Neplatný popis, musí mít nejvýše 255 znaků."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Neplatné zobrazení spoluhráče. Musí to být 'full_name', 'nickname_full_name' nebo 'username'."
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": "Neplatné ID relace pro relaci."
+  },
+  {
+    "id": "web.command_webhook.general.app_error",
+    "translation": "Nepodařilo se zpracovat příkaz webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.decode.app_error",
+    "translation": "Nepodařilo se dekódovat payload typu média {{.media_type}} pro příchozí webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.general.app_error",
+    "translation": "Nepodařilo se zpracovat payload typu média {{.media_type}} pro příchozí webhook {{.hook_id}}."
+  },
+  {
+    "id": "web.incoming_webhook.media_type.app_error",
+    "translation": "Nepodařilo se analyzovat médium příchozího webhooku {{.hook_id}}."
+  },
+  {
+    "id": "model.websocket_client.connect_fail.app_error",
+    "translation": "Nelze se připojit k serveru WebSocket."
+  },
+  {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Neplatný atribut administrátora. Musí mít formát 'field=value'."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "Tento příspěvek obsahuje trvalé odkazy na jiné kanály, které nemusí být viditelné pro uživatele na jiných serverech."
+  },
+  {
+    "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
+    "translation": "Chybí konfigurace opětovného připojení pluginu"
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Vytvořeno musí být platný čas."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Neplatné ID kanálu."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.site_url.app_error",
+    "translation": "Neplatná adresa URL stránky."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.token.app_error",
+    "translation": "Neplatný token."
+  },
+  {
+    "id": "model.preference.is_valid.limit_visible_dms_gms.app_error",
+    "translation": "Neplatná hodnota pro limit_visible_dms_gms."
+  },
+  {
+    "id": "model.remote_cluster_invite.is_valid.remote_id.app_error",
+    "translation": "Neplatné vzdálené ID."
+  },
+  {
+    "id": "store.sql_team.save_team.existing.app_error",
+    "translation": "Tým s touto URL adresou již existuje."
+  },
+  {
+    "id": "model.thread.is_valid.post_id.app_error",
+    "translation": "Neplatné id příspěvku."
+  },
+  {
+    "id": "model.thread.is_valid.user_id.app_error",
+    "translation": "Neplatné id uživatele."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Nelze filtrovat konfiguraci."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Nelze vytvořit adresář pro obrázky vlastních emoji"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "Role uživatele nejsou v souladu se stavem hosta."
+  },
+  {
+    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
+    "translation": "Nepodařilo se obnovit přílohy souborů k příspěvku"
+  },
+  {
+    "id": "app.custom_profile_attributes.create_property_field.app_error",
+    "translation": "Nepodařilo se vytvořit pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_field.app_error",
+    "translation": "Nepodařilo se získat pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.limit_reached.app_error",
+    "translation": "Byl dosažen limit polí vlastních atributů profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.list_property_values.app_error",
+    "translation": "Nepodařilo se získat hodnoty vlastních atributů profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_delete.app_error",
+    "translation": "Nepodařilo se smazat pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
+    "translation": "Pole vlastního atributu profilu nebylo nalezeno"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_update.app_error",
+    "translation": "Nepodařilo se aktualizovat pole vlastního atributu profilu"
+  },
+  {
+    "id": "app.custom_profile_attributes.search_property_fields.app_error",
+    "translation": "Nepodařilo se vyhledat pole vlastních atributů profilu"
+  },
+  {
+    "id": "app.file_info.delete_for_post_ids.app_error",
+    "translation": "Nepodařilo se odstranit požadované soubory z databáze"
+  },
+  {
+    "id": "app.file_info.get_by_ids.app_error",
+    "translation": "Nepodařilo se získat informace o souborech podle ID pro historii úprav příspěvku."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Nepodařilo se obnovit přílohy souborů k příspěvku."
+  },
+  {
+    "id": "app.post.restore_post_version.get_single.app_error",
+    "translation": "Nepodařilo se získat starší verzi příspěvku."
+  },
+  {
+    "id": "app.post.restore_post_version.not_allowed.app_error",
+    "translation": "Nemáte příslušná oprávnění."
+  },
+  {
+    "id": "app.post.restore_post_version.not_an_history_item.app_error",
+    "translation": "Poskytnuté ID historie příspěvku neodpovídá žádné položce historie pro uvedený příspěvek."
+  },
+  {
+    "id": "app.post.restore_post_version.not_valid_post_history_item.app_error",
+    "translation": "Poskytnuté ID historie příspěvku neodpovídá žádné položce historie pro příspěvek."
+  },
+  {
+    "id": "app.role.delete.app_error",
+    "translation": "Nepodařilo se smazat roli."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.activity_message",
+    "translation": "Vypočítává se aktivita kanálů: {{.NumCompleted}}/{{.NumChannels}} kanálů dokončeno."
+  },
+  {
+    "id": "ent.message_export.actiance_export.calculate_channel_exports.channel_message",
+    "translation": "Exportuji informace o kanálech pro {{.NumChannels}} kanálů."
+  },
+  {
+    "id": "ent.message_export.calculate_channel_exports.app_error",
+    "translation": "Nepodařilo se vypočítat data pro export kanálů."
+  },
+  {
+    "id": "ent.message_export.job_data_conversion.app_error",
+    "translation": "Nepodařilo se převést hodnotu z datového pole úkolu."
+  },
+  {
+    "id": "model.link_metadata.is_valid.url_length.app_error",
+    "translation": "Délka URL metadat odkazu je {{ .Length }} znaků, což přesahuje maximální limit {{ .MaxLength }} znaků."
+  },
+  {
+    "id": "model.property_field.is_valid.app_error",
+    "translation": "Neplatné pole vlastnosti: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_value.is_valid.app_error",
+    "translation": "Neplatná hodnota vlastnosti: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.custom_profile_attributes.license_error",
+    "translation": "Vaše licence nepodporuje vlastní atributy profilu."
+  },
+  {
+    "id": "api.file.zip_file_reader.app_error",
+    "translation": "Nelze získat čtečku souborů ZIP."
+  },
+  {
+    "id": "api.command.execute_command.deleted.error",
+    "translation": "Nelze spustit příkaz v odstraněném kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nepodařilo se vytvořit záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nepodařilo se smazat záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Nepodařilo se aktualizovat záložku kanálu."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Nepodařilo se aktualizovat pořadí záložek kanálu."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "pokoušíte se upravit pole, které neexistuje"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Nelze načíst záložky pro archivovaný kanál"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Nepodařilo se získat počet všech souborů."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Nepodařilo se získat využití úložiště pro všechny soubory."
   }
 ]

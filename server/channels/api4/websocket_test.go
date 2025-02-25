@@ -33,11 +33,7 @@ func TestWebSocketEvent(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
@@ -243,22 +239,18 @@ func TestWebSocketSendBinary(t *testing.T) {
 
 	client := th.CreateClient()
 	th.LoginBasicWithClient(client)
-	WebSocketClient, err := th.CreateWebSocketClientWithClient(client)
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
 	client2 := th.CreateClient()
 	th.LoginBasic2WithClient(client2)
-	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
-	require.NoError(t, err)
-	defer WebSocketClient2.Close()
+	_ = th.CreateConnectedWebSocketClientWithClient(t, client2)
 
-	time.Sleep(1000 * time.Millisecond)
+	// Wait for statuses to be updated
+	time.Sleep(time.Second)
 
-	err = WebSocketClient.SendBinaryMessage("get_statuses", nil)
+	err := WebSocketClient.SendBinaryMessage("get_statuses", nil)
 	require.NoError(t, err)
 	resp = <-WebSocketClient.ResponseChannel
 	require.Nil(t, resp.Error, resp.Error)
@@ -285,10 +277,7 @@ func TestWebSocketStatuses(t *testing.T) {
 	defer th.TearDown()
 
 	client := th.Client
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer WebSocketClient.Close()
-	WebSocketClient.Listen()
+	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
@@ -315,10 +304,10 @@ func TestWebSocketStatuses(t *testing.T) {
 
 	th.LoginBasic2()
 
-	WebSocketClient2, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
+	WebSocketClient2 := th.CreateConnectedWebSocketClient(t)
 
-	time.Sleep(1000 * time.Millisecond)
+	// Wait for statuses to be updated
+	time.Sleep(time.Second)
 
 	WebSocketClient.GetStatuses()
 	resp = <-WebSocketClient.ResponseChannel
@@ -426,10 +415,7 @@ func TestWebSocketPresence(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	wsClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer wsClient.Close()
-	wsClient.Listen()
+	wsClient := th.CreateConnectedWebSocketClient(t)
 
 	resp := <-wsClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")

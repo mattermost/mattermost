@@ -127,7 +127,7 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 		return model.NewAppError("isUniqueToUsernames", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if user != nil {
-		return model.NewAppError("isUniqueToUsernames", "app.group.username_conflict", map[string]interface{}{"Username": val}, "", http.StatusBadRequest)
+		return model.NewAppError("isUniqueToUsernames", "app.group.username_conflict", map[string]any{"Username": val}, "", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -370,12 +370,13 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 	if groupSyncable.Type == model.GroupSyncableTypeChannel {
 		channel, nErr := a.Srv().Store().Channel().Get(groupSyncable.SyncableId, true)
 		if nErr != nil {
+			errCtx := map[string]any{"channel_id": groupSyncable.SyncableId}
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(nErr)
 			default:
-				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 

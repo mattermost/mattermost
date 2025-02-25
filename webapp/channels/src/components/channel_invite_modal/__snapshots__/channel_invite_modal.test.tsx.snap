@@ -28,7 +28,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -190,7 +190,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -374,7 +374,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

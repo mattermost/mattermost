@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {ActionTypes} from 'utils/constants';
 
-function remotes(state: Record<string, boolean> = {}, action: AnyAction) {
+import type {MMAction} from 'types/store';
+
+function remotes(state: Record<string, boolean> = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_DRAFT_SOURCE:
         return {

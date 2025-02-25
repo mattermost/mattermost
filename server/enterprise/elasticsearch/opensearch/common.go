@@ -25,7 +25,7 @@ func createClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filest
 
 	client, err := opensearchapi.NewClient(*esCfg)
 	if err != nil {
-		return nil, model.NewAppError("Elasticsearch.createClient", "ent.elasticsearch.create_client.connect_failed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("Opensearch.createClient", "ent.elasticsearch.create_client.connect_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return client, nil
@@ -90,7 +90,7 @@ func configureCA(esCfg *opensearch.Config, cfg *model.Config, fb filestore.FileB
 	// read the certificate authority (CA) file
 	clientCA, err := common.ReadFileSafely(fb, *cfg.ElasticsearchSettings.CA)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.createClient", "ent.elasticsearch.create_client.ca_cert_missing", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.createClient", "ent.elasticsearch.create_client.ca_cert_missing", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	esCfg.CACert = clientCA
@@ -102,19 +102,19 @@ func configureClientCertificate(tlsConfig *tls.Config, cfg *model.Config, fb fil
 	// read the client certificate file
 	clientCert, err := common.ReadFileSafely(fb, *cfg.ElasticsearchSettings.ClientCert)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.createClient", "ent.elasticsearch.create_client.client_cert_missing", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.createClient", "ent.elasticsearch.create_client.client_cert_missing", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// read the client key file
 	clientKey, err := common.ReadFileSafely(fb, *cfg.ElasticsearchSettings.ClientKey)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.createClient", "ent.elasticsearch.create_client.client_key_missing", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.createClient", "ent.elasticsearch.create_client.client_key_missing", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// load the client key and certificate
 	certificate, err := tls.X509KeyPair(clientCert, clientKey)
 	if err != nil {
-		return model.NewAppError("Elasticsearch.createClient", "ent.elasticsearch.create_client.client_cert_malformed", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("Opensearch.createClient", "ent.elasticsearch.create_client.client_cert_malformed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// update the TLS config

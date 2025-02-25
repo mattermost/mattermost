@@ -22,7 +22,7 @@ export enum SIZE {
 
 export type CustomMessageInputType = {type?: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
 
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, 'placeholder'> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, 'placeholder'> {
     required?: boolean;
     hasError?: boolean;
     addon?: React.ReactElement;
@@ -146,9 +146,7 @@ const Input = React.forwardRef((
             onTouchEnd={handleOnClear}
         >
             <WithTooltip
-                id='inputClearTooltip'
                 title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
-                placement='bottom'
             >
                 <CloseCircleIcon size={18}/>
             </WithTooltip>

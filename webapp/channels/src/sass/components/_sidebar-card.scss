@@ -1,3 +1,5 @@
+@use "utils/variables";
+
 .post-card--info {
     position: fixed;
     bottom: 0;
@@ -7,7 +9,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 15px;
-    border-top: $border-gray;
+    border-top: variables.$border-gray;
     background: var(--center-channel-bg);
     white-space: nowrap;
 

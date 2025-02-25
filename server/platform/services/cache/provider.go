@@ -74,15 +74,17 @@ func (c *cacheProvider) Type() string {
 }
 
 type redisProvider struct {
-	client  rueidis.Client
-	metrics einterfaces.MetricsInterface
+	client      rueidis.Client
+	cachePrefix string
+	metrics     einterfaces.MetricsInterface
 }
 
 type RedisOptions struct {
-	RedisAddr     string
-	RedisPassword string
-	RedisDB       int
-	DisableCache  bool
+	RedisAddr        string
+	RedisPassword    string
+	RedisDB          int
+	RedisCachePrefix string
+	DisableCache     bool
 }
 
 // NewProvider creates a new CacheProvider
@@ -100,15 +102,21 @@ func NewRedisProvider(opts *RedisOptions) (Provider, error) {
 		// meant to be used at very high scales. The docs suggest 20us,
 		// but going as high as 250us doesn't make any material difference.
 		MaxFlushDelay: 250 * time.Microsecond,
+		DisableRetry:  true,
+		// The default is 10s, which is a bit too high
+		ConnWriteTimeout: 5 * time.Second,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &redisProvider{client: client}, nil
+	return &redisProvider{client: client, cachePrefix: opts.RedisCachePrefix}, nil
 }
 
 // NewCache creates a new cache with given opts
 func (r *redisProvider) NewCache(opts *CacheOptions) (Cache, error) {
+	if r.cachePrefix != "" {
+		opts.Name = r.cachePrefix + ":" + opts.Name
+	}
 	rr, err := NewRedis(opts, r.client)
 	rr.metrics = r.metrics
 	return rr, err

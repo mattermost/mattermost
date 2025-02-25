@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .PlanDetails {
     width: 568px;
@@ -37,8 +37,8 @@
     &.btn {
         padding: 11px 16px;
         border-radius: 4px;
-        background: $primary-color;
-        color: $white;
+        background: variables.$primary-color;
+        color: variables.$white;
         font-size: 12px;
         font-weight: bold;
         line-height: 9.5px;

@@ -2296,10 +2296,6 @@
     "translation": "Debe establecerse palabras que desencadenen una acción o un channel_id."
   },
   {
-    "id": "api.webhook.incoming.error",
-    "translation": "No se pudo codificar la carga del multipart en el webhook entrante."
-  },
-  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "No se puede actualizar el webhook a través de equipos."
   },
@@ -3000,60 +2996,8 @@
     "translation": "La Consola del Sistema es de sólo lectura cuando la Alta Disponibilidad es activada a menos que ReadOnlyConfig está inahibilitado en el archivo de configuración."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Formato de salida desconocido {{.ExportType}}"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "No se puedo copiar el adjunto en el fichero comprimido."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "No se pudo añadir el adjunto al fichero de exportación CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "No se puede crear un archivo temporal de exportación a CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "No se pudo añadir la cabecera al fichero de exportación CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "No se pudo añadir el fichero de metadatos al fichero comprimido."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "No se puede convertir los metadatos a json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "No se puede exportar un mensaje."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "No se puede crear el archivo de exportación zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "El archivo cargado fue eliminado de la exportación Global Relay, ya que era demasiado grande para ser enviado."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "No se puede abrir el archivo temporal para exportación."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "No se puede re-leer del archivo de exportación temporal de Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "La característica de Conformidad está inhabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia empresarial."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "No se pueden cargar las plantillas de exportación. Por favor, inténtelo de nuevo."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3114,10 +3058,6 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch no se ha iniciado"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "No se pudo borrar el índice de ElasticSearch"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3234,58 +3174,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "error al obtener los grupos del usuario"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "No se pudo añadir el adjunto al fichero de exportación de Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "No se puede cerrar el archivo zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "No se puede crear el archivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "No se pudo generar los datos del archivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "No se pudo entregar el correo electrónico a Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "No se puede establecer la dirección Desde para el correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "No se puede establecer el mensaje del correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "No se puede escribir el mensaje del correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "No se puede leer la información del correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "No se puede establecer la dirección Para del correo electrónico."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "No se puede obtener la información del archivo temporal de exportación."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "No se puede obtener el correo electrónico desde el archivo temporal."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "No se puede abrir el archivo temporal de exportación."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4312,10 +4200,6 @@
     "translation": "Id inválido."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mensaje no es válido."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Id Original inválido."
   },
@@ -4962,14 +4846,6 @@
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
     "translation": "No se pudo crear la plantilla Elasticsearch para los canales"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "No se puede crear el archivo advertencia."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "No se puede crear el archivo zip"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -6108,10 +5984,6 @@
     "translation": "No se puede eliminar el token."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "No se pudo obtener los usuarios del canal en el período de tiempo especificado."
-  },
-  {
     "id": "app.user_access_token.update_token_enable.app_error",
     "translation": "No se puede habilitar guardar token de acceso."
   },
@@ -6412,10 +6284,6 @@
     "translation": " adjuntó un archivo."
   },
   {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "No se puede convertir la exportación a XML."
-  },
-  {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
     "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. La firma digital de la lima binaria descargada no podría ser verificada."
   },
@@ -6478,18 +6346,6 @@
   {
     "id": "app.job.get.app_error",
     "translation": "No se pudo obtener el trabajo."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Fallado para coger lima info para un poste."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Fallado para coger lima info para un poste."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Fallado para coger lima info para un poste."
   },
   {
     "id": "app.file_info.save.app_error",
@@ -8164,10 +8020,6 @@
     "translation": "Error"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "No se puede conectar con el servidor smtp"
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
@@ -8214,18 +8066,6 @@
   {
     "id": "ent.data_retention.policies.internal_error",
     "translation": "Se ha producido un error al realizar la operación solicitada."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "No se puede escribir el archivo de global relay."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "No se puede escribir el archivo csv."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "No se puede escribir el archivo de exportación."
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",

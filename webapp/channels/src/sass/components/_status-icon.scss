@@ -1,4 +1,4 @@
-@charset "utf-8";
+@use "utils/variables";
 
 .status-wrapper {
     position: relative;
@@ -114,7 +114,7 @@
     .status {
         body.enable-animations & {
             transition-delay: 0s;
-            transition-duration: $transition-quick;
+            transition-duration: variables.$transition-quick;
             transition-property: opacity, visibility;
             transition-timing-function: ease-out, step-start;
         }

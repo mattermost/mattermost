@@ -1,0 +1,30 @@
+@use "utils/variables";
+
+.MuiPopover-root.MuiModal-root.menu_menuStyled {
+    z-index: variables.$z-index-menu;
+
+    & .MuiPaper-root {
+        min-width: 114px;
+        max-width: 496px;
+        max-height: 80vh;
+        padding: 4px 0;
+        background-color: var(--center-channel-bg);
+        box-shadow: var(--elevation-4), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
+    }
+    &.AsSubMenu {
+        pointer-events: none;
+        & .MuiPaper-root {
+            box-shadow: var(--elevation-5), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
+        }
+    }
+}
+
+.menuModal {
+    & .modal-header {
+        display: none;
+    }
+
+    & .GenericModal__body {
+        padding: 0;
+    }
+}

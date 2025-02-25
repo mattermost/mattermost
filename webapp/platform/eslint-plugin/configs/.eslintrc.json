@@ -370,7 +370,7 @@
     "no-process-env": 2,
     "no-process-exit": 2,
     "no-proto": 2,
-    "no-prototype-builtins": 1,
+    "no-prototype-builtins": 2,
     "no-restricted-imports": [
       "error",
       {
@@ -381,11 +381,6 @@
           }
         ],
         "paths": [
-          {
-            "name": "react-bootstrap",
-            "importNames": ["OverlayTrigger"],
-            "message": "Use OverlayTrigger from '/components/overlay_trigger' instead."
-          },
           {
             "name": "redux",
             "importNames": ["DeepPartial"],

@@ -1177,7 +1177,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Falha para marshal."
+    "translation": "Falha de conversão marshal."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1589,7 +1589,7 @@
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parâmetro requerido para adicionar o usuário ao time."
+    "translation": "Parâmetro requerido para adicionar o usuário à equipe."
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -2265,7 +2265,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Falha ao atualizar conexão websocket."
+    "translation": "URL bloqueado por causa de CORS. URL: {{.BlockedOrigin}}"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2298,10 +2298,6 @@
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
     "translation": "Ou trigger_words ou channel_id precisa ser definido."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Não foi possível decodificar a carga multiparte do webhook de entrada."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
@@ -3004,60 +3000,8 @@
     "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo a menos que ReadOnlyConfig estiver desativado no arquivo de configurações."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Formato de saída {{.ExportType}} desconhecido"
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Não é possível copiar o anexo para um arquivo zip."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Não é possível adicionar o anexo à exportação CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Não é possível criar o arquivo temporário de exportação CSV."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Não é possível adicionar cabeçalho à exportação CSV."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Não é possível adicionar arquivo de metadados ao arquivo zip."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Não é possível converter metadados para json."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Não é possível exportar uma publicação."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Não é possível criar o arquivo de exportação zip."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "O arquivo enviado foi removido da exportação do Global Relay porque era muito grande para ser enviado."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Não é possível abrir o arquivo temporário de exportação."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Não é possível reler o arquivo de exportação temporário do Global Relay."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funcionalidade Conformidade desabilitada pela licença atual. Entre em contato com o administrador do sistema sobre como atualizar sua licença enterprise."
-  },
-  {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Não é possível carregar os modelos de exportação. Por favor tente novamente."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3069,31 +3013,31 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Agregador do Elastisearch falhou para criar os índices"
+    "translation": "{{.Backend}} O worker do agregador não conseguiu criar o trabalho de indexação"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Agregador do Elastisearch falhou para apagar os índices"
+    "translation": "{{.Backend}} O worker do agregador não conseguiu excluir os índices"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Agregador do Elastisearch falhou para buscar os índices"
+    "translation": "{{.Backend}} O worker do agregador não conseguiu obter os índices"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Agregador do Elastisearch falhou devido a falha do job de indexação"
+    "translation": "{{.Backend}} O worker agregador falhou devido à falha do trabalho de indexação"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Configuração do Cliente de ElasticSearch Falhou"
+    "translation": "Falha na configuração do Cliente {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Não foi possível remover o índice do ElasticSearch"
+    "translation": "Falha ao excluir o índice {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Não foi possível obter os índices do ElasticSearch"
+    "translation": "Falha ao obter os índices {{.Backend}}"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3101,7 +3045,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "A busca usando o ElasticSearch não está ativa neste servidor"
+    "translation": "{{.Backend}} A pesquisa não está ativada neste servidor"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3109,23 +3053,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Agregador do Elastisearch falhou em transformar a data de término"
+    "translation": "{{.Backend}} O worker de indexação não conseguiu analisar a hora de término"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Agregador do Elastisearch falhou em transformar a data de início"
+    "translation": "{{.Backend}} O worker de indexação não conseguiu analisar a hora de início"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch não foi iniciado"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Não foi possível deletar o ElasticSearch index"
+    "translation": "{{.Backend}} não está iniciado"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "A busca usando o ElasticSearch foi desativada neste servidor"
+    "translation": "{{.Backend}} A pesquisa está desativada neste servidor"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3141,11 +3081,11 @@
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch já está parado."
+    "translation": "{{.Backend}} já está parado."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch está desativado."
+    "translation": "{{.Backend}} está desativado."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3238,58 +3178,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "erro ao obter os grupos para o usuário"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Não é possível adicionar o anexo à exportação do Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Não é possível fechar o arquivo zip."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Não é possível criar o arquivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Não é possível gerar dados do arquivo eml."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Não foi possível entregar o email para Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Não foi possível definir o Remetente do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Não foi possível definir a mensagem do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Não foi possível escrever a mensagem de email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Não foi possível ler a informação do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Não foi possível definir o Destinatário do email."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Não foi possível obter a informação do arquivo temporário de exportação."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Não foi possível obter um remetente de email do arquivo temporário."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Não foi possível abrir o arquivo temporário de exportação."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3713,27 +3601,27 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays a configuração deve ser um número maior ou igual a 1."
+    "translation": "A configuração Search AggregatePostsAfterDays deve ser um número maior ou igual a 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "A ElasticSearch ConnectionUrl deve ser fornecida quando ElasticSearch indexing está ativado."
+    "translation": "A configuração Search ConnectionUrl deve ser fornecida quando a indexação estiver ativada."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "O opção ElasticSearch IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro"
+    "translation": "O opção Search IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size deve ser pelo menos 1."
+    "translation": "O Tamanho do Lote de Indexação do Search Live deve ser de pelo menos 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime a configuração deve ser uma hora no formato \"hh:mm\"."
+    "translation": "A configuração Search PostsAggregatorJobStartTime deve ser uma hora no formato \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "O tempo limite de Requisição Elasticsearch deve ser pelo menos 1 segundo."
+    "translation": "O tempo limite da solicitação de pesquisa deve ser de pelo menos 1 segundo."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4316,10 +4204,6 @@
     "translation": "ID inválida."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mensagem inválida."
-  },
-  {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Id original inválida."
   },
@@ -4661,7 +4545,7 @@
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Não foi possível encontrar o usuário."
+    "translation": "Não foi possível encontrar o usuário {{.user}}"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -4713,7 +4597,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -4893,7 +4777,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "A configuração Elasticsearch EnableIndexing deve ser definida como verdadeiro quando Elasticsearch EnableAutocomplete estiver definido como verdadeiro"
+    "translation": "A configuração Search EnableIndexing deve ser definida como verdadeiro quando Elasticsearch EnableAutocomplete estiver definido como verdadeiro"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
@@ -4937,7 +4821,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Tamanho Limite Excedido. Tente verificar [tamanho máximo de página](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Limite de tamanho excedido. Tente aumentar a configuração de tamanho máximo de página. Consulte https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded para obter mais detalhes."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -4945,11 +4829,11 @@
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Falha ao decodificar a versão do servidor Elasticsearch."
+    "translation": "Falha ao analisar a versão do servidor {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Falha ao obter versão do servidor Elasticsearch."
+    "translation": "Falha ao obter a versão do servidor {{.Backend}}."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -4969,7 +4853,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "A busca usando o ElasticSearch foi desativada neste servidor"
+    "translation": "A pesquisa {{.Backend}} está desativada neste servidor"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -4997,23 +4881,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Falha ao criar modelo Elasticsearch para usuários"
+    "translation": "Falha ao criar o modelo {{.Backend}} para os usuários"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Falha ao criar modelo Elasticsearch para publicações"
+    "translation": "Falha ao criar o modelo {{.Backend}} para publicações"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Falha ao criar modelo Elasticsearch para canais"
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Não é possível criar o arquivo de aviso."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Não é possível criar o arquivo zip"
+    "translation": "Falha ao criar o modelo {{.Backend}} para Canais"
   },
   {
     "id": "bleveengine.stop_user_index.error",
@@ -5221,7 +5097,7 @@
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Falha ao decodificar os plugins do marketplace."
+    "translation": "Falha ao converter os plugins do marketplace (marshal)."
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
@@ -5381,11 +5257,11 @@
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Encontramos um erro ao procurar o canal."
+    "translation": "Encontramos um erro ao procurar o canal {{.channel_id}}."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Não foi possível encontrar o canal existente."
+    "translation": "Não foi possível encontrar o canal existente {{.channel_id}}."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -5837,7 +5713,7 @@
   },
   {
     "id": "ent.cluster.json_encode.error",
-    "translation": "Ocorreu um erro ao empacotar a solicitação JSON"
+    "translation": "Ocorreu um erro ao converter a solicitação JSON (marshal)"
   },
   {
     "id": "bleveengine.delete_user_posts.error",
@@ -5930,10 +5806,6 @@
   {
     "id": "app.recover.delete.app_error",
     "translation": "Não é possível excluir o token."
-  },
-  {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Falha ao obter usuários no canal durante o período de tempo especificado."
   },
   {
     "id": "app.command.listteamcommands.internal_error",
@@ -6414,10 +6286,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " anexou um arquivo."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Não foi possível converter a exportação para XML."
   },
   {
     "id": "app.job.update.app_error",
@@ -7016,18 +6884,6 @@
     "translation": "O comando /{{.Command}} travou o plug-in {{.PluginId}}. Entre em contato com o administrador do sistema"
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Falha ao obter informações do arquivo para uma publicação."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Falha ao obter informações do arquivo para uma publicação."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Falha ao obter informações do arquivo para uma publicação."
-  },
-  {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "Nenhum usuário LDAP encontrado, verifique seu filtro de usuário e certificados."
   },
@@ -7516,10 +7372,6 @@
     "translation": "Erro"
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Não é possível conectar ao servidor smtp"
-  },
-  {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Falha ao decodificar os resultados da pesquisa"
   },
@@ -7529,7 +7381,7 @@
   },
   {
     "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "A pesquisa de arquivos do Elasticsearch está desativada neste servidor"
+    "translation": "A pesquisa de arquivos via {{.Backend}} está desativada neste servidor"
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -7553,19 +7405,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Falha ao criar modelo Elasticsearch para arquivos"
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Não foi possível gravar o arquivo de retransmissão global."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Não foi possível gravar o arquivo csv."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Não foi possível gravar o arquivo de exportação."
+    "translation": "Falha ao criar o modelo {{.Backend}} para arquivos"
   },
   {
     "id": "bleveengine.stop_file_index.error",
@@ -7621,7 +7461,7 @@
   },
   {
     "id": "app.export.marshal.app_error",
-    "translation": "Incapaz de organizar a resposta."
+    "translation": "Incapaz de converter a resposta (marshal)."
   },
   {
     "id": "app.export.export_attachment.zip_create_header.error",
@@ -7797,7 +7637,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| Conexão segura | Nome de exibição | ID de conexão | URL do site | Convite aceito | Online | Último ping |"
+    "translation": "| Conexão segura | Nome de exibição | ID de conexão | URL do site | Time Padrão | Convite aceito | Online | Último ping | Excluído |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -8226,5 +8066,1961 @@
   {
     "id": "api.email_batching.send_batched_email_notification.button",
     "translation": "Abrir Mattermost"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Não é permitido remover uma confirmação de recebimento em um canal arquivado."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Não é possível deletar uma confirmação de recebimento após 5 minutos."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Não é possível confirmar recebimento em um canal arquivado."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Sua licença não suporta marcadores de canais."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Usuário não tem permissão para criar um marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Falha ao criar marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Falha ao criar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Falha ao excluir o marcador de canal."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "falha ao adicionar usuário às equipes e canais do grupo"
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Falha ao excluir o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Falha ao excluir o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error",
+    "translation": "Falha ao atualizar critério de ordenação dos marcadores do canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Falha ao atualizar critério de ordenação dos marcadores do canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.forbidden.app_error",
+    "translation": "Falha ao atualizar critério de ordenação dos marcadores do canal."
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} criou esse canal a partir de uma mensagem de grupo com {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Você não tem permissão para atualizar o nome, display_name e a finalidade de mensagens diretas ou de grupo."
+  },
+  {
+    "id": "api.channel.create_channel.missing_display_name.error",
+    "translation": "Falta do campo display_name no corpo da solicitação"
+  },
+  {
+    "id": "api.channel.create_channel.missing_team_id.error",
+    "translation": "Falta do campo team_id no corpo da solicitação"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "O usuário não tem permissão para converter mensagem de grupo em canal privado"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Gerar um link para baixar uma exportação."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Atualização de membro do canal inválida: não é possível definir um convidado para um único canal; o administrador do sistema deve promover ou rebaixar os usuários de/para convidados."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Atualização de membro do canal inválida: um convidado não pode se tornar membro ou administrador da equipe; promova-o a usuário primeiro."
+  },
+  {
+    "id": "api.channel.create_group.remote_restricted.app_error",
+    "translation": "Não é possível criar um canal de grupo com usuários remotos"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.remote_restricted.app_error",
+    "translation": "Não é possível criar um canal direto com um usuário remoto"
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Você não tem permissão para atualizar o nome, display_name e a finalidade de mensagens diretas ou de grupo."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Falha ao atualizar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Falha ao atualizar o marcador de canal."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Falha ao atualizar o marcador de canal."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Você pode fazer o download do seu arquivo aqui: {{.Link}}.\nEste link expirará em {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Não foi possível recuperar a lista de exportação."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "link de exportação"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Você não tem permissões suficientes para executar esse comando."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Este canal é gerenciado por grupos.  Este usuário não faz parte de um grupo sincronizado com este canal."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Você pode adicionar {{.FirstUser}} e {{.Others}} outras pessoas a esse canal quando elas forem membros da equipe **{{.Team}}**."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "O comando de marketplace não é compatível com seu dispositivo."
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Abra o Marketplace"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Não foi possível confirmar o convite: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Não é possível convidar o externo porque o canal {{.ChannelID}} não é compartilhado."
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Falha ao recarregar a configuração."
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Ocorreu um erro ao buscar o endereço IP do cliente"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Não é possível obter essa quantidade de emojis por nome. Somente {{.MaxNames}} emojis podem ser solicitados de uma vez."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Erro ao tentar recuperar a configuração completa do primeiro administrador da loja."
+  },
+  {
+    "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
+    "translation": "Erro: nenhum nome de organização foi fornecido para o onboarding auto-hospedado."
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "As configurações de armazenamento de arquivos têm valores não definidos."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Os parâmetros OnlyThreads e OnlyTotals para getThreadsForUser são mutuamente exclusivos"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Ocorreu um erro ao aplicar os filtros IP"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "As configurações do Elasticsearch têm valores não definidos."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subTitle",
+    "translation": "Confira abaixo um resumo de suas novas mensagens."
+  },
+  {
+    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
+    "translation": "Certifique-se de que seu bucket do Amazon S3 está disponível e verifique as permissões do bucket."
+  },
+  {
+    "id": "api.get_site_url_error",
+    "translation": "Não foi possível obter a URL do site da instância"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Parâmetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Ocorreu um erro durante a validação das credenciais de conexão OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Não foi possível recuperar as credenciais com a configuração de conexão especificada."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Não é possível buscar o início do arquivo."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Não é possível convidar o remoto para o canal: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Conexão segura | URL do site | Somente leitura | Convite aceito | Online | Última sincronização |"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Falha ao atualizar as traduções do servidor."
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "A Filtragem de IP não está disponível neste servidor"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Ocorreu um erro ao excluir a conexão OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Parâmetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Ocorreu um erro ao listar as conexões OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Ocorreu um erro ao atualizar a conexão OAuth de saída."
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "erro na contagem de grupos"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "o recurso de grupos personalizados está desativado"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id deve estar em branco para o grupo personalizado"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "não licenciado para grupos personalizados"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference deve ser 'true' para grupos personalizados"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Falha ao atualizar o status personalizado. Não existe um emoji com o nome fornecido."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Não é possível salvar o rascunho no canal excluído"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "O recurso Rascunhos está desativado."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Erro ao tentar salvar a configuração completa do primeiro administrador na loja."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "O upload via mmctl para uma instância do Cloud não é suportado. Verifique a documentação aqui: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "O tamanho da página é inválido ou muito grande."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Não é possível ocultar usuários ativos e inativos simultaneamente."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "O ID de equipe fornecido é inválido ."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "O Mattermost é uma plataforma de código aberto para comunicação segura, colaboração e orquestração de trabalho entre ferramentas e equipes.\nO Mattermost contém duas ferramentas principais:\n\n**Canais** - Mantenha-se conectado com sua equipe por meio de mensagens individuais e em grupo.\n**[Playbooks](/playbooks)** - Crie e configure processos reprodutíveis para que você alcance resultados específicos e previsíveis.\n\n[Veja a documentação e os guias]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "O driver de armazenamento de arquivos não é compatível com a geração de links."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Nenhum arquivo de exportação foi encontrado."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|arquivo zip|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Não é possível gerar o URL pré-assinado."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} e {{.Others}} outros já estão no canal."
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Ocorreu um erro ao buscar os filtros IP"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Ocorreu um erro ao criar a conexão OAuth de saída."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Parâmetros de entrada inválidos."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "As conexões OAuth de saída não estão disponíveis neste servidor."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "Falha ao atualizar o status personalizado. Adicione emoji ou status de texto ou ambos."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "api.file.test_connection_s3_auth.app_error",
+    "translation": "Não foi possível conectar-se ao S3. Verifique os parâmetros de autorização de conexão do Amazon S3 e as configurações de autenticação."
+  },
+  {
+    "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "O preenchimento automático nos canais não pode ser ativado porque o esquema do índice de canais está desatualizado. Recomenda-se que você gere novamente o índice do canal. Consulte o registro de alterações do Mattermost para obter mais informações"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Não foi possível encontrar o arquivo solicitado."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Falha na comparação diferencial das configurações"
+  },
+  {
+    "id": "api.context.request_body_too_large.app_error",
+    "translation": "Não é possível processar a solicitação. O corpo da solicitação é muito grande."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} e {{.Others}} adicionados ao canal {{.Channel}}."
+  },
+  {
+    "id": "api.config.update_config.diff.app_error",
+    "translation": "Falha na comparação diferencial das configurações"
+  },
+  {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "O tamanho do plugin carregado excede o limite. Esse limite pode ser alterado no Console do sistema em Armazenamento de arquivos > Tamanho máximo do arquivo"
+  },
+  {
+    "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
+    "translation": "Falha ao carregar o arquivo. O canal de upload não é compartilhado com o remoto."
+  },
+  {
+    "id": "api.system.logs.download_bytes_buffer.app_error",
+    "translation": "Falha ao gravar os registros no buffer"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Não foi possível encontrar o usuário."
+  },
+  {
+    "id": "api.oauth.get_access_token.bad_request.app_error",
+    "translation": "invalid_request: Solicitação inválida."
+  },
+  {
+    "id": "api.scheduled_posts.feature_disabled",
+    "translation": "O recurso de publicações agendadas está desativado"
+  },
+  {
+    "id": "api.scheduled_posts.license_error",
+    "translation": "O recurso de publicações agendadas requer uma licença"
+  },
+  {
+    "id": "api.team.set_team_icon.check_image_limits.app_error",
+    "translation": "Falha na verificação dos limites de imagem. A resolução é muito alta."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para participar de {{ .ChannelsLen }} canais na equipe {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Atualização de membro da equipe inválida: um convidado não pode ser definido para uma única equipe; um administrador do sistema deve promover ou rebaixar usuários para/de convidados."
+  },
+  {
+    "id": "api.remote_cluster.generate_invite_cluster_is_confirmed",
+    "translation": "Não é possível gerar o código de convite para um cluster confirmado"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Contas de convidado estão desativadas"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Sua licença não suporta contas de convidado"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.title",
+    "translation": "Seu espaço de trabalho está pronto para ser usado!"
+  },
+  {
+    "id": "api.templates.invite_body.title.reminder",
+    "translation": "Lembrete"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subject",
+    "translation": "Sua licença precisa de renovação"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_title",
+    "translation": "Sua assinatura do Mattermost precisaa ser renovada"
+  },
+  {
+    "id": "api.remote_cluster.cluster_not_deleted",
+    "translation": "O cluster remoto não foi excluído"
+  },
+  {
+    "id": "api.remote_cluster.get.not_found",
+    "translation": "Cluster remoto não encontrado"
+  },
+  {
+    "id": "api.remote_cluster.encrypt_invite_error",
+    "translation": "Não foi possível criptografar o convite do cluster remoto usando a senha fornecida"
+  },
+  {
+    "id": "api.remote_cluster.accept_invitation_error",
+    "translation": "Não foi possível aceitar o convite do cluster remoto"
+  },
+  {
+    "id": "api.remote_cluster.base64_decode_error",
+    "translation": "Não foi possível decodificar a string base64"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "endpoint da API requer uma licença"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.error",
+    "translation": "Não foi possível verificar se uma avaliação pode ser iniciada"
+  },
+  {
+    "id": "api.license.request-trial.can-start-trial.not-allowed",
+    "translation": "Falha ao aplicar a nova licença de avaliação. Você já aplicou uma licença de avaliação a esta instância do Mattermost anteriormente. Se desejar estender seu período de avaliação, [entre em contato com nossa equipe de vendas](https://mattermost.com/contact-us/)."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Não foi possível processar a solicitação devido a limitações de países embargados. [Saiba mais em nossa documentação](https://mattermost.com/pl/limitations-for-embargoed-countries) ou entre em contato com legal@mattermost.com para perguntas sobre limitações de exportação."
+  },
+  {
+    "id": "api.oauth.click_redirect",
+    "translation": "Se você não for redirecionado automaticamente, clique no <a href='{{.Link}}'>link</a>"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Ocorreu um erro ao analisar payload."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "O usuário não tem permissão para criar publicações prioritárias ou notificações persistentes."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Falha na validação da notificação persistente."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Token de e-mail inválido"
+  },
+  {
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal indisponível para registro auto-hospedado."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "O Servidor CWS não está disponível."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Serviço disponível apenas na edição Mattermost Enterprise"
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "O Servidor CWS falhou ao assinar o newsletter."
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Erro ao enviar o e-mail"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "O SMTP não está configurado no console do sistema"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Atualização de membro da equipe inválida: um convidado não pode ser membro da equipe ou administrador da equipe; promova-o como usuário primeiro."
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} alterou as configurações de filtragem de IP para seu espaço de trabalho na URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Alterações nos Filtros de IP do seu Workspace"
+  },
+  {
+    "id": "api.unmarshal_error",
+    "translation": "Falha ao converter dados (unmarshal)."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "não é um usuário ldap"
+  },
+  {
+    "id": "api.post.delete_post.not_enabled.app_error",
+    "translation": "Não é possível excluir a publicação, ServiceSettings.EnableAPIPostDeletion não está ativado."
+  },
+  {
+    "id": "api.remote_cluster.invite_decrypt_error",
+    "translation": "Não foi possível descriptografar o convite do cluster remoto usando a senha fornecida"
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.one",
+    "translation": "@{{.Username}} não foi notificado por essa menção porque não é membro dessa equipe."
+  },
+  {
+    "id": "api.post.check_for_out_of_team_mentions.message.multiple",
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} não foram notificados por essa menção porque não são membros dessa equipe."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "A movimentação do tópico de discussão está desativada"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads",
+    "translation": "Responder em {{.channelName}}"
+  },
+  {
+    "id": "api.push_notification.title.collapsed_threads_dm",
+    "translation": "Responder em uma Mensagem Direta"
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Não é possível obter tantas funções por nome. Somente {{.MaxNames}} funções podem ser solicitadas de uma vez."
+  },
+  {
+    "id": "api.server.license_up_for_renewal.error_sending_email",
+    "translation": "Falha ao enviar licença para e-mails de renovação"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Corpo da solicitação inválido."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} convidou você para participar dos canais {{ .ChannelsLen }} na equipe {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Entre em contato com o suporte"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Faça login no portal do cliente para redefinir a filtragem de IP"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Envie um e-mail para {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Não foi possível fazer o upload do arquivo. O arquivo é muito grande."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle",
+    "translation": "{{.UserName}}, sua assinatura está definida para expirar em {{.Days}} dias. Esperamos que você esteja experimentando a colaboração em equipe flexível e segura que o Mattermost permite. Renove em breve para garantir que sua equipe continue aproveitando esses benefícios."
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Você está tendo problemas para acessar seu workspace?"
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "A publicação de notificações persistentes permite um máximo de {{.MaxRecipients}} destinatários."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Você não tem permissão para mover este tópico."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Somente as publicações raiz podem ter prioridade."
+  },
+  {
+    "id": "api.post.posts_by_ids.invalid_body.request_error",
+    "translation": "O número de Post IDs recebidos excedeu o tamanho máximo de {{.MaxLength}}"
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "As publicações de notificações persistentes devem ter a prioridade Urgente."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
+    "translation": " respondeu a um tópico."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "A publicação de notificação persistente deve ter no mínimo um destinatário."
+  },
+  {
+    "id": "api.system.logs.invalidFilter",
+    "translation": "Filtro de logs inválido"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} convidou você para participar do canal {{ .ChannelName }} na equipe {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para participar do canal {{ .ChannelName }} na equipe {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Revisar alterações"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Mudanças na filtragem de IP para seu workspace"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Entre em contato com o departamento de vendas."
+  },
+  {
+    "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread",
+    "translation": " respondeu a um tópico que você está seguindo."
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "As interações com o Portal do Cliente Mattermost foram desativadas pelo administrador do sistema."
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.invite_sub_info",
+    "translation": "Compartilhe este link para convidar membros a participar do {{.WorkSpace}}:"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.mm_apps",
+    "translation": "aplicativos para celular e desktop"
+  },
+  {
+    "id": "api.license.add_license.copy.app_error",
+    "translation": "Falha ao copiar o conteúdo do arquivo de licença para o buffer"
+  },
+  {
+    "id": "api.remote_cluster.create_invite_error",
+    "translation": "Não foi possível criar um convite para o cluster remoto"
+  },
+  {
+    "id": "api.job.status.invalid",
+    "translation": "Status inválido definido"
+  },
+  {
+    "id": "api.job.unable_to_manage_job.incorrect_job_type",
+    "translation": "Você não tem permissão para gerenciar esse tipo de trabalho"
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "E-mail comercial inválido para avaliação"
+  },
+  {
+    "id": "api.shared_channel.uninvite_remote_to_channel_error",
+    "translation": "Não foi possível desconvidar o remoto para o canal"
+  },
+  {
+    "id": "api.shared_channel.get_shared_channel_remotes_error",
+    "translation": "Não foi possível buscar os remotos do canal compartilhado"
+  },
+  {
+    "id": "api.shared_channel.has_remote_error",
+    "translation": "Não foi possível determinar se o canal é compartilhado com o remoto"
+  },
+  {
+    "id": "api.shared_channel.invite_remote_to_channel_error",
+    "translation": "Não foi possível convidar o remoto para o canal"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.email_signup_disabled.app_error",
+    "translation": "A Transferência de Autenticação não está disponível porque o registro de e-mail está desativado."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.cache_error",
+    "translation": "Falha ao armazenar a publicação em cache após a desduplicação de um cliente repetindo a mesma solicitação."
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "O endereço de e-mail no token não corresponde ao dos dados do usuário."
+  },
+  {
+    "id": "api.user.create_user.user_limits.exceeded",
+    "translation": "Não foi possível criar usuário. O servidor excede o limite seguro de usuários. Entre em contato com o administrador com: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Erro ao verificar se um usuário tem uma imagem de perfil personalizada."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": "A resposta SAML é muito longa"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Não foi possível obter tokens por tipo ao invalidar tokens de recuperação de senha"
+  },
+  {
+    "id": "api.user.auth_switch.not_available.login_disabled.app_error",
+    "translation": "A Transferência de Autenticação não está disponível porque nem o login por e-mail nem o login por nome de usuário estão ativados."
+  },
+  {
+    "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
+    "translation": "O usuário não é um usuário OAuth ou SAML."
+  },
+  {
+    "id": "api4.plugin.reattachPlugin.invalid_request",
+    "translation": "Falha ao analisar a solicitação"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "O login falhou porque os usuários remotos não têm permissão para fazer login."
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "O campo '{{.Field}}' deve ser definido por meio do provedor de login do usuário."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Não é possível recuperar usuários para um canal arquivado"
+  },
+  {
+    "id": "api.user.update_password.password_hash.app_error",
+    "translation": "Ocorreu um erro interno ao salvar a senha."
+  },
+  {
+    "id": "api.user.update_active.cannot_modify_status_when_user_is_managed_by_ldap.app_error",
+    "translation": "Você não pode modificar o status do usuário. O usuário é gerenciado pelo LDAP"
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Não é possível recuperar publicações de um canal arquivado"
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Não é possível obter confirmação de recebimento."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Não foi possível excluir a confirmação de recebimento."
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Falha na verificação dos limites de imagem. A resolução é muito alta."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "O campo '{{.Field}}' deve ser definido por meio do provedor de login do usuário."
+  },
+  {
+    "id": "app.import.import_direct_channel.get_channel_members.error",
+    "translation": "Falha ao obter membros do canal para o canal direto"
+  },
+  {
+    "id": "app.import.import_direct_channel.no_members.error",
+    "translation": "Não há membros para o canal direto"
+  },
+  {
+    "id": "app.import.import_line.null_role.error",
+    "translation": "A linha de dados de importação tem o tipo \"role\", mas o objeto role é nulo."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Erro durante a execução do trabalho."
+  },
+  {
+    "id": "app.notification.body.dm.title",
+    "translation": "{{.SenderName}} lhe enviou uma nova mensagem"
+  },
+  {
+    "id": "app.notification.body.group.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} enviou uma mensagem ao seu grupo."
+  },
+  {
+    "id": "app.notification.body.group.title",
+    "translation": "{{.SenderName}} lhe enviou uma nova mensagem"
+  },
+  {
+    "id": "app.bot.update.app_error",
+    "translation": "Não foi possível atualizar o bot."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_error",
+    "translation": "Falha ao excluir a publicação agendada do banco de dados."
+  },
+  {
+    "id": "app.delete_scheduled_post.delete_permission.error",
+    "translation": "Você não tem permissão para excluir esse recurso."
+  },
+  {
+    "id": "app.delete_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "A publicação programada não existe."
+  },
+  {
+    "id": "app.import.import_bot.owner_could_not_found.error",
+    "translation": "Não foi possível encontrar o proprietário do bot"
+  },
+  {
+    "id": "app.delete_scheduled_post.get_scheduled_post.error",
+    "translation": "Não foi possível buscar publicações agendadas existentes no banco de dados."
+  },
+  {
+    "id": "app.get_user_team_scheduled_posts.error",
+    "translation": "Ocorreu um erro ao buscar publicações agendadas."
+  },
+  {
+    "id": "app.import.import_line.null_bot.error",
+    "translation": "A linha de dados de importação tem o tipo \"bot\", mas o objeto bot é nulo"
+  },
+  {
+    "id": "app.import.validate_bot_import_data.owner_missing.error",
+    "translation": "O proprietário do bot está ausente"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Não foi possível analisar o token ao invalidar os tokens de recuperação de senha"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Não foi possível encontrar a contagem de membros."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Não foi possível encontrar os canais dos quais o usuário é membro"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Não foi possível excluir as categorias da barra lateral existentes para a MG convertida."
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "O token não é válido ou expirou"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Não é possível encontrar um usuário para este token"
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Falha ao escrever cabeçalhos CSV."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "O recurso Rascunhos está desativado."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Essas ações exigem o uso de um armazenamento de exportação dedicado."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Esse recurso é restrito por uma configuração de feature flag."
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Não foi possível atualizar o registro de data e hora do último login"
+  },
+  {
+    "id": "app.notification.body.mention.title",
+    "translation": "{{.SenderName}} mencionou você em uma mensagem"
+  },
+  {
+    "id": "app.plugin.reattach.app_error",
+    "translation": "Falha ao reconectar o plug-in"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "O ID da equipe especificado na solicitação de conversão não contém todos os membros das mensagens de grupo"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Não foi possível atualizar as props de notificação dos membros do canal."
+  },
+  {
+    "id": "app.notification.body.dm.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} lhe enviou uma nova Mensagem Direta."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Não foi possível salvar os dados de notificação."
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "O canal que está sendo convertido não é uma mensagem de grupo. Você só pode converter mensagens de grupo"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Não foi possível analisar o token ao invalidar tokens de verificação de e-mail"
+  },
+  {
+    "id": "app.channel.bookmark.get.app_error",
+    "translation": "Não foi possível obter o marcador."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "A lista de administradores está vazia."
+  },
+  {
+    "id": "app.channel.bookmark.delete.app_error",
+    "translation": "Não foi possível excluir o marcador."
+  },
+  {
+    "id": "app.channel.bookmark.get_existing.app_err",
+    "translation": "Não foi possível atualizar o marcador existente."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Não foi possível atualizar o membro do canal."
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Não foi possível definir o conteúdo pesquisável do arquivo."
+  },
+  {
+    "id": "app.notification.body.thread.title",
+    "translation": "{{.SenderName}} respondeu a um tópico"
+  },
+  {
+    "id": "app.notification.body.thread_channel_full.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} respondeu a um tópico que você está seguindo em {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.footer.info",
+    "translation": " e vá para Configurações > Notificações"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.create_post",
+    "translation": "A publicação não pode ser criada"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_bot",
+    "translation": "Não foi possível obter o bot do sistema"
+  },
+  {
+    "id": "app.channel.bookmark.update.app_error",
+    "translation": "Não foi possível atualizar o marcador."
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Falha ao criar mensagen de grupo para publicação de conversão de canal"
+  },
+  {
+    "id": "app.channel.bookmark.save.app_error",
+    "translation": "Não foi possível salvar o marcador."
+  },
+  {
+    "id": "app.import.custom_status.error",
+    "translation": "Não é possível definir o status personalizado."
+  },
+  {
+    "id": "app.file_info.seek.gif.app_error",
+    "translation": "Não foi possível buscar o início dos dados GIF."
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_channel",
+    "translation": "Não foi possível receber a mensagem direta do bot do sistema"
+  },
+  {
+    "id": "app.notifications.send_test_message.errors.no_user",
+    "translation": "Não foi possível obter o usuário"
+  },
+  {
+    "id": "app.notifications.send_test_message.message_body",
+    "translation": "Se você recebeu essa notificação de teste, ela funcionou!"
+  },
+  {
+    "id": "app.import.attachment.file_stat.error",
+    "translation": "Erro ao ler o status do arquivo: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.seek_file.error",
+    "translation": "Erro ao procurar o arquivo: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.notification.body.thread_channel.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} respondeu a um tópico que você está seguindo."
+  },
+  {
+    "id": "app.notification.body.thread_dm.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} respondeu a um tópico em sua Mensagem Direta."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Erro ao buscar funções de usuário durante a validação."
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Não foi possível adicionar o usuário como membro do canal."
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Não foi possível contar as publicações urgentes a partir da data fornecida."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Não foi possível obter a contagem de arquivos para o canal"
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Não foi possível obter a prioridade para publicações"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Não foi possível atualizar tantos membros do canal. Somente {{.Max}} membros do canal podem ser atualizados de uma vez."
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} membros do espaço de trabalho {{.WorkspaceName}} solicitaram o início da avaliação Enterprise para acesso a: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} membros do espaço de trabalho {{.WorkspaceName}} solicitaram uma atualização do espaço de trabalho para: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "O membro {{.UsersNum}} do espaço de trabalho {{.WorkspaceName}} solicitou o início da avaliação Enterprise para acesso a: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "O membro {{.UsersNum}} do espaço de trabalho {{.WorkspaceName}} solicitou uma atualização do espaço de trabalho para: "
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Não foi possível obter os Rascunhos do usuário."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Não foi possível obter arquivos para Rascunho."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Não foi possível salvar o Rascunho."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Não foi possível verificar se o arquivo existe."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Não foi possível gerar a URL pré-assinada."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "O arquivo de exportação não foi encontrado."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Não foi possível decodificar o gif."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
+    "translation": "Serviço de autenticação inválido: {{.AuthService}}"
+  },
+  {
+    "id": "app.notification.footer.infoLogin",
+    "translation": "Faça login no Mattermost"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Não é possível enviar publicação de notificação."
+  },
+  {
+    "id": "app.file_info.get_by_post_id.app_error",
+    "translation": "Falha ao encontrar arquivos para publicação."
+  },
+  {
+    "id": "app.file_info.permanent_delete_for_post.app_error",
+    "translation": "Falha ao excluir permanentemente o arquivo para publicação."
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Não foi possível obter tokens por tipo ao invalidar tokens de verificação de e-mail"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Não foi possível remover o token ao invalidar os tokens de verificação de e-mail"
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Não foi possível salvar a confirmação de recebimento da publicação."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.app_error",
+    "translation": "Não foi possível classificar o marcador."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Não foi possível classificar o marcador. Entrada inválida."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Não foi possível classificar o marcador. Não encontrado."
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Canal não é uma mensagen de grupo."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Não é possível verificar os não lidos e as menções"
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Não foi possível atualizar o membro do canal, o limite de tamanho das propriedades de notificação foi excedido."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Seu driver de armazenamento de exportação não oferece suporte à geração de URL pré-assinado."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Não foi possível buscar o arquivo porque ele ultrapassou o limite do plano de cloud."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Não foi possível arquivar o canal importado."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Erro ao buscar a última publicação acessível"
+  },
+  {
+    "id": "app.member_count",
+    "translation": "erro ao recuperar contagem de membros"
+  },
+  {
+    "id": "app.notification.body.mention.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} mencionou você no canal {{.ChannelName}}."
+  },
+  {
+    "id": "app.notification.footer.title",
+    "translation": "Deseja alterar suas configurações de notificações?"
+  },
+  {
+    "id": "app.oauth.remove_auth_data_by_client_id.app_error",
+    "translation": "Não foi possível remover os dados oauth."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Não foi possível remover o token ao invalidar os tokens de recuperação de senha"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Não foi possível buscar equipes em comum."
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Não foi possível executar a operação para esse tipo de fonte."
+  },
+  {
+    "id": "app.notification.body.thread_gm.subTitle",
+    "translation": "Enquanto você estava ausente, {{.SenderName}} respondeu a um tópico em seu grupo."
+  },
+  {
+    "id": "app.limits.get_app_limits.user_count.store_error",
+    "translation": "Falha ao obter a contagem de usuários"
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "O token não existe ou expirou"
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "o nome do grupo não é único"
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "já existe um usuário com nome de usuário \"{{.Username}}\"."
+  },
+  {
+    "id": "app.notification.body.dm.time",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Não foi possível excluir o Rascunho."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Não foi possível encontrar a contagem de membros para os canais fonrnecidos."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Não foi possível obter confirmação de recebimento da publicação."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Formato de relatório não suportado."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Não foi possível obter o Rascunho."
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Não foi possível obter todos os trabalhos por tipo e status."
+  },
+  {
+    "id": "app.job.update_status.app_error",
+    "translation": "Não foi possível atualizar o status do trabalho. Status inválido definido"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Erro ao buscar o último arquivo acessível"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Falha ao analisar o subcaminho do SiteURL"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_not_found",
+    "translation": "Canal não encontrado"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.invalid_post",
+    "translation": "Conteúdo da publicação inválido"
+  },
+  {
+    "id": "app.plugin.skip_installation.app_error",
+    "translation": "Ignorando a instalação do plug-in {{.Id}}, pois a versão existente é igual ou mais recente."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Não é possível obter o uso das equipes"
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Não foi possível redefinir a posição de leitura para o início do pacote de plug-ins."
+  },
+  {
+    "id": "app.session.set_extra_session_prop.app_error",
+    "translation": "Não foi possível atualizar as propriedades extras da sessão."
+  },
+  {
+    "id": "app.post.save.thread_membership.app_error",
+    "translation": "Não foi possível salvar a associação ao tópico para publicação."
+  },
+  {
+    "id": "app.thread.get_threadmembers_for_export.app_error",
+    "translation": "Não foi possível obter membros do tópico para exportação."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error",
+    "translation": "O ID do arquivo está ausente ou é inválido."
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Já existe um trabalho para esse usuário e intervalo de datas."
+  },
+  {
+    "id": "app.save_scheduled_post.channel_deleted.app_error",
+    "translation": "Não é possível agendar uma publicação em um canal arquivado."
+  },
+  {
+    "id": "app.save_scheduled_post.save.app_error",
+    "translation": "Ocorreu um erro ao salvar a publicação agendada."
+  },
+  {
+    "id": "app.update_scheduled_post.existing_scheduled_post.not_exist",
+    "translation": "A publicação programada não existe."
+  },
+  {
+    "id": "app.update_scheduled_post.update.error",
+    "translation": "Falha ao salvar a publicação agendada atualizada no banco de dados."
+  },
+  {
+    "id": "app.update_scheduled_post.update_permission.error",
+    "translation": "Você não tem permissão para atualizar esse recurso."
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Um tópico com {{.NumMessages}} mensagens foi movido para uma Mensagem Direta/de Grupo\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Uma mensagem foi movida para uma Mensagem Direta/de Grupo\n"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Falha ao buscar o relatório do usuário."
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Falha ao buscar a contagem de usuários."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Não foi possível obter todas as funções."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Sua exportação está pronta. O arquivo CSV contém dados do usuário para {{.DateRange}}. Clique no link abaixo para fazer o download do relatório."
+  },
+  {
+    "id": "app.scheme.get_all_page.app_error",
+    "translation": "Não foi possível obter a página de esquemas."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": "Falha ao decodificar a solicitação de onboarding completa."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Erro ao limpar o cache de membros da equipe"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "A audiência fornecida é inválida: {{ .Error }}"
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "ID de usuário inválido."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Ocorreu um erro ao obter a equipe."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Formato de relatório não suportado."
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Ocorreu um erro ao executar o gancho do plug-in ao salvar a configuração."
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": "O Onboarding só pode ser concluído por um Administrador do Sistema."
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Sistema"
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Não foi possível obter a contagem de emblemas para o usuário."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Encontramos um erro ao executar a operação solicitada."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Ocorreu um erro ao autenticar a conexão oauth de saída: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Ocorreu um erro ao atualizar a conexão oauth de saída: {{ .Error }}"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Não foi possível obter a contagem de equipes"
+  },
+  {
+    "id": "app.session.get_lru_sessions.app_error",
+    "translation": "Não foi possível obter as sessões usadas menos recentemente."
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "O trabalho de retenção de dados falhou."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Já existe uma conexão oauth de saída para a audiência fornecida: {{ .Audience }}"
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} e {{.LastItem}}"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Olá, aqui está seu lembrete sobre esta mensagem de @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "os últimos 6 meses"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "os últimos 30 dias"
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "A exportação de relatórios em lote só está disponível para Pro e Enterprise."
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Falha ao gerar informações do arquivo a partir dos dados enviados."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "ID de postagem inválido."
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Não foi possível excluir reações do usuário."
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "todo o período"
+  },
+  {
+    "id": "app.update_scheduled_post.get_scheduled_post.error",
+    "translation": "Não foi possível buscar publicações agendadas existentes no banco de dados."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Já existe uma conexão oauth de saída para a audiência fornecida."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Este tópico foi movido de outro canal"
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Não foi possível obter prioridade de publicação para a publicação"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "o mês anterior"
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "A política é inválida."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Ocorreu um erro ao recuperar a conexão oauth de saída."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Ocorreu um erro ao excluir a conexão OAuth de saída."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Não há conexão oauth de saída para a audiância fornecida."
+  },
+  {
+    "id": "app.post.marshal.app_error",
+    "translation": "Falha ao converter a postagem (marshal)."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "As conexões OAuth de saída não estão disponíveis neste servidor."
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Um tópico com {{.NumMessages}} mensagens foi movido: {{.Link}}\n"
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "Você iniciou uma exportação de dados do usuário para {{.DateRange}}. Quando a exportação for concluída, um arquivo CSV será entregue a você nesta mensagem direta."
+  },
+  {
+    "id": "app.scheduled_post.error_reason.channel_archived",
+    "translation": "O canal está arquivado"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_member",
+    "translation": "Não é membro do canal"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "O tópico foi excluído"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Não foi possível enviar a mensagem"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Erro desconhecido"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.no_channel_permission",
+    "translation": "Sem permissão para publicar no canal"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_missing",
+    "translation": "O usuário não existe"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.user_deleted",
+    "translation": "A conta do usuário está excluída"
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "many": "- {{.Count}} no canal {{.ChannelName}}. Motivo: {{.ErrorReason}}",
+      "one": "- {{.Count}} no canal {{.ChannelName}}. Motivo: {{.ErrorReason}}",
+      "other": "- {{.Count}} no canal {{.ChannelName}}. Motivo: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "many": "Falha ao enviar {{.Count}} publicações agendadas.",
+      "one": "Falha ao enviar {{.Count}} publicação agendada.",
+      "other": "Falha ao enviar {{.Count}} publicações agendadas."
+    }
+  },
+  {
+    "id": "app.scheduled_post.permanent_delete_by_user.app_error",
+    "translation": "Não foi possível excluir publicações agendadas para o usuário."
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Canal privado"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Canal Desconhecido"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.channel_id.app_error",
+    "translation": "ID de canal inválido"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.create_at.app_error",
+    "translation": "Data de criação deve ser uma data válida."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "A versão do plug-in pré-empacotado não pôde ser analisada."
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Falha ao salvar as informações do arquivo."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Intervalo de datas ausente"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Nenhum ID de usuário para o qual enviar o relatório"
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Falha ao gravar o bloco CSV."
+  },
+  {
+    "id": "app.session.extend_session_expiry.app_error",
+    "translation": "Não foi possível estender a duração da sessão"
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Falha ao obter o status de conclusão do onboarding."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Não foi possível marcar todos os tópicos como lidos pelo canal"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Falha ao obter o uso do armazenamento."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Não foi possível obter a associação do usuário ao tópico"
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "A associação de pertencimento do tópico ao usuário não existe"
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": "Falha ao obter todos os membros do canal"
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": "Falha ao obter todos os membros da equipe"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Ocorreu um erro ao recuperar a conexão oauth de saída para a audiência."
+  },
+  {
+    "id": "app.post.permanent_delete_post.error",
+    "translation": "Falha ao excluir permanentemente a publicação."
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Não é possível remover o tópico"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Uma mensagem foi movida: {{.Link}}\n"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.display_name.app_error",
+    "translation": "Nome de exibição ausente."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "O nome deve ter 1 ou mais caracteres alfanuméricos minúsculos."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "O SAML não pôde carregar o Certificado Público do Provedor de Identidade com sucesso, entre em contato com o administrador do sistema."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "A conexão oauth de saída não foi encontrada."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Não foi possível excluir as notificações persistentes por equipe."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Não foi possível excluir as notificações persistentes por canal."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Falha ao excluir a publicação de notificação persistente"
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "O limite de reações foi atingido para esta publicação."
+  },
+  {
+    "id": "app.team.get_common_team_ids_for_users.app_error",
+    "translation": "Não foi possível obter os IDs de equipes em comum."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Não é possível buscar a publicação porque ela ultrapassou o limite do plano da nuvem."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Não foi possível obter a contagem de tópicos para o usuário."
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": "Falha ao codificar o campo para JSON"
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Falha ao excluir um índice do Elasticsearch"
+  },
+  {
+    "id": "app.post.create_post.shared_dm_or_gm.app_error",
+    "translation": "Não é possível criar a publicação em uma DM ou GM com usuários remotos"
+  },
+  {
+    "id": "ent.elasticsearch.max_version.app_error",
+    "translation": "{{.Backend}} A versão {{.Version}} é superior à versão máxima suportada de {{.MaxVersion}}"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Falha ao excluir um índice desconhecido especificado"
+  },
+  {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "O recurso de lista de purga não está disponível para o Bleve."
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Falha na verificação dos limites de imagem. A resolução é muito alta."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "O URL é muito longo"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Falha ao analisar o valor:{{.Value}} para int64"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
+    "translation": "O URL do link está ausente ou é inválido."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.original_id.app_error",
+    "translation": "Id original inválido."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.owner_id.app_error",
+    "translation": "Id de proprietário inválido."
+  },
+  {
+    "id": "app.export.export_custom_emoji.mkdir.error",
+    "translation": "Não foi possível criar um diretório para imagens de emoji personalizadas"
+  },
+  {
+    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
+    "translation": "As funções do usuário não são consistentes com o status de convidado."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Não foi possível abrir o arquivo CA para {{.Backend}}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Ocorreu um erro ao recuperar as conexões oauth de saída."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.image_url.app_error",
+    "translation": "URL de imagem inválida."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Não é possível definir um link e um arquivo no mesmo marcador."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.parent_id.app_error",
+    "translation": "Id pai inválido."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.type.app_error",
+    "translation": "Tipo inválido."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "post_id inválido"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Sua licença não suporta conexões oauth de saída."
+  },
+  {
+    "id": "app.user.send_auto_response.app_error",
+    "translation": "Não foi possível enviar a resposta automática do usuário."
+  },
+  {
+    "id": "api.filter_config_error",
+    "translation": "Não foi possível filtrar a configuração."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "A decodificação do certificado do cliente para {{.Backend}} falhou"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Não foi possível abrir o arquivo de certificado do cliente para {{.Backend}}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Houve um erro ao salvar a conexão oauth de saída: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Já existe uma conexão oauth de saída para a audiência fornecida: {{ .Audience }}"
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "O limite de tamanho das props de notificação foi excedido."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.id.app_error",
+    "translation": "Id inválido"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.update_at.app_error",
+    "translation": "Atualizado em deve ser um horário válido."
+  },
+  {
+    "id": "app.user.update_active.user_limit.exceeded",
+    "translation": "Não é possível ativar o usuário. O servidor excede o limite de usuários seguros. Entre em contato com o administrador com: ERROR_SAFETY_LIMITS_EXCEEDED."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "A conexão oauth de saída para a audiência fornecida não foi encontrada."
+  },
+  {
+    "id": "app.user.store_is_empty.app_error",
+    "translation": "Falha ao verificar se o armazenamento do usuário está vazio."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Não foi possível abrir o arquivo de chave do cliente para {{.Backend}}"
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": "A senha não é válida"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "A audiência fornecida é inválida: {{ .Error }}"
+  },
+  {
+    "id": "app.user.update.countAdmins.app_error",
+    "translation": "Erro ao determinar o número de contas de Administrador do Sistema."
+  },
+  {
+    "id": "app.user.update.lastAdmin.app_error",
+    "translation": "Não foi possível rebaixar o último administrador do sistema."
+  },
+  {
+    "id": "app.user.save.groupname.app_error",
+    "translation": "Não foi possível determinar se esse nome de usuário já existe"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Valor inválido de channel-auto-follow-threads."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Não foi possível obter o webhook para teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Simultaneidade de decodificador inválida {{.Value}}. Deve ser um número positivo ou -1."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
+    "translation": "Backend de pesquisa inválido. Deve ser elasticsearch ou opensearch."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "O tamanho do lote de indexação em massa Bleve deve ser de pelo menos {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Valor inválido para o tempo limite dos metadados do link. Deve ser um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow deve ser true para habilitar CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Os índices ignorados para purga não devem começar com um traço."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Os dias de retenção de arquivos e as horas de retenção de arquivos não podem ser ambos 0."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Não foi possível localizar o diretório do arquivo de soquete local."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Os dias de retenção de arquivos e as horas de retenção de arquivos não podem ser ambos maiores que 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "As horas de retenção de arquivos não podem ser inferiores a 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Os dias de retenção de mensagens e as horas de retenção de mensagens não podem ser ambos 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "As horas de retenção de mensagens não podem ser inferiores a 0"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "O tamanho do Lote de Indexação em Batelada da Pesquisa deve ser de pelo menos {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Tamanho máximo de carga útil inválido para configurações de serviço. Deve ser um número inteiro maior que zero."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "O valor de update at deve ser um horário válido."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Id de usuário inválido."
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": "Funções de membro de canal inválidas com mais de {{.Limit}} caracteres."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Os dias de retenção de mensagens e as horas de retenção de mensagens não podem ser ambos maiores que 0."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "O nome entra em conflito com o nome emoji do sistema existente."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Formato inválido: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Valor de tempo limite inválido {{.Value}}. Deve ser um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.max_url_length.app_error",
+    "translation": "Comprimento máximo de URL inválido para configurações de serviço. Deve ser um número inteiro maior que zero."
+  },
+  {
+    "id": "model.config.is_valid.empty_redis_address.app_error",
+    "translation": "RedisAddress deve ser especificado para o tipo de cache redis."
+  },
+  {
+    "id": "model.config.is_valid.invalid_redis_db.app_error",
+    "translation": "O Redis DB deve ter um valor maior ou igual a zero."
+  },
+  {
+    "id": "model.config.is_valid.cache_type.app_error",
+    "translation": "O tipo de cache deve ser LRU ou Redis."
+  },
+  {
+    "id": "app.file_info.undelete_for_post_ids.app_error",
+    "translation": "Falha ao restaurar os anexos do arquivo de publicação."
   }
 ]

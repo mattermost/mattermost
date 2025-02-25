@@ -14,6 +14,8 @@ type Props = {
     overrideTestId?: boolean;
     size?: 'btn-lg' | 'btn-md' |'btn-sm';
     toggleClassName?: string;
+    ariaLabel?: string;
+    tabIndex?: number;
 }
 
 const Toggle: React.FC<Props> = (props: Props) => {
@@ -25,8 +27,10 @@ const Toggle: React.FC<Props> = (props: Props) => {
         offText,
         id,
         overrideTestId,
+        ariaLabel,
         size = 'btn-lg',
         toggleClassName = 'btn-toggle',
+        tabIndex = 0,
     } = props;
     let dataTestId = `${id}-button`;
     if (overrideTestId) {
@@ -45,6 +49,7 @@ const Toggle: React.FC<Props> = (props: Props) => {
 
     return (
         <button
+            aria-label={ariaLabel}
             data-testid={dataTestId}
             id={id}
             type='button'
@@ -52,6 +57,7 @@ const Toggle: React.FC<Props> = (props: Props) => {
             className={className}
             aria-pressed={toggled ? 'true' : 'false'}
             disabled={disabled}
+            tabIndex={tabIndex}
         >
             <div className='handle'/>
             {text(toggled, onText, offText)}

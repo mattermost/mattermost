@@ -466,7 +466,7 @@ func isDefaultInOptions(defaultValue string, options []*PostActionOptions) bool 
 	}
 
 	for _, option := range options {
-		if defaultValue == option.Value {
+		if option != nil && defaultValue == option.Value {
 			return true
 		}
 	}

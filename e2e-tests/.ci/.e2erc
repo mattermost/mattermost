@@ -100,6 +100,7 @@ case "${TEST:-$TEST_DEFAULT}" in
   playwright )
     export TEST_FILTER_DEFAULT='tests/functional/system_console/system_users/actions.spec.ts --project=chrome' ;;
   * )
+    export TEST_FILTER_DEFAULT='' ;;
 esac
 # OS specific defaults overrides
 case $MME2E_OSTYPE in

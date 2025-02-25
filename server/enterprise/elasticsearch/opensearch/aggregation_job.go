@@ -174,7 +174,7 @@ func (worker *OpensearchAggregatorWorker) DoJob(job *model.Job) {
 		Indices: []string{*worker.jobServer.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts + "_*"},
 	})
 	if err != nil {
-		appError := model.NewAppError("OpensearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.get_indexes.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		appError := model.NewAppError("OpensearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.get_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 		worker.setJobError(logger, job, appError)
 		return
 	}
@@ -229,7 +229,7 @@ func (worker *OpensearchAggregatorWorker) DoJob(job *model.Job) {
 		},
 	); appErr != nil {
 		logger.Error("Worker: Failed to create indexing job.", mlog.Err(appErr))
-		appError := model.NewAppError("OpensearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.create_index_job.error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		appError := model.NewAppError("OpensearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.create_index_job.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(appErr)
 		worker.setJobError(logger, job, appError)
 		return
 	}
@@ -281,7 +281,7 @@ func (worker *OpensearchAggregatorWorker) DoJob(job *model.Job) {
 				if _, err = worker.client.Indices.Delete(rctx.Context(), opensearchapi.IndicesDeleteReq{
 					Indices: curWindow,
 				}); err != nil {
-					appError := model.NewAppError("OpensearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.delete_indexes.error", nil, "", http.StatusInternalServerError).Wrap(err)
+					appError := model.NewAppError("OpensearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.delete_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 					logger.Error("Worker: Failed to delete indexes for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(appError))
 					worker.setJobError(logger, job, appError)
 					return
@@ -302,7 +302,7 @@ func (worker *OpensearchAggregatorWorker) DoJob(job *model.Job) {
 				}
 			default:
 				// error case
-				appError := model.NewAppError("OpensearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.index_job_failed.error", nil, "", http.StatusInternalServerError)
+				appError := model.NewAppError("OpensearchAggregatorWorker", "ent.elasticsearch.aggregator_worker.index_job_failed.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 				logger.Error("Worker: Index aggregation job failed", mlog.Err(appError))
 				worker.setJobError(logger, job, appError)
 				return

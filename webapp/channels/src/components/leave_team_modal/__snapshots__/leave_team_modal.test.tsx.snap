@@ -29,7 +29,7 @@ exports[`components/LeaveTeamModal should render the leave team model 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

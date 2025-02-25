@@ -59,6 +59,11 @@ func TestPostIsValid(t *testing.T) {
 	appErr = o.IsValid(maxPostSize)
 	require.NotNil(t, appErr)
 
+	// In case message property length is too long.
+	o.Message = strings.Repeat("0", maxPostSize+1)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
+
 	o.Message = strings.Repeat("0", maxPostSize)
 	appErr = o.IsValid(maxPostSize)
 	require.Nil(t, appErr)
@@ -976,4 +981,17 @@ func TestPostForPlugin(t *testing.T) {
 		pluginPost := p.ForPlugin()
 		require.NotNil(t, pluginPost.GetProp("requested_features"))
 	})
+}
+
+func TestPostPriority(t *testing.T) {
+	p := &Post{
+		Metadata: &PostMetadata{},
+	}
+	require.False(t, p.IsUrgent())
+
+	p.Metadata.Priority = &PostPriority{}
+	require.False(t, p.IsUrgent())
+
+	p.Metadata.Priority.Priority = NewPointer(PostPriorityUrgent)
+	require.True(t, p.IsUrgent())
 }

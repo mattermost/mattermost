@@ -1,4 +1,4 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .OpenIdConvert {
     display: grid;
@@ -21,8 +21,8 @@
         height: 32px;
         border-radius: 4px;
         margin-right: 10px;
-        background: $primary-color;
-        color: $white;
+        background: variables.$primary-color;
+        color: variables.$white;
         font-size: 12px;
         font-weight: 600;
         line-height: 9px;
@@ -46,8 +46,8 @@
         text-decoration: none;
 
         &:hover {
-            background-color: $primary-color;
-            color: $white;
+            background-color: variables.$primary-color;
+            color: variables.$white;
         }
     }
 }
@@ -61,7 +61,7 @@
     flex: 0 0 60px;
     align-items: center;
     padding: 4 0 4px;
-    border-top: 1px solid alpha-color($black, 0.1);
+    border-top: 1px solid alpha-color(variables.$black, 0.1);
 }
 
 .OpenIdConvert_copyWrapper {

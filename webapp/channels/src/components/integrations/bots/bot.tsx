@@ -366,7 +366,10 @@ export default class Bot extends React.PureComponent<Props, State> {
                             onSubmit={this.handleCreateToken}
                         >
                             <div className='row'>
-                                <label className='col-sm-auto control-label'>
+                                <label
+                                    className='col-sm-auto control-label'
+                                    htmlFor='botToken'
+                                >
                                     <FormattedMessage
                                         id='user.settings.tokens.name'
                                         defaultMessage='Token Description: '
@@ -374,6 +377,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                 </label>
                                 <div className='col-sm-4'>
                                     <input
+                                        id='botToken'
                                         autoFocus={true}
                                         className='form-control form-sm'
                                         type='text'

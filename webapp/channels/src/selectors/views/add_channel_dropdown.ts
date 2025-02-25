@@ -3,10 +3,6 @@
 
 import type {GlobalState} from 'types/store';
 
-export function isAddChannelDropdownOpen(state: GlobalState) {
-    return state.views.addChannelDropdown.isOpen;
-}
-
 export function isAddChannelCtaDropdownOpen(state: GlobalState) {
     return state.views.addChannelCtaDropdown.isOpen;
 }

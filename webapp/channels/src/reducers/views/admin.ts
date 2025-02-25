@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {CursorPaginationDirection} from '@mattermost/types/reports';
@@ -10,6 +9,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
 
+import type {MMAction} from 'types/store';
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
 const navigationBlockInitialState = {
@@ -18,7 +18,7 @@ const navigationBlockInitialState = {
     showNavigationPrompt: false,
 };
 
-function navigationBlock(state = navigationBlockInitialState, action: AnyAction) {
+function navigationBlock(state = navigationBlockInitialState, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_NAVIGATION_BLOCKED:
         return {...state, blocked: action.blocked};
@@ -49,7 +49,7 @@ function navigationBlock(state = navigationBlockInitialState, action: AnyAction)
     }
 }
 
-export function needsLoggedInLimitReachedCheck(state = false, action: AnyAction) {
+export function needsLoggedInLimitReachedCheck(state = false, action: MMAction) {
     switch (action.type) {
     case ActionTypes.NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK:
         return action.data;
@@ -74,7 +74,7 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     filterRole: '',
 };
 
-export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: AnyAction) {
+export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: MMAction) {
     switch (action.type) {
     case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: {
         return {...state, ...action.data};

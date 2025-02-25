@@ -10,11 +10,10 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc} from 'types/store';
 
 /**
  * Adds the following users to the status pool for fetching their statuses:
@@ -22,7 +21,7 @@ import type {GlobalState} from 'types/store';
  * - All users who have DMs open with the current user.
  * - The current user.
  */
-export function addVisibleUsersInCurrentChannelAndSelfToStatusPoll(): ActionFunc<boolean, GlobalState> {
+export function addVisibleUsersInCurrentChannelAndSelfToStatusPoll(): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -89,7 +88,7 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
 
         const statusesToLoad = [];
         for (const userId in users) {
-            if ({}.hasOwnProperty.call(users, userId)) {
+            if (Object.hasOwn(users, userId)) {
                 statusesToLoad.push(userId);
             }
         }

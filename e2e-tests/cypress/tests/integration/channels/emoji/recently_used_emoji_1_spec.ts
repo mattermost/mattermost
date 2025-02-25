@@ -69,10 +69,10 @@ describe('Recent Emoji', () => {
         cy.findByText(/Recently Used/i).should('exist').and('be.visible');
 
         // * Assert first emoji should equal with second recent emoji
-        cy.findAllByTestId('emojiItem').eq(0).find('img').should('have.attr', 'aria-label', 'grin emoji');
+        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'grin emoji');
 
         // * Assert second emoji should equal with first recent emoji
-        cy.findAllByTestId('emojiItem').eq(1).find('img').should('have.attr', 'aria-label', 'joy emoji');
+        cy.findAllByTestId('emojiItem').eq(1).should('have.attr', 'aria-label', 'joy emoji');
     });
 
     it('MM-T4463 Recently used custom emoji, when is deleted should be removed from recent emoji category and quick reactions', () => {
@@ -130,7 +130,7 @@ describe('Recent Emoji', () => {
         cy.findAllByTestId('emojiItem').eq(0).find('img').should('have.attr', 'class', 'emoji-category--custom');
 
         // * Verify second most recent one is the system emoji in emoji picker
-        cy.findAllByTestId('emojiItem').eq(1).find('img').should('have.attr', 'aria-label', 'lemon emoji');
+        cy.findAllByTestId('emojiItem').eq(1).should('have.attr', 'aria-label', 'lemon emoji');
 
         // # Go to custom emoji page
         cy.findByText('Custom Emoji').should('be.visible').click();
@@ -172,6 +172,6 @@ describe('Recent Emoji', () => {
         cy.findByText('Recently Used').should('exist').and('be.visible');
 
         // * Verify most recent one is the system emoji in emoji picker and not the custom emoji
-        cy.findAllByTestId('emojiItem').eq(0).find('img').should('have.attr', 'aria-label', 'lemon emoji');
+        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'lemon emoji');
     });
 });

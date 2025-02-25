@@ -99,6 +99,13 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
       WebSocketClient {
         "closeCallback": null,
         "closeListeners": Set {},
+        "config": Object {
+          "maxWebSocketFails": 7,
+          "maxWebSocketRetryTime": 300000,
+          "minWebSocketRetryTime": 3000,
+          "newWebSocketFn": [Function],
+          "reconnectJitterRange": 2000,
+        },
         "conn": null,
         "connectFailCount": 0,
         "connectionId": "",
@@ -114,8 +121,10 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "postedAck": false,
         "reconnectCallback": null,
         "reconnectListeners": Set {},
+        "reconnectTimeout": null,
         "responseCallbacks": Object {},
         "responseSequence": 1,
+        "serverHostname": "",
         "serverSequence": 0,
       }
     }
@@ -146,6 +155,13 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
       WebSocketClient {
         "closeCallback": null,
         "closeListeners": Set {},
+        "config": Object {
+          "maxWebSocketFails": 7,
+          "maxWebSocketRetryTime": 300000,
+          "minWebSocketRetryTime": 3000,
+          "newWebSocketFn": [Function],
+          "reconnectJitterRange": 2000,
+        },
         "conn": null,
         "connectFailCount": 0,
         "connectionId": "",
@@ -161,8 +177,10 @@ exports[`PostBodyAdditionalContent with a normal link Should render the plugin c
         "postedAck": false,
         "reconnectCallback": null,
         "reconnectListeners": Set {},
+        "reconnectTimeout": null,
         "responseCallbacks": Object {},
         "responseSequence": 1,
+        "serverHostname": "",
         "serverSequence": 0,
       }
     }

@@ -148,6 +148,6 @@ describe('identifyElementRegion', () => {
             expect(identifyElementRegion(screen.getByText(post.message))).toEqual('post');
         });
 
-        expect(identifyElementRegion(screen.getByText('Write to ' + channel.display_name))).toEqual('post_textbox');
+        expect(identifyElementRegion(screen.getByPlaceholderText('Write to ' + channel.display_name))).toEqual('post_textbox');
     });
 });

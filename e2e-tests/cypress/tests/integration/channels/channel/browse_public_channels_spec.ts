@@ -17,6 +17,20 @@ function verifyNoChannelToJoinMessage(isVisible) {
     cy.findByText('No public channels').should(isVisible ? 'be.visible' : 'not.exist');
 }
 
+function ensureHideJoinedCheckboxEnabled(shouldBeChecked) {
+    cy.get('#hideJoinedPreferenceCheckbox').then(($checkbox) => {
+        cy.wrap($checkbox).findByText('Hide Joined').should('be.visible');
+        cy.wrap($checkbox).find('button').invoke('attr', 'class').then(($classList) => {
+            if ($classList.split(' ').includes('checked') ^ shouldBeChecked) {
+                // We click on the button only when the XOR operands do not match
+                // e.g. checkbox is checked, but should not be checked; and vice-versa
+                cy.wrap($checkbox).click();
+                cy.wrap($checkbox).find('button').should(`${shouldBeChecked ? '' : 'not.'}have.class`, 'checked');
+            }
+        });
+    });
+}
+
 describe('browse public channels', () => {
     let testUser: UserProfile;
     let otherUser: UserProfile;
@@ -52,7 +66,7 @@ describe('browse public channels', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Go to LHS and click 'Browse channels'
-        cy.uiBrowseOrCreateChannel('Browse channels').click();
+        cy.uiBrowseOrCreateChannel('Browse channels');
 
         // * Assert that the browse channel modal is visible
         cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').then(() => {
@@ -63,11 +77,7 @@ describe('browse public channels', () => {
             cy.findByText('Public channels').should('be.visible').click();
 
             // # Click hide joined checkbox if not already checked
-            cy.findByText('Hide Joined').should('be.visible').then(($checkbox) => {
-                if (!$checkbox.prop('checked')) {
-                    cy.wrap($checkbox).click();
-                }
-            });
+            ensureHideJoinedCheckboxEnabled(true);
 
             // * Assert that the moreChannelsList is visible and the number of channels is 31
             cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 31);
@@ -98,7 +108,7 @@ describe('browse public channels', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Go to LHS and click 'Browse channels'
-        cy.uiBrowseOrCreateChannel('Browse channels').click();
+        cy.uiBrowseOrCreateChannel('Browse channels');
 
         // * Assert the moreChannelsModel is visible
         cy.findByRole('dialog', {name: 'Browse Channels'}).should('be.visible').then(() => {
@@ -107,6 +117,9 @@ describe('browse public channels', () => {
 
             // # Click archived channels
             cy.findByText('Public channels').should('be.visible').click();
+
+            // # Click hide joined checkbox if not already checked
+            ensureHideJoinedCheckboxEnabled(true);
 
             // * Assert that the "No more channels to join" message is visible
             verifyNoChannelToJoinMessage(true);

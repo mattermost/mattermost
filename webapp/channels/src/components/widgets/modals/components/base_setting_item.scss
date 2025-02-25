@@ -60,12 +60,16 @@
     &__fieldset-checkbox-ctr {
         display: flex;
         flex-direction: row;
+        align-items: center;
+        margin-bottom: 5px;
+        gap: 8px;
     }
 
     &__fieldset-checkbox {
         display: flex;
         flex-direction: row;
         align-items: center;
+        margin-bottom: 0;
         cursor: pointer;
         font-size: 14px;
         gap: 8px;

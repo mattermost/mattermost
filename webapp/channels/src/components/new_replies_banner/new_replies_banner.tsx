@@ -62,7 +62,6 @@ function NewRepliesBanner({
                 onClick={onClick}
                 onDismiss={onDismiss}
                 onClickMessage={onClickMessage}
-                overlayPlacement='top'
                 width={156}
             >
                 <FormattedMessage

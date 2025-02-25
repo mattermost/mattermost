@@ -259,14 +259,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match second Snapshot 1`] = `
 <tr>
   <td>
-    <label
+    <div
+      className="as-bs-label"
       data-testid="admin-channel_settings-channel_moderation-createPosts"
     >
       <MemoizedFormattedMessage
         defaultMessage="Create Posts"
         id="admin.channel_settings.channel_moderation.createPosts"
       />
-    </label>
+    </div>
     <div
       data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
     >
@@ -303,14 +304,15 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 exports[`admin_console/team_channel_settings/channel/ChannelModeration Should match seventh Snapshot 1`] = `
 <tr>
   <td>
-    <label
+    <div
+      className="as-bs-label"
       data-testid="admin-channel_settings-channel_moderation-createPosts"
     >
       <MemoizedFormattedMessage
         defaultMessage="Create Posts"
         id="admin.channel_settings.channel_moderation.createPosts"
       />
-    </label>
+    </div>
     <div
       data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
     >

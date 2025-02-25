@@ -68,8 +68,6 @@ const PermissionDescription = ({
 
     return (
         <WithTooltip
-            id={id}
-            placement='top'
             title={content}
             disabled={!showTooltip}
         >

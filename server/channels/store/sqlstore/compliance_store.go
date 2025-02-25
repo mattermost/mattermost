@@ -36,7 +36,7 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Complianc
 	query := `INSERT INTO Compliances (Id, CreateAt, UserId, Status, Count, ` + desc + `, Type, StartAt, EndAt, Keywords, Emails)
 	VALUES
 	(:Id, :CreateAt, :UserId, :Status, :Count, :Desc, :Type, :StartAt, :EndAt, :Keywords, :Emails)`
-	if _, err := s.GetMasterX().NamedExec(query, compliance); err != nil {
+	if _, err := s.GetMaster().NamedExec(query, compliance); err != nil {
 		return nil, errors.Wrap(err, "failed to save Compliance")
 	}
 	return compliance, nil
@@ -68,7 +68,7 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 		return nil, errors.Wrap(err, "compliances_tosql")
 	}
 
-	res, err := s.GetMasterX().Exec(queryString, args...)
+	res, err := s.GetMaster().Exec(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update Compliance")
 	}
@@ -85,7 +85,7 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error) {
 	query := "SELECT * FROM Compliances ORDER BY CreateAt DESC LIMIT ? OFFSET ?"
 	compliances := model.Compliances{}
-	if err := s.GetReplicaX().Select(&compliances, query, limit, offset); err != nil {
+	if err := s.GetReplica().Select(&compliances, query, limit, offset); err != nil {
 		return nil, errors.Wrap(err, "failed to find all Compliances")
 	}
 	return compliances, nil
@@ -93,7 +93,7 @@ func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error)
 
 func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
 	var compliance model.Compliance
-	if err := s.GetReplicaX().Get(&compliance, `SELECT * FROM Compliances WHERE Id = ?`, id); err != nil {
+	if err := s.GetReplica().Get(&compliance, `SELECT * FROM Compliances WHERE Id = ?`, id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Compliances", id)
 		}
@@ -192,7 +192,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 				` + keywordQuery + `
 		ORDER BY Posts.CreateAt, Posts.Id
 		LIMIT ?`
-		if err := s.GetReplicaX().Select(&channelPosts, channelsQuery, argsChannelsQuery...); err != nil {
+		if err := s.GetReplica().Select(&channelPosts, channelsQuery, argsChannelsQuery...); err != nil {
 			return nil, cursor, errors.Wrap(err, "unable to export compliance")
 		}
 		if len(channelPosts) < limit {
@@ -257,7 +257,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 		ORDER BY Posts.CreateAt, Posts.Id
 		LIMIT ?`
 
-		if err := s.GetReplicaX().Select(&directMessagePosts, directMessagesQuery, argsDirectMessagesQuery...); err != nil {
+		if err := s.GetReplica().Select(&directMessagePosts, directMessagesQuery, argsDirectMessagesQuery...); err != nil {
 			return nil, cursor, errors.Wrap(err, "unable to export compliance")
 		}
 		if len(directMessagePosts) < limit {
@@ -286,24 +286,25 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 		return nil, cursor, errors.Wrap(caseErr, "unable to construct case statement")
 	}
 
-	query, args, err := s.getQueryBuilder().Select(`Posts.Id AS PostId,
-			Posts.CreateAt AS PostCreateAt,
-			Posts.UpdateAt AS PostUpdateAt,
-			Posts.DeleteAt AS PostDeleteAt,
-			Posts.Message AS PostMessage,
-			Posts.Type AS PostType,
-			Posts.Props AS PostProps,
-			Posts.OriginalId AS PostOriginalId,
-			Posts.RootId AS PostRootId,
-			Posts.FileIds AS PostFileIds,
-			Teams.Id AS TeamId,
-			Teams.Name AS TeamName,
+	builder := s.getQueryBuilder().Select(`Posts.Id AS PostId,
+			Posts.CreateAt    AS PostCreateAt,
+			Posts.UpdateAt    AS PostUpdateAt,
+			Posts.DeleteAt    AS PostDeleteAt,
+            Posts.EditAt      AS PostEditAt,
+			Posts.Message     AS PostMessage,
+			Posts.Type        AS PostType,
+			Posts.Props       AS PostProps,
+			Posts.OriginalId  AS PostOriginalId,
+			Posts.RootId      AS PostRootId,
+			Posts.FileIds     AS PostFileIds,
+			Teams.Id          AS TeamId,
+			Teams.Name        AS TeamName,
 			Teams.DisplayName AS TeamDisplayName,
-			Channels.Id AS ChannelId,
-			Channels.Name AS ChannelName,
-			Channels.Type AS ChannelType,
-			Users.Id AS UserId,
-			Users.Email AS UserEmail,
+			Channels.Id       AS ChannelId,
+			Channels.Name     AS ChannelName,
+			Channels.Type     AS ChannelType,
+			Users.Id          AS UserId,
+			Users.Email       AS UserEmail,
 			Users.Username,
 			Bots.UserId IS NOT NULL AS IsBot`).
 		Column(caseStmt+" AS ChannelDisplayName", caseArgs...).
@@ -323,14 +324,14 @@ func (s SqlComplianceStore) MessageExport(c request.CTX, cursor model.MessageExp
 			sq.NotLike{"Posts.Type": "system_%"},
 		}).
 		OrderBy("PostUpdateAt, PostId").
-		Limit(uint64(limit)).
-		ToSql()
-	if err != nil {
-		return nil, cursor, errors.Wrap(err, "unable to construct query to export messages")
+		Limit(uint64(limit))
+
+	if cursor.UntilUpdateAt > 0 {
+		builder = builder.Where(sq.LtOrEq{"Posts.UpdateAt": cursor.UntilUpdateAt})
 	}
 
 	cposts := []*model.MessageExport{}
-	if err := s.GetReplicaX().SelectCtx(c.Context(), &cposts, query, args...); err != nil {
+	if err := s.GetReplica().SelectBuilderCtx(c.Context(), &cposts, builder); err != nil {
 		return nil, cursor, errors.Wrap(err, "unable to export messages")
 	}
 	if len(cposts) > 0 {

@@ -24,7 +24,11 @@ const SystemRolesFeatureDiscovery: React.FC = () => {
                 defaultMessage: 'Assign customizable admin roles to give designated users read and/or write access to select sections of System Console.',
             })}
             learnMoreURL='https://docs.mattermost.com/deployment/admin-roles.html'
-            featureDiscoveryImage={<SystemRolesSVG/>}
+            featureDiscoveryImage={
+                <SystemRolesSVG
+                    width={294}
+                    height={180}
+                />}
         />
     );
 };

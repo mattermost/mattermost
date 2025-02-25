@@ -6,6 +6,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getMyActiveChannelIds} from 'mattermost-redux/selectors/entities/channels';
 import {get, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
+import {getGlobalItem} from 'selectors/storage';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {StoragePrefixes} from 'utils/constants';
@@ -100,5 +101,57 @@ export function makeGetDraftsCount(): DraftCountSelector {
         getMyActiveChannelIds,
         (channelDrafts, rhsDrafts, myChannels) => [...channelDrafts, ...rhsDrafts].
             filter((draft) => myChannels.indexOf(draft.value.channelId) !== -1).length,
+    );
+}
+
+export function makeGetDraft() {
+    const DEFAULT_DRAFT = Object.freeze({
+        message: '',
+        fileInfos: [],
+        uploadsInProgress: [],
+        createAt: 0,
+        updateAt: 0,
+        channelId: '',
+        rootId: '',
+    });
+
+    return createSelector(
+        'makeGetDraft',
+        (_: GlobalState, channelId: string) => channelId,
+        (_: GlobalState, channelId: string, rootId = '') => rootId,
+        (state: GlobalState, channelId: string, rootId = '', storageKey = '') => {
+            let prefixStorageKey = StoragePrefixes.DRAFT;
+            let suffixStorageKey = channelId;
+            if (rootId) {
+                prefixStorageKey = StoragePrefixes.COMMENT_DRAFT;
+                suffixStorageKey = rootId;
+            }
+            const key = storageKey || `${prefixStorageKey}${suffixStorageKey}`;
+
+            return getGlobalItem<PostDraft>(state, key, DEFAULT_DRAFT);
+        },
+        (channelId, rootId, retrievedDraftParam) => {
+            let retrievedDraft = retrievedDraftParam;
+            if (retrievedDraft.metadata?.files) {
+                retrievedDraft = {...retrievedDraft, fileInfos: retrievedDraft.metadata.files};
+            }
+
+            // Check if the draft has the required values in its properties
+            const isDraftWithRequiredValues = typeof retrievedDraft.message !== 'undefined' && typeof retrievedDraft.uploadsInProgress !== 'undefined' && typeof retrievedDraft.fileInfos !== 'undefined';
+
+            // Check if draft's channelId or rootId mismatches with the passed one
+            const isDraftMismatched = retrievedDraft.channelId !== channelId || retrievedDraft.rootId !== rootId;
+
+            if (isDraftWithRequiredValues && !isDraftMismatched) {
+                return retrievedDraft;
+            }
+
+            return {
+                ...DEFAULT_DRAFT,
+                ...retrievedDraft,
+                channelId,
+                rootId,
+            };
+        },
     );
 }

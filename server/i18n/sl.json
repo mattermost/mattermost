@@ -400,10 +400,6 @@
     "translation": "Neveljaven original ID"
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Neveljavno sporočilo"
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Neveljaven ID"
   },
@@ -772,54 +768,6 @@
     "translation": "Uporabnikov AD / LDAP z navedenim poljem ni mogoče preseliti. Zaznan je bil podvojen vnos. Odstranite vsa dvojna besedila in poskusite znova."
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Ni mogoče odpreti začasne datoteke za izvoz"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "E-poštnega sporočila iz začasne datoteke ni mogoče dobiti"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Podatkov o izvozni začasni datoteki ni mogoče dobiti"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Ni mogoče nastaviti e-poštni Za naslov."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Ni možno prebrati informacij o e-pošti."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "E-poštnega sporočila ni mogoče napisati."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "E-poštnega sporočila ni mogoče nastaviti."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Ni mogoče nastaviti e-poštni Od naslov."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Podatkov o datoteki eml ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Datoteke eml ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Datoteke zip ni mogoče zapreti."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Priloge ni mogoče dodati izvozu CSV."
-  },
-  {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "napaka pri pridobivanju skupin za uporabnika"
   },
@@ -960,10 +908,6 @@
     "translation": "Napaka pri pridobivanju Elasticsearch indeksov"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Indeks Elasticsearch ni bil izbrisan"
-  },
-  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch ni zagnan"
   },
@@ -1016,32 +960,8 @@
     "translation": "Izvoz skladnosti ni uspel za opravilo '{{.JobName}}' na '{{.FilePath}}'"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Ni možno naložiti predlog za izvoz. Prosim poizkusite ponovno."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funkcija skladnosti je onemogočena s trenutno licenco. O nadgradnji licence za podjetje se obrnite na skrbnika sistema."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Začasne izvozne datoteke ni mogoče odpreti."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Naložena datoteka je bila odstranjena iz izvoza Global Relay, ker je bila prevelika za pošiljanje."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Izvozne datoteke zip ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Datoteke eml ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Objave ni mogoče izvoziti."
   },
   {
     "id": "app.scheme.save.invalid_scheme.app_error",
@@ -1070,38 +990,6 @@
   {
     "id": "store.sql_post.search.disabled",
     "translation": "Iskanje je bilo na tem strežniku onemogočeno. Obrnite se na skrbnika sistema."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Datoteke eml ni mogoče ustvariti."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Metapodatkov ni mogoče pretvoriti v json."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Datoteke z metapodatki ni mogoče dodati v datoteko zip."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Glave ni mogoče dodati izvozu CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Ni mogoče ustvariti začasne izvozne datoteke CSV."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Priloge ni mogoče dodati izvozu CSV."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Priloge ni mogoče kopirati v datoteko zip."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Neznana izhodna oblika {{.ExportType}}"
   },
   {
     "id": "ent.cluster.save_config.error",

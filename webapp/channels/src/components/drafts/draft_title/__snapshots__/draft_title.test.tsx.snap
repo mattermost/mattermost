@@ -1,359 +1,130 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/drafts/draft_actions should fetch members when member count is 0 for GM 1`] = `
+<div>
+  To: 
+  <div
+    class="DraftTitle__group-icon"
+  >
+    0
+  </div>
+   
+  <span>
+    Test Channel
+  </span>
+</div>
+`;
+
 exports[`components/drafts/draft_actions should match snapshot 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <Memo(DraftTitle)
-    channelName=""
-    channelType=""
-    membersCount={5}
-    selfDraft={false}
-    teammate={Object {}}
-    teammateId=""
-    type=""
+<div>
+  In: 
+  <i
+    class="icon icon-globe"
   />
-</ContextProvider>
+   
+  <span>
+    Test Channel
+  </span>
+</div>
 `;
 
 exports[`components/drafts/draft_actions should match snapshot for DM channel 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <Memo(DraftTitle)
-    channelName=""
-    channelType="D"
-    membersCount={5}
-    selfDraft={false}
-    teammate={Object {}}
-    teammateId=""
-    type=""
+<div>
+  To: 
+  <img
+    alt="user profile image"
+    class="Avatar Avatar-xs DraftTitle__avatar"
+    loading="lazy"
+    src="/api/v4/users/undefined/image?_=0"
   />
-</ContextProvider>
+   
+  <span>
+    Test Channel
+  </span>
+</div>
 `;
 
 exports[`components/drafts/draft_actions should match snapshot for DM channel with teammate 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <Memo(DraftTitle)
-    channelName=""
-    channelType="D"
-    membersCount={5}
-    selfDraft={false}
-    teammate={
-      Object {
-        "id": "id",
-        "last_picture_update": 1000,
-        "username": "username",
-      }
-    }
-    teammateId=""
-    type=""
+<div>
+  To: 
+  <img
+    alt="username profile image"
+    class="Avatar Avatar-xs DraftTitle__avatar"
+    loading="lazy"
+    src="/api/v4/users/id/image?_=1000"
   />
-</ContextProvider>
+   
+  <span>
+    Test Channel
+  </span>
+</div>
 `;
 
 exports[`components/drafts/draft_actions should match snapshot for GM channel 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <Memo(DraftTitle)
-    channelName=""
-    channelType="G"
-    membersCount={5}
-    selfDraft={false}
-    teammate={Object {}}
-    teammateId=""
-    type=""
-  />
-</ContextProvider>
+<div>
+  To: 
+  <div
+    class="DraftTitle__group-icon"
+  >
+    5
+  </div>
+   
+  <span>
+    Test Channel
+  </span>
+</div>
 `;
 
 exports[`components/drafts/draft_actions should match snapshot for open channel 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <Memo(DraftTitle)
-    channelName=""
-    channelType="O"
-    membersCount={5}
-    selfDraft={false}
-    teammate={Object {}}
-    teammateId=""
-    type="channel"
+<div>
+  In: 
+  <i
+    class="icon icon-globe"
   />
-</ContextProvider>
+   
+  <span>
+    Test Channel
+  </span>
+</div>
 `;
 
 exports[`components/drafts/draft_actions should match snapshot for private channel 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <Memo(DraftTitle)
-    channelName=""
-    channelType="P"
-    membersCount={5}
-    selfDraft={false}
-    teammate={Object {}}
-    teammateId=""
-    type=""
+<div>
+  In: 
+  <i
+    class="icon icon-lock-outline"
   />
-</ContextProvider>
+   
+  <span>
+    Test Channel
+  </span>
+</div>
 `;
 
 exports[`components/drafts/draft_actions should match snapshot for self draft 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <Memo(DraftTitle)
-    channelName=""
-    channelType=""
-    membersCount={5}
-    selfDraft={true}
-    teammate={Object {}}
-    teammateId=""
-    type=""
+<div>
+  In: 
+  <i
+    class="icon icon-globe"
   />
-</ContextProvider>
+   
+  <span>
+    Test Channel
+  </span>
+   
+  (you)
+</div>
 `;
 
 exports[`components/drafts/draft_actions should match snapshot for thread 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
-  }
->
-  <Memo(DraftTitle)
-    channelName=""
-    channelType="O"
-    membersCount={5}
-    selfDraft={false}
-    teammate={Object {}}
-    teammateId=""
-    type="thread"
+<div>
+  Thread in: 
+  <i
+    class="icon icon-globe"
   />
-</ContextProvider>
+   
+  <span>
+    Test Channel
+  </span>
+</div>
 `;

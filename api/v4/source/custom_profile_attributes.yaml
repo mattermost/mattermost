@@ -1,0 +1,265 @@
+  "/api/v4/custom_profile_attributes/fields":
+    get:
+      tags:
+        - custom profile attributes
+      summary: List all the Custom Profile Attributes fields
+      description: |
+        List all the Custom Profile Attributes fields.
+
+        _This endpoint is experimental._
+
+        __Minimum server version__: 10.5
+
+        ##### Permissions
+        Must be authenticated.
+      operationId: ListAllCPAFields
+      responses:
+        "200":
+          description: Custom Profile Attributes fetch successful. Result may be empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyField"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      tags:
+        - custom profile attributes
+      summary: Create a Custom Profile Attribute field
+      description: |
+        Create a new Custom Profile Attribute field on the system.
+
+        _This endpoint is experimental._
+
+        __Minimum server version__: 10.5
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: CreateCPAField
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                attrs:
+                  type: string
+      responses:
+        "201":
+          description: Custom Profile Attribute field creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  "/api/v4/custom_profile_attributes/fields/{field_id}":
+    patch:
+      tags:
+        - custom profile attributes
+      summary: Patch a Custom Profile Attribute field
+      description: |
+        Partially update a Custom Profile Attribute field by providing
+        only the fields you want to update. Omitted fields will not be
+        updated. The fields that can be updated are defined in the
+        request body, all other provided fields will be ignored.
+
+        _This endpoint is experimental._
+
+        __Minimum server version__: 10.5
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: PatchCPAField
+      parameters:
+        - name: field_id
+          in: path
+          description: Custom Profile Attribute field GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Custom Profile Attribute field that is to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                attrs:
+                  type: string
+      responses:
+        "200":
+          description: Custom Profile Attribute field patch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+    delete:
+      tags:
+        - custom profile attributes
+      summary: Delete a Custom Profile Attribute field
+      description: |
+        Marks a Custom Profile Attribute field and all its values as
+        deleted.
+
+        _This endpoint is experimental._
+
+        __Minimum server version__: 10.5
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: DeleteCPAField
+      parameters:
+        - name: field_id
+          in: path
+          description: Custom Profile Attribute field GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Custom Profile Attribute field deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  "/api/v4/custom_profile_attributes/values":
+    patch:
+      tags:
+        - custom profile attributes
+      summary: Patch Custom Profile Attribute values
+      description: |
+        Partially update a set of values on the requester's Custom
+        Profile Attribute fields by providing only the information you
+        want to update. Omitted fields will not be updated. The fields
+        that can be updated are defined in the request body, all other
+        provided fields will be ignored.
+
+        _This endpoint is experimental._
+
+        __Minimum server version__: 10.5
+
+        ##### Permissions
+        Must be authenticated.
+      operationId: PatchCPAValues
+      requestBody:
+        description: Custom Profile Attribute values that are to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  value:
+                    oneOf:
+                      - type: string 
+                      - type: array
+                        items:
+                          type: string
+      responses:
+        "200":
+          description: Custom Profile Attribute values patch successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    value:
+                      oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/custom_profile_attributes":
+    get:
+      tags:
+        - custom profile attributes
+      summary: List Custom Profile Attribute values
+      description: |
+        List all the Custom Profile Attributes values for specified user.
+
+        _This endpoint is experimental._
+
+        __Minimum server version__: 10.5
+
+        ##### Permissions
+        Must have `view members` permission.
+      operationId: ListCPAValues
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Custom Profile Attribute values fetch successful. Result may be empty.
+          content:
+            application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  field_id:
+                    type: string
+                  value:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+
+

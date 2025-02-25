@@ -744,10 +744,6 @@
     "translation": "Няправільныя рэквізіты."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Няправільнае паведамленне."
-  },
-  {
     "id": "model.post.is_valid.id.app_error",
     "translation": "Няправільны ідэнтыфікатар."
   },
@@ -2692,74 +2688,6 @@
     "translation": "Не ўдалося выбраць дадзеныя экспарту паведамленняў."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Не атрымалася атрымаць інфармацыю аб файле для паведамлення."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Немагчыма адкрыць часовы файл экспарту."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Немагчыма атрымаць ліст з часавага файла."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Немагчыма атрымаць інфармацыю аб часовым файле экспарту."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Не ўдалося падключыцца да сервера smtp"
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Немагчыма ўсталяваць адрас \"Каму\" электроннай пошты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Немагчыма прачытаць інфармацыю электроннай пошты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Немагчыма напісаць паведамленне электроннай пошты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Немагчыма ўсталяваць паведамленне электроннай пошты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Немагчыма ўсталяваць адрас \"Ад каго\" электроннай пошты."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Немагчыма даставіць ліст у Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Немагчыма згенераваць дадзеныя файла eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Немагчыма стварыць файл eml."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Немагчыма зачыніць zip-файл."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Немагчыма дадаць укладанне ў экспарт Global Relay."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Не атрымалася атрымаць інфармацыю аб файле для паведамлення."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Не атрымалася атрымаць інфармацыю аб файле для паведамлення."
-  },
-  {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "памылка пры атрыманні груп для карыстальніка"
   },
@@ -4336,10 +4264,6 @@
     "translation": "Ваша ліцэнзія не падтрымлівае push-паведамлення з ідэнтыфікатарам."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Не ўдалося атрымаць карыстальнікаў у канале на працягу названага перыяду часу."
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL або імя карыстальніка сервера Elasticsearch былі змененыя. Калі ласка, увядзіце Elasticsearch пароль яшчэ раз, каб праверыць злучэнне."
   },
@@ -4410,10 +4334,6 @@
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
     "translation": "Не ўдалося абнавіць індэксы Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Не атрымалася выдаліць азначнік Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -4560,76 +4480,8 @@
     "translation": "Экспарт камплаенс-ліста не атрымаўся для задання '{{.JobName}}' у '{{.FilePath}}'"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Немагчыма загрузіць шаблоны экспарту. Калі ласка, паспрабуйце яшчэ раз."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Функцыя камплаенсу недаступная пры бягучай ліцэнзіі. Калі ласка, звяжыцеся з сістэмным адміністратарам наконт паляпшэння вашай карпаратыўнай ліцэнзіі."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Немагчыма запісаць файл global relay."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Немагчыма перачытаць файл часовага экспарту Global Relay."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Немагчыма адкрыць часовы файл экспарту."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Загружаны файл быў выдалены з экспарту Global Relay, паколькі ён быў занадта вялікім для адпраўкі."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Немагчыма стварыць файл экспарту ZIP."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Немагчыма запісаць csv-файл."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Немагчыма стварыць файл апавяшчэння."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Немагчыма экспартаваць паведамленне."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Немагчыма стварыць файл zip"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Немагчыма пераўтварыць метададзеныя ў фармат json."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Немагчыма дадаць файл метададзеных у zip-файл."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Немагчыма дадаць загаловак у экспарт CSV."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Немагчыма стварыць часовы файл экспарту CSV."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Немагчыма дадаць укладанне ў экспарт CSV."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Немагчыма скапіяваць укладанне ў zip-файл."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Невядомы фармат вываду {{.ExportType}}"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -4646,14 +4498,6 @@
   {
     "id": "ent.cluster.config_changed.info",
     "translation": "Канфігурацыя кластара змянілася для id={{ .id }}. Кластар можа стаць нестабільным, і патрабуецца перазагрузка. Каб пераканацца, што кластар настроены правільна, вы павінны неадкладна выканаць паўторны перазапуск."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Не ўдалося запісаць экспартны файл."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Не ўдалося экспартаваць у XML."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -5142,10 +4986,6 @@
   {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Не ўдалося абнавіць вэбхук у розных камандах."
-  },
-  {
-    "id": "api.webhook.incoming.error",
-    "translation": "Не атрымалася дэкадаваць шматчастковую карысную нагрузку ўваходнага вэбхука."
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",

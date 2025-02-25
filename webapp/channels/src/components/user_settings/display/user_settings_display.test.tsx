@@ -34,7 +34,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
         setRequireConfirm: jest.fn(),
-        setEnforceFocus: jest.fn(),
         enableLinkPreviews: true,
         enableThemeSelection: false,
         locales: getAllLanguages(),

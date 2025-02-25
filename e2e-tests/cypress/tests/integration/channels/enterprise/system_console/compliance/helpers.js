@@ -34,12 +34,9 @@ export function verifyPostsCSVFile(targetFolder, type, match) {
 }
 
 export function verifyActianceXMLFile(targetFolder, type, match) {
-    cy.shellFind(targetFolder, /actiance_export.xml/).
-        then((files) => {
-            cy.readFile(files[files.length - 1]).
-                should('exist').
-                and(type, match);
-        });
+    cy.readFile(`${targetFolder}/actiance_export.xml`).
+        should('exist').
+        and(type, match);
 }
 
 export function verifyExportedMessagesCount(expectedNumber) {

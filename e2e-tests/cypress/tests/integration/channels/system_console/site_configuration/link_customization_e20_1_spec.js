@@ -140,7 +140,7 @@ describe('SupportSettings', () => {
         cy.uiOpenProductMenu().within(() => {
             // * Verify that 'Download Apps' has expected link
             cy.findByText('Download Apps').
-                parent().
+                parents('a').
                 should('have.attr', 'href', link);
         });
     });

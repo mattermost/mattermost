@@ -7,7 +7,8 @@ import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+
+import type {ActionFuncAsync} from 'types/store';
 
 const DEFAULT_PAGE_SIZE = 100;
 

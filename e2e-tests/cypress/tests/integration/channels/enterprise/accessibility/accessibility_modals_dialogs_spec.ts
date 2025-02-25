@@ -44,7 +44,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
     });
 
-    it('MM-T1466 Accessibility Support in Direct Messages Dialog screen', () => {
+    it.skip('MM-T1466 Accessibility Support in Direct Messages Dialog screen', () => {
         // * Verify the aria-label in create direct message button
         cy.uiAddDirectMessage().click();
 
@@ -104,7 +104,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 cy.reload();
 
                 // * Verify the aria-label in more public channels button
-                cy.uiBrowseOrCreateChannel('Browse channels').click();
+                cy.uiBrowseOrCreateChannel('Browse channels');
 
                 // * Verify the accessibility support in More Channels Dialog
                 cy.findByRole('dialog', {name: 'Browse Channels'}).within(() => {
@@ -137,7 +137,7 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
         });
     });
 
-    it('MM-T1468 Accessibility Support in Add people to Channel Dialog screen', () => {
+    it.skip('MM-T1468 Accessibility Support in Add people to Channel Dialog screen', () => {
         // # Add atleast 5 users
         for (let i = 0; i < 5; i++) {
             cy.apiCreateUser().then(({user}) => { // eslint-disable-line

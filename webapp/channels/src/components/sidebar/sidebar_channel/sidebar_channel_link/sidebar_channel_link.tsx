@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {type WrappedComponentProps, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -19,7 +20,6 @@ import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
 import {Mark} from 'utils/performance_telemetry';
-import {localizeMessage} from 'utils/utils';
 
 import type {RhsState} from 'types/store/rhs';
 
@@ -28,7 +28,7 @@ import ChannelPencilIcon from '../channel_pencil_icon';
 import SidebarChannelIcon from '../sidebar_channel_icon';
 import SidebarChannelMenu from '../sidebar_channel_menu';
 
-type Props = {
+type Props = WrappedComponentProps & {
     channel: Channel;
     link: string;
     label: string;
@@ -79,7 +79,7 @@ type State = {
     showTooltip: boolean;
 };
 
-export default class SidebarChannelLink extends React.PureComponent<Props, State> {
+export class SidebarChannelLink extends React.PureComponent<Props, State> {
     labelRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
@@ -110,7 +110,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
     };
 
     getAriaLabel = (): string => {
-        const {label, ariaLabelPrefix, unreadMentions} = this.props;
+        const {label, ariaLabelPrefix, unreadMentions, intl} = this.props;
 
         let ariaLabel = label;
 
@@ -119,13 +119,13 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         }
 
         if (unreadMentions === 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage({id: 'accessibility.sidebar.types.mention', defaultMessage: 'mention'})}`;
+            ariaLabel += ` ${unreadMentions} ${intl.formatMessage({id: 'accessibility.sidebar.types.mention', defaultMessage: 'mention'})}`;
         } else if (unreadMentions > 1) {
-            ariaLabel += ` ${unreadMentions} ${localizeMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'})}`;
+            ariaLabel += ` ${unreadMentions} ${intl.formatMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'})}`;
         }
 
         if (this.props.isUnread && unreadMentions === 0) {
-            ariaLabel += ` ${localizeMessage({id: 'accessibility.sidebar.types.unread', defaultMessage: 'unread'})}`;
+            ariaLabel += ` ${intl.formatMessage({id: 'accessibility.sidebar.types.unread', defaultMessage: 'unread'})}`;
         }
 
         return ariaLabel.toLowerCase();
@@ -201,9 +201,7 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         if (this.state.showTooltip) {
             labelElement = (
                 <WithTooltip
-                    id='channel-displayname__tooltip'
                     title={label}
-                    placement={'top'}
                 >
                     {labelElement}
                 </WithTooltip>
@@ -298,3 +296,5 @@ export default class SidebarChannelLink extends React.PureComponent<Props, State
         );
     }
 }
+
+export default injectIntl(SidebarChannelLink);

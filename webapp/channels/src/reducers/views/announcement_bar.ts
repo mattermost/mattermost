@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 
 import {ActionTypes} from 'utils/constants';
 
-function announcementBarState(state = {announcementBarCount: 0}, action: AnyAction) {
+import type {MMAction} from 'types/store';
+
+function announcementBarState(state = {announcementBarCount: 0}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.TRACK_ANNOUNCEMENT_BAR:
         return {

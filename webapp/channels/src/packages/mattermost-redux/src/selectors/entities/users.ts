@@ -17,15 +17,16 @@ import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getCurrentChannelId,
-    getCurrentUser,
-    getCurrentUserId,
+    getCurrentUser as getCurrentUserInternal,
+    getCurrentUserId as getCurrentUserIdInternal,
     getMyCurrentChannelMembership,
-    getUsers,
+    getUsers as getUsersInternal,
     getMembersInTeam,
     getMembersInChannel,
 } from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {
     displayUsername,
     filterProfilesStartingWithTerm,
@@ -38,7 +39,10 @@ import {
     applyRolesFilters,
 } from 'mattermost-redux/utils/user_utils';
 
-export {getCurrentUser, getCurrentUserId, getUsers};
+// Re-define these types to ensure that these are typed correctly when mattermost-redux is published
+export const getCurrentUser: (state: GlobalState) => UserProfile = getCurrentUserInternal;
+export const getCurrentUserId: (state: GlobalState) => string = getCurrentUserIdInternal;
+export const getUsers: (state: GlobalState) => IDMappedObjects<UserProfile> = getUsersInternal;
 
 export type Filters = {
     role?: string;
@@ -103,7 +107,7 @@ export const getUsersByUsername: (a: GlobalState) => Record<string, UserProfile>
         const usersByUsername: Record<string, UserProfile> = {};
 
         for (const id in users) {
-            if (users.hasOwnProperty(id)) {
+            if (Object.hasOwn(users, id)) {
                 const user = users[id];
                 usersByUsername[user.username] = user;
             }
@@ -687,7 +691,7 @@ export function makeGetProfilesByIdsAndUsernames(): (
 
             if (allUserIds && allUserIds.length > 0) {
                 const profilesById = allUserIds.
-                    filter((userId) => allProfilesById[userId]).
+                    filter((userId) => secureGetFromRecord(allProfilesById, userId)).
                     map((userId) => allProfilesById[userId]);
 
                 if (profilesById && profilesById.length > 0) {
@@ -697,7 +701,7 @@ export function makeGetProfilesByIdsAndUsernames(): (
 
             if (allUsernames && allUsernames.length > 0) {
                 const profilesByUsername = allUsernames.
-                    filter((username) => allProfilesByUsername[username]).
+                    filter((username) => secureGetFromRecord(allProfilesByUsername, username)).
                     map((username) => allProfilesByUsername[username]);
 
                 if (profilesByUsername && profilesByUsername.length > 0) {

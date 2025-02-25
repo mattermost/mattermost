@@ -5,6 +5,7 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken} from '@mattermost/types/users';
 
@@ -375,6 +376,21 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
     };
 }
 
+export function batchGetProfilesInChannel(channelId: string): ActionFuncAsync<Array<Channel['id']>> {
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.profilesInChannelLoader) {
+            loaders.profilesInChannelLoader = new DelayedDataLoader<Channel['id']>({
+                fetchBatch: (channelIds) => dispatch(getProfilesInChannel(channelIds[0], 0)),
+                maxBatchSize: 1,
+                wait: missingProfilesWait,
+            });
+        }
+
+        await loaders.profilesInChannelLoader.queueAndWait([channelId]);
+        return {};
+    };
+}
+
 export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         let channelProfiles;
@@ -389,7 +405,7 @@ export function getProfilesInGroupChannels(channelsIds: string[]): ActionFuncAsy
 
         const actions: AnyAction[] = [];
         for (const channelId in channelProfiles) {
-            if (channelProfiles.hasOwnProperty(channelId)) {
+            if (Object.hasOwn(channelProfiles, channelId)) {
                 const profiles = channelProfiles[channelId];
 
                 actions.push(
@@ -457,6 +473,24 @@ export function getMe(): ActionFuncAsync<UserProfile> {
             dispatch(loadRolesIfNeeded(me.data!.roles.split(' ')));
         }
         return me;
+    };
+}
+
+export function getCustomProfileAttributeValues(userID: string): ActionFuncAsync<Record<string, string>> {
+    return async (dispatch) => {
+        let data;
+        try {
+            data = await Client4.getUserCustomProfileAttributesValues(userID);
+        } catch (error) {
+            return {error};
+        }
+
+        dispatch({
+            type: UserTypes.RECEIVED_CPA_VALUES,
+            data: {userID, customAttributeValues: data},
+        });
+
+        return {data};
     };
 }
 
@@ -951,6 +985,19 @@ export function updateMe(user: Partial<UserProfile>): ActionFuncAsync<UserProfil
         dispatch(loadRolesIfNeeded(data.roles.split(' ')));
 
         return {data};
+    };
+}
+
+export function saveCustomProfileAttribute(userID: string, attributeID: string, attributeValue: string): ActionFuncAsync<Record<string, string>> {
+    return async (dispatch) => {
+        try {
+            const values = {[attributeID]: attributeValue.trim()};
+            const data = await Client4.updateCustomProfileAttributeValues(values);
+            return {data};
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
     };
 }
 

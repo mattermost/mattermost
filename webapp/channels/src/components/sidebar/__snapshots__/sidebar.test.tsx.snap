@@ -18,7 +18,6 @@ exports[`components/sidebar should match snapshot 1`] = `
     showMoreChannelsModal={[Function]}
     showNewChannelModal={[Function]}
     unreadFilterEnabled={false}
-    userGroupsEnabled={false}
   />
   <div
     aria-label="channel navigator region"
@@ -27,16 +26,16 @@ exports[`components/sidebar should match snapshot 1`] = `
     id="lhsNavigator"
     role="application"
   >
-    <Connect(ChannelNavigator) />
+    <Connect(injectIntl(ChannelNavigator)) />
   </div>
   <div
     className="sidebar--left__icons"
   >
-    <Connect(Pluggable)
+    <Pluggable
       pluggableName="LeftSidebarHeader"
     />
   </div>
-  <Connect(SidebarList)
+  <Connect(injectIntl(SidebarList))
     handleOpenMoreDirectChannelsModal={[Function]}
     onDragEnd={[Function]}
     onDragStart={[Function]}
@@ -61,7 +60,6 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
     showMoreChannelsModal={[Function]}
     showNewChannelModal={[Function]}
     unreadFilterEnabled={false}
-    userGroupsEnabled={false}
   />
   <div
     aria-label="channel navigator region"
@@ -70,22 +68,23 @@ exports[`components/sidebar should match snapshot when direct channels modal is 
     id="lhsNavigator"
     role="application"
   >
-    <Connect(ChannelNavigator) />
+    <Connect(injectIntl(ChannelNavigator)) />
   </div>
   <div
     className="sidebar--left__icons"
   >
-    <Connect(Pluggable)
+    <Pluggable
       pluggableName="LeftSidebarHeader"
     />
   </div>
-  <Connect(SidebarList)
+  <Connect(injectIntl(SidebarList))
     handleOpenMoreDirectChannelsModal={[Function]}
     onDragEnd={[Function]}
     onDragStart={[Function]}
   />
   <Connect(DataPrefetch) />
   <MoreDirectChannels
+    focusOriginElement="newDirectMessageButton"
     isExistingChannel={false}
     onModalDismissed={[Function]}
   />
@@ -108,7 +107,6 @@ exports[`components/sidebar should match snapshot when more channels modal is op
     showMoreChannelsModal={[Function]}
     showNewChannelModal={[Function]}
     unreadFilterEnabled={false}
-    userGroupsEnabled={false}
   />
   <div
     aria-label="channel navigator region"
@@ -117,16 +115,16 @@ exports[`components/sidebar should match snapshot when more channels modal is op
     id="lhsNavigator"
     role="application"
   >
-    <Connect(ChannelNavigator) />
+    <Connect(injectIntl(ChannelNavigator)) />
   </div>
   <div
     className="sidebar--left__icons"
   >
-    <Connect(Pluggable)
+    <Pluggable
       pluggableName="LeftSidebarHeader"
     />
   </div>
-  <Connect(SidebarList)
+  <Connect(injectIntl(SidebarList))
     handleOpenMoreDirectChannelsModal={[Function]}
     onDragEnd={[Function]}
     onDragStart={[Function]}

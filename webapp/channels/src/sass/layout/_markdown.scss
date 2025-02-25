@@ -1,4 +1,6 @@
-@charset "UTF-8";
+@use "utils/animations";
+@use "utils/functions";
+@use "utils/variables";
 
 h1.markdown__heading {
     font-size: 28px;
@@ -108,7 +110,7 @@ h6.markdown__heading {
 
         &:hover {
             z-index: 2;
-            box-shadow: 0 2px 5px 0 rgba($black, 0.1), 0 2px 5px 0 rgba($black, 0.1);
+            box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 5px 0 rgba(variables.$black, 0.1);
             transition: all 0.1s linear;
         }
     }
@@ -124,7 +126,7 @@ h6.markdown__heading {
 
         &:hover {
             z-index: 2;
-            box-shadow: 0 2px 2px 0 rgba($black, 0.1), 0 2px 2px 0 rgba($black, 0.1);
+            box-shadow: 0 2px 2px 0 rgba(variables.$black, 0.1), 0 2px 2px 0 rgba(variables.$black, 0.1);
             transition: all 0.1s linear;
         }
     }
@@ -142,49 +144,6 @@ h6.markdown__heading {
     .broken-image--scaled-down {
         max-height: 18px;
         margin: 2px;
-    }
-}
-
-#channelHeaderDescription,
-#header-popover {
-    .markdown-inline-img {
-        max-height: 18px;
-        border-radius: 2px;
-        margin: 2px;
-        -moz-force-broken-image-icon: 1;
-    }
-
-    .markdown-inline-img--loading {
-        height: 18px;
-        visibility: hidden;
-    }
-
-    .markdown-inline-img--hover {
-        border: 1px solid transparent;
-
-        &:hover {
-            z-index: 2;
-            box-shadow: 0 2px 2px 0 rgba($black, 0.1), 0 2px 2px 0 rgba($black, 0.1);
-            transition: all 0.1s linear;
-        }
-    }
-
-    .markdown-inline-img--no-border {
-        border: unset;
-    }
-
-    div.markdown__paragraph-inline {
-        display: inline-block;
-        line-height: 22px;
-    }
-
-    .broken-image {
-        max-height: 18px;
-        border-radius: unset;
-    }
-
-    .image-loaded-container {
-        display: inline-block;
     }
 }
 
@@ -240,7 +199,7 @@ h6.markdown__heading {
         display: flex;
         flex-direction: row;
         padding: 8.5px;
-        border: 1px solid rgba(v(center-channel-color-rgb), 0.2);
+        border: 1px solid rgba(functions.v(center-channel-color-rgb), 0.2);
         border-radius: 0.25em;
         margin: 5px 0;
         cursor: auto;
@@ -253,7 +212,7 @@ h6.markdown__heading {
 
 .post-code__context-menu {
     &.react-contextmenu {
-        background-color: $white;
+        background-color: variables.$white;
     }
 
     .react-contextmenu-item {
@@ -283,7 +242,7 @@ h6.markdown__heading {
     height: 36px;
     padding: 4px 4px 0;
     border-radius: 0 0 0 2px;
-    color: $white;
+    color: variables.$white;
     user-select: none;
 
     >span {
@@ -320,7 +279,7 @@ h6.markdown__heading {
         }
 
         .icon-check {
-            @include fade-in;
+            @include animations.fade-in;
 
             color: #3db887;
         }

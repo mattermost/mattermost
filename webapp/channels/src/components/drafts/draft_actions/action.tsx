@@ -26,8 +26,6 @@ function Action({
     return (
         <div className='DraftAction'>
             <WithTooltip
-                id={`drafts_action_tooltip_${id}`}
-                placement='top'
                 title={tooltipText}
             >
                 <button

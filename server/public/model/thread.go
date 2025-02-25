@@ -88,6 +88,8 @@ type GetUserThreadsOpts struct {
 
 	// IncludeIsUrgent will return IsUrgent field as well to assert is the thread is urgent or not
 	IncludeIsUrgent bool
+
+	ExcludeDirect bool
 }
 
 func (o *Thread) Etag() string {

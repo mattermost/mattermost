@@ -6,7 +6,6 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -31,19 +30,6 @@ func (ps *PlatformService) RegisterClusterMessageHandler(ev model.ClusterEvent, 
 	ps.additionalClusterHandlers[ev] = h
 }
 
-// ClusterHandlersPreCheck checks whether the platform service is ready to handle cluster messages.
-func (ps *PlatformService) ClusterHandlersPreCheck() error {
-	if ps.Store == nil {
-		return fmt.Errorf("could not find store")
-	}
-
-	if ps.statusCache == nil {
-		return fmt.Errorf("could not find status cache")
-	}
-
-	return nil
-}
-
 func (ps *PlatformService) ClusterPublishHandler(msg *model.ClusterMessage) {
 	event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
 	if err != nil {
@@ -56,11 +42,13 @@ func (ps *PlatformService) ClusterPublishHandler(msg *model.ClusterMessage) {
 
 func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage) {
 	var status model.Status
-	if jsonErr := json.Unmarshal(msg.Data, &status); jsonErr != nil {
-		ps.logger.Warn("Failed to decode status from JSON")
+	if err := json.Unmarshal(msg.Data, &status); err != nil {
+		ps.logger.Warn("Failed to decode status from JSON", mlog.Err(err))
 	}
 
-	ps.statusCache.SetWithDefaultExpiry(status.UserId, status)
+	if err := ps.statusCache.SetWithDefaultExpiry(status.UserId, status); err != nil {
+		ps.logger.Warn("Failed to store the status in the cache", mlog.String("user_id", status.UserId), mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
@@ -91,8 +79,8 @@ func (ps *PlatformService) clusterClearSessionCacheForAllUsersHandler(msg *model
 
 func (ps *PlatformService) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
 	var sbs model.ServerBusyState
-	if jsonErr := json.Unmarshal(msg.Data, &sbs); jsonErr != nil {
-		mlog.Warn("Failed to decode server busy state from JSON", mlog.Err(jsonErr))
+	if err := json.Unmarshal(msg.Data, &sbs); err != nil {
+		ps.logger.Warn("Failed to decode server busy state from JSON", mlog.Err(err))
 	}
 
 	ps.Busy.ClusterEventChanged(&sbs)
@@ -113,7 +101,9 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 	ps.logger.Info("Purging all caches")
 	ps.ClearAllUsersSessionCacheLocal()
-	ps.statusCache.Purge()
+	if err := ps.statusCache.Purge(); err != nil {
+		ps.logger.Warn("Failed to clear the status cache", mlog.Err(err))
+	}
 	ps.Store.Team().ClearCaches()
 	ps.Store.Channel().ClearCaches()
 	ps.Store.User().ClearCaches()
@@ -121,14 +111,16 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 	ps.Store.FileInfo().ClearCaches()
 	ps.Store.Webhook().ClearCaches()
 
-	linkCache.Purge()
+	if err := linkCache.Purge(); err != nil {
+		ps.logger.Warn("Failed to clear the link cache", mlog.Err(err))
+	}
 	ps.LoadLicense()
 }
 
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
 	ps.InvalidateAllCachesSkipSend()
 
-	if ps.clusterIFace != nil && *ps.Config().CacheSettings.CacheType == model.CacheTypeLRU {
+	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
 			Event:            model.ClusterEventInvalidateAllCaches,
 			SendType:         model.ClusterSendReliable,

@@ -231,9 +231,7 @@ export default class SettingPicture extends Component<Props, State> {
                         {imageElement}
                     </div>
                     <WithTooltip
-                        id='removeIcon'
                         title={title ?? ''}
-                        placement='right'
                         disabled={!title}
                     >
                         <button

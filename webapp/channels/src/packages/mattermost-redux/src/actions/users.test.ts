@@ -1693,6 +1693,28 @@ describe('Actions.Users', () => {
         expect(Object.values(myUserAccessTokens).length === 0).toBeTruthy();
     });
 
+    it('saveCustomProfileAttribute', async () => {
+        TestHelper.mockLogin();
+        store.dispatch({
+            type: UserTypes.LOGIN_SUCCESS,
+        });
+        await store.dispatch(Actions.loadMe());
+
+        const state = store.getState();
+        const currentUser = state.entities.users.profiles[state.entities.users.currentUserId];
+
+        nock(Client4.getCustomProfileAttributeValuesRoute()).
+            patch('').
+            query(true).
+            reply(200, {
+                123: 'NewValue',
+            });
+
+        const response = await store.dispatch(Actions.saveCustomProfileAttribute(currentUser.id, '123', '  NewValue  '));
+        const data = response.data!;
+        expect(data).toEqual({123: 'NewValue'});
+    });
+
     describe('checkForModifiedUsers', () => {
         test('should request users by IDs that have changed since the last websocket disconnect', async () => {
             const lastDisconnectAt = 1500;
@@ -1753,5 +1775,32 @@ describe('Actions.Users', () => {
             const profiles = store.getState().entities.users.profiles;
             expect(profiles).toBe(originalState.entities.users.profiles);
         });
+    });
+
+    it('getCustomProfileAttributeValues', async () => {
+        const userID = 'user1';
+        nock(Client4.getUserRoute(userID) + '/custom_profile_attributes').
+            get('').
+            query(true).
+            reply(200, {field1: 'value1', field2: 'value2'});
+
+        const originalState = {
+            entities: {
+                users: {
+                    profiles: {
+                        user1: {id: userID},
+                    },
+                },
+            },
+        };
+        store = configureStore(originalState);
+
+        await store.dispatch(Actions.getCustomProfileAttributeValues(userID));
+        const customProfileAttributeValues = store.getState().entities.users.profiles[userID].custom_profile_attributes;
+
+        // Check a few basic fields since they may change over time
+        expect(Object.keys(customProfileAttributeValues).length).toEqual(2);
+        expect(customProfileAttributeValues.field1).toEqual('value1');
+        expect(customProfileAttributeValues.field2).toEqual('value2');
     });
 });

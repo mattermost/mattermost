@@ -1,12 +1,13 @@
 {
   "name": "@mattermost/client",
-  "version": "9.3.0",
+  "version": "10.6.0",
   "description": "JavaScript/TypeScript client for Mattermost",
   "keywords": [
     "mattermost"
   ],
   "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/client#readme",
   "license": "MIT",
+  "type": "commonjs",
   "files": [
     "lib"
   ],
@@ -16,9 +17,6 @@
     "type": "git",
     "url": "github:mattermost/mattermost",
     "directory": "webapp/platform/client"
-  },
-  "dependencies": {
-    "form-data": "^4.0.0"
   },
   "devDependencies": {
     "@types/jest": "28.1.8",

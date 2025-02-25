@@ -94,6 +94,11 @@ describe('TextFormatting.searchHighlighting', () => {
         input: 'These are [words in a sentence](https://example.com).',
         searchMatches: ['example'],
         expected: '<p>These are <a class="theme markdown__link search-highlight" href="https://example.com" rel="noreferrer" target="_blank">words in a sentence</a>.</p>',
+    }, {
+        name: 'search match thai word',
+        input: 'สวัสดีนี่คือการทดสอบภาษาไทย',
+        searchMatches: ['สวัสดี'],
+        expected: '<p><span class="search-highlight">สวัสดี</span>นี่คือการทดสอบภาษาไทย</p>',
     }];
 
     for (const testCase of testCases) {

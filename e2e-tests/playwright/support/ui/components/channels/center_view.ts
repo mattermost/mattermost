@@ -12,17 +12,44 @@ export default class ChannelsCenterView {
 
     readonly header;
     readonly postCreate;
+    readonly scheduledDraftOptions;
+    readonly postBoxIndicator;
+    readonly scheduledDraftChannelIcon;
+    readonly scheduledDraftChannelInfoMessage;
+    readonly scheduledDraftChannelInfoMessageLocator;
+    readonly scheduledDraftChannelInfoMessageText;
+    readonly scheduledDraftSeeAllLink;
+    readonly postEdit;
+    readonly editedPostIcon;
 
     constructor(container: Locator) {
         this.container = container;
-
+        this.scheduledDraftChannelInfoMessageLocator = 'span:has-text("Message scheduled for")';
         this.header = new components.ChannelsHeader(this.container.locator('.channel-header'));
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('post-create'));
+        this.scheduledDraftOptions = new components.ChannelsPostCreate(
+            container.locator('#dropdown_send_post_options'),
+        );
+        this.postEdit = new components.ChannelsPostEdit(container.locator('.post-edit__container'));
+        this.postBoxIndicator = container.locator('div.postBoxIndicator');
+        this.scheduledDraftChannelIcon = container.locator('#create_post i.icon-draft-indicator');
+        this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
+        this.scheduledDraftChannelInfoMessageText = container.locator(this.scheduledDraftChannelInfoMessageLocator);
+        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
+        this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
         await this.postCreate.toBeVisible();
+    }
+
+    /**
+     * Click on "See all scheduled messages"
+     */
+    async clickOnSeeAllscheduledDrafts() {
+        await this.scheduledDraftSeeAllLink.isVisible();
+        await this.scheduledDraftSeeAllLink.click();
     }
 
     /**
@@ -41,6 +68,17 @@ export default class ChannelsCenterView {
         const lastPost = this.container.getByTestId('postView').last();
         await lastPost.waitFor();
         return new components.ChannelsPost(lastPost);
+    }
+
+    /**
+     * Return the ID of the last post in the Center
+     */
+    async getLastPostID() {
+        return this.container
+            .getByTestId('postView')
+            .last()
+            .getAttribute('id')
+            .then((id) => (id ? id.split('_')[1] : null));
     }
 
     /**
@@ -85,6 +123,19 @@ export default class ChannelsCenterView {
             },
             {timeout},
         );
+    }
+
+    async verifyscheduledDraftChannelInfo() {
+        await this.postBoxIndicator.isVisible();
+        await this.scheduledDraftChannelIcon.isVisible();
+        const messageLocator = this.scheduledDraftChannelInfoMessage.first();
+        await expect(messageLocator).toContainText('Message scheduled for');
+    }
+
+    async clickOnLastEditedPost(postID: string | null) {
+        if (postID) {
+            await this.editedPostIcon(postID).click();
+        }
     }
 }
 

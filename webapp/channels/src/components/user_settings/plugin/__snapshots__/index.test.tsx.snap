@@ -1,7 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`plugin tab all props are properly passed to the children 1`] = `
-<div>
+<div
+  aria-labelledby="pluginAButton"
+  id="pluginASettings"
+  role="tabpanel"
+>
   <SettingMobileHeader
     closeModal={[MockFunction]}
     collapseModal={[MockFunction]}

@@ -28,8 +28,6 @@ exports[`/components/create_team/components/display_name should match snapshot 1
             className="input-group input-group--limit"
           >
             <WithTooltip
-              id="urlTooltip"
-              placement="top"
               title="http://localhost:8065/"
             >
               <span

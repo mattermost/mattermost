@@ -1,56 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/MoreDirectChannels should exclude deleted users if there is not direct channel between users 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="moreDmModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal more-modal more-direct-channels"
-  dialogComponentClass={[Function]}
+<GenericModal
+  autoCloseOnCancelButton={true}
+  autoCloseOnConfirmButton={true}
+  bodyPadding={false}
+  className="a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal"
+  compassDesign={true}
   enforceFocus={true}
   id="moreDmModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
+  keyboardEscape={true}
+  modalHeaderText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Direct Messages"
+      id="more_direct_channels.title"
+    />
   }
   onEntered={[Function]}
   onExited={[Function]}
   onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="dialog"
   show={true}
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
-  >
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="moreDmModalLabel"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Direct Messages"
-        id="more_direct_channels.title"
-      />
-    </ModalTitle>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
+  <div
     role="application"
   >
     <Connect(Component)
@@ -271,77 +242,32 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
       }
       values={Array []}
     />
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    className="modal-footer--invisible"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-tertiary"
-      id="closeModalButton"
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="general_button.close"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+  </div>
+</GenericModal>
 `;
 
 exports[`components/MoreDirectChannels should match snapshot 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="moreDmModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal more-modal more-direct-channels"
-  dialogComponentClass={[Function]}
+<GenericModal
+  autoCloseOnCancelButton={true}
+  autoCloseOnConfirmButton={true}
+  bodyPadding={false}
+  className="a11y__modal more-modal more-direct-channels more-direct-channels-generic-modal"
+  compassDesign={true}
   enforceFocus={true}
   id="moreDmModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
+  keyboardEscape={true}
+  modalHeaderText={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Direct Messages"
+      id="more_direct_channels.title"
+    />
   }
   onEntered={[Function]}
   onExited={[Function]}
   onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="dialog"
   show={true}
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
-  >
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="moreDmModalLabel"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Direct Messages"
-        id="more_direct_channels.title"
-      />
-    </ModalTitle>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
+  <div
     role="application"
   >
     <Connect(Component)
@@ -569,22 +495,6 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
         ]
       }
     />
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    className="modal-footer--invisible"
-    componentClass="div"
-  >
-    <button
-      className="btn btn-tertiary"
-      id="closeModalButton"
-      type="button"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="general_button.close"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+  </div>
+</GenericModal>
 `;

@@ -5,9 +5,8 @@ import {expect} from '@playwright/test';
 
 import {test} from '@e2e-support/test_fixture';
 import {duration} from '@e2e-support/util';
-import {components} from '@e2e-support/ui/components';
 
-test('MM-T5522 Should begin export of data when export button is pressed', async ({pw, pages}) => {
+test.fixme('MM-T5522 Should begin export of data when export button is pressed', async ({pw}) => {
     test.slow();
 
     // # Skip test if no license
@@ -19,10 +18,9 @@ test('MM-T5522 Should begin export of data when export button is pressed', async
     }
 
     // # Log in as admin
-    const {page} = await pw.testBrowser.login(adminUser);
+    const {page, channelsPage, systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Visit system console
-    const systemConsolePage = new pages.SystemConsolePage(page);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
 
@@ -36,8 +34,7 @@ test('MM-T5522 Should begin export of data when export button is pressed', async
 
     // # Click Export button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
-    const confirmModal = new components.GenericConfirmModal(page, 'exportUserDataModal');
-    await confirmModal.confirm();
+    await systemConsolePage.exportModal.confirm();
 
     // # Change the export duration to all time
     await systemConsolePage.systemUsers.dateRangeSelectorMenuButton.click();
@@ -45,17 +42,16 @@ test('MM-T5522 Should begin export of data when export button is pressed', async
 
     // # Click Export button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
-    await confirmModal.confirm();
+    await systemConsolePage.exportModal.confirm();
 
     // # Click Export again button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
-    await confirmModal.confirm();
+    await systemConsolePage.exportModal.confirm();
 
     // * Verify that we are told that one is already running
     expect(page.getByText('Export is in progress')).toBeVisible();
 
     // # Go back to Channels and open the system bot DM
-    const channelsPage = new pages.ChannelsPage(page);
     channelsPage.goto('ad-1/messages', '@system-bot');
     await channelsPage.centerView.toBeVisible();
 

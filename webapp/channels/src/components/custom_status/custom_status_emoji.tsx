@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useMemo, useRef} from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {useSelector} from 'react-redux';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
@@ -20,11 +21,10 @@ import ExpiryTime from './expiry_time';
 interface Props {
     emojiSize?: number;
     showTooltip?: boolean;
-    tooltipDirection?: 'top' | 'right' | 'bottom' | 'left';
     spanStyle?: React.CSSProperties;
     emojiStyle?: React.CSSProperties;
     userID?: string;
-    onClick?: () => void;
+    onClick?: (event: MouseEvent<HTMLSpanElement> | KeyboardEvent<HTMLSpanElement>) => void;
 }
 
 function CustomStatusEmoji({
@@ -46,35 +46,7 @@ function CustomStatusEmoji({
     const customStatusExpired = useSelector((state: GlobalState) => isCustomStatusExpired(state, customStatus));
     const customStatusEnabled = useSelector(isCustomStatusEnabled);
 
-    const [placement, setPlacement] = useState('bottom');
     const emojiRef = useRef<HTMLSpanElement>(null);
-
-    useEffect(() => {
-        function handleMouseEnter() {
-            if (emojiRef.current) {
-                const boundingRect = emojiRef.current.getBoundingClientRect();
-                const windowHeight = window.innerHeight;
-                const threshold = windowHeight * 0.8;
-
-                if (boundingRect.bottom >= threshold) {
-                    setPlacement('top');
-                } else {
-                    setPlacement('bottom');
-                }
-            }
-        }
-
-        const emojiElement = emojiRef.current;
-        if (emojiElement) {
-            emojiElement.addEventListener('mouseenter', handleMouseEnter);
-        }
-
-        return () => {
-            if (emojiElement) {
-                emojiElement.removeEventListener('mouseenter', handleMouseEnter);
-            }
-        };
-    }, []);
 
     if (!customStatusEnabled || !customStatus?.emoji || customStatusExpired) {
         return null;
@@ -95,7 +67,6 @@ function CustomStatusEmoji({
 
     return (
         <WithTooltip
-            id='custom-status-tooltip'
             title={
                 <>
                     <div className='custom-status'>
@@ -120,8 +91,7 @@ function CustomStatusEmoji({
                 </>
             }
             emoji={customStatus.emoji}
-            emojiStyle='large'
-            placement={placement}
+            isEmojiLarge={true}
         >
             <span
                 ref={emojiRef}

@@ -127,7 +127,7 @@ async function saveResult(specExecution, result, testIndex) {
     const testCases = [];
     for (let i = 0; i < tests.length; i++) {
         const test = tests[i];
-        const attempts = test.attempts[0];
+        const attempts = test.attempts.pop();
 
         const testCase = {
             title: test.title,
@@ -151,7 +151,7 @@ async function saveResult(specExecution, result, testIndex) {
         }
 
         if (attempts.screenshots && attempts.screenshots.length > 0) {
-            const path = test.attempts[0].screenshots[0].path;
+            const path = attempts.screenshots[0].path;
             const screenshotUrl = await uploadScreenshot(path, REPO, BRANCH, BUILD_ID);
             if (typeof screenshotUrl === 'string' && !screenshotUrl.error) {
                 testCase.screenshot = {url: screenshotUrl};

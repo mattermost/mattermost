@@ -1,4 +1,4 @@
-@charset "utf-8";
+@use "utils/mixins";
 
 @media screen and (max-width: 960px) {
     .system-users__filter-row {
@@ -119,11 +119,6 @@
         width: 274px;
     }
 
-    .channel-header__popover {
-        top: 44px !important;
-        left: 236px !important;
-    }
-
     .col-sm-auto {
         float: left;
     }
@@ -178,7 +173,7 @@
     .post {
         &.post--compact {
             .post-message--overflow {
-                @include clearfix;
+                @include mixins.clearfix;
 
                 margin-top: 22px; //Any value change to this needs to reflect for MARGIN_CHANGE_FOR_COMPACT_POST variable in show_more component
             }

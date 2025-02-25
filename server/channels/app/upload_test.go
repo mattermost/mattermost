@@ -67,7 +67,8 @@ func TestCreateUploadSession(t *testing.T) {
 
 	t.Run("deleted channel", func(t *testing.T) {
 		ch := th.CreateChannel(th.Context, th.BasicTeam)
-		th.App.DeleteChannel(th.Context, ch, th.BasicUser.Id)
+		appErr := th.App.DeleteChannel(th.Context, ch, th.BasicUser.Id)
+		require.Nil(t, appErr)
 		us.ChannelId = ch.Id
 		u, err := th.App.CreateUploadSession(th.Context, us)
 		require.NotNil(t, err)

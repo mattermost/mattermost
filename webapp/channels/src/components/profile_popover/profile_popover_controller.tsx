@@ -10,6 +10,7 @@ import {
     useDismiss,
     useInteractions,
     useRole,
+    shift,
     FloatingFocusManager,
     FloatingOverlay,
     FloatingPortal,
@@ -17,16 +18,14 @@ import {
 import classNames from 'classnames';
 import type {HtmlHTMLAttributes, ReactNode} from 'react';
 import React, {useCallback, useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {A11yClassNames} from 'utils/constants';
+import {A11yClassNames, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
 
 import ProfilePopover from './profile_popover';
-
-const PROFILE_POPOVER_OPENING_DELAY = 300;
-const PROFILE_POPOVER_CLOSING_DELAY = 500;
 
 interface Props<TriggerComponentType> {
 
@@ -42,6 +41,11 @@ interface Props<TriggerComponentType> {
      * Source URL from the image to display in the popover
      */
     src: string;
+
+    /**
+     * Username of the profile.
+     */
+    username?: string;
 
     /**
      * This should be the trigger button for the popover, Do note that the root element of the trigger component should be passed in triggerComponentRoot
@@ -79,28 +83,30 @@ interface Props<TriggerComponentType> {
 }
 
 export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
+    const intl = useIntl();
+
+    const profileAriaLabel = intl.formatMessage({id: 'profile_popover.aria_label.without_username', defaultMessage: 'profile popover'});
+    const userProfileAriaLabel = intl.formatMessage({
+        id: 'profile_popover.aria_label.with_username',
+        defaultMessage: '{userName}\'s profile popover',
+    },
+    {
+        userName: props.username,
+    });
+
     const [isOpen, setOpen] = useState(false);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
         open: isOpen,
         onOpenChange: setOpen,
         whileElementsMounted: autoUpdate,
-        middleware: [autoPlacement()],
+        middleware: [autoPlacement(), shift()],
     });
 
-    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, {
-        duration: {
-            open: PROFILE_POPOVER_OPENING_DELAY,
-            close: PROFILE_POPOVER_CLOSING_DELAY,
-        },
-    });
-
-    const combinedFloatingStyles = Object.assign({}, floatingStyles, transitionStyles);
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);
 
     const clickInteractions = useClick(floatingContext);
-
     const dismissInteraction = useDismiss(floatingContext);
-
     const role = useRole(floatingContext);
 
     const {getReferenceProps, getFloatingProps} = useInteractions([
@@ -128,17 +134,17 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
             </TriggerComponent>
 
             {isMounted && (
-                <FloatingPortal id='user-profile-popover-portal'>
+                <FloatingPortal id={RootHtmlPortalId}>
                     <FloatingOverlay
-                        id='user-profile-popover-floating-overlay'
                         className='user-profile-popover-floating-overlay'
                         lockScroll={true}
                     >
                         <FloatingFocusManager context={floatingContext}>
                             <div
                                 ref={refs.setFloating}
-                                style={combinedFloatingStyles}
+                                style={{...floatingStyles, ...transitionStyles}}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
+                                aria-label={props.username ? userProfileAriaLabel : profileAriaLabel}
                                 {...getFloatingProps()}
                             >
                                 <ProfilePopover
@@ -160,3 +166,11 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
         </>
     );
 }
+
+const TRANSITION_STYLE_PROPS = {
+    duration: {
+        open: OverlaysTimings.FADE_IN_DURATION,
+        close: OverlaysTimings.FADE_OUT_DURATION,
+    },
+    initial: OverlayTransitionStyles.START,
+};

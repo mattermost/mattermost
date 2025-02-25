@@ -242,9 +242,9 @@ func (_m *PreferenceStore) GetCategory(userID string, category string) (model.Pr
 	return r0, r1
 }
 
-// GetCategoryAndName provides a mock function with given fields: category, nane
-func (_m *PreferenceStore) GetCategoryAndName(category string, nane string) (model.Preferences, error) {
-	ret := _m.Called(category, nane)
+// GetCategoryAndName provides a mock function with given fields: category, name
+func (_m *PreferenceStore) GetCategoryAndName(category string, name string) (model.Preferences, error) {
+	ret := _m.Called(category, name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCategoryAndName")
@@ -253,10 +253,10 @@ func (_m *PreferenceStore) GetCategoryAndName(category string, nane string) (mod
 	var r0 model.Preferences
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string) (model.Preferences, error)); ok {
-		return rf(category, nane)
+		return rf(category, name)
 	}
 	if rf, ok := ret.Get(0).(func(string, string) model.Preferences); ok {
-		r0 = rf(category, nane)
+		r0 = rf(category, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.Preferences)
@@ -264,7 +264,7 @@ func (_m *PreferenceStore) GetCategoryAndName(category string, nane string) (mod
 	}
 
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(category, nane)
+		r1 = rf(category, name)
 	} else {
 		r1 = ret.Error(1)
 	}

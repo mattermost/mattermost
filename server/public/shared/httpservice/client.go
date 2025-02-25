@@ -7,9 +7,14 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
+	"net/netip"
+	"net/url"
 	"time"
+
+	"golang.org/x/net/http/httpproxy"
 )
 
 const (
@@ -155,6 +160,20 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 	}
 }
 
+func getProxyFn() func(r *http.Request) (*url.URL, error) {
+	proxyFromEnvFn := httpproxy.FromEnvironment().ProxyFunc()
+	return func(r *http.Request) (*url.URL, error) {
+		// TODO: Consider removing this code once MM-61938 is fixed upstream.
+		if r.URL != nil {
+			if addr, err := netip.ParseAddr(r.URL.Hostname()); err == nil && addr.Is6() && addr.Zone() != "" {
+				return nil, fmt.Errorf("invalid IPv6 address in URL: %q", addr.String())
+			}
+		}
+
+		return proxyFromEnvFn(r.URL)
+	}
+}
+
 func NewTransport(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *MattermostTransport {
 	dialContext := (&net.Dialer{
 		Timeout:   ConnectTimeout,
@@ -167,7 +186,7 @@ func NewTransport(enableInsecureConnections bool, allowHost func(host string) bo
 
 	return &MattermostTransport{
 		&http.Transport{
-			Proxy:                 http.ProxyFromEnvironment,
+			Proxy:                 getProxyFn(),
 			DialContext:           dialContext,
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,

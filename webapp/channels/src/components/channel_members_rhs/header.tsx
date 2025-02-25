@@ -40,7 +40,9 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     </button>
                 )}
 
-                <HeaderTitle>
+                <HeaderTitle
+                    id='rhsPanelTitle'
+                >
                     <FormattedMessage
                         id='channel_members_rhs.header.title'
                         defaultMessage='Members'
@@ -57,8 +59,6 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
             </span>
 
             <WithTooltip
-                id='closeSidebarTooltip'
-                placement='top'
                 title={
                     <FormattedMessage
                         id='rhs_header.closeSidebarTooltip'

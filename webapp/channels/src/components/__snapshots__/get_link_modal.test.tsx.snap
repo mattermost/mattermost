@@ -27,7 +27,7 @@ exports[`components/GetLinkModal should have called onHide 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -122,7 +122,7 @@ exports[`components/GetLinkModal should have called onHide 2`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -208,7 +208,7 @@ exports[`components/GetLinkModal should match snapshot when all props is set 1`]
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -299,7 +299,7 @@ exports[`components/GetLinkModal should match snapshot when helpText is not set 
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader

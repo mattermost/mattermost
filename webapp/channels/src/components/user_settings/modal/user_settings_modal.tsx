@@ -343,16 +343,17 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 onHide={this.handleHide}
                 onExited={this.handleHidden}
                 enforceFocus={this.state.enforceFocus}
-                role='dialog'
                 aria-label={modalTitle}
+                role='none'
             >
                 <Modal.Header
                     id='accountSettingsHeader'
                     closeButton={true}
                 >
                     <Modal.Title
-                        componentClass='h1'
+                        componentClass='h2'
                         id='accountSettingsModalLabel'
+                        className='modal-header__title'
                     >
                         {modalTitle}
                     </Modal.Title>
@@ -398,7 +399,6 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                     updateTab={this.updateTab}
                                     closeModal={this.closeModal}
                                     collapseModal={this.collapseModal}
-                                    setEnforceFocus={(enforceFocus?: boolean) => this.setState({enforceFocus})}
                                     setRequireConfirm={
                                         (requireConfirm?: boolean, customConfirmAction?: () => () => void) => {
                                             this.requireConfirm = requireConfirm!;
