@@ -3987,7 +3987,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "无效的 Id。"
+    "translation": "无效的 Id：{{.Id}}。"
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -10408,5 +10408,25 @@
   {
     "id": "app.file_info.get_count.app_error",
     "translation": "获取文件总数量失败。"
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "会话未找到。"
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "无法计算自定义个人资料属性组的字段数量"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "无效的客户端侧用户 id：{{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "ClientSideUserIds 中的元素数量 {{.CurrentLength}} 大于上限 {{.MaxLength}}。"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "无法更新或插入自定义个人资料属性字段"
   }
 ]
