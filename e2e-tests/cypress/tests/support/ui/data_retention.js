@@ -28,7 +28,7 @@ Cypress.Commands.add('uiFillOutCustomPolicyFields', (name, durationDropdown, dur
 Cypress.Commands.add('uiAddTeamsToCustomPolicy', (teamNames) => {
     cy.uiGetButton('Add teams').click();
     teamNames.forEach((teamName) => {
-        cy.findByRole('textbox', {name: 'Search and add teams'}).typeWithForce(teamName);
+        cy.findByRole('combobox', {name: 'Search and add teams'}).typeWithForce(teamName);
         cy.get('.team-info-block').then((el) => {
             el.click();
         });
@@ -39,7 +39,7 @@ Cypress.Commands.add('uiAddTeamsToCustomPolicy', (teamNames) => {
 Cypress.Commands.add('uiAddChannelsToCustomPolicy', (channelNames) => {
     cy.uiGetButton('Add channels').click();
     channelNames.forEach((channelName) => {
-        cy.findByRole('textbox', {name: 'Search and add channels'}).typeWithForce(channelName);
+        cy.findByRole('combobox', {name: 'Search and add channels'}).typeWithForce(channelName);
         cy.wait(TIMEOUTS.ONE_SEC);
         cy.get('.channel-info-block').then((el) => {
             el.click();

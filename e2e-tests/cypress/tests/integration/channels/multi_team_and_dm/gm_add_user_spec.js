@@ -57,7 +57,7 @@ describe('Multi-user group messages', () => {
         cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
 
         // # Start typing part of a username that matches previously created users
-        cy.findByRole('textbox', {name: 'Search for people'}).
+        cy.findByRole('combobox', {name: 'Search for people'}).
             typeWithForce(searchTerm).
             wait(TIMEOUTS.ONE_SEC);
 
