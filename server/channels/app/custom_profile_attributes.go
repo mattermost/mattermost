@@ -77,7 +77,7 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 	return fields, nil
 }
 
-func (a *App) CreateCPAField(field *model.PropertyField) (*model.PropertyField, *model.AppError) {
+func (a *App) CreateCPAField(field *model.CPAField) (*model.PropertyField, *model.AppError) {
 	groupID, err := a.cpaGroupID()
 	if err != nil {
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -97,7 +97,7 @@ func (a *App) CreateCPAField(field *model.PropertyField) (*model.PropertyField, 
 	}
 
 	field.GroupID = groupID
-	newField, err := a.Srv().propertyService.CreatePropertyField(field)
+	newField, err := a.Srv().propertyService.CreatePropertyField(field.ToPropertyField())
 	if err != nil {
 		var appErr *model.AppError
 		switch {
@@ -126,11 +126,16 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 	patch.TargetType = nil
 	existingField.Patch(patch)
 
-	if appErr := validateCustomProfileAttributesField(existingField); appErr != nil {
+	cpaField, err := model.NewCPAFieldFromPropertyField(existingField)
+	if err != nil {
+		return nil, model.NewAppError("UpdateCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if appErr := validateCustomProfileAttributesField(cpaField); appErr != nil {
 		return nil, appErr
 	}
 
-	patchedField, err := a.Srv().propertyService.UpdatePropertyField(existingField)
+	patchedField, err := a.Srv().propertyService.UpdatePropertyField(cpaField.ToPropertyField())
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -269,51 +274,32 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 	return updatedValues, nil
 }
 
-func validateCustomProfileAttributesField(field *model.PropertyField) *model.AppError {
-	if field.Attrs == nil {
-		field.Attrs = model.StringInterface{}
-	}
-
+func validateCustomProfileAttributesField(field *model.CPAField) *model.AppError {
 	switch field.Type {
 	case model.PropertyFieldTypeText:
-		if valueType, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsValueType]; ok {
-			valueTypeStr, ok := valueType.(string)
-			if !ok {
-				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.not_string_value_type.app_error", nil, "", http.StatusUnprocessableEntity)
+		if valueType := strings.TrimSpace(field.Attrs.ValueType); valueType != "" {
+			if !model.IsKnownCustomProfilteAttributesValueType(valueType) {
+				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"ValueType": valueType}, "", http.StatusUnprocessableEntity)
 			}
-			valueTypeStr = strings.TrimSpace(valueTypeStr)
-			if !model.IsKnownCustomProfilteAttributesValueType(valueTypeStr) {
-				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"ValueType": valueTypeStr}, "", http.StatusUnprocessableEntity)
-			}
-
-			field.Attrs[model.CustomProfileAttributesPropertyAttrsValueType] = valueTypeStr
+			field.Attrs.ValueType = valueType
 		}
 
 	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect:
-		if options, ok := field.Attrs[model.PropertyFieldAttributeOptions]; ok {
-			finalOptions, err := model.NewPropertyOptionsFromFieldAttrs[*model.CustomProfileAttributesSelectOption](options)
-			if err != nil {
-				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
-			}
-
-			if err := finalOptions.IsValid(); err != nil {
-				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
-			}
-			field.Attrs[model.PropertyFieldAttributeOptions] = finalOptions
+		options := field.Attrs.Options
+		if err := options.IsValid(); err != nil {
+			return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 		}
+		field.Attrs.Options = options
 	}
 
 	visibility := model.CustomProfileAttributesVisibilityDefault
-	if visibilityAttr, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility]; ok {
-		if visibilityStr, ok := visibilityAttr.(string); ok {
-			visibilityStr = strings.TrimSpace(visibilityStr)
-			if !model.IsKnownCustomProfilteAttributesVisibility(visibilityStr) {
-				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"Visibility": visibilityStr}, "", http.StatusUnprocessableEntity)
-			}
-			visibility = visibilityStr
+	if visibilityAttr := strings.TrimSpace(field.Attrs.Visibility); visibilityAttr != "" {
+		if !model.IsKnownCustomProfilteAttributesVisibility(visibilityAttr) {
+			return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"Visibility": visibilityAttr}, "", http.StatusUnprocessableEntity)
 		}
+		visibility = visibilityAttr
 	}
-	field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = visibility
+	field.Attrs.Visibility = visibility
 
 	return nil
 }

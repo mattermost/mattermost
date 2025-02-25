@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"errors"
 )
 
@@ -98,4 +99,47 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 	}
 
 	return nil
+}
+
+type CPAField struct {
+	PropertyField
+	Attrs CPAAttrs
+}
+
+type CPAAttrs struct {
+	Visibility string                                                `json:"visibility"`
+	SortOrder  string                                                `json:"sort_order"`
+	Options    PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
+	ValueType  string                                                `json:"value_type"`
+}
+
+func (c *CPAField) ToPropertyField() *PropertyField {
+	pf := c.PropertyField
+
+	pf.Attrs = StringInterface{
+		CustomProfileAttributesPropertyAttrsVisibility: c.Attrs.Visibility,
+		CustomProfileAttributesPropertyAttrsSortOrder:  c.Attrs.SortOrder,
+		CustomProfileAttributesPropertyAttrsValueType:  c.Attrs.ValueType,
+		PropertyFieldAttributeOptions:                  c.Attrs.Options,
+	}
+
+	return &pf
+}
+
+func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
+	attrsJSON, err := json.Marshal(pf.Attrs)
+	if err != nil {
+		return nil, err
+	}
+
+	var attrs CPAAttrs
+	err = json.Unmarshal(attrsJSON, &attrs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CPAField{
+		PropertyField: *pf,
+		Attrs:         attrs,
+	}, nil
 }
