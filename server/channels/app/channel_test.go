@@ -3192,7 +3192,6 @@ func TestGetChannelFileCount(t *testing.T) {
 	require.Equal(t, int64(2), count)
 }
 
-
 func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3262,7 +3261,7 @@ func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
 		restricted, err := th.App.CheckIfChannelIsRestrictedDM(th.Context, groupChannel)
 		require.Nil(t, err)
 		require.False(t, restricted)
-  })
+	})
 }
 
 func TestUpdateChannel(t *testing.T) {
