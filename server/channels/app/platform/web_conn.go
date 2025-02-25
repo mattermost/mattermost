@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 const (
@@ -95,8 +96,10 @@ type WebConn struct {
 	UserId           string
 	PostedAck        bool
 
-	lastUserActivityAt int64
-	send               chan model.WebSocketMessage
+	allChannelMembers         map[string]string
+	lastAllChannelMembersTime int64
+	lastUserActivityAt        int64
+	send                      chan model.WebSocketMessage
 	// deadQueue behaves like a queue of a finite size
 	// which is used to store all messages that are sent via the websocket.
 	// It basically acts as the user-space socket buffer, and is used
@@ -758,6 +761,8 @@ func (wc *WebConn) drainDeadQueue(index int) error {
 
 // InvalidateCache resets all internal data of the WebConn.
 func (wc *WebConn) InvalidateCache() {
+	wc.allChannelMembers = nil
+	wc.lastAllChannelMembersTime = 0
 	wc.SetSession(nil)
 	wc.SetSessionExpiresAt(0)
 }
@@ -938,9 +943,36 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			return false
 		}
 
-		// We don't need to do any further checks because this is already scoped
-		// to channel members from web_hub.
-		return true
+		if *wc.Platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+			// We don't need to do any further checks because this is already scoped
+			// to channel members from web_hub.
+			return true
+		}
+
+		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
+			wc.allChannelMembers = nil
+			wc.lastAllChannelMembersTime = 0
+		}
+
+		if wc.allChannelMembers == nil {
+			result, err := wc.Platform.Store.Channel().GetAllChannelMembersForUser(
+				sqlstore.RequestContextWithMaster(request.EmptyContext(wc.Platform.logger)),
+				wc.UserId,
+				false,
+				false,
+			)
+			if err != nil {
+				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
+				return false
+			}
+			wc.allChannelMembers = result
+			wc.lastAllChannelMembersTime = model.GetMillis()
+		}
+
+		if _, ok := wc.allChannelMembers[chID]; ok {
+			return true
+		}
+		return false
 	}
 
 	// Only report events to users who are in the team for the event

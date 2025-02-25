@@ -440,6 +440,7 @@ type ServiceSettings struct {
 	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	MaximumURLLength                                  *int    `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	ScheduledPosts                                    *bool   `access:"site_posts"`
+	EnableWebHubChannelIteration                      *bool   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 var MattermostGiphySdkKey string
@@ -963,6 +964,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.ScheduledPosts == nil {
 		s.ScheduledPosts = NewPointer(true)
 	}
+
+	if s.EnableWebHubChannelIteration == nil {
+		s.EnableWebHubChannelIteration = NewPointer(false)
+	}
 }
 
 type CacheSettings struct {
@@ -970,6 +975,7 @@ type CacheSettings struct {
 	RedisAddress       *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisPassword      *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisDB            *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisCachePrefix   *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	DisableClientCache *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
@@ -988,6 +994,10 @@ func (s *CacheSettings) SetDefaults() {
 
 	if s.RedisDB == nil {
 		s.RedisDB = NewPointer(-1)
+	}
+
+	if s.RedisCachePrefix == nil {
+		s.RedisCachePrefix = NewPointer("")
 	}
 
 	if s.DisableClientCache == nil {
@@ -1072,11 +1082,12 @@ func (s *ClusterSettings) SetDefaults() {
 }
 
 type MetricsSettings struct {
-	Enable                    *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
-	BlockProfileRate          *int    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
-	ListenAddress             *string `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
-	EnableClientMetrics       *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
-	EnableNotificationMetrics *bool   `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	Enable                    *bool    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	BlockProfileRate          *int     `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	ListenAddress             *string  `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableClientMetrics       *bool    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	EnableNotificationMetrics *bool    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
+	ClientSideUserIds         []string `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *MetricsSettings) SetDefaults() {
@@ -1099,6 +1110,23 @@ func (s *MetricsSettings) SetDefaults() {
 	if s.EnableNotificationMetrics == nil {
 		s.EnableNotificationMetrics = NewPointer(true)
 	}
+
+	if s.ClientSideUserIds == nil {
+		s.ClientSideUserIds = []string{}
+	}
+}
+
+func (s *MetricsSettings) isValid() *AppError {
+	const maxLength = 5
+	if len(s.ClientSideUserIds) > maxLength {
+		return NewAppError("MetricsSettings.IsValid", "model.config.is_valid.metrics_client_side_user_ids.app_error", map[string]any{"MaxLength": maxLength, "CurrentLength": len(s.ClientSideUserIds)}, "", http.StatusBadRequest)
+	}
+	for _, id := range s.ClientSideUserIds {
+		if !IsValidId(id) {
+			return NewAppError("MetricsSettings.IsValid", "model.config.is_valid.metrics_client_side_user_id.app_error", map[string]any{"Id": id}, "", http.StatusBadRequest)
+		}
+	}
+	return nil
 }
 
 type ExperimentalSettings struct {
@@ -3810,6 +3838,10 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if appErr := o.MetricsSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
 	if appErr := o.CacheSettings.isValid(); appErr != nil {

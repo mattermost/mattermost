@@ -49,6 +49,7 @@ import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} f
 import CompanyInfoEdit from './billing/company_info_edit';
 import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
@@ -1961,6 +1962,15 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
                                 it.configIsFalse('MetricsSettings', 'Enable'),
+                            ),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'MetricsSettings.ClientSideUserIds',
+                            component: ClientSideUserIdsSetting,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.PERFORMANCE_MONITORING)),
+                                it.configIsFalse('MetricsSettings', 'EnableClientMetrics'),
                             ),
                         },
                         {

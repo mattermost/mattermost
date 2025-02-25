@@ -3444,19 +3444,43 @@ func TestUpdateUserMfa(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
+	t.Run("Without enforcing", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
-	session, _ := th.App.GetSession(th.Client.AuthToken)
-	session.IsOAuth = true
-	th.App.AddSessionToCache(session)
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		session.IsOAuth = true
+		th.App.AddSessionToCache(session)
 
-	resp, err := th.Client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		defer th.Server.Platform().ClearUserSessionCacheLocal(th.BasicUser.Id)
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, err = client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		resp, err := th.Client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, err := client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("Enforcing", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+			*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+		})
+
+		resp, err := th.Client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = th.LocalClient.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = th.SystemAdminClient.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.mfa_required.app_error")
 	})
 }
 
@@ -6601,6 +6625,25 @@ func TestConvertUserToBot(t *testing.T) {
 		bot, _, err = client.GetBot(context.Background(), bot.UserId, "")
 		require.NoError(t, err)
 		require.NotNil(t, bot)
+	})
+
+	t.Run("user cannot login after being converted to bot", func(t *testing.T) {
+		// Create a new user
+		user := th.CreateUser()
+
+		// Login as the new user to verify login works initially
+		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
+		// Convert user to bot
+		_, _, err = th.SystemAdminClient.ConvertUserToBot(context.Background(), user.Id)
+		require.NoError(t, err)
+
+		// Try to login again - should fail
+		_, resp, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
+		CheckUnauthorizedStatus(t, resp)
 	})
 }
 

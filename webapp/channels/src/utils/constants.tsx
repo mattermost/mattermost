@@ -665,6 +665,10 @@ export const SocketEvents = {
     SCHEDULED_POST_DELETED: 'scheduled_post_deleted',
     PERSISTENT_NOTIFICATION_TRIGGERED: 'persistent_notification_triggered',
     HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED: 'hosted_customer_signup_progress_updated',
+    CPA_FIELD_CREATED: 'custom_profile_attributes_field_created',
+    CPA_FIELD_UPDATED: 'custom_profile_attributes_field_updated',
+    CPA_FIELD_DELETED: 'custom_profile_attributes_field_deleted',
+    CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
 };
 
 export const TutorialSteps = {
@@ -750,6 +754,14 @@ export const AdvancedTextEditor = {
     COMMENT: 'comment',
     POST: 'post',
     EDIT: 'edit',
+};
+
+export const AdvancedTextEditorTextboxIds = {
+    InCenter: 'post_textbox',
+    InRHSComment: 'reply_textbox',
+    InModal: 'modal_textbox',
+    InEditMode: 'edit_textbox',
+    Default: 'textbox',
 };
 
 export const TELEMETRY_CATEGORIES = {
@@ -1658,10 +1670,6 @@ export const Constants = {
     OPEN_TEAM: 'O',
     THREADS: 'threads',
     MAX_POST_LEN: 4000,
-    EMOJI_SIZE: 16,
-    DEFAULT_EMOJI_PICKER_LEFT_OFFSET: 87,
-    DEFAULT_EMOJI_PICKER_RIGHT_OFFSET: 15,
-    EMOJI_PICKER_WIDTH_OFFSET: 295,
     SIDEBAR_MINIMUM_WIDTH: 640,
     THEME_ELEMENTS: [
         {

@@ -22,6 +22,7 @@
     "@tippyjs/react": "4.2.6",
     "@types/color-hash": "1.0.2",
     "@types/turndown": "5.0.5",
+    "axios": "1.7.9",
     "bootstrap": "3.4.1",
     "buffer": "6.0.3",
     "chart.js": "3.8.2",
@@ -45,7 +46,7 @@
     "html-to-react": "1.6.0",
     "inobounce": "0.2.1",
     "ipaddr.js": "2.1.0",
-    "katex": "0.16.10",
+    "katex": "0.16.21",
     "localforage": "1.10.0",
     "localforage-observable": "2.1.1",
     "lodash": "4.17.21",
@@ -177,6 +178,9 @@
     "yargs": "17.7.2"
   },
   "overrides": {
+    "@mattermost/compass-components": {
+      "axios": "1.7.9"
+    },
     "@mattermost/desktop-api": {
       "typescript": "$typescript"
     }
