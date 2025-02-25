@@ -47,7 +47,6 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
@@ -6478,20 +6477,6 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'Feature Flags',
                     component: FeatureFlags,
-                },
-            },
-            bleve: {
-                url: 'experimental/blevesearch',
-                title: defineMessage({id: 'admin.sidebar.blevesearch', defaultMessage: 'Bleve'}),
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                searchableStrings: bleveSearchableStrings,
-                schema: {
-                    id: 'BleveSettings',
-                    component: BleveSettings,
                 },
             },
             audit_logging: {
