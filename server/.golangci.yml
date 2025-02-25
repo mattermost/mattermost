@@ -89,7 +89,6 @@ issues:
         channels/app/helper_test.go|\
         channels/app/import_functions.go|\
         channels/app/integration_action.go|\
-        channels/app/permissions.go|\
         channels/app/permissions_test.go|\
         channels/app/platform/helper_test.go|\
         channels/app/platform/license.go|\

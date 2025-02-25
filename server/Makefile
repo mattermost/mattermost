@@ -145,7 +145,7 @@ PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.1.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-ai-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-ai-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.1
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.1.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
@@ -846,3 +846,6 @@ test-migration:
 	# for now we exclude plugins such as playbooks and focalboard
 	# we also exlude systems table temporarily due to adding some keys while running the initial migration
 	bin/dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN}" --exclude="db_migrations","ir_","focalboard","systems"
+
+test-local-filestore: # Run tests for local filestore
+	$(GO) test ./platform/shared/filestore -run '^TestLocalFileBackend' -v
