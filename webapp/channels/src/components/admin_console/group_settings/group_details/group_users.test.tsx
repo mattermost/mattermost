@@ -42,7 +42,7 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         const wrapper = shallow(
             <GroupUsers
                 {...defaultProps}
-                source={PluginGroupSourcePrefix + 'keycloak'}
+                source={PluginGroupSourcePrefix.Plugin + 'keycloak'}
             />,
         );
         expect(wrapper).toMatchSnapshot();
