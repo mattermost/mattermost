@@ -648,6 +648,10 @@
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
   {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Cannot post in a restricted DM"
+  },
+  {
     "id": "api.command.execute_command.start.app_error",
     "translation": "No command trigger found."
   },
@@ -2133,6 +2137,10 @@
     "translation": "File storage settings has unset values."
   },
   {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Cannot upload file to restricted DM"
+  },
+  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
   },
@@ -2159,6 +2167,10 @@
   {
     "id": "api.file.upload_file.read_request.app_error",
     "translation": "Unable to upload file(s). Error reading or parsing request data."
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": ""
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2811,8 +2823,16 @@
     "translation": "You cannot remove a reaction in an archived channel."
   },
   {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Cannot react in restricted DM"
+  },
+  {
     "id": "api.reaction.save.archived_channel.app_error",
     "translation": "You cannot react in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Cannot react in restricted DM"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -6707,6 +6727,10 @@
     "translation": "Cannot schedule post in an archived channel."
   },
   {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": ""
+  },
+  {
     "id": "app.save_scheduled_post.save.app_error",
     "translation": "Error occurred saving the scheduled post."
   },
@@ -10483,5 +10507,9 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
+  },
+  {
+    "id": "ç.read_request.app_error",
+    "translation": ""
   }
 ]
