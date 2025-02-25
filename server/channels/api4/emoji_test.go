@@ -734,59 +734,79 @@ func TestSearchEmoji(t *testing.T) {
 		emojis[idx] = newEmoji
 	}
 
-	search := &model.EmojiSearch{Term: searchTerm1}
-	remojis, resp, err := client.SearchEmoji(context.Background(), search)
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
+	t.Run("should return emojis based on the query", func(t *testing.T) {
+		search := &model.EmojiSearch{Term: searchTerm1}
+		remojis, resp, err := client.SearchEmoji(context.Background(), search)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-	found := false
-	for _, e := range remojis {
-		if e.Name == emojis[0].Name {
-			found = true
+		found := false
+		for _, e := range remojis {
+			if e.Name == emojis[0].Name {
+				found = true
+			}
 		}
-	}
 
-	assert.True(t, found)
+		assert.True(t, found)
 
-	search.Term = searchTerm2
-	search.PrefixOnly = true
-	remojis, resp, err = client.SearchEmoji(context.Background(), search)
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
+		search.Term = searchTerm2
+		search.PrefixOnly = true
+		remojis, resp, err = client.SearchEmoji(context.Background(), search)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-	found = false
-	for _, e := range remojis {
-		if e.Name == emojis[1].Name {
-			found = true
+		found = false
+		for _, e := range remojis {
+			if e.Name == emojis[1].Name {
+				found = true
+			}
 		}
-	}
 
-	assert.False(t, found)
+		assert.False(t, found)
 
-	search.PrefixOnly = false
-	remojis, resp, err = client.SearchEmoji(context.Background(), search)
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
+		search.PrefixOnly = false
+		remojis, resp, err = client.SearchEmoji(context.Background(), search)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 
-	found = false
-	for _, e := range remojis {
-		if e.Name == emojis[1].Name {
-			found = true
+		found = false
+		for _, e := range remojis {
+			if e.Name == emojis[1].Name {
+				found = true
+			}
 		}
-	}
 
-	assert.True(t, found)
+		assert.True(t, found)
+	})
 
-	search.Term = ""
-	_, resp, err = client.SearchEmoji(context.Background(), search)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("should return an empty array when no emojis match the query", func(t *testing.T) {
+		search := &model.EmojiSearch{Term: model.NewId()}
 
-	_, err = client.Logout(context.Background())
-	require.NoError(t, err)
-	_, resp, err = client.SearchEmoji(context.Background(), search)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+		remojis, _, err := client.SearchEmoji(context.Background(), search)
+		require.NoError(t, err)
+
+		require.NotEqual(t, nil, remojis)
+		require.Equal(t, []*model.Emoji{}, remojis)
+	})
+
+	t.Run("should return a 400 error when an empty term is passed", func(t *testing.T) {
+		search := &model.EmojiSearch{Term: ""}
+
+		_, resp, err := client.SearchEmoji(context.Background(), search)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("should return a 401 error when logged out", func(t *testing.T) {
+		search := &model.EmojiSearch{Term: searchTerm1}
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+
+		_, resp, err := client.SearchEmoji(context.Background(), search)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestAutocompleteEmoji(t *testing.T) {
@@ -815,32 +835,48 @@ func TestAutocompleteEmoji(t *testing.T) {
 		emojis[idx] = newEmoji
 	}
 
-	remojis, resp, err := client.AutocompleteEmoji(context.Background(), searchTerm1, "")
-	require.NoErrorf(t, err, "AutocompleteEmoji failed with search term: %s", searchTerm1)
-	CheckOKStatus(t, resp)
+	t.Run("should return autocompleted emojis based on the search term", func(t *testing.T) {
+		remojis, resp, err := client.AutocompleteEmoji(context.Background(), searchTerm1, "")
+		require.NoErrorf(t, err, "AutocompleteEmoji failed with search term: %s", searchTerm1)
+		CheckOKStatus(t, resp)
 
-	found1 := false
-	found2 := false
-	for _, e := range remojis {
-		if e.Name == emojis[0].Name {
-			found1 = true
+		found1 := false
+		found2 := false
+		for _, e := range remojis {
+			if e.Name == emojis[0].Name {
+				found1 = true
+			}
+
+			if e.Name == emojis[1].Name {
+				found2 = true
+			}
 		}
 
-		if e.Name == emojis[1].Name {
-			found2 = true
-		}
-	}
+		assert.True(t, found1)
+		assert.False(t, found2)
+	})
 
-	assert.True(t, found1)
-	assert.False(t, found2)
+	t.Run("should return an empty array when no emojis match the search term", func(t *testing.T) {
+		remojis, resp, err := client.AutocompleteEmoji(context.Background(), model.NewId(), "")
+		require.NoErrorf(t, err, "AutocompleteEmoji failed with search term: %s", searchTerm1)
+		CheckOKStatus(t, resp)
 
-	_, resp, err = client.AutocompleteEmoji(context.Background(), "", "")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		require.NotEqual(t, nil, remojis)
+		require.Equal(t, []*model.Emoji{}, remojis)
+	})
 
-	_, err = client.Logout(context.Background())
-	require.NoError(t, err)
-	_, resp, err = client.AutocompleteEmoji(context.Background(), searchTerm1, "")
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("should return a 400 error when an empty term is passed", func(t *testing.T) {
+		_, resp, err := client.AutocompleteEmoji(context.Background(), "", "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("should return a 401 error when logged out", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+
+		_, resp, err := client.AutocompleteEmoji(context.Background(), searchTerm1, "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
