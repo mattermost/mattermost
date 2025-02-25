@@ -92,11 +92,16 @@ func (a *App) CreateCPAField(field *model.CPAField) (*model.PropertyField, *mode
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.limit_reached.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 	}
 
-	if appErr := validateCustomProfileAttributesField(field); appErr != nil {
+	if appErr := field.Validate(); appErr != nil {
 		return nil, appErr
 	}
 
 	field.GroupID = groupID
+	
+	if appErr := field.Validate(); appErr != nil {
+		return nil, appErr
+	}
+	
 	newField, err := a.Srv().propertyService.CreatePropertyField(field.ToPropertyField())
 	if err != nil {
 		var appErr *model.AppError
@@ -131,7 +136,7 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 		return nil, model.NewAppError("UpdateCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := validateCustomProfileAttributesField(cpaField); appErr != nil {
+	if appErr := cpaField.Validate(); appErr != nil {
 		return nil, appErr
 	}
 
@@ -274,32 +279,3 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 	return updatedValues, nil
 }
 
-func validateCustomProfileAttributesField(field *model.CPAField) *model.AppError {
-	switch field.Type {
-	case model.PropertyFieldTypeText:
-		if valueType := strings.TrimSpace(field.Attrs.ValueType); valueType != "" {
-			if !model.IsKnownCustomProfilteAttributesValueType(valueType) {
-				return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"ValueType": valueType}, "", http.StatusUnprocessableEntity)
-			}
-			field.Attrs.ValueType = valueType
-		}
-
-	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect:
-		options := field.Attrs.Options
-		if err := options.IsValid(); err != nil {
-			return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
-		}
-		field.Attrs.Options = options
-	}
-
-	visibility := model.CustomProfileAttributesVisibilityDefault
-	if visibilityAttr := strings.TrimSpace(field.Attrs.Visibility); visibilityAttr != "" {
-		if !model.IsKnownCustomProfilteAttributesVisibility(visibilityAttr) {
-			return model.NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"Visibility": visibilityAttr}, "", http.StatusUnprocessableEntity)
-		}
-		visibility = visibilityAttr
-	}
-	field.Attrs.Visibility = visibility
-
-	return nil
-}

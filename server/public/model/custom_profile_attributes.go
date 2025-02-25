@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+	"strings"
 )
 
 const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
@@ -124,6 +126,36 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	}
 
 	return &pf
+}
+
+func (c *CPAField) Validate() *AppError {
+	switch c.Type {
+	case PropertyFieldTypeText:
+		if valueType := strings.TrimSpace(c.Attrs.ValueType); valueType != "" {
+			if !IsKnownCustomProfilteAttributesValueType(valueType) {
+				return NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_value_type.app_error", map[string]any{"ValueType": valueType}, "", http.StatusUnprocessableEntity)
+			}
+			c.Attrs.ValueType = valueType
+		}
+
+	case PropertyFieldTypeSelect, PropertyFieldTypeMultiselect:
+		options := c.Attrs.Options
+		if err := options.IsValid(); err != nil {
+			return NewAppError("ValidateCPAField", "app.custom_profile_attributes.invalid_options.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
+		}
+		c.Attrs.Options = options
+	}
+
+	visibility := CustomProfileAttributesVisibilityDefault
+	if visibilityAttr := strings.TrimSpace(c.Attrs.Visibility); visibilityAttr != "" {
+		if !IsKnownCustomProfilteAttributesVisibility(visibilityAttr) {
+			return NewAppError("ValidateCPAField", "app.custom_profile_attributes.unknown_visibility.app_error", map[string]any{"Visibility": visibilityAttr}, "", http.StatusUnprocessableEntity)
+		}
+		visibility = visibilityAttr
+	}
+	c.Attrs.Visibility = visibility
+
+	return nil
 }
 
 func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
