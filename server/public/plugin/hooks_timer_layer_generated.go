@@ -291,3 +291,10 @@ func (hooks *hooksTimerLayer) GenerateSupportData(c *Context) ([]*model.FileData
 	hooks.recordTime(startTime, "GenerateSupportData", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, encodedXML string) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSAMLLogin(c, user, encodedXML)
+	hooks.recordTime(startTime, "OnSAMLLogin", _returnsA == nil)
+	return _returnsA
+}
