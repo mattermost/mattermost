@@ -4,7 +4,7 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/gosaml2"
+	saml2 "github.com/mattermost/gosaml2"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
