@@ -80,8 +80,8 @@ func (srv *JobServer) _createJob(c request.CTX, jobType string, jobData map[stri
 	return &job, nil
 }
 
-func (srv *JobServer) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
-	job, err := srv.Store.Job().Get(c, id)
+func (srv *JobServer) GetJob(rctx request.CTX, id string) (*model.Job, *model.AppError) {
+	job, err := srv.Store.Job().Get(rctx, id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

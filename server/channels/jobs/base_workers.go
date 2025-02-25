@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 type SimpleWorker struct {
@@ -80,10 +81,11 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 		return
 	}
 
-	c := request.EmptyContext(worker.logger)
+	//  Ensure to read from master after updating the job status because of read-after-write issue.
+	rctx := sqlstore.RequestContextWithMaster(request.EmptyContext(worker.logger))
 
 	// We get the job again because ClaimJob changes the job status.
-	newJob, appErr := worker.jobServer.GetJob(c, job.Id)
+	newJob, appErr := worker.jobServer.GetJob(rctx, job.Id)
 	if appErr != nil {
 		logger.Error("SimpleWorker: job execution error", mlog.Err(appErr))
 		worker.setJobError(logger, job, appErr)
