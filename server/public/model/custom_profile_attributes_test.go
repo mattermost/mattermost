@@ -75,6 +75,25 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "property field with empty attributes",
+			propertyField: &PropertyField{
+				ID:       NewId(),
+				GroupID:  CustomProfileAttributesPropertyGroupName,
+				Name:     "Empty Field",
+				Type:     PropertyFieldTypeText,
+				Attrs:    StringInterface{},
+				CreateAt: GetMillis(),
+				UpdateAt: GetMillis(),
+			},
+			wantAttrs: CPAAttrs{
+				Visibility: "",
+				SortOrder:  "",
+				ValueType:  "",
+				Options:    nil,
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {
