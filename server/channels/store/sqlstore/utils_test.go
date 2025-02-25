@@ -11,6 +11,10 @@ import (
 )
 
 func TestMapStringsToQueryParams(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
 	t.Run("one item", func(t *testing.T) {
 		input := []string{"apple"}
 
@@ -34,8 +38,10 @@ func TestMapStringsToQueryParams(t *testing.T) {
 	})
 }
 
-var keys string
-var params map[string]any
+var (
+	keys   string
+	params map[string]any
+)
 
 func BenchmarkMapStringsToQueryParams(b *testing.B) {
 	b.Run("one item", func(b *testing.B) {
@@ -53,6 +59,10 @@ func BenchmarkMapStringsToQueryParams(b *testing.B) {
 }
 
 func TestSanitizeSearchTerm(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
 	term := "test"
 	result := sanitizeSearchTerm(term, "\\")
 	require.Equal(t, result, term)
@@ -79,6 +89,10 @@ func TestSanitizeSearchTerm(t *testing.T) {
 }
 
 func TestRemoveNonAlphaNumericUnquotedTerms(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
 	const (
 		sep           = " "
 		chineseHello  = "你好"
@@ -106,6 +120,10 @@ func TestRemoveNonAlphaNumericUnquotedTerms(t *testing.T) {
 }
 
 func TestMySQLJSONArgs(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
 	tests := []struct {
 		props     map[string]string
 		args      []any

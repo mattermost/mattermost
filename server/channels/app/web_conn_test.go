@@ -4,7 +4,6 @@
 package app
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,8 +18,10 @@ import (
 // happen inside web_hub.go before the event is actually broadcasted, and checked
 // via ShouldSendEvent.
 func TestWebConnShouldSendEvent(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_WEBSOCKETEVENTSCOPE", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_WEBSOCKETEVENTSCOPE")
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{

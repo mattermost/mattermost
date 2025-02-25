@@ -31,6 +31,9 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -50,6 +53,9 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestCreateTeamWithUser(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -69,6 +75,9 @@ func TestCreateTeamWithUser(t *testing.T) {
 }
 
 func TestUpdateTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -80,6 +89,9 @@ func TestUpdateTeam(t *testing.T) {
 }
 
 func TestAddUserToTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -199,6 +211,9 @@ func TestAddUserToTeam(t *testing.T) {
 }
 
 func TestAddUserToTeamByToken(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -443,6 +458,9 @@ func TestAddUserToTeamByToken(t *testing.T) {
 }
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -470,6 +488,9 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 }
 
 func TestAdjustTeamsFromProductLimits(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	teams := []*model.Team{
@@ -623,6 +644,9 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -678,6 +702,9 @@ func TestPermanentDeleteTeam(t *testing.T) {
 }
 
 func TestSanitizeTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -804,6 +831,9 @@ func TestSanitizeTeam(t *testing.T) {
 }
 
 func TestSanitizeTeams(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -877,6 +907,9 @@ func TestSanitizeTeams(t *testing.T) {
 }
 
 func TestJoinUserToTeam(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -988,6 +1021,9 @@ func TestJoinUserToTeam(t *testing.T) {
 }
 
 func TestLeaveTeamPanic(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1001,7 +1037,8 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockChannelStore.On("GetMember", context.Background(), "channelID", "userID").Return(&model.ChannelMember{
 		NotifyProps: model.StringMap{
 			model.PushNotifyProp: model.ChannelNotifyDefault,
-		}}, nil)
+		},
+	}, nil)
 	mockChannelStore.On("GetChannels", "myteam", "userID", mock.Anything).Return(model.ChannelList{}, nil)
 
 	var err error
@@ -1069,6 +1106,9 @@ func TestLeaveTeamPanic(t *testing.T) {
 }
 
 func TestAppUpdateTeamScheme(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1121,6 +1161,9 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 }
 
 func TestGetTeamMembers(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1229,6 +1272,9 @@ func TestGetTeamMembers(t *testing.T) {
 }
 
 func TestGetTeamStats(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1293,6 +1339,9 @@ func TestGetTeamStats(t *testing.T) {
 }
 
 func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1356,6 +1405,9 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 }
 
 func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1379,6 +1431,9 @@ func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 }
 
 func TestInvalidateAllEmailInvites(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1423,6 +1478,9 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 }
 
 func TestClearTeamMembersCache(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1445,6 +1503,9 @@ func TestClearTeamMembersCache(t *testing.T) {
 }
 
 func TestInviteNewUsersToTeamGracefully(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1558,6 +1619,9 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 }
 
 func TestInviteGuestsToChannelsGracefully(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1622,6 +1686,9 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 }
 
 func TestTeamSendEvents(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

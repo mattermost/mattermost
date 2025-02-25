@@ -20,6 +20,9 @@ import (
 )
 
 func TestListImports(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -61,8 +64,7 @@ func TestListImports(t *testing.T) {
 		require.Nil(t, imports)
 	})
 
-	dataDir, found := fileutils.FindDir("data")
-	require.True(t, found)
+	dataDir := *th.App.Config().FileSettings.Directory
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		imports, _, err := c.ListImports(context.Background())
@@ -111,6 +113,9 @@ func TestListImports(t *testing.T) {
 }
 
 func TestImportInLocalMode(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithServerOptions(t, []app.Option{app.RunEssentialJobs})
 	defer th.TearDown()
 

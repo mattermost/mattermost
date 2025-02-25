@@ -28,6 +28,9 @@ import (
 )
 
 func TestReactionsOfPost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -58,6 +61,9 @@ func TestReactionsOfPost(t *testing.T) {
 }
 
 func TestExportUserNotifyProps(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -85,6 +91,9 @@ func TestExportUserNotifyProps(t *testing.T) {
 }
 
 func TestExportUserChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -136,6 +145,9 @@ func TestExportUserChannels(t *testing.T) {
 }
 
 func TestCopyEmojiImages(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -172,6 +184,9 @@ func TestCopyEmojiImages(t *testing.T) {
 }
 
 func TestExportCustomEmoji(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -192,6 +207,9 @@ func TestExportCustomEmoji(t *testing.T) {
 }
 
 func TestExportAllUsers(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t)
 	defer th1.TearDown()
 
@@ -204,8 +222,15 @@ func TestExportAllUsers(t *testing.T) {
 	err = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, err)
 
-	th2 := Setup(t)
-	defer th2.TearDown()
+	var th2 *TestHelper
+	if mainHelper.Options.RunParallel {
+		th1.Store.DropAllTables()
+		th2 = th1
+	} else {
+		th2 = Setup(t)
+		defer th2.TearDown()
+	}
+
 	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.EqualValues(t, 0, i)
@@ -241,6 +266,9 @@ func TestExportAllUsers(t *testing.T) {
 }
 
 func TestExportAllBots(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t)
 	defer th1.TearDown()
 
@@ -276,6 +304,9 @@ func TestExportAllBots(t *testing.T) {
 }
 
 func TestExportDMChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("Export a DM channel to another server", func(t *testing.T) {
 		th1 := Setup(t).InitBasic()
 		defer th1.TearDown()
@@ -407,6 +438,9 @@ func TestExportDMChannel(t *testing.T) {
 }
 
 func TestExportDMChannelToSelf(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
@@ -441,6 +475,9 @@ func TestExportDMChannelToSelf(t *testing.T) {
 }
 
 func TestExportGMChannel(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 
 	user1 := th1.CreateUser()
@@ -470,6 +507,9 @@ func TestExportGMChannel(t *testing.T) {
 }
 
 func TestExportGMandDMChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 
 	// DM Channel
@@ -517,6 +557,9 @@ func TestExportGMandDMChannels(t *testing.T) {
 }
 
 func TestExportDMandGMPost(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 
 	// DM Channel
@@ -601,6 +644,9 @@ func TestExportDMandGMPost(t *testing.T) {
 }
 
 func TestExportPostWithProps(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 
 	attachments := []*model.SlackAttachment{{Footer: "footer"}}
@@ -678,6 +724,9 @@ func TestExportPostWithProps(t *testing.T) {
 }
 
 func TestExportUserCustomStatus(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 
 	cs := &model.CustomStatus{
@@ -712,6 +761,9 @@ func TestExportUserCustomStatus(t *testing.T) {
 }
 
 func TestExportDMPostWithSelf(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 
 	// DM Channel with self (me channel)
@@ -749,6 +801,9 @@ func TestExportDMPostWithSelf(t *testing.T) {
 }
 
 func TestExportPostsWithThread(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
@@ -988,6 +1043,9 @@ func TestExportFileWarnings(t *testing.T) {
 }
 
 func TestBulkExport(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t)
 	testsDir, _ := fileutils.FindDir("tests")
 
@@ -1042,6 +1100,9 @@ func TestBulkExport(t *testing.T) {
 }
 
 func TestBuildPostReplies(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1106,6 +1167,9 @@ func TestBuildPostReplies(t *testing.T) {
 }
 
 func TestExportDeletedTeams(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
@@ -1121,8 +1185,15 @@ func TestExportDeletedTeams(t *testing.T) {
 	err = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, err)
 
-	th2 := Setup(t)
-	defer th2.TearDown()
+	var th2 *TestHelper
+	if mainHelper.Options.RunParallel {
+		th1.Store.DropAllTables()
+		th2 = th1
+	} else {
+		th2 = Setup(t)
+		defer th2.TearDown()
+	}
+
 	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
@@ -1147,6 +1218,9 @@ func TestExportDeletedTeams(t *testing.T) {
 }
 
 func TestExportArchivedChannels(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
@@ -1182,6 +1256,9 @@ func TestExportArchivedChannels(t *testing.T) {
 }
 
 func TestExportRoles(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("defaults", func(t *testing.T) {
 		th1 := Setup(t).InitBasic()
 		defer th1.TearDown()
@@ -1280,6 +1357,9 @@ func TestExportRoles(t *testing.T) {
 }
 
 func TestExportSchemes(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("no schemes", func(t *testing.T) {
 		th1 := Setup(t).InitBasic()
 		defer th1.TearDown()

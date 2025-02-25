@@ -13,6 +13,9 @@ import (
 )
 
 func TestSidebarCategory(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -86,6 +89,9 @@ func TestSidebarCategory(t *testing.T) {
 }
 
 func TestGetSidebarCategories(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("should return the sidebar categories for the given user/team", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -128,11 +134,10 @@ func TestGetSidebarCategories(t *testing.T) {
 		defer th.TearDown()
 
 		// Temporarily renaming a table to force a DB error.
-		sqlStore := mainHelper.GetSQLStore()
-		_, err := sqlStore.GetMaster().Exec("ALTER TABLE SidebarCategories RENAME TO SidebarCategoriesTest")
+		_, err := th.SQLStore.GetMaster().Exec("ALTER TABLE SidebarCategories RENAME TO SidebarCategoriesTest")
 		require.NoError(t, err)
 		defer func() {
-			_, err := sqlStore.GetMaster().Exec("ALTER TABLE SidebarCategoriesTest RENAME TO SidebarCategories")
+			_, err := th.SQLStore.GetMaster().Exec("ALTER TABLE SidebarCategoriesTest RENAME TO SidebarCategories")
 			require.NoError(t, err)
 		}()
 
@@ -144,6 +149,9 @@ func TestGetSidebarCategories(t *testing.T) {
 }
 
 func TestUpdateSidebarCategories(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("should mute and unmute all channels in a category when it is muted or unmuted", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -487,6 +495,9 @@ func TestUpdateSidebarCategories(t *testing.T) {
 }
 
 func TestDiffChannelsBetweenCategories(t *testing.T) {
+	if mainHelper.Options.RunParallel {
+		t.Parallel()
+	}
 	t.Run("should return nothing when the categories contain identical channels", func(t *testing.T) {
 		originalCategories := []*model.SidebarCategoryWithChannels{
 			{
