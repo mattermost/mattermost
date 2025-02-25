@@ -445,4 +445,23 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         rerender(<AdvancedTextEditor {...props}/>);
         expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
     });
+
+    it('should have focus for empty message', () => {
+        renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    roles: {
+                        roles: {
+                            user_roles: {permissions: [Permissions.CREATE_POST]},
+                        },
+                    },
+                },
+            }),
+        );
+        const textbox = screen.getByTestId('post_textbox');
+        expect(textbox).toHaveFocus();
+    });
 });
