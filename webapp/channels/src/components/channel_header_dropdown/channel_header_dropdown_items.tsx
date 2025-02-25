@@ -15,6 +15,7 @@ import ChannelGroupsManageModal from 'components/channel_groups_manage_modal';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import ConvertChannelModal from 'components/convert_channel_modal';
 import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal';
 import DeleteChannelModal from 'components/delete_channel_modal';
@@ -55,6 +56,8 @@ export type Props = {
     isLicensedForLDAPGroups: boolean;
     isChannelBookmarksEnabled: boolean;
 }
+
+const SHOW_SETTINGS_MODAL = true;
 
 export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
     render() {
@@ -124,6 +127,15 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         show={isMobile}
                         channel={channel}
                         isFavorite={isFavorite}
+                    />
+                    <Menu.ItemToggleModalRedux
+                        id='channelSettings'
+                        show={!isArchived && channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && SHOW_SETTINGS_MODAL}
+                        modalId={ModalIdentifiers.CHANNEL_SETTINGS}
+                        dialogType={ChannelSettingsModal}
+                        dialogProps={{channel}}
+                        text={localizeMessage({id: 'channel_header.settings', defaultMessage: 'Channel Settings'})}
+
                     />
                     <MenuItemViewPinnedPosts
                         show={isMobile}
