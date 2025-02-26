@@ -4240,7 +4240,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	// Check that a system admin can set the default profile image for another system admin
 	anotherAdmin := th.CreateUser()
 	_, err = th.App.UpdateUserRoles(th.Context, anotherAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), anotherAdmin.Id)
 	require.NoError(t, err)
