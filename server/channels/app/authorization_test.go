@@ -376,6 +376,7 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+		assert.False(t, th.App.SessionHasPermissionToUser(session, th.SystemAdminUser.Id))
 		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
