@@ -26,10 +26,10 @@ type Props = {
     options: SearchTerm[];
     highlightedIndex?: number;
     onOptionHover?: (index: number) => void;
-    onSearchTypeSelected?: (searchType: 'files' | 'messages') => void;
+    onSearchTypeSelected?: (searchType: 'files' | 'messages' | 'omnisearch') => void;
     onElementBlur?: () => void;
     onElementFocus?: () => void;
-    searchType?: 'files' | 'messages' | '';
+    searchType?: 'files' | 'messages' | 'omnisearch' | '';
 }
 
 const SearchHint = (props: Props): JSX.Element => {
