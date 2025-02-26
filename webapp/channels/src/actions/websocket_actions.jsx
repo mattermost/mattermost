@@ -1435,44 +1435,39 @@ function handleGroupUpdatedEvent(msg) {
     );
 }
 
-function handleMyGroupUpdate() {
+function handleMyGroupUpdate(groupMember) {
     dispatch(batchActions([
         {
             type: GroupTypes.ADD_MY_GROUP,
-            id: groupInfo.group_id,
+            id: groupMember.group_id,
         },
         {
             type: GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP,
-            data: groupInfo,
-            id: groupInfo.group_id,
+            data: groupMember,
+            id: groupMember.group_id,
+        },
+        {
+            type: UserTypes.RECEIVED_PROFILES_FOR_GROUP,
+            data: [groupMember],
+            id: groupMember.group_id,
         },
     ]));
-    const receivedProfile = getUser(state, groupInfo.user_id);
-    if (receivedProfile) {
-        dispatch(
-            {
-                type: UserTypes.RECEIVED_PROFILES_FOR_GROUP,
-                data: [receivedProfile],
-                id: groupInfo.group_id,
-            },
-        )
-    }
 }
 
 export function handleGroupAddedMemberEvent(msg) {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
-        const groupInfo = JSON.parse(msg.data.group_member);
+        const groupMember = JSON.parse(msg.data.group_member);
 
-        if (currentUserId === groupInfo.user_id) {
-            const group = getGroup(state, groupInfo.group_id);
+        if (currentUserId === groupMember.user_id) {
+            const group = getGroup(state, groupMember.group_id);
             if (group) {
-                handleMyGroupUpdate()
+                handleMyGroupUpdate(groupMember);
             } else {
-                const {error} = await doDispatch(fetchGroup(groupInfo.group_id, true));
+                const {error} = await doDispatch(fetchGroup(groupMember.group_id, true));
                 if (!error) {
-                    handleMyGroupUpdate()
+                    handleMyGroupUpdate(groupMember);
                 }
             }
         }

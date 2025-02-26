@@ -1,28 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudTypes} from 'mattermost-redux/action_types';
-import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
-import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
-import {getGroup} from 'mattermost-redux/actions/groups';
+import { CloudTypes } from 'mattermost-redux/action_types';
+import { fetchMyCategories } from 'mattermost-redux/actions/channel_categories';
+import { fetchAllMyTeamsChannels } from 'mattermost-redux/actions/channels';
+import { getGroup } from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
-import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
-import {getUser} from 'mattermost-redux/actions/users';
-import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
+import { batchFetchStatusesProfilesGroupsFromPosts } from 'mattermost-redux/actions/status_profile_polling';
+import { getUser } from 'mattermost-redux/actions/users';
+import { getStatusForUserId } from 'mattermost-redux/selectors/entities/users';
 
-import {handleNewPost} from 'actions/post_actions';
-import {syncPostsInChannel} from 'actions/views/channel';
-import {closeRightHandSide} from 'actions/views/rhs';
+import { handleNewPost } from 'actions/post_actions';
+import { syncPostsInChannel } from 'actions/views/channel';
+import { closeRightHandSide } from 'actions/views/rhs';
 import realConfigureStore from 'store';
 import store from 'stores/redux_store';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
-import {getHistory} from 'utils/browser_history';
-import Constants, {SocketEvents, ActionTypes, UserStatuses} from 'utils/constants';
+import { getHistory } from 'utils/browser_history';
+import Constants, { SocketEvents, ActionTypes, UserStatuses } from 'utils/constants';
 
 import {
     handleChannelUpdatedEvent,
@@ -45,7 +45,7 @@ import {
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
-    getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
+    getPostThreads: jest.fn(() => ({ type: 'GET_THREADS_FOR_POSTS' })),
     getMentionsAndStatusesForPosts: jest.fn(),
 }));
 
@@ -56,29 +56,29 @@ jest.mock('mattermost-redux/actions/channel_categories', () => ({
 
 jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
     ...jest.requireActual('mattermost-redux/actions/status_profile_polling'),
-    batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({type: ''})),
+    batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({ type: '' })),
 }));
 
 jest.mock('mattermost-redux/actions/groups', () => ({
     ...jest.requireActual('mattermost-redux/actions/groups'),
-    getGroup: jest.fn(() => ({type: 'RECEIVED_GROUP'})),
+    getGroup: jest.fn(() => ({ type: 'RECEIVED_GROUP' })),
 }));
 
 jest.mock('mattermost-redux/actions/users', () => ({
-    getMissingProfilesByIds: jest.fn(() => ({type: 'GET_MISSING_PROFILES_BY_IDS'})),
-    getStatusesByIds: jest.fn(() => ({type: 'GET_STATUSES_BY_IDS'})),
-    getUser: jest.fn(() => ({type: 'GET_STATUSES_BY_IDS'})),
+    getMissingProfilesByIds: jest.fn(() => ({ type: 'GET_MISSING_PROFILES_BY_IDS' })),
+    getStatusesByIds: jest.fn(() => ({ type: 'GET_STATUSES_BY_IDS' })),
+    getUser: jest.fn(() => ({ type: 'GET_STATUSES_BY_IDS' })),
 }));
 
 jest.mock('mattermost-redux/actions/channels', () => ({
-    getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
-    fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
+    getChannelStats: jest.fn(() => ({ type: 'GET_CHANNEL_STATS' })),
+    fetchAllMyChannelMembers: jest.fn(() => ({ type: 'FETCH_ALL_MY_CHANNEL_MEMBERS' })),
     fetchAllMyTeamsChannels: jest.fn(),
 }));
 
 jest.mock('actions/post_actions', () => ({
     ...jest.requireActual('actions/post_actions'),
-    handleNewPost: jest.fn(() => ({type: 'HANDLE_NEW_POST'})),
+    handleNewPost: jest.fn(() => ({ type: 'HANDLE_NEW_POST' })),
 }));
 
 jest.mock('actions/user_actions', () => ({
@@ -177,11 +177,11 @@ let mockState = {
         },
         posts: {
             posts: {
-                post1: {id: 'post1', channel_id: 'otherChannel', create_at: '12341'},
-                post2: {id: 'post2', channel_id: 'otherChannel', create_at: '12342'},
-                post3: {id: 'post3', channel_id: 'channel2', create_at: '12343'},
-                post4: {id: 'post4', channel_id: 'channel2', create_at: '12344'},
-                post5: {id: 'post5', channel_id: 'otherChannel', create_at: '12345'},
+                post1: { id: 'post1', channel_id: 'otherChannel', create_at: '12341' },
+                post2: { id: 'post2', channel_id: 'otherChannel', create_at: '12342' },
+                post3: { id: 'post3', channel_id: 'channel2', create_at: '12343' },
+                post4: { id: 'post4', channel_id: 'channel2', create_at: '12344' },
+                post5: { id: 'post5', channel_id: 'otherChannel', create_at: '12345' },
             },
             postsInChannel: {
                 otherChannel: [{
@@ -213,13 +213,13 @@ jest.mock('stores/redux_store', () => {
 
 jest.mock('actions/views/rhs', () => ({
     closeRightHandSide: jest.fn(() => {
-        return {type: ''};
+        return { type: '' };
     }),
 }));
 
 describe('handleEvent', () => {
     test('should dispatch channel updated event properly', () => {
-        const msg = {event: SocketEvents.CHANNEL_UPDATED};
+        const msg = { event: SocketEvents.CHANNEL_UPDATED };
 
         handleEvent(msg);
 
@@ -230,7 +230,7 @@ describe('handleEvent', () => {
 describe('handlePostEditEvent', () => {
     test('post edited', async () => {
         const post = '{"id":"test","create_at":123,"update_at":123,"user_id":"user","channel_id":"12345","root_id":"","message":"asd","pending_post_id":"2345","metadata":{}}';
-        const expectedAction = {type: 'RECEIVED_POST', data: JSON.parse(post), features: {crtEnabled: false}};
+        const expectedAction = { type: 'RECEIVED_POST', data: JSON.parse(post), features: { crtEnabled: false } };
         const msg = {
             data: {
                 post,
@@ -259,8 +259,34 @@ describe('handleGroupAddedMemberEvent', () => {
 
         testStore.dispatch(handleGroupAddedMemberEvent(msg));
         expect(store.dispatch).toHaveBeenCalledWith({
-            type: 'ADD_MY_GROUP',
-            id: 'group-1',
+            meta: { batch: true },
+            payload: [
+                {
+                    type: 'ADD_MY_GROUP',
+                    id: 'group-1',
+                },
+                {
+                    data: {
+                        create_at: 1691178673417,
+                        delete_at: 0,
+                        group_id: "group-1",
+                        user_id: "currentUserId",
+                    },
+                    id: "group-1",
+                    type: "RECEIVED_MEMBER_TO_ADD_TO_GROUP",
+                },
+                {
+                    data: [{
+                        create_at: 1691178673417,
+                        delete_at: 0,
+                        group_id: "group-1",
+                        user_id: "currentUserId",
+                    }],
+                    id: "group-1",
+                    type: "RECEIVED_PROFILES_FOR_GROUP",
+                }
+            ],
+            type: "BATCHING_REDUCER.BATCH"
         });
     });
 
@@ -277,15 +303,15 @@ describe('handleGroupAddedMemberEvent', () => {
 
         testStore.dispatch(handleGroupAddedMemberEvent(msg));
         expect(getGroup).toHaveBeenCalled();
-        expect(testStore.getActions()).toEqual([{type: 'RECEIVED_GROUP'}]);
+        expect(testStore.getActions()).toEqual([{ type: 'RECEIVED_GROUP' }]);
     });
 });
 
 describe('handlePostUnreadEvent', () => {
     test('post marked as unred', async () => {
-        const msgData = {last_viewed_at: 123, msg_count: 40, mention_count: 1};
-        const expectedData = {lastViewedAt: 123, msgCount: 40, mentionCount: 1, channelId: 'channel1'};
-        const expectedAction = {type: 'POST_UNREAD_SUCCESS', data: expectedData};
+        const msgData = { last_viewed_at: 123, msg_count: 40, mention_count: 1 };
+        const expectedData = { lastViewedAt: 123, msgCount: 40, mentionCount: 1, channelId: 'channel1' };
+        const expectedAction = { type: 'POST_UNREAD_SUCCESS', data: expectedData };
         const msg = {
             data: msgData,
             broadcast: {
@@ -329,10 +355,10 @@ describe('handleUserRemovedEvent', () => {
 
     test('shouldn\'t remove the team user if the user have view members permissions', () => {
         const expectedAction = {
-            meta: {batch: true},
+            meta: { batch: true },
             payload: [
-                {type: 'RECEIVED_PROFILE_NOT_IN_TEAM', data: {id: 'otherTeam', user_id: 'guestId'}},
-                {type: 'REMOVE_MEMBER_FROM_TEAM', data: {team_id: 'otherTeam', user_id: 'guestId'}},
+                { type: 'RECEIVED_PROFILE_NOT_IN_TEAM', data: { id: 'otherTeam', user_id: 'guestId' } },
+                { type: 'REMOVE_MEMBER_FROM_TEAM', data: { team_id: 'otherTeam', user_id: 'guestId' } },
             ],
             type: 'BATCHING_REDUCER.BATCH',
         };
@@ -351,10 +377,10 @@ describe('handleUserRemovedEvent', () => {
 
     test('should remove the team user if the user doesn\'t have view members permissions', () => {
         const expectedAction = {
-            meta: {batch: true},
+            meta: { batch: true },
             payload: [
-                {type: 'RECEIVED_PROFILE_NOT_IN_TEAM', data: {id: 'otherTeam', user_id: 'guestId'}},
-                {type: 'REMOVE_MEMBER_FROM_TEAM', data: {team_id: 'otherTeam', user_id: 'guestId'}},
+                { type: 'RECEIVED_PROFILE_NOT_IN_TEAM', data: { id: 'otherTeam', user_id: 'guestId' } },
+                { type: 'REMOVE_MEMBER_FROM_TEAM', data: { team_id: 'otherTeam', user_id: 'guestId' } },
             ],
             type: 'BATCHING_REDUCER.BATCH',
         };
@@ -506,7 +532,7 @@ describe('handleNewPostEvent', () => {
     test('should receive post correctly', () => {
         const testStore = configureStore(initialState);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: 'user1'};
+        const post = { id: 'post1', channel_id: 'channel1', user_id: 'user1' };
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -522,7 +548,7 @@ describe('handleNewPostEvent', () => {
     test('should set other user to online', () => {
         const testStore = realConfigureStore(initialState);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId};
+        const post = { id: 'post1', channel_id: 'channel1', user_id: otherUserId };
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -540,7 +566,7 @@ describe('handleNewPostEvent', () => {
     test('should not set other user to online if post was from autoresponder', () => {
         const testStore = realConfigureStore(initialState);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId, type: Constants.AUTO_RESPONDER};
+        const post = { id: 'post1', channel_id: 'channel1', user_id: otherUserId, type: Constants.AUTO_RESPONDER };
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -572,7 +598,7 @@ describe('handleNewPostEvent', () => {
             },
         });
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId};
+        const post = { id: 'post1', channel_id: 'channel1', user_id: otherUserId };
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -592,7 +618,7 @@ describe('handleNewPostEvent', () => {
 
         expect(testStore.getState().entities.users.statuses[otherUserId]).toBe(undefined);
 
-        const post = {id: 'post1', channel_id: 'channel1', user_id: otherUserId};
+        const post = { id: 'post1', channel_id: 'channel1', user_id: otherUserId };
         const msg = {
             data: {
                 post: JSON.stringify(post),
@@ -620,16 +646,16 @@ describe('handleNewPostEvents', () => {
         const testStore = configureStore(initialState);
 
         const posts = [
-            {id: 'post1', channel_id: 'channel1'},
-            {id: 'post2', channel_id: 'channel1'},
-            {id: 'post3', channel_id: 'channel2'},
-            {id: 'post4', channel_id: 'channel2'},
-            {id: 'post5', channel_id: 'channel1'},
+            { id: 'post1', channel_id: 'channel1' },
+            { id: 'post2', channel_id: 'channel1' },
+            { id: 'post3', channel_id: 'channel2' },
+            { id: 'post4', channel_id: 'channel2' },
+            { id: 'post5', channel_id: 'channel1' },
         ];
 
         const queue = posts.map((post) => {
             return {
-                data: {post: JSON.stringify(post)},
+                data: { post: JSON.stringify(post) },
             };
         });
 
@@ -637,7 +663,7 @@ describe('handleNewPostEvents', () => {
 
         expect(testStore.getActions()[0]).toEqual({
             type: 'BATCHING_REDUCER.BATCH',
-            meta: {batch: true},
+            meta: { batch: true },
             payload: posts.map((post) => receivedNewPost(post, false)),
         });
         expect(testStore.getActions()[1]).toEqual({
@@ -680,7 +706,7 @@ describe('handleChannelUpdatedEvent', () => {
             teams: {
                 currentTeamId: 'team',
                 teams: {
-                    team: {id: 'team', name: 'team'},
+                    team: { id: 'team', name: 'team' },
                 },
             },
         },
@@ -693,12 +719,12 @@ describe('handleChannelUpdatedEvent', () => {
             id: 'channel',
             team_id: 'team',
         };
-        const msg = {data: {channel: JSON.stringify(channel)}};
+        const msg = { data: { channel: JSON.stringify(channel) } };
 
         testStore.dispatch(handleChannelUpdatedEvent(msg));
         expect(testStore.getActions()).toEqual([{
             type: 'BATCHING_REDUCER.BATCH',
-            meta: {batch: true},
+            meta: { batch: true },
             payload: [
                 {
                     type: 'RECEIVED_CHANNEL',
@@ -722,11 +748,11 @@ describe('handleChannelUpdatedEvent', () => {
             type: Constants.PRIVATE_CHANNEL,
         };
 
-        const msg = {data: {channel: JSON.stringify(channel)}};
+        const msg = { data: { channel: JSON.stringify(channel) } };
         testStore.dispatch(handleChannelUpdatedEvent(msg));
         expect(testStore.getActions()).toEqual([{
             type: 'BATCHING_REDUCER.BATCH',
-            meta: {batch: true},
+            meta: { batch: true },
             payload: [
                 {
                     type: 'RECEIVED_CHANNEL',
@@ -755,7 +781,7 @@ describe('handleChannelUpdatedEvent', () => {
             id: 'channel',
             team_id: 'team',
         };
-        const msg = {data: {channel: JSON.stringify(channel)}};
+        const msg = { data: { channel: JSON.stringify(channel) } };
 
         testStore.dispatch(handleChannelUpdatedEvent(msg));
 
@@ -765,8 +791,8 @@ describe('handleChannelUpdatedEvent', () => {
     test('should not change URL when another channel is updated', () => {
         const testStore = configureStore(initialState);
 
-        const channel = {id: 'otherchannel'};
-        const msg = {data: {channel: JSON.stringify(channel)}};
+        const channel = { id: 'otherchannel' };
+        const msg = { data: { channel: JSON.stringify(channel) } };
 
         testStore.dispatch(handleChannelUpdatedEvent(msg));
 
@@ -877,7 +903,7 @@ describe('handleCloudSubscriptionChanged', () => {
         const initialState = {
             entities: {
                 cloud: {
-                    subscription: {...baseSubscription},
+                    subscription: { ...baseSubscription },
                 },
                 general: {
                     license: {
@@ -968,7 +994,7 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             document.createElement.mockReturnValue(mockScript);
 
             expect(mockScript.onload).toBeUndefined();
-            handlePluginEnabled({data: {manifest}});
+            handlePluginEnabled({ data: { manifest } });
 
             expect(document.createElement).toHaveBeenCalledWith('script');
             expect(document.getElementsByTagName).toHaveBeenCalledTimes(1);
@@ -997,7 +1023,7 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
 
             // Assert handlePluginEnabled is idempotent
             mockScript.onload = undefined;
-            handlePluginEnabled({data: {manifest}});
+            handlePluginEnabled({ data: { manifest } });
             expect(mockScript.onload).toBeUndefined();
 
             dispatchArg = store.dispatch.mock.calls[2][0];
@@ -1033,7 +1059,7 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             document.createElement.mockReturnValue(mockScript);
 
             expect(mockScript.onload).toBeUndefined();
-            handlePluginEnabled({data: {manifest}});
+            handlePluginEnabled({ data: { manifest } });
 
             expect(document.createElement).toHaveBeenCalledWith('script');
             expect(document.getElementsByTagName).toHaveBeenCalledTimes(1);
@@ -1059,10 +1085,10 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
 
             // Upgrade plugin
             mockScript.onload = undefined;
-            handlePluginEnabled({data: {manifest: manifestv2}});
+            handlePluginEnabled({ data: { manifest: manifestv2 } });
 
             // Assert upgrade is idempotent
-            handlePluginEnabled({data: {manifest: manifestv2}});
+            handlePluginEnabled({ data: { manifest: manifestv2 } });
 
             expect(mockScript.onload).toBeInstanceOf(Function);
             expect(document.createElement).toHaveBeenCalledTimes(2);
@@ -1150,16 +1176,16 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             expect(mockScript.onload).toBeUndefined();
 
             // Enable plugin
-            handlePluginEnabled({data: {manifest}});
+            handlePluginEnabled({ data: { manifest } });
 
             expect(document.createElement).toHaveBeenCalledWith('script');
             expect(document.createElement).toHaveBeenCalledTimes(1);
 
             // Disable plugin
-            handlePluginDisabled({data: {manifest}});
+            handlePluginDisabled({ data: { manifest } });
 
             // Assert handlePluginDisabled is idempotent
-            handlePluginDisabled({data: {manifest}});
+            handlePluginDisabled({ data: { manifest } });
 
             expect(store.dispatch).toHaveBeenCalledTimes(3);
 
@@ -1185,20 +1211,20 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
 describe('handleAppsPluginEnabled', () => {
     test('plugin enabled action is dispatched', async () => {
         const enableAction = handleAppsPluginEnabled();
-        expect(enableAction).toEqual({type: 'APPS_PLUGIN_ENABLED'});
+        expect(enableAction).toEqual({ type: 'APPS_PLUGIN_ENABLED' });
     });
 });
 
 describe('handleAppsPluginDisabled', () => {
     test('plugin disabled action is dispatched', async () => {
         const disableAction = handleAppsPluginDisabled();
-        expect(disableAction).toEqual({type: 'APPS_PLUGIN_DISABLED'});
+        expect(disableAction).toEqual({ type: 'APPS_PLUGIN_DISABLED' });
     });
 });
 
 describe('handleLeaveTeam', () => {
     test('when a user leave a team', () => {
-        const msg = {data: {team_id: 'team', user_id: 'member1'}};
+        const msg = { data: { team_id: 'team', user_id: 'member1' } };
 
         handleLeaveTeamEvent(msg);
 
@@ -1208,19 +1234,19 @@ describe('handleLeaveTeam', () => {
             },
             payload: [
                 {
-                    data: {id: 'team', user_id: 'member1'},
+                    data: { id: 'team', user_id: 'member1' },
                     type: 'RECEIVED_PROFILE_NOT_IN_TEAM',
                 },
                 {
-                    data: {team_id: 'team', user_id: 'member1'},
+                    data: { team_id: 'team', user_id: 'member1' },
                     type: 'REMOVE_MEMBER_FROM_TEAM',
                 },
                 {
-                    data: {id: 'channel1', user_id: 'member1'},
+                    data: { id: 'channel1', user_id: 'member1' },
                     type: 'REMOVE_MEMBER_FROM_CHANNEL',
                 },
                 {
-                    data: {id: 'channel2', user_id: 'member1'},
+                    data: { id: 'channel2', user_id: 'member1' },
                     type: 'REMOVE_MEMBER_FROM_CHANNEL',
                 },
             ],
