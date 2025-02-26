@@ -188,14 +188,7 @@ func (s *SqlDraftStore) PermanentDeleteByUser(userID string) error {
 			"UserId": userID,
 		})
 
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrapf(err, "PermanentDeleteByUser: failed to generate SQL query for permanently deleting drafts by user")
-	}
-
-	_, err = s.GetMaster().Exec(sql, args...)
-
-	if err != nil {
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return errors.Wrapf(err, "PermanentDeleteByUser: failed to delete drafts by user from database")
 	}
 
