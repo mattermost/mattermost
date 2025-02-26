@@ -61,7 +61,7 @@ func TestCreateCPAField(t *testing.T) {
 		field := &model.PropertyField{
 			Name:  fmt.Sprintf("  %s\t", name), // name should be sanitized
 			Type:  model.PropertyFieldTypeText,
-			Attrs: map[string]any{"visibility": "default"},
+			Attrs: map[string]any{"visibility": "when_set"},
 		}
 
 		createdField, resp, err := client.CreateCPAField(context.Background(), field)
@@ -69,7 +69,7 @@ func TestCreateCPAField(t *testing.T) {
 		require.NoError(t, err)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, name, createdField.Name)
-		require.Equal(t, "default", createdField.Attrs["visibility"])
+		require.Equal(t, "when_set", createdField.Attrs["visibility"])
 
 		t.Run("a websocket event should be fired as part of the field creation", func(t *testing.T) {
 			var wsField model.PropertyField
@@ -100,14 +100,15 @@ func TestListCPAFields(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	field := &model.PropertyField{
+	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name:  model.NewId(),
 		Type:  model.PropertyFieldTypeText,
-		Attrs: map[string]any{"visibility": "default"},
-	}
+		Attrs: map[string]any{"visibility": "when_set"},
+	})
+	require.NoError(t, err)
 
 	createdField, err := th.App.CreateCPAField(field)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
@@ -158,10 +159,12 @@ func TestPatchCPAField(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("a user without admin permissions should not be able to patch a field", func(t *testing.T) {
-		field := &model.PropertyField{
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			Name: model.NewId(),
 			Type: model.PropertyFieldTypeText,
-		}
+		})
+		require.NoError(t, err)
+
 		createdField, appErr := th.App.CreateCPAField(field)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
@@ -175,10 +178,12 @@ func TestPatchCPAField(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		field := &model.PropertyField{
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			Name: model.NewId(),
 			Type: model.PropertyFieldTypeText,
-		}
+		})
+		require.NoError(t, err)
+
 		createdField, appErr := th.App.CreateCPAField(field)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
@@ -294,10 +299,12 @@ func TestListCPAValues(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 	defer th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
 
-	field := &model.PropertyField{
+	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: model.NewId(),
 		Type: model.PropertyFieldTypeText,
-	}
+	})
+	require.NoError(t, err)
+
 	createdField, appErr := th.App.CreateCPAField(field)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
@@ -328,10 +335,12 @@ func TestListCPAValues(t *testing.T) {
 	})
 
 	t.Run("should handle array values correctly", func(t *testing.T) {
-		arrayField := &model.PropertyField{
+		arrayField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			Name: model.NewId(),
 			Type: model.PropertyFieldTypeMultiselect,
-		}
+		})
+		require.NoError(t, err)
+
 		createdArrayField, appErr := th.App.CreateCPAField(arrayField)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdArrayField)
@@ -518,10 +527,12 @@ func TestPatchCPAValues(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	field := &model.PropertyField{
+	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: model.NewId(),
 		Type: model.PropertyFieldTypeText,
-	}
+	})
+	require.NoError(t, err)
+
 	createdField, appErr := th.App.CreateCPAField(field)
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
@@ -609,10 +620,12 @@ func TestPatchCPAValues(t *testing.T) {
 	})
 
 	t.Run("should handle array values correctly", func(t *testing.T) {
-		arrayField := &model.PropertyField{
+		arrayField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			Name: model.NewId(),
 			Type: model.PropertyFieldTypeMultiselect,
-		}
+		})
+		require.NoError(t, err)
+
 		createdArrayField, appErr := th.App.CreateCPAField(arrayField)
 		require.Nil(t, appErr)
 		require.NotNil(t, createdArrayField)
