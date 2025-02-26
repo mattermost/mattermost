@@ -237,7 +237,7 @@ function uiGotoDirectMessageWithUser(user: User) {
     cy.findByRole('dialog', {name: 'Direct Messages'}).should('be.visible').wait(TIMEOUTS.ONE_SEC);
 
     // # Type username
-    cy.findByRole('textbox', {name: 'Search for people'}).click({force: true}).
+    cy.findByRole('combobox', {name: 'Search for people'}).click({force: true}).
         type(user.username, {force: true}).wait(TIMEOUTS.ONE_SEC);
 
     // * Expect user count in the list to be 1
