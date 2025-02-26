@@ -1,22 +1,33 @@
-.. _mmctl_import:
+.. _mmctl_import_delete:
 
-mmctl import
-------------
+mmctl import delete
+-------------------
 
-Management of imports
+Delete an import file
 
 Synopsis
 ~~~~~~~~
 
 
-Management of imports
+Delete an import file
+
+::
+
+  mmctl import delete [importname] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    import delete import_file.zip
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for import
+  -h, --help   help for delete
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,11 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl import delete <mmctl_import_delete.rst>`_ 	 - Delete an import file
-* `mmctl import job <mmctl_import_job.rst>`_ 	 - List and show import jobs
-* `mmctl import list <mmctl_import_list.rst>`_ 	 - List import files
-* `mmctl import process <mmctl_import_process.rst>`_ 	 - Start an import job
-* `mmctl import upload <mmctl_import_upload.rst>`_ 	 - Upload import files
-* `mmctl import validate <mmctl_import_validate.rst>`_ 	 - Validate an import file
+* `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
 
