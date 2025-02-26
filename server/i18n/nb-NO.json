@@ -262,5 +262,9 @@
   {
     "id": "api.command_away.success",
     "translation": "Du er nå borte"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Denne tråden ble flyttet fra en annen kanal"
   }
 ]
