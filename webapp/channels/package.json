@@ -52,7 +52,7 @@
     "lodash": "4.17.21",
     "luxon": "3.3.0",
     "mark.js": "8.11.1",
-    "marked": "github:willypuzzle/marked#8dba39e0cee718d19dbb4cf5417d5155f6f7d48b",
+    "marked": "github:mattermost/marked#3b13ba8ddf725327ddf0298361d6d304a021f2d1",
     "memoize-one": "6.0.0",
     "moment-timezone": "0.5.38",
     "p-queue": "7.3.0",
