@@ -114,81 +114,68 @@ exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
           class="PreparingWorkspacePageBody"
         >
           <div
-            class="UsersEmailsInput empty no-selections css-b62m3t-container"
+            class="UsersEmailsInput empty no-selections css-2b097c-container"
           >
             <span
-              class="css-1f43avz-a11yText-A11yText"
-              id="react-select-2-live-region"
-            />
-            <span
-              aria-atomic="false"
-              aria-live="polite"
-              aria-relevant="additions text"
-              class="css-1f43avz-a11yText-A11yText"
-              role="log"
+              aria-live="assertive"
+              class="css-1laao21-a11yText"
             >
-              <span
-                id="aria-selection"
-              />
-              <span
-                id="aria-focused"
-              />
-              <span
-                id="aria-results"
-              />
-              <span
-                id="aria-guidance"
+              <p
+                id="aria-selection-event"
               >
-                Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
-              </span>
+                 
+                
+              </p>
+              <p
+                id="aria-context"
+              >
+                 
+                  0 results available. Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+              </p>
             </span>
             <div
-              class="users-emails-input__control users-emails-input__control--is-focused users-emails-input__control--menu-is-open css-t3ipsp-control"
+              class="users-emails-input__control users-emails-input__control--is-focused users-emails-input__control--menu-is-open css-1pahdxg-control"
             >
               <div
-                class="users-emails-input__value-container users-emails-input__value-container--is-multi css-hlgwow"
+                class="users-emails-input__value-container users-emails-input__value-container--is-multi css-1hwfws3"
               >
                 <div
-                  class="users-emails-input__placeholder css-10imb99-placeholder"
-                  id="react-select-2-placeholder"
+                  class="users-emails-input__placeholder css-1lxtzh0-placeholder"
                 >
                   Enter email addresses
                 </div>
                 <div
-                  class="users-emails-input__input-container css-11wvis5"
-                  data-value=""
+                  class="css-gftnqw-Input"
                 >
-                  <input
-                    aria-activedescendant=""
-                    aria-autocomplete="list"
-                    aria-controls="react-select-2-listbox"
-                    aria-describedby="react-select-2-placeholder"
-                    aria-expanded="true"
-                    aria-haspopup="true"
-                    aria-label="Invite People"
-                    autocapitalize="none"
-                    autocomplete="off"
-                    autocorrect="off"
+                  <div
                     class="users-emails-input__input"
-                    id="react-select-2-input"
-                    role="combobox"
-                    spellcheck="false"
-                    style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
-                    tabindex="0"
-                    type="text"
-                    value=""
-                  />
+                    style="display: inline-block;"
+                  >
+                    <input
+                      aria-autocomplete="list"
+                      aria-label="Invite People"
+                      autocapitalize="none"
+                      autocomplete="off"
+                      autocorrect="off"
+                      id="react-select-2-input"
+                      spellcheck="false"
+                      style="box-sizing: content-box; width: 2px; border: 0px; opacity: 1; outline: 0; padding: 0px;"
+                      tabindex="0"
+                      type="text"
+                      value=""
+                    />
+                    <div
+                      style="position: absolute; top: 0px; left: 0px; visibility: hidden; height: 0px; overflow: scroll; white-space: pre; font-family: -webkit-small-control; letter-spacing: normal; text-transform: none;"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
             <div
-              class="users-emails-input__menu css-1nmdiq5-menu"
+              class="users-emails-input__menu css-26l3qy-menu"
             >
               <div
-                aria-multiselectable="true"
-                class="users-emails-input__menu-list users-emails-input__menu-list--is-multi css-qr46ko"
-                id="react-select-2-listbox"
-                role="listbox"
+                class="users-emails-input__menu-list users-emails-input__menu-list--is-multi css-4ljt47-MenuList"
               />
             </div>
           </div>

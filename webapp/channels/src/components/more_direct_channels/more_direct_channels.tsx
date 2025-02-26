@@ -21,7 +21,6 @@ import List from './list';
 import {USERS_PER_PAGE} from './list/list';
 import {isGroupChannel, optionValue} from './types';
 import type {OptionValue} from './types';
-import './more_direct_channels.scss';
 
 export type Props = {
     currentUserId: string;
@@ -296,6 +295,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 compassDesign={true}
                 bodyPadding={false}
                 onEntered={this.loadModalData}
+                modalLocation={'top'}
             >
                 <div role='application'>
                     {body}

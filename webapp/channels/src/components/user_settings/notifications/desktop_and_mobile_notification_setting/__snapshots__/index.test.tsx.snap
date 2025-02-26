@@ -95,55 +95,37 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             Trigger mobile notifications when I am:
           </label>
           <div
-            class="react-select singleSelect css-b62m3t-container"
+            class="react-select singleSelect css-2b097c-container"
           >
-            <span
-              class="css-1f43avz-a11yText-A11yText"
-              id="react-select-2-live-region"
-            />
-            <span
-              aria-atomic="false"
-              aria-live="polite"
-              aria-relevant="additions text"
-              class="css-1f43avz-a11yText-A11yText"
-              role="log"
-            />
             <div
-              class="react-select__control css-13cymwt-control"
+              class="react-select__control css-yk16xz-control"
             >
               <div
-                class="react-select__value-container react-select__value-container--has-value css-hlgwow"
+                class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
               >
                 <div
-                  class="react-select__single-value css-1dimb5e-singleValue"
+                  class="react-select__single-value css-1uccc91-singleValue"
                 >
                   Offline
                 </div>
                 <input
-                  aria-activedescendant=""
-                  aria-autocomplete="list"
-                  aria-expanded="false"
-                  aria-haspopup="true"
-                  aria-labelledby="pushMobileNotificationsLabel"
-                  aria-readonly="true"
-                  class="css-1s80ejz-dummyInput-DummyInput"
+                  class="css-62g3xt-dummyInput"
                   id="pushMobileNotificationSelectInput"
-                  inputmode="none"
-                  role="combobox"
+                  readonly=""
                   tabindex="0"
                   value=""
                 />
               </div>
               <div
-                class="react-select__indicators css-1wy0on6"
+                class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
               >
                 <div
                   aria-hidden="true"
-                  class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
+                  class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
                 >
                   <svg
                     aria-hidden="true"
-                    class="css-tj5bde-Svg"
+                    class="css-6q0nyr-Svg"
                     focusable="false"
                     height="20"
                     viewBox="0 0 20 20"
@@ -307,55 +289,37 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             Trigger mobile notifications when I am:
           </label>
           <div
-            class="react-select singleSelect css-b62m3t-container"
+            class="react-select singleSelect css-2b097c-container"
           >
-            <span
-              class="css-1f43avz-a11yText-A11yText"
-              id="react-select-3-live-region"
-            />
-            <span
-              aria-atomic="false"
-              aria-live="polite"
-              aria-relevant="additions text"
-              class="css-1f43avz-a11yText-A11yText"
-              role="log"
-            />
             <div
-              class="react-select__control css-13cymwt-control"
+              class="react-select__control css-yk16xz-control"
             >
               <div
-                class="react-select__value-container react-select__value-container--has-value css-hlgwow"
+                class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
               >
                 <div
-                  class="react-select__single-value css-1dimb5e-singleValue"
+                  class="react-select__single-value css-1uccc91-singleValue"
                 >
                   Offline
                 </div>
                 <input
-                  aria-activedescendant=""
-                  aria-autocomplete="list"
-                  aria-expanded="false"
-                  aria-haspopup="true"
-                  aria-labelledby="pushMobileNotificationsLabel"
-                  aria-readonly="true"
-                  class="css-1s80ejz-dummyInput-DummyInput"
+                  class="css-62g3xt-dummyInput"
                   id="pushMobileNotificationSelectInput"
-                  inputmode="none"
-                  role="combobox"
+                  readonly=""
                   tabindex="0"
                   value=""
                 />
               </div>
               <div
-                class="react-select__indicators css-1wy0on6"
+                class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
               >
                 <div
                   aria-hidden="true"
-                  class="react-select__indicator react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
+                  class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
                 >
                   <svg
                     aria-hidden="true"
-                    class="css-tj5bde-Svg"
+                    class="css-6q0nyr-Svg"
                     focusable="false"
                     height="20"
                     viewBox="0 0 20 20"

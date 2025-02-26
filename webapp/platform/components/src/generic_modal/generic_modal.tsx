@@ -8,9 +8,11 @@ import {FormattedMessage} from 'react-intl';
 
 import './generic_modal.scss';
 
+export type ModalLocation = 'top' | 'center' | 'bottom';
+
 export type Props = {
     className?: string;
-    onExited: () => void;
+    onExited?: () => void;
     onEntered?: () => void;
     onHide?: () => void;
     modalHeaderText?: React.ReactNode;
@@ -32,6 +34,7 @@ export type Props = {
     enforceFocus?: boolean;
     container?: React.ReactNode | React.ReactNodeArray;
     ariaLabel?: string;
+    ariaLabeledBy?: string;
     errorText?: string | React.ReactNode;
     compassDesign?: boolean;
     backdrop?: boolean | 'static';
@@ -48,6 +51,22 @@ export type Props = {
     footerDivider?: boolean;
     appendedContent?: React.ReactNode;
     headerButton?: React.ReactNode;
+    showCloseButton?: boolean;
+    showHeader?: boolean;
+
+    /*
+     * Controls the vertical location of the modal.
+     * 'top' => margin-top: 5vh
+     * 'center' => margin-top: calc(50vh - 240px)
+     * 'bottom' => margin-top: calc(50vh + 240px) (example calculation)
+     */
+    modalLocation?: ModalLocation;
+
+    /**
+     * Optionally set a test ID for the container, so that the modal can be easily referenced
+     * in tests (Cypress, Playwright, etc.)
+     */
+    dataTestId?: string;
 };
 
 type State = {
@@ -63,6 +82,9 @@ export class GenericModal extends React.PureComponent<Props, State> {
         enforceFocus: true,
         keyboardEscape: true,
         bodyPadding: true,
+        showCloseButton: true,
+        showHeader: true,
+        modalLocation: 'center',
     };
 
     constructor(props: Props) {
@@ -184,13 +206,24 @@ export class GenericModal extends React.PureComponent<Props, State> {
             </div>
         );
 
+        const locationClassMapping: Record<Required<Props>['modalLocation'], string> = {
+            top: 'GenericModal__location--top',
+            center: 'GenericModal__location--center',
+            bottom: 'GenericModal__location--bottom',
+        };
+
+        const modalLocationClass = locationClassMapping[this.props.modalLocation ?? 'center'];
+        const ariaLabeledBy = this.props.ariaLabeledBy || 'genericModalLabel';
+
         return (
             <Modal
                 id={this.props.id}
                 role='none'
                 aria-label={this.props.ariaLabel}
-                aria-labelledby={this.props.ariaLabel ? undefined : 'genericModalLabel'}
+                aria-labelledby={ariaLabeledBy}
+                aria-modal='true'
                 dialogClassName={classNames(
+                    modalLocationClass,
                     'a11y__modal GenericModal',
                     {
                         GenericModal__compassDesign: this.props.compassDesign,
@@ -208,13 +241,14 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 container={this.props.container}
                 keyboard={this.props.keyboardEscape}
                 onEntered={this.props.onEntered}
+                data-testid={this.props.dataTestId}
             >
                 <div
                     onKeyDown={this.onEnterKeyDown}
                     tabIndex={this.props.tabIndex || 0}
-                    className='GenericModal__wrapper-enter-key-press-catcher'
+                    className='GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher'
                 >
-                    <Modal.Header closeButton={true}>
+                    {this.props.showHeader && <Modal.Header closeButton={this.props.showCloseButton}>
                         <div
                             className='GenericModal__header__text_container'
                         >
@@ -236,7 +270,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                                 </div>
                             }
                         </div>
-                    </Modal.Header>
+                    </Modal.Header>}
                     <Modal.Body className={classNames({divider: this.props.bodyDivider, 'overflow-visible': this.props.bodyOverflowVisible})}>
                         {this.props.compassDesign ? (
                             this.props.errorText && (

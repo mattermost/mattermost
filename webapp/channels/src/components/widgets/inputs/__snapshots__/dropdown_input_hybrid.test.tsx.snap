@@ -47,7 +47,7 @@ exports[`components/widgets/inputs/DropdownInputHybrid should match snapshot 1`]
         }
       }
     >
-      <ForwardRef
+      <StateManager
         className="Input Input__focus"
         components={
           Object {
@@ -56,6 +56,9 @@ exports[`components/widgets/inputs/DropdownInputHybrid should match snapshot 1`]
             "Option": [Function],
           }
         }
+        defaultInputValue=""
+        defaultMenuIsOpen={false}
+        defaultValue={null}
         hideSelectedOptions={true}
         id="DropdownInput_channel_message_retention"
         isSearchable={false}
