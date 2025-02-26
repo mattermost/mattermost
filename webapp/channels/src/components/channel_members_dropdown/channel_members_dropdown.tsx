@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
@@ -12,15 +13,12 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
+import * as Menu from 'components/menu';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
-
-const ROWS_FROM_BOTTOM_TO_OPEN_UP = 2;
 
 export interface Props {
     channel: Channel;
@@ -29,8 +27,6 @@ export interface Props {
     channelMember: ChannelMembership;
     canChangeMemberRoles: boolean;
     canRemoveMember: boolean;
-    index: number;
-    totalUsers: number;
     channelAdminLabel?: JSX.Element;
     channelMemberLabel?: JSX.Element;
     guestLabel?: JSX.Element;
@@ -50,8 +46,6 @@ export default function ChannelMembersDropdown({
     channelMember,
     canChangeMemberRoles,
     canRemoveMember,
-    index,
-    totalUsers,
     channelAdminLabel,
     channelMemberLabel,
     guestLabel,
@@ -59,6 +53,7 @@ export default function ChannelMembersDropdown({
 }: Props) {
     const intl = useIntl();
 
+    const [isOpen, setIsOpen] = useState(false);
     const [removing, setRemoving] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
     const dispatch = useDispatch();
@@ -165,55 +160,69 @@ export default function ChannelMembersDropdown({
 
     if (canMakeUserChannelMember || canMakeUserChannelAdmin || canRemoveUserFromChannel) {
         const removeMenu = (
-            <Menu.ItemAction
+            <Menu.Item
                 data-testid={removeFromChannelTestId}
-                show={canRemoveUserFromChannel}
                 onClick={handleRemoveFromChannel}
-                text={removeFromChannelText}
-                isDangerous={true}
+                labels={(
+                    <span>{removeFromChannelText}</span>
+                )}
+                isDestructive={true}
             />
         );
         const makeAdminMenu = (
-            <Menu.ItemAction
+            <Menu.Item
                 id={`${user.username}-make-channel-admin`}
-                show={canMakeUserChannelAdmin}
                 onClick={handleMakeChannelAdmin}
-                text={intl.formatMessage({id: 'channel_members_dropdown.make_channel_admin', defaultMessage: 'Make Channel Admin'})}
+                labels={(
+                    <FormattedMessage
+                        id='channel_members_dropdown.make_channel_admin'
+                        defaultMessage='Make Channel Admin'
+                    />
+                )}
             />
         );
         const makeMemberMenu = (
-            <Menu.ItemAction
+            <Menu.Item
                 id={`${user.username}-make-channel-member`}
-                show={canMakeUserChannelMember}
                 onClick={handleMakeChannelMember}
-                text={intl.formatMessage({id: 'channel_members_dropdown.make_channel_member', defaultMessage: 'Make Channel Member'})}
+                labels={(
+                    <FormattedMessage
+                        id='channel_members_dropdown.make_channel_member'
+                        defaultMessage='Make Channel Member'
+                    />
+                )}
             />
         );
         return (
-            <MenuWrapper>
-                <button
-                    className='dropdown-toggle theme color--link style--none'
-                    type='button'
-                >
-                    <span className='sr-only'>{user.username}</span>
-                    <span>{currentRole} </span>
-                    <DropdownIcon/>
-                </button>
-                <Menu
-                    openLeft={true}
-                    openUp={totalUsers > ROWS_FROM_BOTTOM_TO_OPEN_UP && totalUsers - index <= ROWS_FROM_BOTTOM_TO_OPEN_UP}
-                    ariaLabel={intl.formatMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'})}
-                >
-                    {canMakeUserChannelMember ? makeMemberMenu : null}
-                    {canMakeUserChannelAdmin ? makeAdminMenu : null}
-                    {canRemoveUserFromChannel ? removeMenu : null}
-                    {serverError && (
-                        <div className='has-error'>
-                            <label className='has-error control-label'>{serverError}</label>
-                        </div>
-                    )}
-                </Menu>
-            </MenuWrapper>
+            <Menu.Container
+                menuButton={{
+                    id: `${user.username}-dropdown`,
+                    'aria-label': user.username,
+                    class: classNames('dropdown-toggle theme color--link style--none', {
+                        open: isOpen,
+                    }),
+                    children: (
+                        <>
+                            <span>{currentRole} </span>
+                            <DropdownIcon/>
+                        </>
+                    ),
+                }}
+                menu={{
+                    id: `${user.username}-menu`,
+                    onToggle: (open: boolean) => setIsOpen(open),
+                    'aria-label': intl.formatMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'}),
+                }}
+            >
+                {canMakeUserChannelMember ? makeMemberMenu : null}
+                {canMakeUserChannelAdmin ? makeAdminMenu : null}
+                {canRemoveUserFromChannel ? removeMenu : null}
+                {serverError && (
+                    <div className='has-error'>
+                        <label className='has-error control-label'>{serverError}</label>
+                    </div>
+                )}
+            </Menu.Container>
         );
     }
 

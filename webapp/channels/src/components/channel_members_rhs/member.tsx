@@ -74,13 +74,16 @@ const RoleChooser = styled.div`
         display: block;
     }
 
-    .MenuWrapper {
+    > button {
+        font-size: 11px;
+        font-weight: 600;
         padding: 6px 10px;
         border-radius: 4px;
-        &.MenuWrapper--open {
+
+        &.open {
             background: rgba(var(--button-bg-rgb), 0.16);
         }
-        &:not(.MenuWrapper--open):hover {
+        &:not(.open):hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
         }
     }
@@ -96,15 +99,13 @@ interface Props {
     className?: string;
     channel: Channel;
     member: ChannelMember;
-    index: number;
-    totalUsers: number;
     editing: boolean;
     actions: {
         openDirectMessage: (user: UserProfile) => void;
     };
 }
 
-const Member = ({className, channel, member, index, totalUsers, editing, actions}: Props) => {
+const Member = ({className, channel, member, editing, actions}: Props) => {
     const {formatMessage} = useIntl();
 
     const userProfileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
@@ -173,8 +174,6 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                         channel={channel}
                         user={member.user}
                         channelMember={member.membership}
-                        index={index}
-                        totalUsers={totalUsers}
                         channelAdminLabel={
                             <FormattedMessage
                                 id='channel_members_rhs.member.select_role_channel_admin'
@@ -244,10 +243,5 @@ export default styled(Member)`
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-    }
-
-    .MenuWrapper {
-        font-size: 11px;
-        font-weight: 600;
     }
 `;
