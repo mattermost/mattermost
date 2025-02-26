@@ -15,7 +15,7 @@ exports[`components/threading/channel_threads/thread_footer should match snapsho
       isFollowing={true}
       onClick={[Function]}
     >
-      <Memo(Button)
+      <Button
         className="separated FollowButton"
         disabled={false}
         isActive={true}
@@ -32,7 +32,7 @@ exports[`components/threading/channel_threads/thread_footer should match snapsho
             Following
           </span>
         </button>
-      </Memo(Button)>
+      </Button>
     </Memo(FollowButton)>
   </div>
 </Memo(ThreadFooter)>
@@ -317,7 +317,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
         </WithTooltip>
       </div>
     </Memo(Avatars)>
-    <Memo(Button)
+    <Button
       className="ReplyButton separated"
       onClick={[Function]}
       prepend={
@@ -363,13 +363,13 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           </FormattedMessage>
         </span>
       </button>
-    </Memo(Button)>
+    </Button>
     <Memo(FollowButton)
       className="separated"
       isFollowing={true}
       onClick={[Function]}
     >
-      <Memo(Button)
+      <Button
         className="separated FollowButton"
         disabled={false}
         isActive={true}
@@ -386,7 +386,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
             Following
           </span>
         </button>
-      </Memo(Button)>
+      </Button>
     </Memo(FollowButton)>
     <Connect(injectIntl(Timestamp))
       day="numeric"
@@ -828,7 +828,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         </WithTooltip>
       </div>
     </Memo(Avatars)>
-    <Memo(Button)
+    <Button
       className="ReplyButton separated"
       onClick={[Function]}
       prepend={
@@ -874,13 +874,13 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           </FormattedMessage>
         </span>
       </button>
-    </Memo(Button)>
+    </Button>
     <Memo(FollowButton)
       className="separated"
       isFollowing={true}
       onClick={[Function]}
     >
-      <Memo(Button)
+      <Button
         className="separated FollowButton"
         disabled={false}
         isActive={true}
@@ -897,7 +897,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
             Following
           </span>
         </button>
-      </Memo(Button)>
+      </Button>
     </Memo(FollowButton)>
     <Connect(injectIntl(Timestamp))
       day="numeric"

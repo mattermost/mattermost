@@ -189,6 +189,7 @@ export function SubMenu(props: Props) {
                         autoFocusItem={isSubMenuOpen}
                         sx={{
                             py: 0,
+                            pointerEvents: 'auto',
                         }}
                     >
                         {children}

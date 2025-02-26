@@ -44,9 +44,34 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 
 	mlog.InitGlobalLogger(logger)
 
-	dir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
+	var dir string
+
+	// If MM_FILESETTINGS_DIRECTORY is set, use it as the directory for the local file backend.
+	// We don't remove the directory after the test since it's provided by the user.
+	if val := os.Getenv("MM_FILESETTINGS_DIRECTORY"); val != "" {
+		dir = val
+		info, err := os.Stat(dir)
+		require.False(t, os.IsNotExist(err))
+		require.True(t, info.IsDir())
+
+		t.Cleanup(func() {
+			entries, err := os.ReadDir(dir)
+			require.NoError(t, err)
+			for _, entry := range entries {
+				p := filepath.Join(dir, entry.Name())
+				require.NoError(t, os.RemoveAll(p))
+			}
+		})
+	} else {
+		var err error
+		dir, err = os.MkdirTemp("", "")
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			err := os.RemoveAll(dir)
+			require.NoError(t, err)
+		})
+	}
 
 	suite.Run(t, &FileBackendTestSuite{
 		settings: FileBackendSettings{

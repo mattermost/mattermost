@@ -7,7 +7,7 @@ import React from 'react';
 import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
+import type {OnChangeValue, StylesConfig} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
@@ -369,7 +369,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState({isCustomKeysWithNotificationInputChecked: checked});
     };
 
-    handleChangeForCustomKeysWithNotificationInput = (values: ValueType<{ value: string }>) => {
+    handleChangeForCustomKeysWithNotificationInput = (values: OnChangeValue<{ value: string }, true>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             // Check the custom keys input checkbox when atleast a single key is entered
             if (this.state.isCustomKeysWithNotificationInputChecked === false) {
@@ -437,7 +437,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         }
     };
 
-    handleChangeForCustomKeysWithHighlightInput = (values: ValueType<{ value: string }>) => {
+    handleChangeForCustomKeysWithHighlightInput = (values: OnChangeValue<{ value: string }, true>) => {
         if (values && Array.isArray(values) && values.length > 0) {
             const customKeysWithHighlight = values.
                 map((value: MultiInputValue) => {
@@ -1121,7 +1121,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     }
 }
 
-const customKeywordsSelectorStyles: ReactSelectStyles = {
+const customKeywordsSelectorStyles = {
     container: ((baseStyle) => ({
         ...baseStyle,
         marginBlockStart: '10px',
@@ -1159,7 +1159,7 @@ const customKeywordsSelectorStyles: ReactSelectStyles = {
             color: 'rgba(var(--center-channel-color-rgb), 0.56);',
         },
     })),
-};
+} satisfies StylesConfig<MultiInputValue, true>;
 
 const validNotificationLevels = Object.values(NotificationLevels);
 

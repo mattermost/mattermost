@@ -3842,7 +3842,6 @@
   "reaction.usersAndOthersReacted": "{users} y {otherUsers, number} {otherUsers, plural, one {otro usuario} other {otros usuarios}}",
   "reaction.usersReacted": "{users} y {lastUser}",
   "reaction.you": "Tu",
-  "reaction_list.addReactionTooltip": "Reaccionar",
   "remove_group_confirm_button": "Sí, Eliminar Grupo y {memberCount, plural, one {Miembros} other {Miembros}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {miembro} other {miembros}} asociados a este grupo serán eliminados del equipo en la próxima sincronización de AD/LDAP. Está usted seguro de que desea eliminar este grupo y {memberCount} {memberCount, plural, one {miembro} other {miembros}}?",
   "remove_group_confirm_title": "Eliminar Grupo y {memberCount, number} {memberCount, plural, one {Miembro} other {Miembros}}",

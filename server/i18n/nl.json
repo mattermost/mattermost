@@ -3992,7 +3992,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ongeldig Id."
+    "translation": "Ongeldig Id. :{{.Id}}"
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -10324,10 +10324,6 @@
     "translation": "Kan aangepast profielattribuutveld niet bijwerken"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Kan eigenschap waarde niet creëren"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Kan niet zoeken in aangepaste profielattribuutvelden"
   },
@@ -10392,14 +10388,6 @@
     "translation": "Ongeldige waarde voor de eigenschap: {{.FieldName}} ({{.Reason}})."
   },
   {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Kan de waarden van eigenschappen niet ophalen"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Kan de waarde van de eigenschap niet bijwerken"
-  },
-  {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Kan geen opdracht uitvoeren in verwijderde chatroom."
   },
@@ -10410,5 +10398,57 @@
   {
     "id": "api.custom_profile_attributes.license_error",
     "translation": "Jouw licentie ondersteunt geen Aangepaste Profielattributen."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Het aanmaken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Het verwijderen van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Het bijwerken van de kanaalbladwijzer is mislukt."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Kan geen bladwijzers ophalen voor een gearchiveerd kanaal"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Het is niet gelukt om alle bestanden te tellen."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Het is niet gelukt om het opslaggebruik van alle bestanden op te halen."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "proberen een veld te patchen dat niet bestaat"
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sessie niet gevonden."
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Kan het aantal velden voor de aangepaste profielattribuutgroep niet tellen"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Kan aangepaste profielattribuutvelden niet uploaden"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Ongeldige gebruikers-id aan clientzijde: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Aantal elementen in ClientSideUserIds {{.CurrentLength}} is hoger dan de maximale limiet van {{.MaxLength}}."
   }
 ]

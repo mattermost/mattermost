@@ -3525,7 +3525,6 @@
   "reaction.usersAndOthersReacted": "{users} і {otherUsers, number} {otherUsers, plural, one {іншы карыстальнік} few {іншых карыстальнікаў} other {іншых карыстальнікаў}}",
   "reaction.usersReacted": "{users} і {lastUser}",
   "reaction.you": "Вы",
-  "reaction_list.addReactionTooltip": "Дадаць рэакцыю",
   "remove_group_confirm_button": "Так, выдаліць групу і {memberCount, plural, one {удзельніка} other {удзельнікаў}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {удзельнік} few {удзельніка} other {удзельнікаў}} звязаных з гэтай групай будуць выдалены з каманды. Вы ўпэўненыя, што хочаце выдаліць гэтую групу і {memberCount} {memberCount, plural, one {удзельніка} other {удзельнікаў}}?",
   "remove_group_confirm_title": "Выдаліць групу і {memberCount, number} {memberCount, plural, one {удзельніка} other {удзельнікаў}}",

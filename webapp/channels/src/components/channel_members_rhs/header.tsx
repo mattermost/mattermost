@@ -40,7 +40,9 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     </button>
                 )}
 
-                <HeaderTitle>
+                <HeaderTitle
+                    id='rhsPanelTitle'
+                >
                     <FormattedMessage
                         id='channel_members_rhs.header.title'
                         defaultMessage='Members'

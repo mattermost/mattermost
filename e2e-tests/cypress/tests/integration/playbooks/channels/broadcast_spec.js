@@ -367,7 +367,7 @@ const deleteLatestPostRoot = (testTeam, channelName) => {
             });
 
         // * Post extra options is visible
-        cy.findByLabelText('Post extra options').should('exist');
+        cy.findByLabelText('Post extra options').should('have.attr', 'role', 'menu').and('exist');
 
         // # Click delete button.
         cy.get('@deleteId').then((deleteId) => {

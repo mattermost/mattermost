@@ -3992,7 +3992,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ungültige ID."
+    "translation": "Ungültige ID: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -10312,18 +10312,6 @@
     "translation": "Benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
   },
   {
-    "id": "app.custom_profile_attributes.property_value_list.app_error",
-    "translation": "Eigenschaftswerte können nicht abgerufen werden"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_creation.app_error",
-    "translation": "Kann keinen Eigenschaftswert erstellen"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_update.app_error",
-    "translation": "Eigenschaftswert kann nicht aktualisiert werden"
-  },
-  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Benutzerdefinierte Profilattributfelder können nicht durchsucht werden"
   },
@@ -10398,5 +10386,57 @@
   {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Kommando kann nicht in einem gelöschten Kanal ausgeführt werden."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Die Erstellung des Kanal-Lesezeichens ist fehlgeschlagen."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Das Löschen des Kanal-Lesezeichens ist fehlgeschlagen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.deleted_channel.forbidden.app_error",
+    "translation": "Die Aktualisierung des Kanal-Lesezeichens ist fehlgeschlagen."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
+    "translation": "Die Sortierreihenfolge des Kanal-Lesezeichens konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "api.custom_profile_attributes.field_not_found",
+    "translation": "Versuch, ein Feld zu patchen, das nicht existiert"
+  },
+  {
+    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
+    "translation": "Lesezeichen für einen archivierten Kanal können nicht abgerufen werden"
+  },
+  {
+    "id": "app.file_info.get_count.app_error",
+    "translation": "Die Anzahl aller Dateien konnte nicht ermittelt werden."
+  },
+  {
+    "id": "app.file_info.get_storage_usage.app_error",
+    "translation": "Die Speichernutzung aller Dateien konnte nicht ermittelt werden."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sitzung nicht gefunden."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Benutzerdefinierte Profilattributfelder können nicht hochgeladen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Die Anzahl der Felder für die Attributgruppe des benutzerdefinierten Profils kann nicht gezählt werden"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Ungültige Client Side User ID: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Die Anzahl der Elemente in ClientSideUserIds {{.CurrentLength}} ist höher als die maximale Grenze von {{.MaxLength}}."
   }
 ]

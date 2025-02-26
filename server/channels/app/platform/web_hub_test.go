@@ -386,7 +386,11 @@ func TestHubConnIndex(t *testing.T) {
 
 		t.Run("ForChannel", func(t *testing.T) {
 			require.Len(t, connIndex.byChannelID, 1)
-			require.Equal(t, []*WebConn{wc1, wc2, wc3}, connIndex.ForChannel(th.BasicChannel.Id))
+			ids := make([]string, 0)
+			for _, c := range connIndex.ForChannel(th.BasicChannel.Id) {
+				ids = append(ids, c.GetConnectionID())
+			}
+			require.ElementsMatch(t, []string{wc1ID, wc2ID, wc3ID}, ids)
 			require.Len(t, connIndex.ForChannel("notexist"), 0)
 		})
 

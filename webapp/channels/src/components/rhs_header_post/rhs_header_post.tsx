@@ -167,7 +167,10 @@ class RhsHeaderPost extends React.PureComponent<Props> {
 
         return (
             <div className='sidebar--right__header'>
-                <span className='sidebar--right__title'>
+                <span
+                    className='sidebar--right__title'
+                    id='rhsPanelTitle'
+                >
                     {back}
                     <FormattedMessage
                         id='rhs_header.details'

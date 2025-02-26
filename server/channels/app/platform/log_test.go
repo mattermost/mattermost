@@ -19,8 +19,6 @@ import (
 )
 
 func TestGetMattermostLog(t *testing.T) {
-	t.Skip("MM-62438")
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -36,6 +34,14 @@ func TestGetMattermostLog(t *testing.T) {
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
+		// MM-62438: Disable file target before cleaning up
+		// to avoid a race between removing the directory and the file
+		// getting written again.
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = false
+		})
+		th.Service.Logger().Flush()
+
 		err = os.RemoveAll(dir)
 		assert.NoError(t, err)
 	})

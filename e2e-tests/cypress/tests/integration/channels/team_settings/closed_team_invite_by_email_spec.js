@@ -85,7 +85,7 @@ describe('Team Settings', () => {
             cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
         }
 
-        cy.findByRole('textbox', {name: 'Add or Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
+        cy.findByRole('combobox', {name: 'Add or Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
         cy.findByTestId('inviteButton').click();
 
         // # Wait for a while to ensure that email notification is sent and logout from sysadmin account

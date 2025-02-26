@@ -2902,7 +2902,6 @@
   "reaction.usersAndOthersReacted": "{users} e {otherUsers, number} other {otherUsers, plural, one {user} other {users}}",
   "reaction.usersReacted": "{users} e {lastUser}",
   "reaction.you": "Tu",
-  "reaction_list.addReactionTooltip": "Aggiungi reazione",
   "remove_group_confirm_button": "Si, Cancella il gruppo e {memberCount, plural, one {Member} other {Members}}",
   "remove_group_confirm_message": "{memberCount, number} {memberCount, plural, one {member} other {members}} associati a questo gruppo saranno rimossi dalla squadra. Sicuro di voler rimuovere questo gruppo e {memberCount} {memberCount, plural, one {member} other {members}}?",
   "remove_group_confirm_title": "Rimuovi gruppo e {memberCount, number} {memberCount, plural, one {Member} other {Members}}",

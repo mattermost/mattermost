@@ -55,7 +55,7 @@ import {focusPost} from 'components/permalink_view/actions';
 import type {TextboxElement} from 'components/textbox';
 
 import {getHistory} from 'utils/browser_history';
-import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes} from 'utils/constants';
+import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, AdvancedTextEditorTextboxIds} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
@@ -1439,13 +1439,18 @@ function isSelection() {
     return selection!.type === 'Range';
 }
 
+/**
+ * Checks if text is selected in the a textbox in center or in RHS or in edit mode of post
+ */
 export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEvent) {
     const {id} = e.target as HTMLElement;
 
-    const isTypingInPost = id === 'post_textbox';
-    const isTypingInReply = id === 'reply_textbox';
+    const isTypingInValidTextbox =
+    id === AdvancedTextEditorTextboxIds.InCenter ||
+    id === AdvancedTextEditorTextboxIds.InRHSComment ||
+    id === AdvancedTextEditorTextboxIds.InEditMode;
 
-    if (!isTypingInPost && !isTypingInReply) {
+    if (isTypingInValidTextbox === false) {
         return false;
     }
 

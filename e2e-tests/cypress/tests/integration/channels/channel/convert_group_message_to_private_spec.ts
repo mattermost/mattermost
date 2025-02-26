@@ -67,7 +67,7 @@ describe('Group Message Conversion To Private Channel', () => {
         cy.get('.GenericModal__button.delete.disabled').wait(2000);
 
         // Open the team dropdown and select a team
-        cy.findByText('Select Team').click();
+        cy.findByText('Select Team').click({force: true});
         cy.findByText(testTeam2.display_name).click();
 
         // Enter the new channel name and confirm
