@@ -39,16 +39,9 @@ const ExpiryTime = ({time, timezone, className, showPrefix, withinBrackets}: Pro
         delete timestampProps.ranges;
     }
 
-    if (moment(time).isAfter(currentMomentTime.clone().add(1, 'day').endOf('day')) && moment(time).isBefore(currentMomentTime.clone().add(6, 'days'))) {
-        timestampProps.useDate = {weekday: 'long'};
-    }
-
-    if (moment(time).isAfter(currentMomentTime.clone().add(6, 'days'))) {
-        timestampProps.month = 'short';
-    }
-
-    if (moment(time).isAfter(currentMomentTime.clone().endOf('year'))) {
-        timestampProps.year = 'numeric';
+    if (moment(time).isAfter(currentMomentTime.clone().add(1, 'day').endOf('day'))) {
+        timestampProps.useTime = {hour: 'numeric', minute: 'numeric'};
+        timestampProps.useDate = {year: 'numeric', month: 'short', day: 'numeric'};
     }
 
     const prefix = showPrefix && (
