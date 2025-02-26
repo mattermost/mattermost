@@ -2024,7 +2024,14 @@ func TestAddMembersToGroup(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(context.Background(), ldapGroup.Id, members)
+	require.Error(t, upsertErr)
+	CheckBadRequestStatus(t, response)
 
+	// 5. Test duplicate userIDs
+	membersWithDuplicate := &model.GroupModifyMembers{
+		UserIds: []string{user1.Id, user1.Id, user2.Id},
+	}
+	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, membersWithDuplicate)
 	require.Error(t, upsertErr)
 	CheckBadRequestStatus(t, response)
 }
