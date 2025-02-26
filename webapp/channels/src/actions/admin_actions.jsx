@@ -234,6 +234,24 @@ export async function uploadIdpSamlCertificate(file, success, error) {
     }
 }
 
+export async function uploadAuditCertificate(fileData, success, error) {
+    const {data, error: err} = await dispatch(AdminActions.uploadAuditCertificate(fileData));
+    if (data && success) {
+        success('audit.crt');
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
+export async function removeAuditCertificate(success, error) {
+    const {data, error: err} = await dispatch(AdminActions.removeAuditCertificate());
+    if (data && success) {
+        success(data);
+    } else if (err && error) {
+        error({id: err.server_error_id, ...err});
+    }
+}
+
 export async function removePublicSamlCertificate(success, error) {
     const {data, error: err} = await dispatch(AdminActions.removePublicSamlCertificate());
     if (data && success) {
