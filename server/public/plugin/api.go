@@ -135,6 +135,12 @@ type API interface {
 	// Minimum server version: 5.10
 	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 
+	// GetUsersByIds gets a list of users by their IDs.
+	//
+	// @tag User
+	// Minimum server version: 9.8
+	GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError)
+
 	// GetUser gets a user.
 	//
 	// @tag User
@@ -1293,6 +1299,19 @@ type API interface {
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UninviteRemoteFromChannel(channelID string, remoteID string) error
+
+	// UpdateUserRoles updates the role for a user.
+	//
+	// @tag Team
+	// @tag User
+	// Minimum server version: 9.8
+	UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError)
+
+	// GetPluginID returns the plugin ID.
+	//
+	// @tag Plugin
+	// Minimum server version: 10.1
+	GetPluginID() string
 }
 
 var handshake = plugin.HandshakeConfig{

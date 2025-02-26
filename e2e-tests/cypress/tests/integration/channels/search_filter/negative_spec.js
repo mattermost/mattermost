@@ -65,7 +65,8 @@ describe('Negative search filters will omit results', () => {
 
 function search(query) {
     cy.reload();
-    cy.uiGetSearchBox().clear().wait(TIMEOUTS.HALF_SEC).type(query).wait(TIMEOUTS.HALF_SEC).type('{enter}');
+    cy.uiGetSearchContainer().should('be.visible').click();
+    cy.uiGetSearchBox().first().clear().wait(TIMEOUTS.HALF_SEC).type(query).wait(TIMEOUTS.HALF_SEC).type('{enter}');
 
     cy.get('#loadingSpinner').should('not.exist');
     cy.uiGetRHSSearchContainer();

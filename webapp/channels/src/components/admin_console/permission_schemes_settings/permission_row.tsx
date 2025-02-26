@@ -43,7 +43,15 @@ const PermissionRow = ({
     }, [readOnly, onChange, id]);
 
     const name = permissionRolesStrings[id] ? <FormattedMessage {...permissionRolesStrings[id].name}/> : id;
-    const description = permissionRolesStrings[id] ? <FormattedMessage {...permissionRolesStrings[id].description}/> : '';
+    let description: React.JSX.Element | string = '';
+    if (permissionRolesStrings[id]) {
+        description = (
+            <FormattedMessage
+                id={permissionRolesStrings[id].description.id}
+                values={additionalValues}
+            />
+        );
+    }
 
     return (
         <div

@@ -41,7 +41,7 @@ func (rcs *Service) BroadcastMsg(ctx context.Context, msg model.RemoteClusterMsg
 	filter := model.RemoteClusterQueryFilter{
 		Topic: msg.Topic,
 	}
-	list, err := rcs.server.GetStore().RemoteCluster().GetAll(filter)
+	list, err := rcs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
 	if err != nil {
 		return err
 	}

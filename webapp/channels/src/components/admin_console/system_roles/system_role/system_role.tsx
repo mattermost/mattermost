@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {uniq, difference} from 'lodash';
+import difference from 'lodash/difference';
+import uniq from 'lodash/uniq';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -13,7 +14,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import SaveChangesPanel from 'components/admin_console/team_channel_settings/save_changes_panel';
+import SaveChangesPanel from 'components/admin_console/save_changes_panel';
 import FormError from 'components/form_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 

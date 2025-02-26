@@ -74,11 +74,11 @@ function apiCreatePost(channelId: string, message: string, rootId: string, props
 
 Cypress.Commands.add('apiCreatePost', apiCreatePost);
 
-function apiDeletePost(postId: string, user: User = getAdminAccount()): Cypress.Chainable<{status: number}> {
+function apiDeletePost(postId: string, user: User = getAdminAccount(), permanent = false): Cypress.Chainable<{status: number}> {
     return cy.externalRequest({
         user,
         method: 'delete',
-        path: `posts/${postId}`,
+        path: `posts/${postId}?permanent=${permanent}`,
     }).then((response) => {
         // * Validate that request was successful
         expect(response.status).to.equal(200);

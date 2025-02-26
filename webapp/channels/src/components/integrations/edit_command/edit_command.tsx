@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -14,13 +14,23 @@ import ConfirmModal from 'components/confirm_modal';
 import LoadingScreen from 'components/loading_screen';
 
 import {getHistory} from 'utils/browser_history';
-import {t} from 'utils/i18n';
 
 import AbstractCommand from '../abstract_command';
 
-const HEADER = {id: t('integrations.edit'), defaultMessage: 'Edit'};
-const FOOTER = {id: t('edit_command.update'), defaultMessage: 'Update'};
-const LOADING = {id: t('edit_command.updating'), defaultMessage: 'Updating...'};
+const messages = defineMessages({
+    footer: {
+        id: 'edit_command.update',
+        defaultMessage: 'Update',
+    },
+    header: {
+        id: 'integrations.edit',
+        defaultMessage: 'Edit',
+    },
+    loading: {
+        id: 'edit_command.updating',
+        defaultMessage: 'Updating...',
+    },
+});
 
 type Props = {
 
@@ -173,9 +183,9 @@ export default class EditCommand extends React.PureComponent<Props, State> {
         return (
             <AbstractCommand
                 team={this.props.team}
-                header={HEADER}
-                footer={FOOTER}
-                loading={LOADING}
+                header={messages.header}
+                footer={messages.footer}
+                loading={messages.loading}
                 renderExtra={this.renderExtra()}
                 action={this.editCommand}
                 serverError={this.state.serverError}

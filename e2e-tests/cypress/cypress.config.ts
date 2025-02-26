@@ -5,13 +5,16 @@ import {defineConfig} from 'cypress';
 
 export default defineConfig({
     chromeWebSecurity: false,
-    defaultCommandTimeout: 20000,
+    defaultCommandTimeout: 30000,
     downloadsFolder: 'tests/downloads',
     fixturesFolder: 'tests/fixtures',
     numTestsKeptInMemory: 0,
+    retries: 2,
     screenshotsFolder: 'tests/screenshots',
-    taskTimeout: 20000,
-    video: false,
+    taskTimeout: 60000,
+    video: true,
+    videoCompression: true,
+    videosFolder: 'tests/videos',
     viewportWidth: 1300,
     env: {
         adminEmail: 'sysadmin@sample.mattermost.com',

@@ -8,7 +8,6 @@ import type {Channel} from '@mattermost/types/channels';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
 import ChannelsInput from 'components/widgets/inputs/channels_input';
 
@@ -88,14 +87,20 @@ export default function AddToChannels(props: Props) {
             {' '}
             <span className='InviteView__sectionTitleParenthetical'>
                 {(props.channelToInvite && props.inviteType === InviteType.MEMBER) ? (
-                    <FormattedMarkdownMessage
-                        id='invite_modal.add_channels_title_c'
-                        defaultMessage='**(Optional)**'
+                    <FormattedMessage
+                        id='invite_modal.add_channels_title_member'
+                        defaultMessage='<b>(optional)</b>'
+                        values={{
+                            b: (chunks: string) => <b>{chunks}</b>,
+                        }}
                     />
                 ) : (
-                    <FormattedMarkdownMessage
-                        id='invite_modal.add_channels_title_b'
-                        defaultMessage='**(required)**'
+                    <FormattedMessage
+                        id='invite_modal.add_channels_title_nonmember'
+                        defaultMessage='<b>(required)</b>'
+                        values={{
+                            b: (chunks: string) => <b>{chunks}</b>,
+                        }}
                     />
                 )}
             </span>
@@ -138,7 +143,7 @@ export default function AddToChannels(props: Props) {
                 </div>
             )}
             {props.customMessage.open && (
-                <React.Fragment>
+                <>
                     <div className={'AddToChannels__customMessageTitle ' + props.titleClass}>
                         <FormattedMessage
                             id='invitation_modal.guests.custom-message.title'
@@ -154,7 +159,7 @@ export default function AddToChannels(props: Props) {
                         onChange={(e) => props.setCustomMessage(e.target.value)}
                         value={props.customMessage.message}
                     />
-                </React.Fragment>
+                </>
             )}
         </div>
     </div>);

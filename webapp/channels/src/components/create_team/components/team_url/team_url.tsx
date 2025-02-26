@@ -12,8 +12,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ExternalLink from 'components/external_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
@@ -197,9 +196,6 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         }
 
         const title = `${URL.getSiteURL()}/`;
-        const urlTooltip = (
-            <Tooltip id='urlTooltip'>{title}</Tooltip>
-        );
 
         let finishMessage = (
             <FormattedMessage
@@ -236,15 +232,13 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
                         <div className='row'>
                             <div className='col-sm-11'>
                                 <div className='input-group input-group--limit'>
-                                    <OverlayTrigger
-                                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                                        placement='top'
-                                        overlay={urlTooltip}
+                                    <WithTooltip
+                                        title={title}
                                     >
                                         <span className='input-group-addon'>
                                             {title}
                                         </span>
-                                    </OverlayTrigger>
+                                    </WithTooltip>
                                     <input
                                         id='teamURLInput'
                                         type='text'

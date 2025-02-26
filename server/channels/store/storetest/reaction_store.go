@@ -31,10 +31,11 @@ func TestReactionStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, rctx, ss) })
 	t.Run("ExistsOnPost", func(t *testing.T) { testExistsOnPost(t, rctx, ss) })
 	t.Run("GetUniqueCountForPost", func(t *testing.T) { testGetUniqueCountForPost(t, rctx, ss) })
+	t.Run("ReactionGetSingle", func(t *testing.T) { testReactionGetSingle(t, rctx, ss) })
 }
 
 func testReactionSave(t *testing.T, rctx request.CTX, ss store.Store) {
-	post, err := ss.Post().Save(&model.Post{
+	post, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -91,7 +92,7 @@ func testReactionSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// different post
 	// create post1
-	post1, err := ss.Post().Save(&model.Post{
+	post1, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -136,7 +137,7 @@ func testReactionSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testReactionDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) {
-		post, err := ss.Post().Save(&model.Post{
+		post, err := ss.Post().Save(rctx, &model.Post{
 			ChannelId: model.NewId(),
 			UserId:    model.NewId(),
 		})
@@ -172,7 +173,7 @@ func testReactionDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Undelete", func(t *testing.T) {
-		post, err := ss.Post().Save(&model.Post{
+		post, err := ss.Post().Save(rctx, &model.Post{
 			ChannelId: model.NewId(),
 			UserId:    model.NewId(),
 		})
@@ -207,12 +208,12 @@ func testReactionDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 func testReactionGetForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	// create post
-	post, err := ss.Post().Save(&model.Post{
+	post, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    userId,
 	})
 	require.NoError(t, err)
-	post1, err := ss.Post().Save(&model.Post{
+	post1, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    userId,
 	})
@@ -313,11 +314,11 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 	userId := model.NewId()
 
 	// create post
-	post, _ := ss.Post().Save(&model.Post{
+	post, _ := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    userId,
 	})
-	post1, _ := ss.Post().Save(&model.Post{
+	post1, _ := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    userId,
 	})
@@ -365,6 +366,8 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		_, err := ss.Reaction().Save(reaction)
 		require.NoError(t, err)
 
+		time.Sleep(5 * time.Millisecond)
+
 		if del > 0 {
 			_, err = ss.Reaction().Delete(reaction)
 			require.NoError(t, err)
@@ -382,6 +385,7 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		returned, err := ss.Reaction().GetForPostSince(postId, later-1, "", false)
 		require.NoError(t, err)
 		require.Len(t, returned, 2, "should've returned 2 non-deleted reactions")
+		assert.Less(t, returned[0].CreateAt, returned[1].CreateAt)
 		for _, r := range returned {
 			assert.Zero(t, r.DeleteAt, "should not have returned deleted reaction")
 		}
@@ -393,7 +397,10 @@ func testReactionGetForPostSince(t *testing.T, rctx request.CTX, ss store.Store,
 		require.NoError(t, err)
 		require.Len(t, returned, 3, "should've returned 3 reactions")
 		var count int
-		for _, r := range returned {
+		for i, r := range returned {
+			if i > 0 {
+				assert.Less(t, returned[i-1].CreateAt, returned[i].CreateAt)
+			}
 			if r.DeleteAt > 0 {
 				count++
 			}
@@ -434,7 +441,7 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 		"updateat":  updateAt,
 	}
 
-	sqlResult, err := s.GetMasterX().NamedExec(`
+	sqlResult, err := s.GetMaster().NamedExec(`
 		UPDATE
 			Reactions
 		SET
@@ -461,10 +468,10 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 }
 
 func forceNULL(reaction *model.Reaction, s SqlStore) error {
-	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
 		return err
 	}
-	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
 		return err
 	}
 	return nil
@@ -473,17 +480,17 @@ func forceNULL(reaction *model.Reaction, s SqlStore) error {
 func testReactionDeleteAllWithEmojiName(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	emojiToDelete := model.NewId()
 
-	post, err1 := ss.Post().Save(&model.Post{
+	post, err1 := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
 	require.NoError(t, err1)
-	post2, err2 := ss.Post().Save(&model.Post{
+	post2, err2 := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
 	require.NoError(t, err2)
-	post3, err3 := ss.Post().Save(&model.Post{
+	post3, err3 := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -566,17 +573,17 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, rctx request.CTX, ss store
 
 func testPermanentDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
-	post, err1 := ss.Post().Save(&model.Post{
+	post, err1 := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
 	require.NoError(t, err1)
-	post2, err2 := ss.Post().Save(&model.Post{
+	post2, err2 := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
 	require.NoError(t, err2)
-	post3, err3 := ss.Post().Save(&model.Post{
+	post3, err3 := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -658,20 +665,20 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss st
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
-	channel, err := ss.Channel().Save(&model.Channel{
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
-	olderPost, err := ss.Post().Save(&model.Post{
+	olderPost, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: channel.Id,
 		UserId:    model.NewId(),
 		CreateAt:  1000,
 	})
 	require.NoError(t, err)
-	newerPost, err := ss.Post().Save(&model.Post{
+	newerPost, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: channel.Id,
 		UserId:    model.NewId(),
 		CreateAt:  3000,
@@ -713,8 +720,10 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss st
 	require.Contains(t, rows[0].Ids, olderPost.Id)
 
 	for _, row := range rows {
-		err = ss.Reaction().DeleteOrphanedRowsByIds(row)
+		var deleted int64
+		deleted, err = ss.Reaction().DeleteOrphanedRowsByIds(row)
 		require.NoError(t, err)
+		require.Equal(t, int64(2), deleted)
 	}
 
 	rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
@@ -732,22 +741,22 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss st
 
 func testReactionBulkGetForPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
-	post, _ := ss.Post().Save(&model.Post{
+	post, _ := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    userId,
 	})
 	postId := post.Id
-	post, _ = ss.Post().Save(&model.Post{
+	post, _ = ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    userId,
 	})
 	post2Id := post.Id
-	post, _ = ss.Post().Save(&model.Post{
+	post, _ = ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    userId,
 	})
 	post3Id := post.Id
-	post, _ = ss.Post().Save(&model.Post{
+	post, _ = ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    userId,
 	})
@@ -812,13 +821,13 @@ func testReactionBulkGetForPosts(t *testing.T, rctx request.CTX, ss store.Store)
 func testReactionDeadlock(t *testing.T, rctx request.CTX, ss store.Store) {
 	ss = retrylayer.New(ss)
 
-	post, err := ss.Post().Save(&model.Post{
+	post, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
 	require.NoError(t, err)
 	postId := post.Id
-	post, err = ss.Post().Save(&model.Post{
+	post, err = ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -877,7 +886,7 @@ func testReactionDeadlock(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testExistsOnPost(t *testing.T, rctx request.CTX, ss store.Store) {
-	post, _ := ss.Post().Save(&model.Post{
+	post, _ := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -898,7 +907,7 @@ func testExistsOnPost(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetUniqueCountForPost(t *testing.T, rctx request.CTX, ss store.Store) {
-	post, _ := ss.Post().Save(&model.Post{
+	post, _ := ss.Post().Save(rctx, &model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
@@ -937,4 +946,86 @@ func testGetUniqueCountForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	count, err := ss.Reaction().GetUniqueCountForPost(post.Id)
 	require.NoError(t, err)
 	require.Equal(t, 2, count)
+}
+
+func testReactionGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
+	var (
+		testUserID    = model.NewId()
+		testEmojiName = "smile"
+		testRemoteID  = model.NewId()
+	)
+
+	t.Run("get without remoteId", func(t *testing.T) {
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    testUserID,
+		})
+		require.NoError(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    testUserID,
+			PostId:    post.Id,
+			EmojiName: testEmojiName,
+		}
+
+		_, nErr := ss.Reaction().Save(reaction)
+		require.NoError(t, nErr)
+
+		reactionFound, err := ss.Reaction().GetSingle(testUserID, post.Id, "", testEmojiName)
+		require.NoError(t, err)
+		assert.Equal(t, testUserID, reactionFound.UserId)
+		assert.Equal(t, post.Id, reactionFound.PostId)
+		assert.Equal(t, "", reactionFound.GetRemoteID())
+		assert.Equal(t, testEmojiName, reactionFound.EmojiName)
+	})
+
+	t.Run("get with remoteId", func(t *testing.T) {
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    testUserID,
+		})
+		require.NoError(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    testUserID,
+			PostId:    post.Id,
+			EmojiName: testEmojiName,
+			RemoteId:  model.NewPointer(testRemoteID),
+		}
+
+		_, nErr := ss.Reaction().Save(reaction)
+		require.NoError(t, nErr)
+
+		reactionFound, err := ss.Reaction().GetSingle(testUserID, post.Id, testRemoteID, testEmojiName)
+		require.NoError(t, err)
+		assert.Equal(t, testUserID, reactionFound.UserId)
+		assert.Equal(t, post.Id, reactionFound.PostId)
+		assert.Equal(t, testRemoteID, reactionFound.GetRemoteID())
+		assert.Equal(t, testEmojiName, reactionFound.EmojiName)
+	})
+
+	t.Run("not found - wrong remoteID", func(t *testing.T) {
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: model.NewId(),
+			UserId:    testUserID,
+		})
+		require.NoError(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    testUserID,
+			PostId:    post.Id,
+			EmojiName: testEmojiName,
+			RemoteId:  model.NewPointer(testRemoteID),
+		}
+
+		_, nErr := ss.Reaction().Save(reaction)
+		require.NoError(t, nErr)
+
+		reactionFound, err := ss.Reaction().GetSingle(testUserID, post.Id, "bogus-remoteId", testEmojiName)
+		require.Error(t, err)
+		assert.Nil(t, reactionFound)
+
+		var errNotFound *store.ErrNotFound
+		assert.ErrorAs(t, err, &errNotFound)
+	})
 }

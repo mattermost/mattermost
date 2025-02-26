@@ -1,11 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const MAX_WEBSOCKET_FAILS = 7;
-const MIN_WEBSOCKET_RETRY_TIME = 3000; // 3 sec
-const MAX_WEBSOCKET_RETRY_TIME = 300000; // 5 mins
-const JITTER_RANGE = 2000; // 2 sec
-
 const WEBSOCKET_HELLO = 'hello';
 
 export type MessageListener = (msg: WebSocketMessage) => void;
@@ -15,7 +10,27 @@ export type MissedMessageListener = () => void;
 export type ErrorListener = (event: Event) => void;
 export type CloseListener = (connectFailCount: number) => void;
 
+export type WebSocketClientConfig = {
+    maxWebSocketFails: number;
+    minWebSocketRetryTime: number;
+    maxWebSocketRetryTime: number;
+    reconnectJitterRange: number;
+    newWebSocketFn: (url: string) => WebSocket;
+}
+
+const defaultWebSocketClientConfig: WebSocketClientConfig = {
+    maxWebSocketFails: 7,
+    minWebSocketRetryTime: 3000, // 3 seconds
+    maxWebSocketRetryTime: 300000, // 5 minutes
+    reconnectJitterRange: 2000, // 2 seconds
+    newWebSocketFn: (url: string) => {
+        return new WebSocket(url);
+    },
+};
+
 export default class WebSocketClient {
+    private config: WebSocketClientConfig;
+
     private conn: WebSocket | null;
     private connectionUrl: string | null;
 
@@ -68,8 +83,12 @@ export default class WebSocketClient {
     private closeListeners = new Set<CloseListener>();
 
     private connectionId: string | null;
+    private serverHostname: string | null;
+    private postedAck: boolean;
 
-    constructor() {
+    private reconnectTimeout: ReturnType<typeof setTimeout> | null;
+
+    constructor(config?: Partial<WebSocketClientConfig>) {
         this.conn = null;
         this.connectionUrl = null;
         this.responseSequence = 1;
@@ -77,13 +96,24 @@ export default class WebSocketClient {
         this.connectFailCount = 0;
         this.responseCallbacks = {};
         this.connectionId = '';
+        this.serverHostname = '';
+        this.postedAck = false;
+        this.reconnectTimeout = null;
+        this.config = {...defaultWebSocketClientConfig, ...config};
     }
 
     // on connect, only send auth cookie and blank state.
     // on hello, get the connectionID and store it.
     // on reconnect, send cookie, connectionID, sequence number.
-    initialize(connectionUrl = this.connectionUrl, token?: string) {
+    initialize(connectionUrl = this.connectionUrl, token?: string, postedAck?: boolean) {
         if (this.conn) {
+            return;
+        }
+
+        // We have a timeout waiting to re-initialize the websocket.
+        // We should wait until that fires before initializing,
+        // otherwise we may not respect the configured backoff.
+        if (this.reconnectTimeout) {
             return;
         }
 
@@ -96,10 +126,19 @@ export default class WebSocketClient {
             console.log('websocket connecting to ' + connectionUrl); //eslint-disable-line no-console
         }
 
+        if (typeof postedAck != 'undefined') {
+            this.postedAck = postedAck;
+        }
+
         // Add connection id, and last_sequence_number to the query param.
         // We cannot use a cookie because it will bleed across tabs.
         // We cannot also send it as part of the auth_challenge, because the session cookie is already sent with the request.
-        this.conn = new WebSocket(`${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}`);
+        const websocketUrl = `${connectionUrl}?connection_id=${this.connectionId}&sequence_number=${this.serverSequence}${this.postedAck ? '&posted_ack=true' : ''}`;
+        if (this.config.newWebSocketFn) {
+            this.conn = this.config.newWebSocketFn(websocketUrl);
+        } else {
+            this.conn = new WebSocket(websocketUrl);
+        }
         this.connectionUrl = connectionUrl;
 
         this.conn.onopen = () => {
@@ -133,22 +172,28 @@ export default class WebSocketClient {
             this.closeCallback?.(this.connectFailCount);
             this.closeListeners.forEach((listener) => listener(this.connectFailCount));
 
-            let retryTime = MIN_WEBSOCKET_RETRY_TIME;
-
             // If we've failed a bunch of connections then start backing off
-            if (this.connectFailCount > MAX_WEBSOCKET_FAILS) {
-                retryTime = MIN_WEBSOCKET_RETRY_TIME * this.connectFailCount * this.connectFailCount;
-                if (retryTime > MAX_WEBSOCKET_RETRY_TIME) {
-                    retryTime = MAX_WEBSOCKET_RETRY_TIME;
+            let retryTime = this.config.minWebSocketRetryTime;
+            if (this.connectFailCount > this.config.maxWebSocketFails) {
+                retryTime = retryTime * this.connectFailCount * this.connectFailCount;
+                if (retryTime > this.config.maxWebSocketRetryTime) {
+                    retryTime = this.config.maxWebSocketRetryTime;
                 }
             }
 
             // Applying jitter to avoid thundering herd problems.
-            retryTime += Math.random() * JITTER_RANGE;
+            retryTime += Math.random() * this.config.reconnectJitterRange;
 
-            setTimeout(
+            // If we already have a reconnect timeout waiting,
+            // we should let that handle the next connection.
+            if (this.reconnectTimeout) {
+                return;
+            }
+
+            this.reconnectTimeout = setTimeout(
                 () => {
-                    this.initialize(connectionUrl, token);
+                    this.reconnectTimeout = null;
+                    this.initialize(this.connectionUrl, token, this.postedAck);
                 },
                 retryTime,
             );
@@ -189,21 +234,24 @@ export default class WebSocketClient {
                         console.log('long timeout, or server restart, or sequence number is not found.'); //eslint-disable-line no-console
 
                         this.missedEventCallback?.();
-			
-			for (const listener of this.missedMessageListeners) {
+
+                        for (const listener of this.missedMessageListeners) {
                             try {
                                 listener();
                             } catch (e) {
                                 console.log(`missed message listener "${listener.name}" failed: ${e}`); // eslint-disable-line no-console
                             }
                         }
-                        
-			this.serverSequence = 0;
+
+                        this.serverSequence = 0;
                     }
 
                     // If it's a fresh connection, we have to set the connectionId regardless.
                     // And if it's an existing connection, setting it again is harmless, and keeps the code simple.
                     this.connectionId = msg.data.connection_id;
+
+                    // Also update the server hostname
+                    this.serverHostname = msg.data.server_hostname;
                 }
 
                 // Now we check for sequence number, and if it does not match,
@@ -347,6 +395,10 @@ export default class WebSocketClient {
     close() {
         this.connectFailCount = 0;
         this.responseSequence = 1;
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.onclose = () => {};
             this.conn.close();
@@ -366,11 +418,10 @@ export default class WebSocketClient {
             this.responseCallbacks[msg.seq] = responseCallback;
         }
 
+        // Only try to send the message if the websocket is open.
+        // If the websocket is closed here, we will drop the message.
         if (this.conn && this.conn.readyState === WebSocket.OPEN) {
             this.conn.send(JSON.stringify(msg));
-        } else if (!this.conn || this.conn.readyState === WebSocket.CLOSED) {
-            this.conn = null;
-            this.initialize();
         }
     }
 
@@ -410,6 +461,18 @@ export default class WebSocketClient {
             manual,
         };
         this.sendMessage('user_update_active_status', data, callback);
+    }
+
+    acknowledgePostedNotification(postId: string, status: string, reason?: string, postedData?: string) {
+        const data = {
+            post_id: postId,
+            user_agent: window.navigator.userAgent,
+            status,
+            reason,
+            data: postedData,
+        };
+
+        this.sendMessage('posted_notify_ack', data);
     }
 
     getStatuses(callback?: () => void) {

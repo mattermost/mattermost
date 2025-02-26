@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
 import type {FormEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import AbstractCommand from 'components/integrations/abstract_command';
-import type {AbstractCommand as AbstractCommandClass} from 'components/integrations/abstract_command';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/AbstractCommand', () => {
@@ -57,14 +56,14 @@ describe('components/integrations/AbstractCommand', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <AbstractCommand {...baseProps}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot when header/footer/loading is a string', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <AbstractCommand
                 {...baseProps}
                 header='Header as string'
@@ -78,7 +77,7 @@ describe('components/integrations/AbstractCommand', () => {
     test('should match snapshot, displays client error', () => {
         const newSeverError = 'server error';
         const props = {...baseProps, serverError: newSeverError};
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <AbstractCommand {...props}/>,
         );
 
@@ -90,7 +89,7 @@ describe('components/integrations/AbstractCommand', () => {
     });
 
     test('should call action function', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow(
             <AbstractCommand {...baseProps}/>,
         );
 
@@ -101,10 +100,10 @@ describe('components/integrations/AbstractCommand', () => {
     });
 
     test('should match object returned by getStateFromCommand', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow<AbstractCommand>(
             <AbstractCommand {...baseProps}/>,
         );
-        const instance = wrapper.instance() as AbstractCommandClass;
+        const instance = wrapper.instance();
 
         const expectedOutput = {
             autocomplete: true,
@@ -125,10 +124,10 @@ describe('components/integrations/AbstractCommand', () => {
     });
 
     test('should match state when method is called', () => {
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow<AbstractCommand>(
             <AbstractCommand {...baseProps}/>,
         );
-        const instance = wrapper.instance() as AbstractCommandClass;
+        const instance = wrapper.instance();
 
         const displayName = 'new display_name';
         const displayNameEvent = {preventDefault: jest.fn(), target: {value: displayName}} as any;
@@ -192,10 +191,10 @@ describe('components/integrations/AbstractCommand', () => {
             },
         );
         const props = {...baseProps, action: newAction};
-        const wrapper = shallowWithIntl(
+        const wrapper = shallow<AbstractCommand>(
             <AbstractCommand {...props}/>,
         );
-        const instance = wrapper.instance() as AbstractCommandClass;
+        const instance = wrapper.instance();
         expect(newAction).toHaveBeenCalledTimes(0);
 
         const evt = {preventDefault: jest.fn()} as unknown as FormEvent<Element>;

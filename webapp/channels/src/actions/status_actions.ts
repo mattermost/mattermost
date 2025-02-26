@@ -3,47 +3,62 @@
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {addUserIdsForStatusFetchingPoll} from 'mattermost-redux/actions/status_profile_polling';
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFunc} from 'types/store';
 
-export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalState> {
+/**
+ * Adds the following users to the status pool for fetching their statuses:
+ * - All users of current channel with recent posts.
+ * - All users who have DMs open with the current user.
+ * - The current user.
+ */
+export function addVisibleUsersInCurrentChannelAndSelfToStatusPoll(): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const state = getState();
-        const statusesToLoad: Record<string, true> = {};
-
-        const channelId = getCurrentChannelId(state);
+        const currentUserId = getCurrentUserId(state);
+        const currentChannelId = getCurrentChannelId(state);
         const postsInChannel = getPostsInCurrentChannel(state);
+        const numberOfPostsVisibleInCurrentChannel = state.views.channel.postVisibility[currentChannelId] || 0;
 
-        if (postsInChannel) {
-            const posts = postsInChannel.slice(0, state.views.channel.postVisibility[channelId] || 0);
+        const userIdsToFetchStatusFor = new Set<string>();
+
+        // We fetch for users who have recently posted in the current channel
+        if (postsInChannel && numberOfPostsVisibleInCurrentChannel > 0) {
+            const posts = postsInChannel.slice(0, numberOfPostsVisibleInCurrentChannel);
             for (const post of posts) {
-                if (post.user_id) {
-                    statusesToLoad[post.user_id] = true;
+                if (post.user_id && post.user_id !== currentUserId) {
+                    userIdsToFetchStatusFor.add(post.user_id);
                 }
             }
         }
 
-        const dmPrefs = getDirectShowPreferences(state);
-
-        for (const pref of dmPrefs) {
-            if (pref.value === 'true') {
-                statusesToLoad[pref.name] = true;
+        // We also fetch for users who have DMs open with the current user
+        const directShowPreferences = getDirectShowPreferences(state);
+        for (const directShowPreference of directShowPreferences) {
+            if (directShowPreference.value === 'true') {
+                // This is the other user's id in the DM
+                userIdsToFetchStatusFor.add(directShowPreference.name);
             }
         }
 
-        const currentUserId = getCurrentUserId(state);
-        statusesToLoad[currentUserId] = true;
+        // Add current user to the list to fetch status for
+        userIdsToFetchStatusFor.add(currentUserId);
 
-        dispatch(loadStatusesByIds(Object.keys(statusesToLoad)));
+        // Both the users in the DM list and recent posts constitute for all the visible users in the current channel
+        const userIdsForStatus = Array.from(userIdsToFetchStatusFor);
+        if (userIdsForStatus.length > 0) {
+            dispatch(addUserIdsForStatusFetchingPoll(userIdsForStatus));
+        }
+
         return {data: true};
     };
 }
@@ -73,7 +88,7 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
 
         const statusesToLoad = [];
         for (const userId in users) {
-            if ({}.hasOwnProperty.call(users, userId)) {
+            if (Object.hasOwn(users, userId)) {
                 statusesToLoad.push(userId);
             }
         }

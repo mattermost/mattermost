@@ -8,26 +8,13 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
   <div
     className="modal-column"
   >
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
+    <WithTooltip
       key="zoomOut"
-      overlay={
-        <Tooltip
-          id="zoom-out-icon-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Zoom Out"
-            id="view_image.zoom_out"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Zoom Out"
+          id="view_image.zoom_out"
+        />
       }
     >
       <span
@@ -37,27 +24,14 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
           className="icon icon-minus"
         />
       </span>
-    </OverlayTrigger>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
+    </WithTooltip>
+    <WithTooltip
       key="zoomReset"
-      overlay={
-        <Tooltip
-          id="zoom-reset-icon-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Reset Zoom"
-            id="view_image.zoom_reset"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Reset Zoom"
+          id="view_image.zoom_reset"
+        />
       }
     >
       <span
@@ -67,27 +41,14 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
           className="icon icon-magnify-minus"
         />
       </span>
-    </OverlayTrigger>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={400}
+    </WithTooltip>
+    <WithTooltip
       key="zoomIn"
-      overlay={
-        <Tooltip
-          id="zoom-in-icon-tooltip"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Zoom In"
-            id="view_image.zoom_in"
-          />
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
+      title={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Zoom In"
+          id="view_image.zoom_in"
+        />
       }
     >
       <span
@@ -97,7 +58,7 @@ exports[`components/file_preview_modal/popover_bar/PopoverBar should match snaps
           className="icon icon-plus"
         />
       </span>
-    </OverlayTrigger>
+    </WithTooltip>
   </div>
 </div>
 `;

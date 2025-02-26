@@ -1,0 +1,266 @@
+[
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Группыг зохистой ашиглах тухай мэдээлэл өөрчлөх"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Уучлаарай, танд группын товч тайлбар/уриаг өөрчлөх эрх байхгүй байна"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Rediger kanaloverskriften"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "invite_people"
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
+    "id": "October",
+    "translation": "Oktober"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "May",
+    "translation": "Mai"
+  },
+  {
+    "id": "March",
+    "translation": "Mars"
+  },
+  {
+    "id": "June",
+    "translation": "Juni"
+  },
+  {
+    "id": "July",
+    "translation": "Juli"
+  },
+  {
+    "id": "January",
+    "translation": "Januar"
+  },
+  {
+    "id": "February",
+    "translation": "Februar"
+  },
+  {
+    "id": "December",
+    "translation": "Desember"
+  },
+  {
+    "id": "August",
+    "translation": "August"
+  },
+  {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kan ikke fjerne en anerkjennelse i en arkivert kanal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kan ikke slette en anerkjennelse etter at det har gått 5 minutter."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kan ikke gi en anerkjennelse i en arkivert kanal."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Kunne ikke åpne sertifikat fil."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Kunne ikke lagre sertifikat fil."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Kan ikke slette merkevarebilde, ikke funnet."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Feil ved lesing av loggfil."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Bildelagring er ikke konfigurert."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP er ikke tilgjengelig."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Det oppstod en feil under sletting av sertifikatet."
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Kunne ikke tilbakestille AuthData-feltet til e-post."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Kunne ikke lagre sertifikatfilen."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 er ikke konfigurert eller støttet på denne serveren."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Ingen fil under \"sertifikat\" i forespørsel."
+  },
+  {
+    "id": "api.channel.bookmark.channel_bookmark.license.error",
+    "translation": "Din lisens åpner ikke for kanalbokmerker."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Brukeren har ikke lov til å opprette et kanalbokmerke."
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke opprette kanalbokmerket."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Ingen fil under \"sertifikat\" i forespørsel."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v lagt til kanalen som gjest av %v."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v lagt til kanalen av %v."
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Feil oppstod med å legge til kanalmedlem(mer)."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Kunne ikke legge til brukeren til kanalen."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Kunne ikke legge til brukeren i kanalen fordi vedkommende er fjernet fra teamet."
+  },
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Kan ikke legge til bruker til denne kanaltypen."
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Last ned"
+  },
+  {
+    "id": "api.channel.bookmark.create_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke opprette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke slette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke slette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.delete_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke slette kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalbokmerket."
+  },
+  {
+    "id": "api.channel.bookmark.update_channel_bookmark.forbidden.app_error",
+    "translation": "Kunne ikke oppdatere kanalbokmerket."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket er påkrevd"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Tilbake til {{.SiteName}}"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unable_to_send",
+    "translation": "Kan ikke sende meldingen"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.thread_deleted",
+    "translation": "Tråden har blitt slettet"
+  },
+  {
+    "id": "app.scheduled_post.error_reason.unknown",
+    "translation": "Ukjent feil"
+  },
+  {
+    "id": "app.scheduled_post.unknown_channel",
+    "translation": "Ukjent kanal"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Kontakt support"
+  },
+  {
+    "id": "app.scheduled_post.private_channel",
+    "translation": "Privat kanal"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Kontakt salgsavdelingen"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Feil ved henting av gjeldende kanal."
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "borte"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Du er nå borte"
+  }
+]

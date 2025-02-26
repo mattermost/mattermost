@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -87,7 +88,8 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	*config.PasswordSettings.Uppercase = false
 	*config.PasswordSettings.Symbol = false
 	*config.PasswordSettings.Number = false
-	configStore.Set(config)
+	_, _, err = configStore.Set(config)
+	require.NoError(tb, err)
 
 	licenseFn := func() *model.License { return model.NewTestLicense() }
 
@@ -189,7 +191,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 	}
 
 	var err error
-	if channel, err = th.store.Channel().Save(channel, *th.configStore.Get().TeamSettings.MaxChannelsPerTeam); err != nil {
+	if channel, err = th.store.Channel().Save(th.Context, channel, *th.configStore.Get().TeamSettings.MaxChannelsPerTeam); err != nil {
 		panic(err)
 	}
 
@@ -252,11 +254,11 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err error
 	if guest {
-		if user, err = th.service.userService.CreateUser(user, users.UserCreateOptions{Guest: true}); err != nil {
+		if user, err = th.service.userService.CreateUser(th.Context, user, users.UserCreateOptions{Guest: true}); err != nil {
 			panic(err)
 		}
 	} else {
-		if user, err = th.service.userService.CreateUser(user, users.UserCreateOptions{}); err != nil {
+		if user, err = th.service.userService.CreateUser(th.Context, user, users.UserCreateOptions{}); err != nil {
 			panic(err)
 		}
 	}

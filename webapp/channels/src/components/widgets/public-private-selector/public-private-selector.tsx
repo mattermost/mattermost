@@ -7,12 +7,11 @@ import {useIntl} from 'react-intl';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import CheckCircleIcon from 'components/widgets/icons/check_circle_icon';
 import GlobeCircleSolidIcon from 'components/widgets/icons/globe_circle_solid_icon';
 import LockCircleSolidIcon from 'components/widgets/icons/lock_circle_solid_icon';
 import UpgradeBadge from 'components/widgets/icons/upgrade_badge_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
@@ -79,20 +78,12 @@ const BigButtonSelector = ({
         return button;
     }
 
-    const tooltipContainer = (
-        <Tooltip id={'public-private-selector-button-tooltip'}>
-            {tooltip}
-        </Tooltip>
-    );
-
     return (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement='top'
-            overlay={tooltipContainer}
+        <WithTooltip
+            title={tooltip}
         >
             {button}
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

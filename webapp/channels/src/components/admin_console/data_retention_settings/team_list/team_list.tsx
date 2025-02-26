@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -199,7 +199,10 @@ export default class TeamList extends React.PureComponent<Props, State> {
                             }}
                             href='#'
                         >
-                            {Utils.localizeMessage('admin.data_retention.custom_policy.teams.remove', 'Remove')}
+                            <FormattedMessage
+                                id='admin.data_retention.custom_policy.teams.remove'
+                                defaultMessage='Remove'
+                            />
                         </a>
                     ),
                 },

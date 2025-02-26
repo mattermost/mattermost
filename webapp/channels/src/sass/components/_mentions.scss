@@ -1,4 +1,4 @@
-@charset 'UTF-8';
+@use "utils/variables";
 
 del .mention-link,
 del .group-mention-link {
@@ -16,17 +16,26 @@ del .group-mention-link:focus {
     position: relative;
     z-index: 10;
     padding-bottom: 2px;
-    background: $primary-color;
     border-radius: 3px;
-    color: $white;
+    background: variables.$primary-color;
+    color: variables.$white;
+}
+
+.mention-link {
+    color: var(--link-color);
+
+    &:hover,
+    &:focus {
+        text-decoration: underline;
+    }
 }
 
 .badge {
     display: inline-block;
     min-width: 10px;
     padding: 3px 7px;
-    background-color: #777;
     border-radius: 10px;
+    background-color: #777;
     color: #fff;
     font-size: 12px;
     font-weight: bold;
@@ -38,8 +47,8 @@ del .group-mention-link:focus {
 
 .mention--highlight {
     padding: 0 1px;
-    background-color: var(--mention-highlight-bg);
     border-radius: 4px;
+    background-color: var(--mention-highlight-bg);
     color: var(--mention-highlight-link);
 
     .mention-link,
@@ -56,8 +65,8 @@ del .group-mention-link:focus {
 
 .non-notification-highlight {
     padding: 0 1px;
-    background-color: var(--mention-highlight-bg);
     border-radius: 4px;
+    background-color: var(--mention-highlight-bg);
     color: var(--mention-highlight-link);
 }
 

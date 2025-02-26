@@ -1,12 +1,10 @@
-@charset 'UTF-8';
-
 .select-suggestion-container {
     position: relative;
     margin: 8px 8px 0 0;
 
     &:hover {
         &::after {
-            opacity: 0.6;
+            opacity: 0.73;
         }
     }
 

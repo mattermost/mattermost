@@ -3,8 +3,8 @@
     height: auto;
     max-height: 100%;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    background: var(--center-channel-bg);
     border-radius: 4px;
+    background: var(--center-channel-bg);
     box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.08);
 
     .TableSectionContent {
@@ -225,8 +225,8 @@
                         justify-content: flex-start;
                         padding: 10px 16px;
                         border: none;
-                        background: #1c58d9;
                         border-radius: 4px;
+                        background: #1c58d9;
                         color: #fff;
                         gap: 10px;
                     }
@@ -239,8 +239,8 @@
                 justify-content: flex-start;
                 padding: 16px;
                 border: 1px solid var(--error-text-16, rgba(210, 75, 78, 0.16));
-                background: var(--error-text-8, rgba(210, 75, 78, 0.08));
                 border-radius: 4px;
+                background: var(--error-text-8, rgba(210, 75, 78, 0.08));
                 gap: 12px;
 
                 .Icon {

@@ -156,6 +156,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
             cancelButton = (
                 <button
                     type='button'
+                    data-testid='cancel-button'
                     className='btn btn-tertiary'
                     onClick={this.handleCancel}
                     id='cancelModalButton'
@@ -173,10 +174,11 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 show={this.props.show}
                 onHide={this.handleCancel}
                 onExited={this.props.onExited}
-                role='dialog'
+                role='none'
                 aria-modal={true}
                 aria-labelledby='confirmModalLabel'
                 aria-describedby='confirmModalBody'
+                data-testid={this.props.id}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title

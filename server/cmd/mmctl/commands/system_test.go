@@ -5,19 +5,17 @@ package commands
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
@@ -28,7 +26,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.Background()).
+			GetServerBusy(context.TODO()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
@@ -47,7 +45,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.Background()).
+			GetServerBusy(context.TODO()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
@@ -62,7 +60,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetServerBusy(context.Background()).
+			GetServerBusy(context.TODO()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -83,7 +81,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			SetServerBusy(context.Background(), minutes*60).
+			SetServerBusy(context.TODO(), minutes*60).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -121,7 +119,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.Background()).
+			ClearServerBusy(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -136,7 +134,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.Background()).
+			ClearServerBusy(context.TODO()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
@@ -154,7 +152,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		expectedVersion := "1.23.4.dev"
 		s.client.
 			EXPECT().
-			GetPing(context.Background()).
+			GetPing(context.TODO()).
 			Return("", &model.Response{ServerVersion: expectedVersion}, nil).
 			Times(1)
 
@@ -170,7 +168,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 
 		s.client.
 			EXPECT().
-			GetPing(context.Background()).
+			GetPing(context.TODO()).
 			Return("", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -188,7 +186,10 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		expectedStatus := map[string]string{"status": "OK"}
 		s.client.
 			EXPECT().
-			GetPingWithFullServerStatus(context.Background()).
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
@@ -204,7 +205,10 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetPingWithFullServerStatus(context.Background()).
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
@@ -215,77 +219,58 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 	})
 }
 
-func cleanupSupportPacket(t *testing.T) func() {
-	return func() {
-		entries, err := os.ReadDir(".")
-		require.NoError(t, err)
-		for _, e := range entries {
-			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
-				err = os.Remove(e.Name())
-				assert.NoError(t, err)
-			}
-		}
-	}
-}
-
 func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 	printer.SetFormat(printer.FormatPlain)
 	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
 
-	s.Run("Download support packet with default filename", func() {
+	s.Run("Download Support Packet with default filename", func() {
 		printer.Clean()
 
-		s.T().Cleanup(cleanupSupportPacket(s.T()))
-
-		data := []byte("some bytes")
+		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
 			GenerateSupportPacket(context.TODO()).
-			Return(data, &model.Response{}, nil).
+			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
+
+		defer func() {
+			err := os.Remove("mm_support_packet.zip")
+			s.NoError(err)
+		}()
 
 		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
-		s.Require().Contains(printer.GetLines()[1], "Downloaded Support Packet to ")
+		s.Require().Equal(printer.GetLines()[1], "Downloaded Support Packet to mm_support_packet.zip")
 
-		var found bool
-
-		entries, err := os.ReadDir(".")
-		s.Require().NoError(err)
-		for _, e := range entries {
-			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
-				b, err := os.ReadFile(e.Name())
-				s.NoError(err)
-				s.Equal(b, data)
-
-				found = true
-			}
-		}
-
-		s.True(found)
+		b, err := os.ReadFile("mm_support_packet.zip")
+		s.NoError(err)
+		s.Equal(b, []byte("some bytes"))
 	})
 
-	s.Run("Download support packet with custom filename", func() {
+	s.Run("Download Support Packet with custom filename", func() {
 		printer.Clean()
 
-		data := []byte("some bytes")
+		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
 			GenerateSupportPacket(context.TODO()).
-			Return(data, &model.Response{}, nil).
+			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
-		err := SystemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		systemSupportPacketCmd := &cobra.Command{}
+		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
 		s.Require().NoError(err)
 
-		s.T().Cleanup(func() {
-			s.Require().NoError(os.Remove("foo.zip"))
-		})
+		defer func() {
+			err = os.Remove("foo.zip")
+			s.Require().NoError(err)
+		}()
 
-		err = systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		err = systemSupportPacketCmdF(s.client, systemSupportPacketCmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
@@ -294,7 +279,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 
 		b, err := os.ReadFile("foo.zip")
 		s.Require().NoError(err)
-		s.Equal(b, data)
+		s.Equal(string(b), "some bytes")
 	})
 
 	s.Run("Request to the server fails", func() {
@@ -303,7 +288,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		s.client.
 			EXPECT().
 			GenerateSupportPacket(context.TODO()).
-			Return(nil, &model.Response{}, errors.New("mock error")).
+			Return(nil, "", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})

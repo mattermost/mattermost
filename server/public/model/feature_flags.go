@@ -19,17 +19,15 @@ type FeatureFlags struct {
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
+	// Enable DMs and GMs for shared channels.
+	EnableSharedChannelsDMs bool
+
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
 	PermalinkPreviews bool
 
-	// CallsEnabled controls whether or not the Calls plugin should be enabled
-	CallsEnabled bool
-
 	NormalizeLdapDNs bool
-
-	PostPriority bool
 
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
@@ -37,8 +35,6 @@ type FeatureFlags struct {
 	OnboardingTourTips bool
 
 	DeprecateCloudFree bool
-
-	CloudReverseTrial bool
 
 	EnableExportDirectDownload bool
 
@@ -49,26 +45,45 @@ type FeatureFlags struct {
 	CloudIPFiltering bool
 	ConsumePostHook  bool
 
-	CloudAnnualRenewals bool
+	CloudAnnualRenewals    bool
+	CloudDedicatedExportUI bool
+
+	ChannelBookmarks bool
+
+	WebSocketEventScope bool
+
+	NotificationMonitoring bool
+
+	ExperimentalAuditSettingsSystemConsoleUI bool
+
+	ExperimentalCrossTeamSearch bool
+
+	CustomProfileAttributes bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
-	f.AppsEnabled = true
+	f.EnableSharedChannelsDMs = false
+	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
-	f.CallsEnabled = true
 	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
-	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
+	f.CloudDedicatedExportUI = false
+	f.ChannelBookmarks = true
+	f.WebSocketEventScope = true
+	f.NotificationMonitoring = true
+	f.ExperimentalAuditSettingsSystemConsoleUI = false
+	f.ExperimentalCrossTeamSearch = false
+	f.CustomProfileAttributes = false
 }
 
 // ToMap returns the feature flags as a map[string]string

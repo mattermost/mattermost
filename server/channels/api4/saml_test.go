@@ -61,7 +61,7 @@ func TestSamlResetId(t *testing.T) {
 
 	user := th.BasicUser
 	_, appErr := th.App.UpdateUserAuth(nil, user.Id, &model.UserAuth{
-		AuthData:    model.NewString(model.NewId()),
+		AuthData:    model.NewPointer(model.NewId()),
 		AuthService: model.UserAuthServiceSaml,
 	})
 	require.Nil(t, appErr)

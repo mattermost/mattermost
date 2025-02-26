@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
-
 import type {
     OpenGraphMetadata,
     Post,
@@ -21,6 +19,7 @@ import type {
     RelationOneToMany,
 } from '@mattermost/types/utilities';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
@@ -99,7 +98,7 @@ export function removeUnneededMetadata(post: Post) {
     };
 }
 
-export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action: AnyAction) {
+export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
@@ -158,7 +157,7 @@ export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action
     }
 }
 
-export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: AnyAction) {
+export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
@@ -194,6 +193,7 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: An
             [post.id]: {
                 ...state[post.id],
                 state: Posts.POST_DELETED,
+                message: '',
                 file_ids: [],
                 has_reactions: false,
             },
@@ -261,6 +261,23 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: An
         }
 
         return nextState;
+    }
+
+    case PostTypes.POST_PINNED_CHANGED: {
+        const {postId, isPinned, updateAt} = action;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [postId]: {
+                ...state[postId],
+                is_pinned: isPinned,
+                last_update_at: updateAt,
+            },
+        };
     }
 
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
@@ -381,7 +398,7 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
     return currentState;
 }
 
-export function handlePendingPosts(state: string[] = [], action: AnyAction) {
+export function handlePendingPosts(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data;
@@ -447,7 +464,7 @@ export function handlePendingPosts(state: string[] = [], action: AnyAction) {
     }
 }
 
-export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: AnyAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
+export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: MMReduxAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RESET_POSTS_IN_CHANNEL: {
         return {};
@@ -937,7 +954,7 @@ export function mergePostOrder(left: string[], right: string[], posts: Record<st
     return result;
 }
 
-export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action: AnyAction, prevPosts: Record<string, Post>) {
+export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action: MMReduxAction, prevPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
@@ -1136,7 +1153,7 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
     }
 }
 
-export function postEditHistory(state: Post[] = [], action: AnyAction) {
+export function postEditHistory(state: Post[] = [], action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST_HISTORY:
         return action.data;
@@ -1147,7 +1164,7 @@ export function postEditHistory(state: Post[] = [], action: AnyAction) {
     }
 }
 
-function currentFocusedPostId(state = '', action: AnyAction) {
+function currentFocusedPostId(state = '', action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_FOCUSED_POST:
         return action.data;
@@ -1158,7 +1175,7 @@ function currentFocusedPostId(state = '', action: AnyAction) {
     }
 }
 
-export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>> = {}, action: AnyAction) {
+export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_REACTION: {
         const reaction = action.data as Reaction;
@@ -1219,7 +1236,7 @@ export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>
     }
 }
 
-export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfile['id'], number>> = {}, action: AnyAction) {
+export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfile['id'], number>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.CREATE_ACK_POST_SUCCESS: {
         const ack = action.data as PostAcknowledgement;
@@ -1290,8 +1307,8 @@ export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfil
     }
 }
 
-function storeReactionsForPost(state: any, post: Post) {
-    if (!post.metadata || !post.metadata.reactions || post.delete_at > 0) {
+function storeReactionsForPost(state: RelationOneToOne<Post, Record<string, Reaction>>, post: Post) {
+    if (!post.metadata || post.delete_at > 0) {
         return state;
     }
 
@@ -1331,7 +1348,7 @@ function storeAcknowledgementsForPost(state: any, post: Post) {
     };
 }
 
-export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: AnyAction) {
+export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
@@ -1395,7 +1412,7 @@ function messagesHistory(state: Partial<MessageHistory> = {
         post: -1,
         comment: -1,
     },
-}, action: AnyAction) {
+}, action: MMReduxAction) {
     switch (action.type) {
     case PostTypes.ADD_MESSAGE_INTO_HISTORY: {
         const nextIndex: Record<string, number> = {};
@@ -1477,7 +1494,7 @@ export const zeroStateLimitedViews = {
 
 export function limitedViews(
     state: PostsState['limitedViews'] = zeroStateLimitedViews,
-    action: AnyAction,
+    action: MMReduxAction,
 ): PostsState['limitedViews'] {
     switch (action.type) {
     case PostTypes.RECEIVED_POSTS:
@@ -1543,7 +1560,7 @@ export function limitedViews(
     }
 }
 
-export default function reducer(state: Partial<PostsState> = {}, action: AnyAction) {
+export default function reducer(state: Partial<PostsState> = {}, action: MMReduxAction) {
     const nextPosts = handlePosts(state.posts, action);
     const nextPostsInChannel = postsInChannel(state.postsInChannel, action, state.posts!, nextPosts);
 

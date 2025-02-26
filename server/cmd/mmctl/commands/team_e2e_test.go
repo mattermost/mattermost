@@ -182,10 +182,12 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("private", true, "")
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
-		s.Require().NoError(err)
+
+		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(
 			printer.GetErrorLines()[0],
-			fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name),
+			expectedError,
 		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
@@ -199,10 +201,12 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		cmd.Flags().Bool("private", true, "")
 		s.th.LoginBasic2()
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
-		s.Require().NoError(err)
+
+		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
+		s.Require().ErrorContains(err, expectedError)
 		s.Require().Contains(
 			printer.GetErrorLines()[0],
-			fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name),
+			expectedError,
 		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
@@ -363,7 +367,7 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 		printer.Clean()
 
 		err := archiveTeamsCmdF(c, cmd, []string{"unknown-team"})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to find team 'unknown-team'", printer.GetErrorLines()[0])
@@ -391,7 +395,7 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 		printer.Clean()
 
 		err := archiveTeamsCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Name})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], "You do not have the appropriate permissions.")

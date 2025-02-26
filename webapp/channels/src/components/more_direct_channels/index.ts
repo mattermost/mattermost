@@ -14,7 +14,7 @@ import {
     getTotalUsersStats,
     searchProfiles,
 } from 'mattermost-redux/actions/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     getCurrentUserId,
@@ -39,7 +39,7 @@ type OwnProps = {
     isExistingChannel: boolean;
 }
 
-const makeMapStateToProps = () => {
+export const makeMapStateToProps = () => {
     const searchProfilesStartingWithTerm = makeSearchProfilesStartingWithTerm();
 
     return (state: GlobalState, ownProps: OwnProps) => {
@@ -54,31 +54,37 @@ const makeMapStateToProps = () => {
 
         const searchTerm = state.views.search.modalSearch;
 
+        let filters;
+        const enableSharedChannelsDMs = getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true';
+        if (!enableSharedChannelsDMs) {
+            filters = {exclude_remote: true};
+        }
+
         let users: UserProfile[];
         if (searchTerm) {
             if (restrictDirectMessage === 'any') {
-                users = searchProfilesStartingWithTerm(state, searchTerm, false);
+                users = searchProfilesStartingWithTerm(state, searchTerm, false, filters);
             } else {
-                users = searchProfilesInCurrentTeam(state, searchTerm, false);
+                users = searchProfilesInCurrentTeam(state, searchTerm, false, filters);
             }
         } else if (restrictDirectMessage === 'any') {
-            users = selectProfiles(state);
+            users = selectProfiles(state, filters);
         } else {
-            users = getProfilesInCurrentTeam(state);
+            users = getProfilesInCurrentTeam(state, filters);
         }
 
         const team = getCurrentTeam(state);
         const stats = getTotalUsersStatsSelector(state) || {total_users_count: 0};
 
         return {
-            currentTeamId: team.id,
-            currentTeamName: team.name,
+            currentTeamId: team?.id,
+            currentTeamName: team?.name,
             searchTerm,
             users,
             currentChannelMembers,
             currentUserId,
             restrictDirectMessage,
-            totalCount: stats.total_users_count,
+            totalCount: stats.total_users_count ?? 0,
         };
     };
 };

@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
+import GeneralConstants from 'mattermost-redux/constants/general';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {isEnterpriseLicense, isNonEnterpriseLicense} from 'utils/license_utils';
@@ -91,14 +92,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                         ],
                     },
                     Permissions.DELETE_PUBLIC_CHANNEL,
-                    {
-                        id: 'convert_public_channel_to_private',
-                        combined: true,
-                        permissions: [
-                            Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
-                            Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC,
-                        ],
-                    },
+                    Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
                 ],
             },
             {
@@ -205,9 +199,11 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
     }
 
     updateGroups = () => {
-        const {config, scope, license} = this.props;
+        const {config, scope, license, role} = this.props;
 
         const teamsGroup = this.groups[0];
+        const publicChannelsGroup = this.groups[1];
+        const privateChannelsGroup = this.groups[2];
         const postsGroup = this.groups[7];
         const integrationsGroup = this.groups[8];
         const sharedChannelsGroup = this.groups[9];
@@ -247,14 +243,47 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
             postsGroup.permissions.push(Permissions.USE_GROUP_MENTIONS);
         }
-        postsGroup.permissions.push(Permissions.CREATE_POST);
-
+        postsGroup.permissions.push({
+            id: Permissions.CREATE_POST,
+            combined: true,
+            permissions: [
+                Permissions.CREATE_POST,
+                Permissions.UPLOAD_FILE,
+            ],
+        });
         if (config.ExperimentalSharedChannels === 'true') {
             sharedChannelsGroup.permissions.push(Permissions.MANAGE_SHARED_CHANNELS);
             sharedChannelsGroup.permissions.push(Permissions.MANAGE_SECURE_CONNECTIONS);
         }
         if (!this.props.customGroupsEnabled) {
             customGroupsGroup?.permissions.pop();
+        }
+
+        if ([GeneralConstants.TEAM_ADMIN_ROLE, GeneralConstants.SYSTEM_ADMIN_ROLE].includes(role.name || '')) {
+            privateChannelsGroup.permissions.push(Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC);
+        }
+
+        if (license?.IsLicensed === 'true') {
+            publicChannelsGroup.permissions.push({
+                id: 'manage_public_channel_bookmarks',
+                combined: true,
+                permissions: [
+                    Permissions.ADD_BOOKMARK_PUBLIC_CHANNEL,
+                    Permissions.EDIT_BOOKMARK_PUBLIC_CHANNEL,
+                    Permissions.DELETE_BOOKMARK_PUBLIC_CHANNEL,
+                    Permissions.ORDER_BOOKMARK_PUBLIC_CHANNEL,
+                ],
+            });
+            privateChannelsGroup.permissions.push({
+                id: 'manage_private_channel_bookmarks',
+                combined: true,
+                permissions: [
+                    Permissions.ADD_BOOKMARK_PRIVATE_CHANNEL,
+                    Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
+                    Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
+                    Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+                ],
+            });
         }
 
         this.groups = this.groups.filter((group) => {

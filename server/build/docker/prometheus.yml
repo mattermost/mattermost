@@ -6,3 +6,13 @@ scrape_configs:
   - job_name: 'mattermost'
     static_configs:
       - targets: ['host.docker.internal:8067']
+  - job_name: fmetrics_scrape
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'logstream'

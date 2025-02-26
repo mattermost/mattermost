@@ -1,0 +1,18 @@
+  /api/v4/logs/download:
+    get:
+      tags:
+        - logs
+      summary: Download system logs
+      description: >
+        Downloads the system logs as a text file.
+      operationId: DownloadSystemLogs
+      responses:
+        "200":
+          description: System logs downloaded successfully.
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: binary
+        "500":
+          $ref: "#/components/responses/InternalServerError"

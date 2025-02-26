@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type React from 'react';
+
 export type PluginConfiguration = {
 
     /** Plugin ID  */
@@ -14,7 +16,7 @@ export type PluginConfiguration = {
 
     /** Action that will appear at the beginning of the plugin settings tab */
     action?: PluginConfigurationAction;
-    sections: PluginConfigurationSection[];
+    sections: Array<PluginConfigurationSection | PluginConfigurationCustomSection>;
 }
 
 export type PluginConfigurationAction = {
@@ -51,6 +53,15 @@ export type PluginConfigurationSection = {
     onSubmit?: (changes: {[name: string]: string}) => void;
 }
 
+export type PluginConfigurationCustomSection = {
+
+    /** The title of the section. All titles must be different. */
+    title: string;
+
+    /** A React component used to render the custom section. */
+    component: React.ComponentType;
+}
+
 export type BasePluginConfigurationSetting = {
 
     /** Name of the setting. This will be the name used to store in the preferences. */
@@ -74,6 +85,15 @@ export type PluginConfigurationRadioSetting = BasePluginConfigurationSetting & {
     options: PluginConfigurationRadioSettingOption[];
 }
 
+export type PluginCustomSettingComponent = React.ComponentType<{informChange: (name: string, value: string) => void}>;
+
+export type PluginConfigurationCustomSetting = BasePluginConfigurationSetting & {
+    type: 'custom';
+
+    /** A React component used to render the custom setting. */
+    component: PluginCustomSettingComponent;
+}
+
 export type PluginConfigurationRadioSettingOption = {
 
     /** The value to store in the preferences */
@@ -86,4 +106,4 @@ export type PluginConfigurationRadioSettingOption = {
     helpText?: string;
 }
 
-export type PluginConfigurationSetting = PluginConfigurationRadioSetting
+export type PluginConfigurationSetting = PluginConfigurationRadioSetting | PluginConfigurationCustomSetting

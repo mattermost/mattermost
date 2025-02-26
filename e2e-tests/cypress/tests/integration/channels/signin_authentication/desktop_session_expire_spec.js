@@ -34,7 +34,7 @@ describe('Authentication', () => {
         // # Open settings modal
         cy.uiOpenSettingsModal().within(() => {
             // Click "Desktop"
-            cy.findByText('Desktop Notifications').should('be.visible').click();
+            cy.findByText('Desktop and mobile notifications').should('be.visible').click();
 
             // # Set your desktop notifications to Never
             cy.get('#desktopNotificationNever').check();

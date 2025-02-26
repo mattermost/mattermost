@@ -15,6 +15,7 @@ type Props = {
     link: string;
     show: boolean;
     metadata?: OpenGraphMetadata;
+    youtubeReferrerPolicy?: boolean;
 }
 
 type State = {
@@ -49,6 +50,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
         const {metadata, link} = this.props;
 
         const videoId = getVideoId(link);
+        const videoTitle = metadata?.title || 'unknown';
         const time = handleYoutubeTime(link);
 
         const header = (
@@ -59,7 +61,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                         href={this.props.link}
                         location='youtube_video'
                     >
-                        {metadata?.title || 'unknown'}
+                        {videoTitle}
                     </ExternalLink>
                 </span>
             </h4>
@@ -75,6 +77,10 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
                     height='360px'
                     frameBorder='0'
                     allowFullScreen={true}
+                    allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+                    referrerPolicy={this.props.youtubeReferrerPolicy ? 'strict-origin-when-cross-origin' : 'no-referrer'}
+                    title={videoTitle}
+                    sandbox='allow-scripts allow-same-origin allow-popups allow-presentation'
                 />
             );
         } else {

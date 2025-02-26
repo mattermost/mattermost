@@ -1,27 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserProfile} from './users';
+import type {UserProfile} from './users';
 
 export enum UserReportSortColumns {
-    username = "Username",
-    email = "Email",
-    createAt = "CreateAt",
-    firstName = "FirstName",
-    lastName = "LastName",
-    nickname = "Nickname",
+    username = 'Username',
+    email = 'Email',
+    createAt = 'CreateAt',
+    firstName = 'FirstName',
+    lastName = 'LastName',
+    nickname = 'Nickname',
 }
 
 export enum ReportSortDirection {
-    ascending = "asc",
-    descending = "desc",
+    ascending = 'asc',
+    descending = 'desc',
 }
 
 export enum ReportDuration {
-    AllTime = "all_time",
-    Last30Days = "last_30_days",
-    PreviousMonth = "previous_month",
-    Last6Months = "last_6_months",
+    AllTime = 'all_time',
+    Last30Days = 'last_30_days',
+    PreviousMonth = 'previous_month',
+    Last6Months = 'last_6_months',
 }
 
 export enum CursorPaginationDirection {
@@ -30,12 +30,12 @@ export enum CursorPaginationDirection {
 }
 
 export type UserReportFilter = {
-    role_filter?: string,
-    has_no_team?: boolean,
-    team_filter?: string,
-    hide_active?: boolean,
-    hide_inactive?: boolean,
-    search_term?: string,
+    role_filter?: string;
+    has_no_team?: boolean;
+    team_filter?: string;
+    hide_active?: boolean;
+    hide_inactive?: boolean;
+    search_term?: string;
 }
 
 export type UserReportOptions = UserReportFilter & {
@@ -55,8 +55,8 @@ export type UserReportOptions = UserReportFilter & {
     // Following are optional pagination parameters
     /**
      * The direction to paginate in. Either "up" or "down". Use the CursorPaginationDirection enum.
-     */    
-    direction?: CursorPaginationDirection,
+     */
+    direction?: CursorPaginationDirection;
 
     /**
      * The cursor to paginate from.
@@ -77,8 +77,8 @@ export type UserReportOptions = UserReportFilter & {
 
 export type UserReport = UserProfile & {
     last_login_at: number;
-	last_status_at?: number;
-	last_post_date?: number;
-	days_active?: number;
-	total_posts?: number;
+    last_status_at?: number;
+    last_post_date?: number;
+    days_active?: number;
+    total_posts?: number;
 }

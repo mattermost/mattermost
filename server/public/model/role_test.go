@@ -94,7 +94,7 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(true)},
 				},
 			},
 			"members",
@@ -106,7 +106,7 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Guests: NewBool(true)},
+					Roles: &ChannelModeratedRolesPatch{Guests: NewPointer(true)},
 				},
 			},
 			"members",
@@ -118,7 +118,7 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(true)},
 				},
 			},
 			"guests",
@@ -130,15 +130,15 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(false)},
 				},
 				{
 					Name:  &manageMembers,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(false)},
 				},
 				{
 					Name:  &channelMentions,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(false)},
 				},
 			},
 			"members",
@@ -150,15 +150,15 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Guests: NewBool(false)},
+					Roles: &ChannelModeratedRolesPatch{Guests: NewPointer(false)},
 				},
 				{
 					Name:  &manageMembers,
-					Roles: &ChannelModeratedRolesPatch{Guests: NewBool(false)},
+					Roles: &ChannelModeratedRolesPatch{Guests: NewPointer(false)},
 				},
 				{
 					Name:  &channelMentions,
-					Roles: &ChannelModeratedRolesPatch{Guests: NewBool(false)},
+					Roles: &ChannelModeratedRolesPatch{Guests: NewPointer(false)},
 				},
 			},
 			"guests",
@@ -170,19 +170,19 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(false)},
 				},
 				{
 					Name:  &manageMembers,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(false)},
 				},
 				{
 					Name:  &channelMentions,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(true)},
 				},
 				{
 					Name:  &createPosts,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(true)},
 				},
 			},
 			"members",
@@ -194,7 +194,7 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(true)},
 				},
 			},
 			"members",
@@ -206,11 +206,11 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(false)},
 				},
 				{
 					Name:  &createPosts,
-					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
+					Roles: &ChannelModeratedRolesPatch{Members: NewPointer(true)},
 				},
 			},
 			"members",
@@ -272,6 +272,36 @@ func TestGetChannelModeratedPermissions(t *testing.T) {
 			for permission := range moderatedPermissions {
 				assert.Equal(t, moderatedPermissions[permission], tc.Expected[permission])
 			}
+		})
+	}
+}
+
+func TestAddAncillaryPermissions(t *testing.T) {
+	tests := []struct {
+		Name        string
+		Permissions []string
+		Expected    []string
+	}{
+		{
+			"Add For ReadUserManagementUsers",
+			[]string{PermissionSysconsoleReadUserManagementUsers.Id},
+			[]string{PermissionSysconsoleReadUserManagementUsers.Id, PermissionReadOtherUsersTeams.Id},
+		},
+		{
+			"Add For ReadCompliance",
+			[]string{PermissionSysconsoleReadComplianceComplianceMonitoring.Id},
+			[]string{PermissionSysconsoleReadComplianceComplianceMonitoring.Id, PermissionReadAudits.Id},
+		},
+		{
+			"Add None",
+			[]string{PermissionSysconsoleReadComplianceCustomTermsOfService.Id},
+			[]string{PermissionSysconsoleReadComplianceCustomTermsOfService.Id},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			permissions := AddAncillaryPermissions(tc.Permissions)
+			assert.Equal(t, permissions, tc.Expected)
 		})
 	}
 }

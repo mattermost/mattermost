@@ -22,7 +22,6 @@ func TestSystemStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("InsertIfExists", func(t *testing.T) {
 		testInsertIfExists(t, rctx, ss)
 	})
-	t.Run("SaveOrUpdateWithWarnMetricHandling", func(t *testing.T) { testSystemStoreSaveOrUpdateWithWarnMetricHandling(t, rctx, ss) })
 	t.Run("GetByNameNoEntries", func(t *testing.T) { testSystemStoreGetByNameNoEntries(t, rctx, ss) })
 }
 
@@ -71,33 +70,6 @@ func testSystemStoreSaveOrUpdate(t *testing.T, rctx request.CTX, ss store.Store)
 	res, err = ss.System().GetByName(system.Name)
 	require.NoError(t, err)
 	assert.Equal(t, system.Value, res.Value)
-}
-
-func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, rctx request.CTX, ss store.Store) {
-	system := &model.System{Name: model.NewId(), Value: "value"}
-
-	err := ss.System().SaveOrUpdateWithWarnMetricHandling(system)
-	require.NoError(t, err)
-
-	_, err = ss.System().GetByName(model.SystemWarnMetricLastRunTimestampKey)
-	assert.Error(t, err)
-
-	system.Name = "warn_metric_number_of_active_users_100"
-	system.Value = model.WarnMetricStatusRunonce
-	err = ss.System().SaveOrUpdateWithWarnMetricHandling(system)
-	require.NoError(t, err)
-
-	val1, nerr := ss.System().GetByName(model.SystemWarnMetricLastRunTimestampKey)
-	assert.NoError(t, nerr)
-
-	system.Name = "warn_metric_number_of_active_users_100"
-	system.Value = model.WarnMetricStatusAck
-	err = ss.System().SaveOrUpdateWithWarnMetricHandling(system)
-	require.NoError(t, err)
-
-	val2, nerr := ss.System().GetByName(model.SystemWarnMetricLastRunTimestampKey)
-	assert.NoError(t, nerr)
-	assert.Equal(t, val1, val2)
 }
 
 func testSystemStoreGetByNameNoEntries(t *testing.T, rctx request.CTX, ss store.Store) {

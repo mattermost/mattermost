@@ -17,7 +17,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 	s.RunForSystemAdminAndLocal("install a plugin", func(c client.Client) {
 		printer.Clean()
 
-		marketPlacePlugins, appErr := s.th.App.GetMarketplacePlugins(&model.MarketplacePluginFilter{
+		marketPlacePlugins, appErr := s.th.App.GetMarketplacePlugins(s.th.Context, &model.MarketplacePluginFilter{
 			Page:    0,
 			PerPage: 100,
 			Filter:  "jira",
@@ -94,7 +94,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 func removePluginIfInstalled(c client.Client, s *MmctlE2ETestSuite, pluginID string) {
 	appErr := pluginDeleteCmdF(c, &cobra.Command{}, []string{pluginID})
 	if appErr != nil {
-		s.Require().Contains(appErr.Error(), "Plugin is not installed.")
+		s.Require().Contains(appErr.Error(), "Unable to delete plugin.")
 	}
 }
 

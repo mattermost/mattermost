@@ -16,6 +16,7 @@ import {
     getChannelStats,
     selectChannel,
 } from 'mattermost-redux/actions/channels';
+import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
 import {logout, loadMe} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
@@ -24,7 +25,6 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {handleNewPost} from 'actions/post_actions';
@@ -44,10 +44,11 @@ import SubMenuModal from 'components/widgets/menu/menu_modals/submenu_modal/subm
 import WebSocketClient from 'client/web_websocket_client';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, PostTypes, RHSStates, ModalIdentifiers, PreviousViewedTypes} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
+import type {ActionFuncAsync, ThunkActionFunc, GlobalState} from 'types/store';
 
 import {openModal} from './views/modals';
 
@@ -168,7 +169,7 @@ export function showMobileSubMenuModal(elements: any[]) { // TODO Use more speci
     dispatch(openModal(submenuModalData));
 }
 
-export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFuncAsync<boolean, GlobalState> {
+export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFuncAsync<boolean> {
     return (doDispatch, doGetState) => {
         const timestamp = Utils.getTimestamp();
         const post = {
@@ -249,7 +250,10 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
     dispatch(logout()).then(() => {
         if (shouldSignalLogout) {
             BrowserStore.signalLogout();
+            DesktopApp.signalLogout();
         }
+
+        BrowserStore.clearHideNotificationPermissionRequestBanner();
 
         WebsocketActions.close();
 
@@ -301,7 +305,7 @@ export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, tea
         channel = dmList.find((directChannel) => directChannel.name === channelName);
     }
 
-    let channelMember: ChannelMembership | null | undefined;
+    let channelMember: ChannelMembership | undefined;
     if (channel) {
         channelMember = getMyChannelMember(state, channel.id);
     }
@@ -327,7 +331,18 @@ export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, tea
     return null;
 }
 
-export async function redirectUserToDefaultTeam() {
+function historyPushWithQueryParams(path: string, queryParams?: URLSearchParams) {
+    if (queryParams) {
+        getHistory().push({
+            pathname: path,
+            search: queryParams.toString(),
+        });
+    } else {
+        getHistory().push(path);
+    }
+}
+
+export async function redirectUserToDefaultTeam(searchParams?: URLSearchParams) {
     let state = getState();
 
     // Assume we need to load the user if they don't have any team memberships loaded or the user loaded
@@ -354,11 +369,11 @@ export async function redirectUserToDefaultTeam() {
     const teams = getActiveTeamsList(state);
     if (teams.length === 0) {
         if (isUserFirstAdmin && onboardingFlowEnabled) {
-            getHistory().push('/preparing-workspace');
+            historyPushWithQueryParams('/preparing-workspace', searchParams);
             return;
         }
 
-        getHistory().push('/select_team');
+        historyPushWithQueryParams('/select_team', searchParams);
         return;
     }
 
@@ -370,8 +385,9 @@ export async function redirectUserToDefaultTeam() {
     if (team && team.delete_at === 0) {
         const channel = await getTeamRedirectChannelIfIsAccesible(user, team);
         if (channel) {
+            dispatch(fetchTeamScheduledPosts(team.id, true));
             dispatch(selectChannel(channel.id));
-            getHistory().push(`/${team.name}/channels/${channel.name}`);
+            historyPushWithQueryParams(`/${team.name}/channels/${channel.name}`, searchParams);
             return;
         }
     }
@@ -383,10 +399,10 @@ export async function redirectUserToDefaultTeam() {
         const channel = await getTeamRedirectChannelIfIsAccesible(user, myTeam); // eslint-disable-line no-await-in-loop
         if (channel) {
             dispatch(selectChannel(channel.id));
-            getHistory().push(`/${myTeam.name}/channels/${channel.name}`);
+            historyPushWithQueryParams(`/${myTeam.name}/channels/${channel.name}`, searchParams);
             return;
         }
     }
 
-    getHistory().push('/select_team');
+    historyPushWithQueryParams('/select_team', searchParams);
 }

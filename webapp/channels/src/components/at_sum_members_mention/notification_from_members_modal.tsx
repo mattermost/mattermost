@@ -113,6 +113,10 @@ function NotificationFromMembersModal(props: Props) {
         return null;
     }
 
+    if (!channel) {
+        return null;
+    }
+
     const modalTitle = formatMessage({id: 'postypes.custom_open_pricing_modal_post_renderer.membersThatRequested', defaultMessage: 'Members that requested '});
 
     const modalHeaderText = (

@@ -48,14 +48,15 @@ describe('Onboarding', () => {
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            cy.get('#open_inviteEdit').should('be.visible').click();
+            cy.get('#accessButton').should('be.visible').click();
 
             // # Enable any user with an account on the server to join the team
-            cy.get('#teamOpenInvite').should('be.visible').click();
-            cy.findByText('Save').should('be.visible').click();
+            cy.get('input.mm-modal-generic-section-item__input-checkbox').last().should('be.visible').click();
+
+            cy.findAllByTestId('mm-save-changes-panel__save-btn').should('be.visible').click();
 
             // # Close the modal
-            cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
+            cy.findByLabelText('Close').should('be.visible').click();
         });
 
         // # Logout from sysadmin account
@@ -77,9 +78,6 @@ describe('Onboarding', () => {
         // # Get invitation email and go to the provided link
         getEmail(username, email);
 
-        // * Ensure that the email was correctly verified
-        cy.findByText('Email Verified').should('be.visible');
-
         // * Ensure that the email was pre-filled and the password input box is focused
         cy.get('#input_loginId').should('be.visible').and('have.value', email);
         cy.get('#input_password-input').should('be.visible').and('be.focused').type(password);
@@ -98,8 +96,8 @@ describe('Onboarding', () => {
             cy.get('#sidebarItem_town-square').should('exist');
         });
 
-        // * Check that the 'Beginning of Town Square' message is visible
-        cy.findByText('Beginning of Town Square').should('be.visible');
+        // * Check that the 'Town Square' message is visible
+        cy.url().should('include', `/${testTeam.name}/channels/town-square`);
     });
 
     // eslint-disable-next-line no-shadow

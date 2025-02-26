@@ -2,34 +2,29 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useSelector} from 'react-redux';
 
-import type {WebSocketClient} from '@mattermost/client';
-
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import webSocketClient from 'client/web_websocket_client';
 
 import type {GlobalState} from 'types/store';
-import type {ProductComponent} from 'types/store/plugins';
+import type {PluginsState, ProductComponent, ProductSubComponentNames} from 'types/store/plugins';
 
 import PluggableErrorBoundary from './error_boundary';
 
-type Props = {
+type ComponentProps<
+    Key extends keyof PluginsState['components'],
+    SubKey extends ProductSubComponentNames,
+> = Key extends 'Product' ?
+    (PluginsState['components'][Key][number][SubKey] extends React.ComponentType<any> ? React.ComponentProps<PluginsState['components'][Key][number][SubKey]> : never) :
+    (PluginsState['components'][Key][number] extends {component: React.ComponentType<any>} ? React.ComponentProps<PluginsState['components'][Key][number]['component']> : never);
+type WrapperProps<T extends keyof PluginsState['components'], U extends ProductSubComponentNames> = {
 
     /*
      * Override the component to be plugged
      */
-    pluggableName: string;
-
-    /*
-     * Components for overriding provided by plugins
-     */
-    components: GlobalState['plugins']['components'];
-
-    /*
-     * Logged in user's theme
-     */
-    theme: Theme;
+    pluggableName: T;
 
     /*
      * Id of the specific component to be plugged.
@@ -41,35 +36,33 @@ type Props = {
      *
      * Only supported when pluggableName is "Product".
      */
-    subComponentName?: 'mainComponent' | 'publicComponent' | 'headerCentreComponent' | 'headerRightComponent';
-
-    /*
-     * Accept any other prop to pass onto the plugin component
-     */
-    [name: string]: any;
+    subComponentName?: U;
 }
 
-type BaseChildProps = {
-    theme: Theme;
-    webSocketClient?: WebSocketClient;
-}
+export type PluggableProps<Key extends keyof PluginsState['components'], SubKey extends ProductSubComponentNames> = WrapperProps<Key, SubKey> & Omit<ComponentProps<Key, SubKey>, keyof WrapperProps<Key, SubKey> | 'theme' | (Key extends 'Product' ? never : 'webSocketClient')>
 
-export default function Pluggable(props: Props): JSX.Element | null {
+export default function Pluggable<Key extends keyof PluginsState['components'], SubKey extends ProductSubComponentNames>(props: PluggableProps<Key, SubKey>) {
     const {
-        components,
         pluggableId,
         pluggableName,
         subComponentName = '',
-        theme,
         ...otherProps
     } = props;
 
-    if (!pluggableName || !Object.hasOwnProperty.call(components, pluggableName)) {
+    type PluggableType = PluginsState['components'][Key][number];
+    const theme = useSelector(getTheme);
+    const allPluginComponents = useSelector((state: GlobalState) => {
+        const allComponents = state.plugins.components;
+        if (Object.hasOwn(allComponents, pluggableName)) {
+            return allComponents[pluggableName] as PluggableType[];
+        }
+        return undefined;
+    });
+    if (!pluggableName || !allPluginComponents) {
         return null;
     }
 
-    let pluginComponents = components[pluggableName]!;
-
+    let pluginComponents: PluggableType[] = [...allPluginComponents];
     if (pluggableId) {
         pluginComponents = pluginComponents.filter(
             (element) => element.id === pluggableId);
@@ -80,12 +73,16 @@ export default function Pluggable(props: Props): JSX.Element | null {
     let content;
 
     if (pluggableName === 'Product') {
-        content = (pluginComponents as ProductComponent[]).map((pc) => {
+        const productComponents = pluginComponents as ProductComponent[];
+        content = (productComponents).map((pc) => {
             if (!subComponentName || !pc[subComponentName]) {
                 return null;
             }
 
-            const Component = pc[subComponentName]! as React.ComponentType<BaseChildProps>;
+            // The function arguments typing makes sure the passed props are
+            // correct, so it is safe to cast here.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const Component = pc[subComponentName] as React.ComponentType<any>;
 
             return (
                 <PluggableErrorBoundary
@@ -101,11 +98,14 @@ export default function Pluggable(props: Props): JSX.Element | null {
         });
     } else {
         content = pluginComponents.map((p) => {
-            if (!p.component) {
+            if (!('component' in p) || !p.component) {
                 return null;
             }
 
-            const Component = p.component as React.ComponentType<BaseChildProps>;
+            // The function arguments typing makes sure the passed props are
+            // correct, so it is safe to cast here.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const Component = p.component as React.ComponentType<any>;
 
             return (
                 <PluggableErrorBoundary
@@ -123,8 +123,10 @@ export default function Pluggable(props: Props): JSX.Element | null {
     }
 
     return (
-        <React.Fragment>
+        <>
             {content}
-        </React.Fragment>
+        </>
     );
 }
+
+export type PluggableComponentType = typeof Pluggable;

@@ -39,7 +39,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 
 	ds := &DatabaseStore{
 		driverName:     *mainHelper.GetSQLSettings().DriverName,
-		db:             mainHelper.GetSQLStore().GetMasterX().DB,
+		db:             mainHelper.GetSQLStore().GetMaster().DB,
 		dataSourceName: *mainHelper.Settings.DataSource,
 	}
 
@@ -80,7 +80,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 			ID    string `db:"id"`
 			Value []byte `db:"value"`
 		}
-		err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+		err := mainHelper.GetSQLStore().GetMaster().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 		require.NoError(t, err)
 
 		var actualCfg *model.Config
@@ -92,7 +92,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 		ID    string `db:"Id"`
 		Value []byte `db:"Value"`
 	}
-	err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+	err := mainHelper.GetSQLStore().GetMaster().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 	require.NoError(t, err)
 
 	var actualCfg *model.Config
@@ -451,7 +451,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		defer ds.Close()
 
 		newCfg := &model.Config{}
-		newCfg.LdapSettings.BindPassword = model.NewString(model.FakeSetting)
+		newCfg.LdapSettings.BindPassword = model.NewPointer(model.FakeSetting)
 
 		_, _, err = ds.Set(newCfg)
 		require.NoError(t, err)
@@ -468,7 +468,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		defer ds.Close()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = model.NewString("invalid")
+		newCfg.ServiceSettings.SiteURL = model.NewPointer("invalid")
 
 		_, _, err = ds.Set(newCfg)
 		if assert.Error(t, err) {
@@ -507,7 +507,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewString("http://new"),
+				SiteURL: model.NewPointer("http://new"),
 			},
 		}
 
@@ -527,7 +527,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewString("http://new"),
+				SiteURL: model.NewPointer("http://new"),
 			},
 		}
 
@@ -548,7 +548,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		_, err = mainHelper.GetSQLStore().GetMasterX().Exec("DROP TABLE Configurations")
+		_, err = mainHelper.GetSQLStore().GetMaster().Exec("DROP TABLE Configurations")
 		require.NoError(t, err)
 
 		newCfg := minimalConfig
@@ -573,7 +573,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		longSiteURL := fmt.Sprintf("http://%s", strings.Repeat("a", MaxWriteLength))
 		newCfg := emptyConfig.Clone()
-		newCfg.ServiceSettings.SiteURL = model.NewString(longSiteURL)
+		newCfg.ServiceSettings.SiteURL = model.NewPointer(longSiteURL)
 
 		_, _, err = ds.Set(newCfg)
 		require.Error(t, err)
@@ -829,7 +829,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		truncateTables(t)
 		id := model.NewId()
-		_, err = mainHelper.GetSQLStore().GetMasterX().NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:id, :value, :createat, TRUE)", map[string]any{
+		_, err = mainHelper.GetSQLStore().GetMaster().NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:id, :value, :createat, TRUE)", map[string]any{
 			"id":       id,
 			"value":    cfgData,
 			"createat": model.GetMillis(),
@@ -1128,7 +1128,7 @@ func TestCleanUp(t *testing.T) {
 	b, err := marshalConfig(ds.config)
 	require.NoError(t, err)
 
-	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewInt(30) // we set 30 days as threshold
+	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewPointer(30) // we set 30 days as threshold
 
 	now := time.Now()
 	for i := 0; i < 5; i++ {

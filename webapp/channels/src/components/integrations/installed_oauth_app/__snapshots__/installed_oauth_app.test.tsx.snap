@@ -85,15 +85,16 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
       <span
         className="item-details__url word-break--all"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="Is Trusted: **{isTrusted}**"
+        <MemoizedFormattedMessage
+          defaultMessage="Is Trusted: "
           id="installed_oauth_apps.is_trusted"
-          values={
-            Object {
-              "isTrusted": "Yes",
-            }
-          }
         />
+        <strong>
+          <MemoizedFormattedMessage
+            defaultMessage="Yes"
+            id="installed_oauth_apps.trusted.yes"
+          />
+        </strong>
       </span>
     </div>
     <div
@@ -102,18 +103,20 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
       <span
         className="item-details__token"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="Client ID: **{clientId}**"
+        <MemoizedFormattedMessage
+          defaultMessage="Client ID: "
           id="installed_integrations.client_id"
-          values={
+        />
+        <strong>
+          facxd9wpzpbpfp8pad78xj75pr
+        </strong>
+        <Memo(CopyText)
+          label={
             Object {
-              "clientId": "facxd9wpzpbpfp8pad78xj75pr",
+              "defaultMessage": "Copy Client Id",
+              "id": "integrations.copy_client_id",
             }
           }
-        />
-        <Memo(CopyText)
-          defaultMessage="Copy Client Id"
-          idMessage="integrations.copy_client_id"
           value="facxd9wpzpbpfp8pad78xj75pr"
         />
       </span>
@@ -125,14 +128,12 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
         className="item-details__token"
       >
         <MemoizedFormattedMessage
-          defaultMessage="Client Secret: **{clientSecret}**"
+          defaultMessage="Client Secret: "
           id="installed_integrations.client_secret"
-          values={
-            Object {
-              "clientSecret": "***************",
-            }
-          }
         />
+        <strong>
+          ***************
+        </strong>
       </span>
     </div>
     <div
@@ -294,9 +295,8 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
         />
       </div>
     </div>
-    <FormError
+    <Memo(FormError)
       error="error"
-      errors={Array []}
     />
     <div
       className="item-details__row"
@@ -313,15 +313,16 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
       <span
         className="item-details__url word-break--all"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="Is Trusted: **{isTrusted}**"
+        <MemoizedFormattedMessage
+          defaultMessage="Is Trusted: "
           id="installed_oauth_apps.is_trusted"
-          values={
-            Object {
-              "isTrusted": "No",
-            }
-          }
         />
+        <strong>
+          <MemoizedFormattedMessage
+            defaultMessage="No"
+            id="installed_oauth_apps.trusted.no"
+          />
+        </strong>
       </span>
     </div>
     <div
@@ -330,18 +331,20 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
       <span
         className="item-details__token"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="Client ID: **{clientId}**"
+        <MemoizedFormattedMessage
+          defaultMessage="Client ID: "
           id="installed_integrations.client_id"
-          values={
+        />
+        <strong>
+          facxd9wpzpbpfp8pad78xj75pr
+        </strong>
+        <Memo(CopyText)
+          label={
             Object {
-              "clientId": "facxd9wpzpbpfp8pad78xj75pr",
+              "defaultMessage": "Copy Client Id",
+              "id": "integrations.copy_client_id",
             }
           }
-        />
-        <Memo(CopyText)
-          defaultMessage="Copy Client Id"
-          idMessage="integrations.copy_client_id"
           value="facxd9wpzpbpfp8pad78xj75pr"
         />
       </span>
@@ -353,14 +356,12 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
         className="item-details__token"
       >
         <MemoizedFormattedMessage
-          defaultMessage="Client Secret: **{clientSecret}**"
+          defaultMessage="Client Secret: "
           id="installed_integrations.client_secret"
-          values={
-            Object {
-              "clientSecret": "***************",
-            }
-          }
         />
+        <strong>
+          ***************
+        </strong>
       </span>
     </div>
     <div
@@ -488,15 +489,16 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
       <span
         className="item-details__url word-break--all"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="Is Trusted: **{isTrusted}**"
+        <MemoizedFormattedMessage
+          defaultMessage="Is Trusted: "
           id="installed_oauth_apps.is_trusted"
-          values={
-            Object {
-              "isTrusted": "No",
-            }
-          }
         />
+        <strong>
+          <MemoizedFormattedMessage
+            defaultMessage="No"
+            id="installed_oauth_apps.trusted.no"
+          />
+        </strong>
       </span>
     </div>
     <div
@@ -505,18 +507,20 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
       <span
         className="item-details__token"
       >
-        <FormattedMarkdownMessage
-          defaultMessage="Client ID: **{clientId}**"
+        <MemoizedFormattedMessage
+          defaultMessage="Client ID: "
           id="installed_integrations.client_id"
-          values={
+        />
+        <strong>
+          facxd9wpzpbpfp8pad78xj75pr
+        </strong>
+        <Memo(CopyText)
+          label={
             Object {
-              "clientId": "facxd9wpzpbpfp8pad78xj75pr",
+              "defaultMessage": "Copy Client Id",
+              "id": "integrations.copy_client_id",
             }
           }
-        />
-        <Memo(CopyText)
-          defaultMessage="Copy Client Id"
-          idMessage="integrations.copy_client_id"
           value="facxd9wpzpbpfp8pad78xj75pr"
         />
       </span>
@@ -528,14 +532,12 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
         className="item-details__token"
       >
         <MemoizedFormattedMessage
-          defaultMessage="Client Secret: **{clientSecret}**"
+          defaultMessage="Client Secret: "
           id="installed_integrations.client_secret"
-          values={
-            Object {
-              "clientSecret": "***************",
-            }
-          }
         />
+        <strong>
+          ***************
+        </strong>
       </span>
     </div>
     <div

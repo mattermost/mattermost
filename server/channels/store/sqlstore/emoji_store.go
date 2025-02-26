@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -14,17 +13,26 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
+	sq "github.com/mattermost/squirrel"
 )
 
 type SqlEmojiStore struct {
 	*SqlStore
 	metrics einterfaces.MetricsInterface
+
+	emojiSelectQuery sq.SelectBuilder
 }
 
 func newSqlEmojiStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
+	emojiSelectQuery := sqlStore.getQueryBuilder().
+		Select("Id", "CreateAt", "UpdateAt", "DeleteAt", "CreatorId", "Name").
+		From("Emoji").
+		Where(sq.Eq{"DeleteAt": 0})
+
 	return &SqlEmojiStore{
-		SqlStore: sqlStore,
-		metrics:  metrics,
+		SqlStore:         sqlStore,
+		metrics:          metrics,
+		emojiSelectQuery: emojiSelectQuery,
 	}
 }
 
@@ -34,7 +42,7 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 		return nil, err
 	}
 
-	if _, err := es.GetMasterX().NamedExec(`INSERT INTO Emoji
+	if _, err := es.GetMaster().NamedExec(`INSERT INTO Emoji
 		(Id, CreateAt, UpdateAt, DeleteAt, CreatorId, Name)
 		VALUES
 		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :CreatorId, :Name)`, emoji); err != nil {
@@ -53,43 +61,34 @@ func (es SqlEmojiStore) GetByName(c request.CTX, name string, allowFromCache boo
 }
 
 func (es SqlEmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error) {
-	// Creating (?, ?, ?) len(names) number of times.
-	keys := strings.Join(strings.Fields(strings.Repeat("? ", len(names))), ",")
-	args := makeStringArgs(names)
+	query := es.emojiSelectQuery.Where(sq.Eq{"Name": names})
 
-	emojis := []*model.Emoji{}
-	if err := es.DBXFromContext(c.Context()).Select(&emojis,
-		`SELECT
-			*
-		FROM
-			Emoji
-		WHERE
-			Name IN (`+keys+`)
-			AND DeleteAt = 0`, args...); err != nil {
-		return nil, errors.Wrapf(err, "error getting emoji by names %v", names)
+	var emojis []*model.Emoji
+	if err := es.DBXFromContext(c.Context()).SelectBuilder(&emojis, query); err != nil {
+		return nil, errors.Wrapf(err, "error getting emojis by names %v", names)
 	}
+
 	return emojis, nil
 }
 
 func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji, error) {
-	emojis := []*model.Emoji{}
+	var emojis []*model.Emoji
 
-	query := "SELECT * FROM Emoji WHERE DeleteAt = 0"
-
+	query := es.emojiSelectQuery
 	if sort == model.EmojiSortByName {
-		query += " ORDER BY Name"
+		query = query.OrderBy("Name")
 	}
 
-	query += " LIMIT ? OFFSET ?"
+	query = query.Limit(uint64(limit)).Offset(uint64(offset))
 
-	if err := es.GetReplicaX().Select(&emojis, query, limit, offset); err != nil {
+	if err := es.GetReplica().SelectBuilder(&emojis, query); err != nil {
 		return nil, errors.Wrap(err, "could not get list of emojis")
 	}
 	return emojis, nil
 }
 
 func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
-	if sqlResult, err := es.GetMasterX().Exec(
+	if sqlResult, err := es.GetMaster().Exec(
 		`UPDATE
 			Emoji
 		SET
@@ -107,7 +106,7 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 }
 
 func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error) {
-	emojis := []*model.Emoji{}
+	var emojis []*model.Emoji
 
 	name = sanitizeSearchTerm(name, "\\")
 
@@ -115,19 +114,14 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 	if !prefixOnly {
 		term = "%"
 	}
-
 	term += name + "%"
 
-	if err := es.GetReplicaX().Select(&emojis,
-		`SELECT
-			*
-		FROM
-			Emoji
-		WHERE
-			Name LIKE ?
-			AND DeleteAt = 0
-			ORDER BY Name
-			LIMIT ?`, term, limit); err != nil {
+	query := es.emojiSelectQuery.
+		Where(sq.Like{"Name": term}).
+		OrderBy("Name").
+		Limit(uint64(limit))
+
+	if err := es.GetReplica().SelectBuilder(&emojis, query); err != nil {
 		return nil, errors.Wrapf(err, "could not search emojis by name %s", name)
 	}
 	return emojis, nil
@@ -137,19 +131,13 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 func (es SqlEmojiStore) getBy(c request.CTX, what, key string) (*model.Emoji, error) {
 	var emoji model.Emoji
 
-	err := es.DBXFromContext(c.Context()).Get(&emoji,
-		`SELECT
-			*
-		FROM
-			Emoji
-		WHERE
-			`+what+` = ?
-			AND DeleteAt = 0`, key)
+	query := es.emojiSelectQuery.Where(sq.Eq{what: key})
+
+	err := es.DBXFromContext(c.Context()).GetBuilder(&emoji, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Emoji", fmt.Sprintf("%s=%s", what, key))
 		}
-
 		return nil, errors.Wrapf(err, "could not get emoji by %s with value %s", what, key)
 	}
 

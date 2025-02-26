@@ -102,7 +102,7 @@ export function makeFilterAutoclosedDMs(): (state: GlobalState, channels: Channe
         getCurrentUserId,
         getMyChannelMemberships,
         getChannelMessageCounts,
-        getVisibleDmGmLimit,
+        (state) => getVisibleDmGmLimit(state),
         getMyPreferences,
         isCollapsedThreadsEnabled,
         (channels, categoryType, currentChannelId, profiles, currentUserId, myMembers, messageCounts, limitPref, myPreferences, collapsedThreads) => {
@@ -447,13 +447,18 @@ export function makeGetChannelsByCategory() {
 
         const channelsByCategory: RelationOneToOne<ChannelCategory, Channel[]> = {};
 
+        // TODO: This avoids some rendering, but there is a bigger issue underneath
+        // Every time myPreferences or myChannels change (which can happen for many
+        // unrelated reasons) the whole list of channels gets reordered and re-filtered.
+        let allEquals = categoryIds === lastCategoryIds;
         for (const category of categories) {
             const channels = getChannels[category.id](state, category.channel_ids);
             channelsByCategory[category.id] = filterAndSortChannels[category.id](state, channels, category);
+            allEquals = allEquals && shallowEquals(channelsByCategory[category.id], lastChannelsByCategory[category.id]);
         }
 
         // Do a shallow equality check of channelsByCategory to avoid returning a new object containing the same data
-        if (shallowEquals(channelsByCategory, lastChannelsByCategory)) {
+        if (allEquals) {
             return lastChannelsByCategory;
         }
 

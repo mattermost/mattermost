@@ -7,26 +7,12 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   id="helpMenuPortal"
   onToggle={[Function]}
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        className="hidden-xs"
-        id="userGuideHelpTooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Help"
-          id="channel_header.userHelpGuide"
-        />
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+  <WithTooltip
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Help"
+        id="channel_header.userHelpGuide"
+      />
     }
   >
     <ForwardRef
@@ -40,7 +26,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       onClick={[Function]}
       size="sm"
     />
-  </OverlayTrigger>
+  </WithTooltip>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"
@@ -96,26 +82,12 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   id="helpMenuPortal"
   onToggle={[Function]}
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        className="hidden-xs"
-        id="userGuideHelpTooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Help"
-          id="channel_header.userHelpGuide"
-        />
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+  <WithTooltip
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Help"
+        id="channel_header.userHelpGuide"
+      />
     }
   >
     <ForwardRef
@@ -129,7 +101,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       onClick={[Function]}
       size="sm"
     />
-  </OverlayTrigger>
+  </WithTooltip>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"
@@ -177,26 +149,12 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
   id="helpMenuPortal"
   onToggle={[Function]}
 >
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    delayShow={500}
-    overlay={
-      <Tooltip
-        className="hidden-xs"
-        id="userGuideHelpTooltip"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Help"
-          id="channel_header.userHelpGuide"
-        />
-      </Tooltip>
-    }
-    placement="bottom"
-    trigger={
-      Array [
-        "hover",
-        "focus",
-      ]
+  <WithTooltip
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Help"
+        id="channel_header.userHelpGuide"
+      />
     }
   >
     <ForwardRef
@@ -210,7 +168,7 @@ exports[`components/channel_header/components/UserGuideDropdown should match sna
       onClick={[Function]}
       size="sm"
     />
-  </OverlayTrigger>
+  </WithTooltip>
   <Menu
     ariaLabel="Add Channel Dropdown"
     id="AddChannelDropdown"

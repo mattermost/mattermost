@@ -12,7 +12,7 @@ import {RequestStatus} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setGlobalItem} from 'actions/storage';
@@ -46,7 +46,7 @@ const getPrivateChannelsSelector = createSelector(
 );
 
 function mapStateToProps(state: GlobalState) {
-    const team = getCurrentTeam(state) || {};
+    const team = getCurrentTeam(state);
     const getGlobalItem = makeGetGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, 'false');
 
     return {
@@ -54,8 +54,8 @@ function mapStateToProps(state: GlobalState) {
         archivedChannels: getArchivedOtherChannels(state) || [],
         privateChannels: getPrivateChannelsSelector(state) || [],
         currentUserId: getCurrentUserId(state),
-        teamId: team.id,
-        teamName: team.name,
+        teamId: getCurrentTeamId(state),
+        teamName: team?.name,
         channelsRequestStarted: state.requests.channels.getChannels.status === RequestStatus.STARTED,
         canShowArchivedChannels: (getConfig(state).ExperimentalViewArchivedChannels === 'true'),
         myChannelMemberships: getMyChannelMemberships(state) || {},

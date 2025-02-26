@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isNil} from 'lodash';
+import isNil from 'lodash/isNil';
 
 import type {TextboxElement} from 'components/textbox';
 
@@ -160,7 +160,7 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
     return markdownLink;
 }
 
-export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste?: boolean, caretPosition?: number) {
+export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, caretPosition?: number) {
     const {clipboardData, target} = event;
 
     const textboxId = location === Locations.RHS_COMMENT ? 'reply_textbox' : 'post_textbox';
@@ -169,11 +169,15 @@ export function pasteHandler(event: ClipboardEvent, location: string, message: s
         return;
     }
 
+    if (isNonFormattedPaste) {
+        return;
+    }
+
     const {selectionStart, selectionEnd} = target as TextboxElement;
 
     const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
     const hasTextUrl = isTextUrl(clipboardData);
-    const hasHTMLLinks = !isNonFormattedPaste && hasHtmlLink(clipboardData);
+    const hasHTMLLinks = hasHtmlLink(clipboardData);
     const htmlTable = getHtmlTable(clipboardData);
     const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
     const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);

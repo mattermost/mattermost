@@ -3,7 +3,8 @@
 
 package model
 
-type UserLimits struct {
-	MaxUsersLimit   int64 `json:"maxUsersLimit"`   // max number of users allowed
-	ActiveUserCount int64 `json:"activeUserCount"` // actual number of active users on server. Active = non deleted
+type ServerLimits struct {
+	MaxUsersLimit     int64 `json:"maxUsersLimit"`     // soft limit for max number of users.
+	MaxUsersHardLimit int64 `json:"maxUsersHardLimit"` // hard limit for max number of active users.
+	ActiveUserCount   int64 `json:"activeUserCount"`   // actual number of active users on server. Active = non deleted
 }

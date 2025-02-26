@@ -48,7 +48,7 @@ describe('Desktop notifications', () => {
             spyNotificationAs('withNotification', 'granted');
 
             // # Ensure notifications are set up to fire a desktop notification if are mentioned
-            changeDesktopNotificationAs('#desktopNotificationMentions');
+            changeDesktopNotificationAs('mentions');
 
             // # Ensure display settings are set to "Show nickname if one exists, otherwise show first and last name"
             changeTeammateNameDisplayAs('#name_formatFormatB');
@@ -76,7 +76,7 @@ describe('Desktop notifications', () => {
             spyNotificationAs('withNotification', 'granted');
 
             // # Ensure notifications are set up to fire a desktop notification if are mentioned
-            changeDesktopNotificationAs('#desktopNotificationMentions');
+            changeDesktopNotificationAs('mentions');
 
             // # Ensure display settings are set to "Show nickname if one exists, otherwise show first and last name"
             changeTeammateNameDisplayAs('#name_formatFormatB');

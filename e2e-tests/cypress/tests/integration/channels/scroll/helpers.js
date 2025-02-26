@@ -7,6 +7,7 @@ import * as TIMEOUTS from '../../../fixtures/timeouts';
 export function postListOfMessages({sender, channelId, numberOfMessages = 30}) {
     Cypress._.times(numberOfMessages, (postIndex) => {
         cy.postMessageAs({sender, message: `Other users p-${postIndex}`, channelId});
+        cy.wait(TIMEOUTS.ONE_SEC);
     });
 }
 

@@ -219,7 +219,6 @@ export default class MfaSection extends React.PureComponent<Props, State> {
                 extraInfo={this.renderHelpText()}
                 serverError={this.state.serverError}
                 updateSection={this.props.updateSection}
-                width='medium'
             />
         );
     }

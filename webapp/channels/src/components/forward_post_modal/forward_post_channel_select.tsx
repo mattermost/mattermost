@@ -75,7 +75,7 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
     let icon;
     const iconProps = {
         size: 16,
-        color: 'rgba(var(--center-channel-color-rgb), 0.56)',
+        color: 'rgba(var(--center-channel-color-rgb), 0.75)',
     };
 
     if (channelIsArchived) {
@@ -144,7 +144,6 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
     const sharedIcon = details.shared ? (
         <SharedChannelIndicator
             className='shared-channel-icon'
-            channelType={details.type}
         />
     ) : null;
 
@@ -216,7 +215,7 @@ const DropdownIndicator = (props: IndicatorProps<ChannelOption>) => {
         <components.DropdownIndicator {...props}>
             <ChevronDownIcon
                 size={16}
-                color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                color={'rgba(var(--center-channel-color-rgb), 0.75)'}
             />
         </components.DropdownIndicator>
     );

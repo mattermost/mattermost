@@ -19,39 +19,38 @@ import (
 )
 
 const (
-	PostSystemMessagePrefix        = "system_"
-	PostTypeDefault                = ""
-	PostTypeSlackAttachment        = "slack_attachment"
-	PostTypeSystemGeneric          = "system_generic"
-	PostTypeJoinLeave              = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
-	PostTypeJoinChannel            = "system_join_channel"
-	PostTypeGuestJoinChannel       = "system_guest_join_channel"
-	PostTypeLeaveChannel           = "system_leave_channel"
-	PostTypeJoinTeam               = "system_join_team"
-	PostTypeLeaveTeam              = "system_leave_team"
-	PostTypeAutoResponder          = "system_auto_responder"
-	PostTypeAddRemove              = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
-	PostTypeAddToChannel           = "system_add_to_channel"
-	PostTypeAddGuestToChannel      = "system_add_guest_to_chan"
-	PostTypeRemoveFromChannel      = "system_remove_from_channel"
-	PostTypeMoveChannel            = "system_move_channel"
-	PostTypeAddToTeam              = "system_add_to_team"
-	PostTypeRemoveFromTeam         = "system_remove_from_team"
-	PostTypeHeaderChange           = "system_header_change"
-	PostTypeDisplaynameChange      = "system_displayname_change"
-	PostTypeConvertChannel         = "system_convert_channel"
-	PostTypePurposeChange          = "system_purpose_change"
-	PostTypeChannelDeleted         = "system_channel_deleted"
-	PostTypeChannelRestored        = "system_channel_restored"
-	PostTypeEphemeral              = "system_ephemeral"
-	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
-	PostTypeWrangler               = "system_wrangler"
-	PostTypeGMConvertedToChannel   = "system_gm_to_channel"
-	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
-	PostTypeSystemWarnMetricStatus = "warn_metric_status"
-	PostTypeMe                     = "me"
-	PostCustomTypePrefix           = "custom_"
-	PostTypeReminder               = "reminder"
+	PostSystemMessagePrefix      = "system_"
+	PostTypeDefault              = ""
+	PostTypeSlackAttachment      = "slack_attachment"
+	PostTypeSystemGeneric        = "system_generic"
+	PostTypeJoinLeave            = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
+	PostTypeJoinChannel          = "system_join_channel"
+	PostTypeGuestJoinChannel     = "system_guest_join_channel"
+	PostTypeLeaveChannel         = "system_leave_channel"
+	PostTypeJoinTeam             = "system_join_team"
+	PostTypeLeaveTeam            = "system_leave_team"
+	PostTypeAutoResponder        = "system_auto_responder"
+	PostTypeAddRemove            = "system_add_remove" // Deprecated, use PostAddToChannel or PostRemoveFromChannel instead
+	PostTypeAddToChannel         = "system_add_to_channel"
+	PostTypeAddGuestToChannel    = "system_add_guest_to_chan"
+	PostTypeRemoveFromChannel    = "system_remove_from_channel"
+	PostTypeMoveChannel          = "system_move_channel"
+	PostTypeAddToTeam            = "system_add_to_team"
+	PostTypeRemoveFromTeam       = "system_remove_from_team"
+	PostTypeHeaderChange         = "system_header_change"
+	PostTypeDisplaynameChange    = "system_displayname_change"
+	PostTypeConvertChannel       = "system_convert_channel"
+	PostTypePurposeChange        = "system_purpose_change"
+	PostTypeChannelDeleted       = "system_channel_deleted"
+	PostTypeChannelRestored      = "system_channel_restored"
+	PostTypeEphemeral            = "system_ephemeral"
+	PostTypeChangeChannelPrivacy = "system_change_chan_privacy"
+	PostTypeWrangler             = "system_wrangler"
+	PostTypeGMConvertedToChannel = "system_gm_to_channel"
+	PostTypeAddBotTeamsChannels  = "add_bot_teams_channels"
+	PostTypeMe                   = "me"
+	PostCustomTypePrefix         = "custom_"
+	PostTypeReminder             = "reminder"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -76,6 +75,7 @@ const (
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
+	PostPropsForceNotification        = "force_notification"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
@@ -105,7 +105,7 @@ type Post struct {
 	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids,omitempty"`
+	FileIds       StringArray     `json:"file_ids"`
 	PendingPostId string          `json:"pending_post_id"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 	RemoteId      *string         `json:"remote_id,omitempty"`
@@ -207,6 +207,21 @@ type SearchParameter struct {
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
 }
 
+func (sp SearchParameter) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"terms":                    sp.Terms,
+		"is_or_search":             sp.IsOrSearch,
+		"time_zone_offset":         sp.TimeZoneOffset,
+		"page":                     sp.Page,
+		"per_page":                 sp.PerPage,
+		"include_deleted_channels": sp.IncludeDeletedChannels,
+	}
+}
+
+func (sp SearchParameter) LogClone() any {
+	return sp.Auditable()
+}
+
 type AnalyticsPostCountsOptions struct {
 	TeamId        string
 	BotsOnly      bool
@@ -236,17 +251,20 @@ type PostForExport struct {
 	ChannelName string
 	Username    string
 	ReplyCount  int
+	FlaggedBy   StringArray
 }
 
 type DirectPostForExport struct {
 	Post
 	User           string
 	ChannelMembers *[]string
+	FlaggedBy      StringArray
 }
 
 type ReplyForExport struct {
 	Post
-	Username string
+	Username  string
+	FlaggedBy StringArray
 }
 
 type PostForIndexing struct {
@@ -259,6 +277,22 @@ type FileForIndexing struct {
 	FileInfo
 	ChannelId string `json:"channel_id"`
 	Content   string `json:"content"`
+}
+
+// ShouldIndex tells if a file should be indexed or not.
+// index files which are-
+// a. not deleted
+// b. have an associated post ID, if no post ID, then,
+// b.i. the file should belong to the channel's bookmarks, as indicated by the "CreatorId" field.
+//
+// Files not passing this criteria will be deleted from ES index.
+// We're deleting those files from ES index instead of simply skipping them while fetching a batch of files
+// because existing ES indexes might have these files already indexed, so we need to remove them from index.
+func (file *FileForIndexing) ShouldIndex() bool {
+	// NOTE - this function is used in server as well as Enterprise code.
+	// Make sure to update public package dependency in both server and Enterprise code when
+	// updating the logic here and to test both places.
+	return file != nil && file.DeleteAt == 0 && (file.PostId != "" || file.CreatorId == BookmarkFileOwner)
 }
 
 // ShallowCopy is an utility function to shallow copy a Post to the given
@@ -295,7 +329,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewBool(*o.IsFollowing)
+		dst.IsFollowing = NewPointer(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -318,6 +352,12 @@ func (o *Post) ToJSON() (string, error) {
 func (o *Post) EncodeJSON(w io.Writer) error {
 	o.StripActionIntegrations()
 	return json.NewEncoder(w).Encode(o)
+}
+
+type CreatePostFlags struct {
+	TriggerWebhooks   bool
+	SetOnline         bool
+	ForceNotification bool
 }
 
 type GetPostsSinceOptions struct {
@@ -374,8 +414,11 @@ type PostCountOptions struct {
 	UsersPostsOnly     bool
 	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
 	AllowFromCache bool
-	SincePostID    string
-	SinceUpdateAt  int64
+
+	// retrieves posts in the inclusive range: [SinceUpdateAt + LastPostId, UntilUpdateAt]
+	SincePostID   string
+	SinceUpdateAt int64
+	UntilUpdateAt int64
 }
 
 func (o *Post) Etag() string {
@@ -412,7 +455,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	}
 
 	if utf8.RuneCountInString(o.Message) > maxPostSize {
-		return NewAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		return NewAppError("Post.IsValid", "model.post.is_valid.message_length.app_error",
+			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxPostSize}, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Hashtags) > PostHashtagsMaxRunes {
@@ -446,7 +490,6 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeChannelRestored,
 		PostTypeChangeChannelPrivacy,
 		PostTypeAddBotTeamsChannels,
-		PostTypeSystemWarnMetricStatus,
 		PostTypeReminder,
 		PostTypeMe,
 		PostTypeWrangler,
@@ -478,6 +521,7 @@ func (o *Post) SanitizeProps() {
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
+		PostPropsForceNotification,
 	}
 
 	for _, member := range membersToSanitize {
@@ -490,18 +534,28 @@ func (o *Post) SanitizeProps() {
 	}
 }
 
+// Remove any input data from the post object that is not user controlled
+func (o *Post) SanitizeInput() {
+	o.DeleteAt = 0
+	o.RemoteId = NewPointer("")
+
+	if o.Metadata != nil {
+		o.Metadata.Embeds = nil
+	}
+}
+
 func (o *Post) ContainsIntegrationsReservedProps() []string {
-	return containsIntegrationsReservedProps(o.GetProps())
+	return ContainsIntegrationsReservedProps(o.GetProps())
 }
 
 func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
 	if o == nil || o.Props == nil {
 		return nil
 	}
-	return containsIntegrationsReservedProps(*o.Props)
+	return ContainsIntegrationsReservedProps(*o.Props)
 }
 
-func containsIntegrationsReservedProps(props StringInterface) []string {
+func ContainsIntegrationsReservedProps(props StringInterface) []string {
 	foundProps := []string{}
 
 	if props != nil {
@@ -851,8 +905,11 @@ func (o *Post) ForPlugin() *Post {
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {
+	if o.Metadata == nil {
+		return nil
+	}
 	for _, embed := range o.Metadata.Embeds {
-		if embed.Type == PostEmbedPermalink {
+		if embed != nil && embed.Type == PostEmbedPermalink {
 			if previewPost, ok := embed.Data.(*PreviewPost); ok {
 				return previewPost
 			}
@@ -897,6 +954,10 @@ func (o *Post) IsUrgent() bool {
 		return false
 	}
 
+	if postPriority.Priority == nil {
+		return false
+	}
+
 	return *postPriority.Priority == PostPriorityUrgent
 }
 
@@ -906,4 +967,16 @@ func (o *Post) CleanPost() *Post {
 	o.UpdateAt = 0
 	o.EditAt = 0
 	return o
+}
+
+type UpdatePostOptions struct {
+	SafeUpdate    bool
+	IsRestorePost bool
+}
+
+func DefaultUpdatePostOptions() *UpdatePostOptions {
+	return &UpdatePostOptions{
+		SafeUpdate:    false,
+		IsRestorePost: false,
+	}
 }

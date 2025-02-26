@@ -6,9 +6,8 @@ exports[`components/TextDismissableBar should match snapshot 1`] = `
   handleClose={[Function]}
   message={
     <React.Fragment>
-      <img
-        className="advisor-icon"
-        src={null}
+      <i
+        className="icon icon-information-outline"
       />
       <Memo(Connect(Markdown))
         message="sample text"
@@ -21,7 +20,6 @@ exports[`components/TextDismissableBar should match snapshot 1`] = `
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
 />
 `;
@@ -32,9 +30,8 @@ exports[`components/TextDismissableBar should match snapshot, with an internal a
   handleClose={[Function]}
   message={
     <React.Fragment>
-      <img
-        className="advisor-icon"
-        src={null}
+      <i
+        className="icon icon-information-outline"
       />
       <Memo(Connect(Markdown))
         message="A [link](http://testurl.com/admin_console/) with an internal url and a [link](http://other-url.com/admin_console/) with an external url"
@@ -47,7 +44,6 @@ exports[`components/TextDismissableBar should match snapshot, with an internal a
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
   siteURL="http://testurl.com"
 />
@@ -59,9 +55,8 @@ exports[`components/TextDismissableBar should match snapshot, with an internal u
   handleClose={[Function]}
   message={
     <React.Fragment>
-      <img
-        className="advisor-icon"
-        src={null}
+      <i
+        className="icon icon-information-outline"
       />
       <Memo(Connect(Markdown))
         message="A [link](http://testurl.com/admin_console/) with an internal url"
@@ -74,7 +69,6 @@ exports[`components/TextDismissableBar should match snapshot, with an internal u
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
   siteURL="http://testurl.com"
 />
@@ -86,9 +80,8 @@ exports[`components/TextDismissableBar should match snapshot, with ean external 
   handleClose={[Function]}
   message={
     <React.Fragment>
-      <img
-        className="advisor-icon"
-        src={null}
+      <i
+        className="icon icon-information-outline"
       />
       <Memo(Connect(Markdown))
         message="A [link](http://otherurl.com/admin_console/) with an external url"
@@ -101,7 +94,6 @@ exports[`components/TextDismissableBar should match snapshot, with ean external 
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
   siteURL="http://testurl.com"
 />
@@ -113,9 +105,8 @@ exports[`components/TextDismissableBar should match snapshot, with link but with
   handleClose={[Function]}
   message={
     <React.Fragment>
-      <img
-        className="advisor-icon"
-        src={null}
+      <i
+        className="icon icon-information-outline"
       />
       <Memo(Connect(Markdown))
         message="A [link](http://testurl.com/admin_console/)"
@@ -128,7 +119,6 @@ exports[`components/TextDismissableBar should match snapshot, with link but with
       />
     </React.Fragment>
   }
-  onDismissal={[MockFunction]}
   showCloseButton={true}
 />
 `;

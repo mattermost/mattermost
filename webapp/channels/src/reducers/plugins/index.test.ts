@@ -13,6 +13,7 @@ import pluginReducers from '.';
 function getBaseState(): PluginsState {
     return {
         adminConsoleCustomComponents: {},
+        adminConsoleCustomSections: {},
         adminConsoleReducers: {},
         components: {} as any,
         plugins: {},

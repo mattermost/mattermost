@@ -9,9 +9,7 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import type {BaseOverlayTrigger} from 'components/overlay_trigger';
-import Popover from 'components/widgets/popover';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 
@@ -134,7 +132,6 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
     centerChannelStylesHeaderRef: RefObject<HTMLDivElement>;
     linkAndButtonStylesHeaderRef: RefObject<HTMLDivElement>;
     sidebarStylesRef: RefObject<HTMLDivElement>;
-    headerOverlayRef: RefObject<BaseOverlayTrigger>;
     centerChannelStylesRef: RefObject<HTMLDivElement>;
     linkAndButtonStylesRef: RefObject<HTMLDivElement>;
 
@@ -145,7 +142,6 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
         this.centerChannelStylesHeaderRef = createRef();
         this.linkAndButtonStylesHeaderRef = createRef();
         this.sidebarStylesRef = createRef();
-        this.headerOverlayRef = createRef();
         this.centerChannelStylesRef = createRef();
         this.linkAndButtonStylesRef = createRef();
 
@@ -311,26 +307,15 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     );
                 });
 
-                const popoverContent = (
-                    <Popover
-                        popoverStyle='info'
-                        id='code-popover'
-                        className='code-popover'
-                    >
-                        <img
-                            width='200'
-                            alt={'code theme image'}
-                            src={codeThemeURL}
-                        />
-                    </Popover>
-                );
-
                 centerChannelElements.push(
                     <div
                         className='col-sm-6 form-group'
                         key={'custom-theme-key' + index}
                     >
-                        <label className='custom-label'>
+                        <label
+                            className='custom-label'
+                            htmlFor='codeThemeSelect'
+                        >
                             <FormattedMessage {...messages[element.id]}/>
                         </label>
                         <div
@@ -345,10 +330,16 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                             >
                                 {codeThemeOptions}
                             </select>
-                            <OverlayTrigger
-                                placement='top'
-                                overlay={popoverContent}
-                                ref={this.headerOverlayRef}
+                            <WithTooltip
+                                title={
+                                    <div className='code-popover'>
+                                        <img
+                                            width='200'
+                                            alt={'code theme image'}
+                                            src={codeThemeURL}
+                                        />
+                                    </div>
+                                }
                             >
                                 <span className='input-group-addon'>
                                     <img
@@ -356,7 +347,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                                         src={codeThemeURL}
                                     />
                                 </span>
-                            </OverlayTrigger>
+                            </WithTooltip>
                         </div>
                     </div>,
                 );
@@ -413,7 +404,10 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
 
         const pasteBox = (
             <div className='col-sm-12'>
-                <label className='custom-label'>
+                <label
+                    className='custom-label'
+                    htmlFor='pasteBox'
+                >
                     <FormattedMessage
                         id='user.settings.custom_theme.copyPaste'
                         defaultMessage='Copy to share or paste theme colors here:'

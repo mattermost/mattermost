@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -18,7 +19,7 @@ import (
 func (a *App) getSharedChannelsService() (SharedChannelServiceIFace, error) {
 	scService := a.Srv().GetSharedChannelSyncService()
 	if scService == nil || !scService.Active() {
-		return nil, model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
+		return nil, model.NewAppError("getSharedChannelsService", "api.command_share.service_disabled",
 			nil, "", http.StatusBadRequest)
 	}
 	return scService, nil
@@ -136,8 +137,8 @@ func (a *App) GetSharedChannelRemoteByIds(channelID string, remoteID string) (*m
 	return a.Srv().Store().SharedChannel().GetRemoteByIds(channelID, remoteID)
 }
 
-func (a *App) GetSharedChannelRemotes(opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
-	return a.Srv().Store().SharedChannel().GetRemotes(opts)
+func (a *App) GetSharedChannelRemotes(page, perPage int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error) {
+	return a.Srv().Store().SharedChannel().GetRemotes(page*perPage, perPage, opts)
 }
 
 // HasRemote returns whether a given channelID is present in the channel remotes or not.
@@ -177,7 +178,7 @@ func (a *App) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedCh
 // SharedChannelUsers
 
 func (a *App) NotifySharedChannelUserUpdate(user *model.User) {
-	a.sendUpdatedUserEvent(*user)
+	a.sendUpdatedUserEvent(user)
 }
 
 // onUserProfileChange is called when a user's profile has changed
@@ -244,7 +245,16 @@ func (a *App) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluste
 func (a *App) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
 	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
 	if err != nil {
-		a.Log().Error("Ping for shared channels cannot get plugin hooks", mlog.String("plugin_id", rc.PluginID), mlog.Err(err))
+		// plugin was likely uninstalled. Issue a warning once per hour, with instructions how to clean up if this is
+		// intentional.
+		if time.Now().Minute() == 0 {
+			msg := "Cannot find plugin for shared channels ping; if the plugin was intentionally uninstalled, "
+			msg = msg + "stop this warning using  `/secure-connection remove --connectionID %s`"
+			a.Log().Warn(fmt.Sprintf(msg, rc.RemoteId),
+				mlog.String("plugin_id", rc.PluginID),
+				mlog.Err(err),
+			)
+		}
 		return false
 	}
 

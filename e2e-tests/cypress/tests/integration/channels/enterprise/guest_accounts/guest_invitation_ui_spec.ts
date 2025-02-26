@@ -198,7 +198,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         invitePeople(newUser.username, 1, newUser.username);
 
         // * Verify the content and message in next screen
-        cy.findByText('This person is already a member.').should('be.visible');
+        cy.findByText('This person is already a member of the workspace. Invite them as a member instead of a guest.').should('be.visible');
 
         // # Click on invite more button
         cy.findByTestId('invite-more').click();

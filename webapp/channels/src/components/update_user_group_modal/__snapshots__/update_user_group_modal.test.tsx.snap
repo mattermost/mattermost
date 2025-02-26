@@ -28,7 +28,7 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
   onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
-  role="dialog"
+  role="none"
   show={true}
 >
   <ModalHeader
@@ -107,13 +107,14 @@ exports[`component/update_user_group_modal should match snapshot 1`] = `
           className="btn btn-tertiary"
           onClick={[Function]}
         >
-          Back
+          <MemoizedFormattedMessage
+            defaultMessage="Back"
+            id="multiselect.backButton"
+          />
         </button>
         <SaveButton
-          btnClass=""
           defaultMessage="Save Details"
           disabled={true}
-          extraClasses=""
           id="saveItems"
           onClick={[Function]}
           saving={false}

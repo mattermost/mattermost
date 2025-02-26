@@ -8,11 +8,10 @@ import (
 	"net/url"
 	"path"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/pkg/errors"
-
-	"github.com/mattermost/mattermost/server/public/utils"
 )
 
 // AutocompleteArgType describes autocomplete argument type
@@ -235,7 +234,7 @@ func (ad *AutocompleteData) IsValid() error {
 		return errors.New("Command should be lowercase")
 	}
 	roles := []string{SystemAdminRoleId, SystemUserRoleId, ""}
-	if !utils.Contains(roles, ad.RoleID) {
+	if !slices.Contains(roles, ad.RoleID) {
 		return errors.New("Wrong role in the autocomplete data")
 	}
 	if len(ad.Arguments) > 0 && len(ad.SubCommands) > 0 {

@@ -6,7 +6,6 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
 
 import {switchToChannel} from '../../../channels/mark_as_unread/helpers';
@@ -90,7 +89,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear();
 
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook check 1 1');
+            cy.uiPostMessageQuickly('/playbook check 1 1 ');
 
             // * Verify the task is checked
             cy.get('[data-rbd-droppable-id="1"]').find('.checkbox').eq(1).should('be.checked');
@@ -98,7 +97,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('check add', () => {
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook checkadd 1 new-task');
+            cy.uiPostMessageQuickly('/playbook checkadd 1 new-task ');
 
             // * Verify the task was added
             cy.get('[data-rbd-droppable-id="1"]').contains('new-task');
@@ -106,7 +105,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('check remove', () => {
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook checkremove 1 1');
+            cy.uiPostMessageQuickly('/playbook checkremove 1 1 ');
 
             // * Verify the task was added
             cy.get('[data-rbd-droppable-id="1"]').contains('Step 2').should('not.exist');
@@ -114,7 +113,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('owner', () => {
             // # Run a slash command
-            cy.uiPostMessageQuickly('/playbook owner');
+            cy.uiPostMessageQuickly('/playbook owner ');
 
             // * Verify the message.
             cy.verifyEphemeralMessage(`@${testUser.username} is the current owner for this playbook run.`);
@@ -123,13 +122,13 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.uiPostMessageQuickly(`/playbook owner @${testUser2.username}`);
 
             // * Verify that the owner was set.
-            cy.uiPostMessageQuickly('/playbook owner');
+            cy.uiPostMessageQuickly('/playbook owner ');
             cy.verifyEphemeralMessage(`@${testUser2.username} is the current owner for this playbook run.`);
         });
 
         it('timeline', () => {
             // # Run a slash command on a run with view access
-            cy.uiPostMessageQuickly('/playbook timeline');
+            cy.uiPostMessageQuickly('/playbook timeline ');
 
             // * Verify the message.
             cy.verifyEphemeralMessage(`Timeline for ${playbookRunName}`);
@@ -137,7 +136,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('finish', () => {
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook finish');
+            cy.uiPostMessageQuickly('/playbook finish ');
 
             // * Verify confirm modal is visible.
             cy.get('#interactiveDialogModalLabel').should('exist');
@@ -274,19 +273,19 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('check', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook check 1 1');
+            cy.uiPostMessageQuickly('/playbook check 1 1 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Command expects three arguments: the run number, the checklist number and the item number.');
 
             // # Run a slash command wrong run number
-            cy.uiPostMessageQuickly('/playbook check 2 1 1');
+            cy.uiPostMessageQuickly('/playbook check 2 1 1 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Invalid run number');
 
             // # Run a slash command on a run with view access
-            cy.uiPostMessageQuickly('/playbook check 0 1 1');
+            cy.uiPostMessageQuickly('/playbook check 0 1 1 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Become a participant to interact with this run');
@@ -301,7 +300,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear();
 
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook check 1 1 1');
+            cy.uiPostMessageQuickly('/playbook check 1 1 1 ');
             cy.get('#rhsContainer').within(() => {
                 // * Verify number of runs
                 cy.get('[data-testid="run-list-card"]').should('have.length', 2);
@@ -316,19 +315,19 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('check add', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook checkadd 1');
+            cy.uiPostMessageQuickly('/playbook checkadd 1 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Command expects two arguments: the run number and the checklist number.');
 
             // # Run a slash command wrong run number
-            cy.uiPostMessageQuickly('/playbook checkadd 2 1 1');
+            cy.uiPostMessageQuickly('/playbook checkadd 2 1 1 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Invalid run number');
 
             // # Run a slash command on a run with view access
-            cy.uiPostMessageQuickly('/playbook checkadd 0 1 new-task');
+            cy.uiPostMessageQuickly('/playbook checkadd 0 1 new-task ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Become a participant to interact with this run');
@@ -343,7 +342,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear();
 
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook checkadd 1 1 new-task');
+            cy.uiPostMessageQuickly('/playbook checkadd 1 1 new-task ');
 
             cy.get('#rhsContainer').within(() => {
                 // * Verify number of runs
@@ -359,19 +358,19 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('check remove', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook checkremove 1 1');
+            cy.uiPostMessageQuickly('/playbook checkremove 1 1 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Command expects three arguments: the run number, the checklist number and the item number.');
 
             // # Run a slash command wrong run number
-            cy.uiPostMessageQuickly('/playbook checkremove 2 0 1');
+            cy.uiPostMessageQuickly('/playbook checkremove 2 0 1 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Invalid run number');
 
             // # Run a slash command on a run with view access
-            cy.uiPostMessageQuickly('/playbook checkremove 0 1 0');
+            cy.uiPostMessageQuickly('/playbook checkremove 0 1 0 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Become a participant to interact with this run');
@@ -386,7 +385,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear();
 
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook checkremove 1 1 1');
+            cy.uiPostMessageQuickly('/playbook checkremove 1 1 1 ');
 
             cy.get('#rhsContainer').within(() => {
                 // * Verify number of runs
@@ -402,19 +401,19 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('owner', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook owner');
+            cy.uiPostMessageQuickly('/playbook owner ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('/playbook owner expects at most one argument.');
 
             // # Run a slash command wrong run number
-            cy.uiPostMessageQuickly('/playbook owner 2');
+            cy.uiPostMessageQuickly('/playbook owner 2 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Invalid run number');
 
             // # Run a slash command on a run with view access
-            cy.uiPostMessageQuickly('/playbook owner 0');
+            cy.uiPostMessageQuickly('/playbook owner 0 ');
 
             // * Verify the message.
             cy.verifyEphemeralMessage(`@${testUser.username} is the current owner for this playbook run.`);
@@ -429,34 +428,34 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear();
 
             // # Run a slash command on a run with view access
-            cy.uiPostMessageQuickly(`/playbook owner 0 @${testUser2.username}`);
+            cy.uiPostMessageQuickly(`/playbook owner 0 @${testUser2.username} `);
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Become a participant to interact with this run');
 
             // # Run a slash command on a run with write access
-            cy.uiPostMessageQuickly(`/playbook owner 1 @${testUser2.username}`);
+            cy.uiPostMessageQuickly(`/playbook owner 1 @${testUser2.username} `);
 
             // * Verify that the owner was set.
-            cy.uiPostMessageQuickly('/playbook owner 1');
+            cy.uiPostMessageQuickly('/playbook owner 1 ');
             cy.verifyEphemeralMessage(`@${testUser2.username} is the current owner for this playbook run.`);
         });
 
         it('finish', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook finish');
+            cy.uiPostMessageQuickly('/playbook finish ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Command expects one argument: the run number.');
 
             // # Run a slash command wrong run number
-            cy.uiPostMessageQuickly('/playbook finish 2');
+            cy.uiPostMessageQuickly('/playbook finish 2 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Invalid run number');
 
             // # Run a slash command on a run with view access
-            cy.uiPostMessageQuickly('/playbook finish 0');
+            cy.uiPostMessageQuickly('/playbook finish 0 ');
 
             // * Verify the message.
             cy.verifyEphemeralMessage(`userID ${testUser2.id} is not an admin or channel member`);
@@ -479,7 +478,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             });
 
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook finish 1');
+            cy.uiPostMessageQuickly('/playbook finish 1 ');
 
             // * Verify confirm modal is visible.
             cy.get('#interactiveDialogModalLabel').should('exist');
@@ -493,19 +492,19 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('timeline', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook timeline');
+            cy.uiPostMessageQuickly('/playbook timeline ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Command expects one argument: the run number.');
 
             // # Run a slash command wrong run number
-            cy.uiPostMessageQuickly('/playbook timeline 2');
+            cy.uiPostMessageQuickly('/playbook timeline 2 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Invalid run number');
 
             // # Run a slash command on a run with view access
-            cy.uiPostMessageQuickly('/playbook timeline 0');
+            cy.uiPostMessageQuickly('/playbook timeline 0 ');
 
             // * Verify the message.
             cy.verifyEphemeralMessage(`Timeline for ${playbookRuns[1].name}`);
@@ -513,13 +512,13 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
 
         it('update', () => {
             // # Run a slash command with not enough parameters
-            cy.uiPostMessageQuickly('/playbook update');
+            cy.uiPostMessageQuickly('/playbook update ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Command expects one argument: the run number.');
 
             // # Run a slash command wrong run number
-            cy.uiPostMessageQuickly('/playbook update 2');
+            cy.uiPostMessageQuickly('/playbook update 2 ');
 
             // * Verify the expected error message.
             cy.verifyEphemeralMessage('Invalid run number');
@@ -534,7 +533,7 @@ describe('channels > slash command > owner', {testIsolation: true}, () => {
             cy.findByTestId('post_textbox').clear();
 
             // # Run a slash command with correct parameters
-            cy.uiPostMessageQuickly('/playbook update 1');
+            cy.uiPostMessageQuickly('/playbook update 1 ');
 
             // # Get dialog modal.
             cy.getStatusUpdateDialog().within(() => {

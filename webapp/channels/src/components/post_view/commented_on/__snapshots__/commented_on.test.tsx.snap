@@ -15,7 +15,6 @@ exports[`components/post_view/CommentedOn should match snapshot 1`] = `
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
               userId=""
             />
           </a>,
@@ -47,7 +46,6 @@ exports[`components/post_view/CommentedOn should match snapshot 2`] = `
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
               userId=""
             />
           </a>,
@@ -79,7 +77,6 @@ exports[`components/post_view/CommentedOn should match snapshot 3`] = `
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
               userId=""
             />
           </a>,
@@ -113,7 +110,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
               userId=""
             />
           </a>,
@@ -145,7 +141,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
               userId=""
             />
           </a>,
@@ -177,7 +172,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
               userId=""
             />
           </a>,
@@ -209,7 +203,6 @@ exports[`components/post_view/CommentedOn should match snapshots for post with p
             className="theme user_name"
           >
             <Memo(Connect(UserProfile))
-              disablePopover={false}
               userId=""
             />
           </a>,

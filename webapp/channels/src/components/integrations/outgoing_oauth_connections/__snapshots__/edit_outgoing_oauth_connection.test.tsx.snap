@@ -459,8 +459,7 @@ https://myothersite.com/api/v2"
                 <div
                   className="backstage-form__footer"
                 >
-                  <FormError
-                    error={null}
+                  <Memo(FormError)
                     errors={
                       Array [
                         "",
@@ -578,7 +577,7 @@ https://myothersite.com/api/v2"
                       onHide={[Function]}
                       renderBackdrop={[Function]}
                       restoreFocus={true}
-                      role="dialog"
+                      role="none"
                       show={false}
                     >
                       <Modal
@@ -679,7 +678,7 @@ https://myothersite.com/api/v2"
                 onHide={[Function]}
                 renderBackdrop={[Function]}
                 restoreFocus={true}
-                role="dialog"
+                role="none"
                 show={false}
               >
                 <Modal
@@ -1180,8 +1179,7 @@ https://myothersite.com/api/v2"
                 <div
                   className="backstage-form__footer"
                 >
-                  <FormError
-                    error={null}
+                  <Memo(FormError)
                     errors={
                       Array [
                         "",
@@ -1299,7 +1297,7 @@ https://myothersite.com/api/v2"
                       onHide={[Function]}
                       renderBackdrop={[Function]}
                       restoreFocus={true}
-                      role="dialog"
+                      role="none"
                       show={false}
                     >
                       <Modal
@@ -1400,7 +1398,7 @@ https://myothersite.com/api/v2"
                 onHide={[Function]}
                 renderBackdrop={[Function]}
                 restoreFocus={true}
-                role="dialog"
+                role="none"
                 show={false}
               >
                 <Modal
@@ -1900,8 +1898,7 @@ https://myothersite.com/api/v2"
                 <div
                   className="backstage-form__footer"
                 >
-                  <FormError
-                    error={null}
+                  <Memo(FormError)
                     errors={
                       Array [
                         "",
@@ -2019,7 +2016,7 @@ https://myothersite.com/api/v2"
                       onHide={[Function]}
                       renderBackdrop={[Function]}
                       restoreFocus={true}
-                      role="dialog"
+                      role="none"
                       show={false}
                     >
                       <Modal
@@ -2120,7 +2117,7 @@ https://myothersite.com/api/v2"
                 onHide={[Function]}
                 renderBackdrop={[Function]}
                 restoreFocus={true}
-                role="dialog"
+                role="none"
                 show={false}
               >
                 <Modal

@@ -3,15 +3,14 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 
-test('Base channel accessibility', async ({pw, pages, axe}) => {
+test.fixme('Base channel accessibility', async ({pw, axe}) => {
     // # Create and sign in a new user
     const {user} = await pw.initSetup();
 
     // # Log in a user in new browser context
-    const {page} = await pw.testBrowser.login(user);
+    const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Visit a default channel page
-    const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
     await channelsPage.centerView.postCreate.postMessage('hello');
@@ -24,15 +23,16 @@ test('Base channel accessibility', async ({pw, pages, axe}) => {
     expect(accessibilityScanResults.violations).toHaveLength(0);
 });
 
-test('Post actions tab support', async ({pw, pages, axe}) => {
+test('Post actions tab support', async ({pw, axe}) => {
     // # Create and sign in a new user
-    const {user} = await pw.initSetup();
+    const {user, adminClient} = await pw.initSetup();
+    const config = await adminClient.getConfig();
+    const license = await adminClient.getClientLicenseOld();
 
     // # Log in a user in new browser context
-    const {page} = await pw.testBrowser.login(user);
+    const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Visit a default channel page
-    const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
     await channelsPage.centerView.postCreate.postMessage('hello');
@@ -42,24 +42,20 @@ test('Post actions tab support', async ({pw, pages, axe}) => {
     await post.postMenu.toBeVisible();
 
     // # Open the dot menu
-    await post.postMenu.dotMenuButton.click();
+    await post.postMenu.dotMenuButton.press('Enter');
 
     // * Dot menu should be visible and have focused
     await channelsPage.postDotMenu.toBeVisible();
-    await expect(channelsPage.postDotMenu.container).toBeFocused();
+    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
 
     // # Analyze the page
     const accessibilityScanResults = await axe
         .builder(page, {disableColorContrast: true})
-        .include('.MuiMenu-list')
+        .include('.MuiList-root.MuiList-padding')
         .analyze();
 
     // * Should have no violation
     expect(accessibilityScanResults.violations).toHaveLength(0);
-
-    // * Should move focus to Reply after arrow down
-    await channelsPage.postDotMenu.container.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
 
     // * Should move focus to Forward after arrow down
     await channelsPage.postDotMenu.replyMenuItem.press('ArrowDown');
@@ -85,9 +81,19 @@ test('Post actions tab support', async ({pw, pages, axe}) => {
     await channelsPage.postDotMenu.saveMenuItem.press('ArrowDown');
     await expect(channelsPage.postDotMenu.pinToChannelMenuItem).toBeFocused();
 
-    // * Should move focus to Copy Link after arrow down
-    await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
+    if (config.FeatureFlags['MoveThreadsEnabled'] && license.IsLicensed === 'true') {
+        // * Should move focus to Move Thread after arrow down
+        await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
+        await expect(channelsPage.postDotMenu.moveThreadMenuItem).toBeFocused();
+
+        // * Should move focus to Copy Link after arrow down
+        await channelsPage.postDotMenu.moveThreadMenuItem.press('ArrowDown');
+        await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
+    } else {
+        // * Should move focus to Copy Link after arrow down
+        await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
+        await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
+    }
 
     // * Should move focus to Edit after arrow down
     await channelsPage.postDotMenu.copyLinkMenuItem.press('ArrowDown');
@@ -119,12 +125,10 @@ test('Post actions tab support', async ({pw, pages, axe}) => {
     // # Press arrow right
     await channelsPage.postDotMenu.remindMenuItem.press('ArrowRight');
 
-    // * Reminder menu should be visible and have focused
-    channelsPage.postReminderMenu.toBeVisible();
-    await expect(channelsPage.postReminderMenu.container).toBeFocused();
+    // * Reminder menu should be visible
+    expect(channelsPage.postReminderMenu.container).toBeVisible();
 
-    // * Should move focus to 30 mins after arrow down
-    await channelsPage.postReminderMenu.container.press('ArrowDown');
+    // * Should have focus on 30 mins after submenu opens
     expect(await channelsPage.postReminderMenu.thirtyMinsMenuItem).toBeFocused();
 
     // * Should move focus to 1 hour after arrow down

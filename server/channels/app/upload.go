@@ -62,7 +62,7 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 		var rejErr *model.AppError
 		var once sync.Once
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
 			})
@@ -271,8 +271,9 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}
 
 	info.CreatorId = us.UserId
+	info.ChannelId = us.ChannelId
 	info.Path = us.Path
-	info.RemoteId = model.NewString(us.RemoteId)
+	info.RemoteId = model.NewPointer(us.RemoteId)
 	if us.ReqFileId != "" {
 		info.Id = us.ReqFileId
 	}

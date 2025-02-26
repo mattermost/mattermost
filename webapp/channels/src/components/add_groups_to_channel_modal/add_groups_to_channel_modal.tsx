@@ -4,7 +4,7 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
-import {injectIntl, FormattedMessage} from 'react-intl';
+import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group, SyncablePatch} from '@mattermost/types/groups';
@@ -17,7 +17,6 @@ import type {Value} from 'components/multiselect/multiselect';
 
 import groupsAvatar from 'images/groups-avatar.png';
 import Constants from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 const GROUPS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 10;
@@ -217,9 +216,12 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='more-modal__actions'>
-                    <div className='more-modal__actions--round'>
+                    <button
+                        className='more-modal__actions--round'
+                        aria-label='Add groups to channel'
+                    >
                         <i className='icon icon-plus'/>
-                    </div>
+                    </button>
                 </div>
             </div>
         );
@@ -242,8 +244,8 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
             </div>
         );
 
-        const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
-        const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
+        const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
+        const buttonSubmitLoadingText = defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
 
         let addError = null;
         if (this.state.addError) {
@@ -305,7 +307,7 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
                         buttonSubmitLoadingText={buttonSubmitLoadingText}
                         saving={this.state.saving}
                         loading={this.state.loadingGroups}
-                        placeholderText={localizeMessage('multiselect.addGroupsPlaceholder', 'Search and add groups')}
+                        placeholderText={defineMessage({id: 'multiselect.addGroupsPlaceholder', defaultMessage: 'Search and add groups'})}
                     />
                 </Modal.Body>
             </Modal>

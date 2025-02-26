@@ -13,7 +13,6 @@ describe('components/post_view/new_message_separator', () => {
             <NewMessageSeparator
                 separatorId='1234'
                 newMessagesSeparatorActions={[]}
-                lastViewedAt={0}
             />,
         );
 

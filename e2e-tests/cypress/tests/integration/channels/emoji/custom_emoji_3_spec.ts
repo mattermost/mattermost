@@ -110,6 +110,7 @@ describe('Custom emojis', () => {
             // * Select the custom emoji
             cy.findAllByTestId('emojiItem').children().click();
         });
+        cy.uiGetPostTextBox().type('+' + builtinEmojiWithColons).wait(TIMEOUTS.HALF_SEC).type('{enter}').type('{enter}');
 
         cy.getLastPostId().then((postId) => {
             cy.get(`#postReaction-${postId}-` + builtinEmoji).should('be.visible');

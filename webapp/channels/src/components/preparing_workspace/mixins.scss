@@ -11,24 +11,24 @@
     }
 }
 
-@mixin sideIllustrationKeyframe($name, $rightPx) {
+@mixin sideIllustrationKeyframe($name, $startOffsetPx, $endOffsetPx) {
     @keyframes #{$name}SlideInRight {
         from {
-            right: -#{$rightPx}px;
+            right: #{$startOffsetPx}px;
         }
 
         to {
-            right: 0;
+            right: #{$endOffsetPx}px;
         }
     }
 
     @keyframes #{$name}SlideOutRight {
         from {
-            right: 0;
+            right: #{$endOffsetPx}px;
         }
 
         to {
-            right: -#{$rightPx}px;
+            right: #{$startOffsetPx}px;
         }
     }
 }

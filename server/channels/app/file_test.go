@@ -57,7 +57,7 @@ func TestDoUploadFile(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
@@ -67,7 +67,7 @@ func TestDoUploadFile(t *testing.T) {
 	value := fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info1.Id, filename)
 	assert.Equal(t, value, info1.Path, "stored file at incorrect path")
 
-	info2, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info2, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info2.Id)
@@ -77,7 +77,7 @@ func TestDoUploadFile(t *testing.T) {
 	value = fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info2.Id, filename)
 	assert.Equal(t, value, info2.Path, "stored file at incorrect path")
 
-	info3, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info3, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info3.Id)
@@ -87,7 +87,7 @@ func TestDoUploadFile(t *testing.T) {
 	value = fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info3.Id, filename)
 	assert.Equal(t, value, info3.Path, "stored file at incorrect path")
 
-	info4, err := th.App.DoUploadFile(th.Context, time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data)
+	info4, err := th.App.DoUploadFile(th.Context, time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data, true)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info4.Id)
@@ -96,6 +96,16 @@ func TestDoUploadFile(t *testing.T) {
 
 	value = fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamID, channelID, userID, info4.Id, filename)
 	assert.Equal(t, value, info4.Path, "stored file at incorrect path")
+
+	info5, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, model.BookmarkFileOwner, filename, data, true)
+	require.Nil(t, err, "DoUploadFile should succeed with valid data")
+	defer func() {
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info5.Id)
+		th.App.RemoveFile(info3.Path)
+	}()
+
+	value = fmt.Sprintf("%v/teams/%v/channels/%v/%v/%v", model.BookmarkFileOwner, teamID, channelID, info5.Id, filename)
+	assert.Equal(t, value, info5.Path, "stored file at incorrect path")
 }
 
 func TestUploadFile(t *testing.T) {
@@ -269,13 +279,13 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileID)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
+	rpost, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
 	assert.Equal(t, 1, len(infos))
 
-	rpost, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
+	rpost, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
@@ -317,7 +327,10 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 
 			file := r.File[0]
 			assert.Equal(t, "file1", file.Name)
-			assert.GreaterOrEqual(t, file.Modified, time.Now().Add(-1*time.Second))
+			now := time.Now().Truncate(time.Second) // Files are stored with a second precision
+			// Confirm that the file was created in the last 10 seconds
+			assert.GreaterOrEqual(t, file.Modified, now.Add(-10*time.Second))
+			assert.GreaterOrEqual(t, now, file.Modified)
 
 			fr, err := file.Open()
 			require.NoError(t, err)
@@ -345,7 +358,7 @@ func TestCopyFileInfos(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
+	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
@@ -383,7 +396,7 @@ func TestGenerateThumbnailImage(t *testing.T) {
 		// then
 		outputImage, err := os.Stat(thumbnailPath)
 		assert.NoError(t, err)
-		assert.Equal(t, int64(957), outputImage.Size())
+		assert.Equal(t, int64(721), outputImage.Size())
 	})
 }
 
@@ -643,7 +656,7 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Files: &model.FilesLimits{
-				TotalStorage: model.NewInt64(1),
+				TotalStorage: model.NewPointer(int64(1)),
 			},
 		}, nil)
 
@@ -716,4 +729,60 @@ func TestSetFileSearchableContent(t *testing.T) {
 	result, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 	require.Nil(t, appErr)
 	assert.Equal(t, 1, len(result.Order))
+}
+
+func TestPermanentDeleteFilesByPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should delete files for post", func(t *testing.T) {
+		// Create a post with a file attachment.
+		teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+		filename := "test"
+		data := []byte("abcd")
+
+		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+		require.Nil(t, err)
+
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			FileIds:       []string{info1.Id},
+		}
+
+		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		assert.Nil(t, err)
+
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		require.Nil(t, err)
+
+		_, err = th.App.GetFileInfo(th.Context, info1.Id)
+		require.NotNil(t, err)
+	})
+
+	t.Run("should not delete files for post that doesn't exist", func(t *testing.T) {
+		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1")
+		assert.Nil(t, err)
+	})
+
+	t.Run("should handle empty file list", func(t *testing.T) {
+		post := &model.Post{
+			Message:       "asd",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			CreateAt:      0,
+		}
+
+		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		assert.Nil(t, err)
+
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		assert.Nil(t, err)
+	})
 }

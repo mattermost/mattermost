@@ -5,7 +5,6 @@ package web
 
 import (
 	"net/http"
-	"path"
 	"regexp"
 	"strings"
 
@@ -19,7 +18,7 @@ import (
 )
 
 type Context struct {
-	App           app.AppIface
+	App           *app.App
 	AppContext    request.CTX
 	Logger        *mlog.Logger
 	Params        *Params
@@ -29,10 +28,19 @@ type Context struct {
 
 // LogAuditRec logs an audit record using default LevelAPI.
 func (c *Context) LogAuditRec(rec *audit.Record) {
+	// finish populating the context data, in case the session wasn't available during MakeAuditRecord
+	// (e.g., api4/user.go login)
+	if rec.Actor.UserId == "" {
+		rec.Actor.UserId = c.AppContext.Session().UserId
+	}
+	if rec.Actor.SessionId == "" {
+		rec.Actor.SessionId = c.AppContext.Session().Id
+	}
+
 	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
 
-// LogAuditRec logs an audit record using specified Level.
+// LogAuditRecWithLevel logs an audit record using specified Level.
 // If the context is flagged with a permissions error then `level`
 // is ignored and the audit record is emitted with `LevelPerms`.
 func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
@@ -50,7 +58,7 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 	c.App.Srv().Audit.LogRecord(level, *rec)
 }
 
-// MakeAuditRecord creates a audit record pre-populated with data from this context.
+// MakeAuditRecord creates an audit record pre-populated with data from this context.
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
 	rec := &audit.Record{
 		EventName: event,
@@ -62,14 +70,14 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 			IpAddress:     c.AppContext.IPAddress(),
 			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
-		Meta: map[string]interface{}{
+		Meta: map[string]any{
 			audit.KeyAPIPath:   c.AppContext.Path(),
 			audit.KeyClusterID: c.App.GetClusterId(),
 		},
 		EventData: audit.EventData{
-			Parameters:  map[string]interface{}{},
-			PriorState:  map[string]interface{}{},
-			ResultState: map[string]interface{}{},
+			Parameters:  map[string]any{},
+			PriorState:  map[string]any{},
+			ResultState: map[string]any{},
 			ObjectType:  "",
 		},
 	}
@@ -149,46 +157,8 @@ func (c *Context) RemoteClusterTokenRequired() {
 }
 
 func (c *Context) MfaRequired() {
-	// Must be licensed for MFA and have it configured for enforcement
-	if license := c.App.Channels().License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
-		return
-	}
-
-	// OAuth integrations are excepted
-	if c.AppContext.Session().IsOAuth {
-		return
-	}
-
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
-		return
-	}
-
-	if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
-		return
-	}
-	// Only required for email and ldap accounts
-	if user.AuthService != "" &&
-		user.AuthService != model.UserAuthServiceEmail &&
-		user.AuthService != model.UserAuthServiceLdap {
-		return
-	}
-
-	// Special case to let user get themself
-	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-	if c.AppContext.Path() == path.Join(subpath, "/api/v4/users/me") {
-		return
-	}
-
-	// Bots are exempt
-	if user.IsBot {
-		return
-	}
-
-	if !user.MfaActive {
-		c.Err = model.NewAppError("MfaRequired", "api.context.mfa_required.app_error", nil, "", http.StatusForbidden)
-		return
+	if appErr := c.App.MFARequired(c.AppContext); appErr != nil {
+		c.Err = appErr
 	}
 }
 
@@ -672,6 +642,17 @@ func (c *Context) RequireRoleId() *Context {
 
 	if !model.IsValidId(c.Params.RoleId) {
 		c.SetInvalidURLParam("role_id")
+	}
+	return c
+}
+
+func (c *Context) RequireFieldId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.FieldId) {
+		c.SetInvalidURLParam("field_id")
 	}
 	return c
 }

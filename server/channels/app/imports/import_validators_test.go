@@ -19,37 +19,37 @@ import (
 func TestImportValidateSchemeImportData(t *testing.T) {
 	// Test with minimum required valid properties and team scope.
 	data := SchemeImportData{
-		Name:        ptrStr("name"),
-		DisplayName: ptrStr("display name"),
-		Scope:       ptrStr("team"),
+		Name:        model.NewPointer("name"),
+		DisplayName: model.NewPointer("display name"),
+		Scope:       model.NewPointer("team"),
 		DefaultTeamAdminRole: &RoleImportData{
-			Name:        ptrStr("name"),
-			DisplayName: ptrStr("display name"),
+			Name:        model.NewPointer("name"),
+			DisplayName: model.NewPointer("display name"),
 			Permissions: &[]string{"invite_user"},
 		},
 		DefaultTeamUserRole: &RoleImportData{
-			Name:        ptrStr("name"),
-			DisplayName: ptrStr("display name"),
+			Name:        model.NewPointer("name"),
+			DisplayName: model.NewPointer("display name"),
 			Permissions: &[]string{"invite_user"},
 		},
 		DefaultTeamGuestRole: &RoleImportData{
-			Name:        ptrStr("name"),
-			DisplayName: ptrStr("display name"),
+			Name:        model.NewPointer("name"),
+			DisplayName: model.NewPointer("display name"),
 			Permissions: &[]string{"invite_user"},
 		},
 		DefaultChannelAdminRole: &RoleImportData{
-			Name:        ptrStr("name"),
-			DisplayName: ptrStr("display name"),
+			Name:        model.NewPointer("name"),
+			DisplayName: model.NewPointer("display name"),
 			Permissions: &[]string{"invite_user"},
 		},
 		DefaultChannelUserRole: &RoleImportData{
-			Name:        ptrStr("name"),
-			DisplayName: ptrStr("display name"),
+			Name:        model.NewPointer("name"),
+			DisplayName: model.NewPointer("display name"),
 			Permissions: &[]string{"invite_user"},
 		},
 		DefaultChannelGuestRole: &RoleImportData{
-			Name:        ptrStr("name"),
-			DisplayName: ptrStr("display name"),
+			Name:        model.NewPointer("name"),
+			DisplayName: model.NewPointer("display name"),
 			Permissions: &[]string{"invite_user"},
 		},
 	}
@@ -63,16 +63,16 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to invalid name.")
 
 	// Test with empty string
-	data.Name = ptrStr("")
+	data.Name = model.NewPointer("")
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid name.")
 
 	// Test with numbers
-	data.Name = ptrStr(strings.Repeat("1234567890", 100))
+	data.Name = model.NewPointer(strings.Repeat("1234567890", 100))
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid name.")
 
-	data.Name = ptrStr("name")
+	data.Name = model.NewPointer("name")
 
 	// Test with invalid display name.
 	data.DisplayName = nil
@@ -80,16 +80,16 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to invalid display name.")
 
 	// Test with display name.
-	data.DisplayName = ptrStr("")
+	data.DisplayName = model.NewPointer("")
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid display name.")
 
 	// Test display name with numbers
-	data.DisplayName = ptrStr(strings.Repeat("1234567890", 100))
+	data.DisplayName = model.NewPointer(strings.Repeat("1234567890", 100))
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid display name.")
 
-	data.DisplayName = ptrStr("display name")
+	data.DisplayName = model.NewPointer("display name")
 
 	// Test with various missing roles.
 	data.DefaultTeamAdminRole = nil
@@ -97,8 +97,8 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to missing role.")
 
 	data.DefaultTeamAdminRole = &RoleImportData{
-		Name:        ptrStr("name"),
-		DisplayName: ptrStr("display name"),
+		Name:        model.NewPointer("name"),
+		DisplayName: model.NewPointer("display name"),
 		Permissions: &[]string{"invite_user"},
 	}
 
@@ -107,8 +107,8 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to missing role.")
 
 	data.DefaultTeamUserRole = &RoleImportData{
-		Name:        ptrStr("name"),
-		DisplayName: ptrStr("display name"),
+		Name:        model.NewPointer("name"),
+		DisplayName: model.NewPointer("display name"),
 		Permissions: &[]string{"invite_user"},
 	}
 	data.DefaultChannelAdminRole = nil
@@ -116,8 +116,8 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to missing role.")
 
 	data.DefaultChannelAdminRole = &RoleImportData{
-		Name:        ptrStr("name"),
-		DisplayName: ptrStr("display name"),
+		Name:        model.NewPointer("name"),
+		DisplayName: model.NewPointer("display name"),
 		Permissions: &[]string{"invite_user"},
 	}
 	data.DefaultChannelUserRole = nil
@@ -125,8 +125,8 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to missing role.")
 
 	data.DefaultChannelUserRole = &RoleImportData{
-		Name:        ptrStr("name"),
-		DisplayName: ptrStr("display name"),
+		Name:        model.NewPointer("name"),
+		DisplayName: model.NewPointer("display name"),
 		Permissions: &[]string{"invite_user"},
 	}
 
@@ -135,32 +135,32 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid role.")
 
-	data.DefaultTeamAdminRole.Name = ptrStr("name")
+	data.DefaultTeamAdminRole.Name = model.NewPointer("name")
 	data.DefaultTeamUserRole.Name = nil
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid role.")
 
-	data.DefaultTeamUserRole.Name = ptrStr("name")
+	data.DefaultTeamUserRole.Name = model.NewPointer("name")
 	data.DefaultChannelAdminRole.Name = nil
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid role.")
 
-	data.DefaultChannelAdminRole.Name = ptrStr("name")
+	data.DefaultChannelAdminRole.Name = model.NewPointer("name")
 	data.DefaultChannelUserRole.Name = nil
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid role.")
 
-	data.DefaultChannelUserRole.Name = ptrStr("name")
+	data.DefaultChannelUserRole.Name = model.NewPointer("name")
 
 	// Change to a Channel scope role, and check with missing or extra roles again.
-	data.Scope = ptrStr("channel")
+	data.Scope = model.NewPointer("channel")
 	data.DefaultTeamAdminRole = nil
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to spurious role.")
 
 	data.DefaultTeamAdminRole = &RoleImportData{
-		Name:        ptrStr("name"),
-		DisplayName: ptrStr("display name"),
+		Name:        model.NewPointer("name"),
+		DisplayName: model.NewPointer("display name"),
 		Permissions: &[]string{"invite_user"},
 	}
 	data.DefaultTeamUserRole = nil
@@ -168,8 +168,8 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to spurious role.")
 
 	data.DefaultTeamUserRole = &RoleImportData{
-		Name:        ptrStr("name"),
-		DisplayName: ptrStr("display name"),
+		Name:        model.NewPointer("name"),
+		DisplayName: model.NewPointer("display name"),
 		Permissions: &[]string{"invite_user"},
 	}
 	data.DefaultTeamGuestRole = nil
@@ -183,11 +183,11 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 	require.Nil(t, err, "Should have succeeded.")
 
 	// Test with all combinations of optional parameters.
-	data.Description = ptrStr(strings.Repeat("1234567890", 1024))
+	data.Description = model.NewPointer(strings.Repeat("1234567890", 1024))
 	err = ValidateSchemeImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid description.")
 
-	data.Description = ptrStr("description")
+	data.Description = model.NewPointer("description")
 	err = ValidateSchemeImportData(&data)
 	require.Nil(t, err, "Should have succeeded.")
 }
@@ -195,8 +195,8 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 func TestImportValidateRoleImportData(t *testing.T) {
 	// Test with minimum required valid properties.
 	data := RoleImportData{
-		Name:        ptrStr("name"),
-		DisplayName: ptrStr("display name"),
+		Name:        model.NewPointer("name"),
+		DisplayName: model.NewPointer("display name"),
 	}
 	err := ValidateRoleImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
@@ -206,30 +206,30 @@ func TestImportValidateRoleImportData(t *testing.T) {
 	err = ValidateRoleImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid name.")
 
-	data.Name = ptrStr("")
+	data.Name = model.NewPointer("")
 	err = ValidateRoleImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid name.")
 
-	data.Name = ptrStr(strings.Repeat("1234567890", 100))
+	data.Name = model.NewPointer(strings.Repeat("1234567890", 100))
 	err = ValidateRoleImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid name.")
 
-	data.Name = ptrStr("name")
+	data.Name = model.NewPointer("name")
 
 	// Test with invalid display name.
 	data.DisplayName = nil
 	err = ValidateRoleImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid display name.")
 
-	data.DisplayName = ptrStr("")
+	data.DisplayName = model.NewPointer("")
 	err = ValidateRoleImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid display name.")
 
-	data.DisplayName = ptrStr(strings.Repeat("1234567890", 100))
+	data.DisplayName = model.NewPointer(strings.Repeat("1234567890", 100))
 	err = ValidateRoleImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid display name.")
 
-	data.DisplayName = ptrStr("display name")
+	data.DisplayName = model.NewPointer("display name")
 
 	// Test with various valid/invalid permissions.
 	data.Permissions = &[]string{}
@@ -247,11 +247,11 @@ func TestImportValidateRoleImportData(t *testing.T) {
 	data.Permissions = &[]string{"invite_user", "add_user_to_team"}
 
 	// Test with various valid/invalid descriptions.
-	data.Description = ptrStr(strings.Repeat("1234567890", 1024))
+	data.Description = model.NewPointer(strings.Repeat("1234567890", 1024))
 	err = ValidateRoleImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to invalid description.")
 
-	data.Description = ptrStr("description")
+	data.Description = model.NewPointer("description")
 	err = ValidateRoleImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 }
@@ -259,96 +259,96 @@ func TestImportValidateRoleImportData(t *testing.T) {
 func TestImportValidateTeamImportData(t *testing.T) {
 	// Test with minimum required valid properties.
 	data := TeamImportData{
-		Name:        ptrStr("teamname"),
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		Name:        model.NewPointer("teamname"),
+		DisplayName: model.NewPointer("Display Name"),
+		Type:        model.NewPointer("O"),
 	}
 	err := ValidateTeamImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	// Test with various invalid names.
 	data = TeamImportData{
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
+		DisplayName: model.NewPointer("Display Name"),
+		Type:        model.NewPointer("O"),
 	}
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to missing name.")
 
-	data.Name = ptrStr(strings.Repeat("abcdefghij", 7))
+	data.Name = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long name.")
 
-	data.Name = ptrStr("login")
+	data.Name = model.NewPointer("login")
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to reserved word in name.")
 
-	data.Name = ptrStr("Test::''ASD")
+	data.Name = model.NewPointer("Test::''ASD")
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to non alphanum characters in name.")
 
-	data.Name = ptrStr("A")
+	data.Name = model.NewPointer("A")
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to short name.")
 
 	// Test team various invalid display names.
 	data = TeamImportData{
-		Name: ptrStr("teamname"),
-		Type: ptrStr("O"),
+		Name: model.NewPointer("teamname"),
+		Type: model.NewPointer("O"),
 	}
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to missing display_name.")
 
-	data.DisplayName = ptrStr("")
+	data.DisplayName = model.NewPointer("")
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to empty display_name.")
 
-	data.DisplayName = ptrStr(strings.Repeat("abcdefghij", 7))
+	data.DisplayName = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long display_name.")
 
 	// Test with various valid and invalid types.
 	data = TeamImportData{
-		Name:        ptrStr("teamname"),
-		DisplayName: ptrStr("Display Name"),
+		Name:        model.NewPointer("teamname"),
+		DisplayName: model.NewPointer("Display Name"),
 	}
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to missing type.")
 
-	data.Type = ptrStr("A")
+	data.Type = model.NewPointer("A")
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid type.")
 
-	data.Type = ptrStr("I")
+	data.Type = model.NewPointer("I")
 	err = ValidateTeamImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid type.")
 
 	// Test with all the combinations of optional parameters.
 	data = TeamImportData{
-		Name:            ptrStr("teamname"),
-		DisplayName:     ptrStr("Display Name"),
-		Type:            ptrStr("O"),
-		Description:     ptrStr("The team description."),
-		AllowOpenInvite: ptrBool(true),
+		Name:            model.NewPointer("teamname"),
+		DisplayName:     model.NewPointer("Display Name"),
+		Type:            model.NewPointer("O"),
+		Description:     model.NewPointer("The team description."),
+		AllowOpenInvite: model.NewPointer(true),
 	}
 	err = ValidateTeamImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid optional properties.")
 
-	data.AllowOpenInvite = ptrBool(false)
+	data.AllowOpenInvite = model.NewPointer(false)
 	err = ValidateTeamImportData(&data)
 	require.Nil(t, err, "Should have succeeded with allow open invites false.")
 
-	data.Description = ptrStr(strings.Repeat("abcdefghij ", 26))
+	data.Description = model.NewPointer(strings.Repeat("abcdefghij ", 26))
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long description.")
 
 	// Test with an empty scheme name.
-	data.Description = ptrStr("abcdefg")
-	data.Scheme = ptrStr("")
+	data.Description = model.NewPointer("abcdefg")
+	data.Scheme = model.NewPointer("")
 	err = ValidateTeamImportData(&data)
 	require.NotNil(t, err, "Should have failed due to empty scheme name.")
 
 	// Test with a valid scheme name.
-	data.Scheme = ptrStr("abcdefg")
+	data.Scheme = model.NewPointer("abcdefg")
 	err = ValidateTeamImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid scheme name.")
 }
@@ -357,9 +357,9 @@ func TestImportValidateChannelImportData(t *testing.T) {
 	// Test with minimum required valid properties.
 	chanTypeOpen := model.ChannelTypeOpen
 	data := ChannelImportData{
-		Team:        ptrStr("teamname"),
-		Name:        ptrStr("channelname"),
-		DisplayName: ptrStr("Display Name"),
+		Team:        model.NewPointer("teamname"),
+		Name:        model.NewPointer("channelname"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
 	}
 	err := ValidateChannelImportData(&data)
@@ -367,8 +367,8 @@ func TestImportValidateChannelImportData(t *testing.T) {
 
 	// Test with missing team.
 	data = ChannelImportData{
-		Name:        ptrStr("channelname"),
-		DisplayName: ptrStr("Display Name"),
+		Name:        model.NewPointer("channelname"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
 	}
 	err = ValidateChannelImportData(&data)
@@ -376,49 +376,49 @@ func TestImportValidateChannelImportData(t *testing.T) {
 
 	// Test with various invalid names.
 	data = ChannelImportData{
-		Team:        ptrStr("teamname"),
-		DisplayName: ptrStr("Display Name"),
+		Team:        model.NewPointer("teamname"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
 	}
 	err = ValidateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to missing name.")
 
-	data.Name = ptrStr(strings.Repeat("abcdefghij", 7))
+	data.Name = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long name.")
 
-	data.Name = ptrStr("Test::''ASD")
+	data.Name = model.NewPointer("Test::''ASD")
 	err = ValidateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to non alphanum characters in name.")
 
-	data.Name = ptrStr("A")
+	data.Name = model.NewPointer("A")
 	err = ValidateChannelImportData(&data)
-	require.NotNil(t, err, "Should have failed due to short name.")
+	require.Nil(t, err, "Should not have failed due to uppercased name.")
 
 	// Test team various invalid display names.
 	data = ChannelImportData{
-		Team: ptrStr("teamname"),
-		Name: ptrStr("channelname"),
+		Team: model.NewPointer("teamname"),
+		Name: model.NewPointer("channelname"),
 		Type: &chanTypeOpen,
 	}
 	err = ValidateChannelImportData(&data)
 	require.Nil(t, err, "Should have accepted having an empty display_name.")
 	require.Equal(t, data.Name, data.DisplayName, "Name and DisplayName should be the same if DisplayName is missing")
 
-	data.DisplayName = ptrStr("")
+	data.DisplayName = model.NewPointer("")
 	err = ValidateChannelImportData(&data)
 	require.Nil(t, err, "Should have accepted having an empty display_name.")
 	require.Equal(t, data.Name, data.DisplayName, "Name and DisplayName should be the same if DisplayName is missing")
 
-	data.DisplayName = ptrStr(strings.Repeat("abcdefghij", 7))
+	data.DisplayName = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long display_name.")
 
 	// Test with various valid and invalid types.
 	data = ChannelImportData{
-		Team:        ptrStr("teamname"),
-		Name:        ptrStr("channelname"),
-		DisplayName: ptrStr("Display Name"),
+		Team:        model.NewPointer("teamname"),
+		Name:        model.NewPointer("channelname"),
+		DisplayName: model.NewPointer("Display Name"),
 	}
 	err = ValidateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to missing type.")
@@ -435,33 +435,33 @@ func TestImportValidateChannelImportData(t *testing.T) {
 
 	// Test with all the combinations of optional parameters.
 	data = ChannelImportData{
-		Team:        ptrStr("teamname"),
-		Name:        ptrStr("channelname"),
-		DisplayName: ptrStr("Display Name"),
+		Team:        model.NewPointer("teamname"),
+		Name:        model.NewPointer("channelname"),
+		DisplayName: model.NewPointer("Display Name"),
 		Type:        &chanTypeOpen,
-		Header:      ptrStr("Channel Header Here"),
-		Purpose:     ptrStr("Channel Purpose Here"),
+		Header:      model.NewPointer("Channel Header Here"),
+		Purpose:     model.NewPointer("Channel Purpose Here"),
 	}
 	err = ValidateChannelImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid optional properties.")
 
-	data.Header = ptrStr(strings.Repeat("abcdefghij ", 103))
+	data.Header = model.NewPointer(strings.Repeat("abcdefghij ", 103))
 	err = ValidateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long header.")
 
-	data.Header = ptrStr("Channel Header Here")
-	data.Purpose = ptrStr(strings.Repeat("abcdefghij ", 26))
+	data.Header = model.NewPointer("Channel Header Here")
+	data.Purpose = model.NewPointer(strings.Repeat("abcdefghij ", 26))
 	err = ValidateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long purpose.")
 
 	// Test with an empty scheme name.
-	data.Purpose = ptrStr("abcdefg")
-	data.Scheme = ptrStr("")
+	data.Purpose = model.NewPointer("abcdefg")
+	data.Scheme = model.NewPointer("")
 	err = ValidateChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to empty scheme name.")
 
 	// Test with a valid scheme name.
-	data.Scheme = ptrStr("abcdefg")
+	data.Scheme = model.NewPointer("abcdefg")
 	err = ValidateChannelImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid scheme name.")
 }
@@ -469,8 +469,8 @@ func TestImportValidateChannelImportData(t *testing.T) {
 func TestImportValidateUserImportData(t *testing.T) {
 	// Test with minimum required valid properties.
 	data := UserImportData{
-		Username: ptrStr("bob"),
-		Email:    ptrStr("bob@example.com"),
+		Username: model.NewPointer("bob"),
+		Email:    model.NewPointer("bob@example.com"),
 	}
 	err := ValidateUserImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
@@ -480,22 +480,22 @@ func TestImportValidateUserImportData(t *testing.T) {
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to nil Username.")
 
-	data.Username = ptrStr("")
+	data.Username = model.NewPointer("")
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to 0 length Username.")
 
-	data.Username = ptrStr(strings.Repeat("abcdefghij", 7))
+	data.Username = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to too long Username.")
 
-	data.Username = ptrStr("i am a username with spaces and !!!")
+	data.Username = model.NewPointer("i am a username with spaces and !!!")
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to invalid characters in Username.")
 
-	data.Username = ptrStr("bob")
+	data.Username = model.NewPointer("bob")
 
 	// Unexisting Picture Image
-	data.ProfileImage = ptrStr("not-existing-file")
+	data.ProfileImage = model.NewPointer("not-existing-file")
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to not existing profile image file.")
 
@@ -506,132 +506,139 @@ func TestImportValidateUserImportData(t *testing.T) {
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to nil Email.")
 
-	data.Email = ptrStr("")
+	data.Email = model.NewPointer("")
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to 0 length Email.")
 
-	data.Email = ptrStr(strings.Repeat("abcdefghij", 13))
+	data.Email = model.NewPointer(strings.Repeat("abcdefghij", 13))
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to too long Email.")
 
-	data.Email = ptrStr("bob@example.com")
+	data.Email = model.NewPointer("bob@example.com")
 
 	// Empty AuthService indicates user/password auth.
-	data.AuthService = ptrStr("")
+	data.AuthService = model.NewPointer("")
 	checkNoError(t, ValidateUserImportData(&data))
 
-	data.AuthService = ptrStr("saml")
-	data.AuthData = ptrStr(strings.Repeat("abcdefghij", 15))
+	data.AuthService = model.NewPointer("saml")
+	data.AuthData = model.NewPointer(strings.Repeat("abcdefghij", 15))
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to too long auth data.")
 
-	data.AuthData = ptrStr("bobbytables")
+	data.AuthData = model.NewPointer("bobbytables")
 	err = ValidateUserImportData(&data)
 	require.Nil(t, err, "Validation should have succeeded with valid auth service and auth data.")
 
 	// Test a valid User with all fields populated.
 	testsDir, _ := fileutils.FindDir("tests")
 	data = UserImportData{
-		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
-		Username:     ptrStr("bob"),
-		Email:        ptrStr("bob@example.com"),
-		AuthService:  ptrStr("ldap"),
-		AuthData:     ptrStr("bob"),
-		Nickname:     ptrStr("BobNick"),
-		FirstName:    ptrStr("Bob"),
-		LastName:     ptrStr("Blob"),
-		Position:     ptrStr("The Boss"),
-		Roles:        ptrStr("system_user"),
-		Locale:       ptrStr("en"),
+		Avatar: Avatar{
+			ProfileImage: model.NewPointer(filepath.Join(testsDir, "test.png")),
+		},
+		Username:    model.NewPointer("bob"),
+		Email:       model.NewPointer("bob@example.com"),
+		AuthService: model.NewPointer("ldap"),
+		AuthData:    model.NewPointer("bob"),
+		Nickname:    model.NewPointer("BobNick"),
+		FirstName:   model.NewPointer("Bob"),
+		LastName:    model.NewPointer("Blob"),
+		Position:    model.NewPointer("The Boss"),
+		Roles:       model.NewPointer("system_user"),
+		Locale:      model.NewPointer("en"),
 	}
 	err = ValidateUserImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
+	// Test with not-all lowercase username
+	data.Username = model.NewPointer("Bob")
+	err = ValidateUserImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid even the username has uppercase letters.")
+
 	// Test various invalid optional field values.
-	data.Nickname = ptrStr(strings.Repeat("abcdefghij", 7))
+	data.Nickname = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to too long Nickname.")
 
-	data.Nickname = ptrStr("BobNick")
+	data.Nickname = model.NewPointer("BobNick")
 
-	data.FirstName = ptrStr(strings.Repeat("abcdefghij", 7))
+	data.FirstName = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to too long First Name.")
 
-	data.FirstName = ptrStr("Bob")
+	data.FirstName = model.NewPointer("Bob")
 
-	data.LastName = ptrStr(strings.Repeat("abcdefghij", 7))
+	data.LastName = model.NewPointer(strings.Repeat("abcdefghij", 7))
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to too long Last name.")
 
-	data.LastName = ptrStr("Blob")
+	data.LastName = model.NewPointer("Blob")
 
-	data.Position = ptrStr(strings.Repeat("abcdefghij", 13))
+	data.Position = model.NewPointer(strings.Repeat("abcdefghij", 13))
 	err = ValidateUserImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to too long Position.")
 
-	data.Position = ptrStr("The Boss")
+	data.Position = model.NewPointer("The Boss")
 
 	data.Roles = nil
 	err = ValidateUserImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
-	data.Roles = ptrStr("")
+	data.Roles = model.NewPointer("")
 	err = ValidateUserImportData(&data)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
-	data.Roles = ptrStr("system_user")
+	data.Roles = model.NewPointer("system_user")
 
 	// Try various valid/invalid notify props.
 	data.NotifyProps = &UserNotifyPropsImportData{}
 
-	data.NotifyProps.Desktop = ptrStr("invalid")
+	data.NotifyProps.Desktop = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
-	data.NotifyProps.Desktop = ptrStr(model.UserNotifyAll)
-	data.NotifyProps.DesktopSound = ptrStr("invalid")
+	data.NotifyProps.Desktop = model.NewPointer(model.UserNotifyAll)
+	data.NotifyProps.DesktopSound = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
-	data.NotifyProps.DesktopSound = ptrStr("true")
-	data.NotifyProps.Email = ptrStr("invalid")
+	data.NotifyProps.DesktopSound = model.NewPointer("true")
+	data.NotifyProps.Email = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
-	data.NotifyProps.Email = ptrStr("true")
-	data.NotifyProps.Mobile = ptrStr("invalid")
+	data.NotifyProps.Email = model.NewPointer("true")
+	data.NotifyProps.Mobile = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
-	data.NotifyProps.Mobile = ptrStr(model.UserNotifyAll)
-	data.NotifyProps.MobilePushStatus = ptrStr("invalid")
+	data.NotifyProps.Mobile = model.NewPointer(model.UserNotifyAll)
+	data.NotifyProps.MobilePushStatus = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
-	data.NotifyProps.MobilePushStatus = ptrStr(model.StatusOnline)
-	data.NotifyProps.ChannelTrigger = ptrStr("invalid")
+	data.NotifyProps.MobilePushStatus = model.NewPointer(model.StatusOnline)
+	data.NotifyProps.ChannelTrigger = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
-	data.NotifyProps.ChannelTrigger = ptrStr("true")
-	data.NotifyProps.CommentsTrigger = ptrStr("invalid")
+	data.NotifyProps.ChannelTrigger = model.NewPointer("true")
+	data.NotifyProps.CommentsTrigger = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
-	data.NotifyProps.CommentsTrigger = ptrStr(model.CommentsNotifyRoot)
-	data.NotifyProps.MentionKeys = ptrStr("valid")
+	data.NotifyProps.CommentsTrigger = model.NewPointer(model.CommentsNotifyRoot)
+	data.NotifyProps.MentionKeys = model.NewPointer("valid")
 	checkNoError(t, ValidateUserImportData(&data))
 
 	//Test the email batching interval validators
 	//Happy paths
-	data.EmailInterval = ptrStr("immediately")
+	data.EmailInterval = model.NewPointer("immediately")
 	checkNoError(t, ValidateUserImportData(&data))
 
-	data.EmailInterval = ptrStr("fifteen")
+	data.EmailInterval = model.NewPointer("fifteen")
 	checkNoError(t, ValidateUserImportData(&data))
 
-	data.EmailInterval = ptrStr("hour")
+	data.EmailInterval = model.NewPointer("hour")
 	checkNoError(t, ValidateUserImportData(&data))
 
 	//Invalid values
-	data.EmailInterval = ptrStr("invalid")
+	data.EmailInterval = model.NewPointer("invalid")
 	checkError(t, ValidateUserImportData(&data))
 
-	data.EmailInterval = ptrStr("")
+	data.EmailInterval = model.NewPointer("")
 	checkError(t, ValidateUserImportData(&data))
 }
 
@@ -642,21 +649,22 @@ func TestImportValidateUserAuth(t *testing.T) {
 		isValid     bool
 	}{
 		{nil, nil, true},
-		{ptrStr(""), ptrStr(""), true},
-		{ptrStr("foo"), ptrStr("foo"), false},
-		{nil, ptrStr(""), true},
-		{ptrStr(""), nil, true},
+		{model.NewPointer(""), model.NewPointer(""), true},
+		{model.NewPointer("foo"), model.NewPointer("foo"), false},
+		{nil, model.NewPointer(""), true},
+		{model.NewPointer(""), nil, true},
+		{model.NewPointer(model.ServiceOpenid), model.NewPointer("foo@bar.baz"), true},
 
-		{ptrStr("foo"), nil, false},
-		{ptrStr("foo"), ptrStr(""), false},
-		{nil, ptrStr("foo"), false},
-		{ptrStr(""), ptrStr("foo"), false},
+		{model.NewPointer("foo"), nil, false},
+		{model.NewPointer("foo"), model.NewPointer(""), false},
+		{nil, model.NewPointer("foo"), false},
+		{model.NewPointer(""), model.NewPointer("foo"), false},
 	}
 
 	for _, test := range tests {
 		data := UserImportData{
-			Username:    ptrStr("bob"),
-			Email:       ptrStr("bob@example.com"),
+			Username:    model.NewPointer("bob"),
+			Email:       model.NewPointer("bob@example.com"),
 			AuthService: test.authService,
 			AuthData:    test.authData,
 		}
@@ -670,17 +678,72 @@ func TestImportValidateUserAuth(t *testing.T) {
 	}
 }
 
+func TestImportValidateBotImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	data := BotImportData{
+		Username:    model.NewPointer("bob"),
+		DisplayName: model.NewPointer("Display Name"),
+		Owner:       model.NewPointer("owner"),
+	}
+	err := ValidateBotImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid.")
+
+	// Test with not-all lowercase username
+	data.Username = model.NewPointer("Bob")
+	err = ValidateBotImportData(&data)
+	require.Nil(t, err, "Validation failed but should have been valid even the username has uppercase letters.")
+
+	// Test with various invalid names.
+	data.Username = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to nil Username.")
+
+	data.Username = model.NewPointer("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to 0 length Username.")
+
+	data.Username = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long Username.")
+
+	data.Username = model.NewPointer("i am a username with spaces and !!!")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to invalid characters in Username.")
+
+	data.Username = model.NewPointer("bob")
+
+	// Invalid Display Name.
+	data.DisplayName = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.DisplayName = model.NewPointer("Display Name")
+
+	// Invalid Owner Name.
+	data.Owner = nil
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = model.NewPointer("")
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long DisplayName.")
+
+	data.Owner = model.NewPointer(strings.Repeat("abcdefghij", 7))
+	err = ValidateBotImportData(&data)
+	require.NotNil(t, err, "Should have failed due to too long OwnerID.")
+}
+
 func TestImportValidateUserTeamsImportData(t *testing.T) {
 	// Invalid Name.
 	data := []UserTeamImportData{
 		{
-			Roles: ptrStr("team_admin team_user"),
+			Roles: model.NewPointer("team_admin team_user"),
 		},
 	}
 	err := ValidateUserTeamsImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid name.")
 
-	data[0].Name = ptrStr("teamname")
+	data[0].Name = model.NewPointer("teamname")
 
 	// Valid (nil roles)
 	data[0].Roles = nil
@@ -688,27 +751,27 @@ func TestImportValidateUserTeamsImportData(t *testing.T) {
 	require.Nil(t, err, "Should have succeeded with empty roles.")
 
 	// Valid (empty roles)
-	data[0].Roles = ptrStr("")
+	data[0].Roles = model.NewPointer("")
 	err = ValidateUserTeamsImportData(&data)
 	require.Nil(t, err, "Should have succeeded with empty roles.")
 
 	// Valid (with roles)
-	data[0].Roles = ptrStr("team_admin team_user")
+	data[0].Roles = model.NewPointer("team_admin team_user")
 	err = ValidateUserTeamsImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid roles.")
 
 	// Valid (with JSON string of theme)
-	data[0].Theme = ptrStr(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`)
+	data[0].Theme = model.NewPointer(`{"awayIndicator":"#DBBD4E","buttonBg":"#23A1FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBg":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`)
 	err = ValidateUserTeamsImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid theme.")
 
 	// Invalid (invalid JSON string of theme)
-	data[0].Theme = ptrStr(`This is the invalid string which cannot be marshalled to JSON object :) + {"#DBBD4E","buttonBg", "#23A1FF", buttonColor`)
+	data[0].Theme = model.NewPointer(`This is the invalid string which cannot be marshalled to JSON object :) + {"#DBBD4E","buttonBg", "#23A1FF", buttonColor`)
 	err = ValidateUserTeamsImportData(&data)
 	require.NotNil(t, err, "Should have fail with invalid JSON string of theme.")
 
 	// Invalid (valid JSON but invalid theme description)
-	data[0].Theme = ptrStr(`{"somekey": 25, "json_obj1": {"color": "#DBBD4E","buttonBg": "#23A1FF"}}`)
+	data[0].Theme = model.NewPointer(`{"somekey": 25, "json_obj1": {"color": "#DBBD4E","buttonBg": "#23A1FF"}}`)
 	err = ValidateUserTeamsImportData(&data)
 	require.NotNil(t, err, "Should have fail with valid JSON which contains invalid string of theme description.")
 
@@ -719,12 +782,12 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 	// Invalid Name.
 	data := []UserChannelImportData{
 		{
-			Roles: ptrStr("channel_admin channel_user"),
+			Roles: model.NewPointer("channel_admin channel_user"),
 		},
 	}
 	err := ValidateUserChannelsImportData(&data)
 	require.NotNil(t, err, "Should have failed due to invalid name.")
-	data[0].Name = ptrStr("channelname")
+	data[0].Name = model.NewPointer("channelname")
 
 	// Valid (nil roles)
 	data[0].Roles = nil
@@ -732,12 +795,12 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 	require.Nil(t, err, "Should have succeeded with empty roles.")
 
 	// Valid (empty roles)
-	data[0].Roles = ptrStr("")
+	data[0].Roles = model.NewPointer("")
 	err = ValidateUserChannelsImportData(&data)
 	require.Nil(t, err, "Should have succeeded with empty roles.")
 
 	// Valid (with roles)
-	data[0].Roles = ptrStr("channel_admin channel_user")
+	data[0].Roles = model.NewPointer("channel_admin channel_user")
 	err = ValidateUserChannelsImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid roles.")
 
@@ -747,24 +810,24 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 	require.Nil(t, err, "Should have succeeded with empty notify props.")
 
 	// Invalid desktop notify props.
-	data[0].NotifyProps.Desktop = ptrStr("invalid")
+	data[0].NotifyProps.Desktop = model.NewPointer("invalid")
 	err = ValidateUserChannelsImportData(&data)
 	require.NotNil(t, err, "Should have failed with invalid desktop notify props.")
 
 	// Invalid mobile notify props.
-	data[0].NotifyProps.Desktop = ptrStr("mention")
-	data[0].NotifyProps.Mobile = ptrStr("invalid")
+	data[0].NotifyProps.Desktop = model.NewPointer("mention")
+	data[0].NotifyProps.Mobile = model.NewPointer("invalid")
 	err = ValidateUserChannelsImportData(&data)
 	require.NotNil(t, err, "Should have failed with invalid mobile notify props.")
 
 	// Invalid mark_unread notify props.
-	data[0].NotifyProps.Mobile = ptrStr("mention")
-	data[0].NotifyProps.MarkUnread = ptrStr("invalid")
+	data[0].NotifyProps.Mobile = model.NewPointer("mention")
+	data[0].NotifyProps.MarkUnread = model.NewPointer("invalid")
 	err = ValidateUserChannelsImportData(&data)
 	require.NotNil(t, err, "Should have failed with invalid mark_unread notify props.")
 
 	// Valid notify props.
-	data[0].NotifyProps.MarkUnread = ptrStr("mention")
+	data[0].NotifyProps.MarkUnread = model.NewPointer("mention")
 	err = ValidateUserChannelsImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid notify props.")
 }
@@ -773,57 +836,57 @@ func TestImportValidateReactionImportData(t *testing.T) {
 	// Test with minimum required valid properties.
 	parentCreateAt := model.GetMillis() - 100
 	data := ReactionImportData{
-		User:      ptrStr("username"),
-		EmojiName: ptrStr("emoji"),
-		CreateAt:  ptrInt64(model.GetMillis()),
+		User:      model.NewPointer("username"),
+		EmojiName: model.NewPointer("emoji"),
+		CreateAt:  model.NewPointer(model.GetMillis()),
 	}
 	err := ValidateReactionImportData(&data, parentCreateAt)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	// Test with missing required properties.
 	data = ReactionImportData{
-		EmojiName: ptrStr("emoji"),
-		CreateAt:  ptrInt64(model.GetMillis()),
+		EmojiName: model.NewPointer("emoji"),
+		CreateAt:  model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
 	data = ReactionImportData{
-		User:     ptrStr("username"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
 	data = ReactionImportData{
-		User:      ptrStr("username"),
-		EmojiName: ptrStr("emoji"),
+		User:      model.NewPointer("username"),
+		EmojiName: model.NewPointer("emoji"),
 	}
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
 	// Test with invalid emoji name.
 	data = ReactionImportData{
-		User:      ptrStr("username"),
-		EmojiName: ptrStr(strings.Repeat("1234567890", 500)),
-		CreateAt:  ptrInt64(model.GetMillis()),
+		User:      model.NewPointer("username"),
+		EmojiName: model.NewPointer(strings.Repeat("1234567890", 500)),
+		CreateAt:  model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to too long emoji name.")
 
 	// Test with invalid CreateAt
 	data = ReactionImportData{
-		User:      ptrStr("username"),
-		EmojiName: ptrStr("emoji"),
-		CreateAt:  ptrInt64(0),
+		User:      model.NewPointer("username"),
+		EmojiName: model.NewPointer("emoji"),
+		CreateAt:  model.NewPointer(int64(0)),
 	}
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
 
 	data = ReactionImportData{
-		User:      ptrStr("username"),
-		EmojiName: ptrStr("emoji"),
-		CreateAt:  ptrInt64(parentCreateAt - 100),
+		User:      model.NewPointer("username"),
+		EmojiName: model.NewPointer("emoji"),
+		CreateAt:  model.NewPointer(parentCreateAt - 100),
 	}
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due parent with newer create-at value.")
@@ -834,49 +897,49 @@ func TestImportValidateReplyImportData(t *testing.T) {
 	parentCreateAt := model.GetMillis() - 100
 	maxPostSize := 10000
 	data := ReplyImportData{
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err := ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	// Test with missing required properties.
 	data = ReplyImportData{
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
 	data = ReplyImportData{
-		User:     ptrStr("username"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
 	data = ReplyImportData{
-		User:    ptrStr("username"),
-		Message: ptrStr("message"),
+		User:    model.NewPointer("username"),
+		Message: model.NewPointer("message"),
 	}
 	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
 	// Test with invalid message.
 	data = ReplyImportData{
-		User:     ptrStr("username"),
-		Message:  ptrStr(strings.Repeat("0", maxPostSize+1)),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer(strings.Repeat("0", maxPostSize+1)),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to too long message.")
 
 	// Test with invalid CreateAt
 	data = ReplyImportData{
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(0),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(int64(0)),
 	}
 	err = ValidateReplyImportData(&data, parentCreateAt, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
@@ -887,11 +950,11 @@ func TestImportValidatePostImportData(t *testing.T) {
 
 	t.Run("Test with minimum required valid properties", func(t *testing.T) {
 		data := PostImportData{
-			Team:     ptrStr("teamname"),
-			Channel:  ptrStr("channelname"),
-			User:     ptrStr("username"),
-			Message:  ptrStr("message"),
-			CreateAt: ptrInt64(model.GetMillis()),
+			Team:     model.NewPointer("teamname"),
+			Channel:  model.NewPointer("channelname"),
+			User:     model.NewPointer("username"),
+			Message:  model.NewPointer("message"),
+			CreateAt: model.NewPointer(model.GetMillis()),
 		}
 		err := ValidatePostImportData(&data, maxPostSize)
 		require.Nil(t, err, "Validation failed but should have been valid.")
@@ -899,50 +962,50 @@ func TestImportValidatePostImportData(t *testing.T) {
 
 	t.Run("Test with missing required properties", func(t *testing.T) {
 		data := PostImportData{
-			Channel:  ptrStr("channelname"),
-			User:     ptrStr("username"),
-			Message:  ptrStr("message"),
-			CreateAt: ptrInt64(model.GetMillis()),
+			Channel:  model.NewPointer("channelname"),
+			User:     model.NewPointer("username"),
+			Message:  model.NewPointer("message"),
+			CreateAt: model.NewPointer(model.GetMillis()),
 		}
 		err := ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
 		assert.Equal(t, err.Id, "app.import.validate_post_import_data.team_missing.error")
 
 		data = PostImportData{
-			Team:     ptrStr("teamname"),
-			User:     ptrStr("username"),
-			Message:  ptrStr("message"),
-			CreateAt: ptrInt64(model.GetMillis()),
+			Team:     model.NewPointer("teamname"),
+			User:     model.NewPointer("username"),
+			Message:  model.NewPointer("message"),
+			CreateAt: model.NewPointer(model.GetMillis()),
 		}
 		err = ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
 		assert.Equal(t, err.Id, "app.import.validate_post_import_data.channel_missing.error")
 
 		data = PostImportData{
-			Team:     ptrStr("teamname"),
-			Channel:  ptrStr("channelname"),
-			Message:  ptrStr("message"),
-			CreateAt: ptrInt64(model.GetMillis()),
+			Team:     model.NewPointer("teamname"),
+			Channel:  model.NewPointer("channelname"),
+			Message:  model.NewPointer("message"),
+			CreateAt: model.NewPointer(model.GetMillis()),
 		}
 		err = ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
 		assert.Equal(t, err.Id, "app.import.validate_post_import_data.user_missing.error")
 
 		data = PostImportData{
-			Team:     ptrStr("teamname"),
-			Channel:  ptrStr("channelname"),
-			User:     ptrStr("username"),
-			CreateAt: ptrInt64(model.GetMillis()),
+			Team:     model.NewPointer("teamname"),
+			Channel:  model.NewPointer("channelname"),
+			User:     model.NewPointer("username"),
+			CreateAt: model.NewPointer(model.GetMillis()),
 		}
 		err = ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
 		assert.Equal(t, err.Id, "app.import.validate_post_import_data.message_missing.error")
 
 		data = PostImportData{
-			Team:    ptrStr("teamname"),
-			Channel: ptrStr("channelname"),
-			User:    ptrStr("username"),
-			Message: ptrStr("message"),
+			Team:    model.NewPointer("teamname"),
+			Channel: model.NewPointer("channelname"),
+			User:    model.NewPointer("username"),
+			Message: model.NewPointer("message"),
 		}
 		err = ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
@@ -951,11 +1014,11 @@ func TestImportValidatePostImportData(t *testing.T) {
 
 	t.Run("Test with invalid message", func(t *testing.T) {
 		data := PostImportData{
-			Team:     ptrStr("teamname"),
-			Channel:  ptrStr("channelname"),
-			User:     ptrStr("username"),
-			Message:  ptrStr(strings.Repeat("0", maxPostSize+1)),
-			CreateAt: ptrInt64(model.GetMillis()),
+			Team:     model.NewPointer("teamname"),
+			Channel:  model.NewPointer("channelname"),
+			User:     model.NewPointer("username"),
+			Message:  model.NewPointer(strings.Repeat("0", maxPostSize+1)),
+			CreateAt: model.NewPointer(model.GetMillis()),
 		}
 		err := ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to too long message.")
@@ -964,11 +1027,11 @@ func TestImportValidatePostImportData(t *testing.T) {
 
 	t.Run("Test with invalid CreateAt", func(t *testing.T) {
 		data := PostImportData{
-			Team:     ptrStr("teamname"),
-			Channel:  ptrStr("channelname"),
-			User:     ptrStr("username"),
-			Message:  ptrStr("message"),
-			CreateAt: ptrInt64(0),
+			Team:     model.NewPointer("teamname"),
+			Channel:  model.NewPointer("channelname"),
+			User:     model.NewPointer("username"),
+			Message:  model.NewPointer("message"),
+			CreateAt: model.NewPointer(int64(0)),
 		}
 		err := ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to 0 create-at value.")
@@ -976,24 +1039,28 @@ func TestImportValidatePostImportData(t *testing.T) {
 	})
 
 	t.Run("Test with valid all optional parameters", func(t *testing.T) {
+		postCreateAt := model.GetMillis()
+		repliesCreateAt := postCreateAt + 1
+		reactionsCreateAt := postCreateAt + 2
+
 		reactions := []ReactionImportData{{
-			User:      ptrStr("username"),
-			EmojiName: ptrStr("emoji"),
-			CreateAt:  ptrInt64(model.GetMillis()),
+			User:      model.NewPointer("username"),
+			EmojiName: model.NewPointer("emoji"),
+			CreateAt:  model.NewPointer(reactionsCreateAt),
 		}}
 
 		replies := []ReplyImportData{{
-			User:     ptrStr("username"),
-			Message:  ptrStr("message"),
-			CreateAt: ptrInt64(model.GetMillis()),
+			User:     model.NewPointer("username"),
+			Message:  model.NewPointer("message"),
+			CreateAt: model.NewPointer(repliesCreateAt),
 		}}
 
 		data := PostImportData{
-			Team:      ptrStr("teamname"),
-			Channel:   ptrStr("channelname"),
-			User:      ptrStr("username"),
-			Message:   ptrStr("message"),
-			CreateAt:  ptrInt64(model.GetMillis()),
+			Team:      model.NewPointer("teamname"),
+			Channel:   model.NewPointer("channelname"),
+			User:      model.NewPointer("username"),
+			Message:   model.NewPointer("message"),
+			CreateAt:  model.NewPointer(postCreateAt),
 			Reactions: &reactions,
 			Replies:   &replies,
 		}
@@ -1007,12 +1074,12 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 
 		data := PostImportData{
-			Team:     ptrStr("teamname"),
-			Channel:  ptrStr("channelname"),
-			User:     ptrStr("username"),
-			Message:  ptrStr("message"),
+			Team:     model.NewPointer("teamname"),
+			Channel:  model.NewPointer("channelname"),
+			User:     model.NewPointer("username"),
+			Message:  model.NewPointer("message"),
 			Props:    &props,
-			CreateAt: ptrInt64(model.GetMillis()),
+			CreateAt: model.NewPointer(model.GetMillis()),
 		}
 		err := ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to long props.")
@@ -1023,9 +1090,16 @@ func TestImportValidatePostImportData(t *testing.T) {
 func TestImportValidateDirectChannelImportData(t *testing.T) {
 	// Test with valid number of members for direct message.
 	data := DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
 		},
 	}
 	err := ValidateDirectChannelImportData(&data)
@@ -1033,10 +1107,16 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with valid number of members for group message.
 	data = DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
 		},
 	}
 	err = ValidateDirectChannelImportData(&data)
@@ -1044,46 +1124,70 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with all the combinations of optional parameters.
 	data = DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
 		},
-		Header: ptrStr("Channel Header Here"),
+		Header: model.NewPointer("Channel Header Here"),
 	}
 	err = ValidateDirectChannelImportData(&data)
 	require.Nil(t, err, "Should have succeeded with valid optional properties.")
 
 	// Test with invalid Header.
-	data.Header = ptrStr(strings.Repeat("abcdefghij ", 103))
+	data.Header = model.NewPointer(strings.Repeat("abcdefghij ", 103))
 	err = ValidateDirectChannelImportData(&data)
 	require.NotNil(t, err, "Should have failed due to too long header.")
 
 	// Test with different combinations of invalid member counts.
 	data = DirectChannelImportData{
-		Members: &[]string{},
+		Participants: []*DirectChannelMemberImportData{},
 	}
 	err = ValidateDirectChannelImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to invalid number of members.")
 
 	data = DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
 		},
 	}
 	err = ValidateDirectChannelImportData(&data)
 	require.NotNil(t, err, "Validation should have failed due to invalid number of members.")
 
 	data = DirectChannelImportData{
-		Members: &[]string{
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
-			model.NewId(),
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
 		},
 	}
 	err = ValidateDirectChannelImportData(&data)
@@ -1093,9 +1197,13 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 	member1 := model.NewId()
 	member2 := model.NewId()
 	data = DirectChannelImportData{
-		Members: &[]string{
-			member1,
-			member2,
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
+			{
+				Username: model.NewPointer(model.NewId()),
+			},
 		},
 		FavoritedBy: &[]string{
 			member1,
@@ -1107,9 +1215,13 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 
 	// Test with valid FavoritedBy
 	data = DirectChannelImportData{
-		Members: &[]string{
-			member1,
-			member2,
+		Participants: []*DirectChannelMemberImportData{
+			{
+				Username: model.NewPointer(member1),
+			},
+			{
+				Username: model.NewPointer(member2),
+			},
 		},
 		FavoritedBy: &[]string{
 			member1,
@@ -1129,18 +1241,18 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			model.NewId(),
 			model.NewId(),
 		},
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err := ValidateDirectPostImportData(&data, maxPostSize)
 	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	// Test with missing required properties.
 	data = DirectPostImportData{
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
@@ -1150,8 +1262,8 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			model.NewId(),
 			model.NewId(),
 		},
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
@@ -1161,8 +1273,8 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			model.NewId(),
 			model.NewId(),
 		},
-		User:     ptrStr("username"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
@@ -1172,8 +1284,8 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			model.NewId(),
 			model.NewId(),
 		},
-		User:    ptrStr("username"),
-		Message: ptrStr("message"),
+		User:    model.NewPointer("username"),
+		Message: model.NewPointer("message"),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
@@ -1181,9 +1293,9 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	// Test with invalid numbers of channel members.
 	data = DirectPostImportData{
 		ChannelMembers: &[]string{},
-		User:           ptrStr("username"),
-		Message:        ptrStr("message"),
-		CreateAt:       ptrInt64(model.GetMillis()),
+		User:           model.NewPointer("username"),
+		Message:        model.NewPointer("message"),
+		CreateAt:       model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to unsuitable number of members.")
@@ -1192,9 +1304,9 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		ChannelMembers: &[]string{
 			model.NewId(),
 		},
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to unsuitable number of members.")
@@ -1212,9 +1324,9 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			model.NewId(),
 			model.NewId(),
 		},
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to unsuitable number of members.")
@@ -1226,9 +1338,9 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			model.NewId(),
 			model.NewId(),
 		},
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.Nil(t, err, "Validation failed but should have been valid.")
@@ -1239,9 +1351,9 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			model.NewId(),
 			model.NewId(),
 		},
-		User:     ptrStr("username"),
-		Message:  ptrStr(strings.Repeat("0", maxPostSize+1)),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer(strings.Repeat("0", maxPostSize+1)),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to too long message.")
@@ -1252,9 +1364,9 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			model.NewId(),
 			model.NewId(),
 		},
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(0),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(int64(0)),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
@@ -1271,9 +1383,9 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			member1,
 			model.NewId(),
 		},
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Validation should have failed due to non-member flagged.")
@@ -1288,24 +1400,24 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			member1,
 			member2,
 		},
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.Nil(t, err, "Validation should succeed with post flagged by members")
 
 	// Test with valid all optional parameters.
 	reactions := []ReactionImportData{{
-		User:      ptrStr("username"),
-		EmojiName: ptrStr("emoji"),
-		CreateAt:  ptrInt64(model.GetMillis()),
+		User:      model.NewPointer("username"),
+		EmojiName: model.NewPointer("emoji"),
+		CreateAt:  model.NewPointer(model.GetMillis()),
 	}}
 
 	replies := []ReplyImportData{{
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
+		User:     model.NewPointer("username"),
+		Message:  model.NewPointer("message"),
+		CreateAt: model.NewPointer(model.GetMillis()),
 	}}
 
 	data = DirectPostImportData{
@@ -1317,9 +1429,9 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 			member1,
 			member2,
 		},
-		User:      ptrStr("username"),
-		Message:   ptrStr("message"),
-		CreateAt:  ptrInt64(model.GetMillis()),
+		User:      model.NewPointer("username"),
+		Message:   model.NewPointer("message"),
+		CreateAt:  model.NewPointer(model.GetMillis()),
 		Reactions: &reactions,
 		Replies:   &replies,
 	}
@@ -1336,13 +1448,13 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 		expectError       bool
 		expectSystemEmoji bool
 	}{
-		{"success", ptrStr("parrot2"), ptrStr("/path/to/image"), false, false},
-		{"system emoji", ptrStr("smiley"), ptrStr("/path/to/image"), true, true},
-		{"empty name", ptrStr(""), ptrStr("/path/to/image"), true, false},
-		{"empty image", ptrStr("parrot2"), ptrStr(""), true, false},
-		{"empty name and image", ptrStr(""), ptrStr(""), true, false},
-		{"nil name", nil, ptrStr("/path/to/image"), true, false},
-		{"nil image", ptrStr("parrot2"), nil, true, false},
+		{"success", model.NewPointer("parrot2"), model.NewPointer("/path/to/image"), false, false},
+		{"system emoji", model.NewPointer("smiley"), model.NewPointer("/path/to/image"), true, true},
+		{"empty name", model.NewPointer(""), model.NewPointer("/path/to/image"), true, false},
+		{"empty image", model.NewPointer("parrot2"), model.NewPointer(""), true, false},
+		{"empty name and image", model.NewPointer(""), model.NewPointer(""), true, false},
+		{"nil name", nil, model.NewPointer("/path/to/image"), true, false},
+		{"nil image", model.NewPointer("parrot2"), nil, true, false},
 		{"nil name and image", nil, nil, true, false},
 	}
 
@@ -1364,22 +1476,123 @@ func TestImportValidateEmojiImportData(t *testing.T) {
 	}
 }
 
-func ptrStr(s string) *string {
-	return &s
-}
-
-func ptrInt64(i int64) *int64 {
-	return &i
-}
-
-func ptrBool(b bool) *bool {
-	return &b
-}
-
 func checkError(t *testing.T, err *model.AppError) {
 	require.NotNil(t, err, "Should have returned an error.")
 }
 
 func checkNoError(t *testing.T, err *model.AppError) {
 	require.Nil(t, err, "Unexpected Error: %v", err)
+}
+
+func TestIsValidGuestRoles(t *testing.T) {
+	var testCases = []struct {
+		name     string
+		input    UserImportData
+		expected bool
+	}{
+		{
+			name: "Valid case: User is a guest in all places",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Invalid case: User is a guest in a team but not in another team",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+					{
+						Roles: model.NewPointer(model.TeamUserRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelUserRoleId)},
+						},
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "Invalid case: User is a guest in a team but not in another team and has no channel membership",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamGuestRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+					{
+						Roles:    model.NewPointer(model.TeamUserRoleId),
+						Channels: &[]UserChannelImportData{},
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "Invalid case: User is system guest but not guest in team and channel",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+			},
+			expected: false,
+		},
+		{
+			name: "Invalid case: User has mixed roles",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemGuestRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamUserRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelGuestRoleId)},
+						},
+					},
+				},
+			},
+			expected: false,
+		},
+		{
+			name:     "Valid case: User does not have any role defined in any place",
+			input:    UserImportData{},
+			expected: true,
+		},
+		{
+			name: "Valid case: User is not a guest in any place",
+			input: UserImportData{
+				Roles: model.NewPointer(model.SystemUserRoleId),
+				Teams: &[]UserTeamImportData{
+					{
+						Roles: model.NewPointer(model.TeamAdminRoleId),
+						Channels: &[]UserChannelImportData{
+							{Roles: model.NewPointer(model.ChannelAdminRoleId)},
+						},
+					},
+				},
+			},
+			expected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isValidGuestRoles(tc.input)
+			assert.Equal(t, tc.expected, result, tc.name)
+		})
+	}
 }

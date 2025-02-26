@@ -6,11 +6,10 @@ import React from 'react';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
-import OverlayTrigger from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 
@@ -43,7 +42,7 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
     };
 
     handleToggleEmoji = (emoji: Emoji): void => {
-        const emojiName = 'short_name' in emoji ? emoji.short_name : emoji.name;
+        const emojiName = getEmojiName(emoji);
         this.props.actions.toggleReaction(this.props.postId, emojiName);
     };
 
@@ -70,7 +69,7 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
         function capitalizeFirstLetter(s: string) {
             return s[0].toLocaleUpperCase(locale) + s.slice(1);
         }
-        const name = 'short_name' in emoji ? emoji.short_name : emoji.name;
+        const name = getEmojiName(emoji);
         return capitalizeFirstLetter(name.replace(/_/g, ' '));
     };
 
@@ -92,36 +91,19 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                 teamId={teamId}
                 permissions={[Permissions.ADD_REACTION]}
             >
-                <OverlayTrigger
-                    className='hidden-xs'
-                    delayShow={500}
-                    placement='top'
-                    overlay={
-                        <Tooltip
-                            id='post_info.emoji.tooltip'
-                            className='hidden-xs'
-                        >
-                            <div>
-                                <img
-                                    className='Reaction__emoji Reaction__emoji--large'
-                                    src={getEmojiImageUrl(emoji)}
-                                    width={48}
-                                />
-                            </div>
-                            {this.emojiName(emoji, this.props.locale)}
-                        </Tooltip>
-                    }
+                <WithTooltip
+                    title={this.emojiName(emoji, this.props.locale)}
+                    emoji={getEmojiName(emoji)}
+                    isEmojiLarge={true}
                 >
-                    <div>
-                        <React.Fragment>
-                            <EmojiItem
-                                emoji={emoji}
-                                onItemClick={this.handleToggleEmoji}
-                                order={n}
-                            />
-                        </React.Fragment>
-                    </div>
-                </OverlayTrigger>
+                    <li>
+                        <EmojiItem
+                            emoji={emoji}
+                            onItemClick={this.handleToggleEmoji}
+                            order={n}
+                        />
+                    </li>
+                </WithTooltip>
             </ChannelPermissionGate>
         ),
         );

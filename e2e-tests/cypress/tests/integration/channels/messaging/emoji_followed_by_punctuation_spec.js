@@ -15,7 +15,7 @@ function emojiVerification(postId) {
     const postMessageTextId = `#postMessageText_${postId}`;
 
     // * Check for the emoji attr of :) is exists
-    cy.get(`${postMessageTextId} p span span.emoticon`).should('have.attr', 'title', ':slightly_smiling_face:');
+    cy.get(`${postMessageTextId} p span span.emoticon`).should('have.attr', 'alt', ':slightly_smiling_face:');
 
     // * Check for the punctuation('=') is exists without space
     cy.get(`${postMessageTextId} p`).should('same.text', ':slightly_smiling_face:=');

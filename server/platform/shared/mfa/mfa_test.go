@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -76,19 +77,26 @@ func TestActivate(t *testing.T) {
 	token := dgoogauth.ComputeCode(userMfaSecret, time.Now().UTC().Unix()/30)
 
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
-		err := New(nil).Activate(userMfaSecret, userID, "invalid-token")
+		storeMock := mocks.UserStore{}
+		storeMock.On("GetMfaUsedTimestamps", userID).Return([]int{}, nil).Once()
+
+		err := New(&storeMock).Activate(userMfaSecret, userID, "invalid-token")
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unable to parse the token")
 	})
 
 	t.Run("fail on invalid token", func(t *testing.T) {
-		err := New(nil).Activate(userMfaSecret, userID, "000000")
+		storeMock := mocks.UserStore{}
+		storeMock.On("GetMfaUsedTimestamps", userID).Return([]int{}, nil).Once()
+
+		err := New(&storeMock).Activate(userMfaSecret, userID, "000000")
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid mfa token")
 	})
 
 	t.Run("fail on store action fail", func(t *testing.T) {
 		storeMock := mocks.UserStore{}
+		storeMock.On("GetMfaUsedTimestamps", userID).Return([]int{}, nil).Once()
 		storeMock.On("UpdateMfaActive", userID, true).Return(func(userId string, active bool) error {
 			return errors.New("failed to update mfa active")
 		})
@@ -99,13 +107,33 @@ func TestActivate(t *testing.T) {
 	})
 
 	t.Run("Successful activate", func(t *testing.T) {
-		storeMock := mocks.UserStore{}
-		storeMock.On("UpdateMfaActive", userID, true).Return(func(userId string, active bool) error {
-			return nil
-		})
+		userID := model.NewId()
+		secret := newRandomBase32String(mfaSecretSize)
 
-		err := New(&storeMock).Activate(userMfaSecret, userID, fmt.Sprintf("%06d", token))
+		t0 := time.Now().UTC().Unix() / 30
+		code := fmt.Sprintf("%06d", dgoogauth.ComputeCode(secret, t0))
+
+		usMock := mocks.UserStore{}
+		usMock.On("GetMfaUsedTimestamps", userID).Return([]int{}, nil).Once()
+		usMock.On("UpdateMfaActive", userID, true).Return(nil).Once()
+		usMock.On("StoreMfaUsedTimestamps", userID, mock.AnythingOfType("[]int")).Return(nil).Once()
+
+		err := New(&usMock).Activate(secret, userID, code)
 		require.NoError(t, err)
+	})
+
+	t.Run("disallow reuse of totp", func(t *testing.T) {
+		userID := model.NewId()
+		secret := newRandomBase32String(mfaSecretSize)
+
+		t0 := time.Now().UTC().Unix() / 30
+		code := fmt.Sprintf("%06d", dgoogauth.ComputeCode(secret, t0))
+
+		usMock := mocks.UserStore{}
+		usMock.On("GetMfaUsedTimestamps", userID).Return([]int{int(t0)}, nil).Once()
+
+		err := New(&usMock).Activate(secret, userID, code)
+		require.Error(t, err)
 	})
 }
 
@@ -156,11 +184,48 @@ func TestDeactivate(t *testing.T) {
 
 func TestValidateToken(t *testing.T) {
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
+		id := model.NewId()
 		secret := newRandomBase32String(mfaSecretSize)
-		ok, err := New(nil).ValidateToken(secret, "invalid-token")
+		u := &model.User{Id: id, MfaSecret: secret}
+
+		usMock := mocks.UserStore{}
+		usMock.On("GetMfaUsedTimestamps", u.Id).Return([]int{}, nil).Once()
+		ok, err := New(&usMock).ValidateToken(u, "invalid-token")
 		require.Error(t, err)
 		require.False(t, ok)
 		require.Contains(t, err.Error(), "unable to parse the token")
+	})
+
+	t.Run("successful validation", func(t *testing.T) {
+		id := model.NewId()
+		secret := newRandomBase32String(mfaSecretSize)
+		u := &model.User{Id: id, MfaSecret: secret}
+
+		code := fmt.Sprintf("%06d", dgoogauth.ComputeCode(secret, time.Now().UTC().Unix()/30))
+
+		usMock := mocks.UserStore{}
+		usMock.On("GetMfaUsedTimestamps", u.Id).Return([]int{}, nil).Once()
+		usMock.On("StoreMfaUsedTimestamps", u.Id, mock.AnythingOfType("[]int")).Return(nil).Once()
+
+		ok, err := New(&usMock).ValidateToken(u, code)
+		require.NoError(t, err)
+		require.True(t, ok)
+	})
+
+	t.Run("disallow reuse of totp", func(t *testing.T) {
+		id := model.NewId()
+		secret := newRandomBase32String(mfaSecretSize)
+		u := &model.User{Id: id, MfaSecret: secret}
+
+		t0 := time.Now().UTC().Unix() / 30
+		code := fmt.Sprintf("%06d", dgoogauth.ComputeCode(secret, t0))
+
+		usMock := mocks.UserStore{}
+		usMock.On("GetMfaUsedTimestamps", u.Id).Return([]int{int(t0)}, nil).Once()
+
+		ok, err := New(&usMock).ValidateToken(u, code)
+		require.False(t, ok)
+		require.NoError(t, err)
 	})
 }
 

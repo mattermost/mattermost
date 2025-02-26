@@ -6,16 +6,14 @@ package app
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 func setupRemoteCluster(tb testing.TB) *TestHelper {
 	return SetupConfig(tb, func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.EnableRemoteClusterService = true
+		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 	})
 }
 
@@ -23,15 +21,14 @@ func TestAddRemoteCluster(t *testing.T) {
 	th := setupRemoteCluster(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("adding remote cluster with duplicate site url and remote team id", func(t *testing.T) {
+	t.Run("adding remote cluster with duplicate site url", func(t *testing.T) {
 		remoteCluster := &model.RemoteCluster{
-			RemoteTeamId: model.NewId(),
-			Name:         "test1",
-			SiteURL:      "http://www1.example.com:8065",
-			Token:        model.NewId(),
-			RemoteToken:  model.NewId(),
-			Topics:       "",
-			CreatorId:    th.BasicUser.Id,
+			Name:        "test1",
+			SiteURL:     "http://www1.example.com:8065",
+			Token:       model.NewId(),
+			RemoteToken: model.NewId(),
+			Topics:      "",
+			CreatorId:   th.BasicUser.Id,
 		}
 
 		_, err := th.App.AddRemoteCluster(remoteCluster)
@@ -39,37 +36,7 @@ func TestAddRemoteCluster(t *testing.T) {
 
 		remoteCluster.RemoteId = model.NewId()
 		_, err = th.App.AddRemoteCluster(remoteCluster)
-		require.NotNil(t, err, "Adding a duplicate remote cluster should error")
-		assert.Contains(t, err.Error(), i18n.T("api.remote_cluster.save_not_unique.app_error"))
-	})
-
-	t.Run("adding remote cluster with duplicate site url or remote team id is allowed", func(t *testing.T) {
-		remoteCluster := &model.RemoteCluster{
-			RemoteTeamId: model.NewId(),
-			Name:         "test2",
-			SiteURL:      "http://www2.example.com:8065",
-			Token:        model.NewId(),
-			RemoteToken:  model.NewId(),
-			Topics:       "",
-			CreatorId:    th.BasicUser.Id,
-		}
-
-		existingRemoteCluster, err := th.App.AddRemoteCluster(remoteCluster)
-		require.Nil(t, err, "Adding a remote cluster should not error")
-
-		// Same site url but different remote team id
-		remoteCluster.RemoteId = model.NewId()
-		remoteCluster.RemoteTeamId = model.NewId()
-		remoteCluster.SiteURL = existingRemoteCluster.SiteURL
-		_, err = th.App.AddRemoteCluster(remoteCluster)
-		assert.Nil(t, err, "Adding a remote cluster should not error")
-
-		// Same remote team id but different site url
-		remoteCluster.RemoteId = model.NewId()
-		remoteCluster.RemoteTeamId = existingRemoteCluster.RemoteTeamId
-		remoteCluster.SiteURL = existingRemoteCluster.SiteURL + "/new"
-		_, err = th.App.AddRemoteCluster(remoteCluster)
-		assert.Nil(t, err, "Adding a remote cluster should not error")
+		require.Nil(t, err, "Adding a duplicate remote cluster should work fine")
 	})
 }
 
@@ -77,25 +44,23 @@ func TestUpdateRemoteCluster(t *testing.T) {
 	th := setupRemoteCluster(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("update remote cluster with an already existing site url and team id", func(t *testing.T) {
+	t.Run("update remote cluster with an already existing site url", func(t *testing.T) {
 		remoteCluster := &model.RemoteCluster{
-			RemoteTeamId: model.NewId(),
-			Name:         "test3",
-			SiteURL:      "http://www3.example.com:8065",
-			Token:        model.NewId(),
-			RemoteToken:  model.NewId(),
-			Topics:       "",
-			CreatorId:    th.BasicUser.Id,
+			Name:        "test3",
+			SiteURL:     "http://www3.example.com:8065",
+			Token:       model.NewId(),
+			RemoteToken: model.NewId(),
+			Topics:      "",
+			CreatorId:   th.BasicUser.Id,
 		}
 
 		otherRemoteCluster := &model.RemoteCluster{
-			RemoteTeamId: model.NewId(),
-			Name:         "test4",
-			SiteURL:      "http://www4.example.com:8066",
-			Token:        model.NewId(),
-			RemoteToken:  model.NewId(),
-			Topics:       "",
-			CreatorId:    th.BasicUser.Id,
+			Name:        "test4",
+			SiteURL:     "http://www4.example.com:8066",
+			Token:       model.NewId(),
+			RemoteToken: model.NewId(),
+			Topics:      "",
+			CreatorId:   th.BasicUser.Id,
 		}
 
 		_, err := th.App.AddRemoteCluster(remoteCluster)
@@ -105,31 +70,27 @@ func TestUpdateRemoteCluster(t *testing.T) {
 		require.Nil(t, err, "Adding a remote cluster should not error")
 
 		savedRemoteClustered.SiteURL = remoteCluster.SiteURL
-		savedRemoteClustered.RemoteTeamId = remoteCluster.RemoteTeamId
 		_, err = th.App.UpdateRemoteCluster(savedRemoteClustered)
-		require.NotNil(t, err, "Updating remote cluster with duplicate site url should error")
-		assert.Contains(t, err.Error(), i18n.T("api.remote_cluster.update_not_unique.app_error"))
+		require.Nil(t, err, "Updating remote cluster with duplicate site url should work fine")
 	})
 
-	t.Run("update remote cluster with an already existing site url or team id, is allowed", func(t *testing.T) {
+	t.Run("update remote cluster with an already existing site url, is not allowed", func(t *testing.T) {
 		remoteCluster := &model.RemoteCluster{
-			RemoteTeamId: model.NewId(),
-			Name:         "test5",
-			SiteURL:      "http://www5.example.com:8065",
-			Token:        model.NewId(),
-			RemoteToken:  model.NewId(),
-			Topics:       "",
-			CreatorId:    th.BasicUser.Id,
+			Name:        "test5",
+			SiteURL:     "http://www5.example.com:8065",
+			Token:       model.NewId(),
+			RemoteToken: model.NewId(),
+			Topics:      "",
+			CreatorId:   th.BasicUser.Id,
 		}
 
 		otherRemoteCluster := &model.RemoteCluster{
-			RemoteTeamId: model.NewId(),
-			Name:         "test6",
-			SiteURL:      "http://www6.example.com:8065",
-			Token:        model.NewId(),
-			RemoteToken:  model.NewId(),
-			Topics:       "",
-			CreatorId:    th.BasicUser.Id,
+			Name:        "test6",
+			SiteURL:     "http://www6.example.com:8065",
+			Token:       model.NewId(),
+			RemoteToken: model.NewId(),
+			Topics:      "",
+			CreatorId:   th.BasicUser.Id,
 		}
 
 		existingRemoteCluster, err := th.App.AddRemoteCluster(remoteCluster)
@@ -138,16 +99,9 @@ func TestUpdateRemoteCluster(t *testing.T) {
 		anotherExistingRemoteClustered, err := th.App.AddRemoteCluster(otherRemoteCluster)
 		require.Nil(t, err, "Adding a remote cluster should not error")
 
-		// Same site url but different remote team id
+		// Same site url
 		anotherExistingRemoteClustered.SiteURL = existingRemoteCluster.SiteURL
-		anotherExistingRemoteClustered.RemoteTeamId = model.NewId()
 		_, err = th.App.UpdateRemoteCluster(anotherExistingRemoteClustered)
-		assert.Nil(t, err, "Updating remote cluster should not error")
-
-		// Same remote team id but different site url
-		anotherExistingRemoteClustered.SiteURL = existingRemoteCluster.SiteURL + "/new"
-		anotherExistingRemoteClustered.RemoteTeamId = existingRemoteCluster.RemoteTeamId
-		_, err = th.App.UpdateRemoteCluster(anotherExistingRemoteClustered)
-		assert.Nil(t, err, "Updating remote cluster should not error")
+		require.Nil(t, err, "Updating remote cluster should work fine")
 	})
 }

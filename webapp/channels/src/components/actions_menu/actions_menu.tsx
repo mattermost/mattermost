@@ -3,9 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {Tooltip} from 'react-bootstrap';
-import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Post} from '@mattermost/types/posts';
@@ -14,27 +13,25 @@ import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import Permissions from 'mattermost-redux/constants/permissions';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import OverlayTrigger from 'components/overlay_trigger';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import {createCallContext} from 'utils/apps';
-import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
+import {Constants, Locations, ModalIdentifiers} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
-import type {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
-import type {PluginComponent} from 'types/store/plugins';
-
-import './actions_menu.scss';
+import type {HandleBindingClick, OpenAppsModal, PostEphemeralCallResponseForPost} from 'types/apps';
+import type {PostDropdownMenuAction, PostDropdownMenuItemComponent} from 'types/store/plugins';
 
 import {ActionsMenuIcon} from './actions_menu_icon';
+
+import './actions_menu.scss';
 
 const MENU_BOTTOM_MARGIN = 80;
 
@@ -47,7 +44,7 @@ export type Props = {
     isMenuOpen?: boolean;
     isSysAdmin: boolean;
     location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
-    pluginMenuItems?: PluginComponent[];
+    pluginMenuItems?: PostDropdownMenuAction[];
     post: Post;
     teamId: string;
     canOpenMarketplace: boolean;
@@ -55,9 +52,7 @@ export type Props = {
     /**
      * Components for overriding provided by plugins
      */
-    components: {
-        [componentName: string]: PluginComponent[];
-    };
+    pluginMenuItemComponents: PostDropdownMenuItemComponent[];
 
     actions: {
 
@@ -112,18 +107,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         this.buttonRef = React.createRef<HTMLButtonElement>();
     }
 
-    tooltip = (
-        <Tooltip
-            id='actions-menu-icon-tooltip'
-            className='hidden-xs'
-        >
-            <FormattedMessage
-                id='post_info.tooltip.actions'
-                defaultMessage='Message actions'
-            />
-        </Tooltip>
-    );
-
     componentDidUpdate(prevProps: Props) {
         if (this.props.isMenuOpen && !prevProps.isMenuOpen) {
             this.fetchBindings();
@@ -131,7 +114,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
     }
 
     static getDerivedStateFromProps(props: Props) {
-        const state: Partial<State> = { };
+        const state: Partial<State> = {};
         if (props.appBindings) {
             state.appBindings = props.appBindings;
         }
@@ -213,10 +196,18 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 key='visit-marketplace-permissions'
             >
                 <div className='visit-marketplace-text' >
-                    <FormattedMarkdownMessage
-                        id='post_info.actions.noActions'
-                        defaultMessage='No Actions currently\nconfigured for this server'
-                    />
+                    <p>
+                        <FormattedMessage
+                            id='post_info.actions.noActions.first_line'
+                            defaultMessage='No Actions currently'
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='post_info.actions.noActions.second_line'
+                            defaultMessage='configured for this server'
+                        />
+                    </p>
                 </div>
                 <div className='visit-marketplace' >
                     <button
@@ -226,7 +217,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     >
                         <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
                         <span className='visit-marketplace-button-text'>
-                            <FormattedMarkdownMessage
+                            <FormattedMessage
                                 id='post_info.actions.visitMarketplace'
                                 defaultMessage='Visit the Marketplace'
                             />
@@ -353,7 +344,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
         let menuItems;
         const hasApps = Boolean(appBindings.length);
-        const hasPluggables = Boolean(this.props.components[PLUGGABLE_COMPONENT]?.length);
+        const hasPluggables = Boolean(this.props.pluginMenuItemComponents?.length);
         const hasPluginItems = Boolean(pluginItems?.length);
 
         const hasPluginMenuItems = hasPluginItems || hasApps || hasPluggables;
@@ -387,18 +378,19 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 open={this.props.isMenuOpen}
                 onToggle={this.handleDropdownOpened}
             >
-                <OverlayTrigger
-                    className='hidden-xs'
-                    delayShow={500}
-                    placement='top'
-                    overlay={this.tooltip}
-                    rootClose={true}
+                <WithTooltip
+                    title={
+                        <FormattedMessage
+                            id='post_info.tooltip.actions'
+                            defaultMessage='Message actions'
+                        />
+                    }
                 >
                     <button
                         key='more-actions-button'
                         ref={this.buttonRef}
                         id={`${this.props.location}_actions_button_${this.props.post.id}`}
-                        aria-label={Utils.localizeMessage('post_info.actions.tooltip.actions', 'Actions').toLowerCase()}
+                        aria-label={formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase()}
                         className={classNames('post-menu__item', {
                             'post-menu__item--active': this.props.isMenuOpen,
                         })}
@@ -407,17 +399,17 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     >
                         <i className={'icon icon-apps'}/>
                     </button>
-                </OverlayTrigger>
+                </WithTooltip>
                 <Menu
                     id={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                     openLeft={true}
                     openUp={this.state.openUp}
-                    ariaLabel={Utils.localizeMessage('post_info.menuAriaLabel', 'Post extra options')}
+                    ariaLabel={formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
                     key={`${this.props.location}_actions_dropdown_${this.props.post.id}`}
                 >
                     {menuItems}
                 </Menu>
-            </MenuWrapper>
+            </MenuWrapper >
         );
     }
 }

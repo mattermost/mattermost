@@ -8,6 +8,8 @@ import InfiniteLoader from 'react-window-infinite-loader';
 
 import type {UserThread} from '@mattermost/types/threads';
 
+import ThreadsConstants from 'mattermost-redux/constants/threads';
+
 import {Constants} from 'utils/constants';
 
 import Row from './virtualized_thread_list_row';
@@ -77,7 +79,7 @@ function VirtualizedThreadList({
                     itemCount={total}
                     loadMoreItems={loadMoreItems}
                     isItemLoaded={isItemLoaded}
-                    minimumBatchSize={Constants.THREADS_PAGE_SIZE}
+                    minimumBatchSize={ThreadsConstants.THREADS_PAGE_SIZE}
                 >
                     {({onItemsRendered, ref}) => {
                         return (

@@ -13,9 +13,15 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {ActionTypes} from 'utils/constants';
 import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
 
-import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
+import type {MMAction} from 'types/store';
+import type {
+    PluginsState,
+    AdminConsolePluginComponent,
+    AdminConsolePluginCustomSection,
+    PostDropdownMenuAction,
+} from 'types/store/plugins';
 
-function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
+function hasMenuId(menu: PostDropdownMenuAction, menuId: string) {
     if (!menu.subMenu) {
         return false;
     }
@@ -32,20 +38,20 @@ function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
     return false;
 }
 
-function buildMenu(rootMenu: Menu|PluginComponent, data: Menu): Menu|PluginComponent {
+function buildMenu(rootMenu: PostDropdownMenuAction, data: PostDropdownMenuAction): PostDropdownMenuAction {
     // Recursively build the full menu tree.
-    const subMenu = rootMenu.subMenu?.map((m: Menu) => buildMenu(m, data));
+    const subMenu = rootMenu.subMenu?.map((m) => buildMenu(m, data));
     if (rootMenu.id === data.parentMenuId) {
         subMenu?.push(data);
     }
 
     return {
         ...rootMenu,
-        subMenu: subMenu as Menu[],
+        subMenu,
     };
 }
 
-function sortComponents(a: PluginComponent, b: PluginComponent) {
+function sortComponents(a: {pluginId: string}, b: {pluginId: string}) {
     if (a.pluginId < b.pluginId) {
         return -1;
     }
@@ -99,7 +105,7 @@ function removePluginComponents(state: PluginsState['components'], action: AnyAc
     }
 
     const nextState = {...state};
-    const types = Object.keys(nextState);
+    const types = Object.keys(nextState) as Array<keyof PluginsState['components']>;
     let modified = false;
     for (let i = 0; i < types.length; i++) {
         const componentType = types[i];
@@ -108,7 +114,7 @@ function removePluginComponents(state: PluginsState['components'], action: AnyAc
             if (componentList[j].pluginId === action.data.id) {
                 const nextArray = [...nextState[componentType]];
                 nextArray.splice(j, 1);
-                nextState[componentType] = nextArray;
+                nextState[componentType] = nextArray as any;
                 modified = true;
             }
         }
@@ -123,7 +129,7 @@ function removePluginComponents(state: PluginsState['components'], action: AnyAc
 
 function removePluginComponent(state: PluginsState['components'], action: AnyAction) {
     let newState = state;
-    const types = Object.keys(state);
+    const types = Object.keys(state) as Array<keyof PluginsState['components']>;
     for (let i = 0; i < types.length; i++) {
         const componentType = types[i];
         const componentList = state[componentType] || [];
@@ -138,7 +144,7 @@ function removePluginComponent(state: PluginsState['components'], action: AnyAct
     return newState;
 }
 
-function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: AnyAction) {
+function plugins(state: IDMappedObjects<ClientPluginManifest> = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_WEBAPP_PLUGINS: {
         if (action.data) {
@@ -188,24 +194,48 @@ const initialComponents: PluginsState['components'] = {
     NewMessagesSeparatorAction: [],
     Product: [],
     RightHandSidebarComponent: [],
-    UserGuideDropdownItem: [],
     FilesWillUploadHook: [],
     NeedsTeamComponent: [],
     CreateBoardFromTemplate: [],
     DesktopNotificationHooks: [],
+    BottomTeamSidebar: [],
+    ChannelHeader: [],
+    ChannelIntroButton: [],
+    CustomRouteComponent: [],
+    FilesDropdown: [],
+    FileUploadMethod: [],
+    LeftSidebarHeader: [],
+    MessageWillFormat: [],
+    PopoverUserActions: [],
+    PopoverUserAttributes: [],
+    PostDropdownMenuItem: [],
+    PostMessageAttachment: [],
+    PostWillRenderEmbedComponent: [],
+    Root: [],
+    SearchButtons: [],
+    SearchHints: [],
+    SearchSuggestions: [],
+    UserGuideDropdown: [],
+    ChannelToast: [],
+    Global: [],
+    SidebarChannelLinkLabel: [],
+    MessageWillBePosted: [],
+    MessageWillBeUpdated: [],
+    SlashCommandWillBePosted: [],
 };
 
-function components(state: PluginsState['components'] = initialComponents, action: AnyAction) {
+function components(state: PluginsState['components'] = initialComponents, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_COMPONENT: {
         if (action.name && action.data) {
+            const pluggableType = action.name as keyof PluginsState['components'];
             const nextState = {...state};
-            const currentArray = nextState[action.name] || [];
+            const currentArray = nextState[pluggableType] || [];
             const nextArray = [...currentArray];
             let actionData = action.data;
             if (action.name === 'PostDropdownMenu' && actionData.parentMenuId) {
                 // Remove the menu from nextArray to rebuild it later.
-                const menu = remove(nextArray, (c) => hasMenuId(c, actionData.parentMenuId) && c.pluginId === actionData.pluginId);
+                const menu = remove(nextArray as PostDropdownMenuAction[], (c) => hasMenuId(c, actionData.parentMenuId) && c.pluginId === actionData.pluginId);
 
                 // Request is for an unknown menuId, return original state.
                 if (!menu[0]) {
@@ -215,7 +245,7 @@ function components(state: PluginsState['components'] = initialComponents, actio
             }
             nextArray.push(actionData);
             nextArray.sort(sortComponents);
-            nextState[action.name] = nextArray;
+            nextState[pluggableType] = nextArray as any;
             return nextState;
         }
         return state;
@@ -232,7 +262,7 @@ function components(state: PluginsState['components'] = initialComponents, actio
     }
 }
 
-function postTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
+function postTypes(state: PluginsState['postTypes'] = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT: {
         if (action.data) {
@@ -261,7 +291,7 @@ function postTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
     }
 }
 
-function postCardTypes(state: PluginsState['postTypes'] = {}, action: AnyAction) {
+function postCardTypes(state: PluginsState['postTypes'] = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_POST_CARD_COMPONENT: {
         if (action.data) {
@@ -290,7 +320,7 @@ function postCardTypes(state: PluginsState['postTypes'] = {}, action: AnyAction)
     }
 }
 
-function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: AnyAction) {
+function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_REDUCER: {
         if (action.data) {
@@ -323,7 +353,7 @@ function adminConsoleReducers(state: {[pluginId: string]: any} = {}, action: Any
     }
 }
 
-function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: AnyAction) {
+function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string, AdminConsolePluginComponent>} = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: {
         if (!action.data) {
@@ -361,7 +391,45 @@ function adminConsoleCustomComponents(state: {[pluginId: string]: Record<string,
     }
 }
 
-function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: AnyAction) {
+function adminConsoleCustomSections(state: {[pluginId: string]: Record<string, AdminConsolePluginCustomSection>} = {}, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.RECEIVED_ADMIN_CONSOLE_CUSTOM_SECTION: {
+        if (!action.data) {
+            return state;
+        }
+
+        const pluginId = action.data.pluginId;
+        const key = action.data.key.toLowerCase();
+
+        const nextState = {...state};
+        let nextObject: Record<string, AdminConsolePluginCustomSection> = {};
+        if (nextState[pluginId]) {
+            nextObject = {...nextState[pluginId]};
+        }
+        nextObject[key] = action.data;
+        nextState[pluginId] = nextObject;
+
+        return nextState;
+    }
+    case ActionTypes.REMOVED_WEBAPP_PLUGIN: {
+        if (!action.data || !state[action.data.id]) {
+            return state;
+        }
+
+        const pluginId = action.data.id;
+        const nextState = {...state};
+        delete nextState[pluginId];
+        return nextState;
+    }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER:
         if (action.data) {
@@ -386,7 +454,7 @@ function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action
     }
 }
 
-function userSettings(state: PluginsState['userSettings'] = {}, action: AnyAction) {
+function userSettings(state: PluginsState['userSettings'] = {}, action: MMAction) {
     switch (action.type) {
     case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
         if (action.data) {
@@ -440,6 +508,10 @@ export default combineReducers({
     // objects where every key is a plugin id and the value is an object mapping keys to a custom
     // React component to render on the plugin's system console.
     adminConsoleCustomComponents,
+
+    // objects where every key is a plugin id and the value is an object mapping keys to a custom
+    // React component to render on the plugin's system console as custom section.
+    adminConsoleCustomSections,
 
     // objects where every key is a plugin id and the value is a promise to fetch stats from
     // a plugin to render on system console

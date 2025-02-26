@@ -4,6 +4,7 @@ exports[`components/drafts/draft_actions/delete_draft_modal should have called o
 <GenericModal
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={true}
+  autoFocusConfirmButton={true}
   bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, delete"
@@ -46,6 +47,7 @@ exports[`components/drafts/draft_actions/delete_draft_modal should have called o
 <GenericModal
   autoCloseOnCancelButton={true}
   autoCloseOnConfirmButton={true}
+  autoFocusConfirmButton={true}
   bodyPadding={true}
   compassDesign={true}
   confirmButtonText="Yes, delete"

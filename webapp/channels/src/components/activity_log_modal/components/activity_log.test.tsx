@@ -10,7 +10,6 @@ import {General} from 'mattermost-redux/constants';
 import ActivityLog from 'components/activity_log_modal/components/activity_log';
 
 import {TestHelper} from 'utils/test_helper';
-import {localizeMessage} from 'utils/utils';
 
 describe('components/activity_log_modal/ActivityLog', () => {
     const baseProps = {
@@ -87,8 +86,8 @@ describe('components/activity_log_modal/ActivityLog', () => {
                 id='activity_log_modal.iphoneNativeClassicApp'
             />
         );
-        const apple = {devicePicture: 'fa fa-apple', deviceTitle: localizeMessage('device_icons.apple', 'Apple Icon'), devicePlatform: appleText};
-        expect(mobileSessionInfo(TestHelper.getSessionMock({device_id: 'apple'}))).toEqual(apple);
+        const apple = {devicePicture: 'fa fa-apple', devicePlatform: appleText};
+        expect(mobileSessionInfo(TestHelper.getSessionMock({device_id: 'apple'}))).toMatchObject(apple);
 
         const androidText = (
             <FormattedMessage
@@ -96,8 +95,8 @@ describe('components/activity_log_modal/ActivityLog', () => {
                 id='activity_log_modal.androidNativeClassicApp'
             />
         );
-        const android = {devicePicture: 'fa fa-android', deviceTitle: localizeMessage('device_icons.android', 'Android Icon'), devicePlatform: androidText};
-        expect(mobileSessionInfo(TestHelper.getSessionMock({device_id: 'android'}))).toEqual(android);
+        const android = {devicePicture: 'fa fa-android', devicePlatform: androidText};
+        expect(mobileSessionInfo(TestHelper.getSessionMock({device_id: 'android'}))).toMatchObject(android);
 
         const appleRNText = (
             <FormattedMessage
@@ -105,8 +104,8 @@ describe('components/activity_log_modal/ActivityLog', () => {
                 id='activity_log_modal.iphoneNativeApp'
             />
         );
-        const appleRN = {devicePicture: 'fa fa-apple', deviceTitle: localizeMessage('device_icons.apple', 'Apple Icon'), devicePlatform: appleRNText};
-        expect(mobileSessionInfo(TestHelper.getSessionMock({device_id: 'apple_rn'}))).toEqual(appleRN);
+        const appleRN = {devicePicture: 'fa fa-apple', devicePlatform: appleRNText};
+        expect(mobileSessionInfo(TestHelper.getSessionMock({device_id: 'apple_rn'}))).toMatchObject(appleRN);
 
         const androidRNText = (
             <FormattedMessage
@@ -114,7 +113,7 @@ describe('components/activity_log_modal/ActivityLog', () => {
                 id='activity_log_modal.androidNativeApp'
             />
         );
-        const androidRN = {devicePicture: 'fa fa-android', deviceTitle: localizeMessage('device_icons.android', 'Android Icon'), devicePlatform: androidRNText};
-        expect(mobileSessionInfo(TestHelper.getSessionMock({device_id: 'android_rn'}))).toEqual(androidRN);
+        const androidRN = {devicePicture: 'fa fa-android', devicePlatform: androidRNText};
+        expect(mobileSessionInfo(TestHelper.getSessionMock({device_id: 'android_rn'}))).toMatchObject(androidRN);
     });
 });

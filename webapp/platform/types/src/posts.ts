@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelType} from './channels';
-import {CustomEmoji} from './emojis';
-import {FileInfo} from './files';
-import {Reaction} from './reactions';
-import { TeamType } from './teams';
-import {UserProfile} from './users';
+import type {Channel, ChannelType} from './channels';
+import type {CustomEmoji} from './emojis';
+import type {FileInfo} from './files';
+import type {Reaction} from './reactions';
+import type {TeamType} from './teams';
+import type {UserProfile} from './users';
 import {
-    RelationOneToOne,
-    RelationOneToMany,
-    IDMappedObjects,
+    type RelationOneToOne,
+    type RelationOneToMany,
+    type IDMappedObjects,
 } from './utilities';
 
 export type PostType = 'system_add_remove' |
@@ -66,7 +66,7 @@ export type PostMetadata = {
     emojis: CustomEmoji[];
     files: FileInfo[];
     images: Record<string, PostImage>;
-    reactions: Reaction[];
+    reactions?: Reaction[];
     priority?: PostPriorityMetadata;
     acknowledgements?: PostAcknowledgement[];
 };
@@ -84,7 +84,7 @@ export type Post = {
     original_id: string;
     message: string;
     type: PostType;
-    props: Record<string, any>;
+    props: Record<string, unknown>;
     hashtags: string;
     pending_post_id: string;
     reply_count: number;
@@ -99,6 +99,7 @@ export type Post = {
     message_source?: string;
     is_following?: boolean;
     exists?: boolean;
+    remote_id?: string;
 };
 
 export type PostState = 'DELETED';
@@ -220,4 +221,11 @@ export type PostInfo = {
     team_type: TeamType;
     team_display_name: string;
     has_joined_team: boolean;
+}
+
+export type NotificationStatus = 'error' | 'not_sent' | 'unsupported' | 'success';
+export type NotificationResult = {
+    status: NotificationStatus;
+    reason?: string;
+    data?: string;
 }

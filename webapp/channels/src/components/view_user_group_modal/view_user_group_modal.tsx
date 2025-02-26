@@ -4,7 +4,7 @@
 import React, {createRef} from 'react';
 import type {RefObject} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 import {GroupSource} from '@mattermost/types/groups';
@@ -19,7 +19,6 @@ import {NoResultsVariant} from 'components/no_results_indicator/types';
 import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import ViewUserGroupListItem from './view_user_group_list_item';
 import ViewUserGroupModalHeader from './view_user_group_modal_header';
@@ -199,7 +198,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                 show={this.state.show}
                 onHide={this.doHide}
                 onExited={onExited}
-                role='dialog'
+                role='none'
                 aria-labelledby='viewUserGroupModalLabel'
             >
                 <ViewUserGroupModalHeader
@@ -221,7 +220,7 @@ export default class ViewUserGroupModal extends React.PureComponent<Props, State
                             <div className='user-groups-search'>
                                 <Input
                                     type='text'
-                                    placeholder={Utils.localizeMessage('search_bar.searchGroupMembers', 'Search group members')}
+                                    placeholder={defineMessage({id: 'search_bar.searchGroupMembers', defaultMessage: 'Search group members'})}
                                     onChange={this.handleSearch}
                                     value={this.props.searchTerm}
                                     data-testid='searchInput'

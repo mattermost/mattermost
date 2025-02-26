@@ -4,10 +4,7 @@
 package email
 
 import (
-	"bytes"
-	"io"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -76,9 +73,10 @@ func TestSendInviteEmails(t *testing.T) {
 		*cfg.EmailSettings.SendEmailNotifications = false
 	})
 	t.Run("SendInviteEmails", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -103,9 +101,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendGuestInviteEmails", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendGuestInviteEmails(
+		err = th.service.SendGuestInviteEmails(
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -166,10 +165,11 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendGuestInviteEmails should sanitize HTML input", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
 		message := `<a href="http://testserver">sanitized message</a>`
-		err := th.service.SendGuestInviteEmails(
+		err = th.service.SendGuestInviteEmails(
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -191,9 +191,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system user", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(
+		err = th.service.SendInviteEmails(
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -211,9 +212,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system admin", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(
+		err = th.service.SendInviteEmails(
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -231,9 +233,10 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 
 	t.Run("SendInviteEmails should contain button URL with 'started by role' param for first system admin", func(t *testing.T) {
-		mail.DeleteMailBox(emailTo)
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
 
-		err := th.service.SendInviteEmails(
+		err = th.service.SendInviteEmails(
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -248,83 +251,6 @@ func TestSendInviteEmails(t *testing.T) {
 
 		email := retrieveEmail(t)
 		require.Contains(t, email.Body.HTML, "&amp;sbr=fa")
-	})
-}
-
-func TestSendCloudUpgradedEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.ConfigureInbucketMail()
-
-	emailTo := "testclouduser@example.com"
-	emailToUsername := strings.Split(emailTo, "@")[0]
-
-	t.Run("SendCloudMonthlyUpgradedEmail", func(t *testing.T) {
-		verifyMailbox := func(t *testing.T) {
-			t.Helper()
-
-			var resultsMailbox mail.JSONMessageHeaderInbucket
-			err2 := mail.RetryInbucket(5, func() error {
-				var err error
-				resultsMailbox, err = mail.GetMailBox(emailTo)
-				return err
-			})
-			if err2 != nil {
-				t.Skipf("No email was received, maybe due load on the server: %v", err2)
-			}
-
-			require.Len(t, resultsMailbox, 1)
-			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.Text, "You are now upgraded!", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "SomeName workspace has now been upgraded", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "You'll be billed from", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "Open Mattermost", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Len(t, resultsEmail.Attachments, 0)
-		}
-		mail.DeleteMailBox(emailTo)
-
-		// Send Update to Monthly Plan email
-		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", false, make(map[string]io.Reader))
-		require.NoError(t, err)
-
-		verifyMailbox(t)
-	})
-
-	t.Run("SendCloudYearlyUpgradedEmail", func(t *testing.T) {
-		verifyMailbox := func(t *testing.T) {
-			t.Helper()
-
-			var resultsMailbox mail.JSONMessageHeaderInbucket
-			err2 := mail.RetryInbucket(5, func() error {
-				var err error
-				resultsMailbox, err = mail.GetMailBox(emailTo)
-				return err
-			})
-			if err2 != nil {
-				t.Skipf("No email was received, maybe due load on the server: %v", err2)
-			}
-
-			require.Len(t, resultsMailbox, 1)
-			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.Text, "You are now upgraded!", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "SomeName workspace has now been upgraded", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "View your invoice", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Len(t, resultsEmail.Attachments, 1)
-		}
-		mail.DeleteMailBox(emailTo)
-
-		// Send Update to Monthly Plan email
-		var embeddedFiles = map[string]io.Reader{
-			"filename": bytes.NewReader([]byte("Test")),
-		}
-		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", true, embeddedFiles)
-		require.NoError(t, err)
-
-		verifyMailbox(t)
 	})
 }
 
@@ -356,9 +282,11 @@ func TestSendCloudWelcomeEmail(t *testing.T) {
 			require.Contains(t, resultsEmail.Subject, "Congratulations!", "Wrong subject message %s", resultsEmail.Subject)
 			require.Contains(t, resultsEmail.Body.Text, "Your workspace is ready to go!", "Wrong body %s", resultsEmail.Body.Text)
 		}
-		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendCloudWelcomeEmail(emailTo, th.BasicUser.Locale, "inviteID", "SomeName", "example.com", "https://example.com")
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
+
+		err = th.service.SendCloudWelcomeEmail(emailTo, th.BasicUser.Locale, "inviteID", "SomeName", "example.com", "https://example.com")
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -373,7 +301,7 @@ func TestMailServiceConfig(t *testing.T) {
 		config: func() *model.Config {
 			return &model.Config{
 				ServiceSettings: model.ServiceSettings{
-					SiteURL: model.NewString(""),
+					SiteURL: model.NewPointer(""),
 				},
 				EmailSettings: model.EmailSettings{
 					EnableSignUpWithEmail:             new(bool),
@@ -384,7 +312,7 @@ func TestMailServiceConfig(t *testing.T) {
 					RequireEmailVerification:          new(bool),
 					FeedbackName:                      new(string),
 					FeedbackEmail:                     new(string),
-					ReplyToAddress:                    model.NewString(configuredReplyTo),
+					ReplyToAddress:                    model.NewPointer(configuredReplyTo),
 					FeedbackOrganization:              new(string),
 					EnableSMTPAuth:                    new(bool),
 					SMTPUsername:                      new(string),

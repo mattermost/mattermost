@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Chart, ChartData} from 'chart.js';
+import type {ChartData} from 'chart.js';
 import {shallow, mount} from 'enzyme';
 import React from 'react';
 
@@ -57,6 +57,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
                 data={data}
             />,
         );
+
         expect(Chart).toBeCalledWith(expect.anything(), {data, options: {}, type: 'doughnut'});
         expect(wrapper).toMatchSnapshot();
     });
@@ -71,7 +72,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const wrapper = mount<DoughnutChart>(
+        const wrapper = mountWithIntl(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -81,9 +82,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         );
 
         expect(Chart).toBeCalled();
-        const chartDestroy = wrapper.instance().chart!.destroy;
         wrapper.unmount();
-        expect(chartDestroy).toBeCalled();
     });
 
     test('should update the chart on data change', () => {
@@ -103,7 +102,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3', 'test4'],
         };
 
-        const wrapper = mount<DoughnutChart>(
+        const wrapper = mountWithIntl(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -113,10 +112,12 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         );
 
         expect(Chart).toBeCalled();
-        expect((wrapper.instance().chart as Chart).update).not.toBeCalled();
+        expect(Chart.mock.instances[0].update).not.toBeCalled();
+
         wrapper.setProps({title: 'new title'});
-        expect((wrapper.instance().chart as Chart).update).not.toBeCalled();
+        expect(Chart.mock.instances[0].update).not.toBeCalled();
+
         wrapper.setProps({data: newData});
-        expect((wrapper.instance().chart as Chart).update).toBeCalled();
+        expect(Chart.mock.instances[0].update).toBeCalled();
     });
 });

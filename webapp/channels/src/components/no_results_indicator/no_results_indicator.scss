@@ -1,5 +1,3 @@
-@charset 'UTF-8';
-
 .no-results__holder {
     display: grid;
     width: 100%;
@@ -39,12 +37,10 @@
 
 .no-results__variant-wrapper {
     display: flex;
-    width: 120px;
-    height: 120px;
     align-items: center;
     justify-content: center;
-    margin: 22px;
     border-radius: 100%;
+    margin: 22px;
 }
 
 .no-results__title {
@@ -64,9 +60,7 @@
     display: flex;
 
     svg {
-        width: 140px;
-        height: 140px;
-        fill: var(--button-bg);
+        fill: none;
     }
 
     &.icon {

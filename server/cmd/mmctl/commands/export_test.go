@@ -19,12 +19,15 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 		mockJob := &model.Job{
 			Type: model.JobTypeExportProcess,
-			Data: map[string]string{"include_attachments": "true"},
+			Data: map[string]string{
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+			},
 		}
 
 		s.client.
 			EXPECT().
-			CreateJob(context.Background(), mockJob).
+			CreateJob(context.TODO(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
@@ -39,17 +42,44 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 		mockJob := &model.Job{
 			Type: model.JobTypeExportProcess,
-			Data: make(map[string]string),
+			Data: map[string]string{
+				"include_roles_and_schemes": "true",
+			},
 		}
 
 		s.client.
 			EXPECT().
-			CreateJob(context.Background(), mockJob).
+			CreateJob(context.TODO(), mockJob).
 			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("no-attachments", true, "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("create export without roles and schemes", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"include_attachments": "true",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("no-roles-and-schemes", true, "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
@@ -66,7 +96,7 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 
 	s.client.
 		EXPECT().
-		DeleteExport(context.Background(), exportName).
+		DeleteExport(context.TODO(), exportName).
 		Return(&model.Response{StatusCode: http.StatusOK}, nil).
 		Times(1)
 
@@ -84,7 +114,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports(context.Background()).
+			ListExports(context.TODO()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
@@ -105,7 +135,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 
 		s.client.
 			EXPECT().
-			ListExports(context.Background()).
+			ListExports(context.TODO()).
 			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 

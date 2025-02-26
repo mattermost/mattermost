@@ -29,7 +29,6 @@ export type ThreadsRequestStatuses = {
 };
 
 export type TeamsRequestsStatuses = {
-    getMyTeams: RequestStatusType;
     getTeams: RequestStatusType;
 };
 

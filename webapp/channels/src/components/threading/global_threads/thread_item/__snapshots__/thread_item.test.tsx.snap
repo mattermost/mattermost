@@ -7,7 +7,7 @@ exports[`components/threading/global_threads/thread_item should report total num
   onClick={[Function]}
   tabIndex={0}
 >
-  <h1>
+  <header>
     <div
       className="ThreadItem__author"
     >
@@ -35,7 +35,7 @@ exports[`components/threading/global_threads/thread_item should report total num
       }
       useTime={false}
     />
-  </h1>
+  </header>
   <div
     className="menu-anchor alt-visible"
   >
@@ -45,14 +45,13 @@ exports[`components/threading/global_threads/thread_item should report total num
       threadId="1y8hpek81byspd4enyk9mp1ncw"
       unreadTimestamp={1611786714912}
     >
-      <SimpleTooltip
-        content={
+      <WithTooltip
+        title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
             id="threading.threadItem.menu"
           />
         }
-        id="threadActionMenu"
       >
         <Memo(Button)
           className="Button___icon"
@@ -62,7 +61,7 @@ exports[`components/threading/global_threads/thread_item should report total num
             size={18}
           />
         </Memo(Button)>
-      </SimpleTooltip>
+      </WithTooltip>
     </Memo(ThreadMenu)>
   </div>
   <div
@@ -122,7 +121,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   onClick={[Function]}
   tabIndex={0}
 >
-  <h1>
+  <header>
     <div
       className="indicator"
     >
@@ -159,7 +158,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
       }
       useTime={false}
     />
-  </h1>
+  </header>
   <div
     className="menu-anchor alt-visible"
   >
@@ -169,14 +168,13 @@ exports[`components/threading/global_threads/thread_item should report unread me
       threadId="1y8hpek81byspd4enyk9mp1ncw"
       unreadTimestamp={1611786714912}
     >
-      <SimpleTooltip
-        content={
+      <WithTooltip
+        title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
             id="threading.threadItem.menu"
           />
         }
-        id="threadActionMenu"
       >
         <Memo(Button)
           className="Button___icon"
@@ -186,7 +184,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
             size={18}
           />
         </Memo(Button)>
-      </SimpleTooltip>
+      </WithTooltip>
     </Memo(ThreadMenu)>
   </div>
   <div
@@ -246,7 +244,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
   onClick={[Function]}
   tabIndex={0}
 >
-  <h1>
+  <header>
     <div
       className="indicator"
     >
@@ -281,7 +279,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
       }
       useTime={false}
     />
-  </h1>
+  </header>
   <div
     className="menu-anchor alt-visible"
   >
@@ -291,14 +289,13 @@ exports[`components/threading/global_threads/thread_item should report unread me
       threadId="1y8hpek81byspd4enyk9mp1ncw"
       unreadTimestamp={1611786714912}
     >
-      <SimpleTooltip
-        content={
+      <WithTooltip
+        title={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Actions"
             id="threading.threadItem.menu"
           />
         }
-        id="threadActionMenu"
       >
         <Memo(Button)
           className="Button___icon"
@@ -308,7 +305,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
             size={18}
           />
         </Memo(Button)>
-      </SimpleTooltip>
+      </WithTooltip>
     </Memo(ThreadMenu)>
   </div>
   <div

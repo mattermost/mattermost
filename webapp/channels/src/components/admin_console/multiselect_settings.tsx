@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import ReactSelect from 'react-select';
+import React, {useState, useCallback, useMemo} from 'react';
 import type {ValueType} from 'react-select';
+import ReactSelect from 'react-select';
 
 import FormError from 'components/form_error';
 
@@ -26,67 +26,69 @@ interface Props {
     noResultText?: React.ReactNode;
 }
 
-interface State {
-    error: boolean;
-}
+const getOptionLabel = ({text}: { text: string}) => text;
 
-export default class MultiSelectSetting extends React.PureComponent<
-Props,
-State
-> {
-    static defaultProps: Partial<Props> = {
-        disabled: false,
-    };
+const MultiSelectSetting: React.FC<Props> = ({
+    id,
+    values,
+    label,
+    selected,
+    onChange,
+    disabled = false,
+    setByEnv,
+    helpText,
+    noResultText,
+}) => {
+    const [error, setError] = useState(false);
 
-    constructor(props: Props) {
-        super(props);
-
-        this.state = {error: false};
-    }
-
-    handleChange = (newValue: ValueType<Option>) => {
-        const values = newValue ? (newValue as Option[]).map((n) => {
+    const handleChange = useCallback((newValue: ValueType<Option>) => {
+        const updatedValues = newValue ? (newValue as Option[]).map((n) => {
             return n.value;
         }) : [];
 
-        this.props.onChange(this.props.id, values);
-        this.setState({error: false});
-    };
+        onChange(id, updatedValues);
+        setError(false);
+    }, [id, onChange]);
 
-    calculateValue = () => {
-        return this.props.selected.reduce<Option[]>((values, item) => {
-            const found = this.props.values.find((e) => e.value === item);
+    const valuesMap = useMemo(() => {
+        return values.reduce((map, v) => {
+            map[v.value] = v;
+            return map;
+        }, {} as Record<string, Option>);
+    }, [values]);
+
+    const calculatedValue = useMemo(() => {
+        return selected.reduce<Option[]>((result, item) => {
+            const found = valuesMap[item];
             if (found) {
-                values.push(found);
+                result.push(found);
             }
-            return values;
+            return result;
         }, []);
-    };
+    }, [selected, valuesMap]);
 
-    getOptionLabel = ({text}: { text: string}) => text;
+    return (
+        <Setting
+            label={label}
+            inputId={id}
+            helpText={helpText}
+            setByEnv={setByEnv}
+        >
+            <ReactSelect
+                id={id}
+                isMulti={true}
+                getOptionLabel={getOptionLabel}
+                options={values}
+                delimiter={','}
+                clearable={false}
+                isDisabled={disabled || setByEnv}
+                noResultsText={noResultText}
+                onChange={handleChange}
+                value={calculatedValue}
+            />
+            <FormError error={error}/>
+        </Setting>
+    );
+};
 
-    render() {
-        return (
-            <Setting
-                label={this.props.label}
-                inputId={this.props.id}
-                helpText={this.props.helpText}
-                setByEnv={this.props.setByEnv}
-            >
-                <ReactSelect
-                    id={this.props.id}
-                    isMulti={true}
-                    getOptionLabel={this.getOptionLabel}
-                    options={this.props.values}
-                    delimiter={','}
-                    clearable={false}
-                    isDisabled={this.props.disabled || this.props.setByEnv}
-                    noResultsText={this.props.noResultText}
-                    onChange={this.handleChange}
-                    value={this.calculateValue()}
-                />
-                <FormError error={this.state.error}/>
-            </Setting>
-        );
-    }
-}
+export default React.memo(MultiSelectSetting);

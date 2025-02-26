@@ -26,25 +26,19 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.Background(), userArg, "").
+			GetUserByUsername(context.TODO(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.Background(), userArg, "").
+			GetUser(context.TODO(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateUserAccessToken(context.Background(), mockUser.Id, mockToken.Description).
+			CreateUserAccessToken(context.TODO(), mockUser.Id, mockToken.Description).
 			Return(&mockToken, &model.Response{}, nil).
 			Times(1)
 
@@ -60,19 +54,13 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 		userArg := "some-text"
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.Background(), userArg, "").
+			GetUserByUsername(context.TODO(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.Background(), userArg, "").
+			GetUser(context.TODO(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given ID")).
 			Times(1)
 
@@ -89,19 +77,13 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.Background(), userArg, "").
+			GetUserByUsername(context.TODO(), userArg, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			CreateUserAccessToken(context.Background(), mockUser.Id, "description").
+			CreateUserAccessToken(context.TODO(), mockUser.Id, "description").
 			Return(nil, &model.Response{}, errors.New("error-message")).
 			Times(1)
 
@@ -128,25 +110,19 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), mockUser.Id, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.Background(), mockUser.Id, "").
+			GetUserByUsername(context.TODO(), mockUser.Id, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.Background(), mockUser.Id, "").
+			GetUser(context.TODO(), mockUser.Id, "").
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserAccessTokensForUser(context.Background(), mockUser.Id, 0, 9999).
+			GetUserAccessTokensForUser(context.TODO(), mockUser.Id, 0, 9999).
 			Return(
 				[]*model.UserAccessToken{&mockToken1, &mockToken2},
 				&model.Response{}, nil,
@@ -175,13 +151,13 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), mockUser.Email, "").
+			GetUserByEmail(context.TODO(), mockUser.Email, "").
 			Return(&mockUser, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserAccessTokensForUser(context.Background(), mockUser.Id, 0, 2).
+			GetUserAccessTokensForUser(context.TODO(), mockUser.Id, 0, 2).
 			Return(
 				[]*model.UserAccessToken{&mockToken1, &mockToken2},
 				&model.Response{}, nil,
@@ -206,19 +182,13 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), userArg, "").
-			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.Background(), userArg, "").
+			GetUserByUsername(context.TODO(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(context.Background(), userArg, "").
+			GetUser(context.TODO(), userArg, "").
 			Return(nil, &model.Response{}, errors.New("no user found with the given user ID")).
 			Times(1)
 
@@ -241,13 +211,13 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(context.Background(), mockUser.Email, "").
+			GetUserByEmail(context.TODO(), mockUser.Email, "").
 			Return(&mockUser, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserAccessTokensForUser(context.Background(), mockUser.Id, 0, 2).
+			GetUserAccessTokensForUser(context.TODO(), mockUser.Id, 0, 2).
 			Return(
 				[]*model.UserAccessToken{},
 				&model.Response{}, nil,
@@ -268,13 +238,13 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 
 		s.client.
 			EXPECT().
-			RevokeUserAccessToken(context.Background(), mockToken1.Id).
+			RevokeUserAccessToken(context.TODO(), mockToken1.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RevokeUserAccessToken(context.Background(), mockToken2.Id).
+			RevokeUserAccessToken(context.TODO(), mockToken2.Id).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -286,7 +256,7 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 	s.Run("Should fail if can't revoke user access token", func() {
 		s.client.
 			EXPECT().
-			RevokeUserAccessToken(context.Background(), "token-id").
+			RevokeUserAccessToken(context.TODO(), "token-id").
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 

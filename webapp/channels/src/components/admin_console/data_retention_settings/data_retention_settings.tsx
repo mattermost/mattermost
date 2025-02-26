@@ -44,7 +44,7 @@ type Props = {
         createJob: (job: JobTypeBase) => Promise<ActionResult>;
         getJobsByType: (job: JobType) => Promise<ActionResult>;
         deleteDataRetentionCustomPolicy: (id: string) => Promise<ActionResult>;
-        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
+        patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     };
 } & WrappedComponentProps;
 
@@ -437,7 +437,7 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
         const newConfig = JSON.parse(JSON.stringify(this.props.config));
         newConfig.DataRetentionSettings.DeletionJobStartTime = value;
 
-        await this.props.actions.updateConfig(newConfig);
+        await this.props.actions.patchConfig(newConfig);
         this.inputRef.current?.blur();
     };
 

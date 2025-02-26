@@ -3,24 +3,20 @@
 
 import moment from 'moment';
 import React, {useEffect} from 'react';
-import {useIntl, FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getSubscriptionProduct as selectSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
-import {deprecateCloudFree, get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
+import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import AlertBanner from 'components/alert_banner';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
-import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 import {AnnouncementBarTypes, CloudBanners, CloudProducts, Preferences} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import './to_paid_plan_nudge_banner.scss';
 
@@ -52,7 +48,6 @@ export const ToPaidPlanBannerDismissable = () => {
     const currentUser = useSelector(getCurrentUser);
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const product = useSelector(selectSubscriptionProduct);
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const currentProductStarter = product?.sku === CloudProducts.STARTER;
 
     const now = moment(Date.now());
@@ -127,10 +122,6 @@ export const ToPaidPlanBannerDismissable = () => {
         }]));
     };
 
-    if (!cloudFreeDeprecated) {
-        return null;
-    }
-
     if (!show) {
         return null;
     }
@@ -166,8 +157,7 @@ export const ToPaidPlanBannerDismissable = () => {
             type={announcementType}
             showCloseButton={daysToCloudFreeEnd > 10}
             onButtonClick={openPricingModal}
-            modalButtonText={t('cloud_billing.nudge_to_paid.view_plans')}
-            modalButtonDefaultText='View plans'
+            modalButtonText={messages.viewPlans}
             message={<FormattedMessage {...message}/>}
             showLinkAsButton={true}
             handleClose={showBanner}
@@ -175,72 +165,9 @@ export const ToPaidPlanBannerDismissable = () => {
     );
 };
 
-export const ToPaidNudgeBanner = () => {
-    const {formatMessage} = useIntl();
-
-    const [openSalesLink] = useOpenSalesLink();
-    const openPurchaseModal = useOpenCloudPurchaseModal({});
-
-    const product = useSelector(selectSubscriptionProduct);
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
-    const currentProductStarter = product?.sku === CloudProducts.STARTER;
-
-    if (!cloudFreeDeprecated) {
-        return null;
-    }
-
-    if (!currentProductStarter) {
-        return null;
-    }
-
-    const now = moment(Date.now());
-    const cloudFreeEndDate = moment(cloudFreeCloseMoment, 'YYYYMMDD');
-    const daysToCloudFreeEnd = cloudFreeEndDate.diff(now, 'days');
-
-    const title = (
-        <FormattedMessage
-            id='cloud_billing.nudge_to_paid.title'
-            defaultMessage='Upgrade to paid plan to keep your workspace'
-        />
-    );
-
-    const description = (
-        <FormattedMessage
-            id='cloud_billing.nudge_to_paid.description'
-            defaultMessage='Cloud Free will be deprecated in {days} days. Upgrade to a paid plan or contact sales.'
-            values={{days: daysToCloudFreeEnd < 0 ? 0 : daysToCloudFreeEnd}}
-        />
-    );
-
-    const viewPlansAction = (
-        <button
-            onClick={() => openPurchaseModal({trackingLocation: 'to_paid_plan_nudge_banner'})}
-            className='btn ToPaidNudgeBanner__primary'
-        >
-            {formatMessage({id: 'cloud_billing.nudge_to_paid.learn_more', defaultMessage: 'Upgrade'})}
-        </button>
-    );
-
-    const contactSalesAction = (
-        <button
-            onClick={openSalesLink}
-            className='btn ToPaidNudgeBanner__secondary'
-        >
-            {formatMessage({id: 'cloud_billing.nudge_to_paid.contact_sales', defaultMessage: 'Contact sales'})}
-        </button>
-    );
-
-    const bannerMode = (daysToCloudFreeEnd <= 10) ? 'danger' : 'info';
-
-    return (
-        <AlertBanner
-            id='cloud-free-deprecation-alert-banner'
-            mode={bannerMode}
-            title={title}
-            message={description}
-            className='ToYearlyNudgeBanner'
-            actionButtonLeft={viewPlansAction}
-            actionButtonRight={contactSalesAction}
-        />
-    );
-};
+const messages = defineMessages({
+    viewPlans: {
+        id: 'cloud_billing.nudge_to_paid.view_plans',
+        defaultMessage: 'View plans',
+    },
+});

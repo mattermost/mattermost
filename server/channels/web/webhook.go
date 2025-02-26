@@ -18,17 +18,18 @@ import (
 )
 
 func (w *Web) InitWebhooks() {
-	w.MainRouter.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(commandWebhook)).Methods("POST")
-	w.MainRouter.Handle("/hooks/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(incomingWebhook)).Methods("POST")
+	w.MainRouter.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(commandWebhook)).Methods(http.MethodPost)
+	w.MainRouter.Handle("/hooks/{id:[A-Za-z0-9]+}", w.APIHandlerTrustRequester(incomingWebhook)).Methods(http.MethodPost)
 }
 
 func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
+	errCtx := map[string]any{"hook_id": id}
 
 	r.ParseForm()
 
-	var err *model.AppError
+	var appErr *model.AppError
 	var mediaType string
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
 	contentType := r.Header.Get("Content-Type")
@@ -37,12 +38,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		var mimeErr error
 		mediaType, _, mimeErr = mime.ParseMediaType(contentType)
 		if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
-			c.Err = model.NewAppError("incomingWebhook",
-				"api.webhook.incoming.error",
-				nil,
-				"webhook_id="+id+", error: "+mimeErr.Error(),
-				http.StatusBadRequest,
-			)
+			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.media_type.app_error", errCtx, "", http.StatusBadRequest).Wrap(mimeErr)
 			return
 		}
 	}
@@ -63,12 +59,13 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	errCtx["media_type"] = mediaType
 	if mediaType == "application/x-www-form-urlencoded" {
 		payload := strings.NewReader(r.FormValue("payload"))
 
-		incomingWebhookPayload, err = decodePayload(payload)
-		if err != nil {
-			c.Err = err
+		incomingWebhookPayload, appErr = decodePayload(payload)
+		if appErr != nil {
+			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.decode.app_error", errCtx, "", http.StatusBadRequest).Wrap(appErr)
 			return
 		}
 	} else if mediaType == "multipart/form-data" {
@@ -78,25 +75,20 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
 
 		if err != nil {
-			c.Err = model.NewAppError("incomingWebhook",
-				"api.webhook.incoming.error",
-				nil,
-				"webhook_id="+id+", error: "+err.Error(),
-				http.StatusBadRequest,
-			)
+			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.decode.app_error", errCtx, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
 	} else {
-		incomingWebhookPayload, err = decodePayload(r.Body)
-		if err != nil {
-			c.Err = err
+		incomingWebhookPayload, appErr = decodePayload(r.Body)
+		if appErr != nil {
+			c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.decode.app_error", errCtx, "", appErr.StatusCode).Wrap(appErr)
 			return
 		}
 	}
 
-	err = c.App.HandleIncomingWebhook(c.AppContext, id, incomingWebhookPayload)
-	if err != nil {
-		c.Err = err
+	appErr = c.App.HandleIncomingWebhook(c.AppContext, id, incomingWebhookPayload)
+	if appErr != nil {
+		c.Err = model.NewAppError("incomingWebhook", "web.incoming_webhook.general.app_error", errCtx, "", appErr.StatusCode).Wrap(appErr)
 		return
 	}
 
@@ -107,16 +99,17 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
+	errCtx := map[string]any{"hook_id": id}
 
 	response, err := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.parse.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.parse.app_error", errCtx, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
 	appErr := c.App.HandleCommandWebhook(c.AppContext, id, response)
 	if appErr != nil {
-		c.Err = appErr
+		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.general.app_error", errCtx, "", appErr.StatusCode).Wrap(appErr)
 		return
 	}
 

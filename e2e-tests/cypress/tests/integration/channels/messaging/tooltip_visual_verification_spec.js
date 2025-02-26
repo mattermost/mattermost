@@ -35,7 +35,7 @@ describe('Messaging', () => {
 
     it('MM-T133 Visual verification of tooltips on post hover menu', () => {
         cy.getLastPostId().then((postId) => {
-            verifyToolTip(postId, `#CENTER_button_${postId}`, 'More');
+            verifyToolTip(postId, `#CENTER_flagIcon_${postId}`, 'Save Message');
 
             verifyToolTip(postId, `#CENTER_reaction_${postId}`, 'Add Reaction');
 
@@ -46,10 +46,10 @@ describe('Messaging', () => {
     function verifyToolTip(postId, targetElement, label) {
         cy.get(`#post_${postId}`).trigger('mouseover');
 
-        cy.get(targetElement).trigger('mouseover', {force: true});
+        cy.get(targetElement).trigger('mouseenter', {force: true});
         cy.findByText(label).should('be.visible');
 
-        cy.get(targetElement).trigger('mouseout', {force: true});
+        cy.get(targetElement).trigger('mouseleave', {force: true});
         cy.findByText(label).should('not.exist');
     }
 });

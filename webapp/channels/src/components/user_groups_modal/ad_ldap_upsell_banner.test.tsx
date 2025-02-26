@@ -75,42 +75,6 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
         expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Start trial');
     });
 
-    test('should display for admin users on professional with option to start trial if no cloud trial before', async () => {
-        const state = JSON.parse(JSON.stringify(initState));
-        state.entities.admin = {};
-        state.entities.general.license = {
-            Cloud: 'true',
-            ExpiresAt: 100000000,
-        };
-        state.entities.cloud = {
-            subscription: {
-                product_id: 'prod_professional',
-                is_free_trial: 'false',
-                trial_end_at: 0,
-            },
-            products: {
-                prod_professional: {
-                    id: 'prod_professional',
-                    sku: CloudProducts.PROFESSIONAL,
-                },
-            },
-        };
-        const store = mockStore(state);
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
-
-        const wrapper = mount(
-            <reactRedux.Provider store={store}>
-                <ADLDAPUpsellBanner/>
-            </reactRedux.Provider>,
-        );
-
-        await actImmediate(wrapper);
-
-        expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(1);
-        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Start trial');
-    });
-
     test('should display for admin users on professional with option to contact sales if self-hosted trialed before', () => {
         const state = JSON.parse(JSON.stringify(initState));
         state.entities.admin.prevTrialLicense.IsLicensed = 'true';

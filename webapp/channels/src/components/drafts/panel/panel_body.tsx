@@ -9,9 +9,10 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
-import PriorityLabels from 'components/advanced_create_post/priority_labels';
+import PriorityLabels from 'components/advanced_text_editor/priority_labels';
 import FilePreview from 'components/file_preview';
 import Markdown from 'components/markdown';
+import ShowMore from 'components/post_view/show_more';
 import ProfilePicture from 'components/profile_picture';
 
 import {imageURLForUser, handleFormattedTextClick} from 'utils/utils';
@@ -21,7 +22,7 @@ import type {PostDraft} from 'types/store/draft';
 import './panel_body.scss';
 
 type Props = {
-    channelId: string;
+    channelId?: string;
     displayName: string;
     fileInfos: PostDraft['fileInfos'];
     message: string;
@@ -55,7 +56,6 @@ function PanelBody({
     }, [currentRelativeTeamUrl]);
 
     return (
-
         <div className='DraftPanelBody post'>
             <div className='DraftPanelBody__left post__img'>
                 <ProfilePicture
@@ -67,37 +67,42 @@ function PanelBody({
                     src={imageURLForUser(userId)}
                 />
             </div>
-            <div
-                onClick={handleClick}
-                className='post__content'
-            >
-                <div className='DraftPanelBody__right'>
-                    <div className='post__header'>
-                        <strong>{displayName}</strong>
-                        {priority && (
-                            <PriorityLabels
-                                canRemove={false}
-                                padding='0 0 0 8px'
-                                hasError={false}
-                                persistentNotifications={priority.persistent_notifications}
-                                priority={priority.priority}
-                                requestedAck={priority.requested_ack}
-                            />
-                        )}
+            <div className='DraftPanelBody__post_body'>
+                <ShowMore
+                    text={message}
+                >
+                    <div
+                        onClick={handleClick}
+                        className='post__content'
+                    >
+                        <div className='DraftPanelBody__right'>
+                            <div className='post__header'>
+                                <strong>{displayName}</strong>
+                                {priority && (
+                                    <PriorityLabels
+                                        canRemove={false}
+                                        hasError={false}
+                                        persistentNotifications={priority.persistent_notifications}
+                                        priority={priority.priority}
+                                        requestedAck={priority.requested_ack}
+                                    />
+                                )}
+                            </div>
+                            <div className='post__body'>
+                                <Markdown
+                                    options={OPTIONS}
+                                    message={message}
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <div className='post__body'>
-                        <Markdown
-                            options={OPTIONS}
-                            message={message}
-                        />
-                    </div>
-                    {(fileInfos.length > 0 || uploadsInProgress?.length > 0) && (
-                        <FilePreview
-                            fileInfos={fileInfos}
-                            uploadsInProgress={uploadsInProgress}
-                        />
-                    )}
-                </div>
+                </ShowMore>
+                {(fileInfos.length > 0 || uploadsInProgress?.length > 0) && (
+                    <FilePreview
+                        fileInfos={fileInfos}
+                        uploadsInProgress={uploadsInProgress}
+                    />
+                )}
             </div>
         </div>
     );

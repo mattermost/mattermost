@@ -27,7 +27,7 @@ const getBaseStyles = (bodyHeight: number) => {
         placeholder: (provided: CSSProperties): CSSPropertiesWithPseudos => ({
             ...provided,
             margin: 0,
-            color: 'rgba(var(--center-channel-color-rgb), 0.64)',
+            color: 'rgba(var(--center-channel-color-rgb), 0.75)',
             fontSize: '14px',
             lineHeight: '20px',
         }),
@@ -120,7 +120,7 @@ const getBaseStyles = (bodyHeight: number) => {
             justifyContent: 'flex-start',
             padding: '0 0 0 2rem',
             margin: 0,
-            color: 'rgba(var(--center-channel-color-rgb), 0.56)',
+            color: 'rgba(var(--center-channel-color-rgb), 0.75)',
             backgroundColor: 'none',
             fontSize: '1.2rem',
             fontWeight: 600,

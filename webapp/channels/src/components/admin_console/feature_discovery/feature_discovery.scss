@@ -1,10 +1,10 @@
-@import 'utils/variables';
+@use 'utils/variables';
 
 .FeatureDiscovery {
     display: grid;
     padding: 20px;
-    background: $white;
     border-radius: 8px;
+    background: variables.$white;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
     font-family: Open Sans;
     font-style: normal;
@@ -45,10 +45,10 @@
     width: 160px;
     height: 48px;
     padding: 14px 0;
-    margin-right: 8px;
-    background: $primary-color;
     border-radius: 4px;
-    color: $white;
+    margin-right: 8px;
+    background: variables.$primary-color;
+    color: variables.$white;
     font-size: 16px;
     font-weight: 400;
     line-height: 16px;
@@ -62,19 +62,19 @@
 
     &:disabled {
         border-color: transparent;
-        background: $light-gray;
-        color: $dark-gray;
+        background: variables.$light-gray;
+        color: variables.$dark-gray;
     }
 
     &.btn-inactive {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     &.btn-secondary {
-        border: 1px solid $primary-color;
-        background: $white;
-        color: $primary-color;
+        border: 1px solid variables.$primary-color;
+        background: variables.$white;
+        color: variables.$primary-color;
     }
 
     &.btn-primary {

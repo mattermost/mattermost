@@ -14,6 +14,7 @@ import {
     AccountPlusOutlineIcon,
     DotsVerticalIcon,
     ChevronRightIcon,
+    CheckIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -95,6 +96,7 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Alphabetical)}
+                trailingElements={category.sorting === CategorySorting.Alphabetical ? <CheckIcon size={16}/> : null}
             />
             <Menu.Item
                 id={`sortByMostRecent-${category.id}`}
@@ -105,6 +107,7 @@ const SidebarCategorySortingMenu = ({
                     />
                 )}
                 onClick={() => handleSortDirectMessages(CategorySorting.Recency)}
+                trailingElements={category.sorting === CategorySorting.Recency ? <CheckIcon size={16}/> : null}
             />
         </Menu.SubMenu>
 
@@ -147,23 +150,13 @@ const SidebarCategorySortingMenu = ({
             )}
             menuId={`showMessagesCount-${category.id}-menu`}
         >
-            <Menu.Item
-                id={`showAllDms-${category.id}`}
-                labels={(
-                    <FormattedMessage
-                        id='sidebar.allDirectMessages'
-                        defaultMessage='All direct messages'
-                    />
-                )}
-                onClick={() => handlelimitVisibleDMsGMs(Constants.HIGHEST_DM_SHOW_COUNT)}
-            />
-            <Menu.Separator/>
             {Constants.DM_AND_GM_SHOW_COUNTS.map((dmGmShowCount) => (
                 <Menu.Item
                     id={`showDmCount-${category.id}-${dmGmShowCount}`}
                     key={`showDmCount-${category.id}-${dmGmShowCount}`}
                     labels={<span>{dmGmShowCount}</span>}
                     onClick={() => handlelimitVisibleDMsGMs(dmGmShowCount)}
+                    trailingElements={selectedDmNumber === dmGmShowCount ? <CheckIcon size={16}/> : null}
                 />
             ))}
         </Menu.SubMenu>
@@ -205,7 +198,6 @@ const SidebarCategorySortingMenu = ({
                     children: <DotsVerticalIcon size={16}/>,
                 }}
                 menuButtonTooltip={{
-                    id: `SidebarCategorySortingMenu-ButtonTooltip-${category.id}`,
                     text: formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: 'Category options'}),
                     class: 'hidden-xs',
                 }}

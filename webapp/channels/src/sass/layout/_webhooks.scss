@@ -1,12 +1,13 @@
-@charset "utf-8";
+@use "utils/mixins";
+@use "utils/variables";
 
 .webhooks__container {
     padding: 0 13px 15px;
     border: 1px solid;
-    margin-top: 10px;
     border-radius: 4px;
+    margin-top: 10px;
 
-    @include alpha-property(background, $black, 0.1);
+    @include mixins.alpha-property(background, variables.$black, 0.1);
 }
 
 .post-attachment-dropdown {
@@ -103,19 +104,19 @@
         .attachment__content {
             border-width: 1px;
             border-style: solid;
+            border-radius: 0 4px 4px 0;
             border-left: none;
             margin: 5px 0 5px 20px;
             background: var(--center-channel-bg);
-            border-radius: 0 4px 4px 0;
 
             &.permalink--opengraph {
                 margin: 5px 0 0 20px;
             }
 
             &.attachment__content--permalink {
+                border-radius: 4px 4px 4px 4px;
                 border-left-width: 1px;
                 border-left-style: solid;
-                border-radius: 4px 4px 4px 4px;
                 box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
             }
         }
@@ -271,8 +272,8 @@
                     width: 100%;
                     max-width: 400px;
                     max-height: 200px;
-                    margin-top: 10px;
                     border-radius: 3px;
+                    margin-top: 10px;
 
                     &.loading {
                         height: 150px;
@@ -283,7 +284,7 @@
         }
 
         .attachment__author-name {
-            opacity: 0.6;
+            opacity: 0.73;
         }
 
         .attachment__title {
@@ -313,8 +314,8 @@
         .attachment__author-icon {
             width: 14px;
             height: 14px;
-            margin-right: 5px;
             border-radius: 50px;
+            margin-right: 5px;
         }
 
         .attachment__thumb-container {
@@ -371,25 +372,12 @@
             }
 
             button {
-                border: none;
                 margin-top: 8px;
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                background: rgba(var(--center-channel-color-rgb), 0.08);
                 color: var(--center-channel-color);
-                font-size: 13px;
-                outline: 0;
 
                 &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
-                    text-decoration: none;
-                }
-
-                &[disabled] {
-                    cursor: auto;
-                    opacity: 0.5;
-                }
-
-                a {
-                    color: inherit;
+                    background: rgba(var(--center-channel-color-rgb), 0.16);
                 }
             }
 

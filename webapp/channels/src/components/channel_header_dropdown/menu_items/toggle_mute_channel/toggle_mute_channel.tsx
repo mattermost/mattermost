@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
@@ -9,7 +10,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import Menu from 'components/widgets/menu/menu';
 
 import {Constants, NotificationLevels} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 export type Actions = {
     updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): void;
@@ -43,42 +43,37 @@ type Props = {
     actions: Actions;
 };
 
-export default class MenuItemToggleMuteChannel extends React.PureComponent<Props> {
-    handleClick = () => {
-        const {
-            user,
-            channel,
-            isMuted,
-            actions: {
-                updateChannelNotifyProps,
-            },
-        } = this.props;
+export default function MenuItemToggleMuteChannel({
+    id,
+    isMuted,
+    channel,
+    user,
+    actions,
+}: Props) {
+    const intl = useIntl();
 
-        updateChannelNotifyProps(user.id, channel.id, {
+    const handleClick = useCallback(() => {
+        actions.updateChannelNotifyProps(user.id, channel.id, {
             mark_unread: (isMuted ? NotificationLevels.ALL : NotificationLevels.MENTION) as 'all' | 'mention',
         });
-    };
+    }, [actions, isMuted, user.id, channel.id]);
 
-    render() {
-        const {
-            id,
-            isMuted,
-            channel,
-        } = this.props;
-
-        let text;
-        if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
-            text = isMuted ? localizeMessage('channel_header.unmuteConversation', 'Unmute Conversation') : localizeMessage('channel_header.muteConversation', 'Mute Conversation');
-        } else {
-            text = isMuted ? localizeMessage('channel_header.unmute', 'Unmute Channel') : localizeMessage('channel_header.mute', 'Mute Channel');
-        }
-
-        return (
-            <Menu.ItemAction
-                id={id}
-                onClick={this.handleClick}
-                text={text}
-            />
-        );
+    let text;
+    if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
+        text = isMuted ?
+            intl.formatMessage({id: 'channel_header.unmuteConversation', defaultMessage: 'Unmute Conversation'}) :
+            intl.formatMessage({id: 'channel_header.muteConversation', defaultMessage: 'Mute Conversation'});
+    } else {
+        text = isMuted ?
+            intl.formatMessage({id: 'channel_header.unmute', defaultMessage: 'Unmute Channel'}) :
+            intl.formatMessage({id: 'channel_header.mute', defaultMessage: 'Mute Channel'});
     }
+
+    return (
+        <Menu.ItemAction
+            id={id}
+            onClick={handleClick}
+            text={text}
+        />
+    );
 }

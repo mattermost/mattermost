@@ -12,7 +12,7 @@
 
 import {
     promoteToChannelOrTeamAdmin,
-} from '../enterprise/system_console/channel_moderation/helpers.js';
+} from '../enterprise/system_console/channel_moderation/helpers.ts';
 
 describe('Manage Members', () => {
     let testTeam;

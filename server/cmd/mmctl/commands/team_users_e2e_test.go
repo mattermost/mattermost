@@ -17,7 +17,7 @@ import (
 func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
@@ -171,7 +171,7 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 	s.RunForSystemAdminAndLocal("Remove user from team", func(c client.Client) {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		team := model.Team{
@@ -197,7 +197,7 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 	s.RunForSystemAdminAndLocal("Remove user from non-existent team", func(c client.Client) {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		nonexistentTeamName := model.NewId()
@@ -211,7 +211,7 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 	s.Run("Remove user from team without permissions", func() {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		team := model.Team{

@@ -56,11 +56,17 @@ type IncomingWebhookRequest struct {
 	Attachments []*SlackAttachment `json:"attachments"`
 	Type        string             `json:"type"`
 	IconEmoji   string             `json:"icon_emoji"`
+	Priority    *PostPriority      `json:"priority"`
+}
+
+type IncomingWebhooksWithCount struct {
+	Webhooks   []*IncomingWebhook `json:"incoming_webhooks"`
+	TotalCount int64              `json:"total_count"`
 }
 
 func (o *IncomingWebhook) IsValid() *AppError {
 	if !IsValidId(o.Id) {
-		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.id.app_error", map[string]any{"Id": o.Id}, "", http.StatusBadRequest)
 	}
 
 	if o.CreateAt == 0 {

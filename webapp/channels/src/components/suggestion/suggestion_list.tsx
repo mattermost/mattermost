@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {FormattedMessage} from 'react-intl';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
 import {isEmptyObject} from 'utils/utils';
 
-interface Props {
+export interface Props {
     ariaLiveRef?: React.RefObject<HTMLDivElement>;
     inputRef?: React.RefObject<HTMLDivElement>;
     open: boolean;
@@ -28,7 +27,7 @@ interface Props {
     items: any[];
     terms: string[];
     selection: string;
-    components: Array<React.FunctionComponent<any>>;
+    components: Array<React.ComponentType<any>>;
     wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
@@ -45,7 +44,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
         renderDividers: [],
         renderNoResults: false,
     };
-    contentRef: React.RefObject<HTMLDivElement>;
+    contentRef: React.RefObject<HTMLUListElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
     itemRefs: Map<string, any>;
     currentLabel: string | null;
@@ -207,32 +206,34 @@ export default class SuggestionList extends React.PureComponent<Props> {
     renderDivider(type: string) {
         const id = type ? 'suggestion.' + type : 'suggestion.default';
         return (
-            <div
+            <li
                 key={type + '-divider'}
                 className='suggestion-list__divider'
+                role='separator'
             >
                 <span>
                     <FormattedMessage id={id}/>
                 </span>
-            </div>
+            </li>
         );
     }
 
     renderNoResults() {
         return (
-            <div
+            <ul
                 key='list-no-results'
                 className='suggestion-list__no-results'
                 ref={this.contentRef}
             >
-                <FormattedMarkdownMessage
-                    id='suggestion_list.no_matches'
-                    defaultMessage='No items match __{value}__'
+                <FormattedMessage
+                    id='suggestionList.noMatches'
+                    defaultMessage='No items match <b>{value}</b>'
                     values={{
                         value: this.props.pretext || '""',
+                        b: (chunks: string) => <b>{chunks}</b>,
                     }}
                 />
-            </div>
+            </ul>
         );
     }
 
@@ -296,9 +297,10 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 ref={this.wrapperRef}
                 className={mainClass}
             >
-                <div
+                <ul
                     id='suggestionList'
-                    role='list'
+                    data-testid='suggestionList'
+                    role='listbox'
                     ref={this.contentRef}
                     style={{
                         maxHeight: this.maxHeight,
@@ -308,7 +310,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     onMouseDown={this.props.preventClose}
                 >
                     {items}
-                </div>
+                </ul>
             </div>
         );
     }

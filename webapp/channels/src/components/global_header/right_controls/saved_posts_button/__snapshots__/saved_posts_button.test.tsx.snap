@@ -1,25 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/global/AtMentionsButton should match snapshot 1`] = `
-<OverlayTrigger
-  defaultOverlayShown={false}
-  delayShow={400}
-  overlay={
-    <Tooltip
-      id="recentMentions"
-    >
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Saved messages"
-        id="channel_header.flagged"
-      />
-    </Tooltip>
-  }
-  placement="bottom"
-  trigger={
-    Array [
-      "hover",
-      "focus",
-    ]
+<WithTooltip
+  title={
+    <Memo(MemoizedFormattedMessage)
+      defaultMessage="Saved messages"
+      id="channel_header.flagged"
+    />
   }
 >
   <ForwardRef
@@ -33,5 +20,5 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
     size="sm"
     toggled={false}
   />
-</OverlayTrigger>
+</WithTooltip>
 `;

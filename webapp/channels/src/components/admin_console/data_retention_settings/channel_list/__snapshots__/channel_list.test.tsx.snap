@@ -139,7 +139,6 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         },
       ]
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={1}
@@ -592,7 +591,6 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         },
       ]
     }
-    searchPlaceholder=""
     startCount={1}
     term=""
     total={30}

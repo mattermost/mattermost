@@ -7,6 +7,7 @@ import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import {Preferences} from 'mattermost-redux/constants';
+import {getNewMessagesIndex} from 'mattermost-redux/utils/post_list';
 
 import {HintToast} from 'components/hint-toast/hint_toast';
 import ScrollToBottomToast from 'components/scroll_to_bottom_toast';
@@ -18,8 +19,7 @@ import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 import {isToday} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
-import {isIdNotPost, getNewMessageIndex} from 'utils/post_utils';
-import {localizeMessage} from 'utils/utils';
+import {isIdNotPost} from 'utils/post_utils';
 
 import './toast__wrapper.scss';
 
@@ -91,7 +91,7 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
     }
 
     static countNewMessages = (rootPosts: Record<string, boolean>, isCollapsedThreadsEnabled: boolean, postListIds: string[] = []) => {
-        const mark = getNewMessageIndex(postListIds);
+        const mark = getNewMessagesIndex(postListIds);
         if (mark <= 0) {
             return 0;
         }
@@ -392,7 +392,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             width,
             onDismiss: this.hideUnreadToast,
             onClick: this.scrollToLatestMessages,
-            onClickMessage: localizeMessage('postlist.toast.scrollToBottom', 'Jump to recents'),
+            onClickMessage: (
+                <FormattedMessage
+                    id='postlist.toast.scrollToBottom'
+                    defaultMessage='Jump to recents'
+                />
+            ),
             showActions: !atLatestPost || (atLatestPost && (atBottom === false)),
         };
 
@@ -409,7 +414,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             width,
             onDismiss: this.hideUnreadWithBottomStartToast,
             onClick: this.scrollToUnreadMessages,
-            onClickMessage: localizeMessage('postlist.toast.scrollToUnread', 'Jump to unreads'),
+            onClickMessage: (
+                <FormattedMessage
+                    id='postlist.toast.scrollToUnread'
+                    defaultMessage='Jump to unreads'
+                />
+            ),
             showActions: true,
             jumpDirection: 'up' as const,
         };
@@ -426,7 +436,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
             const showNewMessagesToastOverrides = {
                 onDismiss: this.hideNewMessagesToast,
                 onClick: this.scrollToNewMessage,
-                onClickMessage: localizeMessage('postlist.toast.scrollToLatest', 'Jump to new messages'),
+                onClickMessage: (
+                    <FormattedMessage
+                        id='postlist.toast.scrollToLatest'
+                        defaultMessage='Jump to new messages'
+                    />
+                ),
             };
 
             return (
@@ -445,7 +460,12 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
                 width,
                 onDismiss: this.hideArchiveToast,
                 onClick: this.scrollToLatestMessages,
-                onClickMessage: localizeMessage('postlist.toast.scrollToBottom', 'Jump to recents'),
+                onClickMessage: (
+                    <FormattedMessage
+                        id='postlist.toast.scrollToBottom'
+                        defaultMessage='Jump to recents'
+                    />
+                ),
                 showActions: true,
                 extraClasses: 'toast__history',
             };
@@ -494,9 +514,9 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
         const toastToRender = this.getToastToRender();
 
         return (
-            <React.Fragment>
+            <>
                 {toastToRender}
-            </React.Fragment>
+            </>
         );
     }
 }

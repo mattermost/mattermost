@@ -233,7 +233,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -272,7 +272,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
             "type": [Function],
           }
         }
-        id="channelAddMembers"
+        id="channelInviteMembers"
         modalId="channel_invite"
         show={true}
         text="Add Members"
@@ -280,6 +280,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
+            "focusOriginElement": "channel_header.menuAriaLabel",
             "isExistingChannel": true,
           }
         }
@@ -296,7 +297,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         show={false}
         text="Add Members"
       />
-    </Connect(Component)>
+    </Memo(ChannelPermissionGate)>
     <Connect(ToggleChannelMembersRHS)
       channel={
         Object {
@@ -321,7 +322,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       show={false}
       text="View Members"
     />
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -388,8 +389,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         show={true}
         text="Manage Members"
       />
-    </Connect(Component)>
-    <Connect(Component)
+    </Memo(ChannelPermissionGate)>
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       invert={true}
       permissions={
@@ -423,7 +424,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         show={true}
         text="View Members"
       />
-    </Connect(Component)>
+    </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
     <MenuItemToggleModalRedux
@@ -498,7 +499,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -612,8 +613,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         show={true}
         text="Rename Channel"
       />
-    </Connect(Component)>
-    <Connect(Component)
+    </Memo(ChannelPermissionGate)>
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -642,8 +643,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         show={true}
         text="Convert to Private Channel"
       />
-    </Connect(Component)>
-    <Connect(LeaveChannel)
+    </Memo(ChannelPermissionGate)>
+    <Connect(Component)
       channel={
         Object {
           "create_at": 0,
@@ -667,7 +668,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
       isDefault={false}
       isGuestUser={false}
     />
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -713,7 +714,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         show={true}
         text="Archive Channel"
       />
-    </Connect(Component)>
+    </Memo(ChannelPermissionGate)>
     <Connect(CloseMessage)
       channel={
         Object {
@@ -783,7 +784,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
   </Memo(MenuGroup)>
   <Memo(MenuGroup) />
   <Memo(MenuGroup)>
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -827,7 +828,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
         show={false}
         text="Unarchive Channel"
       />
-    </Connect(Component)>
+    </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>
 </Fragment>
 `;
@@ -1065,7 +1066,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1104,7 +1105,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
             "type": [Function],
           }
         }
-        id="channelAddMembers"
+        id="channelInviteMembers"
         modalId="channel_invite"
         show={true}
         text="Add Members"
@@ -1112,6 +1113,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
+            "focusOriginElement": "channel_header.menuAriaLabel",
             "isExistingChannel": true,
           }
         }
@@ -1128,7 +1130,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         show={false}
         text="Add Members"
       />
-    </Connect(Component)>
+    </Memo(ChannelPermissionGate)>
     <Connect(ToggleChannelMembersRHS)
       channel={
         Object {
@@ -1153,7 +1155,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       show={false}
       text="View Members"
     />
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1220,8 +1222,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         show={true}
         text="Manage Members"
       />
-    </Connect(Component)>
-    <Connect(Component)
+    </Memo(ChannelPermissionGate)>
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       invert={true}
       permissions={
@@ -1255,7 +1257,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         show={true}
         text="View Members"
       />
-    </Connect(Component)>
+    </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
     <MenuItemToggleModalRedux
@@ -1330,7 +1332,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1444,8 +1446,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         show={true}
         text="Rename Channel"
       />
-    </Connect(Component)>
-    <Connect(Component)
+    </Memo(ChannelPermissionGate)>
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1474,8 +1476,8 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         show={true}
         text="Convert to Private Channel"
       />
-    </Connect(Component)>
-    <Connect(LeaveChannel)
+    </Memo(ChannelPermissionGate)>
+    <Connect(Component)
       channel={
         Object {
           "create_at": 0,
@@ -1499,7 +1501,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
       isDefault={false}
       isGuestUser={false}
     />
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1545,7 +1547,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         show={true}
         text="Archive Channel"
       />
-    </Connect(Component)>
+    </Memo(ChannelPermissionGate)>
     <Connect(CloseMessage)
       channel={
         Object {
@@ -1630,7 +1632,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
     />
   </Memo(MenuGroup)>
   <Memo(MenuGroup)>
-    <Connect(Component)
+    <Memo(ChannelPermissionGate)
       channelId="test-channel-id"
       permissions={
         Array [
@@ -1674,7 +1676,7 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
         show={false}
         text="Unarchive Channel"
       />
-    </Connect(Component)>
+    </Memo(ChannelPermissionGate)>
   </Memo(MenuGroup)>
 </Fragment>
 `;

@@ -34,25 +34,40 @@ func TestCache(t *testing.T) {
 		UserId: model.NewId(),
 	}
 
-	th.Service.sessionCache.SetWithExpiry(session.Token, session, 5*time.Minute)
-	th.Service.sessionCache.SetWithExpiry(session2.Token, session2, 5*time.Minute)
+	err := th.Service.sessionCache.SetWithExpiry(session.Token, session, 5*time.Minute)
+	require.NoError(t, err)
+	err = th.Service.sessionCache.SetWithExpiry(session2.Token, session2, 5*time.Minute)
+	require.NoError(t, err)
 
-	keys, err := th.Service.sessionCache.Keys()
+	var keys []string
+	err = th.Service.sessionCache.Scan(func(in []string) error {
+		keys = append(keys, in...)
+		return nil
+	})
 	require.NoError(t, err)
 	require.NotEmpty(t, keys)
 
 	th.Service.ClearUserSessionCache(session.UserId)
 
-	rkeys, err := th.Service.sessionCache.Keys()
+	var rkeys []string
+	err = th.Service.sessionCache.Scan(func(in []string) error {
+		rkeys = append(rkeys, in...)
+		return nil
+	})
 	require.NoError(t, err)
 	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
 	require.NotEmpty(t, rkeys)
+	clear(rkeys)
+	rkeys = []string{}
 
 	th.Service.ClearAllUsersSessionCache()
 
-	rkeys, err = th.Service.sessionCache.Keys()
+	err = th.Service.sessionCache.Scan(func(in []string) error {
+		rkeys = append(rkeys, in...)
+		return nil
+	})
 	require.NoError(t, err)
-	require.Empty(t, rkeys)
+	require.Len(t, rkeys, 0)
 }
 
 func TestSetSessionExpireInHours(t *testing.T) {

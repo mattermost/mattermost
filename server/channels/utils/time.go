@@ -4,7 +4,12 @@
 package utils
 
 import (
+	"fmt"
+	"strconv"
 	"time"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 func MillisFromTime(t time.Time) int64 {
@@ -27,4 +32,46 @@ func EndOfDay(t time.Time) time.Time {
 
 func Yesterday() time.Time {
 	return time.Now().AddDate(0, 0, -1)
+}
+
+type FormattedPostTime struct {
+	Time     time.Time
+	Year     string
+	Month    string
+	Day      string
+	Hour     string
+	Minute   string
+	TimeZone string
+}
+
+func GetFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bool, translateFunc i18n.TranslateFunc) FormattedPostTime {
+	preferredTimezone := user.GetPreferredTimezone()
+	postTime := time.Unix(post.CreateAt/1000, 0)
+	zone, _ := postTime.Zone()
+
+	localTime := postTime
+	if preferredTimezone != "" {
+		loc, _ := time.LoadLocation(preferredTimezone)
+		if loc != nil {
+			localTime = postTime.In(loc)
+			zone, _ = localTime.Zone()
+		}
+	}
+
+	hour := localTime.Format("15")
+	period := ""
+	if !useMilitaryTime {
+		hour = localTime.Format("3")
+		period = " " + localTime.Format("PM")
+	}
+
+	return FormattedPostTime{
+		Time:     localTime,
+		Year:     strconv.Itoa(localTime.Year()),
+		Month:    translateFunc(localTime.Month().String()),
+		Day:      strconv.Itoa(localTime.Day()),
+		Hour:     hour,
+		Minute:   fmt.Sprintf("%02d"+period, localTime.Minute()),
+		TimeZone: zone,
+	}
 }

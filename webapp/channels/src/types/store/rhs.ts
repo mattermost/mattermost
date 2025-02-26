@@ -3,6 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post, PostType} from '@mattermost/types/posts';
+import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {SidebarSize} from 'components/resizable_sidebar/constants';
@@ -16,6 +17,7 @@ export type FakePost = {
     exists: boolean;
     type: PostType;
     message: string;
+    reply_count: number;
     channel_id: Channel['id'];
     user_id: UserProfile['id'];
 };
@@ -30,9 +32,11 @@ export type RhsViewState = {
     filesSearchExtFilter: string[];
     rhsState: RhsState;
     searchTerms: string;
+    searchTeam: Team['id'] | null;
     searchType: SearchType;
     pluggableId: string;
     searchResultsTerms: string;
+    searchResultsType: string;
     isSearchingFlaggedPost: boolean;
     isSearchingPinnedPost: boolean;
     isSidebarOpen: boolean;
@@ -40,6 +44,7 @@ export type RhsViewState = {
     isMenuOpen: boolean;
     editChannelMembers: boolean;
     size: SidebarSize;
+    shouldFocusRHS: boolean;
 };
 
 export type RhsState = typeof RHSStates[keyof typeof RHSStates] | null;

@@ -59,6 +59,7 @@ const SearchHint = (props: Props): JSX.Element => {
                             values={{
                                 a: (chunks) => (
                                     <ExternalLink
+                                        location='search_hint'
                                         className='search-hint_learn-search'
                                         href='https://mattermost.com/pl/mattermost-academy-search-training'
                                     >
@@ -103,7 +104,7 @@ const SearchHint = (props: Props): JSX.Element => {
     }
 
     return (
-        <React.Fragment>
+        <>
             {props.withTitle && (!props.searchType) &&
                 <h4 className='search-hint__title'>
                     <FormattedMessage
@@ -153,7 +154,7 @@ const SearchHint = (props: Props): JSX.Element => {
                         </div>
                     </li>))}
             </ul>
-        </React.Fragment>
+        </>
     );
 };
 

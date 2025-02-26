@@ -15,10 +15,10 @@ export function getCurrentLocale(state: GlobalState): string {
     // If locale is provided in query parameter and the user is not logged in, we try get locale from param
     const localeFromParam: string | null = (new URLSearchParams(window.location?.search)).get('locale');
     const defaultLocale: string | undefined =
-        localeFromParam && I18n.isLanguageAvailable(localeFromParam) ? localeFromParam : getConfig(state).DefaultClientLocale;
+        localeFromParam && I18n.isLanguageAvailable(state, localeFromParam) ? localeFromParam : getConfig(state).DefaultClientLocale;
 
     const currentLocale: string = getCurrentUserLocale(state, defaultLocale);
-    if (I18n.isLanguageAvailable(currentLocale)) {
+    if (I18n.isLanguageAvailable(state, currentLocale)) {
         return currentLocale;
     }
     return General.DEFAULT_LOCALE;

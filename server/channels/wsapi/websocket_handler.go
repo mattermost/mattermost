@@ -30,7 +30,6 @@ func (wh webSocketHandler) ServeWebSocket(conn *platform.WebConn, r *model.WebSo
 		return
 	}
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
-	defer wh.app.ReturnSessionToPool(session)
 
 	if sessionErr != nil {
 		mlog.Error(
@@ -41,7 +40,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *platform.WebConn, r *model.WebSo
 			mlog.String("error_message", sessionErr.SystemMessage(i18n.T)),
 			mlog.Err(sessionErr),
 		)
-		sessionErr.DetailedError = ""
+		sessionErr.WipeDetailed()
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 		hub.SendMessage(conn, errResp)
 		return
@@ -63,7 +62,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *platform.WebConn, r *model.WebSo
 			mlog.String("error_message", err.SystemMessage(i18n.T)),
 			mlog.Err(err),
 		)
-		err.DetailedError = ""
+		err.WipeDetailed()
 		errResp := model.NewWebSocketError(r.Seq, err)
 		hub.SendMessage(conn, errResp)
 		return

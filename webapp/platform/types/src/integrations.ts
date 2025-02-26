@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {MessageAttachment} from './message_attachments';
-import {IDMappedObjects} from './utilities';
+import type {MessageAttachment} from './message_attachments';
+import type {IDMappedObjects} from './utilities';
 
 export type IncomingWebhook = {
     id: string;
@@ -17,6 +17,11 @@ export type IncomingWebhook = {
     username: string;
     icon_url: string;
     channel_locked: boolean;
+};
+
+export type IncomingWebhooksWithCount = {
+    incoming_webhooks: IncomingWebhook[];
+    total_count: number;
 };
 
 export type OutgoingWebhook = {
@@ -121,6 +126,7 @@ export type OutgoingOAuthConnection = {
 
 export type IntegrationsState = {
     incomingHooks: IDMappedObjects<IncomingWebhook>;
+    incomingHooksTotalCount: number;
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     oauthApps: IDMappedObjects<OAuthApp>;
     outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;
@@ -128,9 +134,11 @@ export type IntegrationsState = {
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
+    dialogTriggerId: string;
     dialog?: {
         url: string;
         dialog: Dialog;
+        trigger_id: string;
     };
 };
 

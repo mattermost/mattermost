@@ -27,14 +27,12 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -69,7 +67,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(postID, false)
+		post, err := a.Srv().Store().Post().GetSingle(c, postID, false)
 		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
@@ -109,12 +107,13 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 
 		channel, err := a.Srv().Store().Channel().Get(cookie.ChannelId, true)
 		if err != nil {
+			errCtx := map[string]any{"channel_id": cookie.ChannelId}
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 
@@ -230,19 +229,23 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		return "", appErr
 	}
 
-	if strings.HasPrefix(upstreamURL, "/warn_metrics/") {
-		appErr = a.doLocalWarnMetricsRequest(c, upstreamURL, upstreamRequest)
-		if appErr != nil {
-			return "", appErr
-		}
-		return "", nil
-	}
-
 	requestJSON, err := json.Marshal(upstreamRequest)
 	if err != nil {
 		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	resp, appErr := a.DoActionRequest(c, upstreamURL, requestJSON)
+
+	// Log request, regardless of whether destination is internal or external
+	c.Logger().Info("DoPostActionWithCookie POST request, through DoActionRequest",
+		mlog.String("url", upstreamURL),
+		mlog.String("user_id", upstreamRequest.UserId),
+		mlog.String("post_id", upstreamRequest.PostId),
+		mlog.String("channel_id", upstreamRequest.ChannelId),
+		mlog.String("team_id", upstreamRequest.TeamId),
+	)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+	resp, appErr := a.DoActionRequest(c.WithContext(ctx), upstreamURL, requestJSON)
 	if appErr != nil {
 		return "", appErr
 	}
@@ -277,7 +280,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, appErr = a.UpdatePost(c, response.Update, false); appErr != nil {
+		if _, appErr = a.UpdatePost(c, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
 			return "", appErr
 		}
 	}
@@ -303,7 +306,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	return clientTriggerId, nil
 }
 
-// Perform an HTTP POST request to an integration's action endpoint.
+// DoActionRequest performs an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 // For internal requests, requests are routed directly to a plugin ServerHTTP hook
 func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
@@ -317,10 +320,7 @@ func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.
 		return a.DoLocalRequest(c, rawURLPath, body)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, "POST", rawURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(c.Context(), "POST", rawURL, bytes.NewReader(body))
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			c.Logger().Info("Outgoing Integration Action request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
@@ -446,92 +446,6 @@ func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values
 	return resp, nil
 }
 
-func (a *App) doLocalWarnMetricsRequest(c request.CTX, rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
-	_, err := url.Parse(rawURL)
-	if err != nil {
-		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	warnMetricId := filepath.Base(rawURL)
-	if warnMetricId == "" {
-		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	license := a.Srv().License()
-	if license != nil {
-		c.Logger().Debug("License is present, skip this call")
-		return nil
-	}
-
-	user, appErr := a.GetUser(c.Session().UserId)
-	if appErr != nil {
-		return appErr
-	}
-
-	botPost := &model.Post{
-		UserId:       upstreamRequest.Context["bot_user_id"].(string),
-		ChannelId:    upstreamRequest.ChannelId,
-		HasReactions: true,
-	}
-
-	isE0Edition := (model.BuildEnterpriseReady == "true") // license == nil was already validated upstream
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(c, warnMetricId, i18n.T, isE0Edition)
-	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
-
-	if isE0Edition {
-		if appErr = a.RequestLicenseAndAckWarnMetric(c, warnMetricId, true); appErr != nil {
-			botPost.Message = ":warning: " + i18n.T("api.server.warn_metric.bot_response.start_trial_failure.message")
-		}
-	} else {
-		forceAck := upstreamRequest.Context["force_ack"].(bool)
-		if appErr = a.NotifyAndSetWarnMetricAck(c, warnMetricId, user, forceAck, true); appErr != nil {
-			if forceAck {
-				return appErr
-			}
-			mailtoLinkText := a.buildWarnMetricMailtoLink(c, warnMetricId, user)
-			botPost.Message = ":warning: " + i18n.T("api.server.warn_metric.bot_response.notification_failure.message")
-			actions := []*model.PostAction{}
-			actions = append(actions,
-				&model.PostAction{
-					Id:   "emailUs",
-					Name: i18n.T("api.server.warn_metric.email_us"),
-					Type: model.PostActionTypeButton,
-					Options: []*model.PostActionOptions{
-						{
-							Text:  "WarnMetricMailtoUrl",
-							Value: mailtoLinkText,
-						},
-						{
-							Text:  "TrackEventId",
-							Value: warnMetricId,
-						},
-					},
-					Integration: &model.PostActionIntegration{
-						Context: model.StringInterface{
-							"bot_user_id": botPost.UserId,
-							"force_ack":   true,
-						},
-						URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SystemWarnMetricNumberOfActiveUsers500),
-					},
-				},
-			)
-			attachments := []*model.SlackAttachment{{
-				AuthorName: "",
-				Title:      "",
-				Actions:    actions,
-				Text:       i18n.T("api.server.warn_metric.bot_response.notification_failure.body"),
-			}}
-			model.ParseSlackAttachment(botPost, attachments)
-		}
-	}
-
-	if _, err := a.CreatePostAsUser(c, botPost, c.Session().Id, true); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type MailToLinkContent struct {
 	MetricId      string `json:"metric_id"`
 	MailRecipient string `json:"mail_recipient"`
@@ -545,52 +459,19 @@ func (mlc *MailToLinkContent) ToJSON() string {
 	return string(b)
 }
 
-func (a *App) buildWarnMetricMailtoLink(rctx request.CTX, warnMetricId string, user *model.User) string {
-	T := i18n.GetUserTranslations(user.Locale)
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(rctx, warnMetricId, T, false)
-
-	mailBody := warnMetricDisplayTexts.EmailBody
-	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]any{"Contact": user.GetFullName()})
-	mailBody += "\r\n"
-	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]any{"Email": user.Email})
-	mailBody += "\r\n"
-
-	registeredUsersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
-	if err != nil {
-		rctx.Logger().Warn("Error retrieving the number of registered users", mlog.Err(err))
-	} else {
-		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]any{"NoRegisteredUsers": registeredUsersCount})
-		mailBody += "\r\n"
-	}
-
-	mailBody += T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]any{"SiteUrl": a.GetSiteURL()})
-	mailBody += "\r\n"
-
-	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]any{"DiagnosticId": a.TelemetryId()})
-	mailBody += "\r\n"
-
-	mailBody += T("api.server.warn_metric.bot_response.mailto_footer")
-
-	mailToLinkContent := &MailToLinkContent{
-		MetricId:      warnMetricId,
-		MailRecipient: model.MmSupportAdvisorAddress,
-		MailCC:        user.Email,
-		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject"),
-		MailBody:      mailBody,
-	}
-
-	return mailToLinkContent.ToJSON()
-}
-
 func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	return a.doPluginRequest(c, "POST", rawURL, nil, body)
 }
 
-func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
+func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError {
 	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
 	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
 		return appErr
+	}
+
+	if dialogErr := request.IsValid(); dialogErr != nil {
+		c.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
 
 	request.TriggerId = clientTriggerId
@@ -617,7 +498,17 @@ func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogR
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	resp, appErr := a.DoActionRequest(c, url, b)
+	// Log request, regardless of whether destination is internal or external
+	c.Logger().Info("SubmitInteractiveDialog POST request, through DoActionRequest",
+		mlog.String("url", url),
+		mlog.String("user_id", request.UserId),
+		mlog.String("channel_id", request.ChannelId),
+		mlog.String("team_id", request.TeamId),
+	)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+	resp, appErr := a.DoActionRequest(c.WithContext(ctx), url, b)
 	if appErr != nil {
 		return nil, appErr
 	}

@@ -100,7 +100,7 @@ exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
           class="PreparingWorkspaceTitle"
         >
           <span>
-            Who works with you?
+            Invite your team members
           </span>
         </h1>
         <p

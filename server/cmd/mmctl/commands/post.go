@@ -41,6 +41,22 @@ var PostListCmd = &cobra.Command{
 	RunE: withClient(postListCmdF),
 }
 
+var PostDeleteCmd = &cobra.Command{
+	Use:   "delete [posts]",
+	Short: "Mark posts as deleted or permanently delete posts with the --permanent flag",
+	Long:  `This command will mark the post as deleted and remove it from the user's clients, but it does not permanently delete the post from the database. Please use the --permanent flag to permanently delete a post and its attachments from your database.`,
+	Example: `  # Mark Post as deleted
+  $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw
+
+  # Permanently delete a post and it's file contents from the database and filestore
+  $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw --permanent
+
+  # Permanently delete multiple posts and their file contents from the database and filestore
+  $ mmctl post delete udjmt396tjghi8wnsk3a1qs1sw 7jgcjt7tyjyyu83qz81wo84w6o --permanent`,
+	Args: cobra.MinimumNArgs(1),
+	RunE: withClient(deletePostsCmdF),
+}
+
 const (
 	ISO8601Layout  = "2006-01-02T15:04:05-07:00"
 	PostTimeFormat = "2006-01-02 15:04:05-07:00"
@@ -55,9 +71,13 @@ func init() {
 	PostListCmd.Flags().BoolP("follow", "f", false, "Output appended data as new messages are posted to the channel")
 	PostListCmd.Flags().StringP("since", "s", "", "List messages posted after a certain time (ISO 8601)")
 
+	PostDeleteCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the post and a DB backup has been performed")
+	PostDeleteCmd.Flags().Bool("permanent", false, "Permanently delete the post and its contents from the database")
+
 	PostCmd.AddCommand(
 		PostCreateCmd,
 		PostListCmd,
+		PostDeleteCmd,
 	)
 
 	RootCmd.AddCommand(PostCmd)
@@ -103,7 +123,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func eventDataToPost(eventData map[string]interface{}) (*model.Post, error) {
+func eventDataToPost(eventData map[string]any) (*model.Post, error) {
 	post := &model.Post{}
 	var rawPost string
 	for k, v := range eventData {
@@ -216,4 +236,43 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 	return multiErr.ErrorOrNil()
+}
+
+func deletePostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	permanent, err := cmd.Flags().GetBool("permanent")
+	if err != nil {
+		return err
+	}
+
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag && permanent {
+		if err = getConfirmation("Are you sure you want to delete the posts specified?", true); err != nil {
+			return err
+		}
+	}
+
+	var result *multierror.Error
+	var deleteFunc func(ctx context.Context, postID string) (*model.Response, error)
+
+	if permanent {
+		deleteFunc = c.PermanentDeletePost
+	} else {
+		deleteFunc = c.DeletePost
+	}
+
+	for _, postID := range args {
+		isValidId := model.IsValidId(postID)
+		if !isValidId {
+			printer.PrintError(fmt.Sprintf("Invalid postID: %s", postID))
+			result = multierror.Append(result, err)
+			continue
+		}
+		if _, err := deleteFunc(context.TODO(), postID); err != nil {
+			printer.PrintError(fmt.Sprintf("Error deleting post: %s. Error: %s", postID, err.Error()))
+			result = multierror.Append(result, err)
+			continue
+		}
+		printer.Print(fmt.Sprintf("%s successfully deleted", postID))
+	}
+	return result.ErrorOrNil()
 }

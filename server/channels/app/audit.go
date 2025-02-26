@@ -4,10 +4,13 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"os/user"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -85,7 +88,7 @@ func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus stri
 	rec := &audit.Record{
 		EventName: event,
 		Status:    initialStatus,
-		Meta: map[string]interface{}{
+		Meta: map[string]any{
 			audit.KeyAPIPath:   "",
 			audit.KeyClusterID: a.GetClusterId(),
 		},
@@ -97,9 +100,9 @@ func (a *App) MakeAuditRecord(rctx request.CTX, event string, initialStatus stri
 			XForwardedFor: "",
 		},
 		EventData: audit.EventData{
-			Parameters:  map[string]interface{}{},
-			PriorState:  map[string]interface{}{},
-			ResultState: map[string]interface{}{},
+			Parameters:  map[string]any{},
+			PriorState:  map[string]any{},
+			ResultState: map[string]any{},
 			ObjectType:  "",
 		},
 	}
@@ -130,6 +133,16 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	cfg, err := config.MloggerConfigFromAuditConfig(s.platform.Config().ExperimentalAuditSettings, logConfigSrc)
 	if err != nil {
 		return fmt.Errorf("invalid config for audit, %w", err)
+	}
+
+	// Append additional config from env var; any target name collisions will be overwritten.
+	additionalJSON := strings.TrimSpace(os.Getenv("MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL"))
+	if additionalJSON != "" {
+		cfgAdditional := make(mlog.LoggerConfiguration)
+		if err := json.Unmarshal([]byte(additionalJSON), &cfgAdditional); err != nil {
+			return fmt.Errorf("invalid additional config for audit, %w", err)
+		}
+		cfg.Append(cfgAdditional)
 	}
 
 	return adt.Configure(cfg)

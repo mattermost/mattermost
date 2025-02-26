@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessages} from 'react-intl';
 import type {Store} from 'redux';
 
 import {DockWindowIcon} from '@mattermost/compass-icons/components';
@@ -29,7 +30,7 @@ const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_C
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const COMMAND_SUGGESTION_ERROR = Constants.Integrations.COMMAND_SUGGESTION_ERROR;
 
-const CommandSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<AutocompleteSuggestion>>((props, ref) => {
+const CommandSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<AutocompleteSuggestion>>((props, ref) => {
     const {item} = props;
 
     let symbolSpan = <span>{'/'}</span>;
@@ -288,3 +289,10 @@ export default class CommandProvider extends Provider {
         return matches.findIndex((match) => match.Complete === complete) !== -1;
     }
 }
+
+defineMessages({
+    commandsDivider: {
+        id: 'suggestion.commands',
+        defaultMessage: 'Commands',
+    },
+});

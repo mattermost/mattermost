@@ -6,7 +6,6 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-// Stage: @prod
 // Group: @playbooks
 
 describe('channels > slash command > test', {testIsolation: true}, () => {
@@ -85,6 +84,7 @@ describe('channels > slash command > test', {testIsolation: true}, () => {
                     EnableTesting: true,
                 },
             });
+            cy.apiReloadConfig();
         });
 
         beforeEach(() => {
@@ -132,6 +132,7 @@ describe('channels > slash command > test', {testIsolation: true}, () => {
                         EnableTesting: false,
                     },
                 });
+                cy.apiReloadConfig();
             });
 
             beforeEach(() => {
@@ -178,6 +179,7 @@ describe('channels > slash command > test', {testIsolation: true}, () => {
                         EnableTesting: true,
                     },
                 });
+                cy.apiReloadConfig();
             });
 
             beforeEach(() => {

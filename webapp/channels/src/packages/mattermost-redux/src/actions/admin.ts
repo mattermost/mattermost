@@ -23,9 +23,10 @@ import type {
     Team,
     TeamSearchOpts,
 } from '@mattermost/types/teams';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {AdminTypes} from 'mattermost-redux/action_types';
-import {getUsersLimits} from 'mattermost-redux/actions/limits';
+import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
@@ -79,9 +80,9 @@ export function getConfig() {
     });
 }
 
-export function updateConfig(config: AdminConfig) {
+export function patchConfig(config: DeepPartial<AdminConfig>) {
     return bindClientFunc({
-        clientFunc: Client4.updateConfig,
+        clientFunc: Client4.patchConfig,
         onSuccess: [AdminTypes.RECEIVED_CONFIG],
         params: [
             config,
@@ -357,9 +358,12 @@ export function testElasticsearch(config?: AdminConfig) {
     });
 }
 
-export function purgeElasticsearchIndexes() {
+export function purgeElasticsearchIndexes(indexes?: string[]) {
     return bindClientFunc({
         clientFunc: Client4.purgeElasticsearchIndexes,
+        params: [
+            indexes,
+        ],
     });
 }
 
@@ -382,7 +386,7 @@ export function removeLicense(): ActionFuncAsync<boolean> {
             return {error: error as ServerError};
         }
 
-        await dispatch(getUsersLimits());
+        await dispatch(getServerLimits());
 
         return {data: true};
     };
@@ -558,19 +562,6 @@ export function setSamlIdpCertificateFromMetadata(certData: string) {
             certData,
         ],
     });
-}
-
-export function sendWarnMetricAck(warnMetricId: string, forceAck: boolean): ActionFuncAsync {
-    return async (dispatch) => {
-        try {
-            Client4.trackEvent('api', 'api_request_send_metric_ack', {warnMetricId});
-            await Client4.sendWarnMetricAck(warnMetricId, forceAck);
-            return {data: true};
-        } catch (e) {
-            dispatch(logError(e as ServerError));
-            return {error: (e as ServerError).message};
-        }
-    };
 }
 
 export function getDataRetentionCustomPolicies(page = 0, perPage = 10): ActionFuncAsync<GetDataRetentionCustomPoliciesRequest> {

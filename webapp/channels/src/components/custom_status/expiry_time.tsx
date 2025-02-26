@@ -55,8 +55,10 @@ const ExpiryTime = ({time, timezone, className, showPrefix, withinBrackets}: Pro
         <>
             <FormattedMessage
                 id='custom_status.expiry.until'
-                defaultMessage='Until'
-            />{' '}
+                defaultMessage='Until {time}'
+                values={{time: ''}}
+            />
+            {' '}
         </>
     );
 

@@ -1,4 +1,6 @@
-@charset "utf-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
 
 @media screen and (max-width: 768px) {
     #navbar_wrapper {
@@ -43,12 +45,12 @@
                 height: 100%;
                 padding: 2.5em 0 0;
                 padding-bottom: 50px;
-                background: alpha-color($black, 0.9);
+                background: functions.alpha-color(variables.$black, 0.9);
                 transition: all 0.35s ease;
 
                 body.announcement-bar--fixed & {
-                    top: calc(48px + #{$announcement-bar-height});
-                    height: calc(100% - 48px - #{$announcement-bar-height});
+                    top: calc(48px + #{variables.$announcement-bar-height});
+                    height: calc(100% - 48px - #{variables.$announcement-bar-height});
                 }
             }
 
@@ -72,10 +74,10 @@
                 width: 30px;
                 height: 30px;
                 padding-top: 13px;
-                border: 1px solid $white;
-                margin-left: -15px;
+                border: 1px solid variables.$white;
                 border-radius: 50%;
-                color: $white;
+                margin-left: -15px;
+                color: variables.$white;
                 font-family: 'Open Sans', sans-serif;
                 font-size: 23px;
                 font-weight: 200;
@@ -102,7 +104,7 @@
                         justify-content: center;
                         padding: 0.4rem 2rem;
                         margin: 0 auto;
-                        color: $white;
+                        color: variables.$white;
                         font-weight: 600;
                         line-height: 32px;
                         text-align: center;
@@ -112,7 +114,7 @@
                         }
 
                         .SubMenu__icon-right {
-                            color: rgba(255, 255, 255, 0.56);
+                            color: rgba(255, 255, 255, 0.75);
                         }
                     }
 
@@ -121,7 +123,7 @@
                     }
 
                     hr {
-                        border-bottom: 1px solid alpha-color($white, 0.3);
+                        border-bottom: 1px solid functions.alpha-color(variables.$white, 0.3);
                         margin: 8px auto;
                     }
                 }
@@ -165,7 +167,7 @@
                 }
 
                 .nav-pills {
-                    >li {
+                    > &__tab {
                         &:hover {
                             a {
                                 background: transparent !important;
@@ -234,6 +236,7 @@
                             top: 0;
                             display: flex;
                             width: 100%;
+                            background-color: var(--center-channel-bg);
 
                             .modal-title {
                                 width: 100%;
@@ -273,7 +276,9 @@
                         width: 100%;
                         margin: 0;
 
-                        >li {
+                        &-pills__tab {
+                            height: 48px;
+
                             >a {
                                 font-size: 1.1em;
                                 line-height: 2.7;
@@ -281,10 +286,6 @@
                                 .icon {
                                     margin: 0 7px;
                                 }
-                            }
-
-                            > button {
-                                height: 48px;
                             }
                         }
                     }
@@ -295,6 +296,8 @@
                             padding: 0;
 
                             .user-settings {
+                                overflow: auto;
+                                max-height: 100vh;
                                 padding: 100px 20px 30px;
                             }
                         }
@@ -314,14 +317,12 @@
             }
 
             .nav-pills {
-                >li {
+                &__tab {
                     &.active {
-                        button {
-                            background: transparent;
+                        background: transparent;
 
-                            &::before {
-                                display: none;
-                            }
+                        &::before {
+                            display: none;
                         }
                     }
                 }
@@ -367,7 +368,6 @@
 
         .post,
         .SidebarMenu,
-        .AddChannelDropdown,
         .GlobalThreads {
             .Menu {
                 position: fixed;
@@ -382,9 +382,9 @@
                 align-items: center;
                 padding: 6em 2em 4em;
                 border: 0;
+                border-radius: 0;
                 margin: 0;
                 background: transparent;
-                border-radius: 0;
 
                 .Menu__content {
                     position: relative;
@@ -401,7 +401,7 @@
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: alpha-color($black, 0.3);
+                    background: functions.alpha-color(variables.$black, 0.3);
                     content: '';
                 }
 
@@ -437,7 +437,7 @@
         .post {
             &.post--thread {
                 .post-pre-header__icons-container {
-                    width: 60px; // If the width of post__img changes, this needs to be adjusted accordingly
+                    width: 44px; // If the width of post__img changes, this needs to be adjusted accordingly
                     padding-right: 12px; // If the padding of post__img changes, this needs to be adjusted accordingly
                     margin-left: 0; // if left margin of post__content changes, this needs to be adjusted accordingly
                 }
@@ -467,7 +467,6 @@
     }
 
     .emoji-picker {
-        z-index: 1070;
         // !important is used to overide inline styles
         // used on larger screens
         top: 0 !important;
@@ -480,10 +479,6 @@
 
         >ul {
             margin-top: 66px;
-        }
-
-        &.bottom {
-            margin-top: 0;
         }
 
         .search-grid-container {
@@ -653,8 +648,8 @@
                 >button {
                     height: auto;
                     padding: 15px 20px;
-                    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
                     border-radius: 0;
+                    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
                 }
 
                 &:first-child {
@@ -755,66 +750,6 @@
     .settings-modal {
         .modal-body {
             overflow: auto;
-        }
-    }
-
-    #header-popover {
-        position: fixed;
-        top: 40px !important;
-        width: 100%;
-        max-width: 100%;
-        height: calc(100% - 50px);
-        border: none;
-        background: alpha-color($black, 0.9);
-        box-shadow: none;
-        transform: translate3d(0, 100%, 0);
-        transition: all 0.35s ease;
-
-        &.in {
-            transform: translate3d(0, 0, 0);
-        }
-
-        a {
-            color: #0091ff;
-        }
-
-        .arrow {
-            display: none;
-        }
-
-        .popover-content {
-            padding: 15px 20px 100px;
-            color: $white;
-            font-size: 15px;
-
-            >div {
-                &:first-child {
-                    overflow: auto;
-                    height: calc(100vh - 150px);
-                    -webkit-overflow-scrolling: touch;
-                }
-            }
-        }
-
-        .close {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            display: block;
-            width: 30px;
-            height: 30px;
-            padding-top: 13px;
-            border: 1px solid $white;
-            margin-left: -15px;
-            border-radius: 50%;
-            color: $white;
-            font-family: 'Open Sans', sans-serif;
-            font-size: 23px;
-            font-weight: 200;
-            line-height: 0;
-            opacity: 1;
-            text-align: center;
-            text-shadow: none;
         }
     }
 
@@ -921,11 +856,9 @@
             }
         }
 
-        .post-add-reaction {
-            .Reaction {
-                opacity: 1;
-                visibility: visible;
-            }
+        .Reaction__add {
+            opacity: 1;
+            visibility: visible;
         }
 
         .browser--ie & {
@@ -989,7 +922,7 @@
             }
 
             .post-message--overflow {
-                @include clearfix;
+                @include mixins.clearfix;
             }
 
             .status-wrapper {
@@ -1262,7 +1195,7 @@
     }
 
     .file-overlay {
-        font-size: em(18px);
+        font-size: functions.em(18px);
 
         &.center-file-overlay {
             .overlay__indent {
@@ -1273,12 +1206,6 @@
         .overlay__circle {
             width: 300px;
             height: 300px;
-            margin: -150px 0 0 -150px;
-        }
-
-        .overlay__files {
-            width: 150px;
-            margin: 60px auto 15px;
         }
     }
 
@@ -1369,8 +1296,8 @@
             .form-control {
                 padding: 0 31px;
                 border: none;
-                background: var(--center-channel-bg);
                 border-radius: 3px;
+                background: var(--center-channel-bg);
             }
         }
     }
@@ -1418,7 +1345,7 @@
         }
 
         .team__header {
-            @include clearfix;
+            @include mixins.clearfix;
 
             padding: 15px;
             pointer-events: none;
@@ -1445,8 +1372,8 @@
                     ul {
                         position: relative;
                         top: 5px;
-                        background: var(--center-channel-bg);
                         border-radius: 3px;
+                        background: var(--center-channel-bg);
                         clear: both;
 
                         li {
@@ -1510,7 +1437,7 @@
         }
 
         .team__header {
-            @include clearfix;
+            @include mixins.clearfix;
 
             padding: 15px;
             pointer-events: none;
@@ -1549,8 +1476,8 @@
                     ul {
                         position: relative;
                         top: 5px;
-                        background: var(--center-channel-bg);
                         border-radius: 3px;
+                        background: var(--center-channel-bg);
                         clear: both;
 
                         li {
@@ -1620,8 +1547,7 @@
             }
         }
 
-        .SidebarMenu,
-        .AddChannelDropdown {
+        .SidebarMenu {
             display: block !important;
 
             .Menu {
@@ -1794,7 +1720,7 @@
             left: 0;
 
             &.move--right {
-                left: 65px;
+                left: 64px;
             }
         }
 
@@ -1859,7 +1785,7 @@
     .app__body {
         &.announcement-bar--fixed {
             .modal {
-                padding-top: $announcement-bar-height;
+                padding-top: variables.$announcement-bar-height;
             }
         }
 
@@ -1898,6 +1824,7 @@
 
                 .about-modal__content {
                     display: block;
+                    overflow-wrap: anywhere;
                 }
 
                 .about-modal__hash {
@@ -2042,8 +1969,8 @@
     }
 
     .emoji-picker__item {
-        width: calc(100% / #{$emoji-per-row});
-        padding-top: calc(100% / #{$emoji-per-row});
+        width: calc(100% / #{variables.$emoji-per-row});
+        padding-top: calc(100% / #{variables.$emoji-per-row});
         margin: 0;
     }
 
@@ -2146,19 +2073,6 @@
     .inner-wrap {
         &.move--right {
             transform: translate3d(0, 0, 0);
-        }
-    }
-
-    // overides edit modal body element's css position
-    // to allow emoji picker to fill the screen on mobile screens < 480
-    .edit-modal-body--add-reaction {
-        position: static;
-
-        .emoji-picker {
-            top: -1px !important;
-            left: -1px !important;
-            width: calc(100% + 2px);
-            height: calc(100% + 2px);
         }
     }
 }

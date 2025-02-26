@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {LimitsTypes} from 'mattermost-redux/action_types';
 
-function usersLimits(state = {}, action: AnyAction) {
+function serverLimits(state = {}, action: MMReduxAction) {
     switch (action.type) {
-    case LimitsTypes.RECIEVED_USERS_LIMITS: {
-        const usersLimits = action.data;
+    case LimitsTypes.RECIEVED_APP_LIMITS: {
+        const serverLimits = action.data;
         return {
             ...state,
-            ...usersLimits,
+            ...serverLimits,
         };
     }
     default:
@@ -21,5 +21,5 @@ function usersLimits(state = {}, action: AnyAction) {
 }
 
 export default combineReducers({
-    usersLimits,
+    serverLimits,
 });

@@ -10,7 +10,7 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
       <React.Fragment>
         <img
           className="advisor-icon"
-          src={null}
+          src=""
         />
         <Memo(MemoizedFormattedMessage)
           defaultMessage="{licenseSku} license is expired and some features may be disabled."
@@ -37,7 +37,7 @@ exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
     <React.Fragment>
       <img
         className="advisor-icon"
-        src={null}
+        src=""
       />
       <Memo(MemoizedFormattedMessage)
         defaultMessage="{licenseSku} license is expired and some features may be disabled."
@@ -66,7 +66,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
       <React.Fragment>
         <img
           className="advisor-icon"
-          src={null}
+          src=""
         />
         <Memo(MemoizedFormattedMessage)
           defaultMessage="{licenseSku} license is expired and some features may be disabled."
@@ -93,7 +93,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
     <React.Fragment>
       <img
         className="advisor-icon"
-        src={null}
+        src=""
       />
       <Memo(MemoizedFormattedMessage)
         defaultMessage="{licenseSku} license is expired and some features may be disabled."
@@ -116,7 +116,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, regular use
     <React.Fragment>
       <img
         className="advisor-icon"
-        src={null}
+        src=""
       />
       <Memo(MemoizedFormattedMessage)
         defaultMessage="{licenseSku} license is expired and some features may be disabled. Please contact your System Administrator for details."
@@ -145,7 +145,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
       <React.Fragment>
         <img
           className="advisor-icon"
-          src={null}
+          src=""
         />
         This is the last day of your free trial. Purchase a license now to continue using Mattermost Professional and Enterprise features.
       </React.Fragment>
@@ -164,7 +164,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
     <React.Fragment>
       <img
         className="advisor-icon"
-        src={null}
+        src=""
       />
       This is the last day of your free trial. Purchase a license now to continue using Mattermost Professional and Enterprise features.
     </React.Fragment>
@@ -183,7 +183,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
       <React.Fragment>
         <img
           className="advisor-icon"
-          src={null}
+          src=""
         />
         This is the last day of your free trial.
       </React.Fragment>
@@ -202,7 +202,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
     <React.Fragment>
       <img
         className="advisor-icon"
-        src={null}
+        src=""
       />
       This is the last day of your free trial.
     </React.Fragment>

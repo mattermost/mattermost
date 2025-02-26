@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"maps"
 	"strconv"
 )
 
@@ -71,8 +72,6 @@ const (
 	WebsocketEventSidebarCategoryUpdated              WebsocketEventType = "sidebar_category_updated"
 	WebsocketEventSidebarCategoryDeleted              WebsocketEventType = "sidebar_category_deleted"
 	WebsocketEventSidebarCategoryOrderUpdated         WebsocketEventType = "sidebar_category_order_updated"
-	WebsocketWarnMetricStatusReceived                 WebsocketEventType = "warn_metric_status_received"
-	WebsocketWarnMetricStatusRemoved                  WebsocketEventType = "warn_metric_status_removed"
 	WebsocketEventCloudPaymentStatusUpdated           WebsocketEventType = "cloud_payment_status_updated"
 	WebsocketEventCloudSubscriptionChanged            WebsocketEventType = "cloud_subscription_changed"
 	WebsocketEventThreadUpdated                       WebsocketEventType = "thread_updated"
@@ -86,8 +85,34 @@ const (
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"
 	WebsocketEventHostedCustomerSignupProgressUpdated WebsocketEventType = "hosted_customer_signup_progress_updated"
+	WebsocketEventChannelBookmarkCreated              WebsocketEventType = "channel_bookmark_created"
+	WebsocketEventChannelBookmarkUpdated              WebsocketEventType = "channel_bookmark_updated"
+	WebsocketEventChannelBookmarkDeleted              WebsocketEventType = "channel_bookmark_deleted"
+	WebsocketEventChannelBookmarkSorted               WebsocketEventType = "channel_bookmark_sorted"
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
+	WebsocketPostedNotifyAck                          WebsocketEventType = "posted_notify_ack"
+	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
+	WebsocketScheduledPostUpdated                     WebsocketEventType = "scheduled_post_updated"
+	WebsocketScheduledPostDeleted                     WebsocketEventType = "scheduled_post_deleted"
+	WebsocketEventCPAFieldCreated                     WebsocketEventType = "custom_profile_attributes_field_created"
+	WebsocketEventCPAFieldUpdated                     WebsocketEventType = "custom_profile_attributes_field_updated"
+	WebsocketEventCPAFieldDeleted                     WebsocketEventType = "custom_profile_attributes_field_deleted"
+	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
+
+	WebSocketMsgTypeResponse = "response"
+	WebSocketMsgTypeEvent    = "event"
 )
+
+type ActiveQueueItem struct {
+	Type string          `json:"type"` // websocket event or websocket response
+	Buf  json.RawMessage `json:"buf"`
+}
+
+type WSQueues struct {
+	ActiveQ    []ActiveQueueItem `json:"active_queue"` // websocketEvent|websocketResponse
+	DeadQ      []json.RawMessage `json:"dead_queue"`   // websocketEvent
+	ReuseCount int               `json:"reuse_count"`
+}
 
 type WebSocketMessage interface {
 	ToJSON() ([]byte, error)
@@ -268,20 +293,12 @@ func (ev *WebSocketEvent) Copy() *WebSocketEvent {
 func (ev *WebSocketEvent) DeepCopy() *WebSocketEvent {
 	evCopy := &WebSocketEvent{
 		event:           ev.event,
-		data:            copyMap(ev.data),
+		data:            maps.Clone(ev.data),
 		broadcast:       ev.broadcast.copy(),
 		sequence:        ev.sequence,
 		precomputedJSON: ev.precomputedJSON.copy(),
 	}
 	return evCopy
-}
-
-func copyMap[K comparable, V any](m map[K]V) map[K]V {
-	dataCopy := make(map[K]V, len(m))
-	for k, v := range m {
-		dataCopy[k] = v
-	}
-	return dataCopy
 }
 
 func (ev *WebSocketEvent) GetData() map[string]any {

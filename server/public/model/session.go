@@ -12,30 +12,40 @@ import (
 )
 
 const (
-	SessionCookieToken                = "MMAUTHTOKEN"
-	SessionCookieUser                 = "MMUSERID"
-	SessionCookieCsrf                 = "MMCSRF"
-	SessionCookieCloudUrl             = "MMCLOUDURL"
-	SessionCacheSize                  = 35000
-	SessionPropPlatform               = "platform"
-	SessionPropOs                     = "os"
-	SessionPropBrowser                = "browser"
-	SessionPropType                   = "type"
-	SessionPropUserAccessTokenId      = "user_access_token_id"
-	SessionPropIsBot                  = "is_bot"
-	SessionPropIsBotValue             = "true"
-	SessionPropOAuthAppID             = "oauth_app_id"
-	SessionPropMattermostAppID        = "mattermost_app_id"
-	SessionTypeUserAccessToken        = "UserAccessToken"
-	SessionTypeCloudKey               = "CloudKey"
-	SessionTypeRemoteclusterToken     = "RemoteClusterToken"
-	SessionPropIsGuest                = "is_guest"
-	SessionActivityTimeout            = 1000 * 60 * 5  // 5 minutes
-	SessionUserAccessTokenExpiryHours = 100 * 365 * 24 // 100 years
+	SessionCookieToken                    = "MMAUTHTOKEN"
+	SessionCookieUser                     = "MMUSERID"
+	SessionCookieCsrf                     = "MMCSRF"
+	SessionCookieCloudUrl                 = "MMCLOUDURL"
+	SessionCacheSize                      = 35000
+	SessionPropPlatform                   = "platform"
+	SessionPropOs                         = "os"
+	SessionPropBrowser                    = "browser"
+	SessionPropType                       = "type"
+	SessionPropUserAccessTokenId          = "user_access_token_id"
+	SessionPropIsBot                      = "is_bot"
+	SessionPropIsBotValue                 = "true"
+	SessionPropOAuthAppID                 = "oauth_app_id"
+	SessionPropMattermostAppID            = "mattermost_app_id"
+	SessionPropLastRemovedDeviceId        = "last_removed_device_id"
+	SessionPropDeviceNotificationDisabled = "device_notification_disabled"
+	SessionPropMobileVersion              = "mobile_version"
+	SessionTypeUserAccessToken            = "UserAccessToken"
+	SessionTypeCloudKey                   = "CloudKey"
+	SessionTypeRemoteclusterToken         = "RemoteClusterToken"
+	SessionPropIsGuest                    = "is_guest"
+	SessionActivityTimeout                = 1000 * 60 * 5  // 5 minutes
+	SessionUserAccessTokenExpiryHours     = 100 * 365 * 24 // 100 years
 )
 
 //msgp:tuple StringMap
 type StringMap map[string]string
+
+type MobileSessionMetadata struct {
+	Version              string
+	Platform             string
+	Count                float64
+	NotificationDisabled string
+}
 
 // Session contains the user session details.
 // This struct's serializer methods are auto-generated. If a new field is added/removed,

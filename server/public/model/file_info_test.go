@@ -53,6 +53,13 @@ func TestFileInfoIsValid(t *testing.T) {
 		assert.NotNil(t, info.IsValid(), "empty Path isn't valid")
 		info.Path = "fake/path.png"
 	})
+
+	t.Run("Creator ID for bookmarks is valid", func(t *testing.T) {
+		creatorId := info.CreatorId
+		info.CreatorId = BookmarkFileOwner
+		assert.Nil(t, info.IsValid(), "creatorId isn't valid")
+		info.CreatorId = creatorId
+	})
 }
 
 func TestFileInfoIsImage(t *testing.T) {

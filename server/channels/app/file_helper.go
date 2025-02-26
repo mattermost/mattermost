@@ -18,7 +18,7 @@ func (a *App) removeInaccessibleContentFromFilesSlice(files []*model.FileInfo) (
 
 	lastAccessibleFileTime, appErr := a.GetLastAccessibleFileTime()
 	if appErr != nil {
-		return 0, model.NewAppError("removeInaccessibleFileListContent", "app.last_accessible_file.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("removeInaccessibleFileListContent", "app.last_accessible_file.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 	if lastAccessibleFileTime == 0 {
 		// No need to remove content, all files are accessible
@@ -46,7 +46,7 @@ func (a *App) filterInaccessibleFiles(fileList *model.FileInfoList, options filt
 
 	lastAccessibleFileTime, appErr := a.GetLastAccessibleFileTime()
 	if appErr != nil {
-		return model.NewAppError("filterInaccessibleFiles", "app.last_accessible_file.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("filterInaccessibleFiles", "app.last_accessible_file.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 	if lastAccessibleFileTime == 0 {
 		// No need to filter, all files are accessible
@@ -129,7 +129,7 @@ func (a *App) getFilteredAccessibleFiles(files []*model.FileInfo, options filter
 	filteredFiles := []*model.FileInfo{}
 	lastAccessibleFileTime, appErr := a.GetLastAccessibleFileTime()
 	if appErr != nil {
-		return filteredFiles, 0, model.NewAppError("getFilteredAccessibleFiles", "app.last_accessible_file.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return filteredFiles, 0, model.NewAppError("getFilteredAccessibleFiles", "app.last_accessible_file.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	} else if lastAccessibleFileTime == 0 {
 		// No need to filter, all files are accessible
 		return files, 0, nil

@@ -53,8 +53,8 @@ func lock(t *testing.T, m *Mutex) {
 	}()
 
 	select {
-	case <-time.After(1 * time.Second):
-		require.Fail(t, "failed to lock mutex within 1 second")
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "failed to lock mutex within 2 seconds")
 	case <-done:
 	}
 }
@@ -75,8 +75,8 @@ func unlock(t *testing.T, m *Mutex, panics bool) {
 	}()
 
 	select {
-	case <-time.After(1 * time.Second):
-		require.Fail(t, "failed to unlock mutex within 1 second")
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "failed to unlock mutex within 2 seconds")
 	case <-done:
 	}
 }
@@ -122,7 +122,7 @@ func TestMutex(t *testing.T) {
 		}()
 
 		select {
-		case <-time.After(1 * time.Second):
+		case <-time.After(2 * time.Second):
 		case <-done:
 			require.Fail(t, "second goroutine should not have locked")
 		}

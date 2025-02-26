@@ -595,6 +595,18 @@
           schema:
             type: integer
             default: 60
+        - name: sort
+          in: query
+          description: To sort by Username, set to 'Username', otherwise sort is by 'UserID'
+          schema:
+            type: string
+            default: ""
+        - name: exclude_deleted_users
+          in: query
+          description: Excludes deleted users from the results
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Team members retrieval successful

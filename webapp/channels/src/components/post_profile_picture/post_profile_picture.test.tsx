@@ -4,7 +4,7 @@
 import React from 'react';
 import type {ComponentProps} from 'react';
 
-import {render, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostProfilePicture from './post_profile_picture';
@@ -31,7 +31,7 @@ describe('components/PostProfilePicture', () => {
 
     test('no status and post icon override specified, default props', () => {
         const props: Props = baseProps;
-        render(
+        renderWithContext(
             <PostProfilePicture {...props}/>,
         );
 
@@ -41,13 +41,12 @@ describe('components/PostProfilePicture', () => {
         expect(screen.getByLabelText('Offline Icon')).toBeInTheDocument();
     });
 
-    test('status and post icon override specified, default props', () => {
+    test('status is specified, default props', () => {
         const props: Props = {
             ...baseProps,
             status: 'away',
-            postIconOverrideURL: 'http://example.com/image.png',
         };
-        render(
+        renderWithContext(
             <PostProfilePicture {...props}/>,
         );
 

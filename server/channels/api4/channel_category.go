@@ -35,7 +35,9 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	w.Write(categoriesJSON)
+	if _, err := w.Write(categoriesJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -78,7 +80,9 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 
 	auditRec.Success()
 
-	w.Write(categoryJSON)
+	if _, err := w.Write(categoryJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -118,7 +122,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryOrder, err := model.NonSortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	categoryOrder, err := model.NonSortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("updateCategoryOrderForTeamForUser", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -138,7 +142,10 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	}
 
 	auditRec.Success()
-	w.Write([]byte(model.ArrayToJSON(categoryOrder)))
+
+	if _, err := w.Write([]byte(model.ArrayToJSON(categoryOrder))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -164,7 +171,9 @@ func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Write(categoriesJSON)
+	if _, err := w.Write(categoriesJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -213,7 +222,9 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	auditRec.Success()
-	w.Write(categoriesJSON)
+	if _, err := w.Write(categoriesJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func validateSidebarCategory(c *Context, teamId, userId string, category *model.SidebarCategoryWithChannels) *model.AppError {
@@ -236,7 +247,7 @@ func validateSidebarCategories(c *Context, teamId, userId string, categories []*
 		LastDeleteAt:   0,
 	})
 	if err != nil {
-		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	for _, category := range categories {
@@ -309,7 +320,9 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	auditRec.Success()
-	w.Write(categoryJSON)
+	if _, err := w.Write(categoryJSON); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {

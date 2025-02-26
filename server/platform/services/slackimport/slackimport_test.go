@@ -4,10 +4,13 @@
 package slackimport
 
 import (
+	"archive/zip"
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -400,5 +403,59 @@ func TestOldImportChannel(t *testing.T) {
 
 		importer := New(store, actions, config)
 		_ = importer.oldImportChannel(rctx, ch, sCh, users)
+	})
+}
+
+func TestSlackUploadFile(t *testing.T) {
+	store := &mocks.Store{}
+	config := &model.Config{}
+	config.SetDefaults()
+	defaultLimit := *config.FileSettings.MaxFileSize
+
+	rctx := request.TestContext(t)
+
+	sf := &slackFile{
+		Id:    "testfile",
+		Title: "test-file",
+	}
+
+	buf := new(bytes.Buffer)
+	zipWriter := zip.NewWriter(buf)
+	writer, err := zipWriter.Create("testfile")
+	require.NoError(t, err)
+
+	_, err = writer.Write([]byte(strings.Repeat("a", 100)))
+	require.NoError(t, err)
+
+	err = zipWriter.Close()
+	require.NoError(t, err)
+
+	zipReader, err := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+	require.NoError(t, err)
+
+	uploads := map[string]*zip.File{
+		"testfile": zipReader.File[0],
+	}
+
+	t.Run("Should not fail when file is in limits", func(t *testing.T) {
+		importer := New(store, Actions{
+			DoUploadFile: func(_ time.Time, _, _, _, _ string, _ []byte) (*model.FileInfo, *model.AppError) {
+				return &model.FileInfo{}, nil
+			},
+		}, config)
+		_, ok := importer.slackUploadFile(rctx, sf, uploads, "team-id", "channel-id", "user-id", time.Now().String())
+		require.True(t, ok)
+	})
+
+	t.Run("Should fail when file size exceeded", func(t *testing.T) {
+		defer func() {
+			config.FileSettings.MaxFileSize = model.NewPointer(defaultLimit)
+		}()
+
+		config.FileSettings.MaxFileSize = model.NewPointer(int64(10))
+
+		importer := New(store, Actions{}, config)
+		_, ok := importer.slackUploadFile(rctx, sf, uploads, "team-id", "channel-id", "user-id", time.Now().String())
+		require.False(t, ok)
 	})
 }

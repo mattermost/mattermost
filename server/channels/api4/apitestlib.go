@@ -78,7 +78,8 @@ func SetMainHelper(mh *testlib.MainHelper) {
 }
 
 func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
-	updateConfig func(*model.Config), options []app.Option) *TestHelper {
+	updateConfig func(*model.Config), options []app.Option,
+) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
@@ -95,13 +96,26 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	memoryConfig.SetDefaults()
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	memoryConfig.ServiceSettings.EnableLocalMode = model.NewBool(true)
+	memoryConfig.ServiceSettings.EnableLocalMode = model.NewPointer(true)
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
+	// Enabling Redis with Postgres.
+	if *memoryConfig.SqlSettings.DriverName == model.DatabaseDriverPostgres {
+		*memoryConfig.CacheSettings.CacheType = model.CacheTypeRedis
+		redisHost := "localhost"
+		if os.Getenv("IS_CI") == "true" {
+			redisHost = "redis"
+		}
+		*memoryConfig.CacheSettings.RedisAddress = redisHost + ":6379"
+		*memoryConfig.CacheSettings.DisableClientCache = true
+		*memoryConfig.CacheSettings.RedisDB = 0
+		*memoryConfig.CacheSettings.RedisCachePrefix = model.NewId()
+		options = append(options, app.ForceEnableRedis())
+	}
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
@@ -212,7 +226,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 }
 
 func getLicense(enterprise bool, cfg *model.Config) *model.License {
-	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+	if *cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService || *cfg.ConnectedWorkspacesSettings.EnableSharedChannels {
 		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
 	}
 	if enterprise {
@@ -299,8 +313,7 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	setupOptions := []app.Option{app.SkipProductsInitialization()}
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, setupOptions)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -314,8 +327,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	setupOptions := []app.Option{app.SkipProductsInitialization()}
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, setupOptions)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -329,8 +341,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
-	setupOptions := append(options, app.SkipProductsInitialization())
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, setupOptions)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -358,6 +369,25 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, nil, options)
+	th.InitLogin()
+	return th
+}
+
+func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+	searchEngine := mainHelper.GetSearchEngine()
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
 	th.InitLogin()
 	return th
 }
@@ -393,14 +423,16 @@ func closeBody(r *http.Response) {
 	}
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser   *model.User
-	SystemManagerUser *model.User
-	TeamAdminUser     *model.User
-	BasicUser         *model.User
-	BasicUser2        *model.User
-}
+var (
+	initBasicOnce sync.Once
+	userCache     struct {
+		SystemAdminUser   *model.User
+		SystemManagerUser *model.User
+		TeamAdminUser     *model.User
+		BasicUser         *model.User
+		BasicUser2        *model.User
+	}
+)
 
 func (th *TestHelper) InitLogin() *TestHelper {
 	th.waitForConnectivity()
@@ -488,9 +520,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) DeleteBots() *TestHelper {
-	preexistingBots, _ := th.App.GetBots(&model.BotGetOptions{Page: 0, PerPage: 100})
+	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		th.App.PermanentDeleteBot(bot.UserId)
+		th.App.PermanentDeleteBot(th.Context, bot.UserId)
 	}
 	return th
 }
@@ -527,16 +559,39 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 	}
 }
 
+func (th *TestHelper) createConnectedWebSocketClient(t *testing.T, client *model.Client4) *model.WebSocketClient {
+	t.Helper()
+	wsClient, err := th.CreateWebSocketClientWithClient(client)
+	require.NoError(t, err)
+	require.NotNil(t, wsClient, "webSocketClient should not be nil")
+	wsClient.Listen()
+	t.Cleanup(wsClient.Close)
+
+	// Ensure WS is connected. First event should be hello message.
+	select {
+	case ev := <-wsClient.EventChannel:
+		require.Equal(t, model.WebsocketEventHello, ev.EventType())
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "hello event was not received within the timeout period")
+	}
+
+	return wsClient
+}
+
+func (th *TestHelper) CreateConnectedWebSocketClient(t *testing.T) *model.WebSocketClient {
+	return th.createConnectedWebSocketClient(t, th.Client)
+}
+
+func (th *TestHelper) CreateConnectedWebSocketClientWithClient(t *testing.T, client *model.Client4) *model.WebSocketClient {
+	return th.createConnectedWebSocketClient(t, client)
+}
+
 func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken)
 }
 
 func (th *TestHelper) CreateReliableWebSocketClient(connID string, seqNo int) (*model.WebSocketClient, error) {
 	return model.NewReliableWebSocketClientWithDialer(websocket.DefaultDialer, fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken, connID, seqNo, true)
-}
-
-func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemAdminClient.AuthToken)
 }
 
 func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, error) {
@@ -624,6 +679,41 @@ func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
 		panic(err)
 	}
 	return user
+}
+
+// CreateGuestAndClient creates a guest user, adds them to the basic
+// team, basic channel and basic private channel, and generates an API
+// client ready to use
+func (th *TestHelper) CreateGuestAndClient() (*model.User, *model.Client4) {
+	id := model.NewId()
+
+	// create a guest user and add it to the basic team and public/private channels
+	guest, cgErr := th.App.CreateGuest(th.Context, &model.User{
+		Email:         "test_guest" + id + "@sample.com",
+		Username:      "guest_" + id,
+		Nickname:      "guest_" + id,
+		Password:      "Password1",
+		EmailVerified: true,
+	})
+	if cgErr != nil {
+		panic(cgErr)
+	}
+
+	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
+	if tErr != nil {
+		panic(tErr)
+	}
+	th.AddUserToChannel(guest, th.BasicChannel)
+	th.AddUserToChannel(guest, th.BasicPrivateChannel)
+
+	// create a client and login the guest
+	guestClient := th.CreateClient()
+	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
+	if lErr != nil {
+		panic(lErr)
+	}
+
+	return guest, guestClient
 }
 
 func (th *TestHelper) SetupLdapConfig() {
@@ -789,13 +879,12 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post, err := th.App.Srv().Store().Post().Save(&model.Post{
+	post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,
 		CreateAt:  createAtTime,
 	})
-
 	if err != nil {
 		panic(err)
 	}
@@ -810,6 +899,23 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 		panic(err)
 	}
 	return channel
+}
+
+func (th *TestHelper) PatchChannelModerationsForMembers(channelId, name string, val bool) {
+	patch := []*model.ChannelModerationPatch{{
+		Name:  &name,
+		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(val)},
+	}}
+
+	channel, err := th.App.GetChannel(th.Context, channelId)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = th.App.PatchChannelModerationsForChannel(th.Context, channel, patch)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (th *TestHelper) LoginBasic() {
@@ -913,10 +1019,10 @@ func (th *TestHelper) GenerateTestEmail() string {
 func (th *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
-		Name:        model.NewString("n-" + id),
+		Name:        model.NewPointer("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString("ri_" + model.NewId()),
+		RemoteId:    model.NewPointer("ri_" + model.NewId()),
 	}
 
 	group, err := th.App.CreateGroup(group)
@@ -1018,6 +1124,11 @@ func CheckCreatedStatus(tb testing.TB, resp *model.Response) {
 	checkHTTPStatus(tb, resp, http.StatusCreated)
 }
 
+func CheckNoContentStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusNoContent)
+}
+
 func CheckForbiddenStatus(tb testing.TB, resp *model.Response) {
 	tb.Helper()
 	checkHTTPStatus(tb, resp, http.StatusForbidden)
@@ -1036,6 +1147,11 @@ func CheckNotFoundStatus(tb testing.TB, resp *model.Response) {
 func CheckBadRequestStatus(tb testing.TB, resp *model.Response) {
 	tb.Helper()
 	checkHTTPStatus(tb, resp, http.StatusBadRequest)
+}
+
+func CheckUnprocessableEntityStatus(tb testing.TB, resp *model.Response) {
+	tb.Helper()
+	checkHTTPStatus(tb, resp, http.StatusUnprocessableEntity)
 }
 
 func CheckNotImplementedStatus(tb testing.TB, resp *model.Response) {

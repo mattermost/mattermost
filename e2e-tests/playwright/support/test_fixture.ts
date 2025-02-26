@@ -3,18 +3,26 @@ import {AxeResults} from 'axe-core';
 import AxeBuilder from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
-import {shouldHaveCallsEnabled, shouldHaveFeatureFlag, shouldRunInLinux, skipIfNoLicense} from './flag';
+import {
+    shouldHaveCallsEnabled,
+    shouldHaveFeatureFlag,
+    shouldRunInLinux,
+    ensureLicense,
+    skipIfNoLicense,
+    skipIfFeatureFlagNotSet,
+} from './flag';
 import {initSetup, getAdminClient} from './server';
 import {hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
-import {pages} from './ui/pages';
+import pages from './ui/pages';
 import {matchSnapshot} from './visual';
+import {stubNotification, waitForNotification} from './mock_browser_api';
+import {duration} from './util';
 
 export {expect} from '@playwright/test';
 
 type ExtendedFixtures = {
     axe: AxeBuilderExtended;
     pw: PlaywrightExtended;
-    pages: typeof pages;
 };
 
 type AxeBuilderOptions = {
@@ -28,26 +36,24 @@ export const test = base.extend<ExtendedFixtures>({
         const ab = new AxeBuilderExtended();
         await use(ab);
     },
-    pw: async ({browser}, use) => {
-        const pw = new PlaywrightExtended(browser);
+    pw: async ({browser, page, isMobile}, use) => {
+        const pw = new PlaywrightExtended(browser, page, isMobile);
         await use(pw);
         await pw.testBrowser.close();
-    },
-    // eslint-disable-next-line no-empty-pattern
-    pages: async ({}, use) => {
-        await use(pages);
     },
 });
 
 class PlaywrightExtended {
     // ./browser_context
-    readonly testBrowser: TestBrowser;
+    readonly testBrowser;
 
     // ./flag
     readonly shouldHaveCallsEnabled;
     readonly shouldHaveFeatureFlag;
     readonly shouldRunInLinux;
+    readonly ensureLicense;
     readonly skipIfNoLicense;
+    readonly skipIfFeatureFlagNotSet;
 
     // ./server
     readonly getAdminClient;
@@ -58,13 +64,22 @@ class PlaywrightExtended {
     readonly waitForAnimationEnd;
     readonly waitUntil;
 
-    // ./ui/pages
-    readonly pages;
+    // unauthenticated page
+    readonly loginPage;
+    readonly landingLoginPage;
+    readonly signupPage;
+    readonly resetPasswordPage;
 
     // ./visual
     readonly matchSnapshot;
 
-    constructor(browser: Browser) {
+    // ./mock_browser_api
+    readonly stubNotification;
+    readonly waitForNotification;
+
+    readonly hasSeenLandingPage;
+
+    constructor(browser: Browser, page: Page, isMobile: boolean) {
         // ./browser_context
         this.testBrowser = new TestBrowser(browser);
 
@@ -72,7 +87,9 @@ class PlaywrightExtended {
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
         this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldRunInLinux = shouldRunInLinux;
+        this.ensureLicense = ensureLicense;
         this.skipIfNoLicense = skipIfNoLicense;
+        this.skipIfFeatureFlagNotSet = skipIfFeatureFlagNotSet;
 
         // ./server
         this.initSetup = initSetup;
@@ -83,11 +100,24 @@ class PlaywrightExtended {
         this.waitForAnimationEnd = waitForAnimationEnd;
         this.waitUntil = waitUntil;
 
-        // ./ui/pages
-        this.pages = pages;
+        // unauthenticated page
+        this.loginPage = new pages.LoginPage(page);
+        this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
+        this.signupPage = new pages.SignupPage(page);
+        this.resetPasswordPage = new pages.ResetPasswordPage(page);
 
         // ./visual
         this.matchSnapshot = matchSnapshot;
+
+        // ./mock_browser_api
+        this.stubNotification = stubNotification;
+        this.waitForNotification = waitForNotification;
+
+        this.hasSeenLandingPage = async () => {
+            // Visit the base URL to be able to set the localStorage
+            await page.goto('/');
+            return await waitUntilLocalStorageIsSet(page, '__landingPageSeen__', 'true');
+        };
     }
 }
 
@@ -130,4 +160,21 @@ class AxeBuilderExtended {
 
         return JSON.stringify(fingerprints, null, 2);
     }
+}
+
+async function waitUntilLocalStorageIsSet(page: Page, key: string, value: string, timeout = duration.ten_sec) {
+    await waitUntil(
+        () =>
+            page.evaluate(
+                ({key, value}) => {
+                    if (localStorage.getItem(key) === value) {
+                        return true;
+                    }
+                    localStorage.setItem(key, value);
+                    return false;
+                },
+                {key, value},
+            ),
+        {timeout},
+    );
 }

@@ -16,10 +16,10 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
-	"github.com/mattermost/mattermost/server/v8/platform/services/configservice"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
@@ -29,7 +29,7 @@ type AppIface interface {
 	FileExists(path string) (bool, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
+	BulkImportWithPath(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (*model.AppError, int)
 	Log() *mlog.Logger
 }
 
@@ -55,7 +55,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			// We simply read the file from the local filesystem.
 			info, err := os.Stat(importFileName)
 			if errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("file %s doesn't exist.", importFile)
+				return fmt.Errorf("file %s doesn't exist.", importFileName)
 			}
 
 			importFileSize = info.Size()
@@ -123,8 +123,9 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_jsonl", nil, "jsonFile was nil", http.StatusBadRequest)
 		}
 
+		extractContent := job.Data["extract_content"] == "true"
 		// do the actual import.
-		appErr, lineNumber := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, runtime.NumCPU(), model.ExportDataDir)
+		appErr, lineNumber := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, runtime.NumCPU(), model.ExportDataDir)
 		if appErr != nil {
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr

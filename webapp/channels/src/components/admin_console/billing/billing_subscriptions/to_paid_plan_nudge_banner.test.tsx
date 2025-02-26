@@ -6,7 +6,7 @@ import React from 'react';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 
-import {ToPaidNudgeBanner, ToPaidPlanBannerDismissable} from './to_paid_plan_nudge_banner';
+import {ToPaidPlanBannerDismissable} from './to_paid_plan_nudge_banner';
 
 const initialState = {
     views: {
@@ -20,7 +20,6 @@ const initialState = {
         general: {
             config: {
                 CWSURL: '',
-                FeatureFlagDeprecateCloudFree: 'true',
             },
             license: {
                 IsLicensed: 'true',
@@ -169,70 +168,5 @@ describe('ToPaidPlanBannerDismissable', () => {
         renderWithContext(<ToPaidPlanBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-free-deprecation-announcement-bar')).toThrow();
-    });
-});
-
-describe('ToPaidNudgeBanner', () => {
-    test('should show only for cloud free', () => {
-        const state = JSON.parse(JSON.stringify(initialState));
-        state.entities.cloud = {
-            subscription: {
-                product_id: 'prod_starter',
-                is_free_trial: 'false',
-                trial_end_at: 1,
-            },
-            products: {
-                prod_starter: {
-                    id: 'prod_starter',
-                    sku: CloudProducts.STARTER,
-                },
-            },
-        };
-
-        renderWithContext(<ToPaidNudgeBanner/>, state, {useMockedStore: true});
-
-        screen.getByTestId('cloud-free-deprecation-alert-banner');
-    });
-
-    test('should NOT show for cloud professional', () => {
-        const state = JSON.parse(JSON.stringify(initialState));
-        state.entities.cloud = {
-            subscription: {
-                product_id: 'prod_pro',
-                is_free_trial: 'false',
-                trial_end_at: 1,
-            },
-            products: {
-                prod_pro: {
-                    id: 'prod_pro',
-                    sku: CloudProducts.PROFESSIONAL,
-                },
-            },
-        };
-
-        renderWithContext(<ToPaidNudgeBanner/>, state, {useMockedStore: true});
-
-        expect(() => screen.getByTestId('cloud-free-deprecation-alert-banner')).toThrow();
-    });
-
-    test('should NOT show for cloud enterprise', () => {
-        const state = JSON.parse(JSON.stringify(initialState));
-        state.entities.cloud = {
-            subscription: {
-                product_id: 'prod_ent',
-                is_free_trial: 'false',
-                trial_end_at: 1,
-            },
-            products: {
-                prod_ent: {
-                    id: 'prod_ent',
-                    sku: CloudProducts.ENTERPRISE,
-                },
-            },
-        };
-
-        renderWithContext(<ToPaidNudgeBanner/>, state, {useMockedStore: true});
-
-        expect(() => screen.getByTestId('cloud-free-deprecation-alert-banner')).toThrow();
     });
 });

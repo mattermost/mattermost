@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import {CloseIcon} from '@mattermost/compass-icons/components';
+import {useIntl} from 'react-intl';
 import './modal_header.scss';
 
 type Props = {
@@ -14,12 +13,12 @@ type Props = {
 }
 
 function ModalHeader({id, title, subtitle, handleClose}: Props) {
+    const intl = useIntl();
     return (
         <header className='mm-modal-header'>
             <h1
                 id={`mm-modal-header-${id}`}
                 className='mm-modal-header__title'
-                tabIndex={0}
             >
                 {title}
             </h1>
@@ -29,11 +28,11 @@ function ModalHeader({id, title, subtitle, handleClose}: Props) {
                 className='mm-modal-header__ctr'
                 onClick={handleClose}
             >
-                <button className='style--none mm-modal-header__close-btn'>
-                    <CloseIcon
-                        size={24}
-                        color={'currentcolor'}
-                    />
+                <button
+                    className='btn btn-icon'
+                    aria-label={intl.formatMessage({id: 'modal.header_close', defaultMessage: 'Close'})}
+                >
+                    <i className='icon icon-close'/>
                 </button>
             </div>
         </header>

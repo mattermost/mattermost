@@ -50,6 +50,10 @@ func (a *App) SetStatusOutOfOffice(userID string) {
 	a.Srv().Platform().SetStatusOutOfOffice(userID)
 }
 
+func (a *App) SaveAndBroadcastStatus(status *model.Status) {
+	a.Srv().Platform().SaveAndBroadcastStatus(status)
+}
+
 func (a *App) GetStatusFromCache(userID string) *model.Status {
 	return a.Srv().Platform().GetStatusFromCache(userID)
 }
@@ -66,9 +70,14 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 		return
 	}
+
+	scs, _ := a.getSharedChannelsService()
 	for i := range statuses {
 		a.Srv().Platform().AddStatusCache(statuses[i])
 		a.Srv().Platform().BroadcastStatus(statuses[i])
+		if scs != nil {
+			scs.NotifyUserStatusChanged(statuses[i])
+		}
 	}
 }
 
@@ -80,7 +89,7 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 	// Ensure the emoji exists before saving the custom status even if it's deleted afterwards
 	if cs.Emoji != "" {
 		if err := a.confirmEmojiExists(c, cs.Emoji); err != nil {
-			return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.emoji_not_found", nil, err.Error(), http.StatusBadRequest)
+			return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.emoji_not_found", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -89,13 +98,15 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 		return err
 	}
 
-	user.SetCustomStatus(cs)
+	if err := user.SetCustomStatus(cs); err != nil {
+		c.Logger().Error("Failed to set custom status", mlog.String("userID", userID), mlog.Err(err))
+	}
 	_, updateErr := a.UpdateUser(c, user, true)
 	if updateErr != nil {
 		return updateErr
 	}
 
-	if err := a.addRecentCustomStatus(c, userID, cs); err != nil {
+	if err = a.addRecentCustomStatus(c, userID, cs); err != nil {
 		c.Logger().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
 	}
 

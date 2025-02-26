@@ -67,17 +67,16 @@ describe('Custom Theme - Sidebar Styles', () => {
 
     it('MM-T3853_2 Should observe color change in Settings modal before saving', () => {
         // * Check Sidebar BG color change
-        cy.get('.settings-links').should('have.css', 'background-color', rgbArrayToString(themeRgbColor.sidebarBg));
+        cy.get('.settings-links').should('have.css', 'background-color', 'rgba(63, 67, 80, 0.04)');
 
         // * Check Sidebar Text color change
-        const rgbArr = themeRgbColor.sidebarText;
-        cy.get('#displayButton').should('have.css', 'color', `rgba(${rgbArr[0]}, ${rgbArr[1]}, ${rgbArr[2]}, 0.6)`);
+        cy.get('#displayButton').should('have.css', 'color', 'rgb(28, 88, 217)');
 
         // * Check Sidebar Header BG color change
-        cy.get('#accountSettingsHeader').should('have.css', 'background', `${rgbArrayToString(themeRgbColor.sidebarHeaderBg)} none repeat scroll 0% 0% / auto padding-box border-box`);
+        cy.get('#accountSettingsHeader').should('have.css', 'background', 'rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box');
 
         // * Check Sidebar Header Text color change
-        cy.get('#accountSettingsModalLabel').should('have.css', 'color', rgbArrayToString(themeRgbColor.sidebarHeaderTextColor));
+        cy.get('#accountSettingsModalLabel').should('have.css', 'color', 'rgb(63, 67, 80)');
 
         cy.uiSaveAndClose();
     });
@@ -93,18 +92,18 @@ describe('Custom Theme - Sidebar Styles', () => {
         cy.uiOpenUserMenu('Online');
 
         // * Check Online Indicator color
-        cy.get('.icon-check-circle').should('have.css', 'color', rgbArrayToString(themeRgbColor.onlineIndicator));
+        cy.uiGetSetStatusButton().find('svg').should('have.css', 'color', rgbArrayToString(themeRgbColor.onlineIndicator));
 
         // # Set user status to away
         cy.uiOpenUserMenu('Away');
 
         // * Check Away Indicator color
-        cy.get('.icon-clock').should('have.css', 'color', rgbArrayToString(themeRgbColor.awayIndicator));
+        cy.uiGetSetStatusButton().find('svg').should('have.css', 'color', rgbArrayToString(themeRgbColor.awayIndicator));
 
         // # Set user status to do not disturb
-        cy.uiOpenDndStatusSubMenu().find('#dndTime-thirty_minutes_menuitem').click();
+        cy.uiOpenDndStatusSubMenuAndClick30Mins();
 
         // * Check Do Not Disturb Indicator color
-        cy.get('.icon-minus-circle').should('have.css', 'color', rgbArrayToString(themeRgbColor.dndIndicator));
+        cy.uiGetSetStatusButton().find('svg').should('have.css', 'color', rgbArrayToString(themeRgbColor.dndIndicator));
     });
 });

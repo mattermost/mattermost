@@ -20,47 +20,27 @@ describe('Notifications', () => {
     });
 
     it('MM-T5458 Notification sound modal selection should reset when settings canceled', () => {
-        // # Call function that clicks on Settings -> Notifications -> Desktop Notifications -> Notification sound -> Change sound -> Cancel -> Desktop Notifications
-        openSettingsAndChangeNotification();
-    });
-
-    function openSettingsAndChangeNotification() {
         // # Open 'Settings' modal
-        cy.uiOpenSettingsModal().within(() => {
-            // # Navigate to Desktop Notification Settings
-            navigateToDesktopNotificationSettings();
+        cy.uiOpenSettingsModal();
 
-            // # Change Notification selection
-            setNotificationSound();
+        // # Navigate to Desktop Notification Settings
+        cy.get('#desktopNotificationSoundEdit').should('be.visible').click();
 
-            // # Click Cancel button
-            cy.uiCancelButton().click();
+        // # Change Notification selection
+        cy.get('#messageNotificationSoundSelect').click();
 
-            // # Navigate to Desktop Notification Settings
-            navigateToDesktopNotificationSettings();
-            cy.uiClose();
-        });
-    }
-
-    function setNotificationSound() {
-        // # Change Notification sound selection value is set to Down
-        cy.get('#displaySoundNotification').click();
+        // # Select 'Bing' sound
         cy.findByText('Down').click();
 
-        // * Verify Notification display changed to Down
-        verifyNotificationSelectionValue('Down');
-    }
+        // # Click Cancel button to close the settings
+        cy.uiCancelButton().click();
 
-    function navigateToDesktopNotificationSettings() {
-        // # Click on the 'Edit' button next to Desktop Notifications
-        cy.get('#desktopEdit').should('be.visible').click();
+        // # Click on the 'Edit' button next to Desktop sound notification again
+        cy.get('#desktopNotificationSoundEdit').should('be.visible').click();
 
-        // * Verify that the Notification sound is set to Bing
-        verifyNotificationSelectionValue('Bing');
-    }
+        // * Verify that the Notification sound is set to Bing as we canceled the settings
+        cy.findByText('Bing').should('be.visible');
 
-    function verifyNotificationSelectionValue(value) {
-        // * Verify that the Notification sound is set to certain value
-        cy.get('#displaySoundNotification').findByTestId('displaySoundNotificationValue').should('contain', value);
-    }
+        cy.uiClose();
+    });
 });

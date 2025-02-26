@@ -4,7 +4,7 @@
 import type {ChartData} from 'chart.js';
 import Chart from 'chart.js/auto';
 import deepEqual from 'fast-deep-equal';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 type Props = {
@@ -12,78 +12,70 @@ type Props = {
     width: number;
     height: number;
     data?: ChartData;
-}
+};
 
-export default class DoughnutChart extends React.PureComponent<Props> {
-    private canvasRef = React.createRef<HTMLCanvasElement>();
+const DoughnutChart: React.FC<Props> = ({title, width, height, data}) => {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const chartRef = useRef<Chart<'doughnut'> | null>(null);
 
-    public chart: Chart<'doughnut'> | null = null;
-
-    public componentDidMount(): void {
-        this.initChart();
-    }
-
-    public componentDidUpdate(prevProps: Props): void {
-        if (!deepEqual(prevProps.data, this.props.data)) {
-            this.initChart(true);
-        }
-    }
-
-    public componentWillUnmount(): void {
-        if (this.chart && this.canvasRef.current) {
-            this.chart.destroy();
-        }
-    }
-
-    public initChart = (update?: boolean): void => {
-        if (typeof this.props.data === 'undefined') {
+    useEffect(() => {
+        if (!canvasRef.current || !data) {
             return;
         }
 
-        if (!this.canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+
+        if (!ctx) {
             return;
         }
 
-        const ctx = this.canvasRef.current.getContext('2d') as CanvasRenderingContext2D;
-        const dataCopy = JSON.parse(JSON.stringify(this.props.data));
-
-        if (update) {
-            this.chart?.update();
+        if (chartRef.current) {
+            if (!deepEqual(chartRef.current.data, data)) {
+                chartRef.current.data = JSON.parse(JSON.stringify(data));
+                chartRef.current.update();
+            }
         } else {
-            this.chart = new Chart(ctx, {type: 'doughnut', data: dataCopy, options: {}});
+            chartRef.current = new Chart(ctx, {
+                type: 'doughnut',
+                data: JSON.parse(JSON.stringify(data)),
+                options: {},
+            });
         }
-    };
+    }, [data]);
 
-    public render(): JSX.Element {
-        let content;
-        if (typeof this.props.data === 'undefined') {
-            content = (
-                <FormattedMessage
-                    id='analytics.chart.loading'
-                    defaultMessage='Loading...'
-                />
-            );
-        } else {
-            content = (
-                <canvas
-                    ref={this.canvasRef}
-                    width={this.props.width}
-                    height={this.props.height}
-                />
-            );
-        }
+    useEffect(() => {
+        return () => {
+            chartRef.current?.destroy();
+            chartRef.current = null;
+        };
+    }, []);
 
-        return (
-            <div className='col-sm-6'>
-                <div className='total-count'>
-                    <div className='title'>
-                        {this.props.title}
-                    </div>
-                    <div className='content'>
-                        {content}
-                    </div>
-                </div>
-            </div>
+    let content;
+    if (typeof data == 'undefined') {
+        content = (
+            <FormattedMessage
+                id='analytics.chart.loading'
+                defaultMessage='Loading...'
+            />
+        );
+    } else {
+        content = (
+            <canvas
+                ref={canvasRef}
+                width={width}
+                height={height}
+            />
         );
     }
-}
+
+    return (
+        <div className='col-sm-6'>
+            <div className='total-count'>
+                <div className='title'>{title}</div>
+                <div className='content'>{content}</div>
+            </div>
+        </div>
+    );
+};
+
+export default DoughnutChart;

@@ -1,4 +1,8 @@
-@charset "utf-8";
+@use "utils/functions";
+@use "utils/mixins";
+@use "utils/variables";
+
+@use 'sass:color';
 
 .browser--ie {
     .modal {
@@ -41,17 +45,23 @@
 
 .app__body {
     .modal {
+        z-index: variables.$z-index-modal;
         color: rgb(var(--center-channel-color-rgb));
 
         .modal-content {
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border: var(--border-default);
+            border-radius: var(--radius-l);
             background: var(--center-channel-bg);
-            border-radius: 12px;
         }
     }
 
     .edit-modal-body {
         overflow: visible;
+
+        .textarea-label {
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
 
         .custom-textarea {
             height: auto;
@@ -91,7 +101,7 @@
                 margin-bottom: 0;
                 font-size: 0.85em;
                 font-weight: normal;
-                opacity: 0.55;
+                opacity: 0.75;
             }
         }
     }
@@ -113,11 +123,10 @@
 }
 
 .modal__error {
+    display: inline-block;
     margin-top: 6px;
-    color: $red;
-    float: left;
+    color: variables.$red;
     font-size: 0.95em;
-    font-weight: normal;
 }
 
 .more-table {
@@ -127,7 +136,7 @@
 
 .modal {
     width: 100%;
-    color: v(center-channel-color);
+    color: functions.v(center-channel-color);
 
     .modal--overflow {
         .modal-body {
@@ -148,7 +157,7 @@
         grid-row-gap: 8px;
 
         &.divider {
-            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            border-top: var(--border-light);
         }
 
         &.modal-footer--invisible {
@@ -162,6 +171,10 @@
             float: left;
             font-weight: bold;
             text-align: left;
+        }
+
+        & .btn + .btn {
+            margin-left: 8px;
         }
     }
 
@@ -183,7 +196,7 @@
         margin-bottom: 3px;
         font-size: 0.9em;
         font-weight: 600;
-        opacity: 0.5;
+        opacity: 0.75;
     }
 
     .info__value {
@@ -207,7 +220,7 @@
         line-height: 0;
 
         &:hover {
-            color: $red;
+            color: variables.$red;
         }
     }
 
@@ -251,19 +264,22 @@
     .modal-header {
         display: flex;
         min-height: 76px;
-        align-items: center;
         justify-content: space-between;
         padding: 16px 64px 16px 32px;
         border: none;
         background: transparent;
 
         &.divider {
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            border-bottom: var(--border-light);
         }
 
         &::before,
         &::after {
             content: none;
+        }
+
+        .modal-header-back-button {
+            margin-left: -12px;
         }
 
         .btn {
@@ -277,8 +293,8 @@
             right: 18px;
             width: 40px;
             height: 40px;
-            border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            border-radius: var(--radius-s);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 30px;
             font-weight: 400;
             opacity: 1;
@@ -290,28 +306,30 @@
 
             &:hover {
                 background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.8);
             }
 
             &:active {
                 background: rgba(var(--button-bg-rgb), 0.08);
-                color: v(button-bg);
+                color: functions.v(button-bg);
             }
 
             .modal-title {
                 width: 100%;
                 background: transparent;
-                color: v(center-channel-color);
+                color: functions.v(center-channel-color);
                 font-size: 22px;
                 line-height: 28px;
             }
         }
 
         .modal-title {
+            width: 100%;
             background: transparent;
-            color: v(center-channel-color);
+            color: functions.v(center-channel-color);
             font-size: 22px;
             line-height: 28px;
+            word-break: break-word;
         }
     }
 
@@ -326,9 +344,9 @@
     }
 
     .modal-content {
-        border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
+        border: var(--border-default);
+        border-radius: var(--radius-l);
         background: var(--sys-center-channel-bg);
-        border-radius: 12px;
     }
 
     .modal-chevron-icon {
@@ -351,7 +369,7 @@
         margin: 0 auto;
 
         .modal-body {
-            @include clearfix;
+            @include mixins.clearfix;
 
             display: table;
             width: 100%;
@@ -461,8 +479,8 @@
                 width: auto;
                 height: auto;
                 max-height: 85vh;
-                margin: 0 auto;
                 border-radius: 8px;
+                margin: 0 auto;
             }
 
             video {
@@ -536,7 +554,7 @@
             height: 100%;
             padding: 0;
             border: none;
-            background: alpha-color($black, 0);
+            background: functions.alpha-color(variables.$black, 0);
             box-shadow: none;
         }
 
@@ -553,7 +571,7 @@
             display: block;
             height: 20px;
             margin-top: 12px;
-            color: alpha-color($white, 0.8);
+            color: functions.alpha-color(variables.$white, 0.8);
         }
 
         .modal-button-bar {
@@ -562,7 +580,7 @@
             max-width: 100%;
             justify-content: center;
             padding: 0 10px;
-            background-color: $black;
+            background-color: variables.$black;
             line-height: 40px;
 
             .modal-bar-file-count {
@@ -576,7 +594,7 @@
             .text {
                 bottom: 0;
                 margin-left: 5px;
-                color: $white;
+                color: variables.$white;
                 vertical-align: middle;
             }
 
@@ -643,8 +661,8 @@
         flex: 32px 0 0;
         align-items: center;
         justify-content: center;
-        background: rgba(var(--center-channel-color-rgb), 0.2);
         border-radius: 50%;
+        background: rgba(var(--center-channel-color-rgb), 0.2);
     }
 
     .user-list {
@@ -754,8 +772,8 @@
         max-width: none;
         flex-grow: 0;
         flex-shrink: 0;
-        margin-top: 2px;
         border-radius: 60px;
+        margin-top: 2px;
     }
 
     .more-modal__details {
@@ -771,7 +789,7 @@
             height: 16px;
             margin-top: 0;
             margin-left: 8px;
-            color: rgba(61, 60, 64, 0.72);
+            color: rgba(61, 60, 64, 0.75);
             font-size: 16px;
             line-height: 16px;
 
@@ -792,12 +810,12 @@
 
             .more-modal__name_sub {
                 font-weight: 500;
-                opacity: 0.5;
+                opacity: 0.75;
             }
 
             .more-modal__name_count {
                 font-weight: 400;
-                opacity: 0.6;
+                opacity: 0.75;
             }
 
             svg {
@@ -852,7 +870,7 @@
         min-height: 65px;
         align-items: center;
         padding: 10px 32px;
-        border-top: 1px solid $light-gray;
+        border-top: 1px solid variables.$light-gray;
 
         &.clickable {
             cursor: pointer;
@@ -881,7 +899,7 @@
         }
 
         .more-modal__shared-actions {
-            color: rgba(61, 60, 64, 0.72);
+            color: rgba(61, 60, 64, 0.75);
 
             .shared-user-icon {
                 width: 16px;
@@ -920,8 +938,9 @@
         display: none;
         width: 32px;
         height: 32px;
-        line-height: 32px;
-        opacity: 0.5;
+        padding: 0;
+        border: none;
+        opacity: 0.75;
         text-align: center;
     }
 
@@ -990,7 +1009,7 @@
 
     .filter-controls {
         padding: 24px 32px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-top: var(--border-default);
 
         .filter-control__next {
             float: right;
@@ -1009,7 +1028,7 @@
 
         .team-name {
             padding-left: 5px;
-            color: $gray;
+            color: variables.$gray;
         }
 
         .icon__lock,
@@ -1026,7 +1045,7 @@
         }
 
         .more-modal__row--selected {
-            background-color: lighten($primary-color, 40%);
+            background-color: color.adjust(variables.$primary-color, $lightness: 40%);
 
             .more-modal__actions--round {
                 display: block;
@@ -1036,7 +1055,7 @@
         .no-channel-message {
             width: 100%;
             margin-top: 40px;
-            color: $gray;
+            color: variables.$gray;
             font-size: 1.25em;
             text-align: center;
         }
@@ -1049,7 +1068,7 @@
     .filter-control {
         border: none;
         background: none;
-        color: $primary-color;
+        color: variables.$primary-color;
 
         &:hover,
         &:focus,
@@ -1057,7 +1076,7 @@
             border: none;
             background: none;
             box-shadow: none;
-            color: $primary-color;
+            color: variables.$primary-color;
         }
     }
 }

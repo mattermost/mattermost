@@ -1,4 +1,4 @@
-@charset "UTF-8";
+@use "utils/functions";
 
 .modal {
     .channel-switcher,
@@ -8,6 +8,7 @@
         }
 
         .modal-header {
+            padding-top: 26px;
             padding-right: 32px;
             padding-left: 32px;
         }
@@ -34,6 +35,11 @@
         height: 362px;
         padding: 0;
 
+        .input-wrapper {
+            position: inherit !important;
+            height: 42px;
+        }
+
         .icon-magnify {
             position: absolute;
             top: 1.1rem;
@@ -49,12 +55,12 @@
             width: calc(100% - 64px);
             height: 40px;
             padding: 0 34px;
-            margin: 0 32px;
             border-radius: 4px;
+            margin: 2px 32px;
 
             &:focus {
                 padding: 0 33px;
-                border: 1px solid v(button-bg);
+                border: 1px solid functions.v(button-bg);
             }
         }
 
@@ -130,15 +136,11 @@ body.app__body {
             .modal-header {
                 .close {
                     // This rule needs to be very specific to override the colour of the close button used for other modals
-                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
 
                     &:hover {
-                        background-color:
-                            rgba(
-                                var(--center-channel-color-rgb),
-                                0.08
-                            );
-                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                        color: rgba(var(--center-channel-color-rgb), 0.8);
                     }
 
                     &:active {
@@ -156,7 +158,7 @@ body:not(.app__body) {
     .channel-switcher,
     .channel-invite {
         .close {
-            color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+            color: rgba(var(--sys-center-channel-color-rgb), 0.75);
 
             &:hover {
                 background-color:
@@ -164,7 +166,7 @@ body:not(.app__body) {
                         var(--sys-center-channel-color-rgb),
                         0.08
                     );
-                color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+                color: rgba(var(--sys-center-channel-color-rgb), 0.75);
             }
 
             &:active {
@@ -176,12 +178,13 @@ body:not(.app__body) {
 }
 
 .channel-switcher__hint {
+    color: rgb(var(--center-channel-color-rgb));
     font-size: 12px;
 }
 
 .channel-switcher__header,
 .channel-invite__header {
-    h1 {
+    h2 {
         margin: 0 0 0.8rem;
         font-size: 2rem;
         font-weight: 600;

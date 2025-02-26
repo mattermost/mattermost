@@ -5,6 +5,7 @@ import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
+import {isRecordOf} from '@mattermost/types/utilities';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
 
@@ -36,6 +37,28 @@ export type ChannelNamesMap = {
         team_name?: string;
     } | string;
 };
+
+export function isChannelNamesMap(v: unknown): v is ChannelNamesMap {
+    return isRecordOf(v, (e) => {
+        if (typeof e === 'string') {
+            return true;
+        }
+
+        if (typeof e !== 'object' || !e) {
+            return false;
+        }
+
+        if (!('display_name' in e) || typeof e.display_name !== 'string') {
+            return false;
+        }
+
+        if ('team_name' in e && typeof e.team_name !== 'string') {
+            return false;
+        }
+
+        return true;
+    });
+}
 
 export type SearchPattern = {
     pattern: RegExp;
@@ -252,9 +275,10 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
 * Hangul Compatibility Jamo: \u3130-\u318f
 * Cyrillic characters: \u0400-\u04ff, \u0500-\u052f
 * Additional CJK and Hangul compatibility characters: \u2de0-\u2dff
+* Thai characters: \u0e00-\u0e7f
 **/
 // eslint-disable-next-line no-misleading-character-class
-export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff]/;
+export const cjkrPattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f\u0400-\u04ff\u0500-\u052f\u2de0-\u2dff\u0e00-\u0e7f]/;
 
 export function formatText(
     text: string,
@@ -541,7 +565,7 @@ export function autolinkChannelMentions(
     team?: Team,
 ) {
     function channelMentionExists(c: string) {
-        return channelNamesMap.hasOwnProperty(c);
+        return Object.hasOwn(channelNamesMap, c);
     }
     function addToken(channelName: string, teamName: string, mention: string, displayName: string) {
         const index = tokens.size;

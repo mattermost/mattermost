@@ -45,7 +45,7 @@ const initialState: DeepPartial<GlobalState> = {
                 },
             },
             channelsInTeam: {
-                'team-id': ['current_channel_id'],
+                'team-id': new Set(['current_channel_id']),
             },
             messageCounts: {
                 current_channel_id: {total: 10},
@@ -159,7 +159,7 @@ describe('channel_info_rhs/about_area_gm', () => {
             initialState,
         );
 
-        expect(screen.getByLabelText('my username')).toBeInTheDocument();
+        expect(screen.getByText('my username')).toBeInTheDocument();
     });
 
     test('should display channel header', () => {

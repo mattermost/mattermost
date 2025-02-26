@@ -61,7 +61,7 @@ describe('Archived channels', () => {
         cy.visit(`/admin_console/user_management/channels/${testChannel.id}`);
 
         // * Verify the Unarchive Channel button is visible
-        cy.get('button.ArchiveButton', {timeout: TIMEOUTS.ONE_MIN}).findByText('Unarchive Channel').should('be.visible');
+        cy.get('button.btn-secondary', {timeout: TIMEOUTS.TWO_SEC}).should('have.text', 'Unarchive Channel').should('be.visible').should('be.enabled');
 
         // * Verify that only one widget is visible
         cy.get('div.AdminPanel').should('be.visible').and('have.length', 1);
@@ -72,10 +72,10 @@ describe('Archived channels', () => {
         cy.visit(`/admin_console/user_management/channels/${testChannel.id}`);
 
         // # Click Unarchive Channel button
-        cy.get('button.ArchiveButton', {timeout: TIMEOUTS.ONE_MIN}).findAllByText('Unarchive Channel').click();
+        cy.get('button.btn-secondary', {timeout: TIMEOUTS.TWO_SEC}).findAllByText('Unarchive Channel').click();
 
         // * Verify the Archive Channel button is visible
-        cy.get('button.ArchiveButton', {timeout: TIMEOUTS.TWO_SEC}).findAllByText('Archive Channel').should('be.visible');
+        cy.get('button.btn-secondary.btn-danger', {timeout: TIMEOUTS.TWO_SEC}).findAllByText('Archive Channel').should('be.visible');
 
         // * Verify that the other widget appears
         cy.get('div.AdminPanel').should('be.visible').should('have.length', 5);

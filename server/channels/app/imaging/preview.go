@@ -9,7 +9,7 @@ import (
 	"image"
 	"image/jpeg"
 
-	"github.com/disintegration/imaging"
+	"github.com/anthonynsimon/bild/transform"
 )
 
 // GeneratePreview generates the preview for the given image.
@@ -18,7 +18,7 @@ func GeneratePreview(img image.Image, width int) image.Image {
 	w := img.Bounds().Dx()
 
 	if w > width {
-		preview = imaging.Resize(img, width, 0, imaging.Lanczos)
+		preview = Resize(img, width, 0, transform.Lanczos)
 	}
 
 	return preview
@@ -26,38 +26,21 @@ func GeneratePreview(img image.Image, width int) image.Image {
 
 // GenerateThumbnail generates the thumbnail for the given image.
 func GenerateThumbnail(img image.Image, targetWidth, targetHeight int) image.Image {
-	thumb := img
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
-	expectedRatio := float64(targetHeight) / float64(targetWidth)
 
-	// If both dimensions are over the target size, we scale down until one is not.
-	// If one dimension is over the target size, we scale down until both are not.
-	// If neither dimension is over the target size, we return the image as is.
-	if height > targetHeight || width > targetWidth {
-		ratio := float64(height) / float64(width)
-		if ratio < expectedRatio {
-			if height >= targetHeight {
-				thumb = imaging.Resize(img, 0, targetHeight, imaging.Lanczos)
-			} else {
-				thumb = imaging.Resize(img, targetWidth, 0, imaging.Lanczos)
-			}
-		} else {
-			if width >= targetWidth {
-				thumb = imaging.Resize(img, targetWidth, 0, imaging.Lanczos)
-			} else {
-				thumb = imaging.Resize(img, 0, targetHeight, imaging.Lanczos)
-			}
-		}
+	// We keep aspect ratio and ensure the output dimensions are never higher than the provided targets.
+	if width > height {
+		return Resize(img, targetWidth, 0, transform.Lanczos)
 	}
 
-	return thumb
+	return Resize(img, 0, targetHeight, transform.Lanczos)
 }
 
 // GenerateMiniPreviewImage generates the mini preview for the given image.
 func GenerateMiniPreviewImage(img image.Image, w, h, q int) ([]byte, error) {
 	var buf bytes.Buffer
-	preview := imaging.Resize(img, w, h, imaging.Lanczos)
+	preview := Resize(img, w, h, transform.Lanczos)
 	if err := jpeg.Encode(&buf, preview, &jpeg.Options{Quality: q}); err != nil {
 		return nil, fmt.Errorf("failed to encode image to JPEG format: %w", err)
 	}

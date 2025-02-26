@@ -27,7 +27,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
           class="emoji-picker__search"
           data-testid="emojiInputSearch"
           id="emojiPickerSearch"
-          placeholder="Search Emoji"
+          placeholder="Search emojis"
           type="text"
           value=""
         />
@@ -38,103 +38,105 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
       class="emoji-picker__categories"
       id="emojiPickerCategories"
     >
-      <a
-        aria-label="emoji_picker.smileys-emotion"
-        class="emoji-picker__category emoji-picker__category--selected"
-        href="#"
+      <button
+        aria-label="Smileys & Emotion"
+        aria-pressed="true"
+        class="style--none emoji-picker__category emoji-picker__category--selected"
       >
         <i
           class="icon-emoticon-happy-outline"
         />
-      </a>
-      <a
-        aria-label="emoji_picker.people-body"
-        class="emoji-picker__category"
-        href="#"
+      </button>
+      <button
+        aria-label="People & Body"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-account-outline"
         />
-      </a>
-      <a
-        aria-label="emoji_picker.animals-nature"
-        class="emoji-picker__category"
-        href="#"
+      </button>
+      <button
+        aria-label="Animals & Nature"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-leaf-outline"
         />
-      </a>
-      <a
-        aria-label="emoji_picker.food-drink"
-        class="emoji-picker__category"
-        href="#"
+      </button>
+      <button
+        aria-label="Food & Drink"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-food-apple"
         />
-      </a>
-      <a
-        aria-label="emoji_picker.travel-places"
-        class="emoji-picker__category"
-        href="#"
+      </button>
+      <button
+        aria-label="Travel & Places"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-airplane-variant"
         />
-      </a>
-      <a
-        aria-label="emoji_picker.activities"
-        class="emoji-picker__category"
-        href="#"
+      </button>
+      <button
+        aria-label="Activities"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-basketball"
         />
-      </a>
-      <a
-        aria-label="emoji_picker.objects"
-        class="emoji-picker__category"
-        href="#"
+      </button>
+      <button
+        aria-label="Objects"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-lightbulb-outline"
         />
-      </a>
-      <a
-        aria-label="emoji_picker.symbols"
-        class="emoji-picker__category"
-        href="#"
+      </button>
+      <button
+        aria-label="Symbols"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-heart-outline"
         />
-      </a>
-      <a
-        aria-label="emoji_picker.flags"
-        class="emoji-picker__category"
-        href="#"
+      </button>
+      <button
+        aria-label="Flags"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-flag-outline"
         />
-      </a>
-      <a
-        aria-label="emoji_picker.custom"
-        class="emoji-picker__category"
-        href="#"
+      </button>
+      <button
+        aria-label="Custom"
+        aria-pressed="false"
+        class="style--none emoji-picker__category"
       >
         <i
           class="icon-emoticon-custom-outline"
         />
-      </a>
+      </button>
     </div>
     <div
       class="emoji-picker__items"
       style="height: 290px;"
     >
       <div
+        aria-labelledby="emojiPickerSearch"
         class="emoji-picker__container"
+        role="grid"
       >
         <div
           style="overflow: visible; height: 0px; width: 0px;"

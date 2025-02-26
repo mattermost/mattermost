@@ -162,43 +162,6 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
         expect(wrapper.find('.MenuCloudTrial').exists()).toEqual(false);
     });
 
-    test('should invite to start trial when the subscription is not paid and have not had trial before', () => {
-        const state = {
-            entities: {
-                general: {
-                    license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                    },
-                },
-                cloud: {
-                    subscription: {
-                        is_free_trial: 'false',
-                        trial_end_at: 0,
-                        product_id: 'prod_starter',
-                    },
-                    products: {
-                        prod_starter: {
-                            id: 'prod_starter',
-                            sku: CloudProducts.STARTER,
-                        },
-                    },
-                    limits,
-                },
-                usage,
-                users: {
-                    currentUserId: 'current_user_id',
-                    profiles: {
-                        current_user_id: {roles: 'system_admin'},
-                    },
-                },
-            },
-        };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        expect(wrapper.find('.open-learn-more-trial-modal').exists()).toEqual(true);
-    });
-
     test('should show the open trial benefits modal when is free trial', () => {
         const state = {
             entities: {

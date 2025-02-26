@@ -42,7 +42,8 @@ describe('Keyboard Shortcuts', () => {
 
     it('MM-T1250 CTRL/CMD+SHIFT+L - Set focus to center channel message box (with SEARCH RHS open)', () => {
         // # Search
-        cy.get('#searchBox').click().type('test{enter}');
+        cy.uiGetSearchContainer().click();
+        cy.uiGetSearchBox().first().type('test{enter}');
 
         // * Wait for the RHS to open and the search results to appear
         cy.contains('.sidebar--right__header', 'Search Results').should('be.visible');

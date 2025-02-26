@@ -109,14 +109,24 @@ var PermissionPromoteGuest *Permission
 var PermissionDemoteToGuest *Permission
 var PermissionUseChannelMentions *Permission
 var PermissionUseGroupMentions *Permission
+var PermissionAddBookmarkPublicChannel *Permission
+var PermissionEditBookmarkPublicChannel *Permission
+var PermissionDeleteBookmarkPublicChannel *Permission
+var PermissionOrderBookmarkPublicChannel *Permission
+var PermissionAddBookmarkPrivateChannel *Permission
+var PermissionEditBookmarkPrivateChannel *Permission
+var PermissionDeleteBookmarkPrivateChannel *Permission
+var PermissionOrderBookmarkPrivateChannel *Permission
 var PermissionReadOtherUsersTeams *Permission
 var PermissionEditBrand *Permission
 var PermissionManageSharedChannels *Permission
 var PermissionManageSecureConnections *Permission
 var PermissionDownloadComplianceExportResult *Permission
 var PermissionCreateDataRetentionJob *Permission
+var PermissionManageDataRetentionJob *Permission
 var PermissionReadDataRetentionJob *Permission
 var PermissionCreateComplianceExportJob *Permission
+var PermissionManageComplianceExportJob *Permission
 var PermissionReadComplianceExportJob *Permission
 var PermissionReadAudits *Permission
 var PermissionTestElasticsearch *Permission
@@ -128,12 +138,16 @@ var PermissionRecycleDatabaseConnections *Permission
 var PermissionPurgeElasticsearchIndexes *Permission
 var PermissionTestEmail *Permission
 var PermissionCreateElasticsearchPostIndexingJob *Permission
+var PermissionManageElasticsearchPostIndexingJob *Permission
 var PermissionCreateElasticsearchPostAggregationJob *Permission
+var PermissionManageElasticsearchPostAggregationJob *Permission
 var PermissionReadElasticsearchPostIndexingJob *Permission
 var PermissionReadElasticsearchPostAggregationJob *Permission
 var PermissionPurgeBleveIndexes *Permission
 var PermissionCreatePostBleveIndexesJob *Permission
+var PermissionManagePostBleveIndexesJob *Permission
 var PermissionCreateLdapSyncJob *Permission
+var PermissionManageLdapSyncJob *Permission
 var PermissionReadLdapSyncJob *Permission
 var PermissionTestLdap *Permission
 var PermissionInvalidateEmailInvite *Permission
@@ -389,6 +403,7 @@ var SysconsoleReadPermissions []*Permission
 var SysconsoleWritePermissions []*Permission
 
 var PermissionManageOutgoingOAuthConnections *Permission
+var ModeratedBookmarkPermissions []*Permission
 
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
@@ -781,6 +796,12 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+	PermissionManageDataRetentionJob = &Permission{
+		"manage_data_retention_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
 	PermissionReadDataRetentionJob = &Permission{
 		"read_data_retention_job",
 		"",
@@ -790,6 +811,12 @@ func initializePermissions() {
 
 	PermissionCreateComplianceExportJob = &Permission{
 		"create_compliance_export_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionManageComplianceExportJob = &Permission{
+		"manage_compliance_export_job",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -822,8 +849,21 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionManagePostBleveIndexesJob = &Permission{
+		"manage_post_bleve_indexes_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PermissionCreateLdapSyncJob = &Permission{
 		"create_ldap_sync_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionManageLdapSyncJob = &Permission{
+		"manage_ldap_sync_job",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -1020,8 +1060,20 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+	PermissionManageElasticsearchPostIndexingJob = &Permission{
+		"manage_elasticsearch_post_indexing_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
 	PermissionCreateElasticsearchPostAggregationJob = &Permission{
 		"create_elasticsearch_post_aggregation_job",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionManageElasticsearchPostAggregationJob = &Permission{
+		"manage_elasticsearch_post_aggregation_job",
 		"",
 		"",
 		PermissionScopeSystem,
@@ -1177,6 +1229,57 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeChannel,
 	}
+
+	// Channel bookmarks
+	PermissionAddBookmarkPublicChannel = &Permission{
+		"add_bookmark_public_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionEditBookmarkPublicChannel = &Permission{
+		"edit_bookmark_public_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionDeleteBookmarkPublicChannel = &Permission{
+		"delete_bookmark_public_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionOrderBookmarkPublicChannel = &Permission{
+		"order_bookmark_public_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionAddBookmarkPrivateChannel = &Permission{
+		"add_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionEditBookmarkPrivateChannel = &Permission{
+		"edit_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionDeleteBookmarkPrivateChannel = &Permission{
+		"delete_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionOrderBookmarkPrivateChannel = &Permission{
+		"order_bookmark_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
 	PermissionReadOtherUsersTeams = &Permission{
 		"read_other_users_teams",
 		"authentication.permissions.read_other_users_teams.name",
@@ -2287,8 +2390,10 @@ func initializePermissions() {
 		PermissionManageSecureConnections,
 		PermissionDownloadComplianceExportResult,
 		PermissionCreateDataRetentionJob,
+		PermissionManageDataRetentionJob,
 		PermissionReadDataRetentionJob,
 		PermissionCreateComplianceExportJob,
+		PermissionManageComplianceExportJob,
 		PermissionReadComplianceExportJob,
 		PermissionReadAudits,
 		PermissionTestSiteURL,
@@ -2300,12 +2405,16 @@ func initializePermissions() {
 		PermissionPurgeElasticsearchIndexes,
 		PermissionTestEmail,
 		PermissionCreateElasticsearchPostIndexingJob,
+		PermissionManageElasticsearchPostIndexingJob,
 		PermissionCreateElasticsearchPostAggregationJob,
+		PermissionManageElasticsearchPostAggregationJob,
 		PermissionReadElasticsearchPostIndexingJob,
 		PermissionReadElasticsearchPostAggregationJob,
 		PermissionPurgeBleveIndexes,
 		PermissionCreatePostBleveIndexesJob,
+		PermissionManagePostBleveIndexesJob,
 		PermissionCreateLdapSyncJob,
+		PermissionManageLdapSyncJob,
 		PermissionReadLdapSyncJob,
 		PermissionTestLdap,
 		PermissionInvalidateEmailInvite,
@@ -2386,6 +2495,14 @@ func initializePermissions() {
 		PermissionDeleteOthersPosts,
 		PermissionUseChannelMentions,
 		PermissionUseGroupMentions,
+		PermissionAddBookmarkPublicChannel,
+		PermissionEditBookmarkPublicChannel,
+		PermissionDeleteBookmarkPublicChannel,
+		PermissionOrderBookmarkPublicChannel,
+		PermissionAddBookmarkPrivateChannel,
+		PermissionEditBookmarkPrivateChannel,
+		PermissionDeleteBookmarkPrivateChannel,
+		PermissionOrderBookmarkPrivateChannel,
 	}
 
 	GroupScopedPermissions := []*Permission{
@@ -2454,6 +2571,7 @@ func initializePermissions() {
 		"create_reactions",
 		"manage_members",
 		PermissionUseChannelMentions.Id,
+		"manage_bookmarks",
 	}
 
 	ChannelModeratedPermissionsMap = map[string]string{
@@ -2464,6 +2582,21 @@ func initializePermissions() {
 		PermissionManagePrivateChannelMembers.Id: ChannelModeratedPermissions[2],
 		PermissionUseChannelMentions.Id:          ChannelModeratedPermissions[3],
 	}
+
+	ModeratedBookmarkPermissions = []*Permission{
+		PermissionAddBookmarkPublicChannel,
+		PermissionEditBookmarkPublicChannel,
+		PermissionDeleteBookmarkPublicChannel,
+		PermissionOrderBookmarkPublicChannel,
+		PermissionAddBookmarkPrivateChannel,
+		PermissionEditBookmarkPrivateChannel,
+		PermissionDeleteBookmarkPrivateChannel,
+		PermissionOrderBookmarkPrivateChannel,
+	}
+
+	for _, mbp := range ModeratedBookmarkPermissions {
+		ChannelModeratedPermissionsMap[mbp.Id] = ChannelModeratedPermissions[4]
+	}
 }
 
 func init() {
@@ -2471,6 +2604,10 @@ func init() {
 }
 
 func MakePermissionError(s *Session, permissions []*Permission) *AppError {
+	return MakePermissionErrorForUser(s.UserId, permissions)
+}
+
+func MakePermissionErrorForUser(userId string, permissions []*Permission) *AppError {
 	permissionsStr := "permission="
 	for i, permission := range permissions {
 		permissionsStr += permission.Id
@@ -2478,5 +2615,5 @@ func MakePermissionError(s *Session, permissions []*Permission) *AppError {
 			permissionsStr += ","
 		}
 	}
-	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
+	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+userId+", "+permissionsStr, http.StatusForbidden)
 }

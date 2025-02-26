@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useState} from 'react';
+import {useCallback, useState} from 'react';
+import {defineMessages} from 'react-intl';
 
 import type {NotifyAdminRequest} from '@mattermost/types/cloud';
 
@@ -18,14 +19,6 @@ export const NotifyStatus = {
 } as const;
 
 export type NotifyStatusValues = ValueOf<typeof NotifyStatus>;
-
-export const DefaultBtnText = {
-    NotifyAdmin: 'Notify your admin',
-    Notifying: 'Notifying...',
-    Notified: 'Admin notified!',
-    AlreadyNotified: 'Already notified!',
-    Failed: 'Try again later!',
-} as const;
 
 type ValueOf<T> = T[keyof T];
 
@@ -45,25 +38,40 @@ type NotifyAdminArgs = {
     };
 }
 
+const messages = defineMessages({
+    [NotifyStatus.Started]: {
+        id: 'notify_admin_to_upgrade_cta.notify-admin.notifying',
+        defaultMessage: 'Notifying...',
+    },
+    [NotifyStatus.Success]: {
+        id: 'notify_admin_to_upgrade_cta.notify-admin.notified',
+        defaultMessage: 'Admin notified!',
+    },
+    [NotifyStatus.AlreadyComplete]: {
+        id: 'notify_admin_to_upgrade_cta.notify-admin.already_notified',
+        defaultMessage: 'Already notified!',
+    },
+    [NotifyStatus.Failed]: {
+        id: 'notify_admin_to_upgrade_cta.notify-admin.failed',
+        defaultMessage: 'Try again later!',
+    },
+    [NotifyStatus.NotStarted]: {
+        id: 'notify_admin_to_upgrade_cta.notify-admin.notify',
+        defaultMessage: 'Notify your admin',
+    },
+});
+
 export const useGetNotifyAdmin = (args: UseNotifyAdminArgs) => {
     const [notifyStatus, setStatus] = useState<ValueOf<typeof NotifyStatus>>(NotifyStatus.NotStarted);
 
-    const btnText = (status: ValueOf<typeof NotifyStatus>): {id: string; defaultMessage: string} => {
-        switch (status) {
-        case NotifyStatus.Started:
-            return {id: 'notify_admin_to_upgrade_cta.notify-admin.notifying', defaultMessage: DefaultBtnText.Notifying};
-        case NotifyStatus.Success:
-            return {id: 'notify_admin_to_upgrade_cta.notify-admin.notified', defaultMessage: DefaultBtnText.Notified};
-        case NotifyStatus.AlreadyComplete:
-            return {id: 'notify_admin_to_upgrade_cta.notify-admin.already_notified', defaultMessage: DefaultBtnText.AlreadyNotified};
-        case NotifyStatus.Failed:
-            return {id: 'notify_admin_to_upgrade_cta.notify-admin.failed', defaultMessage: DefaultBtnText.Failed};
-        default:
-            return args.ctaText || {id: 'notify_admin_to_upgrade_cta.notify-admin.notify', defaultMessage: DefaultBtnText.NotifyAdmin};
+    const btnText = useCallback((status: ValueOf<typeof NotifyStatus>): {id: string; defaultMessage: string} => {
+        if (args.ctaText && status === NotifyStatus.NotStarted) {
+            return args.ctaText;
         }
-    };
+        return messages[status];
+    }, [args.ctaText]);
 
-    const notifyAdmin = async ({requestData, trackingArgs}: NotifyAdminArgs) => {
+    const notifyAdmin = useCallback(async ({requestData, trackingArgs}: NotifyAdminArgs) => {
         try {
             setStatus(NotifyStatus.Started);
             await Client4.notifyAdmin(requestData);
@@ -76,7 +84,7 @@ export const useGetNotifyAdmin = (args: UseNotifyAdminArgs) => {
                 setStatus(NotifyStatus.Failed);
             }
         }
-    };
+    }, []);
 
     return {
         notifyStatus,

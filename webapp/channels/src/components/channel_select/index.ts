@@ -17,7 +17,8 @@ const getMyChannelsSorted = createSelector(
     getMyChannels,
     getCurrentUserLocale,
     (channels, locale) => {
-        return [...channels].sort(sortChannelsByTypeAndDisplayName.bind(null, locale));
+        const activeChannels = channels.filter((channel) => channel.delete_at === 0);
+        return [...activeChannels].sort(sortChannelsByTypeAndDisplayName.bind(null, locale));
     },
 );
 

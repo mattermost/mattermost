@@ -11,15 +11,20 @@ export default class ChannelsPage {
     readonly page: Page;
 
     readonly globalHeader;
+    readonly searchPopover;
     readonly centerView;
+    readonly scheduledDraftDropdown;
+    readonly scheduledDraftModal;
     readonly sidebarLeft;
     readonly sidebarRight;
     readonly appBar;
+    readonly userProfilePopover;
 
     readonly findChannelsModal;
     readonly deletePostModal;
     readonly settingsModal;
 
+    readonly postContainer;
     readonly postDotMenu;
     readonly postReminderMenu;
 
@@ -30,6 +35,7 @@ export default class ChannelsPage {
 
         // The main areas of the app
         this.globalHeader = new components.GlobalHeader(page.locator('#global-header'));
+        this.searchPopover = new components.SearchPopover(page.locator('#searchPopover'));
         this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'));
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
@@ -46,10 +52,20 @@ export default class ChannelsPage {
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
+        this.scheduledDraftDropdown = new components.ScheduledDraftMenu(page.locator('#dropdown_send_post_options'));
+        this.scheduledDraftModal = new components.ScheduledDraftModal(page.locator('div.modal-content'));
+        this.userProfilePopover = new components.UserProfilePopover(page.locator('.user-profile-popover'));
+
+        // Posts
+        this.postContainer = page.locator('div.post-message__text');
     }
 
     async toBeVisible() {
         await this.centerView.toBeVisible();
+    }
+
+    async getLastPost() {
+        return this.postContainer.last();
     }
 
     async goto(teamName = '', channelName = '') {
@@ -57,11 +73,19 @@ export default class ChannelsPage {
         if (teamName) {
             channelsUrl += `${teamName}`;
             if (channelName) {
-                channelsUrl += `/${channelName}`;
+                const prefix = channelName.startsWith('@') ? '/messages' : '/channels';
+                channelsUrl += `${prefix}/${channelName}`;
             }
         }
-
         await this.page.goto(channelsUrl);
+    }
+
+    /**
+     * `postMessage` posts a message in the current channel
+     * @param message Message to post
+     */
+    async postMessage(message: string) {
+        await this.centerView.postCreate.postMessage(message);
     }
 }
 

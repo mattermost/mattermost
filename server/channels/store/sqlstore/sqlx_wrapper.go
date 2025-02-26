@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
+	sq "github.com/mattermost/squirrel"
 )
 
 type StoreTestWrapper struct {
@@ -30,12 +31,16 @@ func NewStoreTestWrapper(orig *SqlStore) *StoreTestWrapper {
 	return &StoreTestWrapper{orig}
 }
 
-func (w *StoreTestWrapper) GetMasterX() storetest.SqlXExecutor {
-	return w.orig.GetMasterX()
+func (w *StoreTestWrapper) GetMaster() storetest.SqlXExecutor {
+	return w.orig.GetMaster()
 }
 
 func (w *StoreTestWrapper) DriverName() string {
 	return w.orig.DriverName()
+}
+
+func (w *StoreTestWrapper) GetQueryPlaceholder() sq.PlaceholderFormat {
+	return w.orig.getQueryPlaceholder()
 }
 
 type Builder interface {
@@ -227,7 +232,7 @@ func (w *sqlxDBWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
-	return w.checkErrWithRows(w.DB.QueryxContext(ctx, query, args))
+	return w.checkErrWithRows(w.DB.QueryxContext(ctx, query, args...))
 }
 
 func (w *sqlxDBWrapper) Select(dest any, query string, args ...any) error {
@@ -249,12 +254,16 @@ func (w *sqlxDBWrapper) SelectCtx(ctx context.Context, dest any, query string, a
 }
 
 func (w *sqlxDBWrapper) SelectBuilder(dest any, builder Builder) error {
+	return w.SelectBuilderCtx(context.Background(), dest, builder)
+}
+
+func (w *sqlxDBWrapper) SelectBuilderCtx(ctx context.Context, dest any, builder Builder) error {
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return err
 	}
 
-	return w.Select(dest, query, args...)
+	return w.SelectCtx(ctx, dest, query, args...)
 }
 
 type sqlxTxWrapper struct {
@@ -423,7 +432,7 @@ func (w *sqlxTxWrapper) QueryX(query string, args ...any) (*sqlx.Rows, error) {
 		}(time.Now())
 	}
 
-	return w.dbw.checkErrWithRows(w.Tx.QueryxContext(ctx, query, args))
+	return w.dbw.checkErrWithRows(w.Tx.QueryxContext(ctx, query, args...))
 }
 
 func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {

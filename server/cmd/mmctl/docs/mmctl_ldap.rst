@@ -38,5 +38,6 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl ldap idmigrate <mmctl_ldap_idmigrate.rst>`_ 	 - Migrate LDAP IdAttribute to new value
+* `mmctl ldap job <mmctl_ldap_job.rst>`_ 	 - List and show LDAP sync jobs
 * `mmctl ldap sync <mmctl_ldap_sync.rst>`_ 	 - Synchronize now
 

@@ -27,14 +27,14 @@ func (s LocalCacheWebhookStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.webhookCache)
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Webhook - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.webhookCache.Name())
 	}
 }
 
 func (s LocalCacheWebhookStore) InvalidateWebhookCache(webhookId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.webhookCache, webhookId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.webhookCache, webhookId, nil)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Webhook - Remove by WebhookId")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.webhookCache.Name())
 	}
 }
 

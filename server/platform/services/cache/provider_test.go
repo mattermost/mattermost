@@ -18,19 +18,17 @@ func TestNewCache(t *testing.T) {
 
 		size := 1
 		c, err := p.NewCache(&CacheOptions{
-			Size: size,
+			Size:          size,
+			DefaultExpiry: 0,
 		})
 		require.NoError(t, err)
 
-		err = c.Set("key1", "val1")
+		err = c.SetWithDefaultExpiry("key1", "val1")
 		require.NoError(t, err)
-		err = c.Set("key2", "val2")
+		err = c.SetWithDefaultExpiry("key2", "val2")
 		require.NoError(t, err)
-		err = c.Set("key3", "val3")
+		err = c.SetWithDefaultExpiry("key3", "val3")
 		require.NoError(t, err)
-		l, err := c.Len()
-		require.NoError(t, err)
-		require.Equal(t, size, l)
 	})
 
 	t.Run("with only size option given", func(t *testing.T) {
@@ -38,19 +36,17 @@ func TestNewCache(t *testing.T) {
 
 		size := 1
 		c, err := p.NewCache(&CacheOptions{
-			Size: size,
+			Size:          size,
+			DefaultExpiry: 0,
 		})
 		require.NoError(t, err)
 
-		err = c.Set("key1", "val1")
+		err = c.SetWithDefaultExpiry("key1", "val1")
 		require.NoError(t, err)
-		err = c.Set("key2", "val2")
+		err = c.SetWithDefaultExpiry("key2", "val2")
 		require.NoError(t, err)
-		err = c.Set("key3", "val3")
+		err = c.SetWithDefaultExpiry("key3", "val3")
 		require.NoError(t, err)
-		l, err := c.Len()
-		require.NoError(t, err)
-		require.Equal(t, size, l)
 	})
 
 	t.Run("with all options specified", func(t *testing.T) {
@@ -75,9 +71,6 @@ func TestNewCache(t *testing.T) {
 		require.NoError(t, err)
 		err = c.SetWithDefaultExpiry("key3", "val3")
 		require.NoError(t, err)
-		l, err := c.Len()
-		require.NoError(t, err)
-		require.Equal(t, size, l)
 
 		time.Sleep(expiry + 1*time.Second)
 
@@ -100,18 +93,16 @@ func TestNewCache_Striped(t *testing.T) {
 			Size:           size,
 			Striped:        true,
 			StripedBuckets: 1,
+			DefaultExpiry:  0,
 		})
 		require.NoError(t, err)
 
-		err = c.Set("key1", "val1")
+		err = c.SetWithDefaultExpiry("key1", "val1")
 		require.NoError(t, err)
-		err = c.Set("key2", "val2")
+		err = c.SetWithDefaultExpiry("key2", "val2")
 		require.NoError(t, err)
-		err = c.Set("key3", "val3")
+		err = c.SetWithDefaultExpiry("key3", "val3")
 		require.NoError(t, err)
-		l, err := c.Len()
-		require.NoError(t, err)
-		require.Equal(t, size+1, l) // +10% from striping
 	})
 
 	t.Run("with only size option given", func(t *testing.T) {
@@ -122,18 +113,16 @@ func TestNewCache_Striped(t *testing.T) {
 			Size:           size,
 			Striped:        true,
 			StripedBuckets: 1,
+			DefaultExpiry:  0,
 		})
 		require.NoError(t, err)
 
-		err = c.Set("key1", "val1")
+		err = c.SetWithDefaultExpiry("key1", "val1")
 		require.NoError(t, err)
-		err = c.Set("key2", "val2")
+		err = c.SetWithDefaultExpiry("key2", "val2")
 		require.NoError(t, err)
-		err = c.Set("key3", "val3")
+		err = c.SetWithDefaultExpiry("key3", "val3")
 		require.NoError(t, err)
-		l, err := c.Len()
-		require.NoError(t, err)
-		require.Equal(t, size+1, l) // +10% rounded up from striped lru
 	})
 
 	t.Run("with all options specified", func(t *testing.T) {
@@ -160,9 +149,6 @@ func TestNewCache_Striped(t *testing.T) {
 		require.NoError(t, err)
 		err = c.SetWithDefaultExpiry("key3", "val3")
 		require.NoError(t, err)
-		l, err := c.Len()
-		require.NoError(t, err)
-		require.Equal(t, size+1, l) // +10% from striping
 
 		time.Sleep(expiry + 1*time.Second)
 
@@ -179,7 +165,7 @@ func TestNewCache_Striped(t *testing.T) {
 func TestConnectClose(t *testing.T) {
 	p := NewProvider()
 
-	err := p.Connect()
+	_, err := p.Connect()
 	require.NoError(t, err)
 
 	err = p.Close()

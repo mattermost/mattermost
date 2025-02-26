@@ -6,7 +6,7 @@ import os from 'node:os';
 import chalk from 'chalk';
 import {expect, TestInfo} from '@playwright/test';
 
-import {illegalRe} from '@e2e-support/util';
+import {duration, illegalRe, wait} from '@e2e-support/util';
 import testConfig from '@e2e-test.config';
 import {ScreenshotOptions, TestArgs} from '@e2e-types';
 
@@ -23,9 +23,15 @@ export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs, opti
         return;
     }
 
+    if (testConfig.snapshotEnabled || testConfig.percyEnabled) {
+        await testArgs.page.waitForLoadState('networkidle');
+        await testArgs.page.waitForLoadState('domcontentloaded');
+        await wait(duration.half_sec);
+    }
+
     if (testConfig.snapshotEnabled) {
         // Visual test with built-in snapshot
-        const filename = testInfo.title.replace(illegalRe, '').replace(/\s/g, '-').trim().toLowerCase();
+        const filename = testInfo.title.trim().replace(illegalRe, '').replace(/\s/g, '-').trim().toLowerCase();
         await expect(testArgs.page).toHaveScreenshot(`${filename}.png`, {fullPage: true, ...options});
     }
 

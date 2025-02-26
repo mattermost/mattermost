@@ -29,7 +29,7 @@ describe('components/SearchableChannelList', () => {
         noResultsText: <>{'no channel found'}</>,
         filter: Filter.All,
         intl: {
-            formatMessage: jest.fn(),
+            formatMessage: ({defaultMessage}) => defaultMessage,
         } as MockIntl,
     };
 

@@ -82,7 +82,8 @@ func TestPluginDeadlock(t *testing.T) {
 		}
 		for _, pluginTemplate := range pluginTemplates {
 			b := &strings.Builder{}
-			pluginTemplate.Execute(b, templateData)
+			err := pluginTemplate.Execute(b, templateData)
+			require.NoError(t, err)
 
 			plugins = append(plugins, b.String())
 		}
@@ -189,7 +190,8 @@ func TestPluginDeadlock(t *testing.T) {
 		}
 		for _, pluginTemplate := range pluginTemplates {
 			b := &strings.Builder{}
-			pluginTemplate.Execute(b, templateData)
+			err := pluginTemplate.Execute(b, templateData)
+			require.NoError(t, err)
 
 			plugins = append(plugins, b.String())
 		}
@@ -272,7 +274,8 @@ func TestPluginDeadlock(t *testing.T) {
 		}
 		for _, pluginTemplate := range pluginTemplates {
 			b := &strings.Builder{}
-			pluginTemplate.Execute(b, templateData)
+			err := pluginTemplate.Execute(b, templateData)
+			require.NoError(t, err)
 
 			plugins = append(plugins, b.String())
 		}

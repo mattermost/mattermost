@@ -1125,6 +1125,42 @@ func (s *hooksRPCServer) OnSharedChannelsProfileImageSyncMsg(args *Z_OnSharedCha
 	return nil
 }
 
+func init() {
+	hookNameToId["GenerateSupportData"] = GenerateSupportDataID
+}
+
+type Z_GenerateSupportDataArgs struct {
+	A *Context
+}
+
+type Z_GenerateSupportDataReturns struct {
+	A []*model.FileData
+	B error
+}
+
+func (g *hooksRPCClient) GenerateSupportData(c *Context) ([]*model.FileData, error) {
+	_args := &Z_GenerateSupportDataArgs{c}
+	_returns := &Z_GenerateSupportDataReturns{}
+	if g.implemented[GenerateSupportDataID] {
+		if err := g.client.Call("Plugin.GenerateSupportData", _args, _returns); err != nil {
+			g.log.Error("RPC call GenerateSupportData to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) GenerateSupportData(args *Z_GenerateSupportDataArgs, returns *Z_GenerateSupportDataReturns) error {
+	if hook, ok := s.impl.(interface {
+		GenerateSupportData(c *Context) ([]*model.FileData, error)
+	}); ok {
+		returns.A, returns.B = hook.GenerateSupportData(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook GenerateSupportData called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -1625,6 +1661,35 @@ func (s *apiRPCServer) GetUsers(args *Z_GetUsersArgs, returns *Z_GetUsersReturns
 		returns.A, returns.B = hook.GetUsers(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetUsers called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetUsersByIdsArgs struct {
+	A []string
+}
+
+type Z_GetUsersByIdsReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersByIdsArgs{userIDs}
+	_returns := &Z_GetUsersByIdsReturns{}
+	if err := g.client.Call("Plugin.GetUsersByIds", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsersByIds API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUsersByIds(args *Z_GetUsersByIdsArgs, returns *Z_GetUsersByIdsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUsersByIds(userIDs []string) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetUsersByIds(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetUsersByIds called but not implemented."))
 	}
 	return nil
 }
@@ -6532,6 +6597,63 @@ func (s *apiRPCServer) UninviteRemoteFromChannel(args *Z_UninviteRemoteFromChann
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API UninviteRemoteFromChannel called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdateUserRolesArgs struct {
+	A string
+	B string
+}
+
+type Z_UpdateUserRolesReturns struct {
+	A *model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError) {
+	_args := &Z_UpdateUserRolesArgs{userID, newRoles}
+	_returns := &Z_UpdateUserRolesReturns{}
+	if err := g.client.Call("Plugin.UpdateUserRoles", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateUserRoles API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateUserRoles(args *Z_UpdateUserRolesArgs, returns *Z_UpdateUserRolesReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateUserRoles(userID, newRoles string) (*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateUserRoles(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateUserRoles called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetPluginIDArgs struct {
+}
+
+type Z_GetPluginIDReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetPluginID() string {
+	_args := &Z_GetPluginIDArgs{}
+	_returns := &Z_GetPluginIDReturns{}
+	if err := g.client.Call("Plugin.GetPluginID", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPluginID API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetPluginID(args *Z_GetPluginIDArgs, returns *Z_GetPluginIDReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPluginID() string
+	}); ok {
+		returns.A = hook.GetPluginID()
+	} else {
+		return encodableError(fmt.Errorf("API GetPluginID called but not implemented."))
 	}
 	return nil
 }

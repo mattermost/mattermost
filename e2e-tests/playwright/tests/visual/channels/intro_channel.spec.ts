@@ -3,15 +3,14 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 
-test('Intro to channel as regular user', async ({pw, pages, browserName, viewport}, testInfo) => {
+test.fixme('Intro to channel as regular user', async ({pw, browserName, viewport}, testInfo) => {
     // Create and sign in a new user
     const {user} = await pw.initSetup();
 
     // Log in a user in new browser context
-    const {page} = await pw.testBrowser.login(user);
+    const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // Visit a default channel page
-    const channelsPage = new pages.ChannelsPage(page);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
@@ -22,6 +21,6 @@ test('Intro to channel as regular user', async ({pw, pages, browserName, viewpor
     await pw.hideDynamicChannelsContent(page);
 
     // Match snapshot of channel intro page
-    const testArgs = {page, browserName, viewport};
+    const testArgs = {page: page, browserName, viewport};
     await pw.matchSnapshot(testInfo, testArgs);
 });

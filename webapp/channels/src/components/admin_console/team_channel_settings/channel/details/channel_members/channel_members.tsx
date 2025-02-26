@@ -23,7 +23,7 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channelId: string;
-    channel: Channel;
+    channel?: Channel;
     filters: GetFilteredUsersStatsOpts;
 
     users: UserProfile[];

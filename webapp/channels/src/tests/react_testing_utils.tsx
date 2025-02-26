@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {render} from '@testing-library/react';
+import {renderHook} from '@testing-library/react-hooks';
 import userEvent from '@testing-library/user-event';
+import type {History} from 'history';
 import {createBrowserHistory} from 'history';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
@@ -13,6 +15,7 @@ import type {Reducer} from 'redux';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import configureStore from 'store';
+import globalStore from 'stores/redux_store';
 
 import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
@@ -28,6 +31,7 @@ export type FullContextOptions = {
     locale?: string;
     useMockedStore?: boolean;
     pluginReducers?: string[];
+    history?: History<unknown>;
 }
 
 export const renderWithContext = (
@@ -46,31 +50,19 @@ export const renderWithContext = (
     // Store these in an object so that they can be maintained through rerenders
     const renderState = {
         component,
-        history: createBrowserHistory(),
+        history: partialOptions?.history ?? createBrowserHistory(),
         options,
         store: testStore,
     };
 
-    // This should wrap the component in roughly the same providers used in App and RootProvider
-    function WrapComponent(props: {children: React.ReactElement}) {
-        // Every time this is called, these values should be updated from `renderState`
-        return (
-            <Provider store={renderState.store}>
-                <Router history={renderState.history}>
-                    <IntlProvider
-                        locale={renderState.options.locale}
-                        messages={renderState.options.intlMessages}
-                    >
-                        <WebSocketContext.Provider value={WebSocketClient}>
-                            {props.children}
-                        </WebSocketContext.Provider>
-                    </IntlProvider>
-                </Router>
-            </Provider>
-        );
-    }
+    replaceGlobalStore(() => renderState.store);
 
-    const results = render(component, {wrapper: WrapComponent});
+    const results = render(component, {
+        wrapper: ({children}) => {
+            // Every time this is called, these values should be updated from `renderState`
+            return <Providers {...renderState}>{children}</Providers>;
+        },
+    });
 
     return {
         ...results,
@@ -101,6 +93,36 @@ export const renderWithContext = (
     };
 };
 
+export const renderHookWithContext = <TProps, TResult>(
+    callback: (props: TProps) => TResult,
+    initialState: DeepPartial<GlobalState> = {},
+    partialOptions?: FullContextOptions,
+) => {
+    const options = {
+        intlMessages: partialOptions?.intlMessages,
+        locale: partialOptions?.locale ?? 'en',
+        useMockedStore: partialOptions?.useMockedStore ?? false,
+    };
+
+    const testStore = configureOrMockStore(initialState, options.useMockedStore, partialOptions?.pluginReducers);
+
+    // Store these in an object so that they can be maintained through rerenders
+    const renderState = {
+        callback,
+        history: partialOptions?.history ?? createBrowserHistory(),
+        options,
+        store: testStore,
+    };
+    replaceGlobalStore(() => renderState.store);
+
+    return renderHook(callback, {
+        wrapper: ({children}) => {
+            // Every time this is called, these values should be updated from `renderState`
+            return <Providers {...renderState}>{children}</Providers>;
+        },
+    });
+};
+
 function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean, extraReducersKeys?: string[]) {
     let testReducers;
     if (extraReducersKeys) {
@@ -118,3 +140,39 @@ function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: b
     }
     return testStore;
 }
+
+function replaceGlobalStore(getStore: () => any) {
+    jest.spyOn(globalStore, 'dispatch').mockImplementation((...args) => getStore().dispatch(...args));
+    jest.spyOn(globalStore, 'getState').mockImplementation(() => getStore().getState());
+    jest.spyOn(globalStore, 'replaceReducer').mockImplementation((...args) => getStore().replaceReducer(...args));
+    jest.spyOn(globalStore, '@@observable' as any).mockImplementation((...args: any[]) => getStore()['@@observable'](...args));
+
+    // This may stop working if getStore starts to return new results
+    jest.spyOn(globalStore, 'subscribe').mockImplementation((...args) => getStore().subscribe(...args));
+}
+
+type Opts = {
+    intlMessages: Record<string, string> | undefined;
+    locale: string;
+    useMockedStore: boolean;
+}
+
+type RenderStateProps = {children: React.ReactNode; store: any; history: History<unknown>; options: Opts}
+
+// This should wrap the component in roughly the same providers used in App and RootProvider
+const Providers = ({children, store, history, options}: RenderStateProps) => {
+    return (
+        <Provider store={store}>
+            <Router history={history}>
+                <IntlProvider
+                    locale={options.locale}
+                    messages={options.intlMessages}
+                >
+                    <WebSocketContext.Provider value={WebSocketClient}>
+                        {children}
+                    </WebSocketContext.Provider>
+                </IntlProvider>
+            </Router>
+        </Provider>
+    );
+};

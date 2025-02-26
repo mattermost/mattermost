@@ -44,13 +44,18 @@ func StoreOverride(override any) Option {
 	}
 }
 
+// StoreOverrideWithCache is a test option to construct the app with the store layer
+// wrapped on top of the store that is passed.
 func StoreOverrideWithCache(override store.Store) Option {
 	return func(ps *PlatformService) error {
 		ps.newStore = func() (store.Store, error) {
-			lcl, err := localcachelayer.NewLocalCacheLayer(override, ps.metricsIFace, ps.clusterIFace, ps.cacheProvider)
+			lcl, err := localcachelayer.NewLocalCacheLayer(override, ps.metricsIFace, ps.clusterIFace, ps.cacheProvider, ps.Log())
 			if err != nil {
 				return nil, err
 			}
+			// Clearing all the caches because the in-mem data
+			// is persisted in case of Redis.
+			lcl.Invalidate()
 			return lcl, nil
 		}
 
@@ -116,6 +121,13 @@ func SetLogger(logger *mlog.Logger) Option {
 func SetCluster(cluster einterfaces.ClusterInterface) Option {
 	return func(ps *PlatformService) error {
 		ps.clusterIFace = cluster
+		return nil
+	}
+}
+
+func ForceEnableRedis() Option {
+	return func(ps *PlatformService) error {
+		ps.forceEnableRedis = true
 		return nil
 	}
 }

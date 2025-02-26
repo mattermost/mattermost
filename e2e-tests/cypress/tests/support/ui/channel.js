@@ -11,7 +11,7 @@ Cypress.Commands.add('uiCreateChannel', ({
     name = '',
     createBoard = '',
 }) => {
-    cy.uiBrowseOrCreateChannel('Create new channel').click();
+    cy.uiBrowseOrCreateChannel('Create new channel');
 
     cy.get('#new-channel-modal').should('be.visible');
     if (isPrivate) {
@@ -45,6 +45,19 @@ Cypress.Commands.add('uiAddUsersToCurrentChannel', (usernameList) => {
     if (usernameList.length) {
         cy.get('#channelHeaderDropdownIcon').click();
         cy.get('#channelAddMembers').click();
+        cy.get('#addUsersToChannelModal').should('be.visible');
+        usernameList.forEach((username) => {
+            cy.get('#selectItems input').typeWithForce(`@${username}{enter}`);
+        });
+        cy.get('#saveItems').click();
+        cy.get('#addUsersToChannelModal').should('not.exist');
+    }
+});
+
+Cypress.Commands.add('uiInviteUsersToCurrentChannel', (usernameList) => {
+    if (usernameList.length) {
+        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelInviteMembers').click();
         cy.get('#addUsersToChannelModal').should('be.visible');
         usernameList.forEach((username) => {
             cy.get('#selectItems input').typeWithForce(`@${username}{enter}`);

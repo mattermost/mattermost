@@ -6,7 +6,7 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getConfig, getEnvironmentConfig, updateConfig} from 'mattermost-redux/actions/admin';
+import {getConfig, getEnvironmentConfig, patchConfig} from 'mattermost-redux/actions/admin';
 import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {General} from 'mattermost-redux/constants';
@@ -60,7 +60,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             getConfig,
             getEnvironmentConfig,
-            updateConfig,
+            patchConfig,
             setNavigationBlocked,
             deferNavigation,
             cancelNavigation,

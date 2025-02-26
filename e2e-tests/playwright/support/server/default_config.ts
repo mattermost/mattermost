@@ -5,14 +5,15 @@ import merge from 'deepmerge';
 
 import {
     AdminConfig,
-    ExperimentalSettings,
-    PasswordSettings,
-    ServiceSettings,
-    TeamSettings,
-    PluginSettings,
     ClusterSettings,
     CollapsedThreads,
     EmailSettings,
+    ExperimentalSettings,
+    LogSettings,
+    PasswordSettings,
+    PluginSettings,
+    ServiceSettings,
+    TeamSettings,
 } from '@mattermost/types/config';
 import testConfig from '@e2e-test.config';
 
@@ -24,6 +25,7 @@ type TestAdminConfig = {
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
+    LogSettings: Partial<LogSettings>;
     PasswordSettings: Partial<PasswordSettings>;
     PluginSettings: Partial<PluginSettings>;
     ServiceSettings: Partial<ServiceSettings>;
@@ -39,6 +41,9 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         },
         EmailSettings: {
             PushNotificationServer: testConfig.pushNotificationServer,
+        },
+        LogSettings: {
+            EnableDiagnostics: false,
         },
         PasswordSettings: {
             MinimumLength: 5,
@@ -65,7 +70,9 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         ServiceSettings: {
             SiteURL: testConfig.baseURL,
             EnableOnboardingFlow: false,
+            EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
+            EnableTesting: true,
         },
         TeamSettings: {
             EnableOpenServer: true,
@@ -75,7 +82,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v9.5 server
+// Based on v10.5 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -101,6 +108,7 @@ const defaultServerConfig: AdminConfig = {
         EnableOAuthServiceProvider: true,
         EnableIncomingWebhooks: true,
         EnableOutgoingWebhooks: true,
+        EnableOutgoingOAuthConnections: false,
         EnableCommands: true,
         OutgoingIntegrationRequestsTimeout: 30,
         EnablePostUsernameOverride: false,
@@ -113,7 +121,6 @@ const defaultServerConfig: AdminConfig = {
         EnableDeveloper: false,
         DeveloperFlags: '',
         EnableClientPerformanceDebugging: false,
-        EnableOpenTracing: false,
         EnableSecurityFixAlert: true,
         EnableInsecureOutgoingConnections: false,
         AllowedUntrustedInternalConnections: '',
@@ -126,6 +133,7 @@ const defaultServerConfig: AdminConfig = {
         CorsDebug: false,
         AllowCookiesForSubdomains: false,
         ExtendSessionLengthWithActivity: true,
+        TerminateSessionsOnPasswordChange: true,
         SessionLengthWebInDays: 30,
         SessionLengthWebInHours: 720,
         SessionLengthMobileInDays: 30,
@@ -151,7 +159,6 @@ const defaultServerConfig: AdminConfig = {
         EnableUserStatuses: true,
         ExperimentalEnableAuthenticationTransfer: true,
         ClusterLogTimeoutMilliseconds: 2000,
-        EnablePreviewFeatures: true,
         EnableTutorial: true,
         EnableOnboardingFlow: true,
         ExperimentalEnableDefaultChannelLeaveJoinMessages: true,
@@ -159,6 +166,8 @@ const defaultServerConfig: AdminConfig = {
         EnableAPITeamDeletion: false,
         EnableAPITriggerAdminNotifications: false,
         EnableAPIUserDeletion: false,
+        EnableAPIPostDeletion: false,
+        EnableDesktopLandingPage: true,
         ExperimentalEnableHardenedMode: false,
         ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
@@ -184,11 +193,12 @@ const defaultServerConfig: AdminConfig = {
         CollapsedThreads: CollapsedThreads.ALWAYS_ON,
         ManagedResourcePaths: '',
         EnableCustomGroups: true,
-        SelfHostedPurchase: true,
         AllowSyncedDrafts: true,
         UniqueEmojiReactionLimitPerPost: 50,
         RefreshPostStatsRunTime: '00:00',
-        MaximumPayloadSizeBytes: 100000,
+        MaximumPayloadSizeBytes: 300000,
+        MaximumURLLength: 2048,
+        ScheduledPosts: true,
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -253,7 +263,6 @@ const defaultServerConfig: AdminConfig = {
         VerboseDiagnostics: false,
         EnableSentry: true,
         AdvancedLoggingJSON: {},
-        AdvancedLoggingConfig: '',
         MaxFieldSize: 2048,
     },
     ExperimentalAuditSettings: {
@@ -265,7 +274,6 @@ const defaultServerConfig: AdminConfig = {
         FileCompress: false,
         FileMaxQueueSize: 1000,
         AdvancedLoggingJSON: {},
-        AdvancedLoggingConfig: '',
     },
     NotificationLogSettings: {
         EnableConsole: true,
@@ -277,7 +285,6 @@ const defaultServerConfig: AdminConfig = {
         FileJson: true,
         FileLocation: '',
         AdvancedLoggingJSON: {},
-        AdvancedLoggingConfig: '',
     },
     PasswordSettings: {
         MinimumLength: 8,
@@ -312,6 +319,8 @@ const defaultServerConfig: AdminConfig = {
         AmazonS3SSE: false,
         AmazonS3Trace: false,
         AmazonS3RequestTimeoutMilliseconds: 30000,
+        AmazonS3UploadPartSizeBytes: 5242880,
+        AmazonS3StorageClass: '',
         DedicatedExportStore: false,
         ExportDriverName: 'local',
         ExportDirectory: './data/',
@@ -327,6 +336,8 @@ const defaultServerConfig: AdminConfig = {
         ExportAmazonS3Trace: false,
         ExportAmazonS3RequestTimeoutMilliseconds: 30000,
         ExportAmazonS3PresignExpiresSeconds: 21600,
+        ExportAmazonS3UploadPartSizeBytes: 104857600,
+        ExportAmazonS3StorageClass: '',
     },
     EmailSettings: {
         EnableSignUpWithEmail: true,
@@ -488,7 +499,6 @@ const defaultServerConfig: AdminConfig = {
         LoginButtonColor: '#0000',
         LoginButtonBorderColor: '#2389D7',
         LoginButtonTextColor: '#2389D7',
-        Trace: false,
     },
     ComplianceSettings: {
         Enable: false,
@@ -500,6 +510,7 @@ const defaultServerConfig: AdminConfig = {
         DefaultServerLocale: 'en',
         DefaultClientLocale: 'en',
         AvailableLocales: '',
+        EnableExperimentalLocales: false,
     },
     SamlSettings: {
         Enable: false,
@@ -542,6 +553,14 @@ const defaultServerConfig: AdminConfig = {
         AppDownloadLink: 'https://mattermost.com/pl/download-apps',
         AndroidAppDownloadLink: 'https://mattermost.com/pl/android-app/',
         IosAppDownloadLink: 'https://mattermost.com/pl/ios-app/',
+        MobileExternalBrowser: false,
+    },
+    CacheSettings: {
+        CacheType: 'lru',
+        RedisAddress: '',
+        RedisPassword: '',
+        RedisDB: -1,
+        DisableClientCache: false,
     },
     ClusterSettings: {
         Enable: false,
@@ -555,33 +574,34 @@ const defaultServerConfig: AdminConfig = {
         EnableExperimentalGossipEncryption: false,
         ReadOnlyConfig: true,
         GossipPort: 8074,
-        StreamingPort: 8075,
-        MaxIdleConns: 100,
-        MaxIdleConnsPerHost: 128,
-        IdleConnTimeoutMilliseconds: 90000,
     },
     MetricsSettings: {
         Enable: false,
         BlockProfileRate: 0,
         ListenAddress: ':8067',
+        EnableClientMetrics: true,
+        EnableNotificationMetrics: true,
     },
     ExperimentalSettings: {
         ClientSideCertEnable: false,
         ClientSideCertCheck: 'secondary',
         LinkMetadataTimeoutMilliseconds: 5000,
         RestrictSystemAdmin: false,
-        UseNewSAMLLibrary: false,
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
         DisableAppBar: false,
         DisableRefetchingOnBrowserFocus: false,
         DelayChannelAutocomplete: false,
+        DisableWakeUpReconnectHandler: false,
+        UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
+        YoutubeReferrerPolicy: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
     },
     ElasticsearchSettings: {
         ConnectionURL: 'http://localhost:9200',
+        Backend: 'elasticsearch',
         Username: 'elastic',
         Password: 'changeme',
         EnableIndexing: false,
@@ -597,7 +617,7 @@ const defaultServerConfig: AdminConfig = {
         AggregatePostsAfterDays: 365,
         PostsAggregatorJobStartTime: '03:00',
         IndexPrefix: '',
-        LiveIndexingBatchSize: 1,
+        LiveIndexingBatchSize: 10,
         BatchSize: 10000,
         RequestTimeoutSeconds: 30,
         SkipTLSVerification: false,
@@ -635,6 +655,8 @@ const defaultServerConfig: AdminConfig = {
         ExportFromTimestamp: 0,
         BatchSize: 10000,
         DownloadExportResults: false,
+        ChannelBatchSize: 100,
+        ChannelHistoryBatchSize: 10,
         GlobalRelaySettings: {
             CustomerType: 'A9',
             SMTPUsername: '',
@@ -651,7 +673,6 @@ const defaultServerConfig: AdminConfig = {
         CleanupJobsThresholdDays: -1,
         CleanupConfigThresholdDays: -1,
     },
-    ProductSettings: {},
     PluginSettings: {
         Enable: true,
         EnableUploads: false,
@@ -665,6 +686,9 @@ const defaultServerConfig: AdminConfig = {
                 Enable: true,
             },
             'com.mattermost.nps': {
+                Enable: true,
+            },
+            'mattermost-ai': {
                 Enable: true,
             },
             playbooks: {
@@ -700,27 +724,32 @@ const defaultServerConfig: AdminConfig = {
         CWSURL: 'https://customers.mattermost.com',
         CWSAPIURL: 'https://portal.internal.prod.cloud.mattermost.com',
         CWSMock: false,
+        Disable: false,
     },
     FeatureFlags: {
         TestFeature: 'off',
         TestBoolFeature: false,
         EnableRemoteClusterService: false,
-        AppsEnabled: true,
+        EnableSharedChannelsDMs: false,
+        AppsEnabled: false,
         PermalinkPreviews: false,
-        CallsEnabled: true,
         NormalizeLdapDNs: false,
-        PostPriority: false,
         WysiwygEditor: false,
         OnboardingTourTips: true,
         DeprecateCloudFree: false,
-        CloudReverseTrial: false,
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         StreamlinedMarketplace: true,
         CloudIPFiltering: false,
         ConsumePostHook: false,
         CloudAnnualRenewals: false,
-        OutgoingOAuthConnections: false,
+        CloudDedicatedExportUI: false,
+        ChannelBookmarks: true,
+        WebSocketEventScope: true,
+        NotificationMonitoring: true,
+        ExperimentalAuditSettingsSystemConsoleUI: false,
+        ExperimentalCrossTeamSearch: false,
+        CustomProfileAttributes: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -738,5 +767,11 @@ const defaultServerConfig: AdminConfig = {
         MoveThreadFromPrivateChannelEnable: false,
         MoveThreadFromDirectMessageChannelEnable: false,
         MoveThreadFromGroupMessageChannelEnable: false,
+    },
+    ConnectedWorkspacesSettings: {
+        EnableSharedChannels: false,
+        EnableRemoteClusterService: false,
+        DisableSharedChannelsStatusSync: false,
+        MaxPostsPerSync: 50,
     },
 };

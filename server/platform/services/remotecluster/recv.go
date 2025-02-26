@@ -57,12 +57,15 @@ func callback(listener TopicListener, msg model.RemoteClusterMsg, rc *model.Remo
 func (rcs *Service) ReceiveInviteConfirmation(confirm model.RemoteClusterInvite) (*model.RemoteCluster, error) {
 	store := rcs.server.GetStore().RemoteCluster()
 
-	rc, err := store.Get(confirm.RemoteId)
+	rc, err := store.Get(confirm.RemoteId, false)
 	if err != nil {
 		return nil, fmt.Errorf("cannot accept invite confirmation for remote %s: %w", confirm.RemoteId, err)
 	}
 
-	rc.RemoteTeamId = confirm.RemoteTeamId
+	if rc.IsConfirmed() {
+		return nil, fmt.Errorf("cannot accept invite confirmation for remote %s: %w", confirm.RemoteId, RemoteClusterAlreadyConfirmedError)
+	}
+
 	rc.SiteURL = confirm.SiteURL
 	rc.RemoteToken = confirm.Token
 

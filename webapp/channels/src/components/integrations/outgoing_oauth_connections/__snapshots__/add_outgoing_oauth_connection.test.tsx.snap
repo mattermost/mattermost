@@ -384,8 +384,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                 <div
                   className="backstage-form__footer"
                 >
-                  <FormError
-                    error={null}
+                  <Memo(FormError)
                     errors={
                       Array [
                         "",
@@ -517,7 +516,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                 onHide={[Function]}
                 renderBackdrop={[Function]}
                 restoreFocus={true}
-                role="dialog"
+                role="none"
                 show={false}
               >
                 <Modal

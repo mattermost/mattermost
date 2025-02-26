@@ -26,20 +26,20 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       },
     ]
   }
-  emptyListTextDefaultMessage="test"
-  emptyListTextId="test"
+  emptyListText={
+    Object {
+      "defaultMessage": "No groups specified yet",
+      "id": "admin.team_channel_settings.group_list.no-groups",
+    }
+  }
   groups={Array []}
   header={<Header />}
-  isModeSync={false}
   noPadding={false}
   onGroupRemoved={[MockFunction]}
   onPageChangedCallback={[MockFunction]}
-  removeGroup={[MockFunction]}
   renderRow={[Function]}
-  setNewGroupRole={[MockFunction]}
   total={1}
   totalGroups={0}
-  type="team"
 />
 `;
 
@@ -504,19 +504,19 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       },
     ]
   }
-  emptyListTextDefaultMessage="test"
-  emptyListTextId="test"
+  emptyListText={
+    Object {
+      "defaultMessage": "No groups specified yet",
+      "id": "admin.team_channel_settings.group_list.no-groups",
+    }
+  }
   groups={Array []}
   header={<Header />}
-  isModeSync={false}
   noPadding={false}
   onGroupRemoved={[MockFunction]}
   onPageChangedCallback={[MockFunction]}
-  removeGroup={[MockFunction]}
   renderRow={[Function]}
-  setNewGroupRole={[MockFunction]}
   total={30}
   totalGroups={0}
-  type="team"
 />
 `;

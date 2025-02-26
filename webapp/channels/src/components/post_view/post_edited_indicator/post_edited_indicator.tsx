@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MouseEvent} from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
+import Constants from 'utils/constants';
 import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
 
 import type {Props} from './index';
@@ -65,20 +65,16 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
         <span className='view-history__text'>{viewHistoryText}</span>
     ) : null;
 
-    const tooltip = (
-        <Tooltip
-            id={`edited-post-tooltip_${postId}`}
-            className='hidden-xs'
-        >
-            {`${editedText} ${formattedTime}`}
-            {postOwnerTooltipInfo}
-        </Tooltip>
-    );
-
-    const showPostEditHistory = (e: MouseEvent<HTMLButtonElement>) => {
+    const showPostEditHistory = (e: MouseEvent<HTMLButtonElement> | KeyboardEvent<unknown>) => {
         e.preventDefault();
         if (post?.id) {
             actions.openShowEditHistory(post);
+        }
+    };
+
+    const handleKeyPress = (e: KeyboardEvent<unknown>) => {
+        if (e.key === Constants.KeyCodes.ENTER[0] || e.key === Constants.KeyCodes.SPACE[0]) {
+            showPostEditHistory(e);
         }
     };
 
@@ -97,21 +93,26 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
     const editedIndicator = (postOwner && canEdit) ? (
         <button
             className={'style--none'}
-            tabIndex={-1}
+            tabIndex={0}
             onClick={showPostEditHistory}
+            onKeyUp={handleKeyPress}
+            aria-label={editedText}
         >
             {editedIndicatorContent}
         </button>
     ) : editedIndicatorContent;
 
     return !postId || editedAt === 0 ? null : (
-        <OverlayTrigger
-            delayShow={250}
-            placement='top'
-            overlay={tooltip}
+        <WithTooltip
+            title={
+                <>
+                    {`${editedText} ${formattedTime}`}
+                    {postOwnerTooltipInfo}
+                </>
+            }
         >
             {editedIndicator}
-        </OverlayTrigger>
+        </WithTooltip>
     );
 };
 

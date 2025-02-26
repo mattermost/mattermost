@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"slices"
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
@@ -15,7 +16,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	pUtils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -48,7 +48,7 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
-		if !pUtils.Contains(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
+		if !slices.Contains(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
 		}
 	})
@@ -82,7 +82,7 @@ func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppErro
 	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
 		return nil
 	}
-	publicKeys := ch.cfgSvc.Config().PluginSettings.SignaturePublicKeyFiles
+	publicKeys := ch.srv.Config().PluginSettings.SignaturePublicKeyFiles
 	for _, pk := range publicKeys {
 		pkBytes, appErr := ch.srv.getPublicKey(pk)
 		if appErr != nil {
@@ -90,8 +90,14 @@ func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppErro
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)
-		plugin.Seek(0, 0)
-		signature.Seek(0, 0)
+		if _, err := plugin.Seek(0, io.SeekStart); err != nil {
+			mlog.Warn("Unable to seek in public key reader for ", mlog.String("filename", pk))
+			continue
+		}
+		if _, err := signature.Seek(0, io.SeekStart); err != nil {
+			mlog.Warn("Unable to seek in signature for public key ", mlog.String("filename", pk))
+			continue
+		}
 		if err := verifySignature(publicKey, plugin, signature); err == nil {
 			return nil
 		}

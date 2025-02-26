@@ -8,7 +8,6 @@ import {useSelector, useDispatch} from 'react-redux';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getSubscriptionProduct, checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {closeModal, openModal} from 'actions/views/modals';
@@ -40,7 +39,6 @@ export type Props = {
 export default function InviteAs(props: Props) {
     const {formatMessage} = useIntl();
     const license = useSelector(getLicense);
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -83,7 +81,7 @@ export default function InviteAs(props: Props) {
         if (isFreeTrial) {
             ctaExtraContentMsg = formatMessage({id: 'free.professional_feature.professional', defaultMessage: 'Professional feature'});
         } else {
-            ctaExtraContentMsg = (hasPriorTrial || cloudFreeDeprecated) ? formatMessage({id: 'free.professional_feature.upgrade', defaultMessage: 'Upgrade'}) : formatMessage({id: 'free.professional_feature.try_free', defaultMessage: 'Professional feature- try it out free'});
+            ctaExtraContentMsg = (hasPriorTrial) ? formatMessage({id: 'free.professional_feature.upgrade', defaultMessage: 'Upgrade'}) : formatMessage({id: 'free.professional_feature.try_free', defaultMessage: 'Professional feature- try it out free'});
         }
 
         const restrictedIndicator = (

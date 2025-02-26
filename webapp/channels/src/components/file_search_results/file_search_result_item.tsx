@@ -2,18 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import FileThumbnail from 'components/file_attachment/file_thumbnail';
 import FilePreviewModal from 'components/file_preview_modal';
-import OverlayTrigger from 'components/overlay_trigger';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-import Tooltip from 'components/tooltip';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Tag from 'components/widgets/tag/tag';
+import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -145,51 +144,41 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                             />
                         </div>
                     </div>
-                    <OverlayTrigger
-                        delayShow={1000}
-                        placement='top'
-                        overlay={
-                            <Tooltip id='file-name__tooltip'>
-                                {localizeMessage('file_search_result_item.more_actions', 'More Actions')}
-                            </Tooltip>
-                        }
-                    >
-                        <MenuWrapper
-                            onToggle={this.keepOpen}
-                            stopPropagationOnToggle={true}
+                    {this.props.fileInfo.post_id && (
+                        <WithTooltip
+                            title={defineMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
                         >
-                            <a
-                                href='#'
-                                className='action-icon dots-icon'
+                            <MenuWrapper
+                                onToggle={this.keepOpen}
+                                stopPropagationOnToggle={true}
                             >
-                                <i className='icon icon-dots-vertical'/>
-                            </a>
-                            <Menu
-                                ariaLabel={'file menu'}
-                                openLeft={true}
-                            >
-                                <Menu.ItemAction
-                                    onClick={this.jumpToConv}
-                                    ariaLabel={localizeMessage('file_search_result_item.open_in_channel', 'Open in channel')}
-                                    text={localizeMessage('file_search_result_item.open_in_channel', 'Open in channel')}
-                                />
-                                <Menu.ItemAction
-                                    onClick={this.copyLink}
-                                    ariaLabel={localizeMessage('file_search_result_item.copy_link', 'Copy link')}
-                                    text={localizeMessage('file_search_result_item.copy_link', 'Copy link')}
-                                />
-                                {this.renderPluginItems()}
-                            </Menu>
-                        </MenuWrapper>
-                    </OverlayTrigger>
-                    <OverlayTrigger
-                        delayShow={1000}
-                        placement='top'
-                        overlay={
-                            <Tooltip id='file-name__tooltip'>
-                                {localizeMessage('file_search_result_item.download', 'Download')}
-                            </Tooltip>
-                        }
+                                <a
+                                    href='#'
+                                    className='action-icon dots-icon'
+                                >
+                                    <i className='icon icon-dots-vertical'/>
+                                </a>
+                                <Menu
+                                    ariaLabel={'file menu'}
+                                    openLeft={true}
+                                >
+                                    <Menu.ItemAction
+                                        onClick={this.jumpToConv}
+                                        ariaLabel={localizeMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
+                                        text={localizeMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
+                                    />
+                                    <Menu.ItemAction
+                                        onClick={this.copyLink}
+                                        ariaLabel={localizeMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
+                                        text={localizeMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
+                                    />
+                                    {this.renderPluginItems()}
+                                </Menu>
+                            </MenuWrapper>
+                        </WithTooltip>
+                    )}
+                    <WithTooltip
+                        title={defineMessage({id: 'file_search_result_item.download', defaultMessage: 'Download'})}
                     >
                         <a
                             className='action-icon download-icon'
@@ -198,7 +187,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                         >
                             <i className='icon icon-download-outline'/>
                         </a>
-                    </OverlayTrigger>
+                    </WithTooltip>
                 </button>
             </div>
         );

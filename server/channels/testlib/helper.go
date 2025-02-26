@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
@@ -72,10 +73,16 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 		Logger: logger,
 	}
 
-	mlog.NewLogger()
+	_, err := mlog.NewLogger()
+	if err != nil {
+		log.Fatal(err)
+	}
 	flag.Parse()
 
-	utils.TranslationsPreInit()
+	err = utils.TranslationsPreInit()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if options != nil {
 		if options.EnableStore && !testing.Short() {
@@ -91,7 +98,13 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 }
 
 func (h *MainHelper) Main(m *testing.M) {
-	defer h.Logger.Shutdown()
+	defer func() {
+		err := h.Logger.Shutdown()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	if h.testResourcePath != "" {
 		prevDir, err := os.Getwd()
 		if err != nil {
@@ -195,31 +208,21 @@ func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
 	var err error
 
-	basePath := os.Getenv("MM_SERVER_PATH")
-	if basePath == "" {
-		_, errFile := os.Stat("mattermost-server/server")
-		if os.IsNotExist(errFile) {
-			basePath = "mattermost/server"
-		} else {
-			basePath = "mattermost-server/server"
-		}
-	}
-	relPath := "channels/testlib/testdata"
 	switch *h.Settings.DriverName {
 	case model.DatabaseDriverPostgres:
-		finalPath := filepath.Join(basePath, relPath, "postgres_migration_warmup.sql")
+		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "postgres_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	case model.DatabaseDriverMysql:
-		finalPath := filepath.Join(basePath, relPath, "mysql_migration_warmup.sql")
+		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "mysql_migration_warmup.sql")
 		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	}
-	handle := h.SQLStore.GetMasterX()
+	handle := h.SQLStore.GetMaster()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
 		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))

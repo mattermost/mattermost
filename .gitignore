@@ -39,6 +39,7 @@ e2e-tests/playwright/node_modules
 e2e-tests/playwright/playwright-report
 e2e-tests/playwright/storage_state
 e2e-tests/playwright/test-results
+e2e-tests/playwright/results
 e2e-tests/playwright/tests/**/*-darwin.png
 e2e-tests/playwright/tests/**/*-window.png
 e2e-tests/playwright/tests/accessibility/**/*-snapshots
@@ -156,3 +157,5 @@ docker-compose.override.yaml
 ## Notice Folders
 .notice/
 .notice-work/
+.aider*
+.env

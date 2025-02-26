@@ -10,7 +10,6 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import statusGreen from 'images/status_green.png';
 import statusYellow from 'images/status_yellow.png';
-import * as Utils from 'utils/utils';
 
 type Props = {
     clusterInfos: Array<{
@@ -97,16 +96,34 @@ export default class ClusterTable extends PureComponent<Props> {
         const items = this.props.clusterInfos.map((clusterInfo) => {
             let status = null;
 
-            if (clusterInfo.hostname === '') {
-                clusterInfo.hostname = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
+            let hostname: React.ReactNode = clusterInfo.hostname;
+            if (hostname === '') {
+                hostname = (
+                    <FormattedMessage
+                        id='admin.cluster.unknown'
+                        defaultMessage='unknown'
+                    />
+                );
             }
 
-            if (clusterInfo.version === '') {
-                clusterInfo.version = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
+            let version: React.ReactNode = clusterInfo.version;
+            if (version === '') {
+                version = (
+                    <FormattedMessage
+                        id='admin.cluster.unknown'
+                        defaultMessage='unknown'
+                    />
+                );
             }
 
-            if (clusterInfo.config_hash === '') {
-                clusterInfo.config_hash = Utils.localizeMessage('admin.cluster.unknown', 'unknown');
+            let configHash: React.ReactNode = clusterInfo.config_hash;
+            if (configHash === '') {
+                configHash = (
+                    <FormattedMessage
+                        id='admin.cluster.unknown'
+                        defaultMessage='unknown'
+                    />
+                );
             }
 
             if (singleItem) {
@@ -130,9 +147,9 @@ export default class ClusterTable extends PureComponent<Props> {
             return (
                 <tr key={clusterInfo.ipaddress}>
                     <td style={style.clusterCell}>{status}</td>
-                    <td style={style.clusterCell}>{clusterInfo.hostname}</td>
-                    <td style={style.clusterCell}>{versionMismatch} {clusterInfo.version}</td>
-                    <td style={style.clusterCell}><div className='config-hash'>{configMismatch} {clusterInfo.config_hash}</div></td>
+                    <td style={style.clusterCell}>{hostname}</td>
+                    <td style={style.clusterCell}>{versionMismatch} {version}</td>
+                    <td style={style.clusterCell}><div className='config-hash'>{configMismatch} {configHash}</div></td>
                     <td style={style.clusterCell}>{clusterInfo.ipaddress}</td>
                     <td style={style.clusterCell}>{clusterInfo.schema_version}</td>
                 </tr>

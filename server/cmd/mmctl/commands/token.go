@@ -48,7 +48,7 @@ var ListUserTokensCmd = &cobra.Command{
 
 func init() {
 	ListUserTokensCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
-	ListUserTokensCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
+	ListUserTokensCmd.Flags().Int("per-page", DefaultPageSize, "Number of users to be fetched")
 	ListUserTokensCmd.Flags().Bool("all", false, "Fetch all tokens. --page flag will be ignore if provided")
 	ListUserTokensCmd.Flags().Bool("active", true, "List only active tokens")
 	ListUserTokensCmd.Flags().Bool("inactive", false, "List only inactive tokens")

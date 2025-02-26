@@ -3,7 +3,9 @@
 
 import {connect} from 'react-redux';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {Permissions} from 'mattermost-redux/constants';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -14,10 +16,12 @@ import type {GlobalState} from 'types/store';
 import TeamSettingsModal from './team_settings_modal';
 
 function mapStateToProps(state: GlobalState) {
+    const teamId = getCurrentTeamId(state);
+    const canInviteUsers = haveITeamPermission(state, teamId, Permissions.INVITE_USER);
     const modalId = ModalIdentifiers.TEAM_SETTINGS;
     return {
         show: isModalOpen(state, modalId),
-        isCloud: getLicense(state).Cloud === 'true',
+        canInviteUsers,
     };
 }
 

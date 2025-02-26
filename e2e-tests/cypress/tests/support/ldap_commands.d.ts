@@ -22,7 +22,7 @@ declare namespace Cypress {
         * @param {UserProfile} admin - an admin user
         * @returns {boolean} - true if sync run successfully
         */
-        runLdapSync(admin: {UserProfile}): boolean;
+        runLdapSync(admin: UserProfile): boolean;
 
         /**
         * getLdapSyncJobStatus is a task that runs an external request for ldap_sync job status
@@ -30,6 +30,24 @@ declare namespace Cypress {
         * @returns {string} - current status of job
         */
         getLdapSyncJobStatus(start: number): string;
+
+        /**
+         * doLDAPLogin is a task that runs LDAP login
+         * @param {object} settings - login settings
+         * @param {boolean} useEmail - true if uses email
+         */
+        doLDAPLogin(settings: object = {}, useEmail = false): Chainable<void>;
+
+        /**
+         * doLDAPLogout is a task that runs LDAP logout
+         * @param {Object} settings - logout settings
+         */
+        doLDAPLogout(settings: object = {}): Chainable<void>;
+
+        /**
+         * visitLDAPSettings is a task that navigates to LDAP settings Page
+         */
+        visitLDAPSettings(): Chainable<void>;
 
         /**
         * waitForLdapSyncCompletion is a task that runs recursively

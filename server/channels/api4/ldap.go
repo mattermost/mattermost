@@ -21,26 +21,26 @@ type mixedUnlinkedGroup struct {
 }
 
 func (api *API) InitLdap() {
-	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequired(syncLdap)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequired(testLdap)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIDLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequired(syncLdap)).Methods(http.MethodPost)
+	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequired(testLdap)).Methods(http.MethodPost)
+	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIDLdap)).Methods(http.MethodPost)
 
 	// GET /api/v4/ldap/groups?page=0&per_page=1000
-	api.BaseRoutes.LDAP.Handle("/groups", api.APISessionRequired(getLdapGroups)).Methods("GET")
+	api.BaseRoutes.LDAP.Handle("/groups", api.APISessionRequired(getLdapGroups)).Methods(http.MethodGet)
 
 	// POST /api/v4/ldap/groups/:remote_id/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(linkLdapGroup)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(linkLdapGroup)).Methods(http.MethodPost)
 
 	// DELETE /api/v4/ldap/groups/:remote_id/link
-	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(unlinkLdapGroup)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle(`/groups/{remote_id}/link`, api.APISessionRequired(unlinkLdapGroup)).Methods(http.MethodDelete)
 
-	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(addLdapPublicCertificate)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(addLdapPrivateCertificate)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(addLdapPublicCertificate, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(addLdapPrivateCertificate, handlerParamFileAPI)).Methods(http.MethodPost)
 
-	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(removeLdapPublicCertificate)).Methods("DELETE")
-	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(removeLdapPrivateCertificate)).Methods("DELETE")
+	api.BaseRoutes.LDAP.Handle("/certificate/public", api.APISessionRequired(removeLdapPublicCertificate)).Methods(http.MethodDelete)
+	api.BaseRoutes.LDAP.Handle("/certificate/private", api.APISessionRequired(removeLdapPrivateCertificate)).Methods(http.MethodDelete)
 
-	api.BaseRoutes.LDAP.Handle("/users/{user_id}/group_sync_memberships", api.APISessionRequired(addUserToGroupSyncables)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/users/{user_id}/group_sync_memberships", api.APISessionRequired(addUserToGroupSyncables)).Methods(http.MethodPost)
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -140,7 +140,9 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -240,7 +242,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.WriteHeader(status)
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -318,7 +322,7 @@ func migrateIDLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 func parseLdapCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
 	err := r.ParseMultipartForm(maxFileSize)
 	if err != nil {
-		return nil, model.NewAppError("addLdapCertificate", "api.admin.add_certificate.parseform.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("addLdapCertificate", "api.admin.add_certificate.parseform.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	m := r.MultipartForm
@@ -433,7 +437,7 @@ func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if user.AuthService != model.UserAuthServiceLdap {
+	if user.AuthService != model.UserAuthServiceLdap && (user.AuthService != model.UserAuthServiceSaml || !*c.App.Config().SamlSettings.EnableSyncWithLdap) {
 		c.Err = model.NewAppError("addUserToGroupSyncables", "api.user.add_user_to_group_syncables.not_ldap_user.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -444,7 +448,7 @@ func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request)
 	params := model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: true, ScopedUserID: &user.Id}
 	err := c.App.CreateDefaultMemberships(c.AppContext, params)
 	if err != nil {
-		c.Err = model.NewAppError("addUserToGroupSyncables", "api.admin.syncables_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("addUserToGroupSyncables", "api.admin.syncables_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
