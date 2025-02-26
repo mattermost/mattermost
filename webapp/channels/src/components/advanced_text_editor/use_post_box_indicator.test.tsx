@@ -96,6 +96,7 @@ describe('useTimePostBoxIndicator', () => {
         expect(current.showDndWarning).toBe(false);
         expect(current.isSelfDM).toBe(false);
         expect(current.isBot).toBe(true);
+        expect(current.showRemoteUserHour).toBe(false);
         expect(current.isScheduledPostEnabled).toBe(true);
         expect(current.teammateTimezone.useAutomaticTimezone).toBe(true);
         expect(current.teammateTimezone.automaticTimezone).toBe('IST');
