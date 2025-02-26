@@ -1520,7 +1520,7 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 
 	actualPost, err := api.GetPost(post.Id)
 	require.Nil(t, err)
-	assert.Equal(t, "true", actualPost.GetProp("from_plugin"))
+	assert.Equal(t, "true", actualPost.GetProp(model.PostPropsFromPlugin))
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {

@@ -175,7 +175,7 @@ func TestSendNotifications(t *testing.T) {
 				UserId:    user.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "a message",
-				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+				Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
 			}
 
 			rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
@@ -1428,7 +1428,7 @@ func TestGetExplicitMentions(t *testing.T) {
 			post := &model.Post{
 				Message: tc.Message,
 				Props: model.StringInterface{
-					"attachments": tc.Attachments,
+					model.PostPropsAttachments: tc.Attachments,
 				},
 			}
 
@@ -2208,7 +2208,7 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 	post := &model.Post{
 		Message: "This is the message",
 		Props: model.StringInterface{
-			"attachments": attachments,
+			model.PostPropsAttachments: attachments,
 		},
 	}
 	expectedFields := []string{
@@ -2316,22 +2316,22 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 
 	overriddenPost := &model.Post{
 		Props: model.StringInterface{
-			"override_username": "Overridden",
-			"from_webhook":      "true",
+			model.PostPropsOverrideUsername: "Overridden",
+			model.PostPropsFromWebhook:      "true",
 		},
 	}
 
 	overriddenPost2 := &model.Post{
 		Props: model.StringInterface{
-			"override_username": nil,
-			"from_webhook":      "true",
+			model.PostPropsOverrideUsername: nil,
+			model.PostPropsFromWebhook:      "true",
 		},
 	}
 
 	overriddenPost3 := &model.Post{
 		Props: model.StringInterface{
-			"override_username": 10,
-			"from_webhook":      "true",
+			model.PostPropsOverrideUsername: 10,
+			model.PostPropsFromWebhook:      "true",
 		},
 	}
 
@@ -2364,7 +2364,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		"overridden username": {
 			post:           overriddenPost,
 			allowOverrides: true,
-			expected:       overriddenPost.GetProp("override_username").(string),
+			expected:       overriddenPost.GetProp(model.PostPropsOverrideUsername).(string),
 		},
 		"overridden username, direct channel": {
 			channel:        &model.Channel{Type: model.ChannelTypeDirect},
@@ -2887,7 +2887,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    user.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "a message",
-			Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+			Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
 		}
 
 		rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
