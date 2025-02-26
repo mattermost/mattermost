@@ -275,7 +275,7 @@ func TestInstallPluginAlreadyActive(t *testing.T) {
 	reader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
 
-	actualManifest, appError := th.App.InstallPlugin(reader, true)
+	actualManifest, appError := th.App.InstallPlugin(reader, true, nil)
 	require.NotNil(t, actualManifest)
 	require.Nil(t, appError)
 	appError = th.App.EnablePlugin(actualManifest.Id)
@@ -293,7 +293,7 @@ func TestInstallPluginAlreadyActive(t *testing.T) {
 		}
 	}
 
-	actualManifest, appError = th.App.InstallPlugin(reader, true)
+	actualManifest, appError = th.App.InstallPlugin(reader, true, nil)
 	require.NotNil(t, appError)
 	require.Nil(t, actualManifest)
 	require.Equal(t, "app.plugin.restart.app_error", appError.Id)
