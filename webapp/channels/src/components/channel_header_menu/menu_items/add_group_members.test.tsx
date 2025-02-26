@@ -51,7 +51,10 @@ describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
         expect(modalActions.openModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
             dialogType: MoreDirectChannels,
-            dialogProps: {isExistingChannel: true},
+            dialogProps: {
+                focusOriginElement: 'channelInfoRHSAddPeopleButton',
+                isExistingChannel: true,
+            },
         });
     });
 });
