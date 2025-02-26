@@ -1053,6 +1053,39 @@ describe('Reducers.users', () => {
             expect(newProfiles.second_user_id).toEqual(secondUser);
             expect(newProfiles.third_user_id).toEqual(thirdUser);
         });
+
+        test('UserTypes.RECEIVED_CPA_VALUES, should merge existing users custom attributes', () => {
+            const firstUser = TestHelper.getUserMock({id: 'first_user_id'});
+            const secondUser = TestHelper.getUserMock({id: 'second_user_id'});
+            const state = {
+                profiles: {
+                    first_user_id: firstUser,
+                    second_user_id: secondUser,
+                },
+            };
+            const action = {
+                type: UserTypes.RECEIVED_CPA_VALUES,
+                data: {
+                    userID: 'first_user_id',
+                    customAttributeValues: {field1: 'value1'},
+                },
+            };
+            const {profiles: newProfiles} = reducer(state as unknown as ReducerState, action);
+
+            expect(newProfiles.first_user_id.custom_profile_attributes!.field1).toEqual('value1');
+
+            // update field
+            const updateAction = {
+                type: UserTypes.RECEIVED_CPA_VALUES,
+                data: {
+                    userID: 'first_user_id',
+                    customAttributeValues: {field1: 'updatedValue'},
+                },
+            };
+            const {profiles: updatedProfiles} = reducer(state as unknown as ReducerState, updateAction);
+
+            expect(updatedProfiles.first_user_id.custom_profile_attributes!.field1).toEqual('updatedValue');
+        });
     });
 
     test('PROFILE_NO_LONGER_VISIBLE should remove references to users from state', () => {
