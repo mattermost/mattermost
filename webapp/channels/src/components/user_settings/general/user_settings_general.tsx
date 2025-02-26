@@ -7,6 +7,7 @@ import React, {PureComponent} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import ReactSelect from 'react-select';
+import './user_settings_general.scss';
 import type {ValueType, ActionMeta} from 'react-select';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
