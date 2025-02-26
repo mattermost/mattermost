@@ -5,6 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {isEnterpriseLicense} from 'utils/license_utils';
+import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import {channelBannerEnabled} from '@mattermost/types/channels';
 
@@ -15,10 +16,11 @@ import './style.scss';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
-const options = {
+const markdownRenderingOptions: Partial<TextFormattingOptions> = {
     singleline: true,
     mentionHighlight: false,
 };
@@ -34,7 +36,8 @@ export default function ChannelBanner({channelId}: Props) {
     const intl = useIntl();
 
     const showChannelBanner = isEnterprise && channelBannerEnabled(channelBannerInfo);
-    if (!showChannelBanner) {
+
+    if (!channelBannerInfo || !showChannelBanner) {
         return null;
     }
 
@@ -47,18 +50,23 @@ export default function ChannelBanner({channelId}: Props) {
                 backgroundColor: channelBannerInfo!.background_color,
             }}
         >
-            <span
-                className='channel_banner_text'
-                aria-label={ariaLabel}
-                style={{
-                    color: getContrastingSimpleColor(channelBannerInfo!.background_color),
-                }}
+            <WithTooltip
+                title={channelBannerInfo!.text}
+                isVertical={false}
             >
-                <Markdown
-                    message={channelBannerInfo!.text}
-                    options={options}
-                />
-            </span>
+                <span
+                    className='channel_banner_text'
+                    aria-label={ariaLabel}
+                    style={{
+                        color: getContrastingSimpleColor(channelBannerInfo!.background_color),
+                    }}
+                >
+                    <Markdown
+                        message={channelBannerInfo!.text}
+                        options={markdownRenderingOptions}
+                    />
+                </span>
+            </WithTooltip>
         </div>
     );
 }

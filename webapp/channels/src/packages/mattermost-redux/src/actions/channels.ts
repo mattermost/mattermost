@@ -440,6 +440,7 @@ export function fetchChannelsAndMembers(teamId: string): ActionFuncAsync<{channe
             return {error: error as ServerError};
         }
 
+        console.log('AAAAAAAAA');
         dispatch(batchActions([
             {
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -753,6 +754,7 @@ export function getChannels(teamId: string, page = 0, perPage: number = General.
             return {error};
         }
 
+        console.log('BBBBBB');
         dispatch(batchActions([
             {
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -778,6 +780,7 @@ export function getArchivedChannels(teamId: string, page = 0, perPage: number = 
             return {error};
         }
 
+        console.log('CCCCCC');
         dispatch({
             type: ChannelTypes.RECEIVED_CHANNELS,
             teamId,
@@ -862,6 +865,7 @@ export function autocompleteChannels(teamId: string, term: string): ActionFuncAs
             return {error};
         }
 
+        console.log('DDDDDD');
         dispatch(batchActions([
             {
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -891,6 +895,7 @@ export function autocompleteChannelsForSearch(teamId: string, term: string): Act
             return {error};
         }
 
+        console.log('EEEEEEEEEE');
         dispatch(batchActions([
             {
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -924,6 +929,7 @@ export function searchChannels(teamId: string, term: string, archived?: boolean)
             return {error};
         }
 
+        console.log('FFFFFFFF');
         dispatch(batchActions([
             {
                 type: ChannelTypes.RECEIVED_CHANNELS,
