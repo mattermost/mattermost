@@ -121,7 +121,7 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 		}
 	}
 
-	// if System Roles (ie. Admin, TeamAdmin) allow permissions
+	// if System Roles (i.e. Admin, TeamAdmin) allow permissions
 	// if so, no reason to check team
 	if a.SessionHasPermissionTo(session, permission) {
 		// make sure all channels exist, otherwise return false.
@@ -202,7 +202,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 	if userID == "" {
 		return false
 	}
-	if session.IsUnrestricted() {
+	if session.IsUnrestricted() || a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 		return true
 	}
 
@@ -210,11 +210,20 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 		return true
 	}
 
-	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
-		return true
+	if !a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
+		return false
 	}
 
-	return false
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return false
+	}
+
+	if user.IsSystemAdmin() {
+		return false
+	}
+
+	return true
 }
 
 func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Session, userID string) bool {
