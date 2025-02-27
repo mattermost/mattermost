@@ -21,6 +21,7 @@ import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import ConfirmationModal from 'components/confirm_modal';
+import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 
 import {focusElement} from 'utils/a11y_utils';
@@ -30,7 +31,7 @@ import {stopTryNotificationRing} from 'utils/notification_sounds';
 
 import type {GlobalState} from 'types/store';
 
-import ChannelSettingsSidebar from './channel_settings_sidebar';
+const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 
 import './channel_settings_modal.scss';
 
@@ -59,16 +60,14 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     );
 
     const [show, setShow] = useState(isOpen);
-    const [enforceFocus, setEnforceFocus] = useState(true);
 
     // Active tab
     const [activeTab, setActiveTab] = useState<ChannelSettingsTabs>(ChannelSettingsTabs.INFO);
 
-    // We track unsaved changes to prompt a confirm modal
+    // We track unsaved changes to prompt a save changes panel
     const [requireConfirm, setRequireConfirm] = useState(false);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [autoCloseOnCancel, setAutoCloseOnCancel] = useState(false);
-    const [customConfirmAction, setCustomConfirmAction] = useState<null |((doConfirm: () => void) => void)>(null);
+    const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
+    const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
 
     // The fields we allow editing
     const [displayName, setDisplayName] = useState(channel?.display_name ?? '');
@@ -86,7 +85,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     // Refs
     const modalBodyRef = useRef<HTMLDivElement>(null);
 
-    // For checking unsaved changes, we store the initial “loaded” values or do a direct comparison
+    // For checking unsaved changes, we store the initial "loaded" values or do a direct comparison
     const hasUnsavedChanges = useCallback(() => {
         // Compare fields to their original values
         if (!channel) {
@@ -118,56 +117,58 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Called to set the active tab, prompting confirm if there are unsaved changes
-    const updateTab = (newTab: string) => {
+    // Called to set the active tab, prompting save changes panel if there are unsaved changes
+    const updateTab = useCallback((newTab: string) => {
         if (requireConfirm) {
-            showConfirm(() => updateTabConfirm(newTab));
-        } else {
-            updateTabConfirm(newTab);
+            setSaveChangesPanelState('editing');
+            return;
         }
-    };
+        updateTabConfirm(newTab);
+    }, [requireConfirm]);
 
     const updateTabConfirm = (newTab: string) => {
         const tab = newTab as ChannelSettingsTabs;
         setActiveTab(tab);
-        setActiveTab(newTab as ChannelSettingsTabs);
 
-        // Scroll to top if user changes tabs
         if (modalBodyRef.current) {
             modalBodyRef.current.scrollTop = 0;
         }
     };
 
-    // Temporal: Confirm modal logic
-    const showConfirm = (afterConfirm?: () => void) => {
-        if (customConfirmAction) {
-            customConfirmAction(() => handleConfirmModalConfirm(afterConfirm));
+    // Handle save changes panel actions
+    const handleSaveChanges = useCallback(async () => {
+        const success = await handleSave();
+        if (!success) {
+            setSaveChangesPanelState('error');
             return;
         }
-        setShowConfirmModal(true);
-        setEnforceFocus(false);
-    };
-
-    const handleConfirmModalConfirm = (afterConfirm?: () => void) => {
-        setShowConfirmModal(false);
-        setEnforceFocus(true);
+        setSaveChangesPanelState('saved');
         setRequireConfirm(false);
-        setCustomConfirmAction(null);
+    }, []);
 
-        if (afterConfirm) {
-            afterConfirm();
-        }
-    };
+    const handleClose = useCallback(() => {
+        setSaveChangesPanelState(undefined);
+        setRequireConfirm(false);
+    }, []);
 
-    const handleCancelConfirmation = () => {
-        setShowConfirmModal(false);
-        setEnforceFocus(true);
-    };
+    const handleCancel = useCallback(() => {
+        // Reset all form fields to their original values
+        setDisplayName(channel?.display_name ?? '');
+        setURL(channel?.name ?? '');
+        setChannelPurpose(channel?.purpose ?? '');
+        setChannelHeader(channel?.header ?? '');
+        setChannelType(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
+
+        // Clear errors
+        setURLError('');
+        setServerError('');
+
+        handleClose();
+    }, [channel]);
 
     const handleHide = () => {
         if (requireConfirm) {
-            showConfirm(() => handleHideConfirm());
-            setAutoCloseOnCancel(false);
+            setSaveChangesPanelState('editing');
         } else {
             handleHideConfirm();
         }
@@ -189,9 +190,9 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     };
 
     // Validate & Save
-    const handleSave = async () => {
+    const handleSave = async (): Promise<boolean> => {
         if (!channel) {
-            return;
+            return false;
         }
 
         // TODO: expand this simple example of the client-side check, enhance and cover all scenarios shown int he UX
@@ -200,7 +201,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                 id: 'channel_settings.error_display_name_required',
                 defaultMessage: 'Channel name is required',
             }));
-            return;
+            return false;
         }
 
         // Build updated channel object
@@ -216,11 +217,12 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         const {error} = await dispatch(patchChannel(channel.id, updated));
         if (error) {
             handleServerError(error as ServerError);
-            return;
+            return false;
         }
 
         // On success, close the modal
         handleHideConfirm();
+        return true;
     };
 
     const handleServerError = (err: ServerError) => {
@@ -241,11 +243,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     };
 
     const handleArchiveChannel = () => {
-        if (requireConfirm) {
-            showConfirm(() => doArchiveChannel());
-        } else {
-            doArchiveChannel();
-        }
+        setShowArchiveConfirmModal(true);
     };
 
     const doArchiveChannel = () => {
@@ -388,6 +386,28 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
         );
     };
 
+    // Define tabs for the settings sidebar
+    const tabs = [
+        {
+            name: ChannelSettingsTabs.INFO,
+            uiName: formatMessage({id: 'channel_settings.tab.info', defaultMessage: 'Info'}),
+            icon: 'icon icon-information-outline',
+            iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'}),
+        },
+        {
+            name: ChannelSettingsTabs.CONFIGURATION,
+            uiName: formatMessage({id: 'channel_settings.tab.configuration', defaultMessage: 'Configuration'}),
+            icon: 'icon icon-cog-outline',
+            iconTitle: formatMessage({id: 'generic_icons.settings', defaultMessage: 'Settings Icon'}),
+        },
+        {
+            name: ChannelSettingsTabs.ARCHIVE,
+            uiName: formatMessage({id: 'channel_settings.tab.archive', defaultMessage: 'Archive Channel'}),
+            icon: 'icon icon-archive-outline',
+            iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
+        },
+    ];
+
     // Renders the body: left sidebar for tabs, the content on the right
     const renderModalBody = () => {
         return (
@@ -396,19 +416,15 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                 className='ChannelSettingsModal__bodyWrapper'
             >
                 <div className='settings-table'>
-                    {/* Left Sidebar */}
                     <div className='settings-links'>
-                        <ChannelSettingsSidebar
-                            activeTab={activeTab}
-                            setActiveTab={(id: string) => updateTab(id)}
-                            tabs={[
-                                {id: ChannelSettingsTabs.INFO, label: formatMessage({id: 'channel_settings.tab.info', defaultMessage: 'Info'})},
-                                {id: ChannelSettingsTabs.CONFIGURATION, label: formatMessage({id: 'channel_settings.tab.configuration', defaultMessage: 'Configuration'})},
-                                {id: ChannelSettingsTabs.ARCHIVE, label: formatMessage({id: 'channel_settings.tab.archive', defaultMessage: 'Archive Channel'})},
-                            ]}
-                        />
+                        <React.Suspense fallback={null}>
+                            <SettingsSidebar
+                                tabs={tabs}
+                                activeTab={activeTab}
+                                updateTab={updateTab}
+                            />
+                        </React.Suspense>
                     </div>
-                    {/* Main content on the right */}
                     <div className='settings-content minimize-settings'>
                         {renderTabContent()}
                     </div>
@@ -420,50 +436,48 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     // For the main modal heading
     const modalTitle = formatMessage({id: 'channel_settings.modal.title', defaultMessage: 'Channel Settings'});
 
-    // Error text to show in the GenericModal “footer area”
+    // Error text to show in the GenericModal "footer area"
     const errorText = serverError;
 
     return (
         <GenericModal
             id='channelSettingsModal'
             ariaLabel={modalTitle}
-            className='ChannelSettingsModal'
+            className='ChannelSettingsModal settings-modal'
             show={show}
             onHide={handleHide}
             onExited={handleHidden}
             compassDesign={true}
-            enforceFocus={enforceFocus}
 
             // The main heading:
             modalHeaderText={modalTitle}
             errorText={errorText}
 
-            // Primary “Save” or “Update” button text
-            confirmButtonText={formatMessage({id: 'channel_settings.modal.save', defaultMessage: 'Save changes'})}
-            cancelButtonText={formatMessage({id: 'channel_settings.modal.cancel', defaultMessage: 'Cancel'})}
-
-            // If there are no changes or any field is invalid, disable “Save”
-            isConfirmDisabled={!hasUnsavedChanges() || Boolean(urlError || serverError)}
-
-            // When user clicks “Save”
-            handleConfirm={handleSave}
-
             // If pressing Enter in a sub‐form, we also want to handle saving:
-            handleEnterKeyPress={handleSave}
-            handleCancel={handleHide}
-            autoCloseOnConfirmButton={false}
-            autoCloseOnCancelButton={autoCloseOnCancel}
+            handleEnterKeyPress={handleSaveChanges}
+            bodyPadding={false}
         >
             {renderModalBody()}
 
-            {/* Temporal used - ConfirmModal for unsaved changes - this will be updated to the bottom alert banner as shown in the designs */}
+            {/* SaveChangesPanel for unsaved changes */}
+            {requireConfirm && (
+                <SaveChangesPanel
+                    handleSubmit={handleSaveChanges}
+                    handleCancel={handleCancel}
+                    handleClose={handleClose}
+                    tabChangeError={false}
+                    state={saveChangesPanelState}
+                />
+            )}
+
+            {/* Confirmation Modal for archiving channel */}
             <ConfirmationModal
-                show={showConfirmModal}
-                title={formatMessage({id: 'channel_settings.modal.confirmTitle', defaultMessage: 'Discard Changes?'})}
-                message={formatMessage({id: 'channel_settings.modal.confirmMsg', defaultMessage: 'You have unsaved changes. Are you sure you want to discard them?'})}
-                confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmDiscard', defaultMessage: 'Yes, Discard'})}
-                onConfirm={() => handleConfirmModalConfirm(() => setShow(false))}
-                onCancel={handleCancelConfirmation}
+                show={showArchiveConfirmModal}
+                title={formatMessage({id: 'channel_settings.modal.archiveTitle', defaultMessage: 'Archive Channel?'})}
+                message={formatMessage({id: 'channel_settings.modal.archiveMsg', defaultMessage: 'Are you sure you want to archive this channel? This action cannot be undone.'})}
+                confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmArchive', defaultMessage: 'Yes, Archive'})}
+                onConfirm={doArchiveChannel}
+                onCancel={() => setShowArchiveConfirmModal(false)}
             />
         </GenericModal>
     );
