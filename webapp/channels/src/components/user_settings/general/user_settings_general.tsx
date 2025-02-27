@@ -110,7 +110,7 @@ export type Props = {
     collapseModal: () => void;
     isMobileView: boolean;
     maxFileSize: number;
-    customProfileAttributeFields: IDMappedObjects<UserPropertyField>;
+    customProfileAttributeFields: UserPropertyField[];
     actions: {
         logError: ({message, type}: {message: any; type: string}, options?: LogErrorOptions) => void;
         clearErrors: () => void;
@@ -1325,7 +1325,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             return <></>;
         }
 
-        const attributeSections = Object.values(this.props.customProfileAttributeFields).map((attribute) => {
+        const attributeSections = this.props.customProfileAttributeFields.map((attribute) => {
             const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
