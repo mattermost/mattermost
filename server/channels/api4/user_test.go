@@ -3443,19 +3443,43 @@ func TestUpdateUserMfa(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
+	t.Run("Without enforcing", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
-	session, _ := th.App.GetSession(th.Client.AuthToken)
-	session.IsOAuth = true
-	th.App.AddSessionToCache(session)
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		session.IsOAuth = true
+		th.App.AddSessionToCache(session)
 
-	resp, err := th.Client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		defer th.Server.Platform().ClearUserSessionCacheLocal(th.BasicUser.Id)
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, err = client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		resp, err := th.Client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, err := client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("Enforcing", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+			*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+		})
+
+		resp, err := th.Client.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
 		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = th.LocalClient.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = th.SystemAdminClient.UpdateUserMfa(context.Background(), th.BasicUser.Id, "12345", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.mfa_required.app_error")
 	})
 }
 
@@ -4211,6 +4235,14 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	time.Sleep(time.Millisecond)
 
 	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), user.Id)
+	require.NoError(t, err)
+
+	// Check that a system admin can set the default profile image for another system admin
+	anotherAdmin := th.CreateUser()
+	_, appErr := th.App.UpdateUserRoles(th.Context, anotherAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
+	require.Nil(t, appErr)
+
+	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), anotherAdmin.Id)
 	require.NoError(t, err)
 
 	ruser, appErr := th.App.GetUser(user.Id)

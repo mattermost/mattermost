@@ -40,13 +40,30 @@ function license(state: ClientLicense = {}, action: MMReduxAction) {
 }
 
 function customProfileAttributes(state: IDMappedObjects<UserPropertyField> = {}, action: MMReduxAction) {
-    const data: UserPropertyField[] = action.data;
     switch (action.type) {
-    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_RECEIVED:
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED: {
+        const data: UserPropertyField[] = action.data;
         return data.reduce<IDMappedObjects<UserPropertyField>>((acc, field) => {
             acc[field.id] = field;
             return acc;
         }, {});
+    }
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED: {
+        const nextState = {...state};
+        const fieldId = action.data;
+        if (Object.hasOwn(nextState, fieldId)) {
+            Reflect.deleteProperty(nextState, fieldId);
+            return nextState;
+        }
+        return state;
+    }
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED:
+    case GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED: {
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    }
     default:
         return state;
     }
