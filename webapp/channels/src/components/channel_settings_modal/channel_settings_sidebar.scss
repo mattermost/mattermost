@@ -1,0 +1,43 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelSettingsSidebar {
+    width: 100%;
+
+    &__list {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    &__tabItem {
+        margin-bottom: 8px;
+
+        &.active {
+            .ChannelSettingsSidebar__tabButton {
+                background: rgba(var(--button-bg-rgb), 0.08);
+                color: var(--button-bg);
+                font-weight: 600;
+            }
+        }
+    }
+
+    &__tabButton {
+        width: 100%;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        background: none;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 20px;
+        text-align: left;
+        transition: background 0.15s ease-in-out;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+}
+
