@@ -45,10 +45,11 @@
                 .badge {
                     position: relative;
                     top: -2px;
-                    display: inline-block;
-                    height: 14px;
+                    display: inline-flex;
+                    align-items: center;
+                    height: 16px;
                     margin-left: 6px;
-                    background: rgba(var(--center-channel-color-rgb), 0.2);
+                    background: rgba(var(--center-channel-color-rgb), 0.08);
                     color: rgba(var(--center-channel-color-rgb), 0.75);
                     font-size: 11px;
                 }
@@ -78,7 +79,7 @@
 
     span.MuiBadge-badge {
         position: relative;
-        top: -2px;
+        top: -0.5px;
     }
 
     @media screen and (max-width: 768px) {
