@@ -168,8 +168,8 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	instanceURL := strings.TrimRight(args[0], "/")
 	_, urlErr := url.ParseRequestURI(instanceURL)
 	if urlErr != nil {
-    return fmt.Errorf("could not parse the instance url: %w", err)
-  }
+		return fmt.Errorf("could not parse the instance url: %w", urlErr)
+	}
 	method := MethodPassword
 
 	ctx := context.TODO()
