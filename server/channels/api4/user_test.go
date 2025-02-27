@@ -3903,6 +3903,14 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), user.Id)
 	require.NoError(t, err)
 
+	// Check that a system admin can set the default profile image for another system admin
+	anotherAdmin := th.CreateUser()
+	_, appErr := th.App.UpdateUserRoles(th.Context, anotherAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
+	require.Nil(t, appErr)
+
+	_, err = th.SystemAdminClient.SetDefaultProfileImage(context.Background(), anotherAdmin.Id)
+	require.NoError(t, err)
+
 	ruser, appErr := th.App.GetUser(user.Id)
 	require.Nil(t, appErr)
 	assert.Less(t, ruser.LastPictureUpdate, iuser.LastPictureUpdate, "LastPictureUpdate should be updated to a lower negative number")
