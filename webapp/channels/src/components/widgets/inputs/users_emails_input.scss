@@ -62,6 +62,10 @@
                 .users-emails-input__input {
                     border-bottom: 0;
 
+                    &-container{
+                        color: inherit;
+                    }
+
                     .a11y--focused {
                         box-shadow: none;
                     }

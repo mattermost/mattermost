@@ -9304,10 +9304,6 @@
     "translation": "Não foi possível obter confirmação de recebimento da publicação."
   },
   {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "O esquema do índice de canais do Elasticsearch está desatualizado. É recomendável que você gere novamente o índice de canais.\nClique no botão `Reconstruir índices de Canais` na [seção Elasticsearch no System Console]({{.ElasticsearchSection}}) para corrigir o problema.\nConsulte o registro de alterações do Mattermost para obter mais informações."
-  },
-  {
     "id": "app.compile_report_chunks.unsupported_format",
     "translation": "Formato de relatório não suportado."
   },

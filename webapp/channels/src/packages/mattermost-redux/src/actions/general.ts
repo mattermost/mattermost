@@ -46,20 +46,8 @@ export function getLicenseConfig() {
 export function getCustomProfileAttributeFields() {
     return bindClientFunc({
         clientFunc: Client4.getCustomProfileAttributeFields,
-        onSuccess: [GeneralTypes.CUSTOM_PROFILE_ATTRIBUTES_RECEIVED],
+        onSuccess: [GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED],
     });
-}
-
-export function getCustomProfileAttributeValues(userID: string) {
-    return async () => {
-        let data;
-        try {
-            data = await Client4.getUserCustomProfileAttributesValues(userID);
-        } catch (error) {
-            return {error};
-        }
-        return {data};
-    };
 }
 
 export function logClientError(message: string, level = LogLevel.Error) {
