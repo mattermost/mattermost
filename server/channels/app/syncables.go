@@ -293,8 +293,6 @@ func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncab
 		includeRemovedMembers = false
 	}
 
-	rctx.Logger().Info("Syncing default memberships", mlog.Int("since", since))
-
 	params := model.CreateDefaultMembershipParams{Since: since, ReAddRemovedMembers: includeRemovedMembers}
 
 	switch syncableType {
