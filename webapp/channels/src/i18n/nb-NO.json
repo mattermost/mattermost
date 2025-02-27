@@ -2830,6 +2830,8 @@
   "onboardingTask.checklist.downloads": "Nå som alt er satt opp, <link>last ned appene våre.</link>",
   "onboardingTask.checklist.higher_security_features": "Interessert i funksjonene våre med høyere sikkerhet?",
   "onboardingTask.checklist.task_visit_system_console": "Gå til systemkonsollen for å konfigurere arbeidsområdet ditt.",
+  "onboardingTask.completeYourProfileTour.Description": "Bruk dette menyelementet til å oppdatere din profil og sikkerhetsinnstillingene.",
+  "onboardingTask.completeYourProfileTour.title": "Rediger profilen din",
   "onboardingTour.ChannelsAndDirectMessagesTour.directMessages": "<b>Direktemeldinger</b> er for private samtaler mellom enkeltpersoner eller små grupper.",
   "onboardingTour.ChannelsAndDirectMessagesTour.firstChannel": "Hei se, der er din **{firstChannelName}**-kanal! ",
   "onboardingTour.ChannelsAndDirectMessagesTour.title": "Kanaler og direktemeldinger",
