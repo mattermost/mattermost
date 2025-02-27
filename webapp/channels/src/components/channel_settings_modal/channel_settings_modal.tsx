@@ -20,7 +20,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
-import ConfirmModal from 'components/confirm_modal';
+import ConfirmationModal from 'components/confirm_modal';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 
 import {focusElement} from 'utils/a11y_utils';
@@ -67,6 +67,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     // We track unsaved changes to prompt a confirm modal
     const [requireConfirm, setRequireConfirm] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [autoCloseOnCancel, setAutoCloseOnCancel] = useState(false);
     const [customConfirmAction, setCustomConfirmAction] = useState<null |((doConfirm: () => void) => void)>(null);
 
     // The fields we allow editing
@@ -140,14 +141,14 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     // Temporal: Confirm modal logic
     const showConfirm = (afterConfirm?: () => void) => {
         if (customConfirmAction) {
-            customConfirmAction(() => handleConfirm(afterConfirm));
+            customConfirmAction(() => handleConfirmModalConfirm(afterConfirm));
             return;
         }
         setShowConfirmModal(true);
         setEnforceFocus(false);
     };
 
-    const handleConfirm = (afterConfirm?: () => void) => {
+    const handleConfirmModalConfirm = (afterConfirm?: () => void) => {
         setShowConfirmModal(false);
         setEnforceFocus(true);
         setRequireConfirm(false);
@@ -166,6 +167,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
     const handleHide = () => {
         if (requireConfirm) {
             showConfirm(() => handleHideConfirm());
+            setAutoCloseOnCancel(false);
         } else {
             handleHideConfirm();
         }
@@ -450,16 +452,17 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             handleEnterKeyPress={handleSave}
             handleCancel={handleHide}
             autoCloseOnConfirmButton={false}
+            autoCloseOnCancelButton={autoCloseOnCancel}
         >
             {renderModalBody()}
 
             {/* Temporal used - ConfirmModal for unsaved changes - this will be updated to the bottom alert banner as shown in the designs */}
-            <ConfirmModal
+            <ConfirmationModal
                 show={showConfirmModal}
                 title={formatMessage({id: 'channel_settings.modal.confirmTitle', defaultMessage: 'Discard Changes?'})}
                 message={formatMessage({id: 'channel_settings.modal.confirmMsg', defaultMessage: 'You have unsaved changes. Are you sure you want to discard them?'})}
                 confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmDiscard', defaultMessage: 'Yes, Discard'})}
-                onConfirm={() => handleConfirm()}
+                onConfirm={() => handleConfirmModalConfirm(() => setShow(false))}
                 onCancel={handleCancelConfirmation}
             />
         </GenericModal>

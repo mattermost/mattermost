@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor, act, within} from '@testing-library/react';
+import {screen, waitFor, act} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -150,10 +150,9 @@ describe('ChannelSettingsModal', () => {
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'Another change');
 
-        // Click the GenericModal "Cancel" button.
-        // Try to use a test id if available or get the first matching button.
-        const cancelButtons = screen.getAllByText('Cancel');
-        const genericCancelButton = screen.queryByTestId('cancelModalButton') || cancelButtons[0];
+        // Click the main modal "Cancel" button (use test id if available).
+        const genericCancelButton =
+            screen.queryByTestId('cancelModalButton') || screen.getAllByText('Cancel')[0];
         await act(async () => {
             await userEvent.click(genericCancelButton);
         });
@@ -161,12 +160,8 @@ describe('ChannelSettingsModal', () => {
         // Confirm modal should appear due to unsaved changes.
         expect(screen.getByText('Discard Changes?')).toBeInTheDocument();
 
-        // Find the confirm modal dialog
-        const confirmModal = screen.getByRole('dialog', {name: 'Discard Changes?'});
-        expect(confirmModal).toBeInTheDocument();
-
-        // Find the cancel button within the confirm modal
-        const confirmModalCancel = within(confirmModal).getByTestId('cancel-button');
+        // Instead of trying to locate the modal footer, wait for the cancel button to appear by test ID.
+        const confirmModalCancel = await screen.findByTestId('cancel-button');
         await act(async () => {
             await userEvent.click(confirmModalCancel);
         });

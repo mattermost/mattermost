@@ -38,11 +38,6 @@
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
         }
-
-        &:focus {
-            outline: none;
-            box-shadow: inset 0 0 0 2px var(--button-bg);
-        }
     }
 }
 
