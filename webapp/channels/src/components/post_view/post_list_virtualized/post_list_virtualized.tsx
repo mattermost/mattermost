@@ -720,7 +720,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                             ref={this.listRef}
                                             height={height}
                                             width={width}
-                                            id='post-list-virtualized'
+                                            id='postListScrollContainer'
                                             className='post-list__dynamic'
                                             itemData={this.state.postListIds}
                                             overscanCountForward={OVERSCAN_COUNT_FORWARD}
