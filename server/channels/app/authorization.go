@@ -91,7 +91,7 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 		return true
 	}
 
-	if a.isChannelArchived(channel) {
+	if a.isChannelArchivedAndHidden(channel) {
 		return false
 	}
 
@@ -136,7 +136,7 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 			}
 
 			// if any channel is archived and the user doesn't have permission to view archived channels, return false
-			if a.isChannelArchived(channel) {
+			if a.isChannelArchivedAndHidden(channel) {
 				return false
 			}
 		}
@@ -404,7 +404,7 @@ func (a *App) SessionHasPermissionToReadChannel(c request.CTX, session model.Ses
 }
 
 func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
-	if a.isChannelArchived(channel) {
+	if a.isChannelArchivedAndHidden(channel) {
 		return false
 	}
 	if a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) {
@@ -419,7 +419,7 @@ func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *
 }
 
 func (a *App) HasPermissionToChannelMemberCount(c request.CTX, userID string, channel *model.Channel) bool {
-	if a.isChannelArchived(channel) {
+	if a.isChannelArchivedAndHidden(channel) {
 		return false
 	}
 	if a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) {
@@ -433,6 +433,6 @@ func (a *App) HasPermissionToChannelMemberCount(c request.CTX, userID string, ch
 	return false
 }
 
-func (a *App) isChannelArchived(channel *model.Channel) bool {
+func (a *App) isChannelArchivedAndHidden(channel *model.Channel) bool {
 	return !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0
 }

@@ -255,6 +255,44 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 		assert.False(t, th.App.SessionHasPermissionToChannels(th.Context, session, []string{newChannel.Id}, model.PermissionReadChannel))
 	})
 
+	t.Run("basic user cannot access mixed archived and non-archived channels if setting is off", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+		}
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
+		})
+
+		archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, archivedChannel, false)
+		assert.Nil(t, appErr)
+
+		err := th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+		require.Nil(t, err)
+
+		mixedChannels := []string{th.BasicChannel.Id, archivedChannel.Id}
+		assert.False(t, th.App.SessionHasPermissionToChannels(th.Context, session, mixedChannels, model.PermissionReadChannel))
+	})
+
+	t.Run("basic user can access mixed archived and non-archived channels if setting is on", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+		}
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+		})
+
+		archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, archivedChannel, false)
+		assert.Nil(t, appErr)
+
+		err := th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+		require.Nil(t, err)
+
+		mixedChannels := []string{th.BasicChannel.Id, archivedChannel.Id}
+		assert.True(t, th.App.SessionHasPermissionToChannels(th.Context, session, mixedChannels, model.PermissionReadChannel))
+	})
+
 	t.Run("System Admins can access basic channels", func(t *testing.T) {
 		session := model.Session{
 			UserId: th.SystemAdminUser.Id,
