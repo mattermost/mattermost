@@ -284,7 +284,7 @@ else
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.5
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...

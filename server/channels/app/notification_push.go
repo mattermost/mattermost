@@ -859,7 +859,7 @@ func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig str
 		}
 	}
 
-	hasFiles := len(post.FileIds) > 0
+	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
 	msg.Message = a.getPushNotificationMessage(
 		contentsConfig,
