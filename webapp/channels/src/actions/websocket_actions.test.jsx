@@ -1390,7 +1390,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         let cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(cpaFields).toEqual(1);
+        expect(cpaFields.length).toEqual(1);
         expect(cpaFields.field1.type).toEqual(field1.type);
         expect(cpaFields.field1.name).toEqual(field1.name);
 
@@ -1404,7 +1404,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(cpaFields).toEqual(2);
+        expect(cpaFields.length).toEqual(2);
         expect(cpaFields.field2.type).toEqual(field2.type);
         expect(cpaFields.field2.name).toEqual(field2.name);
 
@@ -1418,7 +1418,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         cpaFields = getCustomProfileAttributes(testStore.getState());
         expect(cpaFields).toBeTruthy();
-        expect(cpaFields).toEqual(2);
+        expect(cpaFields.length).toEqual(2);
         expect(cpaFields.field1.name).toEqual('Updated Name');
         expect(cpaFields.field2.name).toEqual(field2.name);
 
