@@ -131,7 +131,7 @@ const ChannelInfoRhs = ({
     const openNotificationSettings = () => actions.openModal({
         modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
         dialogType: ChannelNotificationsModal,
-        dialogProps: {channel, currentUser},
+        dialogProps: {channel, currentUser, focusOriginElement: 'channelInfoRHSNotificationSettings'},
     });
 
     const gmUsers = channelMembers.filter((user) => {

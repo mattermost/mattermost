@@ -67,6 +67,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
+            "focusOriginElement": "userAccountMenuButton2",
             "isContentProductSettings": false,
           }
         }
@@ -91,6 +92,7 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
       <MenuItemToggleModalRedux
         dialogProps={
           Object {
+            "focusOriginElement": "userAccountMenuButton3",
             "isContentProductSettings": true,
           }
         }
@@ -152,6 +154,11 @@ exports[`plugins/MainMenuActions should match snapshot in mobile view with some 
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
+          dialogProps={
+            Object {
+              "focusOriginElement": "sidebarDropdownMenuButton",
+            }
+          }
           dialogType={
             Object {
               "$$typeof": Symbol(react.memo),
@@ -479,6 +486,11 @@ exports[`plugins/MainMenuActions should match snapshot in web view 1`] = `
         teamId="someteamid"
       >
         <MenuItemToggleModalRedux
+          dialogProps={
+            Object {
+              "focusOriginElement": "sidebarDropdownMenuButton",
+            }
+          }
           dialogType={
             Object {
               "$$typeof": Symbol(react.memo),

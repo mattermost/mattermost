@@ -147,6 +147,7 @@ const ChannelHeaderTitle = ({
                     id='channelHeaderDropdownButton'
                 >
                     <button
+                        id='channelHeaderMenuButton'
                         className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
                         aria-label={
                             (isDirect && currentUser.id === dmUser?.id) ? personalChannelHeaderAriaLabel.toLowerCase() : othersChannelHeaderAriaLabel.toLowerCase()
