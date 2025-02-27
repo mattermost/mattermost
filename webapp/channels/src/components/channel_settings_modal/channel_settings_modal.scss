@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
- .ChannelSettingsModal {
-    margin-top: 5vh !important;
+.ChannelSettingsModal {
     width: 800px !important;
+    margin-top: 5vh !important;
 
     .GenericModal__wrapper {
         display: flex;
-        flex-direction: column;
-        overflow-y: auto;
+
+        max-width: 1200px;
         max-height: 90vh;
+        flex-direction: column;
         border: var(--border-default);
         border-radius: var(--radius-l);
         box-shadow: var(--elevation-6);
-
-        max-width: 1200px;
+        overflow-y: auto;
         .modal-body {
             display: flex;
-            flex-direction: column;
             width: auto;
             min-height: 150px;
+            flex-direction: column;
             padding: 28px 32px;
             gap: 24px;
             overflow-x: hidden;
@@ -29,9 +29,9 @@
 
     &__bodyWrapper {
         display: flex;
-        flex-direction: column;
         width: 100%;
         max-width: 1024px;
+        flex-direction: column;
         gap: 24px;
     }
 
@@ -44,16 +44,16 @@
             min-width: 200px;
             margin-right: 32px;
             ul {
-                list-style: none;
-                margin: 0;
                 padding: 0;
+                margin: 0;
+                list-style: none;
             }
         }
 
         .settings-content {
             display: flex;
-            flex-direction: column;
             flex: 1;
+            flex-direction: column;
         }
     }
 
@@ -63,11 +63,11 @@
         gap: 16px;
 
         label.Input_legend {
+            margin-bottom: 4px;
             color: var(--center-channel-color);
             font-size: 14px;
-            line-height: 20px;
-            margin-bottom: 4px;
             font-weight: 600;
+            line-height: 20px;
         }
     }
 

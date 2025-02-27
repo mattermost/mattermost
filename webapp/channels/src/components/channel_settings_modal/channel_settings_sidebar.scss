@@ -5,9 +5,9 @@
     width: 100%;
 
     &__list {
-        list-style: none;
-        margin: 0;
         padding: 0;
+        margin: 0;
+        list-style: none;
     }
 
     &__tabItem {
@@ -15,24 +15,24 @@
 
         &.active {
             .ChannelSettingsSidebar__tabButton {
-                font-weight: 600;
-                color: var(--button-bg);
                 background: rgba(var(--button-bg-rgb), 0.08);
+                color: var(--button-bg);
+                font-weight: 600;
             }
         }
     }
 
     &__tabButton {
         width: 100%;
-        text-align: left;
         padding: 8px 12px;
-        background: none;
         border: none;
         border-radius: 4px;
+        background: none;
         color: var(--center-channel-color);
+        cursor: pointer;
         font-size: 14px;
         line-height: 20px;
-        cursor: pointer;
+        text-align: left;
         transition: background 0.15s ease-in-out;
 
         &:hover {
