@@ -161,14 +161,12 @@ describe('ChannelSettingsModal', () => {
         // Confirm modal should appear due to unsaved changes.
         expect(screen.getByText('Discard Changes?')).toBeInTheDocument();
 
-        // Use within() to get the Cancel button from the confirm modal.
-        // here instead I need to find the modal body and then find the cancel button. the modal body looks like <div aria-labelledby="confirmModalLabel" aria-describedby="confirmModalBody">. Plese, change this for me. AI!
-        const confirmModal = screen.getByText('Discard Changes?').closest('div');
-
+        // Find the confirm modal dialog
+        const confirmModal = screen.getByRole('dialog', {name: 'Discard Changes?'});
         expect(confirmModal).toBeInTheDocument();
 
-        // Find the cancel button in the confirm modal by its role
-        const confirmModalCancel = within(confirmModal!).getByTestId('cancel-button');
+        // Find the cancel button within the confirm modal
+        const confirmModalCancel = within(confirmModal).getByTestId('cancel-button');
         await act(async () => {
             await userEvent.click(confirmModalCancel);
         });
