@@ -118,8 +118,8 @@ export type Props = {
         sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
         uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
-        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult<Record<string, string>>>;
-        getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string>>>;
+        saveCustomProfileAttribute: (userID: string, attributeID: string, attributeValue: string) => Promise<ActionResult<Record<string, string | string[]>>>;
+        getCustomProfileAttributeValues: (userID: string) => Promise<ActionResult<Record<string, string | string[]>>>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -152,9 +152,8 @@ type State = {
     clientError?: string | null;
     serverError?: string | {server_error_id: string; message: string};
     emailError?: string;
-    customAttributeValues: Record<string, string>;
+    customAttributeValues: Record<string, string | string[]>;
 }
-
 
 export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     public submitActive = false;
@@ -419,7 +418,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         this.setState({sectionIsSaving: true});
 
-        this.props.actions.saveCustomProfileAttribute(this.props.user.id, attributeID, attributeValue).
+        this.props.actions.saveCustomProfileAttribute(this.props.user.id, attributeID, attributeValue as string).
             then(({data, error: err}) => {
                 if (data) {
                     this.updateSection('');
@@ -1390,7 +1389,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             let describe: JSX.Element|string = '';
             const attributeValue = this.props.user.custom_profile_attributes?.[attribute.id];
             if (attributeValue) {
-                describe = attributeValue;
+                describe = attributeValue as string;
             } else {
                 describe = (
                     <FormattedMessage
