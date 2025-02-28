@@ -9,7 +9,6 @@ import type {IntlShape} from 'react-intl';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
 import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
