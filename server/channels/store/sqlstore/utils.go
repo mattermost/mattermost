@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
