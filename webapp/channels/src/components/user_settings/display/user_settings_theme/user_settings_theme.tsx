@@ -161,7 +161,11 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         this.props.setRequireConfirm?.(themeChanged);
 
         this.setState({theme});
-        applyTheme(theme);
+        
+        // Only apply the light theme immediately if auto-switch is disabled or system is in light mode
+        if (!this.state.themeAutoSwitch || !isSystemInDarkMode()) {
+            applyTheme(theme);
+        }
     };
 
     updateDarkTheme = (darkTheme: Theme): void => {
@@ -181,9 +185,10 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
         this.setState({darkTheme});
         
-        // Only apply the dark theme if we're in dark mode
-        // This would require detecting the system's current theme mode
-        // For now, we'll just keep showing the light theme in the UI
+        // Apply the dark theme immediately if we're in dark mode and auto-switch is enabled
+        if (this.state.themeAutoSwitch && isSystemInDarkMode()) {
+            applyTheme(darkTheme);
+        }
     };
 
     updateType = (type: string): void => this.setState({type});
