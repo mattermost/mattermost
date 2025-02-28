@@ -283,6 +283,12 @@ describe('formatWithRenderer | LinkOnlyRenderer', () => {
             inputText: 'Let\'s try http://example/result?things={stuff}',
             outputText: 'Let&#39;s try <a class="theme markdown__link" href="http://example/result?things={stuff}" target="_blank">http://example/result?things={stuff}</a>',
         },
+        {
+            description: 'link: link with a full-length punctuation',
+            inputText: 'Do you like https://mattermost.com/，這是第二個網址。?',
+            outputText: 'Do you like <a class="theme markdown__link" href="https://mattermost.com/" target="_blank">' +
+                'https://mattermost.com/</a>，這是第二個網址。?',
+        },
     ];
 
     const linkOnlyRenderer = new LinkOnlyRenderer();
