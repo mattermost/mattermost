@@ -13,8 +13,8 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {Constants} from 'utils/constants';
+import {initializeSystemThemeDetection, isSystemInDarkMode} from 'utils/theme_utils';
 import {applyTheme} from 'utils/utils';
-import {initializeSystemThemeDetection, applySystemThemeIfNeeded, isSystemInDarkMode} from 'utils/theme_utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -59,7 +59,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     originalTheme: Theme;
     originalDarkTheme: Theme;
     originalThemeAutoSwitch: boolean;
-    
+
     constructor(props: Props) {
         super(props);
 
@@ -124,10 +124,10 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         this.setState({isSaving: true});
 
         await this.props.actions.saveTheme(teamId, this.state.theme);
-        await this.props.actions.saveThemeAutoSwitch(this.state.themeAutoSwitch);        
+        await this.props.actions.saveThemeAutoSwitch(this.state.themeAutoSwitch);
         if (this.state.themeAutoSwitch) {
             await this.props.actions.saveDarkTheme(teamId, this.state.darkTheme);
-        }            
+        }
 
         // Apply the appropriate theme based on system preference when auto-switch is enabled
         if (isSystemInDarkMode() && this.state.themeAutoSwitch) {
@@ -135,7 +135,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         } else {
             applyTheme(this.state.theme);
         }
-                
+
         if (this.state.applyToAllTeams) {
             await this.props.actions.deleteTeamSpecificThemes();
         }
@@ -164,7 +164,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         this.props.setRequireConfirm?.(themeChanged);
 
         this.setState({theme});
-        
+
         // Only apply the light theme immediately if auto-switch is disabled or system is in light mode
         if (!this.state.themeAutoSwitch || !isSystemInDarkMode()) {
             applyTheme(theme);
@@ -187,7 +187,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         this.props.setRequireConfirm?.(themeChanged);
 
         this.setState({darkTheme});
-        
+
         // Apply the dark theme immediately if we're in dark mode and auto-switch is enabled
         if (this.state.themeAutoSwitch && isSystemInDarkMode()) {
             applyTheme(darkTheme);
@@ -195,19 +195,19 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     };
 
     updateType = (type: string): void => this.setState({type});
-    
+
     updateDarkType = (darkType: string): void => this.setState({darkType});
 
     toggleThemeAutoSwitch = (): void => {
         const themeAutoSwitch = !this.state.themeAutoSwitch;
         this.setState({themeAutoSwitch});
         this.props.setRequireConfirm?.(this.originalThemeAutoSwitch !== themeAutoSwitch);
-        
+
         // If auto-switch is being enabled, initialize the system theme detection
         // and apply the appropriate theme based on the system preference
         if (themeAutoSwitch) {
             initializeSystemThemeDetection();
-            
+
             // Apply the appropriate theme immediately based on the current system preference
             if (isSystemInDarkMode() && this.state.darkTheme) {
                 applyTheme(this.state.darkTheme);
@@ -294,7 +294,10 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
             // Auto-switch toggle
             inputs.push(
-                <div className='checkbox' key='themeAutoSwitchCheckbox'>
+                <div
+                    className='checkbox'
+                    key='themeAutoSwitchCheckbox'
+                >
                     <label>
                         <input
                             id='themeAutoSwitch'

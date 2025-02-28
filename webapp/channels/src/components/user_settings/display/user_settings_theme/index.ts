@@ -3,13 +3,12 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
+import type {Dispatch, AnyAction} from 'redux';
 
-import {saveTheme, deleteTeamSpecificThemes} from 'mattermost-redux/actions/preferences';
+import {deleteTeamSpecificThemes, savePreferences, saveTheme} from 'mattermost-redux/actions/preferences';
 import {getTheme, getThemePreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeamsCount} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 import {openModal} from 'actions/views/modals';
 
@@ -20,27 +19,26 @@ import type {GlobalState} from 'types/store';
 import UserSettingsTheme from './user_settings_theme';
 
 function mapStateToProps(state: GlobalState) {
-    const currentUserId = getCurrentUserId(state);
     const teamId = getCurrentTeamId(state);
-    
+
     // Get the dark theme if it exists
     const darkThemePreferences = state.entities.preferences.myPreferences;
     let darkTheme;
-    
+
     // Find the dark theme for the current team or the default dark theme
     const darkThemePrefKey = `theme_dark--${teamId}`;
     const defaultDarkThemePrefKey = 'theme_dark--';
-    
+
     if (darkThemePreferences[darkThemePrefKey]) {
         darkTheme = JSON.parse(darkThemePreferences[darkThemePrefKey].value);
     } else if (darkThemePreferences[defaultDarkThemePrefKey]) {
         darkTheme = JSON.parse(darkThemePreferences[defaultDarkThemePrefKey].value);
     }
-    
+
     // Check if theme auto switch is enabled
     const themeAutoSwitchPref = darkThemePreferences[`${Preferences.CATEGORY_DISPLAY_SETTINGS}--theme_auto_switch`];
     const themeAutoSwitch = themeAutoSwitchPref ? themeAutoSwitchPref.value === 'true' : false;
-    
+
     return {
         currentTeamId: teamId,
         theme: getTheme(state),
@@ -56,7 +54,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             saveTheme,
             saveDarkTheme: (teamId: string, theme: any) => {
-                const key = teamId ? teamId : '';
+                const key = teamId || '';
                 return (dispatch: Dispatch, getState: () => GlobalState) => {
                     const state = getState();
                     const currentUserId = getCurrentUserId(state);
@@ -65,7 +63,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
                         category: 'theme_dark',
                         name: key,
                         value: JSON.stringify(theme),
-                    }]));
+                    }]) as unknown as AnyAction);
                 };
             },
             saveThemeAutoSwitch: (value: boolean) => {
@@ -77,7 +75,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
                         category: Preferences.CATEGORY_DISPLAY_SETTINGS,
                         name: 'theme_auto_switch',
                         value: value.toString(),
-                    }]));
+                    }]) as unknown as AnyAction);
                 };
             },
             deleteTeamSpecificThemes,
