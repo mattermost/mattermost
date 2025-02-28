@@ -3992,7 +3992,7 @@
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "Ungültige ID."
+    "translation": "Ungültige ID: {{.Id}}."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -10418,5 +10418,25 @@
   {
     "id": "app.file_info.get_storage_usage.app_error",
     "translation": "Die Speichernutzung aller Dateien konnte nicht ermittelt werden."
+  },
+  {
+    "id": "api.context.get_session.app_error",
+    "translation": "Sitzung nicht gefunden."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
+    "translation": "Benutzerdefinierte Profilattributfelder können nicht hochgeladen werden"
+  },
+  {
+    "id": "app.custom_profile_attributes.count_property_fields.app_error",
+    "translation": "Die Anzahl der Felder für die Attributgruppe des benutzerdefinierten Profils kann nicht gezählt werden"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
+    "translation": "Ungültige Client Side User ID: {{.Id}}"
+  },
+  {
+    "id": "model.config.is_valid.metrics_client_side_user_ids.app_error",
+    "translation": "Die Anzahl der Elemente in ClientSideUserIds {{.CurrentLength}} ist höher als die maximale Grenze von {{.MaxLength}}."
   }
 ]
