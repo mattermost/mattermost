@@ -125,7 +125,7 @@ function verifyRenamePrivateChannel(teamName, privateChannelName, testUsers) {
         cy.visit(`/${teamName}/channels/${privateChannelName}`);
 
         // * Click the dropdown menu and verify if the rename option is visible or not
-        cy.get('#channelHeaderDropdownIcon', {timeout: TIMEOUTS.TWO_MIN}).should('be.visible').click();
+        cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.TWO_MIN}).should('be.visible').click();
         cy.get('#channelRename').should(canRename ? 'be.visible' : 'not.exist');
     }
 }
