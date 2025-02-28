@@ -36,10 +36,10 @@ import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {rudderAnalytics, RudderTelemetryHandler} from 'utils/rudder';
+import {initializeSystemThemeDetection, cleanupSystemThemeDetection, applySystemThemeIfNeeded} from 'utils/theme_utils';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
 import {applyTheme, isTextDroppableEvent} from 'utils/utils';
-import {initializeSystemThemeDetection, cleanupSystemThemeDetection, applySystemThemeIfNeeded} from 'utils/theme_utils';
 
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
@@ -263,7 +263,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         // First check if we should apply a theme based on system preference
         const systemThemeApplied = applySystemThemeIfNeeded();
-        
+ 
         // If no system theme was applied, use the regular theme
         if (!systemThemeApplied) {
             applyTheme(this.props.theme);

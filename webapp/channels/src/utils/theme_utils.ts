@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {Preferences} from 'utils/constants';
-import {applyTheme} from 'utils/utils';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
 import store from 'stores/redux_store';
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {Preferences} from 'utils/constants';
+import {applyTheme} from 'utils/utils';
 
 // Keep track of the media query listener to avoid adding multiple listeners
 let darkModeMediaQuery: MediaQueryList | null = null;
@@ -27,10 +26,10 @@ export function initializeSystemThemeDetection(): void {
     // Check if the browser supports prefers-color-scheme
     if (window.matchMedia) {
         darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        
+
         // Apply the appropriate theme based on the current system preference
         applySystemThemeIfNeeded();
-        
+
         // Add listener for system theme changes
         try {
             // Modern browsers
@@ -39,7 +38,7 @@ export function initializeSystemThemeDetection(): void {
             // Fallback for older browsers
             darkModeMediaQuery.addListener(applySystemThemeIfNeeded);
         }
-        
+
         isListenerInitialized = true;
     }
 }
@@ -57,7 +56,7 @@ export function cleanupSystemThemeDetection(): void {
             // Fallback for older browsers
             darkModeMediaQuery.removeListener(applySystemThemeIfNeeded);
         }
-        
+
         isListenerInitialized = false;
     }
 }
@@ -69,30 +68,30 @@ export function cleanupSystemThemeDetection(): void {
  */
 export function applySystemThemeIfNeeded(): boolean {
     const state = store.getState();
-    
+
     // Get preferences
     const displayPreferences = state.entities.preferences.myPreferences;
     const themeAutoSwitchPrefKey = `${Preferences.CATEGORY_DISPLAY_SETTINGS}--theme_auto_switch`;
     const themeAutoSwitchPref = displayPreferences[themeAutoSwitchPrefKey];
-    
+
     // Only proceed if auto-switch is enabled
     if (!themeAutoSwitchPref || themeAutoSwitchPref.value !== 'true') {
         return false;
     }
-    
+
     // Check system preference
     const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
+
     // Get the appropriate theme
     let theme: Theme;
     if (isDarkMode) {
         // Get dark theme
         const teamId = state.entities.teams.currentTeamId;
-        
+
         // Try to get team-specific dark theme first, then fall back to default dark theme
         const darkThemePrefKey = `theme_dark--${teamId}`;
         const defaultDarkThemePrefKey = 'theme_dark--';
-        
+
         if (displayPreferences[darkThemePrefKey]) {
             theme = JSON.parse(displayPreferences[darkThemePrefKey].value);
         } else if (displayPreferences[defaultDarkThemePrefKey]) {
@@ -105,10 +104,10 @@ export function applySystemThemeIfNeeded(): boolean {
         // Use regular theme for light mode
         theme = getTheme(state);
     }
-    
+
     // Apply the theme
     applyTheme(theme);
-    
+
     return true;
 }
 
@@ -117,4 +116,4 @@ export function applySystemThemeIfNeeded(): boolean {
  */
 export function isSystemInDarkMode(): boolean {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-} 
+}
