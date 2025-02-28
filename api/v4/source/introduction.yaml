@@ -619,6 +619,13 @@ x-tagGroups:
       - custom profile attributes
       - metrics
 servers:
-  - url: http://your-mattermost-url.com
-  - url: https://your-mattermost-url.com
+  - url: "{scheme}://{host}"
+    variables:
+      scheme:
+        default: https
+        enum:
+          - http
+          - https
+      host:
+        default: localhost:8065
 paths:
