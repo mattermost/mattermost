@@ -3,10 +3,17 @@
 
 import React from 'react';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserProfile} from '@mattermost/types/users';
+
 type Props = {
-    url?: string;
+    attribute: UserPropertyField;
+    userProfile: UserProfile;
 }
-const ProfilePopoverUrl = ({url}: Props) => {
+
+const ProfilePopoverUrl = ({attribute, userProfile}: Props) => {
+    const url = userProfile.custom_profile_attributes?.[attribute.id] as string;
+
     if (!url) {
         return null;
     }

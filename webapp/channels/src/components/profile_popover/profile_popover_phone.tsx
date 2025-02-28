@@ -3,10 +3,17 @@
 
 import React from 'react';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserProfile} from '@mattermost/types/users';
+
 type Props = {
-    phone?: string;
+    attribute: UserPropertyField;
+    userProfile: UserProfile;
 }
-const ProfilePopoverPhone = ({phone}: Props) => {
+
+const ProfilePopoverPhone = ({attribute, userProfile}: Props) => {
+    const phone = userProfile.custom_profile_attributes?.[attribute.id] as string;
+
     if (!phone) {
         return null;
     }

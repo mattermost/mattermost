@@ -4,25 +4,68 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import ProfilePopoverUrl from './profile_popover_url';
 
+import {TestHelper} from '../../utils/test_helper';
+
 describe('components/ProfilePopoverUrl', () => {
-    test('should not render when url is undefined', () => {
-        renderWithContext(<ProfilePopoverUrl/>);
+    const attribute: UserPropertyField = {
+        id: 'url_attribute_id',
+        name: 'Website',
+        type: 'text',
+        group_id: 'custom_profile_attributes',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        attrs: {
+            value_type: 'url',
+        },
+    };
+
+    const baseProps = {
+        attribute,
+        userProfile: TestHelper.getUserMock({
+            id: 'user_id',
+            custom_profile_attributes: {
+                url_attribute_id: 'https://example.com',
+            },
+        }),
+    };
+
+    test('should not render when url is missing', () => {
+        const props = {
+            ...baseProps,
+            userProfile: TestHelper.getUserMock({
+                id: 'user_id',
+                custom_profile_attributes: {},
+            }),
+        };
+        renderWithContext(<ProfilePopoverUrl {...props}/>);
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
     test('should not render when url is empty', () => {
-        renderWithContext(<ProfilePopoverUrl url=''/>);
+        const props = {
+            ...baseProps,
+            userProfile: TestHelper.getUserMock({
+                id: 'user_id',
+                custom_profile_attributes: {
+                    url_attribute_id: '',
+                },
+            }),
+        };
+        renderWithContext(<ProfilePopoverUrl {...props}/>);
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
     test('should render url with icon', () => {
-        const url = 'https://example.com';
-        renderWithContext(<ProfilePopoverUrl url={url}/>);
+        renderWithContext(<ProfilePopoverUrl {...baseProps}/>);
 
+        const url = 'https://example.com';
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('href', url);
         expect(link).toHaveTextContent(url);
@@ -30,9 +73,18 @@ describe('components/ProfilePopoverUrl', () => {
     });
 
     test('should render long url correctly', () => {
-        const url = 'https://really-long-subdomain.example.com/path/to/resource?param=value';
-        renderWithContext(<ProfilePopoverUrl url={url}/>);
+        const props = {
+            ...baseProps,
+            userProfile: TestHelper.getUserMock({
+                id: 'user_id',
+                custom_profile_attributes: {
+                    url_attribute_id: 'https://really-long-subdomain.example.com/path/to/resource?param=value',
+                },
+            }),
+        };
+        renderWithContext(<ProfilePopoverUrl {...props}/>);
 
+        const url = 'https://really-long-subdomain.example.com/path/to/resource?param=value';
         const container = screen.getByTitle(url);
         expect(container).toBeInTheDocument();
         expect(screen.getByRole('link')).toHaveTextContent(url);

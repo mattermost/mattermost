@@ -25,8 +25,15 @@ export type PropertyValue<T> = {
     delete_at: number;
 }
 
+export type PropertyFieldOption = {
+    ID: string;
+    Name: string;
+    Color: string;
+}
+
 export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
 export type UserPropertyFieldGroupID = 'custom_profile_attributes';
+export type UserPropertyValueType = 'phone' | 'url' | '';
 
 export type UserPropertyField = PropertyField & {
     type: UserPropertyFieldType;

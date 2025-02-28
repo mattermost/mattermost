@@ -155,11 +155,6 @@ type State = {
     customAttributeValues: Record<string, string>;
 }
 
-export interface CPASelectOption {
-    ID: string;
-    Name: string;
-    Color: string;
-}
 
 export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     public submitActive = false;
