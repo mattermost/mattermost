@@ -313,10 +313,17 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             inputs.push(
                 <div key='lightThemeHeader'>
                     <h4>
-                        <FormattedMessage
-                            id='user.settings.display.theme.lightTheme'
-                            defaultMessage='Light Theme'
-                        />
+                        {this.state.themeAutoSwitch ? (
+                            <FormattedMessage
+                                id='user.settings.display.theme.lightTheme'
+                                defaultMessage='Light Theme'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='user.settings.display.theme.title'
+                                defaultMessage='Theme'
+                            />
+                        )}
                     </h4>
                 </div>,
             );
@@ -341,7 +348,6 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                 defaultMessage='Theme Colors'
                             />
                         </label>
-                        <br/>
                     </div>,
                 );
             }
@@ -370,30 +376,12 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                 );
 
                 inputs.push(premade, custom);
-
-                inputs.push(
-                    <div key='otherThemes'>
-                        <br/>
-                        <ExternalLink
-                            id='otherThemes'
-                            href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
-                            location='user_settings_theme'
-                        >
-                            <FormattedMessage
-                                id='user.settings.display.theme.otherThemes'
-                                defaultMessage='See other themes'
-                            />
-                        </ExternalLink>
-                    </div>,
-                );
             }
 
             // Dark theme section (only shown when auto-switch is enabled)
             if (this.state.themeAutoSwitch) {
                 inputs.push(
                     <div key='darkThemeHeader'>
-                        <br/>
-                        <hr/>
                         <h4>
                             <FormattedMessage
                                 id='user.settings.display.theme.darkTheme'
@@ -453,6 +441,25 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
                     inputs.push(darkPremade, darkCustom);
                 }
+            }
+
+            // Add "See other themes" link after both light and dark theme sections
+            if (this.props.allowCustomThemes) {
+                inputs.push(
+                    <div key='otherThemes'>
+                        <br/>
+                        <ExternalLink
+                            id='otherThemes'
+                            href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
+                            location='user_settings_theme'
+                        >
+                            <FormattedMessage
+                                id='user.settings.display.theme.otherThemes'
+                                defaultMessage='See other themes'
+                            />
+                        </ExternalLink>
+                    </div>,
+                );
             }
 
             let allTeamsCheckbox = null;
