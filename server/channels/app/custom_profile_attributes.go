@@ -76,7 +76,7 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 	return fields, nil
 }
 
-func (a *App) CreateCPAField(field *model.PropertyField) (*model.PropertyField, *model.AppError) {
+func (a *App) CreateCPAField(field *model.CPAField) (*model.PropertyField, *model.AppError) {
 	groupID, err := a.cpaGroupID()
 	if err != nil {
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -92,7 +92,12 @@ func (a *App) CreateCPAField(field *model.PropertyField) (*model.PropertyField, 
 	}
 
 	field.GroupID = groupID
-	newField, err := a.Srv().propertyService.CreatePropertyField(field)
+
+	if appErr := field.Sanitize(); appErr != nil {
+		return nil, appErr
+	}
+
+	newField, err := a.Srv().propertyService.CreatePropertyField(field.ToPropertyField())
 	if err != nil {
 		var appErr *model.AppError
 		switch {
@@ -121,7 +126,16 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 	patch.TargetType = nil
 	existingField.Patch(patch)
 
-	patchedField, err := a.Srv().propertyService.UpdatePropertyField(existingField)
+	cpaField, err := model.NewCPAFieldFromPropertyField(existingField)
+	if err != nil {
+		return nil, model.NewAppError("UpdateCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if appErr := cpaField.Sanitize(); appErr != nil {
+		return nil, appErr
+	}
+
+	patchedField, err := a.Srv().propertyService.UpdatePropertyField(cpaField.ToPropertyField())
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

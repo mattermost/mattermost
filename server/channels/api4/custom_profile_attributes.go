@@ -53,7 +53,7 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pf *model.PropertyField
+	var pf *model.CPAField
 	err := json.NewDecoder(r.Body).Decode(&pf)
 	if err != nil || pf == nil {
 		c.SetInvalidParamWithErr("property_field", err)
