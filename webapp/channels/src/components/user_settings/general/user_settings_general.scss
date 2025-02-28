@@ -1,8 +1,8 @@
 /* Custom styles for ReactSelect components */
 .react-select__value-container {
+    height: auto !important;
     flex-wrap: wrap !important;
     white-space: normal !important;
-    height: auto !important;
     min-height: 38px !important;
 }
 
@@ -12,8 +12,8 @@
 
 /* Ensure the control can grow with content */
 .react-select__control {
-    min-height: 38px !important;
     height: auto !important;
+    min-height: 38px !important;
 }
 
 /* Improve readability of selected values */
