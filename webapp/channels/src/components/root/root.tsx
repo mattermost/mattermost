@@ -39,6 +39,7 @@ import {rudderAnalytics, RudderTelemetryHandler} from 'utils/rudder';
 import {getSiteURL} from 'utils/url';
 import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
 import {applyTheme, isTextDroppableEvent} from 'utils/utils';
+import {initializeSystemThemeDetection, cleanupSystemThemeDetection, applySystemThemeIfNeeded} from 'utils/theme_utils';
 
 import LuxonController from './luxon_controller';
 import PerformanceReporterController from './performance_reporter_controller';
@@ -260,7 +261,13 @@ export default class Root extends React.PureComponent<Props, State> {
             return;
         }
 
-        applyTheme(this.props.theme);
+        // First check if we should apply a theme based on system preference
+        const systemThemeApplied = applySystemThemeIfNeeded();
+        
+        // If no system theme was applied, use the regular theme
+        if (!systemThemeApplied) {
+            applyTheme(this.props.theme);
+        }
     }
 
     componentDidUpdate(prevProps: Props, prevState: State) {
@@ -355,6 +362,10 @@ export default class Root extends React.PureComponent<Props, State> {
     componentDidMount() {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
+        // Initialize system theme detection and apply the appropriate theme
+        initializeSystemThemeDetection();
+        applySystemThemeIfNeeded();
+
         this.initiateMeRequests();
 
         measurePageLoadTelemetry();
@@ -370,6 +381,9 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
+        // Clean up system theme detection
+        cleanupSystemThemeDetection();
+
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
         document.removeEventListener('drop', this.handleDropEvent);
         document.removeEventListener('dragover', this.handleDragOverEvent);

@@ -14,6 +14,7 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {Constants} from 'utils/constants';
 import {applyTheme} from 'utils/utils';
+import {initializeSystemThemeDetection, applySystemThemeIfNeeded, isSystemInDarkMode} from 'utils/theme_utils';
 
 import type {ModalData} from 'types/actions';
 
@@ -193,6 +194,22 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         const themeAutoSwitch = !this.state.themeAutoSwitch;
         this.setState({themeAutoSwitch});
         this.props.setRequireConfirm?.(this.originalThemeAutoSwitch !== themeAutoSwitch);
+        
+        // If auto-switch is being enabled, initialize the system theme detection
+        // and apply the appropriate theme based on the system preference
+        if (themeAutoSwitch) {
+            initializeSystemThemeDetection();
+            
+            // Apply the appropriate theme immediately based on the current system preference
+            if (isSystemInDarkMode() && this.state.darkTheme) {
+                applyTheme(this.state.darkTheme);
+            } else {
+                applyTheme(this.state.theme);
+            }
+        } else {
+            // If auto-switch is being disabled, revert to the light theme
+            applyTheme(this.state.theme);
+        }
     };
 
     resetFields = (): void => {
