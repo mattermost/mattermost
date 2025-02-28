@@ -32,7 +32,7 @@ import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel';
 import MenuItemUnarchiveChannel from '../menu_items/unarchive_channel';
 import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts';
 
-type Props = {
+interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
     user: UserProfile;
     isMuted: boolean;
@@ -42,9 +42,9 @@ type Props = {
     isFavorite: boolean;
     isLicensedForLDAPGroups: boolean;
     pluginItems: ReactNode[];
-};
+}
 
-const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems}: Props) => {
+const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems, ...rest}: Props) => {
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
@@ -57,6 +57,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isReadonly, isDefault,
         <>
             <MenuItemToggleInfo
                 channel={channel}
+                {...rest}
             />
             <MenuItemToggleMuteChannel
                 userID={user.id}

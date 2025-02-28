@@ -16,11 +16,11 @@ import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-type Props = {
+interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
 }
 
-const Groups = ({channel}: Props): JSX.Element => {
+const Groups = ({channel, ...rest}: Props): JSX.Element => {
     const dispatch = useDispatch();
     return (
         <>
@@ -41,6 +41,7 @@ const Groups = ({channel}: Props): JSX.Element => {
                         defaultMessage='Add Groups'
                     />
                 }
+                {...rest}
             />
             <Menu.Item
                 id='channelManageGroups'
@@ -60,6 +61,7 @@ const Groups = ({channel}: Props): JSX.Element => {
                         defaultMessage='Manage Groups'
                     />
                 }
+                {...rest}
             />
         </>
     );

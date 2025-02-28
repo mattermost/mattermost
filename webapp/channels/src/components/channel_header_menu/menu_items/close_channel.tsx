@@ -8,7 +8,9 @@ import {goToLastViewedChannel} from 'actions/views/channel';
 
 import * as Menu from 'components/menu';
 
-const CloseChannel = (): JSX.Element => {
+interface Props extends Menu.FirstMenuItemProps {}
+
+const CloseChannel = ({...rest}: Props): JSX.Element => {
     return (
         <Menu.Item
             onClick={goToLastViewedChannel}
@@ -17,6 +19,7 @@ const CloseChannel = (): JSX.Element => {
                     id='center_panel.archived.closeChannel'
                     defaultMessage='Close Channel'
                 />}
+            {...rest}
         />
     );
 };

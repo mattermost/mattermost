@@ -16,12 +16,12 @@ import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-type Props = {
+interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
     user: UserProfile;
 }
 
-const Notification = ({channel, user}: Props): JSX.Element => {
+const Notification = ({channel, user, ...rest}: Props): JSX.Element => {
     const dispatch = useDispatch();
 
     return (
@@ -45,6 +45,7 @@ const Notification = ({channel, user}: Props): JSX.Element => {
                     defaultMessage='Notification Preferences'
                 />
             }
+            {...rest}
         />
     );
 };

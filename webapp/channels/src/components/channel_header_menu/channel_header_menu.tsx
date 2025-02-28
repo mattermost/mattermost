@@ -29,8 +29,8 @@ import {Constants} from 'utils/constants';
 
 import ChannelDirectMenu from './channel_header_menu_items/channel_header_direct_menu';
 import ChannelGroupMenu from './channel_header_menu_items/channel_header_group_menu';
+import ChannelHeaderMobileMenu from './channel_header_menu_items/channel_header_mobile_menu';
 import ChannelPublicPrivateMenu from './channel_header_menu_items/channel_header_public_private_menu';
-import MobileChannelHeaderPlugins from './menu_items/mobile_channel_header_plugins';
 
 import ChannelHeaderTitleDirect from '../channel_header/channel_header_title_direct';
 import ChannelHeaderTitleGroup from '../channel_header/channel_header_title_group';
@@ -43,7 +43,7 @@ type Props = {
     isMobile?: boolean;
 }
 
-export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
+export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archivedIcon, sharedIcon}: Props): JSX.Element | null {
     const intl = useIntl();
 
     const user = useSelector(getCurrentUser);
@@ -55,7 +55,6 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
 
     const isReadonly = false;
-    const {dmUser, gmMembers, isMobile, archivedIcon, sharedIcon} = props;
 
     if (!channel) {
         return null;
@@ -71,9 +70,9 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
     }, {
         displayName: channel.display_name,
     });
-    if (isDirect) {
+    if (isDirect && dmUser) {
         channelTitle = <ChannelHeaderTitleDirect dmUser={dmUser}/>;
-        if (user.id === dmUser?.id) {
+        if (user.id === dmUser.id) {
             ariaLabel = intl.formatMessage({
                 id: 'channel_header.directchannel',
                 defaultMessage: '{displayName} (you) Channel Menu',
@@ -165,19 +164,17 @@ export default function ChannelHeaderMenu(props: Props): JSX.Element | null {
                     pluginItems={pluginItems}
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
-                    isReadonly={isReadonly}
                     isDefault={isDefault}
+                    isReadonly={isReadonly}
                     isLicensedForLDAPGroups={isLicensedForLDAPGroups}
                 />
             )}
 
-            {isMobile && pluginItems}
-            {isMobile && (
-                <MobileChannelHeaderPlugins
-                    channel={channel}
-                    isDropdown={true}
-                />
-            )}
+            <ChannelHeaderMobileMenu
+                isMobile={isMobile || false}
+                pluginItems={pluginItems}
+                channel={channel}
+            />
         </Menu.Container>
     );
 }

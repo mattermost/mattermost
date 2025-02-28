@@ -30,16 +30,16 @@ import MenuItemToggleInfo from '../menu_items/toggle_info';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel';
 import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts';
 
-type Props = {
+interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
     user: UserProfile;
     isMuted: boolean;
     isMobile: boolean;
     isFavorite: boolean;
     pluginItems: ReactNode[];
-};
+}
 
-const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems}: Props) => {
+const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, pluginItems, ...rest}: Props) => {
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const {formatMessage} = useIntl();
@@ -48,6 +48,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
         <>
             <MenuItemToggleInfo
                 channel={channel}
+                {...rest}
             />
             <MenuItemToggleMuteChannel
                 userID={user.id}

@@ -15,11 +15,11 @@ import * as Menu from 'components/menu';
 
 import {RHSStates} from 'utils/constants';
 
-type Props = {
+interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
-};
+}
 
-const ToggleInfo = ({channel}: Props) => {
+const ToggleInfo = ({channel, ...rest}: Props) => {
     const dispatch = useDispatch();
     let rhsOpen = useSelector(getIsRhsOpen);
     const rhsState = useSelector(getRhsState);
@@ -56,6 +56,7 @@ const ToggleInfo = ({channel}: Props) => {
                 leadingElement={<InformationOutlineIcon size='18px'/>}
                 onClick={toggleRHS}
                 labels={text}
+                {...rest}
             />
         </>
     );
