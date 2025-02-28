@@ -45,7 +45,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
         isMobileView: false,
-        customProfileAttributeFields: {},
+        customProfileAttributeFields: [],
         actions: {
             logError: jest.fn(),
             clearErrors: jest.fn(),
@@ -199,7 +199,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: customProfileAttribute},
+            customProfileAttributeFields: [customProfileAttribute],
             user: testUser,
         };
 
@@ -216,7 +216,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: customProfileAttribute},
+            customProfileAttributeFields: [customProfileAttribute],
             user: testUser,
         };
 
@@ -233,7 +233,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: customProfileAttribute},
+            customProfileAttributeFields: [customProfileAttribute],
             user: testUser,
         };
 
@@ -248,7 +248,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: customProfileAttribute},
+            customProfileAttributeFields: [customProfileAttribute],
             actions: {...requiredProps.actions},
             user: testUser,
         };
@@ -268,7 +268,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const props = {
             ...requiredProps,
             enableCustomProfileAttributes: true,
-            customProfileAttributeFields: {field1: customProfileAttribute},
+            customProfileAttributeFields: [customProfileAttribute],
             user,
             activeSection: 'customAttribute_field1',
         };
@@ -283,7 +283,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             ...requiredProps,
             enableCustomProfileAttributes: true,
             actions: {...requiredProps.actions, saveCustomProfileAttribute},
-            customProfileAttributeFields: {field1: customProfileAttribute},
+            customProfileAttributeFields: [customProfileAttribute],
             user: {...user},
             activeSection: 'customAttribute_field1',
         };

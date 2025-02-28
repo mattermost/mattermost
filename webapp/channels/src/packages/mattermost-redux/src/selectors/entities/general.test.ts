@@ -412,21 +412,21 @@ describe('Selectors.General', () => {
                 },
             } as unknown as GlobalState;
 
-            expect(Selectors.getCustomProfileAttributes(state)).toEqual({});
+            expect(Selectors.getCustomProfileAttributes(state)).toEqual([]);
         });
 
         test('should return the value of the attributes', () => {
-            const state = {
+            let state = {
                 entities: {
                     general: {
-                        customProfileAttributes: [{id: '123', name: 'test attribute', dataType: 'text'}],
+                        customProfileAttributes: {123: {id: '123', name: 'test attribute', dataType: 'text'}},
                     },
                 },
             } as unknown as GlobalState;
 
             expect(Selectors.getCustomProfileAttributes(state)[0].id).toEqual('123');
-            state.entities.general.customProfileAttributes = {};
-            expect(Selectors.getCustomProfileAttributes(state)).toEqual({});
+            state = {...state, entities: {...state.entities, general: {...state.entities.general, customProfileAttributes: {}}}};
+            expect(Selectors.getCustomProfileAttributes(state)).toEqual([]);
         });
     });
 });
