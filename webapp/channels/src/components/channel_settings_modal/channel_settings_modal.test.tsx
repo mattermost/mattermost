@@ -65,21 +65,23 @@ describe('ChannelSettingsModal', () => {
         expect(screen.getByText('Channel Name')).toBeInTheDocument();
     });
 
-    // Verify that unsaved changes enable the Save button.
-    it('should enable Save when unsaved changes exist', async () => {
+    // Verify that unsaved changes show the SaveChangesPanel
+    it('should show SaveChangesPanel when unsaved changes exist', async () => {
         renderWithContext(<ChannelSettingsModal {...baseProps}/>);
-        const saveButton = screen.getByText('Save changes').closest('button');
 
-        // Initially, no changes have been made so the save should be disabled.
-        expect(saveButton).toBeDisabled();
+        // Initially, SaveChangesPanel should not be visible
+        expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
 
         // Change the channel name by typing into the input.
-        const nameInput = screen.getByPlaceholderText('Enter a name for your channel');
+        const nameInput = screen.getByLabelText('Channel name');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'Updated Channel Name');
 
-        // After change, the save button should be enabled.
-        await waitFor(() => expect(saveButton).not.toBeDisabled());
+        // After change, the SaveChangesPanel should be visible with Save button
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+            expect(screen.getByTestId('mm-save-changes-panel__save-btn')).toBeInTheDocument();
+        });
     });
 
     // Verify that a valid save calls patchChannel and closes the modal.
@@ -88,10 +90,16 @@ describe('ChannelSettingsModal', () => {
         const onExited = jest.fn();
         renderWithContext(<ChannelSettingsModal {...{...baseProps, onExited}}/>);
 
-        // Make a change to enable the Save button.
-        const nameInput = screen.getByPlaceholderText('Enter a name for your channel');
+        // Make a change to show the SaveChangesPanel
+        // Find the input by aria-label
+        const nameInput = screen.getByLabelText('Channel name');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'Updated Channel Name');
+
+        // Wait for SaveChangesPanel to appear
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
 
         // Update patchChannel to simulate an async successful save.
         patchChannel.mockImplementation(() => {
@@ -103,9 +111,10 @@ describe('ChannelSettingsModal', () => {
             return {type: 'MOCK_ACTION', data: {}};
         });
 
-        const saveButton = screen.getByText('Save changes').closest('button');
+        // Click the Save button in the SaveChangesPanel
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
         await act(async () => {
-            await userEvent.click(saveButton!);
+            await userEvent.click(saveButton);
         });
 
         // Wait for the async patchChannel call.
@@ -115,8 +124,8 @@ describe('ChannelSettingsModal', () => {
         await waitFor(() => expect(onExited).toHaveBeenCalled(), {timeout: 1000});
     });
 
-    // Verify that unsaved changes trigger the confirm modal when switching tabs.
-    it('should show confirm modal when switching tabs with unsaved changes', async () => {
+    // Verify that unsaved changes show the SaveChangesPanel when switching tabs.
+    it('should show SaveChangesPanel when switching tabs with unsaved changes', async () => {
         renderWithContext(<ChannelSettingsModal {...baseProps}/>);
 
         // Simulate unsaved changes: change channel purpose.
@@ -124,49 +133,109 @@ describe('ChannelSettingsModal', () => {
         await userEvent.clear(purposeTextarea);
         await userEvent.type(purposeTextarea, 'New purpose');
 
-        // Click on the "Configuration" tab in the sidebar.
-        const configTabButton = screen.getByRole('button', {name: 'Configuration'});
+        // Wait for the lazy-loaded sidebar to render the "Configuration" tab.
+        const configTabButton = await screen.findByRole('tab', {name: 'configuration'});
         await act(async () => {
             await userEvent.click(configTabButton);
         });
 
-        // Expect the confirm modal to be shown.
-        expect(screen.getByText('Discard Changes?')).toBeInTheDocument();
+        // Expect the SaveChangesPanel to be shown.
+        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        expect(screen.getByTestId('mm-save-changes-panel__save-btn')).toBeInTheDocument();
+        expect(screen.getByTestId('mm-save-changes-panel__cancel-btn')).toBeInTheDocument();
+    });
 
-        // Click on the confirm button in the confirm modal.
-        const confirmButton = screen.getByText('Yes, Discard');
+    // Verify that clicking Undo in the SaveChangesPanel resets the form.
+    it('should reset form when Undo is clicked in SaveChangesPanel', async () => {
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+        // Make a change to show the SaveChangesPanel
+        const nameInput = screen.getByLabelText('Channel name');
+        const originalName = nameInput.getAttribute('value');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Changed Name');
+
+        // Wait for SaveChangesPanel to appear
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        // Click the Undo button in the SaveChangesPanel
+        const undoButton = screen.getByTestId('mm-save-changes-panel__cancel-btn');
         await act(async () => {
-            await userEvent.click(confirmButton);
+            await userEvent.click(undoButton);
+        });
+
+        // Verify the form was reset to original values
+        await waitFor(() => {
+            const nameInput = screen.getByLabelText('Channel name');
+            expect(nameInput.getAttribute('value')).toBe(originalName);
+
+            // SaveChangesPanel should be hidden after reset
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
         });
     });
 
-    //Verify that clicking cancel on the modal triggers the hide (and confirm modal if unsaved changes exist).
-    it('should trigger hide when cancel is clicked', async () => {
-        const onExited = jest.fn();
-        renderWithContext(<ChannelSettingsModal {...{...baseProps, onExited}}/>);
+    // Test that the SaveChangesPanel shows "saved" state when save succeeds
+    it('should show saved state in SaveChangesPanel when save succeeds', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
 
-        // Make a change to require confirmation.
-        const nameInput = screen.getByPlaceholderText('Enter a name for your channel');
+        // Make a change to show the SaveChangesPanel
+        const nameInput = screen.getByLabelText('Channel name');
+
         await userEvent.clear(nameInput);
-        await userEvent.type(nameInput, 'Another change');
+        await userEvent.type(nameInput, 'Updated Channel Name');
 
-        // Click the main modal "Cancel" button (use test id if available).
-        const genericCancelButton =
-            screen.queryByTestId('cancelModalButton') || screen.getAllByText('Cancel')[0];
-        await act(async () => {
-            await userEvent.click(genericCancelButton);
+        // Wait for SaveChangesPanel to appear
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
         });
 
-        // Confirm modal should appear due to unsaved changes.
-        expect(screen.getByText('Discard Changes?')).toBeInTheDocument();
+        // Mock successful save
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        // Instead of trying to locate the modal footer, wait for the cancel button to appear by test ID.
-        const confirmModalCancel = await screen.findByTestId('cancel-button');
+        // Click the Save button in the SaveChangesPanel
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
         await act(async () => {
-            await userEvent.click(confirmModalCancel);
+            await userEvent.click(saveButton);
         });
 
-        // The modal should still be visible.
-        expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        // Verify "Settings saved" message appears
+        await waitFor(() => {
+            expect(screen.getByText('Settings saved')).toBeInTheDocument();
+        });
+    });
+
+    // Test that the SaveChangesPanel shows "error" state when save fails
+    it('should show error state in SaveChangesPanel when save fails', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+        // Make a change to show the SaveChangesPanel
+        const nameInput = screen.getByLabelText('Channel name');
+
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Updated Channel Name');
+
+        // Wait for SaveChangesPanel to appear
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        // Mock failed save
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', error: {message: 'Error saving channel'}});
+
+        // Click the Save button in the SaveChangesPanel
+        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
+        await act(async () => {
+            await userEvent.click(saveButton);
+        });
+
+        // Verify error message appears
+        await waitFor(() => {
+            expect(screen.getByText('There was an error saving your settings')).toBeInTheDocument();
+            expect(screen.getByText('Try again')).toBeInTheDocument();
+        });
     });
 });

@@ -143,7 +143,9 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             return;
         }
         setSaveChangesPanelState('saved');
-        setRequireConfirm(false);
+
+        // Don't set requireConfirm to false here
+        // Let the SaveChangesPanel's automatic timeout handle it
     }, []);
 
     const handleClose = useCallback(() => {
@@ -220,8 +222,8 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
             return false;
         }
 
-        // On success, close the modal
-        handleHideConfirm();
+        // Return success, but don't close the modal yet
+        // Let the SaveChangesPanel show the "Settings saved" message first
         return true;
     };
 
@@ -338,7 +340,7 @@ function ChannelSettingsModal({channel, isOpen, onExited, focusOriginElement}: C
                             defaultMessage: 'Enter a header for this channel',
                         })}
                         rows={showPreview ? 2 : 4}
-                        value={channel.header}
+                        value={header}
                         onChange={(e) => {
                             setChannelHeader(e.target.value);
                         }}
