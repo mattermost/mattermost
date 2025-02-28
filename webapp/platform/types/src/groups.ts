@@ -43,9 +43,20 @@ export type Group = {
     member_ids?: string[];
 };
 
+/**
+ * Main sources for groups
+ */
 export enum GroupSource {
     Ldap = 'ldap',
     Custom = 'custom',
+}
+
+/**
+ * Special prefixes that can be added to group sources when they come from plugins
+ * Used for identifying plugin-created groups by checking if source starts with this prefix
+ */
+export enum PluginGroupSourcePrefix {
+    Plugin = 'plugin_'
 }
 
 export type GroupTeam = {
